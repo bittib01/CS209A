@@ -1,0 +1,97 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "string",
+      "http",
+      "http-headers",
+      "text-parsing"
+    ],
+    "owner": {
+      "account_id": 22114836,
+      "reputation": 1,
+      "user_id": 16369121,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/f3809bc9ffd8edb176ab83509e08e0c2?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Abdelouahab ",
+      "link": "https://stackoverflow.com/users/16369121/abdelouahab"
+    },
+    "is_answered": true,
+    "view_count": 51,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1764885099,
+    "creation_date": 1764878538,
+    "last_edit_date": 1764879847,
+    "question_id": 79838312,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79838312/how-to-handle-variable-length-header-values-when-parsing-http-requests-in-java",
+    "title": "How to handle variable-length header values when parsing HTTP requests in Java?",
+    "body": "<p>I'm building an HTTP server and parsing request headers. My current code fails when the <code>Host</code> header includes a port number because I'm splitting on <code>:</code>.</p>\n<p><strong>Current Code:</strong></p>\n<pre class=\"lang-java prettyprint-override\"><code>String[] header = line.split(&quot;:&quot;);\nString key = header[0].trim();\nString value = header[1].trim();\nif (key.equals(&quot;Host&quot;)) {\n    value = value + &quot;:&quot; + header[2]; // ArrayIndexOutOfBoundsException!\n}\n</code></pre>\n<p><strong>Problem:</strong></p>\n<ul>\n<li><p>Works for <code>Host: example.com:8080</code></p>\n</li>\n<li><p>Fails for <code>Host: example.com</code> (no port)</p>\n</li>\n</ul>\n<p><strong>Question:</strong></p>\n<p>What's the best way to rejoin header values that may contain colons?</p>\n<p><strong>What I've tried:</strong></p>\n<ul>\n<li><p>Checking <code>header.length</code> but feels clunky</p>\n</li>\n<li><p>Using <code>indexOf(':')</code> instead of <code>split()</code></p>\n</li>\n</ul>\n<p>Which approach is more robust for HTTP header parsing?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 401843,
+        "reputation": 107175,
+        "user_id": 768644,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/b13bedc5215730fbce5edff6c130988a?s=256&d=identicon&r=PG",
+        "display_name": "rzwitserloot",
+        "link": "https://stackoverflow.com/users/768644/rzwitserloot"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1764885099,
+      "creation_date": 1764885099,
+      "answer_id": 79838379,
+      "question_id": 79838312,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p><code>.split(&quot;:&quot;, 2)</code> will do exactly what you want:</p>\n<pre class=\"lang-java prettyprint-override\"><code>String[] parts = &quot;Host: foobar.com:1234&quot;.split(&quot;\\\\s*:\\\\s*&quot;, 2);\nassert parts.length == 2;\nassert parts[0].equals(&quot;Host&quot;);\nassert parts[1].equals(&quot;foobar.com:1234&quot;);\n</code></pre>\n<p>I'm sure folks have told you this, but note that whatever you end up with, if you open it up to the internet, someone <strong>will</strong> hack it. The HTTP protocol is unbelievably complicated and the spec is essentially useless (you have to process and emit what existing user agents actually send and expect; following the spec has no meaningful purpose if e.g. your webserver does not interact well with chrome or safari, for example).</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 25589,
+        "reputation": 609563,
+        "user_id": 65863,
+        "user_type": "registered",
+        "accept_rate": 75,
+        "profile_image": "https://www.gravatar.com/avatar/f00013ceab8fb1928885c5c172fbfd4a?s=256&d=identicon&r=PG",
+        "display_name": "Remy Lebeau",
+        "link": "https://stackoverflow.com/users/65863/remy-lebeau"
+      },
+      "is_accepted": false,
+      "score": 2,
+      "last_activity_date": 1764880146,
+      "creation_date": 1764880146,
+      "answer_id": 79838333,
+      "question_id": 79838312,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Definitely do not use <code>split()</code>. You don't need to extract an array of delimited strings for a single header. Using <code>indexOf()</code> with <code>substring()</code> will suffice.</p>\n<p>Also, HTTP header names are <em>case-insensitive</em>.</p>\n<p>Try this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>int index = line.indexOf(':');\nString key = line.substring(0, index).trim();\nString value = line.substring(index+1).trim();\nif (key.compareToIgnoreCase(&quot;Host&quot;) == 0) {\n    ...\n}\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 1535561,
+        "reputation": 9056,
+        "user_id": 1431720,
+        "user_type": "registered",
+        "accept_rate": 89,
+        "profile_image": "https://www.gravatar.com/avatar/f5a1388d4d3b2bf03b11bb5658c68c29?s=256&d=identicon&r=PG",
+        "display_name": "Robert",
+        "link": "https://stackoverflow.com/users/1431720/robert"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1764883659,
+      "post_id": 79838312,
+      "comment_id": 140888074,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79838379": [],
+    "79838333": []
+  }
+}

@@ -1,0 +1,173 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "enums"
+    ],
+    "owner": {
+      "account_id": 62515,
+      "reputation": 45756,
+      "user_id": 185722,
+      "user_type": "registered",
+      "accept_rate": 100,
+      "profile_image": "https://www.gravatar.com/avatar/f6c15e21ea2efa8c15aa959a0d790b36?s=256&d=identicon&r=PG",
+      "display_name": "Alexander Pogrebnyak",
+      "link": "https://stackoverflow.com/users/185722/alexander-pogrebnyak"
+    },
+    "is_answered": true,
+    "view_count": 51444,
+    "accepted_answer_id": 2471137,
+    "answer_count": 7,
+    "score": 68,
+    "last_activity_date": 1764572154,
+    "creation_date": 1268851371,
+    "last_edit_date": 1764519093,
+    "question_id": 2464950,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/2464950/enum-values-vs-enumset-allof-which-one-is-more-preferable",
+    "title": "Enum.values() vs EnumSet.allOf( ). Which one is more preferable?",
+    "body": "<p>I looked under the hood for <code>EnumSet.allOf()</code> and it looks very efficient, especially for enums with less than 64 values.</p>\n<p>Basically all sets share the single array of all possible enum values and the only other piece of information is a bitmask which in case of <code>allOf()</code> is set in one swoop.</p>\n<p>On the other hand <code>Enum.values()</code> seems to be a bit of black magic. Moreover it returns an array, not a collection, so in many cases it must be decorated with <code>Arrays.asList()</code> to be usable in any place that expects a collection.</p>\n<p>So, should <code>EnumSet.allOf()</code> be more preferable to <code>Enum.values()</code>?</p>\n<p>More specifically, which form of <code>for</code> iterator should be used:</p>\n<pre><code>for ( final MyEnum val: MyEnum.values( ) );\n</code></pre>\n<p>or</p>\n<pre><code>for ( final MyEnum val: EnumSet.allOf( MyEnum.class ) );\n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 39208,
+        "reputation": 269347,
+        "user_id": 112968,
+        "user_type": "registered",
+        "accept_rate": 68,
+        "profile_image": "https://i.sstatic.net/zHTaT.png?s=256",
+        "display_name": "knittl",
+        "link": "https://stackoverflow.com/users/112968/knittl"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1764572154,
+      "last_edit_date": 1764572154,
+      "creation_date": 1764447043,
+      "answer_id": 79833504,
+      "question_id": 2464950,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p><code>Enum#values()</code> returns a <em>new</em> array copy every time it is called. So the cheapest way to access all constants of an enum is to memoize/cache this array (or collection if you need to guarantee immutability).</p>\n<p>So if you control all clients of your enum, the following works without copying the array (pedantic mode: it is still copied, but only exactly once when the class is loaded):</p>\n<pre class=\"lang-java prettyprint-override\"><code>enum YourEnum {\n  FIRST,\n  SECOND,\n  ;\n\n  public static final YourEnum[] ALL_VALUES = values();\n}\n</code></pre>\n<p>(the array is still mutable, so if you cannot guarantee that clients won't modify this array, read on).</p>\n<p>If you are the sole client of the enum (or the only client who requires zero-allocation, efficient access), nothing prevents you from caching the enum values yourself, reducing the scope of the array – you yourself are now responsible to not modify it:</p>\n<pre class=\"lang-java prettyprint-override\"><code>class YourClient {\n  \n  private static final YourEnum[] YOUR_ENUM_VALUES = values();\n\n  public Object doSomething() {\n    for (final YourEnum value : YOUR_ENUM_VALUES) {\n      // …\n    }\n    return …\n  }\n}\n</code></pre>\n<p>If you cannot control the clients but need to provide a single, central list of your enum constants, you must provide an immutable collection. Iterating collections <em>might</em> incur slight overhead for the <code>Iterator</code> instance, but if you index into a <code>List</code>, you can avoid that cost too.</p>\n<pre class=\"lang-java prettyprint-override\"><code>enum YourEnum {\n  FIRST,\n  SECOND,\n  ;\n\n  public static final List&lt;YourEnum&gt; ALL_VALUES = List.of(values());\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>for (final YourEnum value : YourEnum.ALL_VALUES) { // potential Iterator allocation\n  // ...\n}\nfor (int i = 0; i &lt; YourEnum.ALL_VALUES.size(); ++i) { // guaranteed zero-allocation code\n  final YourEnum value = YourEnum.ALL_VALUES[i];\n  // ...\n}\n</code></pre>\n<p>Usually all of that does not matter, but if you are working in a resource-constrained environment or are accessing/iterating all enum constants in a hot path of your code it might, so it's good to know your way around.</p>\n<hr />\n<p>I wrote a small JMH benchmark which loops through all constants of a enum via different access methods (<code>values()</code>, a cached copy of the values, values copied to a list, and <code>EnumSet.allof</code>) with enums of different sizes (from a &quot;tiny&quot; enum comprising 3 constants to a &quot;huge&quot; enum comprising 256 constants).</p>\n<p>Enum sizes:</p>\n<ul>\n<li>Tiny: 3 constants</li>\n<li>Small: 8 constants</li>\n<li>Medium: 24 constants</li>\n<li>Large: 96 constants</li>\n<li>Huge: 256 constants</li>\n</ul>\n<p>Here is the quick summary:</p>\n<ul>\n<li>The cached array is consistently the fastest (20% for tiny enums and 30% for huge enums; except for &quot;small&quot; enums → read on). Note that for the tiny enum, there's almost no difference between the baseline and iterating the 3 enum constants.</li>\n<li><code>EnumSet.allOf</code> is consistently the slowest (2 to 5 times slower than the rest)</li>\n<li>Allocations of the EnumSet are negligible and only become measurable from the &quot;large&quot; enum (96 values) and up</li>\n<li>It does not matter whether you use an indexed for loop or an enhanced for loop to iterate the List containing the enum constants (this was a surprising result to me!)</li>\n<li>For &quot;large&quot; enums and up, iterating the List is 2 times slower than iterating the array</li>\n<li>For &quot;small&quot; enums (8 constants), the inverse could be observed: suddenly, iterating the array takes twice as long compared to the list (surprise #2! I don't know why this happens/happened)</li>\n<li><code>Enum#values</code> has a constant overhead of <code>4 * N + 16</code> bytes per invocation (4 bytes per enum constant plus 16 bytes for the array itself). For &quot;huge&quot; enums (256 constants), this allocates 1 kb of memory per invocation.</li>\n<li><code>EnumSet</code> for enums with more than 64 constants has an overhead of <code>ceil(N/64.0)*8.0 + 16</code> bytes (1 bit per constant, rounded up to the next multiple of 8 plus 16 bytes for the backing array). Enums with up to 64 constants only require a single <code>long</code> to store the bitset.</li>\n<li>Iterating the List seems to be slower than iterating <code>.values()</code>, even though values requires copying the array which the list does not (surprise #3).</li>\n</ul>\n<p>Benchmarks (you can find the source at the bottom):</p>\n<ul>\n<li>(<code>baseline</code>: baseline test, only &quot;selects&quot; the enum of the correct size)</li>\n<li><code>values</code>: access via <code>Enum#values()</code> method, enhanced for loop</li>\n<li><code>array</code>: access via cached array, enhanced for loop (<code>for (var x : arr)</code>)</li>\n<li><code>arrayIndexed</code>: access via cached array, indexed for loop (<code>arr[i]</code>)</li>\n<li><code>listIterator</code>: access via cached List, enhanced for loop</li>\n<li><code>listIndexed</code>: access via cached List, indexed for loop</li>\n<li><code>enumSet</code>: dynamic construction via <code>EnumSet.allof</code>, enhanced for loop</li>\n</ul>\n<p>I ran the benchmarks with JMH 1.37 and Java 21 on my trusty old laptop with an i7-3740QM. I set 2 forks, 4 warmup and 4 measurement iterations, with 4 seconds each. The absolute numbers are not all that important, what matters is the relative difference.</p>\n<p>Timing results (smaller is faster):</p>\n<pre><code>Benchmark                                      (enumSize)  Mode  Cnt     Score     Error   Units\nEnumBenchmark.arrayIndexed                           tiny  avgt    8     4.351 ±   0.042   ns/op\nEnumBenchmark.listIterator                           tiny  avgt    8     4.359 ±   0.076   ns/op\nEnumBenchmark.listIndexed                            tiny  avgt    8     4.457 ±   0.281   ns/op\nEnumBenchmark.baseline                               tiny  avgt    8     4.618 ±   0.054   ns/op\nEnumBenchmark.enumSet                                tiny  avgt    8    12.498 ±   0.248   ns/op\nEnumBenchmark.values                                 tiny  avgt    8     5.790 ±   0.101   ns/op\nEnumBenchmark.array                                  tiny  avgt    8     4.471 ±   0.155   ns/op\nEnumBenchmark.arrayIndexed                          small  avgt    8     8.088 ±   0.140   ns/op\nEnumBenchmark.listIterator                          small  avgt    8     4.654 ±   0.069   ns/op\nEnumBenchmark.listIndexed                           small  avgt    8     4.614 ±   0.061   ns/op\nEnumBenchmark.baseline                              small  avgt    8     4.626 ±   0.059   ns/op\nEnumBenchmark.enumSet                               small  avgt    8    22.563 ±   0.271   ns/op\nEnumBenchmark.values                                small  avgt    8    11.386 ±   0.120   ns/op\nEnumBenchmark.array                                 small  avgt    8     8.095 ±   0.097   ns/op\nEnumBenchmark.arrayIndexed                         medium  avgt    8    16.247 ±   0.157   ns/op\nEnumBenchmark.listIterator                         medium  avgt    8    27.622 ±   0.286   ns/op\nEnumBenchmark.listIndexed                          medium  avgt    8    27.749 ±   0.390   ns/op\nEnumBenchmark.baseline                             medium  avgt    8     4.617 ±   0.059   ns/op\nEnumBenchmark.enumSet                              medium  avgt    8    58.943 ±   0.888   ns/op\nEnumBenchmark.values                               medium  avgt    8    21.558 ±   2.970   ns/op\nEnumBenchmark.array                                medium  avgt    8    16.269 ±   0.258   ns/op\nEnumBenchmark.arrayIndexed                          large  avgt    8    47.695 ±   0.709   ns/op\nEnumBenchmark.listIterator                          large  avgt    8    95.920 ±   2.063   ns/op\nEnumBenchmark.listIndexed                           large  avgt    8    96.209 ±   2.917   ns/op\nEnumBenchmark.baseline                              large  avgt    8     4.913 ±   0.576   ns/op\nEnumBenchmark.enumSet                               large  avgt    8   221.370 ±   8.615   ns/op\nEnumBenchmark.values                                large  avgt    8    58.391 ±   1.582   ns/op\nEnumBenchmark.array                                 large  avgt    8    47.769 ±   0.673   ns/op\nEnumBenchmark.arrayIndexed                           huge  avgt    8   112.918 ±   1.043   ns/op\nEnumBenchmark.listIterator                           huge  avgt    8   224.763 ±   3.812   ns/op\nEnumBenchmark.listIndexed                            huge  avgt    8   224.339 ±   3.853   ns/op\nEnumBenchmark.baseline                               huge  avgt    8     4.346 ±   0.070   ns/op\nEnumBenchmark.enumSet                                huge  avgt    8   571.340 ±  17.533   ns/op\nEnumBenchmark.values                                 huge  avgt    8   168.228 ±   2.954   ns/op\nEnumBenchmark.array                                  huge  avgt    8   112.483 ±   0.922   ns/op\n</code></pre>\n<p>Normalized memory allocations (allocations per benchmark invocation, smaller is better):</p>\n<pre><code>Benchmark                                      (enumSize)  Mode  Cnt     Score     Error   Units\nEnumBenchmark.arrayIndexed:gc.alloc.rate.norm        tiny  avgt    8    ≈ 10⁻⁵              B/op\nEnumBenchmark.listIterator:gc.alloc.rate.norm        tiny  avgt    8    ≈ 10⁻⁵              B/op\nEnumBenchmark.listIndexed:gc.alloc.rate.norm         tiny  avgt    8    ≈ 10⁻⁵              B/op\nEnumBenchmark.baseline:gc.alloc.rate.norm            tiny  avgt    8    ≈ 10⁻⁵              B/op\nEnumBenchmark.enumSet:gc.alloc.rate.norm             tiny  avgt    8    ≈ 10⁻⁵              B/op\nEnumBenchmark.values:gc.alloc.rate.norm              tiny  avgt    8    ≈ 10⁻⁵              B/op\nEnumBenchmark.array:gc.alloc.rate.norm               tiny  avgt    8    ≈ 10⁻⁵              B/op\nEnumBenchmark.arrayIndexed:gc.alloc.rate.norm       small  avgt    8    ≈ 10⁻⁵              B/op\nEnumBenchmark.listIterator:gc.alloc.rate.norm       small  avgt    8    ≈ 10⁻⁵              B/op\nEnumBenchmark.listIndexed:gc.alloc.rate.norm        small  avgt    8    ≈ 10⁻⁵              B/op\nEnumBenchmark.baseline:gc.alloc.rate.norm           small  avgt    8    ≈ 10⁻⁵              B/op\nEnumBenchmark.enumSet:gc.alloc.rate.norm            small  avgt    8    ≈ 10⁻⁴              B/op\nEnumBenchmark.values:gc.alloc.rate.norm             small  avgt    8    48.000 ±   0.001    B/op\nEnumBenchmark.array:gc.alloc.rate.norm              small  avgt    8    ≈ 10⁻⁵              B/op\nEnumBenchmark.arrayIndexed:gc.alloc.rate.norm      medium  avgt    8    ≈ 10⁻⁵              B/op\nEnumBenchmark.listIterator:gc.alloc.rate.norm      medium  avgt    8    ≈ 10⁻⁴              B/op\nEnumBenchmark.listIndexed:gc.alloc.rate.norm       medium  avgt    8    ≈ 10⁻⁴              B/op\nEnumBenchmark.baseline:gc.alloc.rate.norm          medium  avgt    8    ≈ 10⁻⁵              B/op\nEnumBenchmark.enumSet:gc.alloc.rate.norm           medium  avgt    8    ≈ 10⁻⁴              B/op\nEnumBenchmark.values:gc.alloc.rate.norm            medium  avgt    8   112.000 ±   0.001    B/op\nEnumBenchmark.array:gc.alloc.rate.norm             medium  avgt    8    ≈ 10⁻⁵              B/op\nEnumBenchmark.arrayIndexed:gc.alloc.rate.norm       large  avgt    8    ≈ 10⁻⁴              B/op\nEnumBenchmark.listIterator:gc.alloc.rate.norm       large  avgt    8    ≈ 10⁻⁴              B/op\nEnumBenchmark.listIndexed:gc.alloc.rate.norm        large  avgt    8    ≈ 10⁻⁴              B/op\nEnumBenchmark.baseline:gc.alloc.rate.norm           large  avgt    8    ≈ 10⁻⁵              B/op\nEnumBenchmark.enumSet:gc.alloc.rate.norm            large  avgt    8    32.000 ±   0.001    B/op\nEnumBenchmark.values:gc.alloc.rate.norm             large  avgt    8   400.000 ±   0.001    B/op\nEnumBenchmark.array:gc.alloc.rate.norm              large  avgt    8    ≈ 10⁻⁴              B/op\nEnumBenchmark.arrayIndexed:gc.alloc.rate.norm        huge  avgt    8    ≈ 10⁻⁴              B/op\nEnumBenchmark.listIterator:gc.alloc.rate.norm        huge  avgt    8    ≈ 10⁻³              B/op\nEnumBenchmark.listIndexed:gc.alloc.rate.norm         huge  avgt    8    ≈ 10⁻³              B/op\nEnumBenchmark.baseline:gc.alloc.rate.norm            huge  avgt    8    ≈ 10⁻⁵              B/op\nEnumBenchmark.enumSet:gc.alloc.rate.norm             huge  avgt    8    48.001 ±   0.001    B/op\nEnumBenchmark.values:gc.alloc.rate.norm              huge  avgt    8  1040.000 ±   0.001    B/op\nEnumBenchmark.array:gc.alloc.rate.norm               huge  avgt    8    ≈ 10⁻⁴              B/op\n</code></pre>\n<p>JMH info:</p>\n<pre><code># JMH version: 1.37\n# VM version: JDK 21.0.9, OpenJDK 64-Bit Server VM, 21.0.9+10-Ubuntu-125.10\n# VM invoker: /usr/lib/jvm/java-21-openjdk-amd64/bin/java\n# VM options: -javaagent:...\n# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)\n# Warmup: 4 iterations, 4 s each\n# Measurement: 4 iterations, 4 s each\n# Timeout: 10 min per iteration\n# Threads: 1 thread, will synchronize iterations\n# Benchmark mode: Average time, time/op\n</code></pre>\n<p>And the full benchmark code:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@BenchmarkMode(Mode.AverageTime)\n@OutputTimeUnit(TimeUnit.NANOSECONDS)\n@Fork(value = 2)\n@Warmup(iterations = EnumValuesBenchmark.ITERATIONS, time = EnumValuesBenchmark.TIME, timeUnit = TimeUnit.SECONDS)\n@Measurement(iterations = EnumValuesBenchmark.ITERATIONS, time = EnumValuesBenchmark.TIME, timeUnit = TimeUnit.SECONDS)\n@State(Scope.Benchmark)\npublic class EnumBenchmark {\n    static final int ITERATIONS = 4;\n    static final int TIME = 4;\n\n    @Param({&quot;tiny&quot;, &quot;small&quot;, &quot;medium&quot;, &quot;large&quot;, &quot;huge&quot;})\n    public String enumSize;\n\n    private String baselineSwitch() {\n        return switch (enumSize) {\n            case &quot;tiny&quot; -&gt; &quot;TinyEnum&quot;;\n            case &quot;small&quot; -&gt; &quot;SmallEnum&quot;;\n            case &quot;medium&quot; -&gt; &quot;MediumEnum&quot;;\n            case &quot;large&quot; -&gt; &quot;LargeEnum&quot;;\n            case &quot;huge&quot; -&gt; &quot;HugeEnum&quot;;\n            default -&gt; throw new IllegalStateException();\n        };\n    }\n\n    private Enum&lt;?&gt;[] enumValues() {\n        return switch (enumSize) {\n            case &quot;tiny&quot; -&gt; TinyEnum.values();\n            case &quot;small&quot; -&gt; SmallEnum.values();\n            case &quot;medium&quot; -&gt; MediumEnum.values();\n            case &quot;large&quot; -&gt; LargeEnum.values();\n            case &quot;huge&quot; -&gt; HugeEnum.values();\n            default -&gt; throw new IllegalStateException();\n        };\n    }\n\n    private Enum&lt;?&gt;[] enumArray() {\n        return switch (enumSize) {\n            case &quot;tiny&quot; -&gt; TinyEnum.VALUES_ARRAY;\n            case &quot;small&quot; -&gt; SmallEnum.VALUES_ARRAY;\n            case &quot;medium&quot; -&gt; MediumEnum.VALUES_ARRAY;\n            case &quot;large&quot; -&gt; LargeEnum.VALUES_ARRAY;\n            case &quot;huge&quot; -&gt; HugeEnum.VALUES_ARRAY;\n            default -&gt; throw new IllegalStateException();\n        };\n    }\n\n    private List&lt;? extends Enum&lt;?&gt;&gt; enumList() {\n        return switch (enumSize) {\n            case &quot;tiny&quot; -&gt; TinyEnum.VALUES_LIST;\n            case &quot;small&quot; -&gt; SmallEnum.VALUES_LIST;\n            case &quot;medium&quot; -&gt; MediumEnum.VALUES_LIST;\n            case &quot;large&quot; -&gt; LargeEnum.VALUES_LIST;\n            case &quot;huge&quot; -&gt; HugeEnum.VALUES_LIST;\n            default -&gt; throw new IllegalStateException();\n        };\n    }\n\n    private EnumSet&lt;? extends Enum&lt;?&gt;&gt; enumSetAllOf() {\n        return switch (enumSize) {\n            case &quot;tiny&quot; -&gt; EnumSet.allOf(TinyEnum.class);\n            case &quot;small&quot; -&gt; EnumSet.allOf(SmallEnum.class);\n            case &quot;medium&quot; -&gt; EnumSet.allOf(MediumEnum.class);\n            case &quot;large&quot; -&gt; EnumSet.allOf(LargeEnum.class);\n            case &quot;huge&quot; -&gt; EnumSet.allOf(HugeEnum.class);\n            default -&gt; throw new IllegalStateException();\n        };\n    }\n\n    // general\n\n    @Benchmark\n    public Object baseline() {\n        // measure the cost of switching on the enum size\n        return baselineSwitch();\n    }\n\n    @Benchmark\n    public long values() {\n        long result = 0L;\n        for (final var value : enumValues()) {\n            result ^= value.ordinal();\n        }\n        return result;\n    }\n\n    @Benchmark\n    public long array() {\n        long result = 0L;\n        for (final var value : enumArray()) {\n            result ^= value.ordinal();\n        }\n        return result;\n    }\n\n    @Benchmark\n    public long arrayIndexed() {\n        long result = 0L;\n        final Enum&lt;?&gt;[] array = enumArray();\n        for (int i = 0, len = array.length; i &lt; len; i++) {\n            final var value = array[i];\n            result ^= value.ordinal();\n        }\n        return result;\n    }\n\n    @Benchmark\n    public long listIterator() {\n        long result = 0L;\n        for (final var value : enumList()) {\n            result ^= value.ordinal();\n        }\n        return result;\n    }\n\n    @Benchmark\n    public long listIndexed() {\n        long result = 0L;\n        final var values = enumList();\n        for (int i = 0; i &lt; values.size(); ++i) {\n            final var value = values.get(i);\n            result ^= value.ordinal();\n        }\n        return result;\n    }\n\n    @Benchmark\n    public long enumSet() {\n        long result = 0L;\n        for (final var value : enumSetAllOf()) {\n            result ^= value.ordinal();\n        }\n        return result;\n    }\n\n    enum TinyEnum {\n        TRUE, FALSE, FILE_NOT_FOUND,\n        ;\n\n        public static final TinyEnum[] VALUES_ARRAY = values();\n        public static final List&lt;TinyEnum&gt; VALUES_LIST = List.of(values());\n    }\n\n    enum SmallEnum {\n        NEVER, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY,\n        ;\n\n        public static final SmallEnum[] VALUES_ARRAY = values();\n        public static final List&lt;SmallEnum&gt; VALUES_LIST = List.of(values());\n    }\n\n    enum MediumEnum {\n        VALUE_1, VALUE_2, VALUE_3, VALUE_4, VALUE_5, VALUE_6, VALUE_7, VALUE_8,\n        VALUE_9, VALUE_10, VALUE_11, VALUE_12, VALUE_13, VALUE_14, VALUE_15, VALUE_16,\n        VALUE_17, VALUE_18, VALUE_19, VALUE_20, VALUE_21, VALUE_22, VALUE_23, VALUE_24,\n        ;\n\n        public static final MediumEnum[] VALUES_ARRAY = values();\n        public static final List&lt;MediumEnum&gt; VALUES_LIST = List.of(values());\n    }\n\n    enum LargeEnum {\n        VALUE_1, VALUE_2, VALUE_3, VALUE_4, VALUE_5, VALUE_6, VALUE_7, VALUE_8,\n        VALUE_9, VALUE_10, VALUE_11, VALUE_12, VALUE_13, VALUE_14, VALUE_15, VALUE_16,\n        VALUE_17, VALUE_18, VALUE_19, VALUE_20, VALUE_21, VALUE_22, VALUE_23, VALUE_24,\n        VALUE_25, VALUE_26, VALUE_27, VALUE_28, VALUE_29, VALUE_30, VALUE_31, VALUE_32,\n        VALUE_33, VALUE_34, VALUE_35, VALUE_36, VALUE_37, VALUE_38, VALUE_39, VALUE_40,\n        VALUE_41, VALUE_42, VALUE_43, VALUE_44, VALUE_45, VALUE_46, VALUE_47, VALUE_48,\n        VALUE_49, VALUE_50, VALUE_51, VALUE_52, VALUE_53, VALUE_54, VALUE_55, VALUE_56,\n        VALUE_57, VALUE_58, VALUE_59, VALUE_60, VALUE_61, VALUE_62, VALUE_63, VALUE_64,\n        VALUE_65, VALUE_66, VALUE_67, VALUE_68, VALUE_69, VALUE_70, VALUE_71, VALUE_72,\n        VALUE_73, VALUE_74, VALUE_75, VALUE_76, VALUE_77, VALUE_78, VALUE_79, VALUE_80,\n        VALUE_81, VALUE_82, VALUE_83, VALUE_84, VALUE_85, VALUE_86, VALUE_87, VALUE_88,\n        VALUE_89, VALUE_90, VALUE_91, VALUE_92, VALUE_93, VALUE_94, VALUE_95, VALUE_96,\n        ;\n\n        public static final LargeEnum[] VALUES_ARRAY = values();\n        public static final List&lt;LargeEnum&gt; VALUES_LIST = List.of(values());\n    }\n\n    enum HugeEnum {\n        VALUE_1, VALUE_2, VALUE_3, VALUE_4, VALUE_5, VALUE_6, VALUE_7, VALUE_8,\n        VALUE_9, VALUE_10, VALUE_11, VALUE_12, VALUE_13, VALUE_14, VALUE_15, VALUE_16,\n        VALUE_17, VALUE_18, VALUE_19, VALUE_20, VALUE_21, VALUE_22, VALUE_23, VALUE_24,\n        VALUE_25, VALUE_26, VALUE_27, VALUE_28, VALUE_29, VALUE_30, VALUE_31, VALUE_32,\n        VALUE_33, VALUE_34, VALUE_35, VALUE_36, VALUE_37, VALUE_38, VALUE_39, VALUE_40,\n        VALUE_41, VALUE_42, VALUE_43, VALUE_44, VALUE_45, VALUE_46, VALUE_47, VALUE_48,\n        VALUE_49, VALUE_50, VALUE_51, VALUE_52, VALUE_53, VALUE_54, VALUE_55, VALUE_56,\n        VALUE_57, VALUE_58, VALUE_59, VALUE_60, VALUE_61, VALUE_62, VALUE_63, VALUE_64,\n        //\n        VALUE_65, VALUE_66, VALUE_67, VALUE_68, VALUE_69, VALUE_70, VALUE_71, VALUE_72,\n        VALUE_73, VALUE_74, VALUE_75, VALUE_76, VALUE_77, VALUE_78, VALUE_79, VALUE_80,\n        VALUE_81, VALUE_82, VALUE_83, VALUE_84, VALUE_85, VALUE_86, VALUE_87, VALUE_88,\n        VALUE_89, VALUE_90, VALUE_91, VALUE_92, VALUE_93, VALUE_94, VALUE_95, VALUE_96,\n        VALUE_97, VALUE_98, VALUE_99, VALUE_100, VALUE_101, VALUE_102, VALUE_103, VALUE_104,\n        VALUE_105, VALUE_106, VALUE_107, VALUE_108, VALUE_109, VALUE_110, VALUE_111, VALUE_112,\n        VALUE_113, VALUE_114, VALUE_115, VALUE_116, VALUE_117, VALUE_118, VALUE_119, VALUE_120,\n        VALUE_121, VALUE_122, VALUE_123, VALUE_124, VALUE_125, VALUE_126, VALUE_127, VALUE_128,\n        //\n        VALUE_129, VALUE_130, VALUE_131, VALUE_132, VALUE_133, VALUE_134, VALUE_135, VALUE_136,\n        VALUE_137, VALUE_138, VALUE_139, VALUE_140, VALUE_141, VALUE_142, VALUE_143, VALUE_144,\n        VALUE_145, VALUE_146, VALUE_147, VALUE_148, VALUE_149, VALUE_150, VALUE_151, VALUE_152,\n        VALUE_153, VALUE_154, VALUE_155, VALUE_156, VALUE_157, VALUE_158, VALUE_159, VALUE_160,\n        VALUE_161, VALUE_162, VALUE_163, VALUE_164, VALUE_165, VALUE_166, VALUE_167, VALUE_168,\n        VALUE_169, VALUE_170, VALUE_171, VALUE_172, VALUE_173, VALUE_174, VALUE_175, VALUE_176,\n        VALUE_177, VALUE_178, VALUE_179, VALUE_180, VALUE_181, VALUE_182, VALUE_183, VALUE_184,\n        VALUE_185, VALUE_186, VALUE_187, VALUE_188, VALUE_189, VALUE_190, VALUE_191, VALUE_192,\n        //\n        VALUE_193, VALUE_194, VALUE_195, VALUE_196, VALUE_197, VALUE_198, VALUE_199, VALUE_200,\n        VALUE_201, VALUE_202, VALUE_203, VALUE_204, VALUE_205, VALUE_206, VALUE_207, VALUE_208,\n        VALUE_209, VALUE_210, VALUE_211, VALUE_212, VALUE_213, VALUE_214, VALUE_215, VALUE_216,\n        VALUE_217, VALUE_218, VALUE_219, VALUE_220, VALUE_221, VALUE_222, VALUE_223, VALUE_224,\n        VALUE_225, VALUE_226, VALUE_227, VALUE_228, VALUE_229, VALUE_230, VALUE_231, VALUE_232,\n        VALUE_233, VALUE_234, VALUE_235, VALUE_236, VALUE_237, VALUE_238, VALUE_239, VALUE_240,\n        VALUE_241, VALUE_242, VALUE_243, VALUE_244, VALUE_245, VALUE_246, VALUE_247, VALUE_248,\n        VALUE_249, VALUE_250, VALUE_251, VALUE_252, VALUE_253, VALUE_254, VALUE_255, VALUE_256,\n        ;\n\n        public static final HugeEnum[] VALUES_ARRAY = values();\n        public static final List&lt;HugeEnum&gt; VALUES_LIST = List.of(values());\n    }\n}\n</code></pre>\n<p>Maybe somebody can provide an explanation for surprise #2 and #3? They are not what I expect, so either there is something happening in the JVM that I'm not aware of or my benchmark is flawed (or both!).</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 386394,
+        "reputation": 9495,
+        "user_id": 744133,
+        "user_type": "registered",
+        "accept_rate": 57,
+        "profile_image": "https://i.sstatic.net/z21Fe.jpg?s=256",
+        "display_name": "YoYo",
+        "link": "https://stackoverflow.com/users/744133/yoyo"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1764519157,
+      "last_edit_date": 1764519157,
+      "creation_date": 1454383546,
+      "answer_id": 35144499,
+      "question_id": 2464950,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p><code>EnumSet</code> is not built with the intention to iterate over its values. Rather it is implemented with the idea for it to represent a BitMap or BitMask efficiently (or reasonably efficient). The <a href=\"https://docs.oracle.com/javase/8/docs/api/java/util/EnumSet.html\" rel=\"nofollow noreferrer\">javadoc on <code>EnumSet</code></a> also states:</p>\n<blockquote>\n<p>Enum sets are represented internally as bit vectors. This representation is extremely compact and efficient. The space and time performance of this class should be good enough to allow its use as a high-quality, typesafe alternative to traditional int-based &quot;bit flags.&quot; Even bulk operations (such as containsAll and retainAll) should run very quickly if their argument is also an enum set.</p>\n</blockquote>\n<p>Because only one single bit can represent a certain Enum value, it is also implemented as a <code>Set</code> and not as a <code>List</code>.</p>\n<p>Now, it is probably also true that you can accomplish the same, and faster, using C-style bit masks (x^2); however it offers a more intuitive coding style and typesafe use using enums, and it expands easily beyond the size of what an <code>int</code> or <code>long</code> can contain.</p>\n<p>As such you can test that all bits are set as follows:</p>\n<pre><code>public class App {\n  enum T {A,B}\n  public static void main(String [] args) {\n    EnumSet&lt;T&gt; t = EnumSet.of(T.A);\n    t.containsAll(EnumSet.allOf(T.class));\n  }\n}\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79833504": [],
+    "35144499": [
+      {
+        "owner": {
+          "account_id": 386394,
+          "reputation": 9495,
+          "user_id": 744133,
+          "user_type": "registered",
+          "accept_rate": 57,
+          "profile_image": "https://i.sstatic.net/z21Fe.jpg?s=256",
+          "display_name": "YoYo",
+          "link": "https://stackoverflow.com/users/744133/yoyo"
+        },
+        "reply_to_user": {
+          "account_id": 62515,
+          "reputation": 45756,
+          "user_id": 185722,
+          "user_type": "registered",
+          "accept_rate": 100,
+          "profile_image": "https://www.gravatar.com/avatar/f6c15e21ea2efa8c15aa959a0d790b36?s=256&d=identicon&r=PG",
+          "display_name": "Alexander Pogrebnyak",
+          "link": "https://stackoverflow.com/users/185722/alexander-pogrebnyak"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1483777939,
+        "post_id": 35144499,
+        "comment_id": 70244792,
+        "content_license": "CC BY-SA 3.0"
+      },
+      {
+        "owner": {
+          "account_id": 62515,
+          "reputation": 45756,
+          "user_id": 185722,
+          "user_type": "registered",
+          "accept_rate": 100,
+          "profile_image": "https://www.gravatar.com/avatar/f6c15e21ea2efa8c15aa959a0d790b36?s=256&d=identicon&r=PG",
+          "display_name": "Alexander Pogrebnyak",
+          "link": "https://stackoverflow.com/users/185722/alexander-pogrebnyak"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1454416150,
+        "post_id": 35144499,
+        "comment_id": 58025190,
+        "content_license": "CC BY-SA 3.0"
+      },
+      {
+        "owner": {
+          "account_id": 386394,
+          "reputation": 9495,
+          "user_id": 744133,
+          "user_type": "registered",
+          "accept_rate": 57,
+          "profile_image": "https://i.sstatic.net/z21Fe.jpg?s=256",
+          "display_name": "YoYo",
+          "link": "https://stackoverflow.com/users/744133/yoyo"
+        },
+        "reply_to_user": {
+          "account_id": 62515,
+          "reputation": 45756,
+          "user_id": 185722,
+          "user_type": "registered",
+          "accept_rate": 100,
+          "profile_image": "https://www.gravatar.com/avatar/f6c15e21ea2efa8c15aa959a0d790b36?s=256&d=identicon&r=PG",
+          "display_name": "Alexander Pogrebnyak",
+          "link": "https://stackoverflow.com/users/185722/alexander-pogrebnyak"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1454414406,
+        "post_id": 35144499,
+        "comment_id": 58023932,
+        "content_license": "CC BY-SA 3.0"
+      },
+      {
+        "owner": {
+          "account_id": 62515,
+          "reputation": 45756,
+          "user_id": 185722,
+          "user_type": "registered",
+          "accept_rate": 100,
+          "profile_image": "https://www.gravatar.com/avatar/f6c15e21ea2efa8c15aa959a0d790b36?s=256&d=identicon&r=PG",
+          "display_name": "Alexander Pogrebnyak",
+          "link": "https://stackoverflow.com/users/185722/alexander-pogrebnyak"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1454413013,
+        "post_id": 35144499,
+        "comment_id": 58022957,
+        "content_license": "CC BY-SA 3.0"
+      }
+    ]
+  }
+}

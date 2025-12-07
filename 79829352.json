@@ -1,0 +1,160 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "eclipse",
+      "eclipse-plugin",
+      "okhttp",
+      "osgi-bundle"
+    ],
+    "owner": {
+      "account_id": 44790492,
+      "reputation": 1,
+      "user_id": 31937198,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/4af97202229854b28b20c9d15eda3dc3?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "kiruba T",
+      "link": "https://stackoverflow.com/users/31937198/kiruba-t"
+    },
+    "is_answered": false,
+    "view_count": 107,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1764137392,
+    "creation_date": 1764051975,
+    "last_edit_date": 1764130739,
+    "question_id": 79829352,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79829352/java-lang-classnotfoundexception-okio-buffer-when-using-okhttp-inside-eclipse-p",
+    "title": "java.lang.ClassNotFoundException: okio.Buffer when using OkHttp inside Eclipse plugin (OSGi)",
+    "body": "<p>I am developing an <strong>Eclipse plugin</strong> (OSGi environment) and trying to use <strong>OkHttp 4.11.0</strong> to send HTTP requests. However, I get the following runtime error:</p>\n<blockquote>\n<p>java.lang.ClassNotFoundException: okio.Buffer cannot be found by eclipseai.plugin_1.0.0</p>\n</blockquote>\n<p><strong>Minimal Reproducible Example (MRE)</strong></p>\n<pre><code>package eclipseai.test;\n\nimport okhttp3.OkHttpClient;\nimport okhttp3.Request;\nimport okhttp3.Response;\nimport java.io.IOException;\n\npublic class OkHttpTest {\n\n    public static void main(String[] args) throws IOException {\n        OkHttpClient client = new OkHttpClient(); // ClassNotFoundException occurs here\n        Request request = new Request.Builder()\n                .url(&quot;https://www.google.com&quot;)\n                .build();\n\n        Response response = client.newCall(request).execute();\n        System.out.println(response.body().string());\n    }\n}\n</code></pre>\n<p><strong>How to reproduce inside an Eclipse plugin (OSGi)</strong></p>\n<ol>\n<li><p>Create a new Eclipse plugin project (e.g., <code>eclipseai.plugin</code>).</p>\n</li>\n<li><p>Add these JARs to a <code>library/</code> folder in the plugin:</p>\n<ul>\n<li><p><code>okhttp-4.11.0.jar</code></p>\n</li>\n<li><p><code>okio-3.4.0.jar</code></p>\n</li>\n<li><p><code>kotlin-stdlib-2.2.21.jar</code></p>\n</li>\n</ul>\n</li>\n<li><p>Add them to <strong>MANIFEST.MF</strong> <code>Bundle-ClassPath</code>:</p>\n<pre class=\"lang-none prettyprint-override\"><code>Bundle-ClassPath: .,\n library/okhttp-4.11.0.jar,\n library/okio-3.4.0.jar,\n library/kotlin-stdlib-2.2.21.jar\n</code></pre>\n</li>\n<li><p>Add them to <strong>build.properties</strong> <code>bin.includes</code>:</p>\n<pre class=\"lang-none prettyprint-override\"><code>bin.includes = plugin.xml, META-INF/, .,\n               library/okhttp-4.11.0.jar,\n               library/okio-3.4.0.jar,\n               library/kotlin-stdlib-2.2.21.jar\n</code></pre>\n</li>\n<li><p>Run the plugin → <strong>ClassNotFoundException</strong> occurs on <code>okio.Buffer</code>.</p>\n</li>\n</ol>\n<hr />\n<p>How can I correctly include OkHttp and Okio in an Eclipse plugin so that <code>okio.Buffer</code> is properly loaded without causing <code>ClassNotFoundException</code>?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 44810373,
+        "reputation": 1,
+        "user_id": 31947386,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/5315b19e368c7b485c87e3fbc69b7c0b?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Adalberto Hyatt",
+        "link": "https://stackoverflow.com/users/31947386/adalberto-hyatt"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1764137392,
+      "creation_date": 1764137392,
+      "answer_id": 79830379,
+      "question_id": 79829352,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>You are hitting this error because you added the wrong Okio JAR to your plugin.</p>\n<p><code>okio-3.4.0.jar</code> is only a Kotlin Multiplatform metadata JAR and does not actually contain the JVM classes like <code>okio.Buffer</code>. In a plain JVM or OSGi environment you must use the <code>okio-jvm</code> artifact instead.</p>\n<p><strong>Fix:</strong></p>\n<ol>\n<li>Remove this from your plugin:</li>\n</ol>\n<pre><code>library/okio-3.4.0.jar\n</code></pre>\n<ol start=\"2\">\n<li>Download and add this JAR instead:</li>\n</ol>\n<pre><code>okio-jvm-3.4.0.jar\n</code></pre>\n<ol start=\"3\">\n<li>Update <code>MANIFEST.MF</code>:</li>\n</ol>\n<pre><code>Bundle-ClassPath: .,\n library/okhttp-4.11.0.jar,\n library/okio-jvm-3.4.0.jar,\n library/kotlin-stdlib-2.2.21.jar\n</code></pre>\n<ol start=\"4\">\n<li>Update <code>build.properties</code>:</li>\n</ol>\n<pre><code>bin.includes = plugin.xml, META-INF/, .,\n               library/okhttp-4.11.0.jar,\n               library/okio-jvm-3.4.0.jar,\n               library/kotlin-stdlib-2.2.21.jar\n</code></pre>\n<p>After replacing <code>okio-3.4.0.jar</code> with <code>okio-jvm-3.4.0.jar</code> and cleaning/relaunching, <code>okio.Buffer</code> will be found and the <code>ClassNotFoundException</code> should disappear.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 43022,
+        "reputation": 24626,
+        "user_id": 125562,
+        "user_type": "registered",
+        "accept_rate": 64,
+        "profile_image": "https://i.sstatic.net/SdIqA.png?s=256",
+        "display_name": "Basilevs",
+        "link": "https://stackoverflow.com/users/125562/basilevs"
+      },
+      "is_accepted": false,
+      "score": -1,
+      "last_activity_date": 1764097823,
+      "last_edit_date": 1764097823,
+      "creation_date": 1764073032,
+      "answer_id": 79829694,
+      "question_id": 79829352,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Replace <a href=\"https://mvnrepository.com/artifact/com.squareup.okio/okio/3.4.0\" rel=\"nofollow noreferrer\">okio-3.4.0.jar</a> with <a href=\"https://mvnrepository.com/artifact/com.squareup.okio/okio-jvm/3.4.0\" rel=\"nofollow noreferrer\">okio-jvm-3.4.0.jar</a></p>\n<p>The okio-3.4.0.jar is a metadata file needed only for <a href=\"https://kotlinlang.org/docs/multiplatform/kmp-overview.html\" rel=\"nofollow noreferrer\">Kotlin Multilplatform (KMP)</a> (not applicable in context of Eclipse plug-ins)</p>\n<p><a href=\"https://github.com/basilevs/kotlin_example\" rel=\"nofollow noreferrer\">A fixed project</a></p>\n<p>A working command line that PDE executes:</p>\n<pre><code>/Library/Java/JavaVirtualMachines/jdk-17.0.4.1.jdk/Contents/Home/bin/java\n-XstartOnFirstThread\n-Dfile.encoding=UTF-8\n-Dstdout.encoding=UTF-8\n-Dstderr.encoding=UTF-8\n-classpath ${workspace_loc:/com.example.kotlin}/okio-jvm-3.4.0.jar:${workspace_loc:com.example.kotlin}/kotlin-reflect-2.2.21.jar:${workspace_loc:com.example.kotlin}/kotlin-stdlib-2.2.21.jar:${workspace_loc:com.example.kotlin}/okhttp-4.11.0.jar:${workspace_loc}/.metadata/.plugins/org.eclipse.pde.core/.bundle_pool/plugins/org.osgi.annotation.versioning_1.1.2.202109301733.jar:${workspace_loc}/.metadata/.plugins/org.eclipse.pde.core/.bundle_pool/plugins/org.osgi.annotation.bundle_2.0.0.202202082230.jar:${workspace_loc}/.metadata/.plugins/org.eclipse.pde.core/.bundle_pool/plugins/org.osgi.service.component.annotations_1.5.1.202212101352.jar:${workspace_loc}/.metadata/.plugins/org.eclipse.pde.core/.bundle_pool/plugins/org.osgi.service.metatype.annotations_1.4.1.202109301733.jar:${workspace_loc}/.metadata/.plugins/org.eclipse.pde.core/.bundle_pool/plugins/org.eclipse.swt_3.125.0.v20240227-1638.jar:${workspace_loc}/.metadata/.plugins/org.eclipse.pde.core/.bundle_pool/plugins/org.eclipse.swt.cocoa.macosx.aarch64_3.125.0.v20240227-1638.jar:${workspace_loc}/.metadata/.plugins/org.eclipse.pde.core/.bundle_pool/plugins/org.eclipse.jface_3.33.0.v20240214-1640.jar:${workspace_loc}/.metadata/.plugins/org.eclipse.pde.core/.bundle_pool/plugins/org.eclipse.core.commands_3.12.0.v20240214-1640.jar:${workspace_loc}/com.example.kotlin/bin\n-XX:+ShowCodeDetailsInExceptionMessages com.example.kotlin.OkHttpTest\n</code></pre>\n<p><sub>I do not work with Kotlin, so I had to rely on ChatGPT for analysis. The result is manually verified.</sub></p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79830379": [
+      {
+        "owner": {
+          "account_id": 44790492,
+          "reputation": 1,
+          "user_id": 31937198,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/4af97202229854b28b20c9d15eda3dc3?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "kiruba T",
+          "link": "https://stackoverflow.com/users/31937198/kiruba-t"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1764227165,
+        "post_id": 79830379,
+        "comment_id": 140875603,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 43022,
+          "reputation": 24626,
+          "user_id": 125562,
+          "user_type": "registered",
+          "accept_rate": 64,
+          "profile_image": "https://i.sstatic.net/SdIqA.png?s=256",
+          "display_name": "Basilevs",
+          "link": "https://stackoverflow.com/users/125562/basilevs"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1764166060,
+        "post_id": 79830379,
+        "comment_id": 140874371,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "79829694": [
+      {
+        "owner": {
+          "account_id": 43022,
+          "reputation": 24626,
+          "user_id": 125562,
+          "user_type": "registered",
+          "accept_rate": 64,
+          "profile_image": "https://i.sstatic.net/SdIqA.png?s=256",
+          "display_name": "Basilevs",
+          "link": "https://stackoverflow.com/users/125562/basilevs"
+        },
+        "reply_to_user": {
+          "account_id": 3159259,
+          "reputation": 111552,
+          "user_id": 2670892,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/4iPV5.png?s=256",
+          "display_name": "greg-449",
+          "link": "https://stackoverflow.com/users/2670892/greg-449"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1764074316,
+        "post_id": 79829694,
+        "comment_id": 140872113,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 3159259,
+          "reputation": 111552,
+          "user_id": 2670892,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/4iPV5.png?s=256",
+          "display_name": "greg-449",
+          "link": "https://stackoverflow.com/users/2670892/greg-449"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1764073088,
+        "post_id": 79829694,
+        "comment_id": 140872087,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

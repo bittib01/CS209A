@@ -1,0 +1,77 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "dependency-injection",
+      "properties"
+    ],
+    "owner": {
+      "account_id": 3853200,
+      "reputation": 271,
+      "user_id": 3192770,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/6591c818f398d80bc199510404890e11?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Ashish Malhotra",
+      "link": "https://stackoverflow.com/users/3192770/ashish-malhotra"
+    },
+    "is_answered": false,
+    "view_count": 14292,
+    "answer_count": 4,
+    "score": 10,
+    "last_activity_date": 1764893000,
+    "creation_date": 1507120430,
+    "last_edit_date": 1507121367,
+    "question_id": 46564999,
+    "content_license": "CC BY-SA 3.0",
+    "link": "https://stackoverflow.com/questions/46564999/value-not-working-in-spring-configuration",
+    "title": "@Value not working in Spring @Configuration",
+    "body": "<p>Need help, where is the issue?</p>\n\n<p>I have a configuration class which is loading properties as</p>\n\n<p><strong>WebConfig.java</strong></p>\n\n<pre><code>@Configuration\n@PropertySource(value={\"classpath:application.properties\"})\nclass WebConfig extends WebMvcConfigurerAdapter{\n\n    @Bean\n    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {\n       return new PropertySourcesPlaceholderConfigurer();\n    }\n}\n</code></pre>\n\n<p>I have another configuration class where I am trying to use the properties as</p>\n\n<p><strong>MyServerConfig.java</strong></p>\n\n<pre><code>@Configuration\nclass MyServerConfig {\n\n    @Value(\"${server.url}\")\n    private String url;\n...\n}\n</code></pre>\n\n<p><strong>application.properties</strong></p>\n\n<pre><code>server.url=http://localhost:8080/test/abc\n</code></pre>\n\n<p>But getting:</p>\n\n<blockquote>\n  <p>java.lang.IllegalArgumentException: Could not resolve placeholder 'server.url'.</p>\n</blockquote>\n\n<p>Don't know what is missing here? Any thoughts?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 17435469,
+        "reputation": 71,
+        "user_id": 12638534,
+        "user_type": "registered",
+        "profile_image": "https://lh3.googleusercontent.com/-jei5olo15Sw/AAAAAAAAAAI/AAAAAAAAAAA/ACHi3rf-BDYE2W542OxFWwQL9xAzcr8oDQ/s256-rj/photo.jpg",
+        "display_name": "J.Solongo",
+        "link": "https://stackoverflow.com/users/12638534/j-solongo"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1720585886,
+      "last_edit_date": 1720585886,
+      "creation_date": 1720584399,
+      "answer_id": 78728550,
+      "question_id": 46564999,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>If you are using springboot, simply place the application.properties file in <code>src/main/resources/</code> or <code>src/main/resources/config/</code> directory. No need to configure WebConfig, all beans can directly reference properties using @Value.</p>\n<p>If not using springboot, you can try the following approach:</p>\n<pre><code>@Configuration\n@Import(WebConfig.class)\nclass MyServerConfig {\n\n    @Value(&quot;${server.url}&quot;)\n    private String url;\n    ...\n} \n</code></pre>\n<p>Import the WebConfig configuration class in MyServerConfig to make the PropertySourcesPlaceholderConfigurer effective.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 28677842,
+        "reputation": 11,
+        "user_id": 21959607,
+        "user_type": "registered",
+        "profile_image": "https://lh3.googleusercontent.com/a/AGNmyxaX5W6NOGWyco_Xsc71h12T2jxJVAf4Trepvqmj=k-s256",
+        "display_name": "Noah",
+        "link": "https://stackoverflow.com/users/21959607/noah"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1716193329,
+      "creation_date": 1716193329,
+      "answer_id": 78505462,
+      "question_id": 46564999,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>You can use the Environment variable, which you can <code>@Autowire</code> if using <code>@PropertySource</code> in conjunction.</p>\n<pre><code>@PropertySource(value = { &quot;classpath:application.properties&quot; })\n@Configuration\nclass MyServerConfig {\n    \n   @Autowired\n   private Environment env;\n\n   public void func(){\n       String url = env.getProperty(&quot;server.url&quot;);\n   }\n}\n</code></pre>\n<p>I never tried to <code>@Autowire</code> it without using <code>@PropertySource</code> in the same <code>@Configuration</code> class, but most likely it will work.</p>\n<p><strong>WebConfig.java</strong></p>\n<pre><code>@Configuration\n@PropertySource(value={&quot;classpath:application.properties&quot;})\nclass WebConfig extends WebMvcConfigurerAdapter{\n\n    @Bean\n    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {\n        return new PropertySourcesPlaceholderConfigurer();\n    }\n}\n</code></pre>\n<p><strong>MyServerConfig.java</strong></p>\n<pre><code>@Configuration\nclass MyServerConfig {\n    \n   @Autowired\n   private Environment env;\n\n   public void func(){\n       String url = env.getProperty(&quot;server.url&quot;);\n   }\n}\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "78728550": [],
+    "78505462": []
+  }
+}

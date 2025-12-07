@@ -1,0 +1,130 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "shader",
+      "processing",
+      "fragment-shader"
+    ],
+    "owner": {
+      "account_id": 23865169,
+      "reputation": 3,
+      "user_id": 17867596,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/0300fee018dd129352f17a10e5ed1acf?s=256&d=identicon&r=PG",
+      "display_name": "helpthisnoob",
+      "link": "https://stackoverflow.com/users/17867596/helpthisnoob"
+    },
+    "is_answered": false,
+    "view_count": 55,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1764868688,
+    "creation_date": 1764868688,
+    "question_id": 79838187,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79838187/how-to-prevent-pixels-from-overwriting-each-other-in-processing",
+    "title": "How to prevent pixels from overwriting each other in processing?",
+    "body": "<p>I am learning dithering, and the best way for me to do this is to play around in processing. My end goal is to create something that mimics the aesthetic of <em>The Return of Obra Dinn.</em></p>\n<p>My code so far does 2 things:</p>\n<ol>\n<li>detect edges and change the color of edge pixels to white</li>\n<li>complete bayer dithering (though i think I may have done it a little differently than true bayer dithering. but this is not my issue, i'm fine the way it is and learning this on my own).</li>\n</ol>\n<p>The issue I am having is that the white edge pixels are not rendering. If I remove all the bayer dithering pieces in the draw function, it does draw correctly. However, with the bayer dithering it disappears. I sense it has to do with the order of how I'm rendering this, but I can't seem to figure out what I should change.</p>\n<p>So far, I have tried moving things around in the draw function so that the whole chunk of changing edges happens at the end of the draw function rather than the start. I've also tried adding an if statement so that any white pixels on img are skipped when going through the loops of dithering. Maybe I'm loading and updating pixels incorrectly?</p>\n<pre><code>PImage img;\ncolor white= color(255);\ncolor black=color(0);\nIntList seed;\nint starter=0;\nint z=0;\nint v= 0;\nint gCols=0;\nint gRows=0;\nint [][]gMatrix;\ncolor light= #e5ffff;\ncolor dark= #333319;\nfloat pRound= 0;\nfloat gRound=0;\n\nvoid setup (){\n  size (800,500);\n  img= loadImage(&quot;nosferatu.jpg&quot;);\n  noLoop();\n  img.loadPixels();\n  seed= new IntList(0,32,8,40,2,34,10,42,48,16,56,24,50,18,58,26,12,44,4,36,14,46,6,38,60,28,52,20,62,30,54,22,3,35,11,43,1,33,9,41,51,19,59,27,49,17,57,25,15,47,7,39,13,45,5,37,63,31,55,23,61,29,53,21);\n  for (int k=0; k&lt;seed.size();k++){\n    int newK= seed.get(k);\n    int newS= (newK/63)*255;\n    seed.set(k,newS);\n  }\n  int cols= 8;\n  int rows= 8;\n  int [][]matrix= new int [cols][rows];\n  for (int i = 0; i &lt;rows; i++){\n    for (int j = 0; j&lt;cols; j++){\n      matrix[j][i]= seed.get(starter);\n      starter=starter+1;\n    }\n  }\n  int fCols= img.width;\n  int fRows= img.height;\n  int [][]fMatrix = new int [fCols][fRows];\n  for (int t=0; t&lt;fRows; t++){\n    if (v&gt;7){\n      v=0;\n    }\n    for (int s=0; s&lt;fCols; s++){\n      if (z&gt;7){\n        z=0;\n      }\n      fMatrix[s][t]= matrix[z][v];\n      z=z+1;\n    }\n    v=v+1;\n  \n}\n  gCols= img.width;\n  gRows= img.height;\n  gMatrix= new int [gCols][gRows];\n  for (int q=0; q&lt;gRows; q++){\n    for (int p=0; p&lt;gCols; p++){\n      gMatrix[p][q]= fMatrix[p][q];\n    }\n    \n}\n}\n\nvoid draw () {\n  image(img,0,0);\n  img.filter(GRAY);\n  img.loadPixels();\n  PImage grayImg = img.copy();\n  grayImg.filter (BLUR,13);\n  grayImg.loadPixels();\n  for (int y=1; y&lt;grayImg.height-1; y++) {\n    for (int x=1; x&lt;grayImg.width-1; x++){\n      color gValue= grayImg.get (x,y);\n      float g2Value= red(gValue);\n      color lValue= grayImg.get(x-1,y);\n      float l2Value= red(lValue);\n      color rValue= grayImg.get(x+1,y);\n      float r2Value= red(rValue);\n      color bValue= grayImg.get(x, y+1);\n      float b2Value= red(bValue);\n      float rSub= abs(g2Value-r2Value);\n      float lSub=abs(g2Value-l2Value);\n      float bSub= abs(g2Value-b2Value);\n      if ((rSub&gt;5) || (lSub&gt;5) || (bSub&gt;5)){\n        img.set(x,y,white);\n      } \n      \n  }\n  }\n  for (int yy =0; yy&lt;img.height; yy++){\n    for (int xx=0; xx&lt;img.width;xx++){\n      color iValue= img.get(xx,yy);\n      float pValue= red(iValue);\n      if (pValue != white){\n        if (pValue&gt;255/2){\n          pRound = 255;\n        } else {\n          pRound=0;\n        }   \n         if (gMatrix[xx][yy]&gt;255/2){\n          gRound = 255;\n        } else {\n          gRound=0;\n        }     \n        if (pValue&gt;gMatrix[xx][yy]){\n          if (pRound==255){\n          img.set(xx,yy,light);\n          } else {\n            img.set(xx,yy,dark);\n        }} else if (pValue &lt; gMatrix[xx][yy]) {\n            if (gRound == 255){\n            img.set(xx,yy,light);\n            } else {\n              img.set(xx,yy,dark);\n        }\n        } else{\n          img.set(xx,yy,gMatrix[xx][yy]);\n      }\n      }\n    }\n    }\n  img.updatePixels();\n  image(img,0,0);\n  \n  \n}\n</code></pre>\n<p>I know my code is not written efficiently. Again, I'm learning dithering so it's easier for me to first start by breaking up my challenge before optimizing.</p>\n<p>Looking for some help to figure out what I am doing wrong. Can you point me in the right direction at least?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 17715726,
+        "reputation": 2743,
+        "user_id": 12862111,
+        "user_type": "registered",
+        "profile_image": "https://lh6.googleusercontent.com/-nhqw58Iz4yg/AAAAAAAAAAI/AAAAAAAAAAA/ACHi3rf6CK767R-GCC6X0PEj9nfdc1awVw/s256-rj/photo.jpg",
+        "display_name": "apodidae",
+        "link": "https://stackoverflow.com/users/12862111/apodidae"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1765042242,
+      "post_id": 79838187,
+      "comment_id": 140890549,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 372682,
+        "reputation": 26512,
+        "user_id": 721855,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/vZiox.png?s=256",
+        "display_name": "aled",
+        "link": "https://stackoverflow.com/users/721855/aled"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1764935387,
+      "post_id": 79838187,
+      "comment_id": 140888828,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 29751986,
+        "reputation": 3646,
+        "user_id": 22801686,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/0af01d17ee99f1f8ec1f8f788950399a?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Martin Brown",
+        "link": "https://stackoverflow.com/users/22801686/martin-brown"
+      },
+      "reply_to_user": {
+        "account_id": 39574,
+        "reputation": 24690,
+        "user_id": 114226,
+        "user_type": "registered",
+        "accept_rate": 79,
+        "profile_image": "https://i.sstatic.net/FHfgU.png?s=256",
+        "display_name": "PeterMmm",
+        "link": "https://stackoverflow.com/users/114226/petermmm"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1764879258,
+      "post_id": 79838187,
+      "comment_id": 140887994,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 39574,
+        "reputation": 24690,
+        "user_id": 114226,
+        "user_type": "registered",
+        "accept_rate": 79,
+        "profile_image": "https://i.sstatic.net/FHfgU.png?s=256",
+        "display_name": "PeterMmm",
+        "link": "https://stackoverflow.com/users/114226/petermmm"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1764875372,
+      "post_id": 79838187,
+      "comment_id": 140887910,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 29751986,
+        "reputation": 3646,
+        "user_id": 22801686,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/0af01d17ee99f1f8ec1f8f788950399a?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Martin Brown",
+        "link": "https://stackoverflow.com/users/22801686/martin-brown"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1764870240,
+      "post_id": 79838187,
+      "comment_id": 140887774,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {}
+}

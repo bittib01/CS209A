@@ -1,0 +1,102 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot"
+    ],
+    "owner": {
+      "account_id": 44734498,
+      "reputation": 23,
+      "user_id": 31908260,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/fa586cae2d5457865c6121bf44f5db88?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "omar rharbu",
+      "link": "https://stackoverflow.com/users/31908260/omar-rharbu"
+    },
+    "is_answered": true,
+    "view_count": 122,
+    "accepted_answer_id": 79825419,
+    "answer_count": 3,
+    "score": 2,
+    "last_activity_date": 1763641884,
+    "creation_date": 1763635947,
+    "last_edit_date": 1763637390,
+    "question_id": 79825415,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79825415/string-value-length-exceeds-maximum-allowed-when-uploading-large-file-in-json",
+    "title": "“String value length exceeds maximum allowed” when uploading large file in JSON",
+    "body": "<p>I'm building a Spring Boot application where I'm trying to upload files or large content through a REST endpoint. The request is being rejected by Spring Boot with this warning:</p>\n<blockquote>\n<p>HttpMessageNotReadableException: JSON parse error: String value length (20048537) exceeds the maximum allowed (20000000, from StreamReadConstraints.getMaxStringLength())</p>\n</blockquote>\n<p>It looks like Jackson is blocking the request because the JSON string is too large. I'm not trying to catch this exception, I just want to understand:</p>\n<ul>\n<li>Why this limit exists</li>\n<li>Whether I'm uploading the file in the wrong way</li>\n<li>What the correct approach is for handling large file uploads in Spring Boot</li>\n</ul>\n<p>Has anyone dealt with the <code>StreamReadConstraints</code> max string length issue?\nWhat is the recommended way to upload large files without hitting this JSON size restriction?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 1806558,
+        "reputation": 4743,
+        "user_id": 1643558,
+        "user_type": "registered",
+        "accept_rate": 73,
+        "profile_image": "https://i.sstatic.net/wGrow.png?s=256",
+        "display_name": "tgkprog",
+        "link": "https://stackoverflow.com/users/1643558/tgkprog"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1763641884,
+      "last_edit_date": 1763641884,
+      "creation_date": 1763640660,
+      "answer_id": 79825502,
+      "question_id": 79825415,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Adjusting the jackson value might have worked but that is not the optimal way to send a file to a endpoint. Best is to use MultipartFile, using multipart/request type, which Spring Boot has support for.</p>\n<p>Sample Controller</p>\n<pre><code>import org.springframework.http.ResponseEntity;\nimport org.springframework.stereotype.Controller;\nimport org.springframework.web.bind.annotation.PostMapping;\nimport org.springframework.web.bind.annotation.RequestParam;\nimport org.springframework.web.multipart.MultipartFile;\nimport org.springframework.web.servlet.mvc.support.RedirectAttributes;\n\nimport java.io.IOException;\nimport java.io.InputStream;\nimport java.nio.file.Files;\nimport java.nio.file.Path;\nimport java.nio.file.Paths;\nimport java.nio.file.StandardCopyOption;\nimport java.util.Objects;\n\n@Controller\npublic class FileUploadController {\n\n    //  upload directory, should exist and be writable.\n    private static final String UPLOAD_DIR = &quot;./uploads/&quot;; \n\n    @PostMapping(&quot;/upload&quot;)\n    public ResponseEntity&lt;?&gt; handleFileUpload(@RequestParam(&quot;file&quot;) MultipartFile file,\n                                              RedirectAttributes redirectAttributes) {\n\n        if (file.isEmpty()) {\n            return ResponseEntity.badRequest().body(&quot;Please select a file to upload.&quot;);\n        }\n\n        // sanitize original filename, to prevent path traversal, more secure\n\n        String fileName = Objects.requireNonNull(file.getOriginalFilename());\n        Path destinationFile = Paths.get(UPLOAD_DIR).resolve(\n                Paths.get(fileName).getFileName()\n        ).normalize();\n\n        // ensure the file is saved within the designated UPLOAD_DIR\n        if (!destinationFile.getParent().equals(Paths.get(UPLOAD_DIR).normalize().toAbsolutePath())) {\n            return ResponseEntity.badRequest().body(&quot;Cannot store file outside current directory.&quot;);\n        }\n\n        try {\n            \n            \n        \n            try (InputStream inputStream = file.getInputStream()) {\n                // copy, over write if exists, or make a unique save name for every upload and save it to a table/ persistence linked to user/ transaction \n                Files.copy(inputStream, destinationFile, StandardCopyOption.REPLACE_EXISTING);\n            }\n\n            redirectAttributes.addFlashAttribute(&quot;message&quot;,\n                    &quot; uploaded '&quot; + fileName + &quot;'&quot;);\n            \n            return ResponseEntity.ok(&quot;Uploaded successfully: &quot; + fileName);\n\n        } catch (IOException e) {\n            e.printStackTrace();//todo logger\n      \n            return ResponseEntity.internalServerError().body(&quot;Failed file upld: &quot; + e.getMessage());\n        } catch (SecurityException e) {\n            e.printStackTrace();\n            return ResponseEntity.internalServerError().body(&quot;Permissions error: &quot; + e.getMessage());\n        }\n    }\n}\n</code></pre>\n<p>The client has to construct the message in the correct way. For testing can use a html form with correct attributes.</p>\n<p>Curl to send multipart request</p>\n<pre><code>curl -X POST http://localhost:8080/api/uploadWithMeta \\\n  -H &quot;Content-Type: multipart/form-data&quot; \\\n  -F &quot;file=@/path/to/your/local/file.txt&quot; \\\n  -F &quot;userId=123&quot; \\\n  -F &quot;description=A test uplad&quot;\n</code></pre>\n<p>Or as HTML form, action is url of controller</p>\n<pre class=\"lang-html prettyprint-override\"><code>&lt;form method=&quot;POST&quot; action=&quot;/upload&quot; enctype=&quot;multipart/form-data&quot;&gt;\n        File to upload:&lt;/td&gt;&lt;td&gt;&lt;input type=&quot;file&quot; name=&quot;file&quot; /&gt;&lt;input type=&quot;submit&quot; value=&quot;Upload&quot; /&gt;\n    &lt;/form&gt;\n</code></pre>\n<p>Java client to send multipart programmatially</p>\n<pre><code>import org.apache.http.HttpEntity;\nimport org.apache.http.client.methods.CloseableHttpResponse;\nimport org.apache.http.client.methods.HttpPost;\nimport org.apache.http.entity.ContentType;\nimport org.apache.http.entity.mime.MultipartEntityBuilder;\nimport org.apache.http.impl.client.CloseableHttpClient;\nimport org.apache.http.impl.client.HttpClients;\nimport org.apache.http.util.EntityUtils;\n\nimport java.io.File;\nimport java.io.IOException;\n\npublic class ApacheHttpClientFileUpload {\n\n    public static void uploadFile(String url, String filePath, String parameterName) throws IOException {\n        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {\n            HttpPost httpPost = new HttpPost(url);\n            File fileToUpload = new File(filePath);\n\n            // Build the multipart entity\n            HttpEntity multipartEntity = MultipartEntityBuilder.create()\n                    .addBinaryBody(parameterName, fileToUpload, ContentType.DEFAULT_BINARY, fileToUpload.getName())\n                    // You can add text fields too:\n                    // .addTextBody(&quot;description&quot;, &quot;A sample file upload&quot;, ContentType.TEXT_PLAIN)\n                    .build();\n\n            httpPost.setEntity(multipartEntity);\n\n            try (CloseableHttpResponse response = httpClient.execute(httpPost)) {\n                // Print the response status and body\n                System.out.println(&quot;Status line: &quot; + response.getStatusLine());\n                HttpEntity responseEntity = response.getEntity();\n                if (responseEntity != null) {\n                    System.out.println(&quot;Response body: &quot; + EntityUtils.toString(responseEntity));\n                }\n            }\n        }\n    }\n\n    public static void main(String[] args) throws IOException {\n        String serverUrl = &quot;http://localhost:8080/api/upload&quot;; // The Spring Boot endpoint URL\n        String fileLocation = &quot;./sample.txt&quot;; // The local file path\n        String formFieldName = &quot;file&quot;; // Must match the @RequestParam name in Spring Boot\n\n        uploadFile(serverUrl, fileLocation, formFieldName);\n    }\n}\n</code></pre>\n<p>This will work for even 500 MB, i have not tested more.</p>\n<p>For extremely large files (gigabytes), the external client can split file into chunks and send each chunk as separate request. Need another endpoint to handle each chunk part and a final endpoint to reassemble them on the server (client calls 'done' end point with last chunk.</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79825502": [
+      {
+        "owner": {
+          "account_id": 1806558,
+          "reputation": 4743,
+          "user_id": 1643558,
+          "user_type": "registered",
+          "accept_rate": 73,
+          "profile_image": "https://i.sstatic.net/wGrow.png?s=256",
+          "display_name": "tgkprog",
+          "link": "https://stackoverflow.com/users/1643558/tgkprog"
+        },
+        "reply_to_user": {
+          "account_id": 1211967,
+          "reputation": 9964,
+          "user_id": 1180351,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/pKB8y.png?s=256",
+          "display_name": "Rob Spoor",
+          "link": "https://stackoverflow.com/users/1180351/rob-spoor"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1763641919,
+        "post_id": 79825502,
+        "comment_id": 140864275,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1211967,
+          "reputation": 9964,
+          "user_id": 1180351,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/pKB8y.png?s=256",
+          "display_name": "Rob Spoor",
+          "link": "https://stackoverflow.com/users/1180351/rob-spoor"
+        },
+        "edited": false,
+        "score": 3,
+        "creation_date": 1763641351,
+        "post_id": 79825502,
+        "comment_id": 140864261,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

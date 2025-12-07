@@ -1,0 +1,196 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-security",
+      "swagger",
+      "swagger-ui"
+    ],
+    "owner": {
+      "account_id": 42001190,
+      "reputation": 98,
+      "user_id": 30549148,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/d24d01d5608b94e8f7d07a637c73f881?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "CodeSage",
+      "link": "https://stackoverflow.com/users/30549148/codesage"
+    },
+    "is_answered": true,
+    "view_count": 6415,
+    "accepted_answer_id": 79626647,
+    "answer_count": 3,
+    "score": 2,
+    "last_activity_date": 1764838499,
+    "creation_date": 1747479324,
+    "question_id": 79626449,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79626449/while-accessing-swagger-api-i-get-java-lang-nosuchmethoderror-void-org-spring",
+    "title": "While accessing swagger API, I get java.lang.NoSuchMethodError: &#39;void org.springframework.web.method.ControllerAdviceBean.&lt;init&gt;(java.lang.Object)&#39;",
+    "body": "<p>I'm using Spring Boot 3.4.5 with springdoc-openapi-starter-webmvc-ui:2.3.0 to integrate Swagger UI in my Spring Boot REST application. This is my security configuration:</p>\n<pre><code>@Bean\n    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {\n        http.cors(Customizer.withDefaults()).csrf(AbstractHttpConfigurer::disable)\n                .exceptionHandling((exceptionHandling) -&gt; exceptionHandling.authenticationEntryPoint(authenticationEntryPoint))\n                .sessionManagement((sm) -&gt; sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))\n                .authorizeHttpRequests(\n                        (authRequest) -&gt;\n                                authRequest.requestMatchers(&quot;/&quot;).permitAll()\n                                        .requestMatchers(&quot;/api-docs&quot;,\n                                                &quot;/configuration/ui&quot;,\n                                                &quot;/api-docs/**&quot;,\n                                                &quot;/v3/api-docs/**&quot;,\n                                                &quot;/swagger-resources/**&quot;,\n                                                &quot;/configuration/security&quot;,\n                                                &quot;/swagger-ui/**&quot;,\n                                                &quot;/swagger-ui.html&quot;,\n                                                &quot;/webjars/**&quot;).permitAll()\n                                        .requestMatchers(&quot;/account/register&quot;).permitAll()\n                                        .requestMatchers(&quot;/account/login&quot;).permitAll()\n                                        .requestMatchers(&quot;/account/verify&quot;).permitAll()\n                                        .requestMatchers(HttpMethod.GET, &quot;/imgs/**&quot;).permitAll()\n                                        .requestMatchers(&quot;/account/forget-password&quot;).permitAll()\n                                        .requestMatchers(&quot;/account/forget-password/verify&quot;).permitAll()\n                                        .requestMatchers(&quot;/account/reset-password&quot;).permitAll()\n                                        .anyRequest().authenticated())\n                .authenticationProvider(authenticationProvider());\n        http.addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);\n        return http.build();\n    }\n</code></pre>\n<p>This is my minimal configuration for swagger.</p>\n<pre><code>@Configuration\npublic class SwaggerConfig {\n    @Bean\n    public OpenAPI customOpenAPI() {\n        return new OpenAPI()\n                .info(new Info()\n                        .title(&quot;Customer Feedback SaaS API&quot;)\n                        .version(&quot;1.0&quot;)\n                        .contact(new Contact()\n                                .name(&quot;Ajoy Deb Nath&quot;)\n                                .email(&quot;sample@gmail.com&quot;)));\n    }\n}\n</code></pre>\n<p>When I hit the endpoint <code>http://localhost:8080/swagger-ui/index.html</code> in the browser, It shows:</p>\n<p><a href=\"https://i.sstatic.net/2qkUjqM6.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/2qkUjqM6.png\" alt=\"enter image description here\" /></a></p>\n<p>In the console, I get this error:</p>\n<pre><code>java.lang.NoSuchMethodError: 'void org.springframework.web.method.ControllerAdviceBean.&lt;init&gt;(java.lang.Object)'\n    at org.springdoc.core.service.GenericResponseService.lambda$getGenericMapResponse$8(GenericResponseService.java:702) ~[springdoc-openapi-starter-common-2.3.0.jar:2.3.0]\n    at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:178) ~[na:na]\n    at java.base/java.util.Spliterators$ArraySpliterator.forEachRemaining(Spliterators.java:992) ~[na:na]\n    at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509) ~[na:na]\n    at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499) ~[na:na]\n    at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:575) ~[na:na]\n    at java.base/java.util.stream.AbstractPipeline.evaluateToArrayNode(AbstractPipeline.java:260) ~[na:na]\n    at java.base/java.util.stream.ReferencePipeline.toArray(ReferencePipeline.java:616) ~[na:na]\n    at java.base/java.util.stream.ReferencePipeline.toArray(ReferencePipeline.java:622) ~[na:na]\n    at java.base/java.util.stream.ReferencePipeline.toList(ReferencePipeline.java:627) ~[na:na]\n    at org.springdoc.core.service.GenericResponseService.getGenericMapResponse(GenericResponseService.java:704) ~[springdoc-openapi-starter-common-2.3.0.jar:2.3.0]\n    at org.springdoc.core.service.GenericResponseService.build(GenericResponseService.java:246) ~[springdoc-openapi-starter-common-2.3.0.jar:2.3.0]\n    at org.springdoc.api.AbstractOpenApiResource.calculatePath(AbstractOpenApiResource.java:499) ~[springdoc-openapi-starter-common-2.3.0.jar:2.3.0]\n    at org.springdoc.api.AbstractOpenApiResource.calculatePath(AbstractOpenApiResource.java:676) ~[springdoc-openapi-starter-common-2.3.0.jar:2.3.0]\n    at org.springdoc.webmvc.api.OpenApiResource.lambda$calculatePath$11(OpenApiResource.java:219) ~[springdoc-openapi-starter-webmvc-api-2.3.0.jar:2.3.0]\n    at java.base/java.util.Optional.ifPresent(Optional.java:178) ~[na:na]\n    at org.springdoc.webmvc.api.OpenApiResource.calculatePath(OpenApiResource.java:200) ~[springdoc-openapi-starter-webmvc-api-2.3.0.jar:2.3.0]\n    at org.springdoc.webmvc.api.OpenApiResource.lambda$getPaths$2(OpenApiResource.java:170) ~[springdoc-openapi-starter-webmvc-api-2.3.0.jar:2.3.0]\n    at java.base/java.util.Optional.ifPresent(Optional.java:178) ~[na:na]\n    at org.springdoc.webmvc.api.OpenApiResource.getPaths(OpenApiResource.java:149) ~[springdoc-openapi-starter-webmvc-api-2.3.0.jar:2.3.0]\n    at org.springdoc.api.AbstractOpenApiResource.getOpenApi(AbstractOpenApiResource.java:353) ~[springdoc-openapi-starter-common-2.3.0.jar:2.3.0]\n    at org.springdoc.webmvc.api.OpenApiResource.openapiJson(OpenApiResource.java:124) ~[springdoc-openapi-starter-webmvc-api-2.3.0.jar:2.3.0]\n    at org.springdoc.webmvc.api.OpenApiWebMvcResource.openapiJson(OpenApiWebMvcResource.java:111) ~[springdoc-openapi-starter-webmvc-api-2.3.0.jar:2.3.0]\n    at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]\n    at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]\n    at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]\n    at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]\n    at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:258) ~[spring-web-6.2.6.jar:6.2.6]\n    at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:191) ~[spring-web-6.2.6.jar:6.2.6]\n    at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118) ~[spring-webmvc-6.2.6.jar:6.2.6]\n    at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:986) ~[spring-webmvc-6.2.6.jar:6.2.6]\n    at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:891) ~[spring-webmvc-6.2.6.jar:6.2.6]\n    at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87) ~[spring-webmvc-6.2.6.jar:6.2.6]\n    at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089) ~[spring-webmvc-6.2.6.jar:6.2.6]\n    at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979) ~[spring-webmvc-6.2.6.jar:6.2.6]\n    at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014) ~[spring-webmvc-6.2.6.jar:6.2.6]\n    at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:903) ~[spring-webmvc-6.2.6.jar:6.2.6]\n    at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:564) ~[tomcat-embed-core-10.1.40.jar:6.0]\n    at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885) ~[spring-webmvc-6.2.6.jar:6.2.6]\n    at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658) ~[tomcat-embed-core-10.1.40.jar:6.0]\n    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:195) ~[tomcat-embed-core-10.1.40.jar:10.1.40]\n    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.40.jar:10.1.40]\n    at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51) ~[tomcat-embed-websocket-10.1.40.jar:10.1.40]\n    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.40.jar:10.1.40]\n    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.40.jar:10.1.40]\n    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:110) ~[spring-web-6.2.6.jar:6.2.6]\n    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.40.jar:10.1.40]\n    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.40.jar:10.1.40]\n    at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108) ~[spring-web-6.2.6.jar:6.2.6]\n    at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:231) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:365) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:131) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:85) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:179) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at com.deb.customer_feedback_backend.security.JwtAuthenticationFilter.doFilterInternal(JwtAuthenticationFilter.java:47) ~[classes/:na]\n    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.6.jar:6.2.6]\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:107) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:93) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91) ~[spring-web-6.2.6.jar:6.2.6]\n    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.6.jar:6.2.6]\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.6.jar:6.2.6]\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.6.jar:6.2.6]\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.6.jar:6.2.6]\n    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:233) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:191) ~[spring-security-web-6.4.5.jar:6.4.5]\n    at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-6.2.6.jar:6.2.6]\n    at org.springframework.web.servlet.handler.HandlerMappingIntrospector.lambda$createCacheFilter$3(HandlerMappingIntrospector.java:243) ~[spring-webmvc-6.2.6.jar:6.2.6]\n    at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-6.2.6.jar:6.2.6]\n    at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74) ~[spring-web-6.2.6.jar:6.2.6]\n    at org.springframework.security.config.annotation.web.configuration.WebMvcSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebMvcSecurityConfiguration.java:238) ~[spring-security-config-6.4.5.jar:6.4.5]\n    at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:362) ~[spring-web-6.2.6.jar:6.2.6]\n    at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:278) ~[spring-web-6.2.6.jar:6.2.6]\n    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.40.jar:10.1.40]\n    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.40.jar:10.1.40]\n    at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100) ~[spring-web-6.2.6.jar:6.2.6]\n    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.6.jar:6.2.6]\n    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.40.jar:10.1.40]\n    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.40.jar:10.1.40]\n    at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93) ~[spring-web-6.2.6.jar:6.2.6]\n    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.6.jar:6.2.6]\n    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.40.jar:10.1.40]\n    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.40.jar:10.1.40]\n    at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201) ~[spring-web-6.2.6.jar:6.2.6]\n    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.6.jar:6.2.6]\n    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.40.jar:10.1.40]\n    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.40.jar:10.1.40]\n    at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:167) ~[tomcat-embed-core-10.1.40.jar:10.1.40]\n    at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90) ~[tomcat-embed-core-10.1.40.jar:10.1.40]\n    at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:483) ~[tomcat-embed-core-10.1.40.jar:10.1.40]\n    at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:116) ~[tomcat-embed-core-10.1.40.jar:10.1.40]\n    at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93) ~[tomcat-embed-core-10.1.40.jar:10.1.40]\n    at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74) ~[tomcat-embed-core-10.1.40.jar:10.1.40]\n    at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:344) ~[tomcat-embed-core-10.1.40.jar:10.1.40]\n    at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:398) ~[tomcat-embed-core-10.1.40.jar:10.1.40]\n    at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63) ~[tomcat-embed-core-10.1.40.jar:10.1.40]\n    at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:903) ~[tomcat-embed-core-10.1.40.jar:10.1.40]\n    at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1740) ~[tomcat-embed-core-10.1.40.jar:10.1.40]\n    at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52) ~[tomcat-embed-core-10.1.40.jar:10.1.40]\n    at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1189) ~[tomcat-embed-core-10.1.40.jar:10.1.40]\n    at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:658) ~[tomcat-embed-core-10.1.40.jar:10.1.40]\n    at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.40.jar:10.1.40]\n    at java.base/java.lang.Thread.run(Thread.java:840) ~[na:na]\n</code></pre>\n<p>I tried to clean and rebuilt the project, but nothing changed. Then I looked into my <code>GlobalExceptionHandler</code>. Is this could be a problem as <code>@ControllerAdvice</code> is only used here in the code? Am I doing anything wrong here?</p>\n<pre><code>@ControllerAdvice\npublic class GlobalExceptionHandler {\n    @ExceptionHandler(exception = UsernameNotFoundException.class)\n    public ResponseEntity&lt;?&gt; handleUsernameNotFoundException(UsernameNotFoundException ex, WebRequest request){\n        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(&quot;User not found&quot;));\n    }\n    \n    @ExceptionHandler(exception = BadCredentialsException.class)\n    public ResponseEntity&lt;?&gt; handleBadCredentialsException(BadCredentialsException ex, WebRequest request){\n        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse(&quot;Email/Password credential not matched&quot;));\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 35096152,
+        "reputation": 1,
+        "user_id": 26976604,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/0224ba4c398273db6951e3d2036cba3c?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Abhishek Sarkar",
+        "link": "https://stackoverflow.com/users/26976604/abhishek-sarkar"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1764838499,
+      "last_edit_date": 1764838499,
+      "creation_date": 1764826488,
+      "answer_id": 79837540,
+      "question_id": 79626449,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Great. It's Working.  I was facing same issue mentioned in the problem statement with 2.6.0 version. So I changed 2.6.0 =&gt; 2.8.6</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;dependency&gt;\n    &lt;groupId&gt;org.springdoc&lt;/groupId&gt;\n    &lt;artifactId&gt;springdoc-openapi-starter-webmvc-ui&lt;/artifactId&gt;\n    &lt;version&gt;2.8.6&lt;/version&gt;\n&lt;/dependency&gt;\n</code></pre>\n<p>and</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;parent&gt;\n    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n    &lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;\n    &lt;version&gt;3.5.8&lt;/version&gt;\n    &lt;relativePath/&gt; &lt;!-- lookup parent from repository --&gt;\n&lt;/parent&gt;\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 41976397,
+        "reputation": 9,
+        "user_id": 30537342,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/c81315f57609fb6777d8a3fb0f34b205?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Easa Feroz",
+        "link": "https://stackoverflow.com/users/30537342/easa-feroz"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1747559137,
+      "last_edit_date": 1747559137,
+      "creation_date": 1747491952,
+      "answer_id": 79626643,
+      "question_id": 79626449,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<ol>\n<li><p>Here the <code>ControllerAdviceBean</code> refers to the internal thing in the <code>spring-web</code> not the one in you code.</p>\n</li>\n<li><p>This happens when your application is using Spring Boot 3.x (which depends on Spring Framework 6), but at runtime it loads an old version of <code>spring-web</code>, typically Spring 5.x.</p>\n</li>\n<li><p>The <code>ControllerAdviceBean(Object)</code> constructor exists only in Spring Web 6+. If an older version is loaded, the method is missing, and you get the <code>NoSuchMethodError</code>.</p>\n</li>\n<li><p>Since the error occurs even you are using Spring Boot 3.4.5 means there is some other dependency in your <code>pom.xml</code> / <code>buil.gradle</code> that's been adding the old <code>spring-web</code> to the classpath.</p>\n</li>\n<li><p>First look for duplicate springweb either  jar files in classpath or using the command</p>\n<pre><code>./mvnw dependency:tree -Dincludes=org.springframework\n</code></pre>\n</li>\n<li><p>Look for any unexpected or duplicate versions like:</p>\n<p><strong><code>org.springframework:spring-web:5.x.x</code>   &lt;-- BAD</strong></p>\n<p><strong><code>org.springframework:spring-web:6.2.6</code>   &lt;-- GOOD</strong></p>\n<p>If you find 5.x.x, find which dependency brought it in:</p>\n</li>\n<li><p>You can do this by checking the dependency tree in IDE and exclude the <code>spring-web</code> from it by adding the &lt;exclusion&gt; tag.</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;dependency&gt;\n  &lt;groupId&gt;conflicting.group&lt;/groupId&gt;\n  &lt;artifactId&gt;conflicting-lib&lt;/artifactId&gt;\n  &lt;exclusions&gt;\n    &lt;exclusion&gt;\n      &lt;groupId&gt;org.springframework&lt;/groupId&gt;\n      &lt;artifactId&gt;spring-web&lt;/artifactId&gt;\n    &lt;/exclusion&gt;\n  &lt;/exclusions&gt;\n&lt;/dependency&gt;\n</code></pre>\n</li>\n</ol>\n<p>Hope this solves your issue this is my first answer in Stackoverflow I don't know the standard practices here so please do excuse me if anything seems wrong.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 18999437,
+        "reputation": 800,
+        "user_id": 13867124,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/3f75c892f3b54042e7400ee33cd8af96?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "AztecCodes",
+        "link": "https://stackoverflow.com/users/13867124/azteccodes"
+      },
+      "is_accepted": true,
+      "score": 6,
+      "last_activity_date": 1747558998,
+      "last_edit_date": 1747558998,
+      "creation_date": 1747492206,
+      "answer_id": 79626647,
+      "question_id": 79626449,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Seems like the issue you're encountering is not caused by <code>@ControllerAdvice</code> or your custom exception handling. The actual root cause seems to be a version incompatibility between <code>springdoc-openapi-starter-webmvc-ui:2.3.0</code> and <code>Spring Boot 3.4.5</code>.</p>\n<p>Try to upgrade <code>springdoc-openapi</code> to a compatible version:</p>\n<p>So update your <code>springdoc-openapi</code> version from 2.3.0 to 2.3.1 or later, which is compatible with <code>Spring Boot 3.2+</code> and therefore also with 3.4.5.</p>\n<p>Changes in <code>build.gradle</code>:</p>\n<pre><code>implementation(&quot;org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.1&quot;)\n</code></pre>\n<p>Changes in <code>pom.xml</code>:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;dependency&gt;\n  &lt;groupId&gt;org.springdoc&lt;/groupId&gt;\n  &lt;artifactId&gt;springdoc-openapi-starter-webmvc-ui&lt;/artifactId&gt;\n  &lt;version&gt;2.3.1&lt;/version&gt;\n&lt;/dependency&gt;\n</code></pre>\n<p><strong>2.3.1</strong> explicitly fixes compatibility issues with <code>Spring Framework 6.1+</code>.</p>\n<p>Downgrading Spring Boot would also be an option, however updating makes way more sense.</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79837540": [],
+    "79626643": [
+      {
+        "owner": {
+          "account_id": 42001190,
+          "reputation": 98,
+          "user_id": 30549148,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/d24d01d5608b94e8f7d07a637c73f881?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "CodeSage",
+          "link": "https://stackoverflow.com/users/30549148/codesage"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1747556430,
+        "post_id": 79626643,
+        "comment_id": 140436469,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "79626647": [
+      {
+        "owner": {
+          "account_id": 34504301,
+          "reputation": 1,
+          "user_id": 26606809,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/678244ca2d6da007c6824a1326a2bfa3?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Mageshkumar N",
+          "link": "https://stackoverflow.com/users/26606809/mageshkumar-n"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1753794836,
+        "post_id": 79626647,
+        "comment_id": 140626873,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 34504301,
+          "reputation": 1,
+          "user_id": 26606809,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/678244ca2d6da007c6824a1326a2bfa3?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Mageshkumar N",
+          "link": "https://stackoverflow.com/users/26606809/mageshkumar-n"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1753794727,
+        "post_id": 79626647,
+        "comment_id": 140626866,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 18999437,
+          "reputation": 800,
+          "user_id": 13867124,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/3f75c892f3b54042e7400ee33cd8af96?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "AztecCodes",
+          "link": "https://stackoverflow.com/users/13867124/azteccodes"
+        },
+        "reply_to_user": {
+          "account_id": 42001190,
+          "reputation": 98,
+          "user_id": 30549148,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/d24d01d5608b94e8f7d07a637c73f881?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "CodeSage",
+          "link": "https://stackoverflow.com/users/30549148/codesage"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1747580205,
+        "post_id": 79626647,
+        "comment_id": 140436979,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 42001190,
+          "reputation": 98,
+          "user_id": 30549148,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/d24d01d5608b94e8f7d07a637c73f881?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "CodeSage",
+          "link": "https://stackoverflow.com/users/30549148/codesage"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1747556148,
+        "post_id": 79626647,
+        "comment_id": 140436461,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

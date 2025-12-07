@@ -1,0 +1,812 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "java-9"
+    ],
+    "owner": {
+      "account_id": 557270,
+      "reputation": 15063,
+      "user_id": 919348,
+      "user_type": "registered",
+      "accept_rate": 63,
+      "profile_image": "https://www.gravatar.com/avatar/7da5555bc18ddb7271d342ce2ce4b66f?s=256&d=identicon&r=PG",
+      "display_name": "Novellizator",
+      "link": "https://stackoverflow.com/users/919348/novellizator"
+    },
+    "is_answered": true,
+    "view_count": 556017,
+    "protected_date": 1545881699,
+    "accepted_answer_id": 46405092,
+    "answer_count": 43,
+    "score": 571,
+    "last_activity_date": 1758714113,
+    "creation_date": 1506334566,
+    "last_edit_date": 1758714113,
+    "question_id": 46402772,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/46402772/failed-to-install-android-sdk-java-lang-noclassdeffounderror-javax-xml-bind-a",
+    "title": "Failed to install android-sdk: &quot;java.lang.NoClassDefFoundError: javax/xml/bind/annotation/XmlSchema&quot;",
+    "body": "<p>When installing the android sdk tools the following error is emitted:</p>\n<blockquote>\n<p>java.lang.NoClassDefFoundError: javax/xml/bind/annotation/XmlSchema</p>\n</blockquote>\n<p>Why is this happening and how can it be fixed?</p>\n<p>Debug output:</p>\n<pre class=\"lang-none prettyprint-override\"><code>$ java --version\njava 9\nJava(TM) SE Runtime Environment (build 9+181)\nJava HotSpot(TM) 64-Bit Server VM (build 9+181, mixed mode)\n$ brew cask install android-sdk\n==&gt; Caveats\nWe will install android-sdk-tools, platform-tools, and build-tools for you.\nYou can control android sdk packages via the sdkmanager command.\nYou may want to add to your profile:\n  'export ANDROID_SDK_ROOT=/usr/local/share/android-sdk'\n\nThis operation may take up to 10 minutes depending on your internet connection.\nPlease, be patient.\n\n==&gt; Satisfying dependencies\n==&gt; Downloading https://dl.google.com/android/repository/sdk-tools-darwin-3859397.zip\nAlready downloaded: /Users/tomasnovella/Library/Caches/Homebrew/Cask/android-sdk--3859397,26.0.1.zip\n==&gt; Verifying checksum for Cask android-sdk\n==&gt; Installing Cask android-sdk\n==&gt; Exception in thread &quot;main&quot;\n==&gt; java.lang.NoClassDefFoundError: javax/xml/bind/annotation/XmlSchema\n==&gt;     at com.android.repository.api.SchemaModule$SchemaModuleVersion.&lt;init&gt;(SchemaModule.java:156)\n==&gt;     at com.android.repository.api.SchemaModule.&lt;init&gt;(SchemaModule.java:75)\n==&gt;     at com.android.sdklib.repository.AndroidSdkHandler.&lt;clinit&gt;(AndroidSdkHandler.java:81)\n==&gt;     at com.android.sdklib.tool.SdkManagerCli.main(SdkManagerCli.java:117)\n==&gt;     at com.android.sdklib.tool.SdkManagerCli.main(SdkManagerCli.java:93)\n==&gt; Caused by: java.lang.ClassNotFoundException: javax.xml.bind.annotation.XmlSchema\n==&gt;     at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:582)\n==&gt;     at java.base/jdk.internal.loader.ClassLoaders$AppClassLoader.loadClass(ClassLoaders.java:185)\n==&gt;     at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:496)\n==&gt;     ... 5 more\nError: Command failed to execute!\n\n==&gt; Failed command:\n/usr/local/Caskroom/android-sdk/3859397,26.0.1/tools/bin/sdkmanager tools platform-tools build-tools;26.0.1\n\n==&gt; Standard Output of failed command:\n\n\n==&gt; Standard Error of failed command:\nException in thread &quot;main&quot; java.lang.NoClassDefFoundError: javax/xml/bind/annotation/XmlSchema\n    at com.android.repository.api.SchemaModule$SchemaModuleVersion.&lt;init&gt;(SchemaModule.java:156)\n    at com.android.repository.api.SchemaModule.&lt;init&gt;(SchemaModule.java:75)\n    at com.android.sdklib.repository.AndroidSdkHandler.&lt;clinit&gt;(AndroidSdkHandler.java:81)\n    at com.android.sdklib.tool.SdkManagerCli.main(SdkManagerCli.java:117)\n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 3445468,
+        "reputation": 5762,
+        "user_id": 2886392,
+        "user_type": "registered",
+        "accept_rate": 81,
+        "profile_image": "https://www.gravatar.com/avatar/3092288cd40a9e9821ec2a6aeb282b15?s=256&d=identicon&r=PG",
+        "display_name": "JP Ventura",
+        "link": "https://stackoverflow.com/users/2886392/jp-ventura"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1758714038,
+      "last_edit_date": 1758714038,
+      "creation_date": 1721511832,
+      "answer_id": 78773964,
+      "question_id": 46402772,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<h1>TL; DR</h1>\n<p>The following steps will not only install Android Studio IDE but also make all command line available at your shell:</p>\n<ol>\n<li>Install Android Studio at <code>/opt/jetbrains/studio</code>, not at your home directory</li>\n<li>During the custom installation, set your <code>ANDROID_HOME</code> as <code>/opt/google/android</code></li>\n<li>Configure the Android environment variables</li>\n</ol>\n<pre class=\"lang-bash prettyprint-override\"><code>export ANDROID_HOME=/opt/google/android\n\nANDROID_CMDLINE_TOOLS=${ANDROID_HOME}/cmdline-tools/latest/bin\nANDROID_PLATFORM_TOOLS=${ANDROID_HOME}/platform-tools\nANDROID_TOOLS=${ANDROID_HOME}/tools\n\n# Latest Android NDK version at moment is 25.2.9519653\nANDROID_NDK=${ANDROID_HOME}/ndk/25.2.9519653\n\nexport PATH=${ANDROID_CMDLINE_TOOLS}:${ANDROID_NDK}:${ANDROID_PLATFORM_TOOLS}:${ANDROID_TOOLS}:${PATH}\n</code></pre>\n<ol start=\"4\">\n<li>Create a symbolic link</li>\n</ol>\n<pre class=\"lang-bash prettyprint-override\"><code>ln -s /opt/google/studio/bin/studio.sh /usr/local/bin/studio\n</code></pre>\n<p>The steps above were performed with <code>javac</code> version 21.0.3</p>\n<h1>Description</h1>\n<p><em>According to the <a href=\"https://www.pathname.com/fhs/pub/fhs-2.3.html\" rel=\"nofollow noreferrer\">Filesystem Hierarchy Standard</a>, <code>/opt</code> is for &quot;the installation of add-on application software packages&quot;, while <code>/usr/local</code> is &quot;for use by the system administrator when installing software locally&quot;.</em></p>\n<p>However, unlike <code>/usr/local</code>, <a href=\"https://unix.stackexchange.com/questions/11544\">POSIX environment variables will not be automatically read</a>.</p>\n<p>Thus do the following steps:</p>\n<ol>\n<li>Install your Android Studio at <code>/opt/jetbrains/studio</code></li>\n<li>Install your Android SDK at <code>/opt/google/android</code></li>\n<li>Configure your shell environment variables</li>\n</ol>\n<p>Why? Because they allow:</p>\n<ol>\n<li>Android Studio be available all users of the same workstation</li>\n<li>If you are an organization SysAdmin, you can clone <code>/opt</code> to all workstations</li>\n<li>If <code>/opt</code> is into a separated partition, your tools will be preserved if you reinstall or change POSIX OS</li>\n</ol>\n<h2>Install Android Studio</h2>\n<p>Download the latest version of <a href=\"https://developer.android.com/studio\" rel=\"nofollow noreferrer\">Android SDK</a></p>\n<p>Add your user into <code>adm</code> group. For example, do at Ubuntu shell:</p>\n<pre class=\"lang-bash prettyprint-override\"><code>sudo usermod -a -G adm $(whoami)\n</code></pre>\n<p>Then create the directories ensuring <code>adm</code> my write into them</p>\n<pre class=\"lang-bash prettyprint-override\"><code>sudo mkdir -p /opt/google/android\nsudo mkdir /opt/jetbrains\nsudo chown root:adm -R /opt\nsudo chmod ug+w /opt\n</code></pre>\n<p>Download the latest Android Studio version and unpack it into <code>/opt</code></p>\n<pre class=\"lang-bash prettyprint-override\"><code>cd ~/Downloads/\nwget https://redirector.gvt1.com/edgedl/android/studio/ide-zips/2024.1.1.12/android-studio-2024.1.1.12-linux.tar.gz\n</code></pre>\n<p>then unpack it into <code>/opt/jetbrains/studio</code></p>\n<pre class=\"lang-bash prettyprint-override\"><code>cd /opt/jetbrains\nsudo tar -xvzf ~/Downloads/android-studio-2024.1.1.12-linux.tar.gz \nsudo mv android-studio studio\nsudo chown root:adm -R studio\nrm ~/Downloads/android-studio-2024.1.1.12-linux.tar.gz\n</code></pre>\n<h2>Install Android SDK</h2>\n<p>When you run <code>/opt/jetbrains/studio.sh</code> for the first time, do a custom install</p>\n<p><a href=\"https://i.sstatic.net/CicZHtrk.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/CicZHtrk.png\" alt=\"Android Studio Custom Install\" /></a></p>\n<p>and specify the <code>ANDROID_HOME</code> location as <code>/opt/google/android</code></p>\n<p><a href=\"https://i.sstatic.net/4hsofVmL.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/4hsofVmL.png\" alt=\"Android Home\" /></a></p>\n<h2>Configure command line tools</h2>\n<p>If you are using <code>bash</code>, add into <code>/etc/profile</code></p>\n<pre class=\"lang-bash prettyprint-override\"><code>if [ -d /etc/profile.d ]; then\n  for i in /etc/profile.d/*.sh; do\n    if [ -r $i ]; then\n      . $i\n    fi\n  done\n  unset i\nfi\n</code></pre>\n<p>for Z shell users, at into <code>/etc/zshenv</code></p>\n<pre class=\"lang-bash prettyprint-override\"><code>#!/usr/bin/env zsh\n\nif [ -d /etc/zshenv.d ]; then\n  for i in /etc/zshenv.d/*.sh; do\n    if [ -r $i ]; then\n      . $i\n    fi\n  done\n  unset i\n fi\n</code></pre>\n<p>Then write into <code>android.sh</code> the following environment variables:</p>\n<pre class=\"lang-bash prettyprint-override\"><code>export ANDROID_HOME=/opt/google/android\n\nANDROID_CMDLINE_TOOLS=${ANDROID_HOME}/cmdline-tools/latest/bin\nANDROID_PLATFORM_TOOLS=${ANDROID_HOME}/platform-tools\nANDROID_TOOLS=${ANDROID_HOME}/tools\n\n# Latest Android NDK version at moment is 25.2.9519653\nANDROID_NDK=${ANDROID_HOME}/ndk/25.2.9519653\n\nexport PATH=${ANDROID_CMDLINE_TOOLS}:${ANDROID_NDK}:${ANDROID_PLATFORM_TOOLS}:${ANDROID_TOOLS}:${PATH}\n</code></pre>\n<p>Finally create a shortcut so you may invoke the IDE at command line:</p>\n<pre class=\"lang-bash prettyprint-override\"><code>ln -s /opt/google/studio/bin/studio.sh /usr/local/bin/studio\n</code></pre>\n<h2>Command Line Tools</h2>\n<p>Play with some commands at your preferred shell:</p>\n<pre class=\"lang-none prettyprint-override\"><code>$ avdmanager \n\nUsage:\n      avdmanager [global options] [action] [action options]\n      Global options:\n  -s --silent     : Silent mode, shows errors only.\n  -v --verbose    : Verbose mode, shows errors, warnings and all messages.\n     --clear-cache: Clear the SDK Manager repository manifest cache.\n  -h --help       : Help on a specific command.\n\nValid actions are composed of a verb and an optional direct object:\n-   list              : Lists existing targets or virtual devices.\n-   list avd          : Lists existing Android Virtual Devices.\n-   list target       : Lists existing targets.\n-   list device       : Lists existing devices.\n- create avd          : Creates a new Android Virtual Device.\n-   move avd          : Moves or renames an Android Virtual Device.\n- delete avd          : Deletes an Android Virtual Device.\n</code></pre>\n<p>or</p>\n<pre class=\"lang-none prettyprint-override\"><code>$ sdkmanager \nUsage:\n  sdkmanager [--uninstall] [&lt;common args&gt;] [--package_file=&lt;file&gt;] [&lt;packages&gt;...]\n  sdkmanager --update [&lt;common args&gt;]\n  sdkmanager --list [&lt;common args&gt;]\n  sdkmanager --list_installed [&lt;common args&gt;]\n  sdkmanager --licenses [&lt;common args&gt;]\n  sdkmanager --version\n\nWith --install (optional), installs or updates packages.\n    By default, the listed packages are installed or (if already installed)\n    updated to the latest version.\nWith --uninstall, uninstall the listed packages.\n\n    &lt;package&gt; is a sdk-style path (e.g. &quot;build-tools;23.0.0&quot; or\n             &quot;platforms;android-23&quot;).\n    &lt;package-file&gt; is a text file where each line is a sdk-style path\n                   of a package to install or uninstall.\n    Multiple --package_file arguments may be specified in combination\n    with explicit paths.\n\nWith --update, all installed packages are updated to the latest version.\n\nWith --list, all installed and available packages are printed out.\n\nWith --list_installed, all installed packages are printed out.\n\nWith --licenses, show and offer the option to accept licenses for all\n     available packages that have not already been accepted.\n\nWith --version, prints the current version of sdkmanager.\n\nCommon Arguments:\n    --sdk_root=&lt;sdkRootPath&gt;: Use the specified SDK root instead of the SDK\n                              containing this tool\n\n    --channel=&lt;channelId&gt;: Include packages in channels up to &lt;channelId&gt;.\n                           Common channels are:\n                           0 (Stable), 1 (Beta), 2 (Dev), and 3 (Canary).\n\n    --include_obsolete: With --list, show obsolete packages in the\n                        package listing. With --update, update obsolete\n                        packages as well as non-obsolete.\n\n    --newer: With --list, show only new and/or updatable packages.\n\n    --no_https: Force all connections to use http rather than https.\n\n    --proxy=&lt;http | socks&gt;: Connect via a proxy of the given type.\n\n    --proxy_host=&lt;IP or DNS address&gt;: IP or DNS address of the proxy to use.\n\n    --proxy_port=&lt;port #&gt;: Proxy port to connect to.\n\n    --verbose: Enable verbose output.\n\n* If the env var REPO_OS_OVERRIDE is set to &quot;windows&quot;,\n  &quot;macosx&quot;, or &quot;linux&quot;, packages will be downloaded for that OS.\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 877270,
+        "reputation": 857,
+        "user_id": 153271,
+        "user_type": "registered",
+        "accept_rate": 33,
+        "profile_image": "https://www.gravatar.com/avatar/776f5d46e7cb0c0cd1e02bdf75e2bd8f?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "chendu",
+        "link": "https://stackoverflow.com/users/153271/chendu"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1758713980,
+      "last_edit_date": 1758713980,
+      "creation_date": 1609864120,
+      "answer_id": 65582796,
+      "question_id": 46402772,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>My Java version is 15.0.1. For the OS Mac.</p>\n<p>and this is how i fixed the issue.</p>\n<ol>\n<li><p>downloaded zip: jaf-1_1_1.zip from: <a href=\"https://download.oracle.com/otn-pub/java/jaf/1.1.1/jaf-1_1_1.zip?AuthParam=1609860571_68ca6f30491c76e81970a3849504fb6a\" rel=\"nofollow noreferrer\">https://download.oracle.com/otn-pub/java/jaf/1.1.1/jaf-1_1_1.zip?AuthParam=1609860571_68ca6f30491c76e81970a3849504fb6a</a></p>\n</li>\n<li><p>downloaded the zip: jaxb-ri-2.3.1.zip from: <a href=\"https://download.oracle.com/otn-pub/java/jaf/1.1.1/jaf-1_1_1.zip?AuthParam=1609860571_68ca6f30491c76e81970a3849504fb6a\" rel=\"nofollow noreferrer\">https://download.oracle.com/otn-pub/java/jaf/1.1.1/jaf-1_1_1.zip?AuthParam=1609860571_68ca6f30491c76e81970a3849504fb6a</a></p>\n</li>\n<li><p>unziped into a folder: ~/jars/ . exported classpath as follows</p>\n</li>\n</ol>\n<pre class=\"lang-bash prettyprint-override\"><code>export  \n CLASSPATH=~/jars/FastInfoset.jar:~/jars/activation.jar:~/jars/codemodel.jar:~/jars/dtd-parser.jar:~/jars/istack-commons-runtime.jar:~/jars/istack-commons-tools.jar:~/jars/jaf-1.1.1:~/jars/jaf-1_1_1.zip:~/jars/javax.activation-api.jar:~/jars/jaxb-api.jar:~/jars/jaxb-jxc.jar:~/jars/jaxb-ri:~/jars/jaxb-ri-2.3.1.zip:~/jars/jaxb-runtime.jar:~/jars/jaxb-xjc.jar:~/jars/relaxng-datatype.jar:~/jars/rngom.jar:~/jars/stax-ex.jar:~/jars/txw2.jar:~/jars/xsom.jar\n</code></pre>\n<ol>\n<li>next edit the file: <code>cd ~/Library/Android/sdk/tools/bin/sdkmanager</code> change the CLASSPATH to the below</li>\n</ol>\n<p><code>CLASSPATH=$CLASSPATH:$APP... </code></p>\n<p>save the file and run the command again.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 6228201,
+        "reputation": 5428,
+        "user_id": 4845808,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/loFIO.jpg?s=256",
+        "display_name": "Chinese Cat",
+        "link": "https://stackoverflow.com/users/4845808/chinese-cat"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1758713947,
+      "last_edit_date": 1758713947,
+      "creation_date": 1563175490,
+      "answer_id": 57034996,
+      "question_id": 46402772,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>When your Android studio/jre uses a differ version of java, you will receive this error. To solve it, just set Android studio/jre to your JAVA_HOME and uninstall your own java.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 2811364,
+        "reputation": 523,
+        "user_id": 2417546,
+        "user_type": "registered",
+        "accept_rate": 25,
+        "profile_image": "https://www.gravatar.com/avatar/39f9e12ad56b0356139fa4f9b508ad37?s=256&d=identicon&r=PG",
+        "display_name": "zishan paya",
+        "link": "https://stackoverflow.com/users/2417546/zishan-paya"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1758713873,
+      "last_edit_date": 1758713873,
+      "creation_date": 1589036929,
+      "answer_id": 61698922,
+      "question_id": 46402772,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Best way is to use below command</p>\n<pre class=\"lang-none prettyprint-override\"><code>$ wget https://dl.google.com/android/repository/platform-tools-latest-linux.zip\n$ unzip \\platform-tools-latest-linux.zip\n$ sudo cp platform-tools/adb /usr/bin/adb\n$ sudo cp platform-tools/fastboot /usr/bin/fastboot\n</code></pre>\n<p>Now run adb version to verify it’s been updated.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 14566339,
+        "reputation": 211,
+        "user_id": 10520928,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/EJXmg.png?s=256",
+        "display_name": "hugovicfortman",
+        "link": "https://stackoverflow.com/users/10520928/hugovicfortman"
+      },
+      "is_accepted": false,
+      "score": 2,
+      "last_activity_date": 1758713744,
+      "last_edit_date": 1758713744,
+      "creation_date": 1543950920,
+      "answer_id": 53619947,
+      "question_id": 46402772,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>For Linux users (I'm using a Debian Distro, Kali)\nHere's how I resolved mine.</p>\n<p>If you don't already have jdk-8, you want to get it at oracle's site</p>\n<p><a href=\"https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html\" rel=\"nofollow noreferrer\">https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html</a></p>\n<p>I got the jdk-8u191-linux-x64.tar.gz</p>\n<p>Step 1 - Installing Java\nMove and unpack it at a suitable location like so</p>\n\n<pre class=\"lang-none prettyprint-override\"><code>$ mv jdk-8u191-linux-x64.tar.gz /suitablelocation/\n$ tar -xzvf /suitablelocation/jdk-8u191-linux-x64.tar.gz\n</code></pre>\n<p>You should get an unzipped folder like jdk1.8.0_191\nYou can delete the tarball afterwards to conserve space</p>\n<p>Step 2 - Setting up alternatives to the default java location</p>\n<pre class=\"lang-none prettyprint-override\"><code>$ update-alternatives --install /usr/bin/java java /suitablelocation/jdk1.8.0_191/bin/java 1\n$ update-alternatives --install /usr/bin/javac javac /suitablelocation/jdk1.8.0_191/bin/javac 1\n</code></pre>\n<p>Step 3 - Selecting your alternatives as default</p>\n<pre class=\"lang-none prettyprint-override\"><code>$ update-alternatives --set java /suitablelocation/jdk1.8.0_191/bin/java\n$ update-alternatives --set javac /suitablelocation/jdk1.8.0_191/bin/javac\n</code></pre>\n<p>Step 4 - Confirming default java version</p>\n<pre class=\"lang-none prettyprint-override\"><code>$ java -version\n</code></pre>\n<p>Notes</p>\n<ol>\n<li>In the original article here: <a href=\"https://forums.kali.org/showthread.php?41-Installing-Java-on-Kali-Linux\" rel=\"nofollow noreferrer\">https://forums.kali.org/showthread.php?41-Installing-Java-on-Kali-Linux</a>,\nthe default plugin for mozilla was also set. I assume we don't really need the plugins as we're\nsimply trying to develop for android.</li>\n<li>As in <a href=\"https://stackoverflow.com/a/46405092\">@spassvogel's answer</a>, you should also place a @repositories.cfg file in your ~/.android directory\nas this is needed to update the tools repo lists</li>\n<li>Moving some things around may require root authority. Use sudo wisely.</li>\n<li>For sdkmanager usage, see official guide: <a href=\"https://developer.android.com/studio/command-line/sdkmanager\" rel=\"nofollow noreferrer\">https://developer.android.com/studio/command-line/sdkmanager</a></li>\n</ol>\n"
+    },
+    {
+      "owner": {
+        "account_id": 6978224,
+        "reputation": 608,
+        "user_id": 5382576,
+        "user_type": "registered",
+        "accept_rate": 71,
+        "profile_image": "https://i.sstatic.net/RA1Xu.jpg?s=256",
+        "display_name": "Enrique Ren&#233;",
+        "link": "https://stackoverflow.com/users/5382576/enrique-ren%c3%a9"
+      },
+      "is_accepted": false,
+      "score": 5,
+      "last_activity_date": 1758713714,
+      "last_edit_date": 1758713714,
+      "creation_date": 1596931838,
+      "answer_id": 63321328,
+      "question_id": 46402772,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>In my case, I have Java 14 and need Java 8.</p>\n<p>I'm in a Arch Linux and has installed <code>jdk8-openjdk jre8-openjdk</code> <a href=\"https://www.archlinux.org/packages/extra/x86_64/java8-openjdk/\" rel=\"nofollow noreferrer\">https://www.archlinux.org/packages/extra/x86_64/java8-openjdk/</a></p>\n<p>For Debian users <a href=\"https://wiki.debian.org/Java\" rel=\"nofollow noreferrer\">https://wiki.debian.org/Java</a>, or Fedora <a href=\"https://docs.fedoraproject.org/en-US/quick-docs/installing-java/\" rel=\"nofollow noreferrer\">https://docs.fedoraproject.org/en-US/quick-docs/installing-java/</a>.</p>\n<p>Install Java 8 (or desired version, in this case <code>jdk8-openjdk jre8-openjdk</code>) using your package manager before doing the following steps.</p>\n<hr />\n<h1>1. Figuring out where is my Java:</h1>\n\n<pre class=\"lang-none prettyprint-override\"><code># which java\n/usr/bin/java\n</code></pre>\n<h1>2. Checking java files:</h1>\n<p>I can see all java files here are links to <code>/usr/lib/jvm/default[something]</code>. This means that the <code>java</code> command is linked to some specific version of <code>java</code> executable.</p>\n<pre class=\"lang-none prettyprint-override\"><code># ls -l /usr/bin/java*\nlrwxrwxrwx 1 root root 37 May 16 06:30 /usr/bin/java -&gt; /usr/lib/jvm/default-runtime/bin/java\nlrwxrwxrwx 1 root root 30 May 16 06:30 /usr/bin/javac -&gt; /usr/lib/jvm/default/bin/javac\nlrwxrwxrwx 1 root root 32 May 16 06:30 /usr/bin/javadoc -&gt; /usr/lib/jvm/default/bin/javadoc\nlrwxrwxrwx 1 root root 30 May 16 06:30 /usr/bin/javah -&gt; /usr/lib/jvm/default/bin/javah\nlrwxrwxrwx 1 root root 30 May 16 06:30 /usr/bin/javap -&gt; /usr/lib/jvm/default/bin/javap\n</code></pre>\n<h1>3. Checking the <code>default</code> and <code>default-runtime</code></h1>\n<p>Here I could see the default version was linked to 14 (unique installed version).</p>\n<pre class=\"lang-none prettyprint-override\"><code># cd /usr/lib/jvm\n# ls -l\nlrwxrwxrwx 1 root root   14 Aug  8 20:44 default -&gt; java-14-openjdk\nlrwxrwxrwx 1 root root   14 Aug  8 20:44 default-runtime -&gt; java-14-openjdk\ndrwxr-xr-x 7 root root 4096 Jul 19 22:38 java-14-openjdk\ndrwxr-xr-x 6 root root 4096 Aug  8 20:42 java-8-openjdk\n</code></pre>\n<h1>4. Switching the default version</h1>\n<p>First, remove the existing <code>default</code> and <code>default-runtime</code> which linked to java-14 version.</p>\n<pre class=\"lang-none prettyprint-override\"><code># rm default default-runtime\n</code></pre>\n<p>Then, create new links to the desired version (in this case, java-8).</p>\n<pre class=\"lang-none prettyprint-override\"><code># ln -s java-8-openjdk default\n# ln -s java-8-openjdk default-runtime\n</code></pre>\n<hr />\n<p>The strategy is to make links to the desired version of software (java8 in this case) using <code>ln -s</code> above. Then, this links are linked to the binaries inside the java bin directory (<strong>without changing the <code>$PATH</code> environment variable!</strong>)</p>\n<hr />\n<p>Or you might be wanted to change the Java version using <code>archlinux-java</code> command instead with more safely approach: <a href=\"https://wiki.archlinux.org/index.php/Java\" rel=\"nofollow noreferrer\">https://wiki.archlinux.org/index.php/Java</a></p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 3080498,
+        "reputation": 356,
+        "user_id": 2608802,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/651ad75b999fb7188b9e0f25fdd6bec1?s=256&d=identicon&r=PG",
+        "display_name": "Sandeep",
+        "link": "https://stackoverflow.com/users/2608802/sandeep"
+      },
+      "is_accepted": false,
+      "score": 10,
+      "last_activity_date": 1758713678,
+      "last_edit_date": 1758713678,
+      "creation_date": 1550732833,
+      "answer_id": 54801138,
+      "question_id": 46402772,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>I ran into same issue when running:</p>\n\n<pre class=\"lang-none prettyprint-override\"><code>$ /Users/&lt;username&gt;/Library/Android/sdk/tools/bin/sdkmanager &quot;platforms;android-28&quot; &quot;build-tools;28.0.3&quot;_\n</code></pre>\n<p>I solved it as</p>\n<pre class=\"lang-none prettyprint-override\"><code>$ echo $JAVA_HOME\n/Library/Java/JavaVirtualMachines/jdk-11.0.1.jdk/Contents/Home    \n\n$ ls /Library/Java/JavaVirtualMachines/\n\njdk-11.0.1.jdk      \njdk1.8.0_202.jdk\n</code></pre>\n<p><strong>Change Java to use 1.8</strong></p>\n<pre class=\"lang-none prettyprint-override\"><code>$ export JAVA_HOME='/Library/Java/JavaVirtualMachines/jdk1.8.0_202.jdk/Contents/Home'\n</code></pre>\n<p>Then the same command runs fine</p>\n<pre class=\"lang-none prettyprint-override\"><code>$ /Users/&lt;username&gt;/Library/Android/sdk/tools/bin/sdkmanager &quot;platforms;android-28&quot; &quot;build-tools;28.0.3&quot;\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 5232216,
+        "reputation": 791,
+        "user_id": 4182109,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/20cfaf53eaf6eb7c30ec841aca66074d?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Well Smith",
+        "link": "https://stackoverflow.com/users/4182109/well-smith"
+      },
+      "is_accepted": false,
+      "score": 13,
+      "last_activity_date": 1758713650,
+      "last_edit_date": 1758713650,
+      "creation_date": 1520757963,
+      "answer_id": 49218234,
+      "question_id": 46402772,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Strangely Java9 is not compatible with android-sdk</p>\n\n<pre class=\"lang-none prettyprint-override\"><code>$ avdmanager\nException in thread &quot;main&quot; java.lang.NoClassDefFoundError: javax/xml/bind/annotation/XmlSchema\n    at com.android.repository.api.SchemaModule$SchemaModuleVersion.&lt;init&gt;(SchemaModule.java:156)\n    at com.android.repository.api.SchemaModule.&lt;init&gt;(SchemaModule.java:75)\n    at com.android.sdklib.repository.AndroidSdkHandler.&lt;clinit&gt;(AndroidSdkHandler.java:81)\n    at com.android.sdklib.tool.AvdManagerCli.run(AvdManagerCli.java:213)\n    at com.android.sdklib.tool.AvdManagerCli.main(AvdManagerCli.java:200)\nCaused by: java.lang.ClassNotFoundException: javax.xml.bind.annotation.XmlSchema\n    at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:582)\n    at java.base/jdk.internal.loader.ClassLoaders$AppClassLoader.loadClass(ClassLoaders.java:185)\n    at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:496)\n    ... 5 more\n</code></pre>\n<p>Combined all commands into one for easy reference:</p>\n<pre class=\"lang-none prettyprint-override\"><code>$ sudo rm -fr /Library/Java/JavaVirtualMachines/jdk-9*.jdk/\n$ sudo rm -fr /Library/Internet\\ Plug-Ins/JavaAppletPlugin.plugin\n$ sudo rm -fr /Library/PreferencePanes/JavaControlPanel.prefPane\n\n$ /usr/libexec/java_home -V\nUnable to find any JVMs matching version &quot;(null)&quot;.\nMatching Java Virtual Machines (0):\nDefault Java Virtual Machines (0):\nNo Java runtime present, try --request to install\n\n$ brew tap caskroom/versions\n$ brew cask install java8\n$ touch ~/.android/repositories.cfg\n$ brew cask install android-sdk\n$ echo 'export ANDROID_SDK_ROOT=&quot;/usr/local/share/android-sdk&quot;' &gt;&gt; ~/.bash_profile\n$ java -version\njava version &quot;1.8.0_162&quot;\nJava(TM) SE Runtime Environment (build 1.8.0_162-b12)\nJava HotSpot(TM) 64-Bit Server VM (build 25.162-b12, mixed mode)\n$ avdmanager\n\nUsage:\n      avdmanager [global options] [action] [action options]\n      Global options:\n  -s --silent     : Silent mode, shows errors only.\n  -v --verbose    : Verbose mode, shows errors, warnings and all messages.\n     --clear-cache: Clear the SDK Manager repository manifest cache.\n  -h --help       : Help on a specific command.\n\nValid actions are composed of a verb and an optional direct object:\n-   list              : Lists existing targets or virtual devices.\n-   list avd          : Lists existing Android Virtual Devices.\n-   list target       : Lists existing targets.\n-   list device       : Lists existing devices.\n- create avd          : Creates a new Android Virtual Device.\n-   move avd          : Moves or renames an Android Virtual Device.\n- delete avd          : Deletes an Android Virtual Device.\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 481692,
+        "reputation": 18057,
+        "user_id": 895659,
+        "user_type": "registered",
+        "accept_rate": 55,
+        "profile_image": "https://i.sstatic.net/cmPXO.jpg?s=256",
+        "display_name": "Farshid Ashouri",
+        "link": "https://stackoverflow.com/users/895659/farshid-ashouri"
+      },
+      "is_accepted": false,
+      "score": 21,
+      "last_activity_date": 1758713610,
+      "last_edit_date": 1758713610,
+      "creation_date": 1544039892,
+      "answer_id": 53639855,
+      "question_id": 46402772,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>You need to add the following to your Profile (Works on MacOS):</p>\n<blockquote>\n<pre class=\"lang-bash prettyprint-override\"><code>export JAVA_HOME=`/usr/libexec/java_home -v 1.8`\n</code></pre>\n</blockquote>\n<p>No need to patch anything.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 10415396,
+        "reputation": 6934,
+        "user_id": 12585616,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/5MZIs.png?s=256",
+        "display_name": "EdYuTo",
+        "link": "https://stackoverflow.com/users/12585616/edyuto"
+      },
+      "is_accepted": false,
+      "score": 615,
+      "last_activity_date": 1758713576,
+      "last_edit_date": 1758713576,
+      "creation_date": 1602853726,
+      "answer_id": 64389804,
+      "question_id": 46402772,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Just had this error, solved by downloading the <code>Android SDK Command-line Tools (latest)</code> on Android Studio, under <code>Preferences &gt; Appearance &amp; Behavior &gt; System Settings &gt; Android SDK &gt; SDK Tools</code> and re-running <code>flutter doctor --android-licenses</code></p>\n<blockquote>\n<p><strong>NOTE:</strong> For Android Studio <em>Android Studio Giraffe | 2022.3.1 Patch 1</em>, find these setting under <code>File</code> &gt; <code>Settings</code> and, in the left panel, <code>Languages &amp; Frameworks</code> &gt; <code>Android SDK</code> and finally select the <code>SDK Tools</code>.</p>\n</blockquote>\n<p><a href=\"https://i.sstatic.net/iUmgp.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/iUmgp.png\" alt=\"Android SDK path on Android Studio\" /></a></p>\n<p><a href=\"https://i.sstatic.net/vNxxw.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/vNxxw.png\" alt=\"Command-line Tools\" /></a></p>\n<p>Finally, add the new tools to your PATH, in your <code>.bashrc</code>, <code>.zshrc</code> or similar, before the obsolete tools:</p>\n<pre class=\"lang-bash prettyprint-override\"><code>export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 1603273,
+        "reputation": 2839,
+        "user_id": 1483903,
+        "user_type": "registered",
+        "accept_rate": 75,
+        "profile_image": "https://www.gravatar.com/avatar/6c37dd8068c794e8268a332d944cd7e8?s=256&d=identicon&r=PG",
+        "display_name": "thebiggestlebowski",
+        "link": "https://stackoverflow.com/users/1483903/thebiggestlebowski"
+      },
+      "is_accepted": false,
+      "score": 2,
+      "last_activity_date": 1729433414,
+      "creation_date": 1729433414,
+      "answer_id": 79107267,
+      "question_id": 46402772,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>As others have mentioned, this can be fixed by using java 8.  However, my android projects needs java 11.  My solution was that anytime I need to use sdkmanager, I set JAVA_HOME to java 8.  After I'm done with sdkmanager, I revert JAVA_HOME back to java 11.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 5196485,
+        "reputation": 15555,
+        "user_id": 4157589,
+        "user_type": "registered",
+        "accept_rate": 100,
+        "profile_image": "https://i.sstatic.net/IYRBIPTW.jpg?s=256",
+        "display_name": "valdeci",
+        "link": "https://stackoverflow.com/users/4157589/valdeci"
+      },
+      "is_accepted": false,
+      "score": 99,
+      "last_activity_date": 1721665696,
+      "last_edit_date": 1721665696,
+      "creation_date": 1533178508,
+      "answer_id": 51644855,
+      "question_id": 46402772,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>To solve this error, you can downgrade your Java version.</p>\n<p>Or export the following option on your terminal:</p>\n<p><strong>Linux/Mac:</strong></p>\n<pre class=\"lang-bash prettyprint-override\"><code>export JAVA_OPTS='-XX:+IgnoreUnrecognizedVMOptions --add-modules java.se.ee'\n</code></pre>\n<p><strong>Windows:</strong></p>\n<pre><code>set JAVA_OPTS=-XX:+IgnoreUnrecognizedVMOptions --add-modules java.se.ee\n</code></pre>\n<p>If this does not work, try to export <code>java.xml.bind</code> instead.</p>\n<p><strong>Linux:</strong></p>\n<pre class=\"lang-bash prettyprint-override\"><code>export JAVA_OPTS='-XX:+IgnoreUnrecognizedVMOptions --add-modules java.xml.bind'\n</code></pre>\n<p><strong>Windows:</strong></p>\n<pre><code>set JAVA_OPTS=-XX:+IgnoreUnrecognizedVMOptions --add-modules java.xml.bind\n</code></pre>\n<p>To save it permanently, you can export the <code>JAVA_OPTS</code> in your profile file on Linux (<code>.zshrc</code>, <code>.bashrc</code>, etc.) or add it as an environment variable permanently on Windows.</p>\n<hr />\n<p><strong>PS:</strong> This doesn't work for Java 11/11+, which doesn't have Java EE modules. For this option, it is a good idea to downgrade your Java version or wait for a Flutter <a href=\"https://github.com/flutter/flutter/wiki/Changelog\" rel=\"nofollow noreferrer\">update</a>.</p>\n<p>Ref: <a href=\"https://jaxenter.com/jdk-11-java-ee-modules-140674.html\" rel=\"nofollow noreferrer\">JDK 11: End of the road for Java EE modules</a></p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 287300,
+        "reputation": 13982,
+        "user_id": 587021,
+        "user_type": "registered",
+        "accept_rate": 60,
+        "profile_image": "https://www.gravatar.com/avatar/390ae6c8c1e917c0ac3a562680fed3b7?s=256&d=identicon&r=PG",
+        "display_name": "A T",
+        "link": "https://stackoverflow.com/users/587021/a-t"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1715832089,
+      "creation_date": 1715832089,
+      "answer_id": 78487519,
+      "question_id": 46402772,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Opening Android projects in IDEA instead of Android Studio gave me this error.</p>\n<p>Solution:</p>\n<ol start=\"0\">\n<li>Install Android SDK from the IDEA window</li>\n<li>It'll say &quot;nothing to do&quot; as the SDK is already downloaded and installed</li>\n<li>The licenses will automatically be accepted and now you can use IDEA for your Android projects</li>\n</ol>\n"
+    },
+    {
+      "owner": {
+        "account_id": 12800050,
+        "reputation": 1482,
+        "user_id": 11909003,
+        "user_type": "registered",
+        "profile_image": "https://lh4.googleusercontent.com/-hxBPCXNawIQ/AAAAAAAAAAI/AAAAAAAAAKw/I81xmcebu8k/s256-rj/photo.jpg",
+        "display_name": "Priyansh jain",
+        "link": "https://stackoverflow.com/users/11909003/priyansh-jain"
+      },
+      "is_accepted": false,
+      "score": 21,
+      "last_activity_date": 1714913440,
+      "last_edit_date": 1714913440,
+      "creation_date": 1638701348,
+      "answer_id": 70233533,
+      "question_id": 46402772,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>While building the flutter application an error occurred saying android sdk licenses not accepted. So, while accepting the license this error occurred.</p>\n<p>Reason for this error in my case was I haven't installed sdkmanager command line tools which is required to accept the license.</p>\n<p>So, to install command line tools easiest way is:</p>\n<ol>\n<li><p>Open android studio.</p>\n</li>\n<li><p>Open SDK Manager (For Old Android Studio):\n<a href=\"https://i.sstatic.net/LCNmv.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/LCNmv.png\" alt=\"For older version of Android studio\" /></a></p>\n</li>\n<li><p>Open SDK Manager (For New Android Studio):\n<a href=\"https://i.sstatic.net/8aifmeTK.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/8aifmeTK.png\" alt=\"For newee version of Android studio\" /></a></p>\n</li>\n<li><p>Select SDK tools inside it in bar.</p>\n</li>\n<li><p>Tick the option Android SDK Command-line Tools (latest)</p>\n</li>\n<li><p>Apply it.</p>\n</li>\n<li><p>Run flutter doctor -android-licenses if using flutter or you can continue with the process where the error occurred.</p>\n</li>\n</ol>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 14997,
+        "reputation": 1580,
+        "user_id": 31252,
+        "user_type": "registered",
+        "accept_rate": 32,
+        "profile_image": "https://www.gravatar.com/avatar/798a1cab9442e2a3414ae878e9cab599?s=256&d=identicon&r=PG",
+        "display_name": "satyajit",
+        "link": "https://stackoverflow.com/users/31252/satyajit"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1727803251,
+      "post_id": 46402772,
+      "comment_id": 139373864,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 10388697,
+        "reputation": 638,
+        "user_id": 7660775,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/EJ7rt.jpg?s=256",
+        "display_name": "Imrul Kayes",
+        "link": "https://stackoverflow.com/users/7660775/imrul-kayes"
+      },
+      "reply_to_user": {
+        "account_id": 4910284,
+        "reputation": 145,
+        "user_id": 3955763,
+        "user_type": "registered",
+        "accept_rate": 50,
+        "profile_image": "https://www.gravatar.com/avatar/731257d103354365043bea76ca6e1ce5?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "devsin",
+        "link": "https://stackoverflow.com/users/3955763/devsin"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1625846889,
+      "post_id": 46402772,
+      "comment_id": 120744863,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 4910284,
+        "reputation": 145,
+        "user_id": 3955763,
+        "user_type": "registered",
+        "accept_rate": 50,
+        "profile_image": "https://www.gravatar.com/avatar/731257d103354365043bea76ca6e1ce5?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "devsin",
+        "link": "https://stackoverflow.com/users/3955763/devsin"
+      },
+      "edited": false,
+      "score": 16,
+      "creation_date": 1625555332,
+      "post_id": 46402772,
+      "comment_id": 120649895,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 301110,
+        "reputation": 103604,
+        "user_id": 608639,
+        "user_type": "registered",
+        "accept_rate": 64,
+        "profile_image": "https://i.sstatic.net/aPIhh.jpg?s=256",
+        "display_name": "jww",
+        "link": "https://stackoverflow.com/users/608639/jww"
+      },
+      "edited": false,
+      "score": 7,
+      "creation_date": 1571132466,
+      "post_id": 46402772,
+      "comment_id": 103129702,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "78773964": [],
+    "65582796": [],
+    "57034996": [],
+    "61698922": [],
+    "53619947": [],
+    "63321328": [],
+    "54801138": [],
+    "49218234": [],
+    "53639855": [],
+    "64389804": [
+      {
+        "owner": {
+          "account_id": 1185012,
+          "reputation": 1865,
+          "user_id": 1159164,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/c7ea047c0cbc70eae07bc1cf3d621bff?s=256&d=identicon&r=PG",
+          "display_name": "michele b",
+          "link": "https://stackoverflow.com/users/1159164/michele-b"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1728923100,
+        "post_id": 64389804,
+        "comment_id": 139451905,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 2008178,
+          "reputation": 853,
+          "user_id": 1797414,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/cGu6n.jpg?s=256",
+          "display_name": "arr_sea",
+          "link": "https://stackoverflow.com/users/1797414/arr-sea"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1719591908,
+        "post_id": 64389804,
+        "comment_id": 138725285,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 5063932,
+          "reputation": 4292,
+          "user_id": 4441547,
+          "user_type": "registered",
+          "accept_rate": 86,
+          "profile_image": "https://lh6.googleusercontent.com/-_a7aQ1gNiFY/AAAAAAAAAAI/AAAAAAAAABw/2usMjLqKwgI/s256-rj/photo.jpg",
+          "display_name": "Aaron Franke",
+          "link": "https://stackoverflow.com/users/4441547/aaron-franke"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1716778277,
+        "post_id": 64389804,
+        "comment_id": 138456899,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 178916,
+          "reputation": 537,
+          "user_id": 411189,
+          "user_type": "registered",
+          "accept_rate": 100,
+          "profile_image": "https://www.gravatar.com/avatar/783c72507f1a5cc602fbe49787ef95b3?s=256&d=identicon&r=PG",
+          "display_name": "isync",
+          "link": "https://stackoverflow.com/users/411189/isync"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1691952254,
+        "post_id": 64389804,
+        "comment_id": 135557063,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 18254171,
+          "reputation": 153,
+          "user_id": 13288513,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/oP1oE.png?s=256",
+          "display_name": "shehan chanuka",
+          "link": "https://stackoverflow.com/users/13288513/shehan-chanuka"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1679424782,
+        "post_id": 64389804,
+        "comment_id": 133719240,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 2292509,
+          "reputation": 1751,
+          "user_id": 2014878,
+          "user_type": "registered",
+          "accept_rate": 0,
+          "profile_image": "https://i.sstatic.net/LUxuv.jpg?s=256",
+          "display_name": "Ben Alan",
+          "link": "https://stackoverflow.com/users/2014878/ben-alan"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1674844111,
+        "post_id": 64389804,
+        "comment_id": 132807264,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 195068,
+          "reputation": 4142,
+          "user_id": 2380518,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/dGhUr.jpg?s=256",
+          "display_name": "Miloš Černilovsk&#253;",
+          "link": "https://stackoverflow.com/users/2380518/milo%c5%a1-%c4%8cernilovsk%c3%bd"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1663672563,
+        "post_id": 64389804,
+        "comment_id": 130290125,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 2398447,
+          "reputation": 2595,
+          "user_id": 2096773,
+          "user_type": "registered",
+          "accept_rate": 61,
+          "profile_image": "https://i.sstatic.net/R7xyC.png?s=256",
+          "display_name": "Naga",
+          "link": "https://stackoverflow.com/users/2096773/naga"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1658602128,
+        "post_id": 64389804,
+        "comment_id": 129094175,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 84982,
+          "reputation": 2416,
+          "user_id": 237232,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/83c3d9a599234043def0aaa3ce41e5d6?s=256&d=identicon&r=PG",
+          "display_name": "Dragan Marjanović",
+          "link": "https://stackoverflow.com/users/237232/dragan-marjanovi%c4%87"
+        },
+        "edited": false,
+        "score": 7,
+        "creation_date": 1644936033,
+        "post_id": 64389804,
+        "comment_id": 125733427,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 3147888,
+          "reputation": 3251,
+          "user_id": 2661999,
+          "user_type": "registered",
+          "accept_rate": 38,
+          "profile_image": "https://graph.facebook.com/536432471/picture?type=large",
+          "display_name": "Gili Yaniv",
+          "link": "https://stackoverflow.com/users/2661999/gili-yaniv"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1644357836,
+        "post_id": 64389804,
+        "comment_id": 125585003,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 13408402,
+          "reputation": 2871,
+          "user_id": 9675721,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/2fhAbvtM.jpg?s=256",
+          "display_name": "Raphael Pinel",
+          "link": "https://stackoverflow.com/users/9675721/raphael-pinel"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1631096903,
+        "post_id": 64389804,
+        "comment_id": 122129672,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 8603362,
+          "reputation": 55,
+          "user_id": 6444183,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/07bd2b729074c66ccaab4e7767f07c7d?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "FutureCap",
+          "link": "https://stackoverflow.com/users/6444183/futurecap"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1631048680,
+        "post_id": 64389804,
+        "comment_id": 122117839,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1168702,
+          "reputation": 462,
+          "user_id": 1146391,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/b44fb7cf872145f633fb6b785f1a0197?s=256&d=identicon&r=PG",
+          "display_name": "nathan",
+          "link": "https://stackoverflow.com/users/1146391/nathan"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1630177160,
+        "post_id": 64389804,
+        "comment_id": 121887049,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 6489497,
+          "reputation": 3043,
+          "user_id": 9789097,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/9aab44011e25d2fdc10050c9413b2e94?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Trect",
+          "link": "https://stackoverflow.com/users/9789097/trect"
+        },
+        "edited": false,
+        "score": 4,
+        "creation_date": 1628347261,
+        "post_id": 64389804,
+        "comment_id": 121398510,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1669921,
+          "reputation": 615,
+          "user_id": 1536567,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/lY2w4.jpg?s=256",
+          "display_name": "Eloy B.",
+          "link": "https://stackoverflow.com/users/1536567/eloy-b"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1627970137,
+        "post_id": 64389804,
+        "comment_id": 121289841,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 15230785,
+          "reputation": 3779,
+          "user_id": 10989990,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/8eSzj.jpg?s=256",
+          "display_name": "Priyanka",
+          "link": "https://stackoverflow.com/users/10989990/priyanka"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1627552075,
+        "post_id": 64389804,
+        "comment_id": 121188631,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 2109967,
+          "reputation": 7219,
+          "user_id": 1875434,
+          "user_type": "registered",
+          "accept_rate": 67,
+          "profile_image": "https://www.gravatar.com/avatar/dc064a0af5b489a8a5aec8dcf53cc21e?s=256&d=identicon&r=PG",
+          "display_name": "abbas",
+          "link": "https://stackoverflow.com/users/1875434/abbas"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1627417239,
+        "post_id": 64389804,
+        "comment_id": 121150202,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 14280875,
+          "reputation": 711,
+          "user_id": 10436569,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/zeRT7.jpg?s=256",
+          "display_name": "Suryakant Bharti",
+          "link": "https://stackoverflow.com/users/10436569/suryakant-bharti"
+        },
+        "edited": false,
+        "score": 7,
+        "creation_date": 1624858443,
+        "post_id": 64389804,
+        "comment_id": 120461746,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 17551947,
+          "reputation": 706,
+          "user_id": 12732187,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/292474fa8518ccd508d98b54d54262eb?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Dasun wijesundara",
+          "link": "https://stackoverflow.com/users/12732187/dasun-wijesundara"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1622497221,
+        "post_id": 64389804,
+        "comment_id": 119804759,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "79107267": [],
+    "51644855": [
+      {
+        "owner": {
+          "account_id": 6489497,
+          "reputation": 3043,
+          "user_id": 9789097,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/9aab44011e25d2fdc10050c9413b2e94?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Trect",
+          "link": "https://stackoverflow.com/users/9789097/trect"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1628347290,
+        "post_id": 51644855,
+        "comment_id": 121398520,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "78487519": [],
+    "70233533": [
+      {
+        "owner": {
+          "account_id": 12800050,
+          "reputation": 1482,
+          "user_id": 11909003,
+          "user_type": "registered",
+          "profile_image": "https://lh4.googleusercontent.com/-hxBPCXNawIQ/AAAAAAAAAAI/AAAAAAAAAKw/I81xmcebu8k/s256-rj/photo.jpg",
+          "display_name": "Priyansh jain",
+          "link": "https://stackoverflow.com/users/11909003/priyansh-jain"
+        },
+        "reply_to_user": {
+          "account_id": 71611,
+          "reputation": 26920,
+          "user_id": 6998684,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/aBp1t.jpg?s=256",
+          "display_name": "IgorGanapolsky",
+          "link": "https://stackoverflow.com/users/6998684/igorganapolsky"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1656266152,
+        "post_id": 70233533,
+        "comment_id": 128524436,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 71611,
+          "reputation": 26920,
+          "user_id": 6998684,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/aBp1t.jpg?s=256",
+          "display_name": "IgorGanapolsky",
+          "link": "https://stackoverflow.com/users/6998684/igorganapolsky"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1654806972,
+        "post_id": 70233533,
+        "comment_id": 128186768,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "datetime",
+      "java-8",
+      "java-time"
+    ],
+    "owner": {
+      "account_id": 20967,
+      "reputation": 15802,
+      "user_id": 50572,
+      "user_type": "registered",
+      "accept_rate": 70,
+      "profile_image": "https://i.sstatic.net/e9i3e.jpg?s=256",
+      "display_name": "Knut Arne Vedaa",
+      "link": "https://stackoverflow.com/users/50572/knut-arne-vedaa"
+    },
+    "is_answered": true,
+    "view_count": 727256,
+    "accepted_answer_id": 23885950,
+    "answer_count": 10,
+    "score": 645,
+    "last_activity_date": 1729074686,
+    "creation_date": 1382024454,
+    "last_edit_date": 1413754078,
+    "question_id": 19431234,
+    "content_license": "CC BY-SA 3.0",
+    "link": "https://stackoverflow.com/questions/19431234/converting-between-java-time-localdatetime-and-java-util-date",
+    "title": "Converting between java.time.LocalDateTime and java.util.Date",
+    "body": "<p>Java 8 has a completely new API for date and time. One of the most useful classes in this API is <code>LocalDateTime</code>, for holding a timezone-independent date-with-time value. </p>\n\n<p>There are probably millions of lines of code using the legacy class <code>java.util.Date</code> for this purpose. As such, when interfacing old and new code there will be a need for converting between the two. As there seems to be no direct methods for accomplishing this, how can it be done?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 7381582,
+        "reputation": 21,
+        "user_id": 5618103,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/679cd8f08431e07d55449f82377d8c8b?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Blubber",
+        "link": "https://stackoverflow.com/users/5618103/blubber"
+      },
+      "is_accepted": false,
+      "score": 2,
+      "last_activity_date": 1729074686,
+      "creation_date": 1729074686,
+      "answer_id": 79093641,
+      "question_id": 19431234,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<h2>Converting dates far in the past</h2>\n<p>The conversion from <code>Date</code> to <code>LocalDateTime</code> and vice versa with the help of <code>Instant</code> is convenient, but gives unexpected results for dates far in the past. For example the <code>ZoneId</code> <code>Europe/Berlin</code> switched to mean solar time of 15° East on 01Apr1893 by the <a href=\"https://de.wikipedia.org/wiki/Gesetz_betreffend_die_Einf%C3%BChrung_einer_einheitlichen_Zeitbestimmung\" rel=\"nofollow noreferrer\">Gesetz betreffend die Einführung einer einheitlichen Zeitbestimmung</a>. So a <code>LocalDateTime</code> of this <code>ZoneId</code> that lies before 01Apr1893 differs to a <code>Date</code> by 392 seconds (i. e. 06:32 minutes) if converted with the help of the according <code>Instant</code>. To solve this you can use a <code>Calendar</code> instance by setting and getting the according values, respectively:</p>\n<pre><code>  public LocalDateTime convertDateToLocalDateTime(Date date) {\n    Calendar calendar = Calendar.getInstance();\n    calendar.setTime(date);\n    return LocalDateTime.of(\n      calendar.get(Calendar.YEAR),\n      calendar.get(Calendar.MONTH) + 1,\n      calendar.get(Calendar.DAY_OF_MONTH),\n      calendar.get(Calendar.HOUR_OF_DAY),\n      calendar.get(Calendar.MINUTE),\n      calendar.get(Calendar.SECOND),\n      calendar.get(Calendar.MILLISECOND) * 1_000_000);\n  }\n\n  public Date convertLocalDateTimeToDate(LocalDateTime localDateTime) {\n    Calendar calendar = Calendar.getInstance();\n    calendar.set(Calendar.YEAR, localDateTime.getYear());\n    calendar.set(Calendar.MONTH, localDateTime.getMonthValue() - 1);\n    calendar.set(Calendar.DAY_OF_MONTH, localDateTime.getDayOfMonth());\n    calendar.set(Calendar.HOUR_OF_DAY, localDateTime.getHour());\n    calendar.set(Calendar.MINUTE, localDateTime.getMinute());\n    calendar.set(Calendar.SECOND, localDateTime.getSecond());\n    calendar.set(Calendar.MILLISECOND, localDateTime.getNano() / 1_000_000);\n    return calendar.getTime();\n  }\n</code></pre>\n<p>Note that the months in <code>Calendar</code> are numbered 0 (for <code>Calendar.JANUARY</code>) to 11 (for <code>Calendar.DECEMBER</code>) while <code>getMonthValue()</code> of <code>LocalDateTime</code> returns values from 1 to 12. Furthermore <code>Calendar.HOUR</code> would return values 0 to 11 for the 12-hour clock, so <code>Calendar.HOUR_OF_DAY</code> must be used instead. As Calendar only knows milliseconds while <code>LocalDateTime</code> just provides nanoseconds, a factor of 1,000,000 must be applied accordingly.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 17393,
+        "reputation": 63963,
+        "user_id": 38896,
+        "user_type": "registered",
+        "accept_rate": 80,
+        "profile_image": "https://www.gravatar.com/avatar/0c9a662be575728ba1c4921d3ba2f8ba?s=256&d=identicon&r=PG",
+        "display_name": "JodaStephen",
+        "link": "https://stackoverflow.com/users/38896/jodastephen"
+      },
+      "is_accepted": true,
+      "score": 933,
+      "last_activity_date": 1720530537,
+      "last_edit_date": 1720530537,
+      "creation_date": 1401183374,
+      "answer_id": 23885950,
+      "question_id": 19431234,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Short answer:</p>\n<pre><code>Date in = new Date();\nLocalDateTime ldt = LocalDateTime.ofInstant(in.toInstant(), ZoneId.systemDefault());\nDate out = Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant());\n</code></pre>\n<p>Explanation:\n(based on <a href=\"https://stackoverflow.com/questions/21242110/convert-java-util-date-to-java-time-localdate\">this question</a> about <code>LocalDate</code>)</p>\n<p>Despite its name, <code>java.util.Date</code> represents an instant on the time-line, not a &quot;date&quot;. The actual data stored within the object is a <code>long</code> count of milliseconds since 1970-01-01T00:00Z (midnight at the start of 1970 GMT/UTC).</p>\n<p>The equivalent class to <code>java.util.Date</code> in JSR-310 is <code>Instant</code>, thus there are convenient methods to provide the conversion to and from:</p>\n<pre><code>Date input = new Date();\nInstant instant = input.toInstant();\nDate output = Date.from(instant);\n</code></pre>\n<p>A <code>java.util.Date</code> instance has no concept of time-zone. This might seem strange if you call <code>toString()</code> on a <code>java.util.Date</code>, because the <code>toString</code> is relative to a time-zone. However that method actually uses Java's default time-zone on the fly to provide the string. The time-zone is not part of the actual state of <code>java.util.Date</code>.</p>\n<p>An <code>Instant</code> also does not contain any information about the time-zone. Thus, to convert from an <code>Instant</code> to a local date-time it is necessary to specify a time-zone. This might be the default zone - <code>ZoneId.systemDefault()</code> - or it might be a time-zone that your application controls, such as a time-zone from user preferences. <code>LocalDateTime</code> has a convenient factory method that takes both the instant and time-zone:</p>\n<pre><code>Date in = new Date();\nLocalDateTime ldt = LocalDateTime.ofInstant(in.toInstant(), ZoneId.systemDefault());\n</code></pre>\n<p>In reverse, the <code>LocalDateTime</code> the time-zone is specified by calling the <code>atZone(ZoneId)</code> method. The <code>ZonedDateTime</code> can then be converted directly to an <code>Instant</code>:</p>\n<pre><code>LocalDateTime ldt = ...\nZonedDateTime zdt = ldt.atZone(ZoneId.systemDefault());\nDate output = Date.from(zdt.toInstant());\n</code></pre>\n<p>Note that the conversion from <code>LocalDateTime</code> to <code>ZonedDateTime</code> has the potential to introduce unexpected behaviour. This is because not every local date-time exists due to Daylight Saving Time. In autumn/fall, there is an overlap in the local time-line where the same local date-time occurs twice. In spring, there is a gap, where an hour disappears. See the Javadoc of <a href=\"http://docs.oracle.com/javase/8/docs/api/java/time/LocalDateTime.html#atZone-java.time.ZoneId-\" rel=\"noreferrer\"><code>atZone(ZoneId)</code></a> for more the definition of what the conversion will do.</p>\n<p>Summary, if you round-trip a <code>java.util.Date</code> to a <code>LocalDateTime</code> and back to a <code>java.util.Date</code> you may end up with a different instant due to Daylight Saving Time.</p>\n<p>Additional info: There is another difference that will affect very old dates. <code>java.util.Date</code> uses a calendar that changes at October 15, 1582, with dates before that using the Julian calendar instead of the Gregorian one. By contrast, <code>java.time.*</code> uses the ISO calendar system (equivalent to the Gregorian) for all time. In most use cases, the ISO calendar system is what you want, but you may see odd effects when comparing dates before year 1582.</p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 2078662,
+        "reputation": 2360,
+        "user_id": 1851286,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/703908f1fadd02fe86f0a713fa674325?s=256&d=identicon&r=PG",
+        "display_name": "Oleksii Kyslytsyn",
+        "link": "https://stackoverflow.com/users/1851286/oleksii-kyslytsyn"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1751122527,
+      "post_id": 19431234,
+      "comment_id": 140549579,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79093641": [],
+    "23885950": []
+  }
+}

@@ -1,0 +1,158 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "file-io",
+      "io",
+      "text-files"
+    ],
+    "owner": {
+      "account_id": 65760,
+      "reputation": 9701,
+      "user_id": 193304,
+      "user_type": "registered",
+      "accept_rate": 78,
+      "profile_image": "https://www.gravatar.com/avatar/6685b45dda3aeb83e53fdba08b307a7f?s=256&d=identicon&r=PG",
+      "display_name": "flyingfromchina",
+      "link": "https://stackoverflow.com/users/193304/flyingfromchina"
+    },
+    "is_answered": true,
+    "view_count": 1266151,
+    "protected_date": 1535276491,
+    "accepted_answer_id": 1625263,
+    "answer_count": 31,
+    "score": 781,
+    "last_activity_date": 1713778398,
+    "creation_date": 1256568230,
+    "last_edit_date": 1597351053,
+    "question_id": 1625234,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/1625234/how-to-append-text-to-an-existing-file-in-java",
+    "title": "How to append text to an existing file in Java?",
+    "body": "<p>I need to append text repeatedly to an existing file in Java. How do I do that?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 9921,
+        "reputation": 109843,
+        "user_id": 18511,
+        "user_type": "registered",
+        "accept_rate": 92,
+        "profile_image": "https://www.gravatar.com/avatar/c621039e41aef415ad25054da3bf3f9a?s=256&d=identicon&r=PG",
+        "display_name": "Kip",
+        "link": "https://stackoverflow.com/users/18511/kip"
+      },
+      "is_accepted": true,
+      "score": 929,
+      "last_activity_date": 1713778398,
+      "last_edit_date": 1713778398,
+      "creation_date": 1256568467,
+      "answer_id": 1625263,
+      "question_id": 1625234,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Are you doing this for logging purposes?  If so there are <a href=\"http://en.wikipedia.org/wiki/Java_logging_framework\" rel=\"noreferrer\">several libraries for this</a>. Two of the most popular are <a href=\"http://logging.apache.org/log4j/\" rel=\"noreferrer\">Log4j</a> and <a href=\"http://logback.qos.ch/\" rel=\"noreferrer\">Logback</a>.</p>\n<h2>Java 7+</h2>\n<p>For a one-time task, the <a href=\"https://docs.oracle.com/javase/7/docs/api/java/nio/file/Files.html\" rel=\"noreferrer\">Files class</a> makes this easy:</p>\n<pre><code>try {\n    Files.write(Paths.get(&quot;myfile.txt&quot;), &quot;the text&quot;.getBytes(), StandardOpenOption.APPEND);\n}catch (IOException e) {\n    //exception handling left as an exercise for the reader\n}\n</code></pre>\n<p><strong>Careful</strong>: The above approach will throw a <code>NoSuchFileException</code> if the file does not already exist. It also does not append a newline automatically (which you often want when appending to a text file). Another approach is to pass both <code>CREATE</code> and <code>APPEND</code> options, which will create the file first if it doesn't already exist:</p>\n<pre><code>private void write(final String s) throws IOException {\n    Files.writeString(\n        Path.of(System.getProperty(&quot;java.io.tmpdir&quot;), &quot;filename.txt&quot;),\n        s + System.lineSeparator(),\n        StandardOpenOption.CREATE, StandardOpenOption.APPEND\n    );\n}\n</code></pre>\n<p>However, if you will be writing to the same file many times, the above snippets must open and close the file on the disk many times, which is a slow operation. In this case, a <code>BufferedWriter</code> is faster:</p>\n<pre><code>try(FileWriter fw = new FileWriter(&quot;myfile.txt&quot;, true);\n    BufferedWriter bw = new BufferedWriter(fw);\n    PrintWriter out = new PrintWriter(bw))\n{\n    out.println(&quot;the text&quot;);\n    //more code\n    out.println(&quot;more text&quot;);\n    //more code\n} catch (IOException e) {\n    //exception handling left as an exercise for the reader\n}\n</code></pre>\n<p><strong>Notes:</strong></p>\n<ul>\n<li>The second parameter to the <code>FileWriter</code> constructor will tell it to append to the file, rather than writing a new file. (If the file does not exist, it will be created.)</li>\n<li>Using a <code>BufferedWriter</code> is recommended for an expensive writer (such as <code>FileWriter</code>).</li>\n<li>Using a <code>PrintWriter</code> gives you access to <code>println</code> syntax that you're probably used to from <code>System.out</code>.</li>\n<li>But the <code>BufferedWriter</code> and <code>PrintWriter</code> wrappers are not strictly necessary.</li>\n</ul>\n<hr />\n<h2>Older Java</h2>\n<pre><code>try {\n    PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(&quot;myfile.txt&quot;, true)));\n    out.println(&quot;the text&quot;);\n    out.close();\n} catch (IOException e) {\n    //exception handling left as an exercise for the reader\n}\n</code></pre>\n<hr />\n<h2>Exception Handling</h2>\n<p>If you need robust exception handling for older Java, it gets very verbose:</p>\n<pre><code>FileWriter fw = null;\nBufferedWriter bw = null;\nPrintWriter out = null;\ntry {\n    fw = new FileWriter(&quot;myfile.txt&quot;, true);\n    bw = new BufferedWriter(fw);\n    out = new PrintWriter(bw);\n    out.println(&quot;the text&quot;);\n    out.close();\n} catch (IOException e) {\n    //exception handling left as an exercise for the reader\n}\nfinally {\n    try {\n        if(out != null)\n            out.close();\n    } catch (IOException e) {\n        //exception handling left as an exercise for the reader\n    }\n    try {\n        if(bw != null)\n            bw.close();\n    } catch (IOException e) {\n        //exception handling left as an exercise for the reader\n    }\n    try {\n        if(fw != null)\n            fw.close();\n    } catch (IOException e) {\n        //exception handling left as an exercise for the reader\n    }\n}\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "1625263": [
+      {
+        "owner": {
+          "account_id": 8707340,
+          "reputation": 333,
+          "user_id": 6514834,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/794260796ceda687ed011bff792856c0?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Kanashimi",
+          "link": "https://stackoverflow.com/users/6514834/kanashimi"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1659296908,
+        "post_id": 1625263,
+        "comment_id": 129255887,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 9921,
+          "reputation": 109843,
+          "user_id": 18511,
+          "user_type": "registered",
+          "accept_rate": 92,
+          "profile_image": "https://www.gravatar.com/avatar/c621039e41aef415ad25054da3bf3f9a?s=256&d=identicon&r=PG",
+          "display_name": "Kip",
+          "link": "https://stackoverflow.com/users/18511/kip"
+        },
+        "reply_to_user": {
+          "account_id": 1533035,
+          "reputation": 1573,
+          "user_id": 1819810,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/76179682f5abddf6ed6045bc56608e21?s=256&d=identicon&r=PG",
+          "display_name": "Weekend",
+          "link": "https://stackoverflow.com/users/1819810/weekend"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1646240607,
+        "post_id": 1625263,
+        "comment_id": 126076042,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1533035,
+          "reputation": 1573,
+          "user_id": 1819810,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/76179682f5abddf6ed6045bc56608e21?s=256&d=identicon&r=PG",
+          "display_name": "Weekend",
+          "link": "https://stackoverflow.com/users/1819810/weekend"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1646026949,
+        "post_id": 1625263,
+        "comment_id": 126014485,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1613382,
+          "reputation": 3687,
+          "user_id": 1502439,
+          "user_type": "registered",
+          "accept_rate": 40,
+          "profile_image": "https://www.gravatar.com/avatar/67c216ca182451567e17c2098d47f26d?s=256&d=identicon&r=PG",
+          "display_name": "Janac Meena",
+          "link": "https://stackoverflow.com/users/1502439/janac-meena"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1553198622,
+        "post_id": 1625263,
+        "comment_id": 97306274,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 128422,
+          "reputation": 1866,
+          "user_id": 326242,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/35cde28dc376b1403cf4de6cbebc80e5?s=256&d=identicon&r=PG",
+          "display_name": "Andrew Koster",
+          "link": "https://stackoverflow.com/users/326242/andrew-koster"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1542127473,
+        "post_id": 1625263,
+        "comment_id": 93453448,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "elasticsearch",
+      "elasticsearch-bulk"
+    ],
+    "owner": {
+      "user_type": "does_not_exist",
+      "display_name": "user9755712"
+    },
+    "is_answered": false,
+    "view_count": 10082,
+    "answer_count": 1,
+    "score": 9,
+    "last_activity_date": 1764392905,
+    "creation_date": 1537462650,
+    "question_id": 52429925,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/52429925/elasticsearch-error-messagerequest-size-exceeded-10485760-bytes",
+    "title": "ElasticSearch error &quot;&quot;Message&quot;:&quot;Request size exceeded 10485760 bytes&quot;",
+    "body": "<p>While uploading a 50 mb size huge JSON string in ElasticSearch using this method - </p>\n\n<pre><code>public static void postData(String json, String index, String type) {\n    RestClient client = RestClient.builder(new HttpHost(testHostPreProd, 443, \"https\")).build();\n    HttpEntity entity = new NStringEntity(json, ContentType.APPLICATION_JSON);\n\n    Response response = client.performRequest(\"POST\", \"/\" + index + \"/\" + type + \"/_bulk\",\n            Collections.&lt;String, String&gt;emptyMap(), entity);\n\n    client.close();\n}\n</code></pre>\n\n<p>The error is </p>\n\n<pre><code>Exception in thread \"main\" org.elasticsearch.client.ResponseException: POST https:someURL/indexHere/typeHere/_bulk: HTTP/1.1 413 Request Entity Too Large\n{\"Message\":\"Request size exceeded 10485760 bytes\"}\n</code></pre>\n\n<p>Putting a counter in the code that works send 10k batches might work but I'm not sure how to do that. </p>\n\n<p>Any suggestions on how to handle this issue?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 30230740,
+        "reputation": 11,
+        "user_id": 23168306,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/6feef9baf236cdaef6d817d8237b5512?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Gutu Daniil",
+        "link": "https://stackoverflow.com/users/23168306/gutu-daniil"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1709293078,
+      "last_edit_date": 1709293078,
+      "creation_date": 1709211555,
+      "answer_id": 78081627,
+      "question_id": 52429925,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>For downloading a big amount of records you can use Scroll API:</p>\n<p><a href=\"https://www.elastic.co/guide/en/elasticsearch/reference/current/scroll-api.html\" rel=\"nofollow noreferrer\">https://www.elastic.co/guide/en/elasticsearch/reference/current/scroll-api.html</a></p>\n<p>The mechanism is quite simple:</p>\n<ol>\n<li>You create a query and give the chunk size, i.e. number of records for a single download – let's say 10.</li>\n<li>It returns your [ten] records and a <code>scroll_id</code> which is the marker to the last document that you have downloaded.</li>\n<li>If there are more records (20) it goes to step 2. If there are no records, you delete the scroll.</li>\n</ol>\n<p>Something like this:</p>\n<pre><code>Request request = new Request(&quot;GET&quot;, &quot;/&quot; + index + &quot;/_search?scroll=1m&quot;);\nrequest.setEntity(new NStringEntity(jsonQuery, ContentType.APPLICATION_JSON));\nResponse response = client.performRequest(request);\nString scrollId = jsonNode.path(&quot;_scroll_id&quot;).asText();\n\n//Extract data you need\n\n//Repeat the scroll, by passing scroll_id\n\nRequest scrollRequest = new Request(&quot;GET&quot;, &quot;/_search/scroll&quot;);\nscrollRequest.setEntity(new NStringEntity(&quot;{\\&quot;scroll_id\\&quot;: \\&quot;&quot; + scrollId + &quot;\\&quot;}&quot;, ContentType.APPLICATION_JSON));\nresponse = client.performRequest(scrollRequest);\nresponseBody = EntityUtils.toString(response.getEntity());\nscrollId = jsonNode.path(&quot;_scroll_id&quot;).asText();\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 1937938,
+        "reputation": 7249,
+        "user_id": 1744914,
+        "user_type": "registered",
+        "accept_rate": 66,
+        "profile_image": "https://www.gravatar.com/avatar/b4a2e46d94ad4ac4434896e9c3cc1e87?s=256&d=identicon&r=PG",
+        "display_name": "Most Wanted",
+        "link": "https://stackoverflow.com/users/1744914/most-wanted"
+      },
+      "edited": false,
+      "score": 9,
+      "creation_date": 1595275184,
+      "post_id": 52429925,
+      "comment_id": 111412981,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 22003,
+        "reputation": 2324,
+        "user_id": 53923,
+        "user_type": "registered",
+        "accept_rate": 60,
+        "profile_image": "https://www.gravatar.com/avatar/c611f709789bc1cb2b3b37a0ff72f4c3?s=256&d=identicon&r=PG",
+        "display_name": "hudsonb",
+        "link": "https://stackoverflow.com/users/53923/hudsonb"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1537463298,
+      "post_id": 52429925,
+      "comment_id": 91803626,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "78081627": []
+  }
+}

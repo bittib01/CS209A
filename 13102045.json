@@ -1,0 +1,183 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "io",
+      "java.util.scanner"
+    ],
+    "owner": {
+      "account_id": 1983545,
+      "reputation": 10620,
+      "user_id": 1779488,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/6e08ef39da71060ac4a76e5313d4e9fe?s=256&d=identicon&r=PG",
+      "display_name": "blekione",
+      "link": "https://stackoverflow.com/users/1779488/blekione"
+    },
+    "is_answered": true,
+    "view_count": 908634,
+    "protected_date": 1429434346,
+    "accepted_answer_id": 13102066,
+    "answer_count": 25,
+    "score": 972,
+    "last_activity_date": 1723066412,
+    "creation_date": 1351355821,
+    "last_edit_date": 1522848692,
+    "question_id": 13102045,
+    "content_license": "CC BY-SA 3.0",
+    "link": "https://stackoverflow.com/questions/13102045/scanner-is-skipping-nextline-after-using-next-or-nextfoo",
+    "title": "Scanner is skipping nextLine() after using next() or nextFoo()?",
+    "body": "<p>I am using the <code>Scanner</code> methods <code>nextInt()</code> and <code>nextLine()</code> for reading input. </p>\n\n<p>It looks like this:</p>\n\n<pre><code>System.out.println(\"Enter numerical value\");    \nint option;\noption = input.nextInt(); // Read numerical value from input\nSystem.out.println(\"Enter 1st string\"); \nString string1 = input.nextLine(); // Read 1st string (this is skipped)\nSystem.out.println(\"Enter 2nd string\");\nString string2 = input.nextLine(); // Read 2nd string (this appears right after reading numerical value)\n</code></pre>\n\n<p>The problem is that after entering the numerical value, the first <code>input.nextLine()</code> is skipped and the second <code>input.nextLine()</code> is executed, so that my output looks like this:</p>\n\n<pre><code>Enter numerical value\n3   // This is my input\nEnter 1st string    // The program is supposed to stop here and wait for my input, but is skipped\nEnter 2nd string    // ...and this line is executed and waits for my input\n</code></pre>\n\n<p>I tested my application and it looks like the problem lies in using <code>input.nextInt()</code>. If I delete it, then both <code>string1 = input.nextLine()</code> and <code>string2 = input.nextLine()</code> are executed as I want them to be.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 1853886,
+        "reputation": 213869,
+        "user_id": 1679863,
+        "user_type": "registered",
+        "accept_rate": 77,
+        "profile_image": "https://www.gravatar.com/avatar/f54e86d83eea6143ecc70a485f4e6044?s=256&d=identicon&r=PG",
+        "display_name": "Rohit Jain",
+        "link": "https://stackoverflow.com/users/1679863/rohit-jain"
+      },
+      "is_accepted": true,
+      "score": 1177,
+      "last_activity_date": 1723066412,
+      "last_edit_date": 1723066412,
+      "creation_date": 1351355960,
+      "answer_id": 13102066,
+      "question_id": 13102045,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>That's because the <a href=\"https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Scanner.html#nextInt()\" rel=\"noreferrer\"><code>Scanner.nextInt</code></a> method does not read the <em>newline</em> character in your input created by hitting &quot;Enter&quot; and so the call to <a href=\"https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Scanner.html#nextLine()\" rel=\"noreferrer\"><code>Scanner.nextLine</code></a> returns after reading that <em>newline</em>.</p>\n<p>You will encounter the similar behaviour when you use <code>Scanner.nextLine</code> after <a href=\"https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Scanner.html#next()\" rel=\"noreferrer\"><code>Scanner.next()</code></a> or any <code>Scanner.nextFoo</code> method (except <code>nextLine</code> itself).</p>\n<p><strong>Workaround:</strong></p>\n<ul>\n<li><p>Either put a <code>Scanner.nextLine</code> call after each <code>Scanner.nextInt</code> or <code>Scanner.nextFoo</code> to consume the rest of that line including <em>newline</em>:</p>\n<pre><code> int option = input.nextInt();\n input.nextLine();  // Consume left over newline\n String str1 = input.nextLine();\n</code></pre>\n</li>\n<li><p>Or, even better, read the input through <code>Scanner.nextLine</code> and convert your input to the proper format you need. For example, you may convert to an integer using the <a href=\"https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Integer.html#parseInt(java.lang.String)\" rel=\"noreferrer\"><code>Integer.parseInt(String)</code></a> method:</p>\n<pre><code> int option = 0;\n try {\n     option = Integer.parseInt(input.nextLine());\n } catch (NumberFormatException e) {\n     e.printStackTrace();\n }\n String str1 = input.nextLine();\n</code></pre>\n</li>\n</ul>\n"
+    },
+    {
+      "owner": {
+        "account_id": 16443277,
+        "reputation": 346,
+        "user_id": 11878891,
+        "user_type": "registered",
+        "profile_image": "https://lh6.googleusercontent.com/-CKFBfpj6hHY/AAAAAAAAAAI/AAAAAAAAADM/UQQ9yj0qeus/s256-rj/photo.jpg",
+        "display_name": "belmel ahmed",
+        "link": "https://stackoverflow.com/users/11878891/belmel-ahmed"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1719910075,
+      "last_edit_date": 1719910075,
+      "creation_date": 1665697687,
+      "answer_id": 74062156,
+      "question_id": 13102045,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<pre><code> Scanner scan = new Scanner(System.in);\n int i = scan.nextInt();\n scan.nextLine(); // to Ignore the rest of the line after  (integer input)nextInt()\n double d=scan.nextDouble();\n scan.nextLine();\n String s=scan.nextLine();\n scan.close();\n System.out.println(&quot;String: &quot; + s);\n System.out.println(&quot;Double: &quot; + d);\n System.out.println(&quot;Int: &quot; + i);\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "13102066": [
+      {
+        "owner": {
+          "account_id": 21454914,
+          "reputation": 776,
+          "user_id": 15806697,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/45ibB.jpg?s=256",
+          "display_name": "Uttam",
+          "link": "https://stackoverflow.com/users/15806697/uttam"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1630040800,
+        "post_id": 13102066,
+        "comment_id": 121851772,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 15380122,
+          "reputation": 167,
+          "user_id": 14186644,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/3209e31f4cdccae0a2116c26b23c4aed?s=256&d=identicon&r=PG",
+          "display_name": "Tushar",
+          "link": "https://stackoverflow.com/users/14186644/tushar"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1618480806,
+        "post_id": 13102066,
+        "comment_id": 118616216,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 12983032,
+          "reputation": 269,
+          "user_id": 9384858,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/Svihx.png?s=256",
+          "display_name": "Jency",
+          "link": "https://stackoverflow.com/users/9384858/jency"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1570815609,
+        "post_id": 13102066,
+        "comment_id": 103047227,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 5476266,
+          "reputation": 292,
+          "user_id": 5394180,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/B69dr.png?s=256",
+          "display_name": "MrObjectOriented",
+          "link": "https://stackoverflow.com/users/5394180/mrobjectoriented"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1535171638,
+        "post_id": 13102066,
+        "comment_id": 90978576,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 4555218,
+          "reputation": 34325,
+          "user_id": 3699139,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/4a510c6ed90917ec02dd4d572cf9e78c?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Jorn Vernee",
+          "link": "https://stackoverflow.com/users/3699139/jorn-vernee"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1519062705,
+        "post_id": 13102066,
+        "comment_id": 84746910,
+        "content_license": "CC BY-SA 3.0"
+      },
+      {
+        "owner": {
+          "account_id": 2687228,
+          "reputation": 435,
+          "user_id": 2739959,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/90149f8540bab902e542ed31130edec1?s=256&d=identicon&r=PG",
+          "display_name": "olmerg",
+          "link": "https://stackoverflow.com/users/2739959/olmerg"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1508882331,
+        "post_id": 13102066,
+        "comment_id": 80788905,
+        "content_license": "CC BY-SA 3.0"
+      }
+    ],
+    "74062156": []
+  }
+}

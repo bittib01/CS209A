@@ -1,0 +1,201 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "generics",
+      "super",
+      "bounded-wildcard",
+      "pecs"
+    ],
+    "owner": {
+      "account_id": 45413,
+      "reputation": 29579,
+      "user_id": 133830,
+      "user_type": "registered",
+      "accept_rate": 87,
+      "profile_image": "https://www.gravatar.com/avatar/08f7df98a990128894baa9d090dfc1ca?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "peakit",
+      "link": "https://stackoverflow.com/users/133830/peakit"
+    },
+    "is_answered": true,
+    "view_count": 183310,
+    "protected_date": 1434472484,
+    "accepted_answer_id": 2723538,
+    "answer_count": 17,
+    "score": 929,
+    "last_activity_date": 1716575799,
+    "creation_date": 1272388600,
+    "last_edit_date": 1459868341,
+    "question_id": 2723397,
+    "content_license": "CC BY-SA 3.0",
+    "link": "https://stackoverflow.com/questions/2723397/what-is-pecs-producer-extends-consumer-super",
+    "title": "What is PECS (Producer Extends Consumer Super)?",
+    "body": "<p>I came across PECS (short for <em>Producer <code>extends</code> and Consumer <code>super</code></em>) while reading up on generics. </p>\n\n<p>Can someone explain to me how to use PECS to resolve confusion between <code>extends</code> and <code>super</code>?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 1875874,
+        "reputation": 75445,
+        "user_id": 1697099,
+        "user_type": "registered",
+        "accept_rate": 100,
+        "profile_image": "https://i.sstatic.net/gerXo.png?s=256",
+        "display_name": "Premraj",
+        "link": "https://stackoverflow.com/users/1697099/premraj"
+      },
+      "is_accepted": false,
+      "score": 100,
+      "last_activity_date": 1716575799,
+      "last_edit_date": 1716575799,
+      "creation_date": 1437892429,
+      "answer_id": 31634364,
+      "question_id": 2723397,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>PECS is a mnemonic device in Java generics that helps us remember which keyword to use when specifying bounds on generic type parameters.</p>\n<p><strong>1 Producer Extends:</strong> (Bounded Type Param <code>? extends T</code>)</p>\n<ul>\n<li>Applies to <strong>return types and variables</strong> with upper bounds.</li>\n<li>Represents a <strong>producer</strong> of values.</li>\n<li>Allows you to return a <strong>more specific subtype</strong> of\nthe declared type (covariant).</li>\n<li><strong>Covariance</strong> is a hierarchical relationship i.e. &quot;is-a&quot; relationship: Cat as &quot;is-a&quot; Animal.</li>\n</ul>\n<p><strong>2 Consumer Super:</strong>  (Bounded Type Param <code>? super T</code>)</p>\n<ul>\n<li>Applies to <strong>input parameters and variables</strong> with lower bounds.</li>\n<li>Represents a <strong>consumer</strong> of values.</li>\n<li>Allows you to accept a <strong>more general supertype</strong> of the declared type (contravariant).</li>\n<li><strong>Contravariance</strong> Reversal of Subtype Relationship: Animal as &quot;can hold&quot; Cat.</li>\n</ul>\n<p><strong>3. Invariant/Nonvariant types</strong></p>\n<ul>\n<li>(without bounds) have fixed relationships and don't benefit from PECS.</li>\n<li>Fixed relationship i.e. the type must remain exactly as specified, without any flexibility to accept subtypes or supertypes: i.e.  where both input and output types are fixed.</li>\n</ul>\n<p>The Liskov Substitution Principle (LSP) states that “<strong>objects in a program should be replaceable with instances of their subtypes without altering the correctness of that program</strong>”.</p>\n<p><a href=\"https://i.sstatic.net/KoW5X.png\" rel=\"noreferrer\"><img src=\"https://i.sstatic.net/KoW5X.png\" alt=\"enter image description here\" /></a> <a href=\"https://www.mathsisfun.com/definitions/bounds.html\" rel=\"noreferrer\">Image src</a></p>\n<p><strong>bounded</strong>(i.e. heading toward somewhere) <strong>wildcard</strong> : There are 3 different flavours of wildcards:</p>\n<ul>\n<li>Co-variance: <code>? extends T</code> ( Reign of <code>T</code> descendants)  - a wildcard with an <strong>upper bound</strong>. <code>T</code> is the <strong>upper</strong>-most class in the inheritance hierarchy. Use an <code>extends</code> wildcard when you only <strong>Get</strong> values out of a structure. Upper bounds promote safe substitution of subtypes.<br />\nFor example, if T extends Animal, T can be Animal itself or any of its subtypes like Cat, Dog, etc., but it cannot be a type &quot;higher&quot; than Animal, like Object.</li>\n<li>Contra-variance: <code>? super T</code> ( Reign of <code>T</code> ancestor)  - a wildcard with a <strong>lower bound</strong>. <code>T</code> is the <strong>lower</strong>-most class in the inheritance hierarchy. Use a <code>super</code> wildcard when you only <strong>Put</strong> values into a structure. Lower bounds promote safe substitution of supertypes.</li>\n<li>In-variance/Non-variance: <code>?</code> or <code>? extends Object</code> - <strong>Unbounded</strong> Wildcard. It stands for the family of  all types. Use when you both get and put.</li>\n</ul>\n<p>Note: wildcard <code>?</code> means <strong>zero or one time</strong>, represents an <strong>unknown type</strong>. The wildcard can be used as the type of a parameter, never used as a type argument for a generic method invocation, a generic class instance creation.(i.e. when used wildcard that reference not used in elsewhere in program like we use <code>T</code>)</p>\n<p><a href=\"https://i.sstatic.net/ki1Kf.jpg\" rel=\"noreferrer\"><img src=\"https://i.sstatic.net/ki1Kf.jpg\" alt=\"enter image description here\" /></a></p>\n<pre><code> import java.util.ArrayList;\nimport java.util.List;\n\nclass Shape { void draw() {}}\n\nclass Circle extends Shape {void draw() {}}\n\nclass Square extends Shape {void draw() {}}\n\nclass Rectangle extends Shape {void draw() {}}\n\npublic class Test {\n\n    public static void main(String[] args) {\n        //? extends Shape i.e. can use any sub type of Shape, here Shape is Upper Bound in inheritance hierarchy\n        List&lt;? extends Shape&gt; intList5 = new ArrayList&lt;Shape&gt;();\n        List&lt;? extends Shape&gt; intList6 = new ArrayList&lt;Cricle&gt;();\n        List&lt;? extends Shape&gt; intList7 = new ArrayList&lt;Rectangle&gt;();\n        List&lt;? extends Shape&gt; intList9 = new ArrayList&lt;Object&gt;();//ERROR.\n\n\n        //? super Shape i.e. can use any super type of Shape, here Shape is Lower Bound in inheritance hierarchy\n        List&lt;? super Shape&gt; inList5 = new ArrayList&lt;Shape&gt;();\n        List&lt;? super Shape&gt; inList6 = new ArrayList&lt;Object&gt;();\n        List&lt;? super Shape&gt; inList7 = new ArrayList&lt;Circle&gt;(); //ERROR.\n\n        //-----------------------------------------------------------\n        Circle circle = new Circle();\n        Shape shape = circle; // OK. Circle IS-A Shape\n\n        List&lt;Circle&gt; circles = new ArrayList&lt;&gt;();\n        List&lt;Shape&gt; shapes = circles; // ERROR. List&lt;Circle&gt; is not subtype of List&lt;Shape&gt; even when Circle IS-A Shape\n\n        List&lt;? extends Circle&gt; circles2 = new ArrayList&lt;&gt;();\n        List&lt;? extends Shape&gt; shapes2 = circles2; // OK. List&lt;? extends Circle&gt; is subtype of List&lt;? extends Shape&gt;\n\n\n        //-----------------------------------------------------------\n        Shape shape2 = new Shape();\n        Circle circle2= (Circle) shape2; // OK. with type casting\n\n        List&lt;Shape&gt; shapes3 = new ArrayList&lt;&gt;();\n        List&lt;Circle&gt; circles3 = shapes3; //ERROR. List&lt;Circle&gt; is not subtype of  List&lt;Shape&gt; even Circle is subetype of Shape\n\n        List&lt;? super Shape&gt; shapes4 = new ArrayList&lt;&gt;();\n        List&lt;? super Circle&gt; circles4 = shapes4; //OK.\n    }\n\n    \n    \n    /*\n     * Example for an upper bound wildcard (Get values i.e Producer `extends`)\n     *\n     * */\n    public void testCoVariance(List&lt;? extends Shape&gt; list) {\n        list.add(new Object());//ERROR\n        list.add(new Shape()); //ERROR\n        list.add(new Circle()); // ERROR\n        list.add(new Square()); // ERROR\n        list.add(new Rectangle()); // ERROR\n        Shape shape= list.get(0);//OK so list act as produces only\n    /*\n     * You can't add a Shape,Circle,Square,Rectangle to a List&lt;? extends Shape&gt;\n     * You can get an object and know that it will be an Shape\n     */\n    }\n    \n    \n    /*\n     * Example for  a lower bound wildcard (Put values i.e Consumer`super`)\n     * */\n    public void testContraVariance(List&lt;? super Shape&gt; list) {\n        list.add(new Object());//ERROR\n        list.add(new Shape());//OK\n        list.add(new Circle());//OK\n        list.add(new Square());//OK\n        list.add(new Rectangle());//OK\n        Shape shape= list.get(0); // ERROR. Type mismatch, so list acts only as consumer\n        Object object= list.get(0); //OK gets an object, but we don't know what kind of Object it is.\n        /*\n         * You can add a Shape,Circle,Square,Rectangle to a List&lt;? super Shape&gt;\n         * You can't get an Shape(but can get Object) and don't know what kind of Shape it is.\n         */\n    }\n}\n</code></pre>\n<p><a href=\"http://www.codejava.net/java-core/collections/generics-with-subtyping-and-the-substitution-principle\" rel=\"noreferrer\">More coding examples</a><br />\n<a href=\"https://stackoverflow.com/a/64888058/1697099\">Visualising the concept</a></p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 16677947,
+        "reputation": 71,
+        "user_id": 12053873,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/af118c3f58e38d3cdfc1534014bcc643?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "cksylr",
+        "link": "https://stackoverflow.com/users/12053873/cksylr"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1711799698,
+      "creation_date": 1711799698,
+      "answer_id": 78247810,
+      "question_id": 2723397,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Here is an example for both cases:</p>\n<pre><code>public class PECSExample {\n\n    public static void main(String[] args) {\n        List&lt;C&gt; producerCList = new ArrayList&lt;&gt;();\n        List&lt;D&gt; producerDList = new ArrayList&lt;&gt;();\n        List&lt;E&gt; producerEList = new ArrayList&lt;&gt;();\n        producerCList.add(new E());\n        producerDList.add(new E());\n        producerEList.add(new E());\n        producerExtends(producerCList);\n        producerExtends(producerDList);\n        producerExtends(producerEList);\n\n        List&lt;Object&gt; consumerObjectList = new ArrayList&lt;&gt;();\n        List&lt;A&gt; consumerAList = new ArrayList&lt;&gt;();\n        List&lt;B&gt; consumerBList = new ArrayList&lt;&gt;();\n        consumerSuper(consumerObjectList);\n        consumerSuper(consumerAList);\n        consumerSuper(consumerBList);\n    }\n    public static void producerExtends(List&lt;? extends C&gt; producerList) {\n        System.out.println(&quot;Producer printing&quot;);\n        producerList.forEach(System.out::println);\n    }\n    public static void consumerSuper(List&lt;? super C&gt; consumerList) {\n        consumerList.add(new C());\n        consumerList.add(new D());\n        consumerList.add(new E());\n        System.out.println(&quot;Consumer printing&quot;);\n        consumerList.forEach(System.out::println);\n    }\n}\nclass A {}\nclass B extends A {}\nclass C extends B {}\nclass D extends C {}\nclass E extends D {}\n</code></pre>\n<p>Output:</p>\n<pre><code>Producer printing\ncollections.E@6d311334\nProducer printing\ncollections.E@682a0b20\nProducer printing\ncollections.E@3d075dc0\nConsumer printing\ncollections.C@448139f0\ncollections.D@7cca494b\ncollections.E@7ba4f24f\nConsumer printing\ncollections.C@3b9a45b3\ncollections.D@7699a589\ncollections.E@58372a00\nConsumer printing\ncollections.C@4dd8dc3\ncollections.D@6d03e736\ncollections.E@568db2f2\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 86060,
+        "reputation": 8116,
+        "user_id": 239582,
+        "user_type": "registered",
+        "accept_rate": 81,
+        "profile_image": "https://www.gravatar.com/avatar/2e4045405fe6921ff4bb5bda599cc6b5?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "lupchiazoem",
+        "link": "https://stackoverflow.com/users/239582/lupchiazoem"
+      },
+      "edited": false,
+      "score": 6,
+      "creation_date": 1547965356,
+      "post_id": 2723397,
+      "comment_id": 95370616,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "31634364": [
+      {
+        "owner": {
+          "account_id": 1875874,
+          "reputation": 75445,
+          "user_id": 1697099,
+          "user_type": "registered",
+          "accept_rate": 100,
+          "profile_image": "https://i.sstatic.net/gerXo.png?s=256",
+          "display_name": "Premraj",
+          "link": "https://stackoverflow.com/users/1697099/premraj"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1623950229,
+        "post_id": 31634364,
+        "comment_id": 120230064,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 15396867,
+          "reputation": 304,
+          "user_id": 11107679,
+          "user_type": "registered",
+          "profile_image": "https://lh5.googleusercontent.com/-gPCk3FK2efU/AAAAAAAAAAI/AAAAAAAAAAw/M_fT1KJFgOY/s256-rj/photo.jpg",
+          "display_name": "mouselabs",
+          "link": "https://stackoverflow.com/users/11107679/mouselabs"
+        },
+        "reply_to_user": {
+          "account_id": 455161,
+          "reputation": 1340,
+          "user_id": 853191,
+          "user_type": "registered",
+          "accept_rate": 25,
+          "profile_image": "https://www.gravatar.com/avatar/fdabb50a1f74d4f4b95e852812ec6583?s=256&d=identicon&r=PG",
+          "display_name": "LiuWenbin_NO.",
+          "link": "https://stackoverflow.com/users/853191/liuwenbin-no"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1587062381,
+        "post_id": 31634364,
+        "comment_id": 108369078,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 455161,
+          "reputation": 1340,
+          "user_id": 853191,
+          "user_type": "registered",
+          "accept_rate": 25,
+          "profile_image": "https://www.gravatar.com/avatar/fdabb50a1f74d4f4b95e852812ec6583?s=256&d=identicon&r=PG",
+          "display_name": "LiuWenbin_NO.",
+          "link": "https://stackoverflow.com/users/853191/liuwenbin-no"
+        },
+        "edited": false,
+        "score": 2,
+        "creation_date": 1558065908,
+        "post_id": 31634364,
+        "comment_id": 98984776,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 5730547,
+          "reputation": 839,
+          "user_id": 4526235,
+          "user_type": "registered",
+          "accept_rate": 72,
+          "profile_image": "https://i.sstatic.net/k4xaC.jpg?s=256",
+          "display_name": "Oleg Kuts",
+          "link": "https://stackoverflow.com/users/4526235/oleg-kuts"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1555072579,
+        "post_id": 31634364,
+        "comment_id": 97992043,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 5397431,
+          "reputation": 6028,
+          "user_id": 4298200,
+          "user_type": "registered",
+          "accept_rate": 62,
+          "profile_image": "https://lh5.googleusercontent.com/-HcKtiretO2g/AAAAAAAAAAI/AAAAAAAAAH0/IXGAL7MX8sQ/s256-rj/photo.jpg",
+          "display_name": "Georg Plaz",
+          "link": "https://stackoverflow.com/users/4298200/georg-plaz"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1524982373,
+        "post_id": 31634364,
+        "comment_id": 87183484,
+        "content_license": "CC BY-SA 3.0"
+      }
+    ],
+    "78247810": []
+  }
+}

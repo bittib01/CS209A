@@ -1,0 +1,59 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "opengl-es"
+    ],
+    "owner": {
+      "account_id": 2826136,
+      "reputation": 622,
+      "user_id": 2637074,
+      "user_type": "registered",
+      "accept_rate": 88,
+      "profile_image": "https://www.gravatar.com/avatar/3dc606fd14eb5deb3cfc8b8ee22d45d9?s=256&d=identicon&r=PG",
+      "display_name": "CodingLumis",
+      "link": "https://stackoverflow.com/users/2637074/codinglumis"
+    },
+    "is_answered": true,
+    "view_count": 845,
+    "closed_date": 1765034602,
+    "accepted_answer_id": 49066382,
+    "answer_count": 2,
+    "score": -1,
+    "last_activity_date": 1764869725,
+    "creation_date": 1519920665,
+    "last_edit_date": 1764860053,
+    "question_id": 49053967,
+    "link": "https://stackoverflow.com/questions/49053967/gl-invalid-operation-setting-image2d-in-compute-shader",
+    "closed_reason": "Not suitable for this site",
+    "title": "GL_INVALID_OPERATION setting image2D in compute shader",
+    "body": "<p>I am using OpenGL ES 3.2 and the NVIDIA driver 361.00 on a Pixel C tablet with Tegra X1 GPU. I would like to use a compute shader to write data to a colour map and then later I will use some graphics shaders to display the image.</p>\n<p>I already have this concept working using desktop GL and now I want to port to mobile. I am implementing the GL in Java rather than in native code. I extend <code>GLSurfaceView</code> and the <code>GLSurfaceView.Renderer</code> and then during the <code>OnSurfaceCreated</code> callback I initialise the shader programs and textures etc.</p>\n<p>The compute shader compiles just fine without any errors:</p>\n<pre class=\"lang-c prettyprint-override\"><code>#version 310 es\nlayout(binding = 0, rgba32f) uniform highp image2D colourMap;\nlayout(local_size_x = 128, local_size_y = 1, local_size_z = 1) in;\n\nvoid main()\n{\n    imageStore(colourMap, ivec2(gl_GlobalInvocationID.xy), vec4(1.0f, 0.0f, 0.0f, 1.0f));\n}\n</code></pre>\n<p>And I initialise a texture</p>\n<pre class=\"lang-java prettyprint-override\"><code>// Generate a 2D texture\nGLES31.glGenTextures(1, colourMap, 0);\nGLES31.glBindTexture(GLES31.GL_TEXTURE_2D, colourMap[0]);\n\n// Set interpolation to nearest\nGLES31.glTexParameteri(GLES31.GL_TEXTURE_2D, GLES31.GL_TEXTURE_MAG_FILTER, GLES31.GL_LINEAR);\nGLES31.glTexParameteri(GLES31.GL_TEXTURE_2D, GLES31.GL_TEXTURE_MIN_FILTER, GLES31.GL_LINEAR);\n\n// Create some dummy texture to begin with so we can see if it changes\nfloat texData[] = new float[texWidth * texHeight * 4];\nfor (int j = 0; j &lt; texHeight; j++)\n{\n    for (int i = 0; i &lt; texWidth; i++)\n    {\n        // Set a few pixels in here...\n    }\n}\nBuffer texDataBuffer = FloatBuffer.wrap(texData);\nGLES31.glTexImage2D(GLES31.GL_TEXTURE_2D, 0, GLES31.GL_RGBA32F, texWidth, texHeight, 0, GLES31.GL_RGBA, GLES31.GL_FLOAT, texDataBuffer);\n</code></pre>\n<p>After this I set the image unit in the shader here: <strong>EDIT: I don't do this now but just assume it will be assigned automatically when the shader program is created as per solidpixel's answer.</strong></p>\n<pre class=\"lang-java prettyprint-override\"><code>GLES31.glUseProgram(idComputeShaderProgram);\nint loc = GLES31.glGetUniformLocation(idComputeShaderProgram, &quot;colourMap&quot;);\nif (loc == -1) Log.e(&quot;Error&quot;, &quot;Cannot locate variable&quot;);\nGLES31.glUniform1i(loc, 0);\n</code></pre>\n<p>After every call to GL I check for errors using <code>GLES31.glGetError()</code> -- left out here for clarity.</p>\n<p><strong>EDIT: When I dispatch compute I bind the image texture but first query the unit assignment:</strong></p>\n<pre class=\"lang-java prettyprint-override\"><code>GLES31.glUseProgram(idComputeShaderProgram);\nint[] unit = new int[1];\nGLES31.glGetUniformiv(idComputeShaderProgram, GLES31.glGetUniformLocation(idComputeShaderProgram, &quot;colourMap&quot;), unit, 0);\nGLES31.glBindImageTexture(unit[0], velocityMap[0], 0, false, 0, GLES31.GL_WRITE_ONLY, GLES31.GL_RGBA32F);\n</code></pre>\n<p>This final line is the one which errors now. The error code translates to <code>GL_INVALID_OPERATION</code>. The shader compiles correctly and the program object is valid and active. The location of the variable is also valid. I have even used <code>glGetActiveUniform()</code> to get the type of the variable and it returns a type of 36941 which translates to <code>GL_IMAGE_2D</code> which I believe is an integer.</p>\n<p>I still think I'm misunderstanding something here but not sure what.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 21033083,
+        "reputation": 11,
+        "user_id": 15457012,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/tHzPy.jpg?s=256",
+        "display_name": "pavilion",
+        "link": "https://stackoverflow.com/users/15457012/pavilion"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1764869725,
+      "last_edit_date": 1764869725,
+      "creation_date": 1764857332,
+      "answer_id": 79838002,
+      "question_id": 49053967,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>I meet <code>GL_INVALID_OPERATION</code>  too when <code>glBindImageTexture</code>.</p>\n<p>Like <a href=\"https://stackoverflow.com/users/2637074/codinglumis\">CodingLumis</a> said（need to read his answer util the end）,  solution is :  replace <code>glTexImage2D</code> with <code>glTexStorage2D</code></p>\n<p>According <a href=\"https://arm-software.github.io/opengl-es-sdk-for-android/compute_intro.html\" rel=\"nofollow noreferrer\">https://arm-software.github.io/opengl-es-sdk-for-android/compute_intro.html</a></p>\n<blockquote>\n<p>A very important restriction for using shader images is that the underlying texture must have been allocated using &quot;immutable&quot; storage, i.e. via glTexStorage*()-like functions, and not glTexImage2D().</p>\n</blockquote>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79838002": []
+  }
+}

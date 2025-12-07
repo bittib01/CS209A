@@ -1,0 +1,116 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "memory-management"
+    ],
+    "owner": {
+      "account_id": 3434578,
+      "reputation": 91,
+      "user_id": 7729735,
+      "user_type": "registered",
+      "profile_image": "https://graph.facebook.com/666469372/picture?type=large",
+      "display_name": "Sebastian Mueller",
+      "link": "https://stackoverflow.com/users/7729735/sebastian-mueller"
+    },
+    "is_answered": true,
+    "view_count": 182,
+    "answer_count": 4,
+    "score": 3,
+    "last_activity_date": 1762486511,
+    "creation_date": 1762423180,
+    "last_edit_date": 1762432418,
+    "question_id": 79811104,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79811104/what-happens-in-memory-after-return",
+    "title": "What happens in memory after return?",
+    "body": "<pre><code>public class Test{\n    static int add (int m, int n){\n        return m+n;\n    }\n\n    public static void main (String[] args){\n        int a=1;\n        int b=2;\n        int c= add(a,b);\n    } \n}\n</code></pre>\n<p>Assume the above simple code. When I run the line <code>int c = add(a,b);</code>  32 bits of memory are allocated in the call stack for the integer variable c, then the method <code>add</code> is called with parameters 1 and 2. This will create two new areas in memory (in the call stack) for the parameters m and n and assign them the values 1 and 2, respectively. Now the return closes the method <code>add</code> and the memory allocated for m and n is set free again. Then afterwards the value of the sum is assigned to c. Is this correct?</p>\n<p>More specifically: Where is the return value of <code>add</code>, after closing <code>add</code> but before assignment to c? Is it in the CPU? Or am I wrong in general about how the return is handled?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 2709823,
+        "reputation": 11069,
+        "user_id": 2338547,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/QT3fG.png?s=256",
+        "display_name": "markspace",
+        "link": "https://stackoverflow.com/users/2338547/markspace"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1762486511,
+      "creation_date": 1762486511,
+      "answer_id": 79811932,
+      "question_id": 79811104,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p><code>More specifically: Where is the return value of add, after closing add but before assignment to c?</code></p>\n<p>I think other comments covered this, but they did it in a kind of round about way.</p>\n<p>When <code>add</code> is called, <em>three</em> locations are added to the stack frame.  Two for the parameters, and one for the return value.  After returning, the parameters are removed but the return value will remain.  Then it can be assigned to <code>c</code>.  This is &quot;canonically&quot; and also not having messed with real compiler output in 25 years, but that's the general idea.  As JayC667 implies, this can be heavily optimized.  Using a register for a (small, like 32 bits) return value would probably be the first optimization.  (And practically in Java this whole method would be in-lined.)</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 31180,
+        "reputation": 29752,
+        "user_id": 85421,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/kKvXH.gif?s=256",
+        "display_name": "user85421",
+        "link": "https://stackoverflow.com/users/85421/user85421"
+      },
+      "is_accepted": false,
+      "score": 2,
+      "last_activity_date": 1762430267,
+      "last_edit_date": 1762430267,
+      "creation_date": 1762428448,
+      "answer_id": 79811211,
+      "question_id": 79811104,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>The Java Virtual Machine Specification - 6.5. Instructions - <a href=\"https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-6.html#jvms-6.5.ireturn\" rel=\"nofollow noreferrer\">ireturn</a>:</p>\n<blockquote>\n<p>If no exception is thrown, <code>value</code> is popped from the operand stack of the current frame (§2.6) and pushed onto the operand stack of the frame of the invoker. Any other values on the operand stack of the current method are discarded.<br />\n. . .<br />\nThe interpreter then returns control to the invoker of the method, reinstating the frame of the invoker.</p>\n</blockquote>\n<p><sub>Note: Java's <code>return</code> is compiled into bytecode <code>ireturn</code> if the method is declared<br />\nto return <code>boolean</code>, <code>byte</code>, <code>char</code>, <code>short</code>, or <code>int</code>.</sub></p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 3211603,
+        "reputation": 300971,
+        "user_id": 2711488,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/t2hoD.jpg?s=256",
+        "display_name": "Holger",
+        "link": "https://stackoverflow.com/users/2711488/holger"
+      },
+      "is_accepted": false,
+      "score": 4,
+      "last_activity_date": 1762424534,
+      "creation_date": 1762424534,
+      "answer_id": 79811135,
+      "question_id": 79811104,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>No real life programming language allocates memory on such instructions. All local variables are part of a <a href=\"https://docs.oracle.com/javase/specs/jvms/se24/html/jvms-2.html#jvms-2.6\" rel=\"nofollow noreferrer\">stack frame</a> which is allocated at the beginning of the method and deallocated at method exit as a whole, though “allocated” means “taken from the stack memory” which was pre-allocated when the thread was created. From other threads’ perspective, this memory was never free.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 2182934,
+        "reputation": 2660,
+        "user_id": 1932011,
+        "user_type": "registered",
+        "accept_rate": 71,
+        "profile_image": "https://www.gravatar.com/avatar/612163480a1ccb4785fd647a003eefbb?s=256&d=identicon&r=PG",
+        "display_name": "JayC667",
+        "link": "https://stackoverflow.com/users/1932011/jayc667"
+      },
+      "is_accepted": false,
+      "score": 3,
+      "last_activity_date": 1762424466,
+      "creation_date": 1762424466,
+      "answer_id": 79811133,
+      "question_id": 79811104,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Following the logic of a stack machine, and leaving out any optimization:</p>\n<ul>\n<li>When calling <code>add</code>, a new stack frame is created on the stack.</li>\n<li>The 2 parameters passed, i.e. copied to the second and third slot in the new frame.</li>\n<li>Then the addition is performed.</li>\n<li>Then the result will be placed in the return register or the stack memory slot assigned.</li>\n<li>Then the header from the current stack frame is read, which points to the last index of execution in the old stack frame directly after <code>add</code> was called. (Note here: If exception handling was done, the corresponding registers will be checked. Otherwise, this jump, directly onto the stack index where the <code>=</code> assignment into <code>c</code> takes place.)</li>\n<li>Then the return value will be copied from either the return register or the assigned stack slot, into the place of variable c.</li>\n</ul>\n<p>This is generally how stack machines operate. And depending on the level of optimization (compile-time and run-time), this might look completely different, working with a lot more pointing instead of values on the stack. (Like writing the result of the addition directly into <code>c</code> slot on the stack, instead of having it as a result, then later writing it back. Or completely in-line the method, so instead of doing any stack/'call' operations, the addition will take place 'inside the main method')</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79811932": [],
+    "79811211": [],
+    "79811135": [],
+    "79811133": []
+  }
+}

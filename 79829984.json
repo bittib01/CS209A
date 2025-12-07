@@ -1,0 +1,88 @@
+{
+  "question": {
+    "tags": [
+      "java"
+    ],
+    "owner": {
+      "account_id": 44804289,
+      "reputation": 11,
+      "user_id": 31944464,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/0bbcfc68e88fcd14b794086c550970b4?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Gurkirat Singh",
+      "link": "https://stackoverflow.com/users/31944464/gurkirat-singh"
+    },
+    "is_answered": true,
+    "view_count": 108,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1764090187,
+    "creation_date": 1764088948,
+    "question_id": 79829984,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79829984/why-does-my-java-code-behave-differently-inside-a-loop-when-checking-conditions",
+    "title": "Why does my Java code behave differently inside a loop when checking conditions using a HashSet?",
+    "body": "<p>I am trying to solve a coding problem where I need to repeatedly double a number (<code>original</code>) as long as it exists in an integer array. To make the lookup faster, I am inserting all elements of the array into a <code>HashSet</code>. My understanding is that this should allow constant-time <code>contains()</code> checks.</p>\n<p>However, when I put the doubling condition <strong>inside the loop that builds the set</strong>, my code fails on certain inputs. Here is the code:</p>\n<pre><code>public int findFinalValue(int[] nums, int original) {\n    Set&lt;Integer&gt; set = new HashSet&lt;&gt;();\n    for (int num : nums) {\n        set.add(num);\n        if (set.contains(original)) {\n            original *= 2;\n        }\n    }\n    return original;\n}\n</code></pre>\n<p>For example, with <code>nums = [5,3,6,1,12]</code> and <code>original = 3</code>, this code returns <strong>12</strong>, but the correct result should be <strong>24</strong> because 3 → 6 → 12 → 24 (all appear in the array).</p>\n<p>When I move the condition outside the loop like this:</p>\n<pre><code>while (set.contains(original)) {\n    original *= 2;\n}\n</code></pre>\n<p>…it works correctly.</p>\n<p>My question is:</p>\n<p><strong>Why does checking <code>contains(original)</code> inside the same loop where the set is being built cause incorrect behavior?</strong><br />\nI assumed adding elements one by one and checking in the same pass should logically work, since ultimately the same set gets built.</p>\n<p>Is there some detail about iteration order, timing of updates, or HashSet behavior that I am misunderstanding?</p>\n<p>Any explanation about <em>why the logic only works after the full set is constructed</em> would be greatly appreciated.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 19435569,
+        "reputation": 2968,
+        "user_id": 21105992,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/kKQkV.png?s=256",
+        "display_name": "teapot418",
+        "link": "https://stackoverflow.com/users/21105992/teapot418"
+      },
+      "is_accepted": false,
+      "score": 3,
+      "last_activity_date": 1764090187,
+      "last_edit_date": 1764090187,
+      "creation_date": 1764089306,
+      "answer_id": 79829991,
+      "question_id": 79829984,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>The argument does not quite work for your values. If you are sure about those, try preparing a <a href=\"https://stackoverflow.com/help/minimal-reproducible-example\">minimal reproducible example</a>.</p>\n<p>But let's assume <code>nums = [5,3,1,12,6]</code> instead. When adding 6, the current value will be checked against 6 once and doubled to 12. 12 will not be checked against the set again and gets returned.</p>\n<p>You will do at most one doubling per loop. Adding one value can reveal the need to perform multiple doublings. This can happen too late in the loop to get you the right result in time.</p>\n<p>You could fix that by making the inner if to a <code>while</code> as in:</p>\n<pre><code>    for (int num : nums) {\n        set.add(num);\n        while (set.contains(original)) {\n            original *= 2;\n        }\n    }\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 318670,
+        "reputation": 16467,
+        "user_id": 636009,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/IIQJV.jpg?s=256",
+        "display_name": "David Conrad",
+        "link": "https://stackoverflow.com/users/636009/david-conrad"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1764177924,
+      "post_id": 79829984,
+      "comment_id": 140874826,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 7612423,
+        "reputation": 87400,
+        "user_id": 5772882,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/8283c64511fa80afed5259d10850168f?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Anonymous",
+        "link": "https://stackoverflow.com/users/5772882/anonymous"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1764139260,
+      "post_id": 79829984,
+      "comment_id": 140873588,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79829991": []
+  }
+}

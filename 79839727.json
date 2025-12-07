@@ -1,0 +1,143 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "arraylist",
+      "linked-list"
+    ],
+    "owner": {
+      "account_id": 42245363,
+      "reputation": 45,
+      "user_id": 30660137,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/f61a942335fcf7ba1e96d77b055b8aaf?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Sakib",
+      "link": "https://stackoverflow.com/users/30660137/sakib"
+    },
+    "is_answered": true,
+    "view_count": 51,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1765035491,
+    "creation_date": 1765031567,
+    "last_edit_date": 1765034749,
+    "question_id": 79839727,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79839727/reversal-of-linked-list-with-head-and-tail-node-recursively",
+    "title": "Reversal of Linked List with head and tail node recursively",
+    "body": "<p>I am trying to reverse a singly linked list recursively.\nWhen I run the code, my output for 1-&gt;2-&gt;3-&gt;4   is   4-&gt;1.\nI am unable to understand why the link for the middle nodes is breaking.</p>\n<p>My code below:</p>\n<p>In my main function, I have created a node ans that points to the tail and I am returning ans in the main function.</p>\n<pre><code>/**\n * Definition for singly-linked list.\n * public class ListNode {\n *     int val;\n *     ListNode next;\n *     ListNode() {}\n *     ListNode(int val) { this.val = val; }\n *     ListNode(int val, ListNode next) { this.val = val; this.next = next; }\n * }\n */\nclass Solution {\n    public ListNode reverseList(ListNode head)  {\n      if (head == null || head.next == null) {\n                return head;\n            }\n            ListNode tail = head;\n            while(tail.next != null){\n                tail=tail.next;\n            }\n            ListNode ans = tail;\n            reverse(head,tail);\n            return ans;\n    }\n\n \n\n    private void reverse (ListNode head, ListNode tail){\n            if (head == tail){\n                head = tail;\n               return;\n            }\n             reverse(head.next,tail);\n             \n             tail.next = head;\n             tail = head;          \n             tail.next=null;\n            \n        }\n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 194308,
+        "reputation": 80455,
+        "user_id": 436560,
+        "user_type": "registered",
+        "accept_rate": 87,
+        "profile_image": "https://i.sstatic.net/2GESV.jpg?s=256",
+        "display_name": "Lajos Arpad",
+        "link": "https://stackoverflow.com/users/436560/lajos-arpad"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1765035491,
+      "creation_date": 1765035491,
+      "answer_id": 79839757,
+      "question_id": 79839727,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>In order to revert all your nodes, you can do something like</p>\n<pre><code>private ListNode reverse (ListNode current, ListNode previous) {\n    ListNode next = current.next;\n    current.next = previous;\n    return (next == null) ? current : reverse(next, current);\n}\n</code></pre>\n<p>Explanation:</p>\n<ul>\n<li><code>current</code> is the node you are currently processing</li>\n<li><code>previous</code> is the previous <code>current</code> if existed. When you first call the method, pass <code>null</code> as <code>previous</code></li>\n<li>it will eventually <code>return</code> the new head, so you can assign the return value of <code>reverse</code> to the variable/data-member that represents the head</li>\n<li>we store <code>current.next</code> as a local variable called <code>next</code> because we'll soon lose reference to it from the object</li>\n<li>we override <code>current.next</code> with <code>previous</code>, essentially creating the backward link</li>\n<li>we return <code>current</code> if it happened to be a tail, in which case it did not have a <code>next</code> anyways and this value will be returned to the caller and then to its caller, etc</li>\n<li>otherwise, if the current node had a next, then we return <code>reverse</code> for that, passing <code>current</code> as <code>previous</code></li>\n</ul>\n<p>Now that we have a solution you may wonder why your previous solution was not working. Before we detect the reason, let me point out that</p>\n<pre><code>        if (head == tail){\n            head = tail;\n           return;\n        }\n</code></pre>\n<p>makes no sense. Why do you assign the value if it happened to be having the desired value already? Now, on to your next lines</p>\n<pre><code>         reverse(head.next,tail);\n         \n         tail.next = head;\n         tail = head;          \n         tail.next=null;\n</code></pre>\n<p>You do the recursive reverse to the next value and the same tale and <strong>once that's finished</strong> <code>tail.next</code> will be assigned <code>head</code> whose next will be erased.</p>\n<p>So, let's imagine this chain:</p>\n<p>1-&gt;2-&gt;3-&gt;4-&gt;5</p>\n<ul>\n<li>So you call your <code>reverse</code>, passing 1 and 5 to it.</li>\n<li>Then 1 calls reverse for 2 and 5.</li>\n<li>Then 2 calls reverse for 3 and 5</li>\n<li>Then 3 calls reverse for 4 and 5</li>\n<li>Then 4 calls reverse for 5 and 5</li>\n<li>Reverse for 5 and 5 is being processed, they are found to be equal so you assign <code>tail</code> to <code>head</code> which are already the same and returns</li>\n<li>Reverse for 4 and 5 is being processed, so the <code>next</code> of 5 will be set to 4 and the <code>next</code> of 4 is erased</li>\n<li>Reverse for 3 and 5 is being processed, so the <code>next</code> of 5 will be set to 3 (overriding the 4) and the <code>next</code> of 3 is erased</li>\n<li>Reverse for 2 and 5 is being processed, so the <code>next</code> of 5 will be set to 2 (overriding the 3) and the <code>next</code> of 2 is erased</li>\n<li>Reverse for 1 and 5 is being processed, so the <code>next</code> of 5 will be set to 1 (overriding the 2) and the <code>next</code> of 1 is erased</li>\n</ul>\n<p>Hence the result you've got is the exact result I would expect from your code.</p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 42245363,
+        "reputation": 45,
+        "user_id": 30660137,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/f61a942335fcf7ba1e96d77b055b8aaf?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Sakib",
+        "link": "https://stackoverflow.com/users/30660137/sakib"
+      },
+      "reply_to_user": {
+        "account_id": 4552539,
+        "reputation": 4328,
+        "user_id": 3697273,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/6f12b7fba6d7c2d2db4be1d240ab0909?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "paisanco",
+        "link": "https://stackoverflow.com/users/3697273/paisanco"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1765034573,
+      "post_id": 79839727,
+      "comment_id": 140890455,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 4552539,
+        "reputation": 4328,
+        "user_id": 3697273,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/6f12b7fba6d7c2d2db4be1d240ab0909?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "paisanco",
+        "link": "https://stackoverflow.com/users/3697273/paisanco"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1765033268,
+      "post_id": 79839727,
+      "comment_id": 140890430,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 42245363,
+        "reputation": 45,
+        "user_id": 30660137,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/f61a942335fcf7ba1e96d77b055b8aaf?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Sakib",
+        "link": "https://stackoverflow.com/users/30660137/sakib"
+      },
+      "reply_to_user": {
+        "account_id": 4552539,
+        "reputation": 4328,
+        "user_id": 3697273,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/6f12b7fba6d7c2d2db4be1d240ab0909?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "paisanco",
+        "link": "https://stackoverflow.com/users/3697273/paisanco"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1765032846,
+      "post_id": 79839727,
+      "comment_id": 140890423,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 4552539,
+        "reputation": 4328,
+        "user_id": 3697273,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/6f12b7fba6d7c2d2db4be1d240ab0909?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "paisanco",
+        "link": "https://stackoverflow.com/users/3697273/paisanco"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1765032521,
+      "post_id": 79839727,
+      "comment_id": 140890419,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79839757": []
+  }
+}

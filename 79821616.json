@@ -1,0 +1,198 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "http",
+      "tomcat",
+      "google-drive-api",
+      "google-slides-api"
+    ],
+    "owner": {
+      "account_id": 22925447,
+      "reputation": 27,
+      "user_id": 21287547,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/aa58d946216b5eb43d957589d243bf82?s=256&d=identicon&r=PG",
+      "display_name": "Alan",
+      "link": "https://stackoverflow.com/users/21287547/alan"
+    },
+    "is_answered": false,
+    "view_count": 80,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1763496667,
+    "creation_date": 1763313162,
+    "last_edit_date": 1763406977,
+    "question_id": 79821616,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79821616/how-do-i-specify-a-q-parameter-for-www-googleapis-com-drive-v3-files",
+    "title": "How do I specify a &quot;q&quot; parameter for www.googleapis.com/drive/v3/files",
+    "body": "<p>In the <a href=\"https://developers.google.com/workspace/slides/api/samples/presentation#list-presentations\" rel=\"nofollow noreferrer\">Google Slides API sample</a>, it says to do a <code>GET</code> request:</p>\n<pre class=\"lang-http prettyprint-override\"><code>GET https://www.googleapis.com/drive/v3/files?q=&quot;mimeType=application/vnd.google-apps.presentation&quot;&amp;fields=files(id,name,webViewLink)\n</code></pre>\n<ul>\n<li><p>I tried without <code>q</code> and <code>fields</code> parameters and I get the default fields of all files just fine.</p>\n</li>\n<li><p>I tried without a <code>q</code> parameter, but with a <code>fields</code> parameter, and I get the specified fields of all files just fine.</p>\n</li>\n</ul>\n<p>My program is written in Java (Tomcat) and for historical reasons it just does:</p>\n<pre class=\"lang-java prettyprint-override\"><code>HttpRequest.newBuilder().uri(URI.create(uri)).header(&quot;Authorization&quot;, &quot;Bearer &quot; + result.getString(&quot;access_token&quot;)).build();\n</code></pre>\n<p>to make requests.</p>\n<p>The double quotes in the <code>q=&quot;mimeType=application/vnd.google-apps.presentation&quot;</code> clearly require escaping via URL encoding; without doing that one gets:</p>\n<pre><code>java.lang.IllegalArgumentException: Illegal character in query at index 44: https://www.googleapis.com/drive/v3/files?q=&quot;mimeType=application/vnd.google-apps.presentation&quot;&amp;fields=files(id,name,webViewLink)&amp;key=mykey\n    java.base/java.net.URI.create(URI.java:906)\n</code></pre>\n<p>Fully URL encoding <code>&quot;mimeType=application/vnd.google-apps.presentation&quot;</code> and passing that as the value of the <code>q</code> parameter results in a URI of:\n<code>https://www.googleapis.com/drive/v3/files?q=mimeType%3Dapplication%2Fvnd.google-apps.presentation&amp;fields=files(id,name,webViewLink)&amp;key=mykey</code>\nand gives a 400 error with:</p>\n<pre class=\"lang-json prettyprint-override\"><code>{\n  &quot;error&quot;: {\n    &quot;code&quot;: 400,\n    &quot;message&quot;: &quot;Invalid Value&quot;,\n    &quot;errors&quot;: [\n      {\n        &quot;message&quot;: &quot;Invalid Value&quot;,\n        &quot;domain&quot;: &quot;global&quot;,\n        &quot;reason&quot;: &quot;invalid&quot;,\n        &quot;location&quot;: &quot;q&quot;,\n        &quot;locationType&quot;: &quot;parameter&quot;\n      }\n    ]\n  }\n}\n</code></pre>\n<p>So how do I specify the <code>q</code> parameter?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 22925447,
+        "reputation": 27,
+        "user_id": 21287547,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/aa58d946216b5eb43d957589d243bf82?s=256&d=identicon&r=PG",
+        "display_name": "Alan",
+        "link": "https://stackoverflow.com/users/21287547/alan"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1763496667,
+      "last_edit_date": 1763496667,
+      "creation_date": 1763426504,
+      "answer_id": 79822909,
+      "question_id": 79821616,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>@VGR 's comment to not use URLEncoder was completely wrong.</p>\n<p>It turns out that the solution is:</p>\n<pre><code>String q = URLEncoder.encode(&quot;mimeType=\\&quot;application/vnd.google-apps.presentation\\&quot;&quot;, StandardCharsets.UTF_8);                      String f = URLEncoder.encode(&quot;files(id,name,webViewLink)&quot;, StandardCharsets.UTF_8);             \n\nThen to pass\nString uri = &quot;https://www.googleapis.com/drive/v3/files?q=&quot; + q + &quot;&amp;fields=&quot; + f + &quot;&amp;key=mykey&quot;\nto\n\nHttpRequest httpreq = HttpRequest.newBuilder().uri(URI.create(uri)).header(&quot;Authorization&quot;, &quot;Bearer &quot; + result.getString(&quot;access_token&quot;)).build();\n</code></pre>\n<p>The key is the escaped &quot; (double quotes) around the mimeType:</p>\n<pre><code>\\&quot;application/vnd.google-apps.presentation\\&quot;\nand to URL encode all of it as well as the fields value.\n\nTest program:\n\nimport java.net.*;\nimport java.nio.charset.StandardCharsets;\n\npublic class t {\n    public static void main(String[] args) {\n\n    String client_secret = &quot;mykey&quot;;\n    String mimeType = &quot;mimeType=\\&quot;application/vnd.google-apps.presentation\\&quot;&quot;;\n    String fields = &quot;files(id,name,webViewLink)&quot;;\n    String q = URLEncoder.encode(mimeType, StandardCharsets.UTF_8);\n    String f = URLEncoder.encode(fields, StandardCharsets.UTF_8);\n    URI goodUri = URI.create(&quot;https://www.googleapis.com/drive/v3/files?q=&quot;\n        + q + &quot;&amp;fields=&quot; + f + &quot;&amp;key=&quot; + client_secret);\n    System.out.println(&quot;Correct:\\n&quot; + goodUri.toString());\n    try {\n        URI badUri = new URI(&quot;https&quot;, &quot;www.googleapis.com&quot;, &quot;/drive/v3/files&quot;,\n        &quot;q=&quot; + mimeType + &quot;&amp;fields=&quot; + fields + &quot;&amp;key=&quot; + client_secret, null);\n        System.out.println(&quot;\\nIncorrect:\\n&quot; + badUri.toString());\n\n    } catch (URISyntaxException e) {\n            e.printStackTrace();\n        }\n    }\n}\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 22925447,
+        "reputation": 27,
+        "user_id": 21287547,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/aa58d946216b5eb43d957589d243bf82?s=256&d=identicon&r=PG",
+        "display_name": "Alan",
+        "link": "https://stackoverflow.com/users/21287547/alan"
+      },
+      "reply_to_user": {
+        "account_id": 2053598,
+        "reputation": 44936,
+        "user_id": 1831987,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/38b1c37530189ec4471a43a618e33f67?s=256&d=identicon&r=PG",
+        "display_name": "VGR",
+        "link": "https://stackoverflow.com/users/1831987/vgr"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1763406345,
+      "post_id": 79821616,
+      "comment_id": 140858958,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79822909": [
+      {
+        "owner": {
+          "account_id": 22925447,
+          "reputation": 27,
+          "user_id": 21287547,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/aa58d946216b5eb43d957589d243bf82?s=256&d=identicon&r=PG",
+          "display_name": "Alan",
+          "link": "https://stackoverflow.com/users/21287547/alan"
+        },
+        "reply_to_user": {
+          "account_id": 2053598,
+          "reputation": 44936,
+          "user_id": 1831987,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/38b1c37530189ec4471a43a618e33f67?s=256&d=identicon&r=PG",
+          "display_name": "VGR",
+          "link": "https://stackoverflow.com/users/1831987/vgr"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1763573891,
+        "post_id": 79822909,
+        "comment_id": 140862863,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 2053598,
+          "reputation": 44936,
+          "user_id": 1831987,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/38b1c37530189ec4471a43a618e33f67?s=256&d=identicon&r=PG",
+          "display_name": "VGR",
+          "link": "https://stackoverflow.com/users/1831987/vgr"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1763497336,
+        "post_id": 79822909,
+        "comment_id": 140861060,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 22925447,
+          "reputation": 27,
+          "user_id": 21287547,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/aa58d946216b5eb43d957589d243bf82?s=256&d=identicon&r=PG",
+          "display_name": "Alan",
+          "link": "https://stackoverflow.com/users/21287547/alan"
+        },
+        "reply_to_user": {
+          "account_id": 2053598,
+          "reputation": 44936,
+          "user_id": 1831987,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/38b1c37530189ec4471a43a618e33f67?s=256&d=identicon&r=PG",
+          "display_name": "VGR",
+          "link": "https://stackoverflow.com/users/1831987/vgr"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1763496708,
+        "post_id": 79822909,
+        "comment_id": 140861046,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 22925447,
+          "reputation": 27,
+          "user_id": 21287547,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/aa58d946216b5eb43d957589d243bf82?s=256&d=identicon&r=PG",
+          "display_name": "Alan",
+          "link": "https://stackoverflow.com/users/21287547/alan"
+        },
+        "reply_to_user": {
+          "account_id": 2053598,
+          "reputation": 44936,
+          "user_id": 1831987,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/38b1c37530189ec4471a43a618e33f67?s=256&d=identicon&r=PG",
+          "display_name": "VGR",
+          "link": "https://stackoverflow.com/users/1831987/vgr"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1763496611,
+        "post_id": 79822909,
+        "comment_id": 140861042,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 2053598,
+          "reputation": 44936,
+          "user_id": 1831987,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/38b1c37530189ec4471a43a618e33f67?s=256&d=identicon&r=PG",
+          "display_name": "VGR",
+          "link": "https://stackoverflow.com/users/1831987/vgr"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1763481667,
+        "post_id": 79822909,
+        "comment_id": 140860656,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

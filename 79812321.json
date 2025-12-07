@@ -1,0 +1,188 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "hibernate",
+      "spring-data-jpa",
+      "pagination"
+    ],
+    "owner": {
+      "account_id": 44593126,
+      "reputation": 21,
+      "user_id": 31833636,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/f5131d65522463ed620dd8203198d127?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Рейн Глеб",
+      "link": "https://stackoverflow.com/users/31833636/%d0%a0%d0%b5%d0%b9%d0%bd-%d0%93%d0%bb%d0%b5%d0%b1"
+    },
+    "is_answered": false,
+    "view_count": 95,
+    "answer_count": 0,
+    "score": -3,
+    "last_activity_date": 1762517223,
+    "creation_date": 1762517223,
+    "question_id": 79812321,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79812321/jpa-hibernate-entitygraph-with-specification-and-pagination-not-loading-all-rela",
+    "title": "JPA/Hibernate EntityGraph with Specification and Pagination not loading all related entities correctly",
+    "body": "<h1>JPA/Hibernate EntityGraph with Specification and Pagination not loading all related entities correctly</h1>\n<p>I'm working on a JHipster-generated application and need to create APIs that load entities from the database using JPA Specifications and Pagination, while correctly loading related entities. However, I'm struggling to make this work properly.</p>\n<h2>Entity Structure</h2>\n<p>I have three main entities with the following relationships:</p>\n<p><strong>BuildingProject Entity:</strong></p>\n<pre class=\"lang-java prettyprint-override\"><code>@Entity\n@Table(name = &quot;building_project&quot;)\npublic class BuildingProject implements Serializable {\n    @Id\n    @GeneratedValue(strategy = SEQUENCE)\n    private Long id;\n\n    @NotNull\n    private String name;\n\n    @NotNull\n    private BuildingType type;\n\n    @NotNull\n    private String address;\n\n    private String description;\n    private BigDecimal minPrice;\n    private Instant completionDate;\n\n    @OneToMany(fetch = LAZY, mappedBy = &quot;project&quot;)\n    @JsonIgnoreProperties(value = { &quot;photos&quot;, &quot;bookings&quot;, &quot;project&quot; }, allowSetters = true)\n    private Set&lt;Unit&gt; units = new HashSet&lt;&gt;();\n\n    @OneToMany(fetch = LAZY, mappedBy = &quot;project&quot;)\n    @JsonIgnoreProperties(value = { &quot;project&quot;, &quot;unit&quot; }, allowSetters = true)\n    private Set&lt;Photo&gt; photos = new HashSet&lt;&gt;();\n}\n</code></pre>\n<p><strong>Unit Entity:</strong></p>\n<pre class=\"lang-java prettyprint-override\"><code>@Entity\n@Table(name = &quot;unit&quot;)\npublic class Unit implements Serializable {\n    @Id\n    @GeneratedValue(strategy = SEQUENCE)\n    private Long id;\n\n    private String location;\n\n    @NotNull\n    private BigDecimal price;\n\n    private String description;\n\n    @NotNull\n    private BigDecimal area;\n\n    @NotNull\n    private Integer floor;\n\n    @NotNull\n    private UnitType type;\n\n    @NotNull\n    private UnitStatus status;\n\n    private Instant completionDate;\n\n    @OneToMany(fetch = LAZY, mappedBy = &quot;unit&quot;)\n    @BatchSize(size = 20)\n    @JsonIgnoreProperties(value = { &quot;project&quot;, &quot;unit&quot; }, allowSetters = true)\n    private Set&lt;Photo&gt; photos = new HashSet&lt;&gt;();\n\n    @OneToMany(fetch = LAZY, mappedBy = &quot;unit&quot;)\n    @JsonIgnoreProperties(value = { &quot;client&quot;, &quot;unit&quot; }, allowSetters = true)\n    private Set&lt;Booking&gt; bookings = new HashSet&lt;&gt;();\n\n    @ManyToOne(optional = false)\n    @NotNull\n    @JsonIgnoreProperties(value = { &quot;units&quot;, &quot;photos&quot; }, allowSetters = true)\n    private BuildingProject project;\n}\n</code></pre>\n<p><strong>Photo Entity:</strong></p>\n<pre class=\"lang-java prettyprint-override\"><code>@Entity\n@Table(name = &quot;photo&quot;)\npublic class Photo implements Serializable {\n    @Id\n    @GeneratedValue(strategy = SEQUENCE)\n    private Long id;\n\n    @NotNull\n    private String url;\n\n    @ManyToOne(fetch = LAZY)\n    @JoinColumn(name = &quot;project_id&quot;)\n    @JsonIgnoreProperties(value = { &quot;units&quot;, &quot;photos&quot; }, allowSetters = true)\n    private BuildingProject project;\n\n    @ManyToOne(fetch = LAZY)\n    @JoinColumn(name = &quot;unit_id&quot;)\n    @JsonIgnoreProperties(value = { &quot;photos&quot;, &quot;bookings&quot;, &quot;project&quot; }, allowSetters = true)\n    private Unit unit;\n}\n</code></pre>\n<h2>API Requirements</h2>\n<p>I need two APIs:</p>\n<ol>\n<li>Load <code>BuildingProject</code> with all Units and all Photos.</li>\n<li>Load all <code>Unit</code> entities with all Photos.</li>\n</ol>\n<p>Both APIs must maintain filtering (using Specifications) and pagination for performance and user requirements.</p>\n<h2>Current Implementation</h2>\n<p>I implemented this method:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Transactional(readOnly = true)\npublic void findFullByCriteria(BuildingProjectCriteria criteria, Pageable page) {\n    log.debug(&quot;find full by criteria : {}, page: {}&quot;, criteria, page);\n    final Specification&lt;BuildingProject&gt; specification = createSpecification(criteria);\n    buildingProjectRepository\n            .findAll(specification, page)\n            .forEach(b -&gt; log.error(&quot;{} with {} photos and {} units&quot;,\n                    b.getId(),\n                    b.getPhotos().size(),\n                    b.getUnits().size()));\n}\n</code></pre>\n<p>Repository with EntityGraph:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Repository\npublic interface BuildingProjectRepository extends JpaRepository&lt;BuildingProject, Long&gt;, JpaSpecificationExecutor&lt;BuildingProject&gt; {\n    @EntityGraph(attributePaths = {&quot;photos&quot;, &quot;units&quot;})\n    Page&lt;BuildingProject&gt; findAll(Specification&lt;BuildingProject&gt; spec, Pageable pageable);\n}\n</code></pre>\n<p>application.yml:</p>\n<pre class=\"lang-yaml prettyprint-override\"><code>hibernate.query.fail_on_pagination_over_collection_fetch: false\n</code></pre>\n<h2>The Problem</h2>\n<p>The related entities are only loading one item each, even though there are more in the database.</p>\n<p><strong>Sample Data from photo table:</strong></p>\n<pre class=\"lang-none prettyprint-override\"><code>id, url, project_id, unit_id\n1, https://straight-hepatitis.net/, 1, 1\n2, https://funny-serial.net/, 1, 1\n3, https://bewitched-efficiency.name/, 2, 2  \n4, https://partial-chili.info, 2, 2\n</code></pre>\n<p>→ At least two photos per entity</p>\n<p><strong>Sample Data from unit table:</strong></p>\n<pre class=\"lang-none prettyprint-override\"><code>id, location, price, project_id\n1, finally powerfully, 5169.79, 2\n2, helplessly, 19973.88, 2\n3, mechanically, 9074.87, 3\n</code></pre>\n<p>→ Multiple units per project</p>\n<p><strong>But in logs I get:</strong></p>\n<pre class=\"lang-none prettyprint-override\"><code>1 with 1 photos and 0 units\n2 with 1 photos and 1 units  \n3 with 0 photos and 1 units\n4 with 0 photos and 1 units\n5 with 0 photos and 1 units\n</code></pre>\n<p>→ Only loading one related entity each instead of all</p>\n<h2>What I've Tried</h2>\n<ul>\n<li>Using <code>@EntityGraph</code> with <code>attributePaths</code></li>\n<li>Setting <code>hibernate.query.fail_on_pagination_over_collection_fetch: false</code></li>\n<li>Verified that all relationships are properly mapped with <code>mappedBy</code></li>\n</ul>\n<h2>About project</h2>\n<p>Spring Boot: 3.2.5\nJava: 17\nJHipster Framework: 8.4.0\nSource: <a href=\"https://github.com/GGlebux/Construction.git\" rel=\"nofollow noreferrer\">https://github.com/GGlebux/Construction.git</a></p>\n<h2>The Question</h2>\n<p>Why are my related entities not loading completely when using EntityGraph with Specification and Pagination? How can I properly load all related entity while maintaining filtering and pagination capabilities?</p>\n<p>I've already tried many ways.\nAny help or guidance would be greatly appreciated!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 2792262,
+        "reputation": 190757,
+        "user_id": 2402272,
+        "user_type": "registered",
+        "accept_rate": 85,
+        "profile_image": "https://www.gravatar.com/avatar/1182b1d5518a596d4e8cfe0567a65c4d?s=256&d=identicon&r=PG",
+        "display_name": "John Bollinger",
+        "link": "https://stackoverflow.com/users/2402272/john-bollinger"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1762780940,
+      "post_id": 79812321,
+      "comment_id": 140846769,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 44593126,
+        "reputation": 21,
+        "user_id": 31833636,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/f5131d65522463ed620dd8203198d127?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Рейн Глеб",
+        "link": "https://stackoverflow.com/users/31833636/%d0%a0%d0%b5%d0%b9%d0%bd-%d0%93%d0%bb%d0%b5%d0%b1"
+      },
+      "reply_to_user": {
+        "account_id": 2792262,
+        "reputation": 190757,
+        "user_id": 2402272,
+        "user_type": "registered",
+        "accept_rate": 85,
+        "profile_image": "https://www.gravatar.com/avatar/1182b1d5518a596d4e8cfe0567a65c4d?s=256&d=identicon&r=PG",
+        "display_name": "John Bollinger",
+        "link": "https://stackoverflow.com/users/2402272/john-bollinger"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1762780407,
+      "post_id": 79812321,
+      "comment_id": 140846755,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 44593126,
+        "reputation": 21,
+        "user_id": 31833636,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/f5131d65522463ed620dd8203198d127?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Рейн Глеб",
+        "link": "https://stackoverflow.com/users/31833636/%d0%a0%d0%b5%d0%b9%d0%bd-%d0%93%d0%bb%d0%b5%d0%b1"
+      },
+      "reply_to_user": {
+        "account_id": 2792262,
+        "reputation": 190757,
+        "user_id": 2402272,
+        "user_type": "registered",
+        "accept_rate": 85,
+        "profile_image": "https://www.gravatar.com/avatar/1182b1d5518a596d4e8cfe0567a65c4d?s=256&d=identicon&r=PG",
+        "display_name": "John Bollinger",
+        "link": "https://stackoverflow.com/users/2402272/john-bollinger"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1762780340,
+      "post_id": 79812321,
+      "comment_id": 140846753,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 44593126,
+        "reputation": 21,
+        "user_id": 31833636,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/f5131d65522463ed620dd8203198d127?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Рейн Глеб",
+        "link": "https://stackoverflow.com/users/31833636/%d0%a0%d0%b5%d0%b9%d0%bd-%d0%93%d0%bb%d0%b5%d0%b1"
+      },
+      "reply_to_user": {
+        "account_id": 2792262,
+        "reputation": 190757,
+        "user_id": 2402272,
+        "user_type": "registered",
+        "accept_rate": 85,
+        "profile_image": "https://www.gravatar.com/avatar/1182b1d5518a596d4e8cfe0567a65c4d?s=256&d=identicon&r=PG",
+        "display_name": "John Bollinger",
+        "link": "https://stackoverflow.com/users/2402272/john-bollinger"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1762779750,
+      "post_id": 79812321,
+      "comment_id": 140846741,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 2792262,
+        "reputation": 190757,
+        "user_id": 2402272,
+        "user_type": "registered",
+        "accept_rate": 85,
+        "profile_image": "https://www.gravatar.com/avatar/1182b1d5518a596d4e8cfe0567a65c4d?s=256&d=identicon&r=PG",
+        "display_name": "John Bollinger",
+        "link": "https://stackoverflow.com/users/2402272/john-bollinger"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1762551691,
+      "post_id": 79812321,
+      "comment_id": 140842689,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 2792262,
+        "reputation": 190757,
+        "user_id": 2402272,
+        "user_type": "registered",
+        "accept_rate": 85,
+        "profile_image": "https://www.gravatar.com/avatar/1182b1d5518a596d4e8cfe0567a65c4d?s=256&d=identicon&r=PG",
+        "display_name": "John Bollinger",
+        "link": "https://stackoverflow.com/users/2402272/john-bollinger"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1762551400,
+      "post_id": 79812321,
+      "comment_id": 140842681,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 2792262,
+        "reputation": 190757,
+        "user_id": 2402272,
+        "user_type": "registered",
+        "accept_rate": 85,
+        "profile_image": "https://www.gravatar.com/avatar/1182b1d5518a596d4e8cfe0567a65c4d?s=256&d=identicon&r=PG",
+        "display_name": "John Bollinger",
+        "link": "https://stackoverflow.com/users/2402272/john-bollinger"
+      },
+      "edited": false,
+      "score": 2,
+      "creation_date": 1762550809,
+      "post_id": 79812321,
+      "comment_id": 140842670,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {}
+}

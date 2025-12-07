@@ -1,0 +1,76 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-data-jpa",
+      "jpa-criteria"
+    ],
+    "owner": {
+      "account_id": 15280996,
+      "reputation": 1,
+      "user_id": 11025396,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/665b4d8efb7fc7db0bffea61a2dfcc3b?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Jay Hutton",
+      "link": "https://stackoverflow.com/users/11025396/jay-hutton"
+    },
+    "is_answered": true,
+    "view_count": 87,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1762691754,
+    "creation_date": 1762638275,
+    "last_edit_date": 1762649570,
+    "question_id": 79814469,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79814469/jakarta-persistence-jpa-specification-for-a-join",
+    "title": "Jakarta Persistence (JPA) Specification for a join",
+    "body": "<p>I cannot get this JPA Specification to work for a simple join. I know the &quot;&quot;statusLookup.code&quot; when mapping but does not work here. Does anyone know how to get it to work. Its a document class, a status class and the specification class. I have left out the decorators for the tables but if it wasn't for the specification then the code works.</p>\n<pre><code>public class Document {\n  @Id\n  @Column(name = &quot;id&quot;)\n  private UUID id;\n\n  @OneToOne(fetch = FetchType.LAZY)\n  @JoinColumn(name = &quot;status_id&quot;, referencedColumnName = &quot;id&quot;)\n  private Status statusLookup;\n\n  @Column(name = &quot;document_description&quot;)\n  private String documentDescription;\n}\n\npublic class Status {\n  @Id\n  @Column(columnDefinition = &quot;UUID&quot;)\n  private UUID id;\n   \n  @Column(name = &quot;code&quot;)\n  private String code;\n\n  @Column(name = &quot;description&quot;)\n  private String description;\n}\n\npublic class DocumentSpecification {\n  public static Specification&lt;Document&gt; isStatus(String status) {\n    return (root, query, builder) -&gt; {\n      return builder.equal(root.get(&quot;statusLookup.code&quot;), status);\n    };\n  }\n}\n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 5527036,
+        "reputation": 1860,
+        "user_id": 4388228,
+        "user_type": "registered",
+        "accept_rate": 97,
+        "profile_image": "https://i.sstatic.net/hV2a6.png?s=256",
+        "display_name": "Mohammed Housseyn Taleb",
+        "link": "https://stackoverflow.com/users/4388228/mohammed-housseyn-taleb"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1762691754,
+      "creation_date": 1762691754,
+      "answer_id": 79814785,
+      "question_id": 79814469,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>I think the isssue is in:</p>\n<p><code>builder.equal(root.get(&quot;statusLookup.code&quot;), status);</code></p>\n<p><code>root.get(...)</code> only takes <strong>one</strong> attribute name. A dotted path won’t work, so Hibernate will complain it can’t find <code>statusLookup.code</code>.</p>\n<p>use</p>\n<pre><code>public static Specification&lt;Document&gt; isStatus(String status) {\n  return (root, query, cb) -&gt; {\n    var statusJoin = root.join(&quot;statusLookup&quot;); // INNER by default\n    return cb.equal(statusJoin.get(&quot;code&quot;), status);\n  };\n}\n</code></pre>\n<p>If <code>statusLookup</code> can be missing, use a left join:</p>\n<pre><code>var statusJoin = root.join(&quot;statusLookup&quot;, JoinType.LEFT);\n</code></pre>\n<p>This should help you fix it nice</p>\n<p>NB: sometimes the Lazy loading of a one to one will be eagered if badly made, so you will may be able to access directly without the join: chain two get. But and BUUUT if you aim for a Lazy loading try to be sure that is enabled properly</p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 2182934,
+        "reputation": 2660,
+        "user_id": 1932011,
+        "user_type": "registered",
+        "accept_rate": 71,
+        "profile_image": "https://www.gravatar.com/avatar/612163480a1ccb4785fd647a003eefbb?s=256&d=identicon&r=PG",
+        "display_name": "JayC667",
+        "link": "https://stackoverflow.com/users/1932011/jayc667"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1762641550,
+      "post_id": 79814469,
+      "comment_id": 140844862,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79814785": []
+  }
+}

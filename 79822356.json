@@ -1,0 +1,96 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "javadoc"
+    ],
+    "owner": {
+      "account_id": 10187542,
+      "reputation": 2675,
+      "user_id": 20692967,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/NZSXm.jpg?s=256",
+      "display_name": "Sergey Zolotarev",
+      "link": "https://stackoverflow.com/users/20692967/sergey-zolotarev"
+    },
+    "is_answered": true,
+    "view_count": 64,
+    "answer_count": 3,
+    "score": 2,
+    "last_activity_date": 1763446724,
+    "creation_date": 1763386505,
+    "last_edit_date": 1763446724,
+    "question_id": 79822356,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79822356/usage-notes-in-javadocs",
+    "title": "Usage notes in javadocs",
+    "body": "<p>If I want to document how my class should be used, should I put it in the javadoc's body or its <code>@apiNote</code>? If it's the former, then what is the latter for?</p>\n<p>My impression is the body must be super-succinct, one or a few sentences long max, describing what it is. Any instructions for users of the class, are better suitted for <code>@apiNote</code>.</p>\n<p>However, many libraries put it in the body.</p>\n<p>What's your take?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 31180,
+        "reputation": 29752,
+        "user_id": 85421,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/kKvXH.gif?s=256",
+        "display_name": "user85421",
+        "link": "https://stackoverflow.com/users/85421/user85421"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1763390184,
+      "score": 1,
+      "last_activity_date": 1763390184,
+      "creation_date": 1763390184,
+      "answer_id": 79822420,
+      "question_id": 79822356,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>&quot;<em>the body must be super-succinct</em>&quot; -- I believe the opposite, it should be (super-)descriptive! Enough to make the class usable.<br />\n(a <em>Note</em> is expected to be succinct)</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 401843,
+        "reputation": 107175,
+        "user_id": 768644,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/b13bedc5215730fbce5edff6c130988a?s=256&d=identicon&r=PG",
+        "display_name": "rzwitserloot",
+        "link": "https://stackoverflow.com/users/768644/rzwitserloot"
+      },
+      "is_accepted": false,
+      "score": 3,
+      "last_activity_date": 1763388929,
+      "creation_date": 1763388929,
+      "answer_id": 79822402,
+      "question_id": 79822356,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>A few different points here that have completely unrelated answers.</p>\n<h2>1. Bodies must be super-succint? No.</h2>\n<blockquote>\n<p>My impression is the body must be super-succinct, one or a few sentences long max</p>\n</blockquote>\n<p>The body can be as long as is needed. For example, the body of the JDK builtin class <code>java.util.regex.Pattern</code> is 714 lines long excluding the summary sentence at the top, and that's not an <code>@apiNote</code> - that's just the body. It's that long because it includes a more or less complete definition of regex syntax including all the various special symbols and their meanings. Similar lengths can be found in <code>DateTimeFormatter</code> which needs to explain all the various format letters.</p>\n<h2>Addendum: But summary sentences should be!</h2>\n<p>However, the 'summary sentence' should be super-succint. That's the first line (up to the first dot, which means you need to pay attention and not include no dots in that first line other than that line's terminator. For example, don't write &quot;This method scans for E.Coli infections.&quot;.</p>\n<p>A more likely error with the summary sentence mechanic of javadoc: you have to ensure that the first line is self contained. This is also bad javadoc:</p>\n<pre class=\"lang-java prettyprint-override\"><code>/**\n * Loads the foo info. Foo is the slang term for patient/date tuples.\n *\n * Queries the underlying data source for all active patients, matching all registered EPD sources for the most recent checkup date. Returns a Foo tuple for all active patients with an available checkup date.\n */\nList&lt;Foo&gt; getFoos() { ... }\n</code></pre>\n<p>The problem with it is not that it's &quot;long&quot; or could be &quot;more succint&quot; - no, that's all fine. It's that the style of the line suggests the entire content of the first line (from <code>Loads</code> to <code>tuples</code>) is the summary, but the javadoc tool will only summarize this with <code>Loads the foo info.</code> which is evidently not very good, given that the author felt the need to define 'Foo'. More generally, summarizing a method called <code>getFoos</code> as 'Loads the foo info` is terrible. Don't repeat yourself. Especially not in comments, as you can't unit test those.</p>\n<p>A better first line would have been:</p>\n<pre class=\"lang-java prettyprint-override\"><code>/**\n * Loads last-checkup dates in the form of Foo (patient/date) tuples.\n *\n * ....\n */\n</code></pre>\n<p>And, sure, yes, that line must not be overly long. The javadoc tool sticks only that line in the summary section of the entire type (or in the context of the summary line on type defs, in the summary section of the entire package or module), so if it's a very long sentence, then [A] your editor will throw a fit because by definition you'd have a run-on sentence given that it cannot contain a dot, and [B] the summary functionality of the javadoc is now tainted by your overly long summary.</p>\n<h2>So what's <code>@apiNote</code> for?</h2>\n<p>api-what?</p>\n<p><a href=\"https://docs.oracle.com/en/java/javase/25/docs/specs/javadoc/doc-comment-spec.html\" rel=\"nofollow noreferrer\">The javadoc spec</a> explains that this tag does not exist.</p>\n<p>So, don't use it.</p>\n<h2>But.. java itself uses it!</h2>\n<p>Sure, yeah. It's OpenJDK not dogfooding their own inventions, perhaps. Point is, it's undocumented; OpenJDK made this stuff for itself and has so far not upgraded these tags to the actual spec, which means <em>you should not be using them</em>.</p>\n<p>It also means that there <em>is no spec to refer to</em> to explain what they are for. Hence, we're going to have to refer to public conversations and observation.</p>\n<h3>There are actually 4 tags</h3>\n<p>There's <code>@apiNote</code>, <code>@implNote</code>, and <code>@implSpec</code>. There are really 4 - the missing one is <code>@apiSpec</code>. However, <em>the javadoc itself</em> is describing the 'apispec', hence there's no tag for it. It's what you get when you don't write the tag, that's the 'apiSpec' part. (So, there is no <code>@apiSpec</code>, to be clear. It's like java's package-private: If you don't use any of the 3 tags, by definition you're in the apiSpec part).</p>\n<p>The semantic model of this is all written here in this <a href=\"https://mail.openjdk.org/pipermail/lambda-libs-spec-experts/2013-January/001211.html\" rel=\"nofollow noreferrer\">2013 mailing list comment by Brian Goetz, the lambda spec lead</a>.</p>\n<p>This semantic model is not universal - it applies <strong>only</strong> to the javadoc on an <code>abstract</code> method (or, rather, a method whose purpose is primarily for the user of that library to override it. Many <code>default</code>ed interface methods and various non-<code>abstract</code> methods thus still fall under this semantic model. It depends on the context).</p>\n<p>The idea is essentially that you have 2 different ways of documenting such a thing: One 'side' is to document from the point of view of the code that will be invoking these methods. The other 'side' is from the point of view of the code that is implementing them.</p>\n<p>The apiSpec (main javadoc) and <code>@apiNote</code> versions are specifically abou the 'point of view of the code that invokes', and the <code>@implSpec</code> and <code>@implNote</code> are about the point of view of implementors.</p>\n<p>The 'spec' talks about all aspects of how to use this method. (And the implementationSpec talks about all aspects one must cover to write a valid implementation).</p>\n<p>The 'note' part talks about everything that goes beyond that. It's intentionally open ended. But, as an example: A motivation of <em>why</em> an API was designed in a certain way is a note. Or, advice on when to use this method instead of an obvious alternative. Or delving into performance characteristics.</p>\n<p>Examples are less clear. Brian's post says they are notes, but java's own docs routinely break this rule, and using some common sense: Examples usually serve to explain what a thing does, and thus goes with the spec section.</p>\n<p>The impl part is <em>also</em> where docs that talk about peculiars of a specific implementation. In other words, <code>@implSpec</code> on the interface level is docs intended for those who write an implementation for the method, and <code>@implSpec</code> on that implementation talks about any details that are specific to that implementation. For example, the notion that <code>IdentityHashMap</code>'s definition of <code>get</code> breaks the spec (uses <code>==</code> instead of <code>.equals</code> for the final scan, and uses the system identity hashCode instead of <code>hashCode</code>) are <code>@implSpec</code> details. Except, of course, the javadoc of IdentityHashMap doesn't use these tags.</p>\n<p>At least, that's what Brian proposes. JDK itself rarely uses these tags.</p>\n<p><strong>In many ways @apiNote and friends feel like a half  baked internal exercise</strong>.</p>\n<p>This gets us back to:</p>\n<h2>So what should I do??</h2>\n<p><em><strong>You should not use these tags, ever.</strong></em> You should not try to be 'super succint' in your body (just don't be needlessly repetitive. Ya know - your only concern is that the docs are good. That's already hard enough!). You <em>should</em> write a succint summary sentence, keeping in mind the particular weird rules about summary sentences in javadoc.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 47564,
+        "reputation": 17509,
+        "user_id": 140934,
+        "user_type": "registered",
+        "accept_rate": 98,
+        "profile_image": "https://i.sstatic.net/XtiXS.jpg?s=256",
+        "display_name": "Sajad Bahmani",
+        "link": "https://stackoverflow.com/users/140934/sajad-bahmani"
+      },
+      "is_accepted": false,
+      "score": 2,
+      "last_activity_date": 1763387000,
+      "creation_date": 1763387000,
+      "answer_id": 79822362,
+      "question_id": 79822356,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>The Javadoc main body and the <strong><code>@apiNote</code></strong> tag are intended for distinct purposes. While you will see usage examples in both, there is a recommended practice that aligns with the official Javadoc guidelines.</p>\n<h3>1. Main Description (The &quot;Body&quot;)</h3>\n<p>The main description is for the primary explanation of the API element. A key rule is that its <strong>first sentence must be a concise summary</strong>, as this sentence is used in the API summary tables.</p>\n<p>The text <em>after</em> the first sentence should provide a complete description. This is a conventional and appropriate place for:</p>\n<ul>\n<li><p>A conceptual overview of the element.</p>\n</li>\n<li><p>A <strong>primary, simple usage example</strong> to help developers get started quickly.</p>\n</li>\n</ul>\n<p>The convention of placing a primary example here is strong, partly because tags like <strong><code>@apiNote</code></strong> did not exist before Java 8.</p>\n<h3>2. The <strong><code>@apiNote</code></strong> Tag</h3>\n<p>The <strong><code>@apiNote</code></strong> tag, introduced in Java 8, is for information that is important for an <strong>API client</strong> (a developer using the class/method) to know. It is intended for contractual or behavioral aspects.</p>\n<p>According to Oracle's documentation, it is meant for:</p>\n<blockquote>\n<p>&quot;An API note. [...] information that is important to developers using the API, such as preconditions, postconditions, and thread-safety.&quot;</p>\n</blockquote>\n<p>Good candidates for <strong><code>@apiNote</code></strong> include:</p>\n<ul>\n<li><p>Thread-safety guarantees (e.g., &quot;This class is thread-safe.&quot;).</p>\n</li>\n<li><p>Idempotency (&quot;This method is idempotent.&quot;).</p>\n</li>\n<li><p>Performance characteristics (&quot;This operation is O(n).&quot;).</p>\n</li>\n<li><p>Preconditions or side-effects.</p>\n</li>\n</ul>\n<h3>Recommended Practice</h3>\n<p>For clarity and adherence to modern conventions, use a hybrid approach:</p>\n<ol>\n<li><p><strong>Main Body</strong>: Place the primary description and a <strong>simple, common usage example</strong> here. This ensures the most important &quot;get-started&quot; information is highly visible.</p>\n</li>\n<li><p><strong><code>@apiNote</code></strong>: Use this for important contractual details, advanced usage, or other &quot;developer notes&quot; that are not part of the main descriptive flow.</p>\n</li>\n</ol>\n<h3>Example</h3>\n<p>This example demonstrates the recommended separation of concerns:</p>\n<pre><code>\nimport java.util.Objects;\n\n/**\n * Represents a request to be processed by the system.\n *\n * This class encapsulates the details of a user request. An instance is typically\n * created and passed to a {@code RequestProcessor}.\n *\n * &lt;p&gt;&lt;b&gt;Basic Usage:&lt;/b&gt;\n * &lt;pre&gt;{@code\n *   Request request = new Request(&quot;user-123&quot;, &quot;process-data&quot;);\n *   service.submit(request);\n * }&lt;/pre&gt;\n *\n * @see RequestProcessor\n * @since 1.0\n */\npublic final class Request {\n    private final String userId;\n    private final String action;\n\n    /**\n     * Constructs a new Request.\n     *\n     * @param userId the ID of the user initiating the request.\n     * @param action the action to be performed.\n     * @throws NullPointerException if userId or action is null.\n     * @apiNote For security, the {@code userId} should be authenticated before\n     *          creating this request. This class does not perform authentication.\n     */\n    public Request(String userId, String action) {\n        this.userId = Objects.requireNonNull(userId, &quot;userId must not be null&quot;);\n        this.action = Objects.requireNonNull(action, &quot;action must not be null&quot;);\n    }\n\n\n   // Getters...\n}\n</code></pre>\n<p>In this structure:</p>\n<ul>\n<li><p>The class Javadoc contains a simple, primary usage example in its <strong>main body</strong>.</p>\n</li>\n<li><p>The constructor's <strong><code>@apiNote</code></strong> contains a critical note for the developer regarding a precondition (authentication) that is outside the class's responsibility but essential for correct usage.</p>\n</li>\n</ul>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79822420": [],
+    "79822402": [],
+    "79822362": []
+  }
+}

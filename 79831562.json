@@ -1,0 +1,263 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "swing"
+    ],
+    "owner": {
+      "account_id": 10187542,
+      "reputation": 2675,
+      "user_id": 20692967,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/NZSXm.jpg?s=256",
+      "display_name": "Sergey Zolotarev",
+      "link": "https://stackoverflow.com/users/20692967/sergey-zolotarev"
+    },
+    "is_answered": true,
+    "view_count": 102,
+    "accepted_answer_id": 79831575,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1764314157,
+    "creation_date": 1764235745,
+    "question_id": 79831562,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79831562/intercepting-user-toggle-button-clicks",
+    "title": "Intercepting user toggle button clicks",
+    "body": "<p>Can you intercept <code>JToggleButton</code> clicks, making the <code>selected</code> property change conditional? If you add <code>ItemListener</code> or <code>ActionListener</code>, you can't veto the change, it's already happened. Switching the state back would generate an extra event (there should be no events if the click is vetoed).</p>\n<p>Use case: the button state corresponds to some external state, e.g. a DB column value. Once the button is clicked, the external state is mutated accordingly, but the request may be unsuccessful for whatever reason. The GUI state must correspond to an actual external state, so it must follow the latter, not the other way around.</p>\n<p>Keep in mind the initial <code>selected</code> state of the toggle is set programmatically (according to the external state). That call must <strong>not</strong> be intercepted. If it was, then on each GUI load there would be an unnecessary request in the described scenario.</p>\n<p>Is listening to mouse clicks and consuming the event in case of a &quot;veto&quot; the only way? I hate to listen to mouse clicks, it smells of kludgy design.</p>\n<p>If you run the demo, you'll notice this in your console, even before you do any clicking.</p>\n<pre><code>Updating external state to true...\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>import javax.swing.JFrame;\nimport javax.swing.JPanel;\nimport javax.swing.JToggleButton;\nimport javax.swing.WindowConstants;\nimport java.awt.Container;\n\npublic class ToggleButtonDemo {\n\n    public static void main(String[] args) {\n        Container mainPanel = createMainPanel();\n        JFrame frame = new JFrame(&quot;Toggle Button Demo&quot;);\n        frame.setContentPane(mainPanel);\n        frame.setLocationRelativeTo(null);\n        frame.pack();\n        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);\n        frame.setVisible(true);\n    }\n\n    private static JPanel createMainPanel() {\n        JPanel panel = new JPanel();\n        panel.add(toggleButtonPanel());\n        return panel;\n    }\n\n    private static JPanel toggleButtonPanel() {\n        JPanel toggleButtonPanel = new JPanel();\n        toggleButtonPanel.add(createToggleButton());\n        return toggleButtonPanel;\n    }\n\n    private static JToggleButton createToggleButton() {\n        JToggleButton toggleButton = new JToggleButton(&quot;Toggle me&quot;);\n        toggleButton.setModel(new JToggleButton.ToggleButtonModel() {\n            @Override\n            public void setSelected(boolean b) {\n                // intercepts programmatic calls too, unacceptable\n                if (externalStateUpdated(b)) super.setSelected(b);\n            }\n        });\n        toggleButton.setSelected(isSelectedInDb());\n        return toggleButton;\n    }\n\n    private static boolean externalStateUpdated(boolean requestedSelected) {\n        System.out.printf(&quot;Updating external state to %s...\\n&quot;, requestedSelected);\n        return true;\n    }\n\n    private static boolean isSelectedInDb() {\n        // assuming it's always true\n        return true;\n    }\n}\n</code></pre>\n<p>Java 8.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 10187542,
+        "reputation": 2675,
+        "user_id": 20692967,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/NZSXm.jpg?s=256",
+        "display_name": "Sergey Zolotarev",
+        "link": "https://stackoverflow.com/users/20692967/sergey-zolotarev"
+      },
+      "is_accepted": true,
+      "score": 0,
+      "last_activity_date": 1764314157,
+      "last_edit_date": 1764314157,
+      "creation_date": 1764236431,
+      "answer_id": 79831575,
+      "question_id": 79831562,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p><code>isArmed()</code> seems to be a good, solid guard against programmatic calls.</p>\n<pre class=\"lang-java prettyprint-override\"><code>        toggleButton.setModel(new JToggleButton.ToggleButtonModel() {\n            @Override\n            public void setSelected(boolean b) {\n                if (isArmed() &amp;&amp; !externalStateUpdated(b)) return;\n                super.setSelected(b);\n            }\n        });\n</code></pre>\n<p>&quot;Armed&quot; basically means &quot;pressed and has a mouse pointer over it&quot;.</p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 3211603,
+        "reputation": 300971,
+        "user_id": 2711488,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/t2hoD.jpg?s=256",
+        "display_name": "Holger",
+        "link": "https://stackoverflow.com/users/2711488/holger"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1764580670,
+      "post_id": 79831562,
+      "comment_id": 140881041,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 10187542,
+        "reputation": 2675,
+        "user_id": 20692967,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/NZSXm.jpg?s=256",
+        "display_name": "Sergey Zolotarev",
+        "link": "https://stackoverflow.com/users/20692967/sergey-zolotarev"
+      },
+      "reply_to_user": {
+        "account_id": 3211603,
+        "reputation": 300971,
+        "user_id": 2711488,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/t2hoD.jpg?s=256",
+        "display_name": "Holger",
+        "link": "https://stackoverflow.com/users/2711488/holger"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1764342102,
+      "post_id": 79831562,
+      "comment_id": 140877759,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 3211603,
+        "reputation": 300971,
+        "user_id": 2711488,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/t2hoD.jpg?s=256",
+        "display_name": "Holger",
+        "link": "https://stackoverflow.com/users/2711488/holger"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1764337004,
+      "post_id": 79831562,
+      "comment_id": 140877581,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 10187542,
+        "reputation": 2675,
+        "user_id": 20692967,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/NZSXm.jpg?s=256",
+        "display_name": "Sergey Zolotarev",
+        "link": "https://stackoverflow.com/users/20692967/sergey-zolotarev"
+      },
+      "reply_to_user": {
+        "account_id": 3211603,
+        "reputation": 300971,
+        "user_id": 2711488,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/t2hoD.jpg?s=256",
+        "display_name": "Holger",
+        "link": "https://stackoverflow.com/users/2711488/holger"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1764249131,
+      "post_id": 79831562,
+      "comment_id": 140876170,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 3211603,
+        "reputation": 300971,
+        "user_id": 2711488,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/t2hoD.jpg?s=256",
+        "display_name": "Holger",
+        "link": "https://stackoverflow.com/users/2711488/holger"
+      },
+      "edited": false,
+      "score": 2,
+      "creation_date": 1764243379,
+      "post_id": 79831562,
+      "comment_id": 140876038,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 10187542,
+        "reputation": 2675,
+        "user_id": 20692967,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/NZSXm.jpg?s=256",
+        "display_name": "Sergey Zolotarev",
+        "link": "https://stackoverflow.com/users/20692967/sergey-zolotarev"
+      },
+      "reply_to_user": {
+        "account_id": 3116234,
+        "reputation": 9469,
+        "user_id": 2636929,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/85fa83a02c04af43fcd224821ca9b750?s=256&d=identicon&r=PG",
+        "display_name": "Stultuske",
+        "link": "https://stackoverflow.com/users/2636929/stultuske"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1764236358,
+      "post_id": 79831562,
+      "comment_id": 140875845,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 3116234,
+        "reputation": 9469,
+        "user_id": 2636929,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/85fa83a02c04af43fcd224821ca9b750?s=256&d=identicon&r=PG",
+        "display_name": "Stultuske",
+        "link": "https://stackoverflow.com/users/2636929/stultuske"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1764235841,
+      "post_id": 79831562,
+      "comment_id": 140875820,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79831575": [
+      {
+        "owner": {
+          "account_id": 3072614,
+          "reputation": 16436,
+          "user_id": 2602877,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/c76ea7b35660e77624550130276c61d3?s=256&d=identicon&r=PG",
+          "display_name": "Christoph Rackwitz",
+          "link": "https://stackoverflow.com/users/2602877/christoph-rackwitz"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1764326667,
+        "post_id": 79831575,
+        "comment_id": 140877322,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 10843443,
+          "reputation": 916,
+          "user_id": 20882864,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/CCQCy.jpg?s=256",
+          "display_name": "Marce Puente",
+          "link": "https://stackoverflow.com/users/20882864/marce-puente"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1764313886,
+        "post_id": 79831575,
+        "comment_id": 140877030,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 10187542,
+          "reputation": 2675,
+          "user_id": 20692967,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/NZSXm.jpg?s=256",
+          "display_name": "Sergey Zolotarev",
+          "link": "https://stackoverflow.com/users/20692967/sergey-zolotarev"
+        },
+        "reply_to_user": {
+          "account_id": 10843443,
+          "reputation": 916,
+          "user_id": 20882864,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/CCQCy.jpg?s=256",
+          "display_name": "Marce Puente",
+          "link": "https://stackoverflow.com/users/20882864/marce-puente"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1764248973,
+        "post_id": 79831575,
+        "comment_id": 140876163,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

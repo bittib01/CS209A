@@ -1,0 +1,97 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "reflection",
+      "methods"
+    ],
+    "owner": {
+      "account_id": 10732,
+      "reputation": 55932,
+      "user_id": 20400,
+      "user_type": "registered",
+      "accept_rate": 72,
+      "profile_image": "https://www.gravatar.com/avatar/40bd6fa511aed8cab1e12bb104b88b4e?s=256&d=identicon&r=PG",
+      "display_name": "Omar Kooheji",
+      "link": "https://stackoverflow.com/users/20400/omar-kooheji"
+    },
+    "is_answered": true,
+    "view_count": 507401,
+    "protected_date": 1498012849,
+    "accepted_answer_id": 442773,
+    "answer_count": 24,
+    "score": 552,
+    "last_activity_date": 1761689482,
+    "creation_date": 1231935639,
+    "last_edit_date": 1501416501,
+    "question_id": 442747,
+    "content_license": "CC BY-SA 3.0",
+    "link": "https://stackoverflow.com/questions/442747/getting-the-name-of-the-currently-executing-method",
+    "title": "Getting the name of the currently executing method",
+    "body": "<p>Is there a way to get the name of the currently executing method in Java?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 1909395,
+        "reputation": 1049,
+        "user_id": 1723615,
+        "user_type": "registered",
+        "accept_rate": 38,
+        "profile_image": "https://www.gravatar.com/avatar/284d46ffdbe2479a1669cc8e300aa48a?s=256&d=identicon&r=PG",
+        "display_name": "Tom Stambaugh",
+        "link": "https://stackoverflow.com/users/1723615/tom-stambaugh"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1761689482,
+      "last_edit_date": 1761689482,
+      "creation_date": 1761686362,
+      "answer_id": 79803272,
+      "question_id": 442747,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<h2>For those who must use Java 8:</h2>\n<p>I'm forced to use Java 8. I needed a solution for constructing <code>LOGGER</code> strings that bracket static and instance methods with a &quot;Begin&quot;/&quot;End&quot; pair using <code>LOGGER.info</code> . I also need to sometimes use <code>LOGGER.warn</code>. My project therefore defines a <code>String logIdentifier</code> at the start of each method.</p>\n<p>In my project, every class is in a hierarchy rooted at <code>It</code>:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class It implements PackageConstants {\n  // ...\n}\n</code></pre>\n<p>I combined several of the above answers with a static and an instance version on <code>It</code> as follows:</p>\n<pre class=\"lang-java prettyprint-override\"><code>  public static String staticLogIdentifier() {\n    Integer stackFrameIndex = LOG_IDENTIFIER_STACK_FRAME_INDEX; // Try 2\n    final StackTraceElement stackFrame = Thread.currentThread().getStackTrace()[stackFrameIndex];\n    final String canonicalClassName = stackFrame.getClassName();\n    final String simpleClassName = canonicalClassName.substring(canonicalClassName.lastIndexOf('.') + 1, canonicalClassName.length());\n    final String methodName = stackFrame.getMethodName();\n    String logIdentifier = String.format(&quot;%sClass.%s&quot;, simpleClassName, methodName);\n    return logIdentifier;\n  }\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>  public String logIdentifier() {\n    Integer stackFrameIndex = LOG_IDENTIFIER_STACK_FRAME_INDEX; // Try 2\n    final StackTraceElement stackFrame = Thread.currentThread().getStackTrace()[stackFrameIndex];\n    final String canonicalClassName = stackFrame.getClassName();\n    final String simpleClassName = canonicalClassName.substring(canonicalClassName.lastIndexOf('.') + 1, canonicalClassName.length());\n    final String methodName = stackFrame.getMethodName();\n    String logIdentifier = String.format(&quot;%s.%s&quot;, simpleClassName, methodName);\n    return logIdentifier;\n  }\n</code></pre>\n<p>These use a constant that I define in an interface that the root implements:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public interface PackageConstants {\n\n  public static final Integer LOG_IDENTIFIER_STACK_FRAME_INDEX = 2;\n\n}\n</code></pre>\n<p>I empirically confirmed that <code>2</code> is the correct value for my project environment.</p>\n<p>In each descendant, I bracket each static method with the following:</p>\n<pre class=\"lang-java prettyprint-override\"><code>  public static void someStaticMethod() {\n    String logIdentifier = staticLogIdentifier();\n    LOGGER.info(String.format(&quot;%s: Begin&quot;, logIdentifier));\n\n    //...\n\n    LOGGER.info(String.format(&quot;%s: End&quot;, logIdentifier));\n  }\n</code></pre>\n<p>Similarly, I bracket each instance method with the following:</p>\n<pre class=\"lang-java prettyprint-override\"><code>  public void someInstanceMethod() {\n    String logIdentifier = this.logIdentifier();\n    LOGGER.info(String.format(&quot;%s: Begin&quot;, logIdentifier));\n\n    //...\n\n    LOGGER.info(String.format(&quot;%s: End&quot;, logIdentifier));\n  }\n</code></pre>\n<p>This does EXACTLY what my project needs!</p>\n<p>This saves my team countless hours of time chasing down problems that result from relying on hard-coded strings in the various methods of this large project.</p>\n<p>I really appreciate the answers and comments in this entry -- it exemplifies why this site is such a valuable resource.</p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 322981,
+        "reputation": 346871,
+        "user_id": 642706,
+        "user_type": "registered",
+        "accept_rate": 58,
+        "profile_image": "https://i.sstatic.net/ZWEI3.jpg?s=256",
+        "display_name": "Basil Bourque",
+        "link": "https://stackoverflow.com/users/642706/basil-bourque"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1690134596,
+      "post_id": 442747,
+      "comment_id": 135307748,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 3446101,
+        "reputation": 21795,
+        "user_id": 2886891,
+        "user_type": "registered",
+        "accept_rate": 75,
+        "profile_image": "https://i.sstatic.net/yaE6t.png?s=256",
+        "display_name": "Honza Zidek",
+        "link": "https://stackoverflow.com/users/2886891/honza-zidek"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1686759722,
+      "post_id": 442747,
+      "comment_id": 134844422,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79803272": []
+  }
+}

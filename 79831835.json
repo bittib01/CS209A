@@ -1,0 +1,127 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "concurrency",
+      "thread-synchronization"
+    ],
+    "owner": {
+      "account_id": 218143,
+      "reputation": 225,
+      "user_id": 474323,
+      "user_type": "registered",
+      "accept_rate": 39,
+      "profile_image": "https://www.gravatar.com/avatar/851b7fa17e397da1ccbd23071404e749?s=256&d=identicon&r=PG",
+      "display_name": "Kannan J",
+      "link": "https://stackoverflow.com/users/474323/kannan-j"
+    },
+    "is_answered": false,
+    "view_count": 67,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1764676052,
+    "creation_date": 1764256793,
+    "question_id": 79831835,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79831835/need-help-understanding-why-this-locksupport-park-hangs-indefinitely",
+    "title": "Need help understanding why this Locksupport.park hangs indefinitely",
+    "body": "<p>I have the below code (whole code is <a href=\"https://github.com/grpc/grpc-java/blob/master/stub/src/main/java/io/grpc/stub/ClientCalls.java\" rel=\"nofollow noreferrer\">here</a>) that polls a queue for runnables and parks itself if the queue is empty.</p>\n<pre><code>public void waitAndDrain() throws InterruptedException {\n  throwIfInterrupted();\n  Runnable runnable = poll();\n  if (runnable == null) {\n    waiter = Thread.currentThread();\n    try {\n      while ((runnable = poll()) == null) {\n        LockSupport.park(this);\n        throwIfInterrupted();\n      }\n    } finally {\n      waiter = null;\n    }\n  }\n  do {\n    runQuietly(runnable);\n  } while ((runnable = poll()) != null);\n}\n</code></pre>\n<p>And the code that does unpark</p>\n<pre><code>public void execute(Runnable runnable) {\n  add(runnable);\n  Object waiter = this.waiter;\n  if (waiter != SHUTDOWN) {\n    LockSupport.unpark((Thread) waiter); // no-op if null\n  } else if (remove(runnable) &amp;&amp; rejectRunnableOnExecutor) {\n    throw new RejectedExecutionException();\n  }\n}\n</code></pre>\n<p>If unparks happen in succession, the lost permits are not a problem because the code that unparks also enqueues runnables, and the reader code only parks itself if the queue is not empty.\nBefore you point me to the &quot;else if&quot; block in the unpacking code that looks suspicious, let me point out that this is not an issue, for the &quot;waitor&quot; variable is only ever set to SHUTDOWN <a href=\"https://github.com/grpc/grpc-java/blob/02e98a806d4738a113519115d55fc242243e98d6/stub/src/main/java/io/grpc/stub/ClientCalls.java#L173C16-L173C24\" rel=\"nofollow noreferrer\">here</a> (could have been a private method, need not have been public) after the loop that polls the queue terminates, so if it set the waitor to SHUTDOWN, there is no chance of parking again.\nHowever our customer has reported that occasionally the application gets stuck with the parking thread waiting in the parked state:</p>\n<pre><code>    &quot;Test worker&quot; #1 prio=5 os_prio=0 cpu=68854.65ms elapsed=51528.48s tid=0x0000ffffb40311a0 nid=0x321d1c waiting on condition  [0x0000ffffb99fb000]\n   java.lang.Thread.State: WAITING (parking)\n    at jdk.internal.misc.Unsafe.park(java.base@17.0.15/Native Method)\n    - parking to wait for  &lt;0x00000000d69d5a18&gt; (a io.xxxx.stub.ClientCalls$ThreadlessExecutor)\n    at java.util.concurrent.locks.LockSupport.park(LockSupport.java:211)\n    at io.xxxx.stub.ClientCalls$ThreadlessExecutor.waitAndDrain(ClientCalls.java:817)\n    at io.xxxx.stub.ClientCalls.blockingUnaryCall(ClientCalls.java:166)\n    ...\n</code></pre>\n<p>I have been splitting hairs unable to come up with a scenario that could cause this. Any idea is much appreciated.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 3303574,
+        "reputation": 1643,
+        "user_id": 2779079,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/YTwvE.jpg?s=256",
+        "display_name": "Thomas Krieger",
+        "link": "https://stackoverflow.com/users/2779079/thomas-krieger"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1764676052,
+      "creation_date": 1764676052,
+      "answer_id": 79835822,
+      "question_id": 79831835,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>You can reproduce the behaviour if you do not call onCompleted during invoke.<br />\nHere is a test to reproduce the behaviour:</p>\n<pre><code>public class TestClientCalls {\n\n    private static final MethodDescriptor&lt;Integer, Integer&gt; UNARY_METHOD =\n            MethodDescriptor.&lt;Integer, Integer&gt;newBuilder()\n                    .setType(MethodDescriptor.MethodType.UNARY)\n                    .setFullMethodName(&quot;some/method&quot;)\n                    .setRequestMarshaller(new IntegerMarshaller())\n                    .setResponseMarshaller(new IntegerMarshaller())\n                    .build();\n\n    @Test\n    public void blockingUnaryCall2_success() throws Exception {\n        Integer req = 2;\n        final Integer resp = 3;\n\n        class BasicUnaryResponse implements ServerCalls.UnaryMethod&lt;Integer, Integer&gt; {\n            Integer request;\n\n            @Override public void invoke(Integer request, StreamObserver&lt;Integer&gt; responseObserver) {\n                this.request = request;\n                responseObserver.onNext(resp);\n                //responseObserver.onCompleted();\n                // uncommeting this and everything works\n            }\n        }\n\n        BasicUnaryResponse service = new BasicUnaryResponse();\n        Server server = InProcessServerBuilder.forName(&quot;simple-reply&quot;).directExecutor()\n                .addService(ServerServiceDefinition.builder(&quot;some&quot;)\n                        .addMethod(UNARY_METHOD, ServerCalls.asyncUnaryCall(service))\n                        .build())\n                .build().start();\n\n        ManagedChannel channel = InProcessChannelBuilder.forName(&quot;simple-reply&quot;).directExecutor().build();\n        ClientCalls.blockingUnaryCall(channel, UNARY_METHOD, CallOptions.DEFAULT, req);\n    \n    }\n\n    public static class IntegerMarshaller implements MethodDescriptor.Marshaller&lt;Integer&gt; {\n        @Override\n        public InputStream stream(Integer value) {\n            try {\n                ByteArrayOutputStream baos = new ByteArrayOutputStream(4);\n                DataOutputStream dos = new DataOutputStream(baos);\n                dos.writeInt(value);\n                return new ByteArrayInputStream(baos.toByteArray());\n            } catch (IOException ioe) {\n                throw new RuntimeException(ioe);\n            }\n        }\n\n        @Override\n        public Integer parse(InputStream stream) {\n            try {\n                DataInputStream dis = new DataInputStream(stream);\n                return dis.readInt();\n            } catch (IOException ioe) {\n                throw new RuntimeException(ioe);\n            }\n        }\n    }\n}\n</code></pre>\n<p>I do not think that this is a threading problem since it is executed in ThreadlessExecutor.waitAndDrain</p>\n<p>here is the stack trace for the test:</p>\n<pre><code>&quot;Test worker&quot; #1 [2819] prio=5 os_prio=31 cpu=2849.22ms elapsed=88.92s tid=0x000000014080f200 nid=2819 waiting on condition  [0x000000016b82b000]\n   java.lang.Thread.State: WAITING (parking)\n    at jdk.internal.misc.Unsafe.park(java.base@21.0.7/Native Method)\n    - parking to wait for  &lt;0x00000007e1c02b20&gt; (a io.grpc.stub.ClientCalls$ThreadlessExecutor)\n    at java.util.concurrent.locks.LockSupport.park(java.base@21.0.7/LockSupport.java:221)\n    at io.grpc.stub.ClientCalls$ThreadlessExecutor.waitAndDrain(ClientCalls.java:817)\n    at io.grpc.stub.ClientCalls.blockingUnaryCall(ClientCalls.java:166)\n    at com.vmlens.projects.grpc.TestClientCalls.blockingUnaryCall2_success(TestClientCalls.java:46)\n    at java.lang.invoke.LambdaForm$DMH/0x00000004011f8800.invokeVirtual(java.base@21.0.7/LambdaForm$DMH)\n    at java.lang.invoke.LambdaForm$MH/0x0000000401198800.invoke(java.base@21.0.7/LambdaForm$MH)\n    at java.lang.invoke.Invokers$Holder.invokeExact_MT(java.base@21.0.7/Invokers$Holder)\n    at jdk.internal.reflect.DirectMethodHandleAccessor.invokeImpl(java.base@21.0.7/DirectMethodHandleAccessor.java:153)\n    at jdk.internal.reflect.DirectMethodHandleAccessor.invoke(java.base@21.0.7/DirectMethodHandleAccessor.java:103)\n    at java.lang.reflect.Method.invoke(java.base@21.0.7/Method.java:580)\n    at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:728)\n\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 372682,
+        "reputation": 26512,
+        "user_id": 721855,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/vZiox.png?s=256",
+        "display_name": "aled",
+        "link": "https://stackoverflow.com/users/721855/aled"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1764332752,
+      "post_id": 79831835,
+      "comment_id": 140877467,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 218143,
+        "reputation": 225,
+        "user_id": 474323,
+        "user_type": "registered",
+        "accept_rate": 39,
+        "profile_image": "https://www.gravatar.com/avatar/851b7fa17e397da1ccbd23071404e749?s=256&d=identicon&r=PG",
+        "display_name": "Kannan J",
+        "link": "https://stackoverflow.com/users/474323/kannan-j"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1764320486,
+      "post_id": 79831835,
+      "comment_id": 140877164,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 218143,
+        "reputation": 225,
+        "user_id": 474323,
+        "user_type": "registered",
+        "accept_rate": 39,
+        "profile_image": "https://www.gravatar.com/avatar/851b7fa17e397da1ccbd23071404e749?s=256&d=identicon&r=PG",
+        "display_name": "Kannan J",
+        "link": "https://stackoverflow.com/users/474323/kannan-j"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1764317435,
+      "post_id": 79831835,
+      "comment_id": 140877096,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 218143,
+        "reputation": 225,
+        "user_id": 474323,
+        "user_type": "registered",
+        "accept_rate": 39,
+        "profile_image": "https://www.gravatar.com/avatar/851b7fa17e397da1ccbd23071404e749?s=256&d=identicon&r=PG",
+        "display_name": "Kannan J",
+        "link": "https://stackoverflow.com/users/474323/kannan-j"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1764316269,
+      "post_id": 79831835,
+      "comment_id": 140877072,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79835822": []
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "hibernate",
+      "spring-annotations"
+    ],
+    "owner": {
+      "account_id": 122100,
+      "reputation": 17619,
+      "user_id": 315677,
+      "user_type": "registered",
+      "accept_rate": 81,
+      "profile_image": "https://i.sstatic.net/s1vD0.png?s=256",
+      "display_name": "Pierre Henry",
+      "link": "https://stackoverflow.com/users/315677/pierre-henry"
+    },
+    "is_answered": true,
+    "view_count": 28260,
+    "accepted_answer_id": 18401709,
+    "answer_count": 3,
+    "score": 15,
+    "last_activity_date": 1764930257,
+    "creation_date": 1377248912,
+    "last_edit_date": 1377261757,
+    "question_id": 18399006,
+    "content_license": "CC BY-SA 3.0",
+    "link": "https://stackoverflow.com/questions/18399006/spring-transactional-scheduled-method-throws-transactionexception",
+    "title": "Spring : @Transactional @Scheduled method throws TransactionException",
+    "body": "<p>(Still a bit new to Spring)</p>\n\n<p>I need to have a service method that is at the same time <code>@Scheduled</code> and <code>@Transactional</code>, so that I get to call a DAO in it.</p>\n\n<p>Declarative transactions are enabled, the transaction manager is a <code>org.springframework.orm.hibernate3.HibernateTransactionManager</code> based on a hibernate session factory.</p>\n\n<p>The service class does not implement any interface so a CGLIB proxy is used.</p>\n\n<p>This setup works fine in general (methods called from the web stack i.e. Struts) but this method raises an exception when called by the scheduler.</p>\n\n<p>Here are the relevant bits of code :</p>\n\n<p>The service method (the class is called <code>ClientWakeAndTerminateManager</code>) :</p>\n\n<pre><code>@Scheduled(initialDelay = 5000, fixedRateString = \"${rmi.server.threads.clientsScheduleManagement.rate}\")\n    @Transactional(readOnly = true)\n    public void runCheck(){\n\n        //Call a read-only DAO method (the DAO is @Autowired as a class field)\n\n        //do some stuff with the data loaded from DB\n\n    }\n</code></pre>\n\n<p>Relevant parts of my application context :</p>\n\n<pre><code>&lt;!-- switch on the transactional infrastructure --&gt;\n    &lt;tx:annotation-driven transaction-manager=\"transactionManager\" proxy-target-class=\"true\"/&gt;\n\n    &lt;!-- Utility class to execute transactional code where use of annotation is not possible --&gt;\n    &lt;bean class=\"org.springframework.transaction.support.TransactionTemplate\" id=\"txTemplate\"&gt;\n        &lt;constructor-arg name=\"transactionManager\" ref=\"transactionManager\"/&gt;\n    &lt;/bean&gt;\n\n    &lt;!-- Transaction manager based on Hibernate --&gt;\n    &lt;bean id=\"transactionManager\" class=\"org.springframework.orm.hibernate3.HibernateTransactionManager\"&gt;\n        &lt;property name=\"sessionFactory\" ref=\"hibernateSessionFactory\"/&gt;\n    &lt;/bean&gt;\n</code></pre>\n\n<p>Exception stack trace :</p>\n\n<pre><code>[ERROR] : Unexpected error occurred in scheduled task.\norg.springframework.transaction.TransactionSystemException: Could not commit Hibernate transaction; nested exception is org.hibernate.TransactionException: Transaction not successfully started\n    at org.springframework.orm.hibernate3.HibernateTransactionManager.doCommit(HibernateTransactionManager.java:661)\n    at org.springframework.transaction.support.AbstractPlatformTransactionManager.processCommit(AbstractPlatformTransactionManager.java:755)\n    at org.springframework.transaction.support.AbstractPlatformTransactionManager.commit(AbstractPlatformTransactionManager.java:724)\n    at org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning(TransactionAspectSupport.java:475)\n    at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:270)\n    at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:94)\n    at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:172)\n    at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:631)\n    at ch.unine.sitel.lis.rmi.shared.ClientWakeAndTerminateManager$$EnhancerByCGLIB$$d8be4f34.runCheck(&lt;generated&gt;)\n    at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n    at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)\n    at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)\n    at java.lang.reflect.Method.invoke(Method.java:601)\n    at org.springframework.scheduling.support.ScheduledMethodRunnable.run(ScheduledMethodRunnable.java:64)\n    at org.springframework.scheduling.support.DelegatingErrorHandlingRunnable.run(DelegatingErrorHandlingRunnable.java:53)\n    at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:471)\n    at java.util.concurrent.FutureTask$Sync.innerRunAndReset(FutureTask.java:351)\n    at java.util.concurrent.FutureTask.runAndReset(FutureTask.java:178)\n    at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.access$301(ScheduledThreadPoolExecutor.java:178)\n    at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:293)\n    at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1110)\n    at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:603)\n    at java.lang.Thread.run(Thread.java:722)\nCaused by: org.hibernate.TransactionException: Transaction not successfully started\n    at org.hibernate.transaction.JDBCTransaction.commit(JDBCTransaction.java:127)\n    at org.springframework.orm.hibernate3.HibernateTransactionManager.doCommit(HibernateTransactionManager.java:657)\n    ... 22 more\n</code></pre>\n\n<p>The stack trace seems to tell me that a transactional proxy is indeed used so I don't understand this exception. Help !</p>\n\n<p>EDIT:</p>\n\n<p>I tried to separate the <code>@Transactional</code> and the <code>@Scheduled</code> annotations by :</p>\n\n<ul>\n<li>Create a new class/bean that contaisn the <code>@Scheduled</code> method</li>\n<li>Inject my service to this bean</li>\n<li>Removed the <code>@Scheduled</code> from my original method but left the <code>@Transactional</code></li>\n</ul>\n\n<p>But I still get the same exception. I also tried to put the <code>@Transactional</code> on my DAO method and remove it from my service method : same result.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 20902920,
+        "reputation": 1,
+        "user_id": 15355621,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/152747444337c0eaa602f1c42d2513b1?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "ognjanas",
+        "link": "https://stackoverflow.com/users/15355621/ognjanas"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1764930257,
+      "creation_date": 1764930257,
+      "answer_id": 79838764,
+      "question_id": 18399006,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>In my case I had to add:</p>\n<pre><code>@PersistenceContext\nprivate EntityManager entityManager;\n</code></pre>\n<p>And then call:</p>\n<pre class=\"lang-java prettyprint-override\"><code>entityManager.joinTransaction();\n</code></pre>\n<p>at the start of the method.</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79838764": []
+  }
+}

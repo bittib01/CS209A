@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "concurrency",
+      "future"
+    ],
+    "owner": {
+      "account_id": 9614647,
+      "reputation": 7775,
+      "user_id": 7212809,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/82e2d5e98f4af2951f1e3fd255662cd4?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "nz_21",
+      "link": "https://stackoverflow.com/users/7212809/nz-21"
+    },
+    "is_answered": false,
+    "view_count": 20,
+    "closed_date": 1765044930,
+    "answer_count": 0,
+    "score": -3,
+    "last_activity_date": 1765037493,
+    "creation_date": 1765037493,
+    "question_id": 79839785,
+    "link": "https://stackoverflow.com/questions/79839785/java-thrift-service-stops-accepting-requests-when-downstream-dependency-has-high",
+    "closed_reason": "Not suitable for this site",
+    "title": "Java Thrift service stops accepting requests when downstream dependency has high latency - why?",
+    "body": "<p>We have a Java Thrift service that makes RPC calls to a downstream dependency. The calls are made asynchronously using Guava's Futures.addCallback:</p>\n<pre><code>javaFuture&lt;Response&gt; future = dependency.callAsync(request);\nFutures.addCallback(future, callback, callbackExecutor);\n</code></pre>\n<p>The incident</p>\n<ol>\n<li>The downstream dependency became slow (latency spiked to ~10+ minutes)</li>\n<li>Shortly after, our service completely froze - it stopped accepting any incoming requests</li>\n<li>The thrift.active_requests metric dropped to 0, even though clients were actively sending requests</li>\n<li>We observed high GC CPU usage during the freeze</li>\n<li>All machines of our service froze at roughly the same time.</li>\n<li>After restarting the service, everything returned to normal</li>\n</ol>\n<p>What I don't understand:\nSince we're using async futures with callbacks, request threads should be freed immediately after registering the callback. They shouldn't be blocked waiting on the slow dependency.\nSo why did the service freeze? And why was active_requests = 0 - shouldn't requests at least be entering the handler?</p>\n<p>My theories</p>\n<ol>\n<li><p>GC pressure from accumulated futures? With a 10min timeout and high request rate, maybe hundreds of thousands of pending futures accumulated in memory, causing GC thrashing that froze all threads including the acceptor?</p>\n</li>\n<li><p>Some non-async outgoing blocking call? I did an initial pass on the codebase and I didn't find such calls but I could try gain.</p>\n</li>\n</ol>\n<p>I'm looking for some plausible explanation for what could have happened. I know this is a very open-ended question, but I'd really some pointers in the right directions. I'm really stressed out :(</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

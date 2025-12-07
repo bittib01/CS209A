@@ -1,0 +1,81 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "rest",
+      "authentication",
+      "jax-rs",
+      "jersey-2.0"
+    ],
+    "owner": {
+      "account_id": 5143983,
+      "reputation": 6543,
+      "user_id": 4120466,
+      "user_type": "registered",
+      "accept_rate": 79,
+      "profile_image": "https://www.gravatar.com/avatar/982df69588e460aa97da0a2c12e9f3bb?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "DevOps85",
+      "link": "https://stackoverflow.com/users/4120466/devops85"
+    },
+    "is_answered": true,
+    "view_count": 419351,
+    "protected_date": 1473004883,
+    "accepted_answer_id": 26778123,
+    "answer_count": 2,
+    "score": 512,
+    "last_activity_date": 1764168504,
+    "creation_date": 1415269587,
+    "last_edit_date": 1632344269,
+    "question_id": 26777083,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/26777083/how-to-implement-rest-token-based-authentication-with-jax-rs-and-jersey",
+    "title": "How to implement REST token-based authentication with JAX-RS and Jersey",
+    "body": "<p>I'm looking for a way to enable token-based authentication in Jersey. I am trying not to use any particular framework. Is that possible?</p>\n<p>My plan is: A user signs up for my web service, my web service generates a token, sends it to the client, and the client will retain it. Then the client, for each request, will send the token instead of username and password.</p>\n<p>I was thinking of using a custom filter for each request and <code>@PreAuthorize(&quot;hasRole('ROLE')&quot;)</code>, but I just thought that this causes a lot of requests to the database to check if the token is valid.</p>\n<p>Or not create filter and in each request put a param token? So that each API first checks the token and after executes something to retrieve resource.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 1528364,
+        "reputation": 132657,
+        "user_id": 1426227,
+        "user_type": "registered",
+        "accept_rate": 79,
+        "profile_image": "https://i.sstatic.net/ElYch.jpg?s=256",
+        "display_name": "cassiomolin",
+        "link": "https://stackoverflow.com/users/1426227/cassiomolin"
+      },
+      "is_accepted": false,
+      "score": 137,
+      "last_activity_date": 1764168504,
+      "last_edit_date": 1764168504,
+      "creation_date": 1503395062,
+      "answer_id": 45814178,
+      "question_id": 26777083,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<blockquote>\n<p><sup>This answer is all about <strong>authorization</strong> and it is a complement of <a href=\"https://stackoverflow.com/a/26778123/1426227\">my previous answer</a> about <strong>authentication</strong></sup></p>\n<p><sup><strong>Why <em>another</em> answer?</strong> I attempted to expand my previous answer by adding details on how to support JSR-250 annotations. However the original answer became the way <em>too long</em> and exceeded the <a href=\"https://meta.stackexchange.com/a/176447/278120\">maximum length of 30,000 characters</a>. So I moved the whole authorization details to this answer, keeping the other answer focused on performing authentication and issuing tokens.</sup></p>\n</blockquote>\n<hr />\n<h2>Supporting role-based authorization with the <code>@Secured</code> annotation</h2>\n<p>Besides authentication flow shown in the other <a href=\"https://stackoverflow.com/a/26778123/1426227\">answer</a>, role-based authorization can be supported in the REST endpoints.</p>\n<p>Create an enumeration and define the roles according to your needs:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public enum Role {\n    ROLE_1,\n    ROLE_2,\n    ROLE_3\n}\n</code></pre>\n<p>Change the <code>@Secured</code> name binding annotation created before to support roles:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@NameBinding\n@Retention(RUNTIME)\n@Target({TYPE, METHOD})\npublic @interface Secured {\n    Role[] value() default {};\n}\n</code></pre>\n<p>And then annotate the resource classes and methods with <code>@Secured</code> to perform the authorization. The method annotations will override the class annotations:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Path(&quot;/example&quot;)\n@Secured({Role.ROLE_1})\npublic class ExampleResource {\n\n    @GET\n    @Path(&quot;{id}&quot;)\n    @Produces(MediaType.APPLICATION_JSON)\n    public Response myMethod(@PathParam(&quot;id&quot;) Long id) {\n        // This method is not annotated with @Secured\n        // But it's declared within a class annotated with @Secured({Role.ROLE_1})\n        // So it only can be executed by the users who have the ROLE_1 role\n        ...\n    }\n\n    @DELETE\n    @Path(&quot;{id}&quot;)    \n    @Produces(MediaType.APPLICATION_JSON)\n    @Secured({Role.ROLE_1, Role.ROLE_2})\n    public Response myOtherMethod(@PathParam(&quot;id&quot;) Long id) {\n        // This method is annotated with @Secured({Role.ROLE_1, Role.ROLE_2})\n        // The method annotation overrides the class annotation\n        // So it only can be executed by the users who have the ROLE_1 or ROLE_2 roles\n        ...\n    }\n}\n</code></pre>\n<p>Create a filter with the <a href=\"https://javaee.github.io/javaee-spec/javadocs/javax/ws/rs/Priorities.html#AUTHORIZATION\" rel=\"nofollow noreferrer\"><code>AUTHORIZATION</code></a> priority, which is executed after the <a href=\"https://javaee.github.io/javaee-spec/javadocs/javax/ws/rs/Priorities.html#AUTHENTICATION\" rel=\"nofollow noreferrer\"><code>AUTHENTICATION</code></a> priority filter defined previously.</p>\n<p>The <a href=\"https://javaee.github.io/javaee-spec/javadocs/javax/ws/rs/container/ResourceInfo.html\" rel=\"nofollow noreferrer\"><code>ResourceInfo</code></a> can be used to get the resource <a href=\"http://docs.oracle.com/javase/10/docs/api/java/lang/reflect/Method.html\" rel=\"nofollow noreferrer\"><code>Method</code></a> and resource <a href=\"http://docs.oracle.com/javase/10/docs/api/java/lang/Class.html\" rel=\"nofollow noreferrer\"><code>Class</code></a> that will handle the request and then extract the <code>@Secured</code> annotations from them:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Secured\n@Provider\n@Priority(Priorities.AUTHORIZATION)\npublic class AuthorizationFilter implements ContainerRequestFilter {\n\n    @Context\n    private ResourceInfo resourceInfo;\n\n    @Override\n    public void filter(ContainerRequestContext requestContext) throws IOException {\n\n        // Get the resource class which matches with the requested URL\n        // Extract the roles declared by it\n        Class&lt;?&gt; resourceClass = resourceInfo.getResourceClass();\n        List&lt;Role&gt; classRoles = extractRoles(resourceClass);\n\n        // Get the resource method which matches with the requested URL\n        // Extract the roles declared by it\n        Method resourceMethod = resourceInfo.getResourceMethod();\n        List&lt;Role&gt; methodRoles = extractRoles(resourceMethod);\n\n        try {\n\n            // Check if the user is allowed to execute the method\n            // The method annotations override the class annotations\n            if (methodRoles.isEmpty()) {\n                checkPermissions(classRoles);\n            } else {\n                checkPermissions(methodRoles);\n            }\n\n        } catch (Exception e) {\n            requestContext.abortWith(\n                Response.status(Response.Status.FORBIDDEN).build());\n        }\n    }\n\n    // Extract the roles from the annotated element\n    private List&lt;Role&gt; extractRoles(AnnotatedElement annotatedElement) {\n        if (annotatedElement == null) {\n            return new ArrayList&lt;Role&gt;();\n        } else {\n            Secured secured = annotatedElement.getAnnotation(Secured.class);\n            if (secured == null) {\n                return new ArrayList&lt;Role&gt;();\n            } else {\n                Role[] allowedRoles = secured.value();\n                return Arrays.asList(allowedRoles);\n            }\n        }\n    }\n\n    private void checkPermissions(List&lt;Role&gt; allowedRoles) throws Exception {\n        // Check if the user contains one of the allowed roles\n        // Throw an Exception if the user has not permission to execute the method\n    }\n}\n</code></pre>\n<p>If the user has no permission to execute the operation, the request is aborted with a <code>403</code> (Forbidden).</p>\n<p>To know the user who is performing the request, see <a href=\"https://stackoverflow.com/a/26778123/1426227\">my previous answer</a>. You can get it from the <a href=\"https://javaee.github.io/javaee-spec/javadocs/javax/ws/rs/core/SecurityContext.html\" rel=\"nofollow noreferrer\"><code>SecurityContext</code></a> (which should be already set in the <a href=\"https://javaee.github.io/javaee-spec/javadocs/javax/ws/rs/container/ContainerRequestFilter.html#filter-javax.ws.rs.container.ContainerRequestContext-\" rel=\"nofollow noreferrer\"><code>ContainerRequestContext</code></a>) or inject it using CDI, depending on the approach you go for.</p>\n<p>If a <code>@Secured</code> annotation has no roles declared, you can assume all authenticated users can access that endpoint, disregarding the roles the users have.</p>\n<h2>Supporting role-based authorization with JSR-250 annotations</h2>\n<p>Alternatively to defining the roles in the <code>@Secured</code> annotation as shown above, you could consider JSR-250 annotations such as <a href=\"https://javaee.github.io/javaee-spec/javadocs/javax/annotation/security/RolesAllowed.html\" rel=\"nofollow noreferrer\"><code>@RolesAllowed</code></a>, <a href=\"https://javaee.github.io/javaee-spec/javadocs/javax/annotation/security/PermitAll.html\" rel=\"nofollow noreferrer\"><code>@PermitAll</code></a> and <a href=\"https://javaee.github.io/javaee-spec/javadocs/javax/annotation/security/DenyAll.html\" rel=\"nofollow noreferrer\"><code>@DenyAll</code></a>.</p>\n<p>JAX-RS doesn't support such annotations out-of-the-box, but it could be achieved with a filter. Here are a few considerations to keep in mind if you want to support all of them:</p>\n<ul>\n<li><a href=\"https://javaee.github.io/javaee-spec/javadocs/javax/annotation/security/DenyAll.html\" rel=\"nofollow noreferrer\"><code>@DenyAll</code></a> on the method takes precedence over <a href=\"https://javaee.github.io/javaee-spec/javadocs/javax/annotation/security/RolesAllowed.html\" rel=\"nofollow noreferrer\"><code>@RolesAllowed</code></a> and <a href=\"https://javaee.github.io/javaee-spec/javadocs/javax/annotation/security/PermitAll.html\" rel=\"nofollow noreferrer\"><code>@PermitAll</code></a> on the class.</li>\n<li><a href=\"https://javaee.github.io/javaee-spec/javadocs/javax/annotation/security/RolesAllowed.html\" rel=\"nofollow noreferrer\"><code>@RolesAllowed</code></a> on the method takes precedence over <a href=\"https://javaee.github.io/javaee-spec/javadocs/javax/annotation/security/PermitAll.html\" rel=\"nofollow noreferrer\"><code>@PermitAll</code></a> on the class.</li>\n<li><a href=\"https://javaee.github.io/javaee-spec/javadocs/javax/annotation/security/PermitAll.html\" rel=\"nofollow noreferrer\"><code>@PermitAll</code></a> on the method takes precedence over <a href=\"https://javaee.github.io/javaee-spec/javadocs/javax/annotation/security/RolesAllowed.html\" rel=\"nofollow noreferrer\"><code>@RolesAllowed</code></a> on the class.</li>\n<li><a href=\"https://javaee.github.io/javaee-spec/javadocs/javax/annotation/security/DenyAll.html\" rel=\"nofollow noreferrer\"><code>@DenyAll</code></a> can't be attached to classes.</li>\n<li><a href=\"https://javaee.github.io/javaee-spec/javadocs/javax/annotation/security/RolesAllowed.html\" rel=\"nofollow noreferrer\"><code>@RolesAllowed</code></a> on the class takes precedence over <a href=\"https://javaee.github.io/javaee-spec/javadocs/javax/annotation/security/PermitAll.html\" rel=\"nofollow noreferrer\"><code>@PermitAll</code></a> on the class.</li>\n</ul>\n<p>So an authorization filter that checks JSR-250 annotations could be like:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Provider\n@Priority(Priorities.AUTHORIZATION)\npublic class AuthorizationFilter implements ContainerRequestFilter {\n\n    @Context\n    private ResourceInfo resourceInfo;\n\n    @Override\n    public void filter(ContainerRequestContext requestContext) throws IOException {\n\n        Method method = resourceInfo.getResourceMethod();\n\n        // @DenyAll on the method takes precedence over @RolesAllowed and @PermitAll\n        if (method.isAnnotationPresent(DenyAll.class)) {\n            refuseRequest();\n        }\n\n        // @RolesAllowed on the method takes precedence over @PermitAll\n        RolesAllowed rolesAllowed = method.getAnnotation(RolesAllowed.class);\n        if (rolesAllowed != null) {\n            performAuthorization(rolesAllowed.value(), requestContext);\n            return;\n        }\n\n        // @PermitAll on the method takes precedence over @RolesAllowed on the class\n        if (method.isAnnotationPresent(PermitAll.class)) {\n            // Do nothing\n            return;\n        }\n\n        // @DenyAll can't be attached to classes\n\n        // @RolesAllowed on the class takes precedence over @PermitAll on the class\n        rolesAllowed = \n            resourceInfo.getResourceClass().getAnnotation(RolesAllowed.class);\n        if (rolesAllowed != null) {\n            performAuthorization(rolesAllowed.value(), requestContext);\n        }\n\n        // @PermitAll on the class\n        if (resourceInfo.getResourceClass().isAnnotationPresent(PermitAll.class)) {\n            // Do nothing\n            return;\n        }\n\n        // Authentication is required for non-annotated methods\n        if (!isAuthenticated(requestContext)) {\n            refuseRequest();\n        }\n    }\n\n    /**\n     * Perform authorization based on roles.\n     *\n     * @param rolesAllowed\n     * @param requestContext\n     */\n    private void performAuthorization(String[] rolesAllowed, \n                                      ContainerRequestContext requestContext) {\n\n        if (rolesAllowed.length &gt; 0 &amp;&amp; !isAuthenticated(requestContext)) {\n            refuseRequest();\n        }\n\n        for (final String role : rolesAllowed) {\n            if (requestContext.getSecurityContext().isUserInRole(role)) {\n                return;\n            }\n        }\n\n        refuseRequest();\n    }\n\n    /**\n     * Check if the user is authenticated.\n     *\n     * @param requestContext\n     * @return\n     */\n    private boolean isAuthenticated(final ContainerRequestContext requestContext) {\n        // Return true if the user is authenticated or false otherwise\n        // An implementation could be like:\n        // return requestContext.getSecurityContext().getUserPrincipal() != null;\n    }\n\n    /**\n     * Refuse the request.\n     */\n    private void refuseRequest() {\n        throw new AccessDeniedException(\n            &quot;You don't have permissions to perform this action.&quot;);\n    }\n}\n</code></pre>\n<p><sup><strong>Note:</strong> The above implementation is based on the Jersey <a href=\"https://github.com/eclipse-ee4j/jersey/blob/2.x/core-server/src/main/java/org/glassfish/jersey/server/filter/RolesAllowedDynamicFeature.java\" rel=\"nofollow noreferrer\"><code>RolesAllowedDynamicFeature</code></a>. If you use Jersey, you don't need to write your own filter, just use the existing implementation.</sup></p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "45814178": [
+      {
+        "owner": {
+          "account_id": 1558798,
+          "reputation": 37004,
+          "user_id": 1449199,
+          "user_type": "registered",
+          "accept_rate": 95,
+          "profile_image": "https://www.gravatar.com/avatar/b12ab7a72d6d5062ccfd3a18f950f57d?s=256&d=identicon&r=PG",
+          "display_name": "Baz",
+          "link": "https://stackoverflow.com/users/1449199/baz"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1622477120,
+        "post_id": 45814178,
+        "comment_id": 119798547,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

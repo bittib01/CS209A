@@ -1,0 +1,106 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "java-17",
+      "doclet",
+      "documentation-tool",
+      "scanner"
+    ],
+    "owner": {
+      "account_id": 41876,
+      "reputation": 8380,
+      "user_id": 121859,
+      "user_type": "registered",
+      "accept_rate": 77,
+      "profile_image": "https://www.gravatar.com/avatar/23144f699913d6caf54bad12e24fefe4?s=256&d=identicon&r=PG",
+      "display_name": "Nap",
+      "link": "https://stackoverflow.com/users/121859/nap"
+    },
+    "is_answered": true,
+    "view_count": 64,
+    "accepted_answer_id": 79834891,
+    "answer_count": 1,
+    "score": 4,
+    "last_activity_date": 1764606202,
+    "creation_date": 1764570386,
+    "last_edit_date": 1764606202,
+    "question_id": 79834396,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79834396/java-17-documentation-tool-causes-failed-unknownelementexception-for-record-para",
+    "title": "Java 17 Documentation Tool causes failed UnknownElementException for record parameter",
+    "body": "<p>I am using the javax.tools.DocumentationTool to parse the Documentation of my source code base. I am using Java 17 jdk to run. It is triggering an javax.lang.model.element.UnknownElementException exception when a record method parameter. The code is not even accessed via getter method.</p>\n<p>The stack trace as can be seen is when the record Component is visited.</p>\n<pre><code> [java] error: fatal error encountered: javax.lang.model.element.UnknownElementException: Unknown element: &quot;params&quot;\n [java] error: Please file a bug against the javadoc tool via the Java bug reporting page\n [java]   (https://bugreport.java.com) after checking the Bug Database (https://bugs.java.com)\n [java]   for duplicates. Include error messages and the following diagnostic in your report. Thank you.\n [java] javax.lang.model.element.UnknownElementException: Unknown element: &quot;elements&quot;\n [java]     at java.compiler@17.0.11/javax.lang.model.util.AbstractElementVisitor6.visitUnknown(AbstractElementVisitor6.java:129)\n [java]     at java.compiler@17.0.11/javax.lang.model.element.ElementVisitor.visitRecordComponent(ElementVisitor.java:225)\n [java]     at java.compiler@17.0.11/javax.lang.model.util.AbstractElementVisitor6.visitRecordComponent(AbstractElementVisitor6.java:166)\n [java]     at jdk.compiler/com.sun.tools.javac.code.Symbol$RecordComponent.accept(Symbol.java:1843)\n [java]     at java.compiler@17.0.11/javax.lang.model.util.ElementScanner6.scan(ElementScanner6.java:153)\n</code></pre>\n<p>The code is like below.</p>\n<pre><code>private record MyMethod(MyParam[] params, int length) {\n</code></pre>\n<p>The way the DocumentationTool was called is by calling the visitor scanner specifically a class inheriting the ElementScanner9 object.</p>\n<pre><code>public class MyClassScanner extends ElementScanner9&lt;Void, Integer&gt; {\n...\n    public void startScan(Set&lt;? extends Element&gt; elements) {\n        scan(elements, 0);\n    }\n</code></pre>\n<p>Any ideas for this?</p>\n<p>I called the doclet to scan, <strong>&quot;--show-types public&quot;</strong> does it have any effect?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 3211603,
+        "reputation": 300971,
+        "user_id": 2711488,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/t2hoD.jpg?s=256",
+        "display_name": "Holger",
+        "link": "https://stackoverflow.com/users/2711488/holger"
+      },
+      "is_accepted": true,
+      "score": 6,
+      "last_activity_date": 1764595866,
+      "last_edit_date": 1764595866,
+      "creation_date": 1764595532,
+      "answer_id": 79834891,
+      "question_id": 79834396,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>From the <a href=\"https://docs.oracle.com/en/java/javase/25/docs/api/java.compiler/javax/lang/model/util/ElementScanner9.html\" rel=\"noreferrer\">documentation of <code>ElementScanner9</code></a></p>\n<blockquote>\n<p>A scanning visitor of program elements with default behavior appropriate for source versions <code>RELEASE_9</code> through <code>RELEASE_14</code>.</p>\n</blockquote>\n<p>Since <code>record</code> types were introduced in Java 16, this class does not provide a default behavior for Java sources containing <code>record</code> types (other than throwing an <code>UnknownElementException</code>).</p>\n<p>You have to change your class to extend <a href=\"https://docs.oracle.com/en/java/javase/25/docs/api/java.compiler/javax/lang/model/util/ElementScanner14.html\" rel=\"noreferrer\"><code>ElementScanner14</code></a>¹ which will handle all source files from 14 to at least 25. When you look into <a href=\"https://docs.oracle.com/en/java/javase/25/docs/api/java.compiler/javax/lang/model/util/ElementScanner14.html\" rel=\"noreferrer\">its documentation</a>, you may notice the presence of of a <code>visitRecordComponent</code> method and of the annotation <code>@SupportedSourceVersion(RELEASE_25)</code> at the class declaration…</p>\n<hr />\n<p>¹ or alternatively, override every method, the <code>ElementScanner9</code> does not provide a default behavior for, but that sounds impractical, esp. compared to just changing the superclass.</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79834891": [
+      {
+        "owner": {
+          "account_id": 3211603,
+          "reputation": 300971,
+          "user_id": 2711488,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/t2hoD.jpg?s=256",
+          "display_name": "Holger",
+          "link": "https://stackoverflow.com/users/2711488/holger"
+        },
+        "reply_to_user": {
+          "account_id": 41876,
+          "reputation": 8380,
+          "user_id": 121859,
+          "user_type": "registered",
+          "accept_rate": 77,
+          "profile_image": "https://www.gravatar.com/avatar/23144f699913d6caf54bad12e24fefe4?s=256&d=identicon&r=PG",
+          "display_name": "Nap",
+          "link": "https://stackoverflow.com/users/121859/nap"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1764666330,
+        "post_id": 79834891,
+        "comment_id": 140882878,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 41876,
+          "reputation": 8380,
+          "user_id": 121859,
+          "user_type": "registered",
+          "accept_rate": 77,
+          "profile_image": "https://www.gravatar.com/avatar/23144f699913d6caf54bad12e24fefe4?s=256&d=identicon&r=PG",
+          "display_name": "Nap",
+          "link": "https://stackoverflow.com/users/121859/nap"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1764648370,
+        "post_id": 79834891,
+        "comment_id": 140882557,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

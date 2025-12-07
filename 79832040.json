@@ -1,0 +1,384 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-mvc",
+      "spring-jdbc",
+      "spring-4"
+    ],
+    "owner": {
+      "account_id": 9189818,
+      "reputation": 127,
+      "user_id": 6830765,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/8ac19c14b8b885b548afa6eb06104560?s=256&d=identicon&r=PG",
+      "display_name": "Jeremy Lanssiers",
+      "link": "https://stackoverflow.com/users/6830765/jeremy-lanssiers"
+    },
+    "is_answered": true,
+    "view_count": 141,
+    "answer_count": 3,
+    "score": 1,
+    "last_activity_date": 1764394891,
+    "creation_date": 1764273188,
+    "last_edit_date": 1764394891,
+    "question_id": 79832040,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79832040/using-pagination-sorting-in-spring-boot-4-with-crudrepository-pagingandsorti",
+    "title": "Using Pagination &amp; Sorting in Spring Boot 4 with CrudRepository &amp; PagingAndSortingRepository on JDBC",
+    "body": "<p>I am doing the learning on Broadcom's Spring Academy to be up to date with the latest best practices. I bumped Spring Boot to 4.0.0 instead of the 3.0.0 on Spring Academy. But I am having some issues with PagingAndSortingRepository interface. I can succesfully use pagination <code>/demo?page=0&amp;size=1</code> and sorting <code>/demo?sort=amount,desc</code> but I cannot use the combination <code>/demo?page=0&amp;size=1&amp;sort=amount,desc</code>. And I cannot figure out how to fix it with JDBC.</p>\n<p>build.gradle</p>\n<pre class=\"lang-none prettyprint-override\"><code>plugins {\n    id 'java'\n    id 'org.springframework.boot' version '4.0.0'\n    id 'io.spring.dependency-management' version '1.1.7'\n}\n\ngroup = 'com.example'\nversion = '0.0.1-SNAPSHOT'\ndescription = 'Demo project for Spring Boot'\n\njava {\n    sourceCompatibility = '17'\n}\n\nrepositories {\n    mavenCentral()\n}\n\ndependencies {\n    // Rest API\n    implementation 'org.springframework.boot:spring-boot-starter-webmvc'\n    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'\n\n    // Database\n    implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'\n    runtimeOnly 'com.h2database:h2'\n\n    // Security\n    implementation 'org.springframework.boot:spring-boot-starter-security'\n    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'\n    testImplementation 'org.springframework.security:spring-security-test'\n\n    // Test\n    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'\n}\n\ntasks.named('test') {\n    useJUnitPlatform()\n}\n\ntest {\n    testLogging {\n        events &quot;passed&quot;, &quot;skipped&quot;, &quot;failed&quot; //, &quot;standardOut&quot;, &quot;standardError&quot;\n\n        showExceptions true\n        exceptionFormat &quot;full&quot;\n        showCauses true\n        showStackTraces true\n\n        // Change from false to true\n        showStandardStreams = true\n    }\n}\n</code></pre>\n<p>DemoRepository.java</p>\n<pre class=\"lang-java prettyprint-override\"><code>interface DemoRepository extends CrudRepository&lt;Demo, Long&gt;, PagingAndSortingRepository&lt;Demo, Long&gt; {\n    boolean existsByIdAndOwner(Long id, String owner);\n\n    Demo findByIdAndOwner(Long id, String owner);\n\n    Page&lt;Demo&gt; findByOwner(String owner, Pageable pageable);\n}\n</code></pre>\n<p>DemoController.java\n(I commented the problematic line proposed on Spring Academy and replaced it by the simpler one above.)</p>\n<pre class=\"lang-java prettyprint-override\"><code>    @GetMapping\n    private ResponseEntity&lt;List&lt;Demo&gt;&gt; readDemos(Pageable pageable, Principal principal) {\n        Page&lt;Demo&gt; page = demoRepository.findByOwner(principal.getName(),\n                PageRequest.of(\n                        pageable.getPageNumber(),\n                        pageable.getPageSize(),\n                        pageable.getSort()\n                        // pageable.getSortOr(Sort.by(Sort.Direction.ASC, &quot;amount&quot;))\n                ));\n\n        return ResponseEntity.ok(page.getContent());\n    }\n</code></pre>\n<p>DemoApplicationTests.java\n(If I use the previous code, it works fine. But if I use the commented out line, it breaks.)</p>\n<pre class=\"lang-java prettyprint-override\"><code> @Test\n    void readDemos_sorting() {\n        EntityExchangeResult&lt;String&gt; result = client.get()\n                .uri(&quot;/demo?page=0&amp;size=1&amp;sort=amount,desc&quot;)\n                .header(HttpHeaders.AUTHORIZATION, authHeader)\n                .exchange()\n                .expectStatus()\n                .isOk()\n                .expectHeader()\n                .contentTypeCompatibleWith(MediaType.APPLICATION_JSON)\n                .expectBody(String.class)\n                .returnResult();\n\n        String responseBody = result.getResponseBody();\n\n        DocumentContext documentContext = JsonPath.parse(responseBody);\n        JSONArray read = documentContext.read(&quot;$[*]&quot;);\n        assertThat(read.size()).isEqualTo(3);\n\n        double amount = documentContext.read(&quot;$[0].amount&quot;);\n        assertThat(amount).isEqualTo(150.00);\n    }\n</code></pre>\n<p>Error when using the commented out line:</p>\n<pre class=\"lang-none prettyprint-override\"><code>org.h2.jdbc.JdbcSQLSyntaxErrorException: Column &quot;DEMO.AMOUNT&quot; must be in the GROUP BY list; SQL statement:\nSELECT COUNT(*) FROM &quot;DEMO&quot; WHERE &quot;DEMO&quot;.&quot;OWNER&quot; = ? ORDER BY &quot;DEMO&quot;.&quot;AMOUNT&quot; ASC [90016-240]\n</code></pre>\n<p>Also, other tests testing the sorting logic fail, whereas they work when I use <code>pageable.getSort()</code>.</p>\n<p>One one hand, I can use <code>pageable.getSort()</code> to support a default call without any sorting params; it also supports sort params; but I cannot combine those sort params with the pagination params or it fails.</p>\n<p>On the other hand, if I use <code>pageable.getSortOr(Sort.by(Sort.Direction.ASC, &quot;amount&quot;))</code>, all sorting fails, and if I use pagination params without sorting params, I get that SQL error.</p>\n<p>View the full code on <a href=\"https://github.com/jlanssie/spring-boot\" rel=\"nofollow noreferrer\">GitHub</a></p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 24803510,
+        "reputation": 23,
+        "user_id": 18685710,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/7fd474272e01b5264a3b4a151c769890?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Enes Durmuş",
+        "link": "https://stackoverflow.com/users/18685710/enes-durmu%c5%9f"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1764329756,
+      "creation_date": 1764329756,
+      "answer_id": 79832508,
+      "question_id": 79832040,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>In Spring Boot 4.0 with Spring Data JDBC 2024.0, <code>Pageable.getSortOr(...)</code> started behaving differently than in Spring Boot 3.2. The sort provided by <code>getSortOr()</code> is now applied to both the main query and the COUNT query used for pagination.</p>\n<p>Because of this, a query like:</p>\n<pre><code>SELECT COUNT(*) \nFROM demo \nWHERE owner = ? \nORDER BY amount ASC;\n</code></pre>\n<p>is generated when no sort is provided by the client. H2 does not allow <code>ORDER BY</code> in a count query unless the column is also in a <code>GROUP BY</code> clause, which leads to the error:</p>\n<pre><code>Column &quot;DEMO.AMOUNT&quot; must be in the GROUP BY list\n</code></pre>\n<p>Using <code>pageable.getSort()</code> works fine because it only returns user-provided sorting and leaves the COUNT query unsorted, so H2 doesn’t complain.</p>\n<p>The problem with combining pagination and sorting in your controller comes from recreating the <code>Pageable</code>:</p>\n<pre><code>PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort())\n</code></pre>\n<p>Spring MVC already constructs a correct <code>Pageable</code> object. Rebuilding it can interfere with default values and fallback sorting, which causes issues in Spring Boot 4.</p>\n<p>The simplest solution is to pass the pageable directly to the repository:</p>\n<pre><code>@GetMapping\npublic ResponseEntity&lt;List&lt;Demo&gt;&gt; readDemos(Pageable pageable, Principal principal) {\n    Page&lt;Demo&gt; page = demoRepository.findByOwner(principal.getName(), pageable);\n    return ResponseEntity.ok(page.getContent());\n}\n</code></pre>\n<p>Also, in your test, there’s a small typo in the URL:</p>\n<pre><code>/demo?page=0&amp;size=1sort=amount,desc\n</code></pre>\n<p>It should be:</p>\n<pre><code>/demo?page=0&amp;size=1&amp;sort=amount,desc\n</code></pre>\n<p>Without the <code>&amp;</code>, Spring treats it as a single parameter and the sort is ignored.</p>\n<p>With this approach, pagination and sorting work together correctly, and the H2 error is avoided.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 7673258,
+        "reputation": 2114,
+        "user_id": 6200354,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/1afc8346f23819373b78aae36744b53a?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "atish.s",
+        "link": "https://stackoverflow.com/users/6200354/atish-s"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1764324540,
+      "creation_date": 1764324540,
+      "answer_id": 79832450,
+      "question_id": 79832040,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>The issue is because of the count query which is generated for the <code>pageable</code> object by Spring.</p>\n<p>See the <a href=\"https://docs.spring.io/spring-data/jpa/docs/current/api/org/springframework/data/jpa/repository/Query.html#countQuery()\" rel=\"nofollow noreferrer\">javadoc </a>for <code>countQuery</code></p>\n<blockquote>\n<p>String countQuery</p>\n<p>Defines a special count query that shall be used for pagination queries to look up the total number of elements for a page. If none is configured we will derive the count query from the original query or <a href=\"https://docs.spring.io/spring-data/jpa/docs/current/api/org/springframework/data/jpa/repository/Query.html#countProjection()\" rel=\"nofollow noreferrer\"><code>countProjection()</code></a> query if any.</p>\n</blockquote>\n<p>In your case, it is using the original query (including the sort) to perform the count which results in an invalid query.</p>\n<p>My advice would be to add a custom count query which excludes the sort and everything should work as expected.</p>\n<pre><code>    @Query(\n            value = &quot;FROM Demo d WHERE d.owner = :owner&quot;,\n            countQuery = &quot;SELECT count(1) FROM Demo d WHERE d.owner = :owner&quot;\n    )\n    Page&lt;Demo&gt; findByOwner(@Param(&quot;owner&quot;) String owner, Pageable pageable);\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 3838682,
+        "reputation": 2054,
+        "user_id": 3182406,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/d838614903da1d10b1548c575e0c563b?s=256&d=identicon&r=PG",
+        "display_name": "Mradul Pandey",
+        "link": "https://stackoverflow.com/users/3182406/mradul-pandey"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1764309581,
+      "creation_date": 1764309581,
+      "answer_id": 79832283,
+      "question_id": 79832040,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>It's not clear what error you're encountering. A clear error message from your logs would help. In the meantime, I tried this quickly and it works:</p>\n<p>is used page PageableDefault (it makes code little clear)</p>\n<pre><code>import jakarta.persistence.Entity;\nimport jakarta.persistence.GeneratedValue;\nimport jakarta.persistence.GenerationType;\nimport jakarta.persistence.Id;\nimport lombok.Data;\n\n@Data\n@Entity\npublic class Product {\n    @Id\n    @GeneratedValue(strategy = GenerationType.SEQUENCE)\n    private Long id;\n    private String name;\n    private String ownerId;\n    private Double price;\n}\n</code></pre>\n<pre><code>import org.springframework.data.domain.Page;\nimport org.springframework.data.domain.Pageable;\nimport org.springframework.data.repository.CrudRepository;\n\npublic interface ProductRepository extends CrudRepository&lt;Product, Long&gt; {\n    Page&lt;Product&gt; findByOwnerId(String owner, Pageable pageable);\n\n    String id(Long id);\n}\n</code></pre>\n<pre><code>@RestController\n@AllArgsConstructor\npublic class ProductController {\n\n    private final ProductRepository productRepository;\n\n    @GetMapping(&quot;/product&quot;)\n    private ResponseEntity&lt;Page&lt;Product&gt;&gt; readDemos(@RequestParam(&quot;ownerId&quot;) String ownerId,\n                                                    @PageableDefault(\n                                                            page = 0,\n                                                            size = 5, sort = {&quot;price&quot;},\n                                                            direction = Sort.Direction.DESC) Pageable pageable) {\n        Page&lt;Product&gt; page = productRepository.findByOwnerId(ownerId, pageable);\n\n        return ResponseEntity.ok(page);\n    }\n}\n</code></pre>\n<pre><code>@SpringBootTest\n@AutoConfigureMockMvc\n@Import(TestcontainersConfiguration.class)\nclass ProductControllerIntegrationTest {\n\n    @Autowired\n    private MockMvc mockMvc;\n\n    @Autowired\n    private ProductRepository productRepository;\n\n    @BeforeEach\n    void setUp() {\n        productRepository.deleteAll();\n        // Add 10 products for the same ownerId with ascending price\n        IntStream.rangeClosed(1, 10).forEach(i -&gt; {\n            Product p = new Product();\n            p.setName(&quot;Product &quot; + i);\n            p.setOwnerId(&quot;owner1&quot;);\n            p.setPrice((double) (i * 10));\n            productRepository.save(p);\n        });\n    }\n\n    @Test\n    void testPaginationAndSortingByPriceDesc() throws Exception {\n        mockMvc.perform(get(&quot;/product&quot;)\n                        .param(&quot;ownerId&quot;, &quot;owner1&quot;)\n                        .param(&quot;page&quot;, &quot;0&quot;)\n                        .param(&quot;size&quot;, &quot;3&quot;)\n                        .param(&quot;sort&quot;, &quot;price,desc&quot;)\n                        .accept(MediaType.APPLICATION_JSON))\n                .andExpect(status().isOk())\n                .andExpect(jsonPath(&quot;$.content.length()&quot;).value(3))\n                .andExpect(jsonPath(&quot;$.content[0].price&quot;).value(100.0))\n                .andExpect(jsonPath(&quot;$.content[1].price&quot;).value(90.0));\n    }\n}\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 9189818,
+        "reputation": 127,
+        "user_id": 6830765,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/8ac19c14b8b885b548afa6eb06104560?s=256&d=identicon&r=PG",
+        "display_name": "Jeremy Lanssiers",
+        "link": "https://stackoverflow.com/users/6830765/jeremy-lanssiers"
+      },
+      "reply_to_user": {
+        "account_id": 26698569,
+        "reputation": 4070,
+        "user_id": 20306007,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/98bbc403493aee3681b71dae7abef66e?s=256&d=identicon&r=PG",
+        "display_name": "life888888",
+        "link": "https://stackoverflow.com/users/20306007/life888888"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1764395459,
+      "post_id": 79832040,
+      "comment_id": 140878573,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 26698569,
+        "reputation": 4070,
+        "user_id": 20306007,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/98bbc403493aee3681b71dae7abef66e?s=256&d=identicon&r=PG",
+        "display_name": "life888888",
+        "link": "https://stackoverflow.com/users/20306007/life888888"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1764394456,
+      "post_id": 79832040,
+      "comment_id": 140878563,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 9189818,
+        "reputation": 127,
+        "user_id": 6830765,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/8ac19c14b8b885b548afa6eb06104560?s=256&d=identicon&r=PG",
+        "display_name": "Jeremy Lanssiers",
+        "link": "https://stackoverflow.com/users/6830765/jeremy-lanssiers"
+      },
+      "reply_to_user": {
+        "account_id": 26698569,
+        "reputation": 4070,
+        "user_id": 20306007,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/98bbc403493aee3681b71dae7abef66e?s=256&d=identicon&r=PG",
+        "display_name": "life888888",
+        "link": "https://stackoverflow.com/users/20306007/life888888"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1764356785,
+      "post_id": 79832040,
+      "comment_id": 140878095,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 9189818,
+        "reputation": 127,
+        "user_id": 6830765,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/8ac19c14b8b885b548afa6eb06104560?s=256&d=identicon&r=PG",
+        "display_name": "Jeremy Lanssiers",
+        "link": "https://stackoverflow.com/users/6830765/jeremy-lanssiers"
+      },
+      "reply_to_user": {
+        "account_id": 26698569,
+        "reputation": 4070,
+        "user_id": 20306007,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/98bbc403493aee3681b71dae7abef66e?s=256&d=identicon&r=PG",
+        "display_name": "life888888",
+        "link": "https://stackoverflow.com/users/20306007/life888888"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1764344294,
+      "post_id": 79832040,
+      "comment_id": 140877825,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 26698569,
+        "reputation": 4070,
+        "user_id": 20306007,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/98bbc403493aee3681b71dae7abef66e?s=256&d=identicon&r=PG",
+        "display_name": "life888888",
+        "link": "https://stackoverflow.com/users/20306007/life888888"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1764339310,
+      "post_id": 79832040,
+      "comment_id": 140877663,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79832508": [
+      {
+        "owner": {
+          "account_id": 9189818,
+          "reputation": 127,
+          "user_id": 6830765,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/8ac19c14b8b885b548afa6eb06104560?s=256&d=identicon&r=PG",
+          "display_name": "Jeremy Lanssiers",
+          "link": "https://stackoverflow.com/users/6830765/jeremy-lanssiers"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1764356791,
+        "post_id": 79832508,
+        "comment_id": 140878096,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 9189818,
+          "reputation": 127,
+          "user_id": 6830765,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/8ac19c14b8b885b548afa6eb06104560?s=256&d=identicon&r=PG",
+          "display_name": "Jeremy Lanssiers",
+          "link": "https://stackoverflow.com/users/6830765/jeremy-lanssiers"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1764353932,
+        "post_id": 79832508,
+        "comment_id": 140878041,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "79832450": [
+      {
+        "owner": {
+          "account_id": 7673258,
+          "reputation": 2114,
+          "user_id": 6200354,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/1afc8346f23819373b78aae36744b53a?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "atish.s",
+          "link": "https://stackoverflow.com/users/6200354/atish-s"
+        },
+        "reply_to_user": {
+          "account_id": 9189818,
+          "reputation": 127,
+          "user_id": 6830765,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/8ac19c14b8b885b548afa6eb06104560?s=256&d=identicon&r=PG",
+          "display_name": "Jeremy Lanssiers",
+          "link": "https://stackoverflow.com/users/6830765/jeremy-lanssiers"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1764597755,
+        "post_id": 79832450,
+        "comment_id": 140881446,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 9189818,
+          "reputation": 127,
+          "user_id": 6830765,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/8ac19c14b8b885b548afa6eb06104560?s=256&d=identicon&r=PG",
+          "display_name": "Jeremy Lanssiers",
+          "link": "https://stackoverflow.com/users/6830765/jeremy-lanssiers"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1764356821,
+        "post_id": 79832450,
+        "comment_id": 140878098,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 9189818,
+          "reputation": 127,
+          "user_id": 6830765,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/8ac19c14b8b885b548afa6eb06104560?s=256&d=identicon&r=PG",
+          "display_name": "Jeremy Lanssiers",
+          "link": "https://stackoverflow.com/users/6830765/jeremy-lanssiers"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1764354204,
+        "post_id": 79832450,
+        "comment_id": 140878045,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "79832283": [
+      {
+        "owner": {
+          "account_id": 9189818,
+          "reputation": 127,
+          "user_id": 6830765,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/8ac19c14b8b885b548afa6eb06104560?s=256&d=identicon&r=PG",
+          "display_name": "Jeremy Lanssiers",
+          "link": "https://stackoverflow.com/users/6830765/jeremy-lanssiers"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1764438088,
+        "post_id": 79832283,
+        "comment_id": 140879246,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 3838682,
+          "reputation": 2054,
+          "user_id": 3182406,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/d838614903da1d10b1548c575e0c563b?s=256&d=identicon&r=PG",
+          "display_name": "Mradul Pandey",
+          "link": "https://stackoverflow.com/users/3182406/mradul-pandey"
+        },
+        "reply_to_user": {
+          "account_id": 9189818,
+          "reputation": 127,
+          "user_id": 6830765,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/8ac19c14b8b885b548afa6eb06104560?s=256&d=identicon&r=PG",
+          "display_name": "Jeremy Lanssiers",
+          "link": "https://stackoverflow.com/users/6830765/jeremy-lanssiers"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1764423178,
+        "post_id": 79832283,
+        "comment_id": 140878958,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 9189818,
+          "reputation": 127,
+          "user_id": 6830765,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/8ac19c14b8b885b548afa6eb06104560?s=256&d=identicon&r=PG",
+          "display_name": "Jeremy Lanssiers",
+          "link": "https://stackoverflow.com/users/6830765/jeremy-lanssiers"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1764356798,
+        "post_id": 79832283,
+        "comment_id": 140878097,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 9189818,
+          "reputation": 127,
+          "user_id": 6830765,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/8ac19c14b8b885b548afa6eb06104560?s=256&d=identicon&r=PG",
+          "display_name": "Jeremy Lanssiers",
+          "link": "https://stackoverflow.com/users/6830765/jeremy-lanssiers"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1764356342,
+        "post_id": 79832283,
+        "comment_id": 140878088,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

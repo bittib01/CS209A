@@ -1,0 +1,156 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "string",
+      "uppercase",
+      "lowercase",
+      "capitalization"
+    ],
+    "owner": {
+      "account_id": 13538,
+      "reputation": 5419,
+      "user_id": 27281,
+      "user_type": "registered",
+      "accept_rate": 25,
+      "profile_image": "https://i.sstatic.net/D9byp.jpg?s=256",
+      "display_name": "WillfulWizard",
+      "link": "https://stackoverflow.com/users/27281/willfulwizard"
+    },
+    "is_answered": true,
+    "view_count": 556891,
+    "protected_date": 1568472268,
+    "accepted_answer_id": 1892778,
+    "answer_count": 52,
+    "score": 475,
+    "last_activity_date": 1712042431,
+    "creation_date": 1260606355,
+    "last_edit_date": 1512129798,
+    "question_id": 1892765,
+    "content_license": "CC BY-SA 3.0",
+    "link": "https://stackoverflow.com/questions/1892765/how-to-capitalize-the-first-character-of-each-word-in-a-string",
+    "title": "How to capitalize the first character of each word in a string",
+    "body": "<p>Is there a function built into Java that capitalizes the first character of each word in a String, and does not affect the others?</p>\n\n<p>Examples:</p>\n\n<ul>\n<li><code>jon skeet</code> -> <code>Jon Skeet</code></li>\n<li><code>miles o'Brien</code> -> <code>Miles O'Brien</code> (B remains capital, this rules out Title Case)</li>\n<li><code>old mcdonald</code> -> <code>Old Mcdonald</code>*</li>\n</ul>\n\n<p>*(<code>Old McDonald</code> would be find too, but I don't expect it to be THAT smart.)</p>\n\n<p>A quick look at the <a href=\"http://java.sun.com/j2se/1.5.0/docs/api/java/lang/String.html\" rel=\"noreferrer\">Java String Documentation</a> reveals only <code>toUpperCase()</code> and <code>toLowerCase()</code>, which of course do not provide the desired behavior. Naturally, Google results are dominated by those two functions. It seems like a wheel that must have been invented already, so it couldn't hurt to ask so I can use it in the future. </p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 7291967,
+        "reputation": 60248,
+        "user_id": 5558072,
+        "user_type": "registered",
+        "accept_rate": 100,
+        "profile_image": "https://lh4.googleusercontent.com/-GFXl3bQPSrM/AAAAAAAAAAI/AAAAAAAAARY/Fvg3zPWA3x0/s256-rj/photo.jpg",
+        "display_name": "Youcef LAIDANI",
+        "link": "https://stackoverflow.com/users/5558072/youcef-laidani"
+      },
+      "is_accepted": false,
+      "score": 10,
+      "last_activity_date": 1712042431,
+      "last_edit_date": 1712042431,
+      "creation_date": 1524752751,
+      "answer_id": 50045526,
+      "question_id": 1892765,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<h1>From Java 9+</h1>\n<p>you can use <a href=\"https://docs.oracle.com/en%2Fjava%2Fjavase%2F21%2Fdocs%2Fapi%2F%2F/java.base/java/util/regex/Matcher.html#replaceAll(java.lang.String)\" rel=\"nofollow noreferrer\"><code>Matcher::replaceAll</code></a> like this :</p>\n<pre><code>public static void upperCaseAllFirstCharacter(String text) {\n    String regex = &quot;\\\\b(.)(.*?)\\\\b&quot;;\n    String result = Pattern.compile(regex).matcher(text).replaceAll(\n            matche -&gt; matche.group(1).toUpperCase() + matche.group(2)\n    );\n\n    System.out.println(result);\n}\n</code></pre>\n<p>Example :</p>\n<pre><code>upperCaseAllFirstCharacter(&quot;hello this is Just a test&quot;);\n</code></pre>\n<p>Outputs</p>\n<pre><code>Hello This Is Just A Test\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 6174371,
+        "reputation": 1920,
+        "user_id": 4832515,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/4692c9dfef3067ab5f6d004ae7a167c1?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Ali Mizan",
+        "link": "https://stackoverflow.com/users/4832515/ali-mizan"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1687895759,
+      "creation_date": 1687895759,
+      "answer_id": 76568231,
+      "question_id": 1892765,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>I noticed in previous answers that referred to apache common utils, they either used the class <code>WordUtils</code> which is now deprecated, or they use <code>StringUtils.capitalize()</code> which only capitalizes the first word but not every single word in the sentence.</p>\n<p>Here is a pure java solution to do this. Note: this will not work if there is a bit of punctuation in front of the word. Here's the function <code>capitalizeEachWord()</code>, but wrapped up in a main class so you can see a few basic tests cases.</p>\n<pre class=\"lang-java prettyprint-override\"><code>\nimport java.util.Optional;\nimport java.util.Objects;\n\nclass HelloWorld {\n    public static void main(String[] args) {\n        System.out.println(capitalizeEachWord(&quot;&quot;));\n        System.out.println(capitalizeEachWord(&quot;.&quot;));\n        System.out.println(capitalizeEachWord(&quot; .&quot;));\n        System.out.println(capitalizeEachWord(&quot; . &quot;));\n        System.out.println(capitalizeEachWord(&quot;testing. 1 one 2 two 3 three&quot;));\n        System.out.println(capitalizeEachWord(&quot;testing. 1 one 2 two 3 three.&quot;));\n        System.out.println(capitalizeEachWord(&quot;testing. 1 one 2 two 3 three &quot;));\n        System.out.println(capitalizeEachWord(&quot;testing. 1 one 2 two 3 three. &quot;));\n        System.out.println(capitalizeEachWord(&quot; testing. 1 one 2 two 3 three&quot;));\n        System.out.println(capitalizeEachWord(&quot;!testing. 1 one 2 two 3 three.&quot;));\n        System.out.println(capitalizeEachWord(&quot; !testing. 1 one 2 two 3 three &quot;));\n        System.out.println(capitalizeEachWord(&quot; !testing. 1 one 2 two 3 three &quot;));\n        System.out.println(capitalizeEachWord(&quot; !testing. 1 one 2 two 3 three 4&quot;));\n    }\n    \n    \n    private static String capitalizeEachWord(final String line) {\n        return Optional.ofNullable(line)\n            .filter(Objects::nonNull)\n            .filter(givenLine -&gt; givenLine.length() &gt; 0)\n            .map(givenLine -&gt; {\n                StringBuilder sb = new StringBuilder(givenLine);\n                if(sb.charAt(0) != ' ') {\n                    sb.setCharAt(0, Character.toUpperCase(sb.charAt(0)));\n                }\n                for (int i = 1; i &lt; sb.length(); i++) {\n                    if (sb.charAt(i - 1) == ' ') {\n                        sb.setCharAt(i, Character.toUpperCase(sb.charAt(i)));\n                    }\n                }\n                return sb.toString();\n            })\n            .orElse(line);\n    }\n    \n    \n}\n</code></pre>\n<p>resulting output:</p>\n<pre><code>.\n .\n . \nTesting. 1 One 2 Two 3 Three\nTesting. 1 One 2 Two 3 Three.\nTesting. 1 One 2 Two 3 Three \nTesting. 1 One 2 Two 3 Three. \n Testing. 1 One 2 Two 3 Three\n!testing. 1 One 2 Two 3 Three.\n !testing. 1 One 2 Two 3 Three \n !testing. 1 One 2 Two 3 Three \n !testing. 1 One 2 Two 3 Three 4\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 332245,
+        "reputation": 17179,
+        "user_id": 657427,
+        "user_type": "registered",
+        "accept_rate": 67,
+        "profile_image": "https://www.gravatar.com/avatar/dd071a6a7c97ba637c558c5e71137c7b?s=256&d=identicon&r=PG",
+        "display_name": "Christophe Roussy",
+        "link": "https://stackoverflow.com/users/657427/christophe-roussy"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1547813047,
+      "post_id": 1892765,
+      "comment_id": 95331207,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 332245,
+        "reputation": 17179,
+        "user_id": 657427,
+        "user_type": "registered",
+        "accept_rate": 67,
+        "profile_image": "https://www.gravatar.com/avatar/dd071a6a7c97ba637c558c5e71137c7b?s=256&d=identicon&r=PG",
+        "display_name": "Christophe Roussy",
+        "link": "https://stackoverflow.com/users/657427/christophe-roussy"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1547812681,
+      "post_id": 1892765,
+      "comment_id": 95330990,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 2001051,
+        "reputation": 2215,
+        "user_id": 1820715,
+        "user_type": "registered",
+        "accept_rate": 75,
+        "profile_image": "https://i.sstatic.net/P4mqW.jpg?s=256",
+        "display_name": "Magno C",
+        "link": "https://stackoverflow.com/users/1820715/magno-c"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1531707096,
+      "post_id": 1892765,
+      "comment_id": 89680091,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "50045526": [
+      {
+        "owner": {
+          "account_id": 324442,
+          "reputation": 2688,
+          "user_id": 645016,
+          "user_type": "registered",
+          "accept_rate": 62,
+          "profile_image": "https://www.gravatar.com/avatar/a2a706b80af549617ff060f586d88c77?s=256&d=identicon&r=PG",
+          "display_name": "sxc731",
+          "link": "https://stackoverflow.com/users/645016/sxc731"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1711985581,
+        "post_id": 50045526,
+        "comment_id": 137963304,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "76568231": []
+  }
+}

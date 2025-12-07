@@ -1,0 +1,139 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "websphere",
+      "illegalstateexception",
+      "jmstemplate"
+    ],
+    "owner": {
+      "account_id": 7230550,
+      "reputation": 11,
+      "user_id": 5517569,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/F02452hV.jpg?s=256",
+      "display_name": "Benny Evangelista",
+      "link": "https://stackoverflow.com/users/5517569/benny-evangelista"
+    },
+    "is_answered": false,
+    "view_count": 58,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1763570281,
+    "creation_date": 1763482644,
+    "last_edit_date": 1763570281,
+    "question_id": 79823589,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79823589/spring-framework-5-3-39-javax-jms-illegalstateexception-when-sending-a-message",
+    "title": "Spring Framework 5.3.39: javax.jms.IllegalStateException when sending a message with jmstemplate under IBM Websphere 9",
+    "body": "<p>I'm having a problem migrating from Spring 4.3.5 to 5.3.39 (I know community support for these versions has ended, but I need to investigate the problem).</p>\n<p>My application runs on IBM WebSphere 9 (JVM 8, so Spring 5.3.39 is the highest version I can move to) and uses <code>JmsTemplate</code> to send messages to an IBM MQ queue. The parameter <code>sessionTransacted</code> is set to <code>true</code>, everything runs fine with Spring 4.3.5 while with v5.3.39 I'm getting an <code>IllegalStateException</code> with this stacktrace:</p>\n<pre class=\"lang-php prettyprint-override\"><code>Caused by: javax.jms.IllegalStateException: Method not permitted in global transaction\nnull\n    at com.ibm.ejs.jms.JMSSessionHandle.checkNotInGlobalTransaction(JMSSessionHandle.java:1385)\n    at com.ibm.ejs.jms.JMSSessionHandle.commit(JMSSessionHandle.java:700)\n    at com.ibm.ejs.jms.JMSSessionHandle.commit(JMSSessionHandle.java:663)\n    at org.springframework.jms.support.JmsUtils.commitIfNecessary(JmsUtils.java:218)\n    at org.springframework.jms.core.JmsTemplate.doSend(JmsTemplate.java:1278)\n    at org.springframework.jms.core.JmsTemplate.lambda$send$3(JmsTemplate.java:586)\n    at org.springframework.jms.core.JmsTemplate.execute(JmsTemplate.java:504)\n    at orgmsTemplate.send(JmsTemplate.java:584)\n    at org.springframework.jms.core.JmsTemplate.convertAndSend(JmsTemplate.java:661)\n    at it.[REDACTED].sendMessage[REDACTED].java:839)\n    at it.[REDACTED].java:156)\n    at it.[REDACTED].java:63)\n    at it.[REDACTED].java:34)\n    at sun.reflect.NativeMethodAccessorImpl.invoke0(NativeMethodAccessorImpl.java:-2)\n    at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:90)\n    at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:55)\n</code></pre>\n<p>In my scenario, the transaction is manged by the application server container. However, in Spring 5.3.39 the <code>JmsUtils</code> class was changed, and the following block was removed from <code>commitIfNecessary</code>:</p>\n<pre class=\"lang-java prettyprint-override\"><code>catch (IllegalStateException illegalStateException) {}\n</code></pre>\n<p>So the exception is already happening in Spring 4.3.5, but the framework suppresses it and everything runs fine.</p>\n<p>Another odd thing: according to the Spring documentation (in-code comment), when the transaction is container-managed, the <code>sessionTransacted</code> property on <code>JmsTemplate</code> should be ignored. But that's not what actually happens.</p>\n<p>While debugging, I found that the <code>JmsTemplate.isSessionLocallyTransacted</code> returns <code>true</code> even though the session is globally transacted. That happens because <code>isSessionTransactional </code>returns <code>true</code> due to <code>TransactionSynchronizationManager.getResource(cf)</code> returning <code>null</code>.</p>\n<p>Looking deeper into <code>TransactionSynchronizationManager.getResource(cf)</code>, I noticed that <code>doGetResource</code> returns <code>null</code> when getting the map from resources:</p>\n<pre class=\"lang-java prettyprint-override\"><code>TransactionSynchronizationManager.doGetResource\n...\nMap&lt;Object, Object&gt; map = resources.get();\nif (map == null) {\n    return null;\n}\n...\n</code></pre>\n<p>This means the thread isn't aware of the global transaction. It tries to commit and that ultimately  causes the exception.</p>\n<p>Do you have any suggestion about this? This is the first time I've dug deeply into the Spring Framework, so I'm probably missing something. But I'm in the middle of migrating of hundreds of applications and this is a major issue.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 7230550,
+        "reputation": 11,
+        "user_id": 5517569,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/F02452hV.jpg?s=256",
+        "display_name": "Benny Evangelista",
+        "link": "https://stackoverflow.com/users/5517569/benny-evangelista"
+      },
+      "reply_to_user": {
+        "account_id": 3192259,
+        "reputation": 126792,
+        "user_id": 2696260,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/qHEzx.png?s=256",
+        "display_name": "M. Deinum",
+        "link": "https://stackoverflow.com/users/2696260/m-deinum"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1763627942,
+      "post_id": 79823589,
+      "comment_id": 140863850,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 3192259,
+        "reputation": 126792,
+        "user_id": 2696260,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/qHEzx.png?s=256",
+        "display_name": "M. Deinum",
+        "link": "https://stackoverflow.com/users/2696260/m-deinum"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1763625327,
+      "post_id": 79823589,
+      "comment_id": 140863740,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 7230550,
+        "reputation": 11,
+        "user_id": 5517569,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/F02452hV.jpg?s=256",
+        "display_name": "Benny Evangelista",
+        "link": "https://stackoverflow.com/users/5517569/benny-evangelista"
+      },
+      "reply_to_user": {
+        "account_id": 3192259,
+        "reputation": 126792,
+        "user_id": 2696260,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/qHEzx.png?s=256",
+        "display_name": "M. Deinum",
+        "link": "https://stackoverflow.com/users/2696260/m-deinum"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1763570230,
+      "post_id": 79823589,
+      "comment_id": 140862722,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 3192259,
+        "reputation": 126792,
+        "user_id": 2696260,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/qHEzx.png?s=256",
+        "display_name": "M. Deinum",
+        "link": "https://stackoverflow.com/users/2696260/m-deinum"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1763549188,
+      "post_id": 79823589,
+      "comment_id": 140862051,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 3192259,
+        "reputation": 126792,
+        "user_id": 2696260,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/qHEzx.png?s=256",
+        "display_name": "M. Deinum",
+        "link": "https://stackoverflow.com/users/2696260/m-deinum"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1763535160,
+      "post_id": 79823589,
+      "comment_id": 140861644,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {}
+}

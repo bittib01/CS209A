@@ -1,0 +1,128 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "compiler-errors",
+      "cannot-find-symbol"
+    ],
+    "owner": {
+      "account_id": 47283,
+      "reputation": 723428,
+      "user_id": 139985,
+      "user_type": "registered",
+      "accept_rate": 69,
+      "profile_image": "https://www.gravatar.com/avatar/147c5a9cc1feec049c50da791ac7d144?s=256&d=identicon&r=PG",
+      "display_name": "Stephen C",
+      "link": "https://stackoverflow.com/users/139985/stephen-c"
+    },
+    "is_answered": true,
+    "view_count": 1734885,
+    "protected_date": 1434490070,
+    "accepted_answer_id": 25706217,
+    "answer_count": 19,
+    "score": 556,
+    "last_activity_date": 1727873930,
+    "creation_date": 1410052328,
+    "last_edit_date": 1616026525,
+    "question_id": 25706216,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/25706216/what-does-a-cannot-find-symbol-or-cannot-resolve-symbol-error-mean",
+    "title": "What does a &quot;Cannot find symbol&quot; or &quot;Cannot resolve symbol&quot; error mean?",
+    "body": "<p>Please explain the following about &quot;Cannot find symbol&quot;, &quot;Cannot resolve symbol&quot; or &quot;Symbol not found&quot; errors (in Java):</p>\n<ul>\n<li>What do they mean?</li>\n<li>What things can cause them?</li>\n<li>How does the programmer go about fixing them?</li>\n</ul>\n<p><em>This question is designed to seed a comprehensive Q&amp;A about these common compilation errors in Java.</em></p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 47283,
+        "reputation": 723428,
+        "user_id": 139985,
+        "user_type": "registered",
+        "accept_rate": 69,
+        "profile_image": "https://www.gravatar.com/avatar/147c5a9cc1feec049c50da791ac7d144?s=256&d=identicon&r=PG",
+        "display_name": "Stephen C",
+        "link": "https://stackoverflow.com/users/139985/stephen-c"
+      },
+      "is_accepted": true,
+      "score": 564,
+      "last_activity_date": 1727873930,
+      "last_edit_date": 1727873930,
+      "creation_date": 1410052328,
+      "answer_id": 25706217,
+      "question_id": 25706216,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<h3>0. Is there any difference between these errors?</h3>\n<p>Not really. &quot;Cannot find symbol&quot;, &quot;Cannot resolve symbol&quot; and &quot;Symbol not found&quot; all mean the same thing.  (Different Java compilers are written by different people, and different people use different phraseology to say the same thing.)</p>\n<h3>1. What does a &quot;Cannot find symbol&quot; error mean?</h3>\n<p>Firstly, it is a <em>compilation error</em><sup>1</sup>.  It means that <em>either</em> there is a problem in your Java source code, <em>or</em> there is a problem in the way that you are compiling it.</p>\n<p>Your Java source code consists of the following things:</p>\n<ul>\n<li>Keywords: like <code>class</code>, <code>while</code>, and so on.</li>\n<li>Literals: like <code>true</code>, <code>false</code>, <code>42</code>, <code>'X'</code> and <code>&quot;Hi mum!&quot;</code>.</li>\n<li>Operators and other non-alphanumeric tokens: like <code>+</code>, <code>=</code>, <code>{</code>, and so on.</li>\n<li>Identifiers: like <code>Reader</code>, <code>i</code>, <code>toString</code>, <code>processEquibalancedElephants</code>, and so on.</li>\n<li>Comments and whitespace.</li>\n</ul>\n<p>A &quot;Cannot find symbol&quot; error is about the identifiers.  When your code is compiled, the compiler needs to work out what each and every identifier in your code means.</p>\n<p>A &quot;Cannot find symbol&quot; error means that the compiler cannot do this.  Your code appears to be referring to something that the compiler doesn't understand.</p>\n<h3>2. What can cause a &quot;Cannot find symbol&quot; error?</h3>\n<p>As a first order, there is only one cause.  The compiler looked in all of the places where the identifier <em>should</em> be defined, and it couldn't find the definition.  This could be caused by a number of things.  The common ones are as follows:</p>\n<ul>\n<li><p>For identifiers in general:</p>\n<ul>\n<li>Perhaps you spelled the name incorrectly; i.e., <code>StringBiulder</code> instead of <code>StringBuilder</code>.  Java cannot and will not attempt to compensate for bad spelling or typing errors.</li>\n<li>Perhaps you got the case wrong; i.e. <code>stringBuilder</code> instead of <code>StringBuilder</code>.  All Java identifiers are case sensitive.</li>\n<li>Perhaps you used underscores inappropriately; i.e., <code>mystring</code> and <code>my_string</code> are different.  (If you stick to the Java style rules, you will be largely protected from this mistake...)</li>\n<li>Perhaps you are trying to use something that was declared &quot;somewhere else&quot;; i.e. in a different context to where you have implicitly told the compiler to look.  (A different class?  A different scope?  A different package?  A different code-base?)</li>\n</ul>\n</li>\n<li><p>For identifiers that should refer to variables:</p>\n<ul>\n<li>Perhaps you forgot to declare the variable.</li>\n<li>Perhaps the variable declaration is out of scope at the point you tried to use it.  (See example below)</li>\n</ul>\n</li>\n<li><p>For identifiers that should be method or field names:</p>\n<ul>\n<li><p>Perhaps you are trying to refer to an inherited method or field that wasn't declared in the parent / ancestor classes or interfaces.</p>\n</li>\n<li><p>Perhaps you are trying to refer to a method or field that does not exist (i.e., has not been declared) in the type you are using; e.g., <code>&quot;rope&quot;.push()</code><sup>2</sup>.</p>\n</li>\n<li><p>Perhaps you are trying to use a method as a field, or vice versa; e.g. <code>&quot;rope&quot;.length</code> or <code>someArray.length()</code>.</p>\n</li>\n<li><p>Perhaps you are mistakenly operating on an array rather than array element; e.g.,</p>\n<pre><code>    String strings[] = ...\n    if (strings.charAt(3)) { ... }\n    // Maybe that should be 'strings[0].charAt(3)'\n</code></pre>\n</li>\n</ul>\n</li>\n<li><p>For identifiers that should be class names:</p>\n<ul>\n<li><p>Perhaps you forgot to import the class.</p>\n</li>\n<li><p>Perhaps you used &quot;star&quot; imports, but the class isn't defined in any of the packages that you imported.</p>\n</li>\n<li><p>Perhaps you forgot a <code>new</code> as in:</p>\n<pre><code>    String s = String();  // Should be 'new String()'\n</code></pre>\n</li>\n<li><p>Perhaps you are trying to import or otherwise use a class that has been declared in the <em>default package</em>; i.e., the one where classes with no <code>package</code> statements go.</p>\n<p>Hint: learn about packages.  You should only use the default package for simple applications that consist of one class ... or at a stretch, one Java source file.</p>\n</li>\n</ul>\n</li>\n<li><p>For cases where type or instance doesn't appear to have the member (e.g., method or field) you were expecting it to have:</p>\n<ul>\n<li>Perhaps you have declared a nested class or a generic parameter that <em>shadows</em> the type you were meaning to use.</li>\n<li>Perhaps you are shadowing a static or instance variable.</li>\n<li>Perhaps you imported the wrong type; e.g., due to IDE completion or auto-correction may have suggested <code>java.awt.List</code> rather than <code>java.util.List</code>.</li>\n<li>Perhaps you are using (compiling against) the wrong version of an API.</li>\n<li>Perhaps you forgot to cast your object to an appropriate subclass.</li>\n<li>Perhaps you have declared the <em>variable's</em> type to be a supertype of the one with the member you are looking for.</li>\n</ul>\n</li>\n</ul>\n<p>The problem is often a combination of the above.  For example, maybe you &quot;star&quot; imported <code>java.io.*</code> and then tried to use the <code>Files</code> class ... which is in <code>java.nio</code> not <code>java.io</code>.  Or maybe you meant to write <code>File</code> ... which <em>is</em> a class in <code>java.io</code>.</p>\n<hr />\n<p>Here is an example of how incorrect variable scoping can lead to a &quot;Cannot find symbol&quot; error:</p>\n<pre><code>List&lt;String&gt; strings = ...\n\nfor (int i = 0; i &lt; strings.size(); i++) {\n    if (strings.get(i).equalsIgnoreCase(&quot;fnord&quot;)) {\n        break;\n    }\n}\nif (i &lt; strings.size()) {\n    ...\n}\n</code></pre>\n<p>This will give a &quot;Cannot find symbol&quot; error for <code>i</code> in the <code>if</code> statement.  Though we previously declared <code>i</code>, that declaration is only <em>in scope</em> for the <code>for</code> statement and its body.  The reference to <code>i</code> in the <code>if</code> statement <em>cannot see</em> that declaration of <code>i</code>.  It is <em>out of scope</em>.</p>\n<p>(An appropriate correction here might be to move the <code>if</code> statement inside the loop, or to declare <code>i</code> before the start of the loop.)</p>\n<hr />\n<p>Here is an example that causes puzzlement where a typo leads to a seemingly inexplicable &quot;Cannot find symbol&quot; error:</p>\n<pre><code>for (int i = 0; i &lt; 100; i++); {\n    System.out.println(&quot;i is &quot; + i);\n}\n</code></pre>\n<p>This will give you a compilation error in the <code>println</code> call saying that <code>i</code> cannot be found.  But (I hear you say) I did declare it!</p>\n<p>The problem is the sneaky semicolon ( <code>;</code> ) before the <code>{</code>.  The Java language syntax defines a semicolon in that context to be an <em>empty statement</em>.  The empty statement then becomes the body of the <code>for</code> loop.  So that code actually means this:</p>\n<pre><code>for (int i = 0; i &lt; 100; i++);\n\n// The previous and following are separate statements!!\n\n{\n    System.out.println(&quot;i is &quot; + i);\n}\n</code></pre>\n<p>The <code>{ ... }</code> block is NOT the body of the <code>for</code> loop, and therefore the previous declaration of <code>i</code> in the <code>for</code> statement is <em>out of scope</em> in the block.</p>\n<hr />\n<p>Here is another example of &quot;Cannot find symbol&quot; error that is caused by a typo.</p>\n<pre><code>int tmp = ...\nint res = tmp(a + b);\n</code></pre>\n<p>Despite the previous declaration, the <code>tmp</code> in the <code>tmp(...)</code> expression is erroneous.  The compiler will look for a method called <code>tmp</code>, and won't find one.  The previously declared <code>tmp</code> is in the namespace for variables, not the namespace for methods.</p>\n<p>In the example I came across, the programmer had actually left out an operator.  What he meant to write was this:</p>\n<pre><code>int res = tmp * (a + b);\n</code></pre>\n<hr />\n<p>There is another reason why the compiler might not find a symbol if you are compiling from the command line.  You might simply have forgotten to compile or recompile some other class.  For example, if you have classes <code>Foo</code> and <code>Bar</code> where <code>Foo</code> uses <code>Bar</code>.  If you have never compiled <code>Bar</code> and you run <code>javac Foo.java</code>, you are liable to find that the compiler can't find the symbol <code>Bar</code>.  The simple answer is to compile <code>Foo</code> and <code>Bar</code> together; e.g., <code>javac Foo.java Bar.java</code> or <code>javac *.java</code>.  Or better still use a Java build tool; e.g., <a href=\"https://en.wikipedia.org/wiki/Apache_Ant\" rel=\"noreferrer\">Ant</a>, <a href=\"https://en.wikipedia.org/wiki/Apache_Maven\" rel=\"noreferrer\">Maven</a>, <a href=\"https://en.wikipedia.org/wiki/Gradle\" rel=\"noreferrer\">Gradle</a> and so on.</p>\n<p>There are some other more obscure causes too ... which I will deal with below.</p>\n<h3>3. How do I fix these errors?</h3>\n<p>Generally speaking, you start out by figuring out what <em>caused</em> the compilation error.</p>\n<ul>\n<li>Look at the line in the file indicated by the compilation error message.</li>\n<li>Identify which symbol that the error message is talking about.</li>\n<li>Figure out <em>why</em> the compiler is saying that it cannot find the symbol; see above!</li>\n</ul>\n<p>Then you <em>think</em> about what your code is supposed to be saying.  Then finally you work out what correction you need to make to your source code to do what you want.</p>\n<p>Note that not every &quot;correction&quot; is correct. Consider this:</p>\n<pre><code>for (int i = 1; i &lt; 10; i++) {\n    for (j = 1; j &lt; 10; j++) {\n        ...\n    }\n}\n</code></pre>\n<p>Suppose that the compiler says &quot;Cannot find symbol&quot; for <code>j</code>.  There are many ways I could &quot;fix&quot; that:</p>\n<ul>\n<li>I could change the inner <code>for</code> to <code>for (int j = 1; j &lt; 10; j++)</code> - probably correct.</li>\n<li>I could add a declaration for <code>j</code> <em>before</em> the inner <code>for</code> loop, or the outer <code>for</code> loop - possibly correct.</li>\n<li>I could change <code>j</code> to <code>i</code> in the inner <code>for</code> loop - probably wrong!</li>\n<li>and so on.</li>\n</ul>\n<p>The point is that you <em>need</em> to understand what your code is trying to do in order to find the right fix.</p>\n<h3>4. Obscure causes</h3>\n<p>Here are a couple of cases where the &quot;Cannot find symbol&quot; is seemingly inexplicable ... until you look closer.</p>\n<ol>\n<li><p><strong>Incorrect dependencies</strong>: If you are using an IDE or a build tool that manages the build path and project dependencies, you may have made a mistake with the dependencies; e.g., left out a dependency, or selected the wrong version.  If you are using a build tool (Ant, Maven, Gradle, etc), check the project's build file.  If you are using an IDE, check the project's build path configuration.</p>\n</li>\n<li><p><strong>Cannot find symbol 'var'</strong>: You are probably trying to compile source code that uses local variable type inference (i.e. a <code>var</code> declaration) with an older compiler or older <code>--source</code> level.  The <code>var</code> was introduced in Java 10.  Check your JDK version and your build files, and (if this occurs in an IDE), the IDE settings.</p>\n</li>\n<li><p><strong>You are not compiling / recompiling</strong>:  It sometimes happens that new Java programmers don't understand how the Java tool chain works, or haven't implemented a repeatable &quot;build process&quot;; e.g. using an IDE, Ant, Maven, Gradle and so on.  In such a situation, the programmer can end up chasing his tail looking for an illusory error that is <em>actually</em> caused by not recompiling the code properly, and the like.</p>\n<p>Another example of this is when you use (Java 9+) <code>java SomeClass.java</code> to compile and run a class.  If the class depends on another class that you haven't compiled (or recompiled), you are liable to get &quot;Cannot resolve symbol&quot; errors referring to the 2nd class.  The other source file(s) are not automatically compiled.  The <code>java</code> command's new &quot;compile and run&quot; mode is not designed for running programs with multiple source code files.</p>\n</li>\n<li><p><strong>An earlier build problem</strong>:  It is possible that an earlier build failed in a way that gave a JAR file with missing classes.  Such a failure would typically be noticed if you were using a build tool.  However if you are getting JAR files from someone else, you are dependent on <em>them</em> building properly, and noticing errors.  If you suspect this, use <code>tar -tvf</code> to list the contents of the suspect JAR file.</p>\n</li>\n<li><p><strong>IDE issues</strong>: People have reported cases where their IDE gets confused and the compiler in the IDE cannot find a class that exists ... or the reverse situation.</p>\n<ul>\n<li><p>This could happen if the IDE has been configured with the wrong JDK version.</p>\n</li>\n<li><p>This could happen if the IDE's caches get out of sync with the file system.  There are IDE specific ways to fix that.</p>\n</li>\n<li><p>This could be an IDE bug.  For instance @Joel Costigliola described a scenario where Eclipse did not handle a Maven &quot;test&quot; tree correctly: <a href=\"https://stackoverflow.com/a/37207223/139985\"><strong>see this answer</strong></a>.  (Apparently that particular bug was been fixed a long time ago.)</p>\n</li>\n</ul>\n</li>\n<li><p><strong>Android issues</strong>: When you are programming for Android, and you have &quot;Cannot find symbol&quot; errors related to <code>R</code>, be aware that the <code>R</code> symbols are defined by the <code>context.xml</code> file.  Check that your <code>context.xml</code> file is correct and in the correct place, and that the corresponding <code>R</code> class file has been generated / compiled.  Note that the Java symbols are case sensitive, so the corresponding XML ids are case sensitive too.</p>\n<p>Other symbol errors on Android are likely to be due to previously mention reasons; e.g., missing or incorrect dependencies, incorrect package names, method or fields that don't exist in a particular API version, spelling / typing errors, and so on.</p>\n</li>\n<li><p><strong>Hiding system classes</strong>: I've seen cases where the compiler complains that <code>substring</code> is an unknown symbol in something like the following</p>\n<pre><code>String s = ...\nString s1 = s.substring(1);\n</code></pre>\n<p>It turned out that the programmer had created their own version of <code>String</code> and that his version of the class didn't define a <code>substring</code> methods.  I've seen people do this with <code>System</code>, <code>Scanner</code> and other classes.</p>\n<p><em>Lesson:</em> Don't define your own classes with the same names as common library classes!</p>\n<p>The problem can also be solved by using the fully qualified names.  For example, in the example above, the programmer <em>could</em> have written:</p>\n<pre><code>java.lang.String s = ...\njava.lang.String s1 = s.substring(1);\n</code></pre>\n</li>\n<li><p><strong>Homoglyphs:</strong>  If you use UTF-8 encoding for your source files, it is possible to have identifiers that <em>look</em> the same, but are in fact different because they contain homoglyphs.   See <a href=\"http://en.wikipedia.org/wiki/Homoglyph\" rel=\"noreferrer\">this page</a> for more information.</p>\n<p>You can avoid this by restricting yourself to ASCII or Latin-1 as the source file encoding, and using Java <code>\\uxxxx</code> escapes for other characters.</p>\n</li>\n</ol>\n<hr />\n<p><sup>1 - If, perchance, you <em>do</em> see this in a runtime exception or error message, then either you have configured your IDE to run code with compilation errors, or your application is generating and compiling code .. at runtime. <br />\n2 - The three basic principles of <a href=\"https://en.wikipedia.org/wiki/Civil_engineering\" rel=\"noreferrer\">civil engineering</a>: water doesn't flow uphill, a plank is stronger on its side, and <em>you can't push on a rope</em>.</sup></p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 9338924,
+        "reputation": 893,
+        "user_id": 8255039,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/CIBoQ.jpg?s=256",
+        "display_name": "Nishan B",
+        "link": "https://stackoverflow.com/users/8255039/nishan-b"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1716195218,
+      "last_edit_date": 1716195218,
+      "creation_date": 1716183080,
+      "answer_id": 78504801,
+      "question_id": 25706216,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>What i observed in my project is that if there is some error in code and if you're using lombok you may see this error because either lombok annotation processing not configured or because initial error lombok annotated codes are not injected to source code yet you can fix the code and retry building in this case.</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "25706217": [
+      {
+        "owner": {
+          "account_id": 47283,
+          "reputation": 723428,
+          "user_id": 139985,
+          "user_type": "registered",
+          "accept_rate": 69,
+          "profile_image": "https://www.gravatar.com/avatar/147c5a9cc1feec049c50da791ac7d144?s=256&d=identicon&r=PG",
+          "display_name": "Stephen C",
+          "link": "https://stackoverflow.com/users/139985/stephen-c"
+        },
+        "reply_to_user": {
+          "account_id": 1025526,
+          "reputation": 2348,
+          "user_id": 1034912,
+          "user_type": "registered",
+          "accept_rate": 64,
+          "profile_image": "https://www.gravatar.com/avatar/f0691a2ca07f4f91f41e71919f669e22?s=256&d=identicon&r=PG",
+          "display_name": "user1034912",
+          "link": "https://stackoverflow.com/users/1034912/user1034912"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1676436324,
+        "post_id": 25706217,
+        "comment_id": 133134538,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1025526,
+          "reputation": 2348,
+          "user_id": 1034912,
+          "user_type": "registered",
+          "accept_rate": 64,
+          "profile_image": "https://www.gravatar.com/avatar/f0691a2ca07f4f91f41e71919f669e22?s=256&d=identicon&r=PG",
+          "display_name": "user1034912",
+          "link": "https://stackoverflow.com/users/1034912/user1034912"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1676435425,
+        "post_id": 25706217,
+        "comment_id": 133134429,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "78504801": []
+  }
+}

@@ -1,0 +1,128 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "multithreading",
+      "exception",
+      "interrupted-exception"
+    ],
+    "owner": {
+      "account_id": 33601,
+      "reputation": 29384,
+      "user_id": 94169,
+      "user_type": "registered",
+      "accept_rate": 77,
+      "profile_image": "https://www.gravatar.com/avatar/55d09dc53dbea9c5bbd578b4d9ee397e?s=256&d=identicon&r=PG",
+      "display_name": "smatter",
+      "link": "https://stackoverflow.com/users/94169/smatter"
+    },
+    "is_answered": true,
+    "view_count": 300925,
+    "accepted_answer_id": 3976377,
+    "answer_count": 7,
+    "score": 467,
+    "last_activity_date": 1725878609,
+    "creation_date": 1287566484,
+    "last_edit_date": 1708107894,
+    "question_id": 3976344,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/3976344/handling-interruptedexception-in-java",
+    "title": "Handling InterruptedException in Java",
+    "body": "<p>What is the difference between the following ways of handling <code>InterruptedException</code>? What is the best way to do it?</p>\n<pre><code>try {\n // ...\n} catch (InterruptedException e) { \n   Thread.currentThread().interrupt(); \n}\n</code></pre>\n<p>...or:</p>\n<pre><code>try {\n //...\n} catch (InterruptedException e) {\n   throw new RuntimeException(e);\n}\n</code></pre>\n<p>I'd like to also know in which scenarios are these two used.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 102965,
+        "reputation": 422630,
+        "user_id": 276052,
+        "user_type": "registered",
+        "accept_rate": 80,
+        "profile_image": "https://i.sstatic.net/UcrhR.jpg?s=256",
+        "display_name": "aioobe",
+        "link": "https://stackoverflow.com/users/276052/aioobe"
+      },
+      "is_accepted": true,
+      "score": 622,
+      "last_activity_date": 1725878609,
+      "last_edit_date": 1725878609,
+      "creation_date": 1287566692,
+      "answer_id": 3976377,
+      "question_id": 3976344,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<blockquote>\n<p>What is the difference between the following ways of handling InterruptedException? What is the best way to do it?</p>\n</blockquote>\n<p>You've probably come to ask this question because you've called a method that throws <code>InterruptedException</code>.</p>\n<p>First of all, you should see <code>throws InterruptedException</code> for what it is: A part of the method signature and a possible outcome of calling the method you're calling. So start by embracing the fact that an <code>InterruptedException</code> is a perfectly valid result of the method call.</p>\n<p>Now, if the method you're calling throws such exception, what should <em>your</em> method do? You can figure out the answer by thinking about the following:</p>\n<p><strong>Does it make sense for the method <em>you</em> are implementing to throw an <code>InterruptedException</code>?</strong> Put differently, is an <code>InterruptedException</code> a sensible outcome when calling <em>your</em> method?</p>\n<ul>\n<li>If <strong>yes</strong>, then <code>throws InterruptedException</code> should be part of <em>your</em> method signature, and you should let the exception propagate (i.e. don't catch it at all).</li>\n</ul>\n<blockquote>\n<p><strong>Example</strong>: Your method waits for a value from the network to finish the computation and return a result. If the blocking network call throws an <code>InterruptedException</code> your method can not finish computation in a normal way. You let the <code>InterruptedException</code> propagate.</p>\n<pre><code>int computeSum(Server server) throws InterruptedException {\n    // Any InterruptedException thrown below is propagated\n    int a = server.getValueA();\n    int b = server.getValueB();\n    return a + b;\n}\n</code></pre>\n</blockquote>\n<ul>\n<li>If <strong>no</strong>, then you should not declare your method with <code>throws InterruptedException</code> and you should (must!) catch the exception. Now two things are important to keep in mind in this situation:</li>\n</ul>\n<ol>\n<li><p>Someone interrupted your thread. That someone is probably eager to cancel the operation, terminate the program gracefully, or whatever. You should be polite to that someone and return from your method without further ado.</p>\n</li>\n<li><p>Even though <em>your</em> method can manage to produce a sensible return value in case of an <code>InterruptedException</code> the fact that the thread has been interrupted may still be of importance. In particular, the code that calls your method may be interested in whether an interruption occurred during execution of your method. You should therefore log the fact an interruption took place by setting the interrupted flag: <code>Thread.currentThread().interrupt()</code></p>\n</li>\n</ol>\n<blockquote>\n<p><strong>Example</strong>: The user has asked to print a sum of two values. Printing &quot;<code>Failed to compute sum</code>&quot; is acceptable if the sum can't be computed (and much better than letting the program crash with a stack trace due to an <code>InterruptedException</code>). In other words, it does <em>not</em> make sense to declare this method with <code>throws InterruptedException</code>.</p>\n<pre><code>void printSum(Server server) {\n     try {\n         int sum = computeSum(server);\n         System.out.println(&quot;Sum: &quot; + sum);\n     } catch (InterruptedException e) {\n         Thread.currentThread().interrupt();  // set interrupt flag\n         System.out.println(&quot;Failed to compute sum&quot;);\n     }\n}\n</code></pre>\n</blockquote>\n<p>By now it should be clear that just doing <code>throw new RuntimeException(e)</code> is a bad idea. It isn't very polite to the caller. You could invent a new runtime exception but the root cause (someone wants the thread to stop execution) might get lost.</p>\n<p><strong>Other examples:</strong></p>\n<blockquote>\n<p><strong>Implementing <code>Runnable</code></strong>: As you may have discovered, the signature of <code>Runnable.run</code> does not allow for rethrowing <code>InterruptedExceptions</code>. Well, <em>you</em> signed up on implementing <code>Runnable</code>, which means that <em>you</em> signed up to deal with possible <code>InterruptedExceptions</code>. Either choose a different interface, such as <a href=\"http://docs.oracle.com/javase/7/docs/api/java/util/concurrent/Callable.html\" rel=\"noreferrer\"><code>Callable</code></a>, or follow the second approach above.</p>\n</blockquote>\n<p><sup> </sup></p>\n<blockquote>\n<p><strong>Calling <code>Thread.sleep</code></strong>: You're attempting to read a file and the spec says you should try 10 times with 1 second in between. You call <code>Thread.sleep(1000)</code>. So, you need to deal with <code>InterruptedException</code>. For a method such as <code>tryToReadFile</code> it makes perfect sense to say, <em>&quot;If I'm interrupted, I can't complete my action of trying to read the file&quot;</em>. In other words, it makes perfect sense for the method to throw <code>InterruptedExceptions</code>.</p>\n<pre><code>String tryToReadFile(File f) throws InterruptedException {\n    for (int i = 0; i &lt; 10; i++) {\n        if (f.exists())\n            return readFile(f);\n        Thread.sleep(1000);\n    }\n    return null;\n}\n</code></pre>\n</blockquote>\n"
+    },
+    {
+      "owner": {
+        "account_id": 32722,
+        "reputation": 8752,
+        "user_id": 91012,
+        "user_type": "registered",
+        "accept_rate": 67,
+        "profile_image": "https://www.gravatar.com/avatar/529941f152a76e9a4eb19d434f448d45?s=256&d=identicon&r=PG",
+        "display_name": "mR_fr0g",
+        "link": "https://stackoverflow.com/users/91012/mr-fr0g"
+      },
+      "is_accepted": false,
+      "score": 139,
+      "last_activity_date": 1722800300,
+      "last_edit_date": 1722800300,
+      "creation_date": 1287567923,
+      "answer_id": 3976527,
+      "question_id": 3976344,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>As it happens I was just reading about this this morning on my way to work in <a href=\"https://jcip.net/\" rel=\"nofollow noreferrer\"><em>Java Concurrency In Practice</em></a> by Brian Goetz et al. Basically he says you should do one of three things:</p>\n<ol>\n<li><p><strong>Propagate the <code>InterruptedException</code></strong> - Declare your method to throw the checked <code>InterruptedException</code> so that your caller has to deal with it.</p>\n</li>\n<li><p><strong>Restore the Interrupt</strong> - Sometimes you cannot throw <code>InterruptedException</code>. In these cases you should catch the <code>InterruptedException</code> and restore the interrupt status by calling the <code>interrupt()</code> method on the <code>currentThread</code> so the code higher up the call stack can see that an interrupt was issued, and quickly return from the method. <em>Note: this is only applicable when your method has &quot;try&quot; or &quot;best effort&quot; semantics, i. e. nothing critical would happen if the method doesn't accomplish its goal. For example, <code>log()</code> or <code>sendMetric()</code> may be such method, or <code>boolean tryTransferMoney()</code>, but not <code>void transferMoney()</code>. See <a href=\"https://github.com/code-review-checklists/java-concurrency#interruption-swallowing\" rel=\"nofollow noreferrer\">here</a> for more details.</em></p>\n</li>\n<li><p><strong>Ignore the interruption within method, but restore the status upon exit</strong> - e. g. via Guava's <a href=\"https://guava.dev/releases/28.0-jre/api/docs/com/google/common/util/concurrent/Uninterruptibles.html\" rel=\"nofollow noreferrer\"><code>Uninterruptibles</code></a>. <code>Uninterruptibles</code> take over the boilerplate code like in the Noncancelable Task example in JCIP § 7.1.3.</p>\n</li>\n</ol>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "3976377": [
+      {
+        "owner": {
+          "account_id": 2713220,
+          "reputation": 112,
+          "user_id": 2341150,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/1c33f1e68e2d9a9d1bd5fec412d5fb82?s=256&d=identicon&r=PG",
+          "display_name": "Mr Weasel",
+          "link": "https://stackoverflow.com/users/2341150/mr-weasel"
+        },
+        "edited": false,
+        "score": 4,
+        "creation_date": 1660693105,
+        "post_id": 3976377,
+        "comment_id": 129591430,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 204515,
+          "reputation": 12169,
+          "user_id": 452775,
+          "user_type": "registered",
+          "accept_rate": 63,
+          "profile_image": "https://i.sstatic.net/XVJfe.jpg?s=256",
+          "display_name": "Lii",
+          "link": "https://stackoverflow.com/users/452775/lii"
+        },
+        "reply_to_user": {
+          "account_id": 94130,
+          "reputation": 4599,
+          "user_id": 257169,
+          "user_type": "registered",
+          "accept_rate": 67,
+          "profile_image": "https://www.gravatar.com/avatar/21a0a83dad6adfbfea61835c9ad1b61a?s=256&d=identicon&r=PG",
+          "display_name": "amoe",
+          "link": "https://stackoverflow.com/users/257169/amoe"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1588841952,
+        "post_id": 3976377,
+        "comment_id": 109056961,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "3976527": []
+  }
+}

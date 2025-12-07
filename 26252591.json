@@ -1,0 +1,629 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "macos",
+      "multiple-versions",
+      "homebrew-cask",
+      "jenv"
+    ],
+    "owner": {
+      "account_id": 2352028,
+      "reputation": 6072,
+      "user_id": 2060596,
+      "user_type": "registered",
+      "accept_rate": 60,
+      "profile_image": "https://www.gravatar.com/avatar/2c6daace7f1f8d341833230926664982?s=256&d=identicon&r=PG",
+      "display_name": "Dakkar",
+      "link": "https://stackoverflow.com/users/2060596/dakkar"
+    },
+    "is_answered": true,
+    "view_count": 536770,
+    "accepted_answer_id": 29195815,
+    "answer_count": 22,
+    "score": 509,
+    "last_activity_date": 1714808629,
+    "creation_date": 1412757711,
+    "last_edit_date": 1629116374,
+    "question_id": 26252591,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/26252591/mac-os-x-and-multiple-java-versions",
+    "title": "Mac OS X and multiple Java versions",
+    "body": "<p>How can I install an additional java on MacOS?  I installed jdk8 and that works fine. But now I need a jdk7 installation for development purposes. When trying to install the old version via DMG file, i get a warning, that there is already a newer version of java installed and the installer quits.</p>\n<pre><code>    /usr/libexec/java_home -verbose\n    Matching Java Virtual Machines (1):\n        1.8.0_20, x86_64:   &quot;Java SE 8&quot; /Library/Java/JavaVirtualMachines/jdk1.8.0_20.jdk/Contents/Home\n\n       /Library/Java/JavaVirtualMachines/jdk1.8.0_20.jdk/Contents/Home\n</code></pre>\n<p>How to install jdk7 in addition to this one?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 396097,
+        "reputation": 20162,
+        "user_id": 759452,
+        "user_type": "registered",
+        "accept_rate": 56,
+        "profile_image": "https://i.sstatic.net/kE6E884b.png?s=256",
+        "display_name": "Adri w Ukraine",
+        "link": "https://stackoverflow.com/users/759452/adri-w-ukraine"
+      },
+      "is_accepted": true,
+      "score": 648,
+      "last_activity_date": 1713828318,
+      "last_edit_date": 1713828318,
+      "creation_date": 1427036001,
+      "answer_id": 29195815,
+      "question_id": 26252591,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>The cleanest way to manage multiple java versions on Mac is to use <a href=\"http://brew.sh\" rel=\"noreferrer\"><code>Homebrew</code></a>.</p>\n<p>And within <code>Homebrew</code>, use:</p>\n<ul>\n<li><code>homebrew-cask</code> to install the versions of java</li>\n<li><code>jenv</code> to manage the installed versions of java</li>\n</ul>\n<hr />\n<p>As seen on <a href=\"http://hanxue-it.blogspot.ch/2014/05/installing-java-8-managing-multiple.html\" rel=\"noreferrer\">http://hanxue-it.blogspot.ch/2014/05/installing-java-8-managing-multiple.html</a> , these are the steps to follow.</p>\n<ol>\n<li>install homebrew</li>\n<li>install homebrew jenv</li>\n<li>install homebrew-cask</li>\n<li>install a specific java version using cask (see &quot;homebrew-cask versions&quot; paragraph below)</li>\n<li>add this version for jenv to manage it</li>\n<li>check the version is correctly managed by jenv</li>\n<li>repeat steps 4 to 6 for each version of java you need</li>\n</ol>\n<hr />\n<h3>homebrew-cask versions</h3>\n<p>Add the <a href=\"https://github.com/Homebrew/homebrew-cask-versions\" rel=\"noreferrer\"><code>homebrew/cask-versions</code></a> tap to homebrew using:</p>\n<pre><code>brew tap homebrew/cask-versions\n</code></pre>\n<p>Then you can look at all the versions available by searching for Eclipse temurin, <a href=\"https://stackoverflow.com/a/70748320/26510\">more details here</a></p>\n<pre><code>brew search temurin\n</code></pre>\n<p>Then you can install the version(s) you like, though version 7 no longer shows up in homebrew via these casks:</p>\n<pre><code>brew install --cask temurin8\nbrew install --cask temurin9\n</code></pre>\n<p>And add them to be managed by jenv as usual.</p>\n<pre><code>jenv add &lt;javaVersionPathHere&gt;\n</code></pre>\n<p>I think this is the cleanest &amp; simplest way to go about it.</p>\n<hr />\n<p>Another important thing to note, as mentioned in <a href=\"https://stackoverflow.com/questions/6141180/mac-os-x-10-6-7-java-path-current-jdk-confusing/24792251#24792251\">Mac OS X 10.6.7 Java Path Current JDK confusing</a> :</p>\n<blockquote>\n<p>For different types of JDKs or installations, you will have different\npaths</p>\n<p>You can check the paths of the versions installed using <code>/usr/libexec/java_home -V</code>, see <a href=\"https://stackoverflow.com/questions/14292698/how-do-i-check-if-the-java-jdk-is-installed-on-mac\">How do I check if the Java JDK is installed on Mac?</a></p>\n<p>On Mac OS X Mavericks, I found as following:</p>\n<ol>\n<li><p>Built-in JRE default: <code>/Library/Internet\\ Plug-Ins/JavaAppletPlugin.plugin/Contents/Home</code></p>\n</li>\n<li><p>JDKs downloaded from Apple: <code>/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/</code></p>\n</li>\n<li><p>JDKs downloaded from Oracle: <code>/Library/Java/JavaVirtualMachines/jdk1.8.0_11.jdk/Contents/Home</code></p>\n</li>\n</ol>\n</blockquote>\n<hr />\n<h3>Resources</h3>\n<ul>\n<li><a href=\"https://stackoverflow.com/questions/19039752/removing-java-8-jdk-from-mac\">Removing Java 8 JDK from Mac</a></li>\n<li><a href=\"http://hanxue-it.blogspot.ch/2014/05/installing-java-8-managing-multiple.html\" rel=\"noreferrer\">http://hanxue-it.blogspot.ch/2014/05/installing-java-8-managing-multiple.html</a></li>\n<li><a href=\"http://sourabhbajaj.com/mac-setup/index.html\" rel=\"noreferrer\">http://sourabhbajaj.com/mac-setup/index.html</a></li>\n<li><a href=\"http://brew.sh\" rel=\"noreferrer\">http://brew.sh</a></li>\n<li><a href=\"https://github.com/Homebrew/homebrew/tree/master/share/doc/homebrew#readme\" rel=\"noreferrer\">https://github.com/Homebrew/homebrew/tree/master/share/doc/homebrew#readme</a></li>\n<li><a href=\"http://sourabhbajaj.com/mac-setup/Homebrew/README.html\" rel=\"noreferrer\">http://sourabhbajaj.com/mac-setup/Homebrew/README.html</a></li>\n<li>&quot;brew tap” explained <a href=\"https://github.com/Homebrew/homebrew/blob/master/share/doc/homebrew/brew-tap.md\" rel=\"noreferrer\">https://github.com/Homebrew/homebrew/blob/master/share/doc/homebrew/brew-tap.md</a></li>\n<li>“brew versions” explained <a href=\"https://stackoverflow.com/questions/3987683/homebrew-install-specific-version-of-formula\">Homebrew install specific version of formula?</a> and also <a href=\"https://github.com/Homebrew/homebrew-versions\" rel=\"noreferrer\">https://github.com/Homebrew/homebrew-versions</a></li>\n<li><a href=\"https://github.com/caskroom/homebrew-cask\" rel=\"noreferrer\">https://github.com/caskroom/homebrew-cask</a></li>\n<li>“cask versions”, similar to “brew versions”, see <a href=\"https://github.com/caskroom/homebrew-versions\" rel=\"noreferrer\">https://github.com/caskroom/homebrew-versions</a> and also <a href=\"https://github.com/caskroom/homebrew-cask/issues/9447\" rel=\"noreferrer\">https://github.com/caskroom/homebrew-cask/issues/9447</a></li>\n<li><a href=\"http://www.jenv.be\" rel=\"noreferrer\">http://www.jenv.be</a></li>\n<li><a href=\"https://github.com/gcuisinier/jenv\" rel=\"noreferrer\">https://github.com/gcuisinier/jenv</a></li>\n</ul>\n"
+    },
+    {
+      "owner": {
+        "account_id": 26563197,
+        "reputation": 1,
+        "user_id": 20190704,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/7a59eafd19a732398eceda9d9b564ca6?s=256&d=identicon&r=PG",
+        "display_name": "user20190704",
+        "link": "https://stackoverflow.com/users/20190704/user20190704"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1707029555,
+      "last_edit_date": 1707029555,
+      "creation_date": 1707029455,
+      "answer_id": 77934854,
+      "question_id": 26252591,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>For mac os user</p>\n<ul>\n<li><p>First list the existing all java with this command</p>\n<p>~ % /usr/libexec/java_home -V</p>\n</li>\n<li><p>For this you will see this list of existing version</p>\n<p>Matching Java Virtual Machines (3):\n20.0.2 (x86_64) &quot;Amazon.com Inc.&quot; - &quot;Amazon Corretto 20&quot;\n/Users/userName/Library/Java/JavaVirtualMachines/corretto-\n20.0.2.1/Contents/Home\n17.0.10 (x86_64) &quot;Oracle Corporation&quot; - &quot;Java SE 17.0.10&quot;\n/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home\n17.0.9 (x86_64) &quot;Amazon.com Inc.&quot; - &quot;Amazon Corretto 17&quot;\n/Users/userName/Library/Java/JavaVirtualMachines/corretto-\n17.0.9/Contents/Home\n/Users/userName/Library/Java/JavaVirtualMachines/corretto-\n20.0.2.1/Contents/Home</p>\n</li>\n<li><p>Then Convert using this command</p>\n<p>~ % export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-\n17.jdk/Contents/Home</p>\n</li>\n<li><p>Check java version</p>\n<p>java --version</p>\n</li>\n</ul>\n"
+    },
+    {
+      "owner": {
+        "account_id": 1095109,
+        "reputation": 8023,
+        "user_id": 1088866,
+        "user_type": "registered",
+        "accept_rate": 100,
+        "profile_image": "https://i.sstatic.net/wgZxR.jpg?s=256",
+        "display_name": "bob",
+        "link": "https://stackoverflow.com/users/1088866/bob"
+      },
+      "is_accepted": false,
+      "score": 180,
+      "last_activity_date": 1704611438,
+      "last_edit_date": 1704611438,
+      "creation_date": 1512665370,
+      "answer_id": 47699905,
+      "question_id": 26252591,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<h2>For macOS Sierra 420</h2>\n<p>This guide was cobbled together from various sources (replies above as well as other posts), and works perfect.</p>\n<h3>0. If you haven't already, install homebrew.</h3>\n<p>See <a href=\"https://brew.sh/\" rel=\"noreferrer\">https://brew.sh/</a></p>\n<h3>1. Install jenv</h3>\n<pre><code>brew install jenv\n</code></pre>\n<h3>2. Add jenv to the bash profile</h3>\n<pre><code>if which jenv &gt; /dev/null; then eval &quot;$(jenv init -)&quot;; fi\n</code></pre>\n<h3>3. Add jenv to your path</h3>\n<pre><code>export PATH=&quot;$HOME/.jenv/shims:$PATH&quot;\n</code></pre>\n<h3>4. Tap &quot;homebrew/cask-versions&quot;</h3>\n<p>FYI: &quot;Tap&quot; extends brew's list of available repos it can install, above and beyond brew's default list of available repos.</p>\n<pre><code>brew tap homebrew/cask-versions\n</code></pre>\n<h3>5. Install the latest version of java</h3>\n<pre><code>brew install java --cask\n</code></pre>\n<h3>6. Install java 6 (or 7 or 8 whatever you need)</h3>\n<pre><code>brew install java6 --cask\n#brew install java7 --cask\n#brew install java8 --cask\n</code></pre>\n<p>? Maybe close and restart Terminal so it sees any new ENV vars that got setup.</p>\n<h3>7. Review Installations</h3>\n<p>Most Java version get installed here: <code>/Library/Java/JavaVirtualMachines</code> lets take a look.</p>\n<pre><code>ls -la /Library/Java/JavaVirtualMachines\n</code></pre>\n<p>NOTE: Sometimes java ends up here: <code>/usr/local/opt/openjdk/bin/java</code>, so you can peek into the &quot;opt&quot; dir and look for &quot;openjdk&quot; in the list with:</p>\n<pre><code>ls -la /usr/local/opt/\n</code></pre>\n<h3>8. Add each path to jenv one-at-a-time.</h3>\n<p>We need to add &quot;/Contents/Home&quot; to the version folder.\nWARNING: Use the actual paths on your machine... these are just <em><strong>EXAMPLE</strong></em>'s</p>\n<pre><code>jenv add /Library/Java/JavaVirtualMachines/1.6.0___EXAMPLE___/Contents/Home\njenv add /Library/Java/JavaVirtualMachines/jdk-9.0.1.jdk___EXAMPLE___/Contents/Home\n</code></pre>\n<p>TIP: If you think you already have java, but not sure where it is, try using &quot;which&quot; -- if you have java installed, &quot;which&quot; should print out the path to java:</p>\n<pre><code>which java\n</code></pre>\n<h3>9. Check if jenv registered OK</h3>\n<pre><code>jenv versions\n</code></pre>\n<h3>10. Set java version to use (globably)</h3>\n<p>Where XX matches one of the items in the versions list above.</p>\n<pre><code>jenv global XX\n</code></pre>\n<h3>Check java version</h3>\n<pre><code>java -version\n</code></pre>\n<p>NOTE: If not seeing version, enable plugin export (see comments below from cakraww):</p>\n<pre><code>jenv enable-plugin export\n</code></pre>\n<h3>Check jenv versions</h3>\n<p>Should also indicate the current version being used with an asterisk.</p>\n<pre><code>jenv versions\n</code></pre>\n<h3>DONE</h3>\n<hr />\n<h2>Quick future reference</h2>\n<p>To change java versions</p>\n<p>... See the list of available java versions</p>\n<pre><code>jenv versions\n</code></pre>\n<p>... then, where XX matches an item in the list above</p>\n<pre><code>jenv global XX\n</code></pre>\n<p>... also check which java the system recognizes (see TIP in #8 above)</p>\n<pre><code>which java\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 7332,
+        "reputation": 24568,
+        "user_id": 12704,
+        "user_type": "registered",
+        "accept_rate": 75,
+        "profile_image": "https://i.sstatic.net/zOrYYka5.png?s=256",
+        "display_name": "Michael Easter",
+        "link": "https://stackoverflow.com/users/12704/michael-easter"
+      },
+      "is_accepted": false,
+      "score": 99,
+      "last_activity_date": 1699349977,
+      "last_edit_date": 1699349977,
+      "creation_date": 1500247623,
+      "answer_id": 45134206,
+      "question_id": 26252591,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p><a href=\"http://sdkman.io/\" rel=\"noreferrer\">SDKMAN!</a> is a great tool for using multiple versions of Java, Gradle, Groovy, Kotlin, and other JVM tools on Mac OS. Installation and usage doc are easily found on the main site.</p>\n<p>(I have no affiliation, just a happy user).</p>\n<p>As an example usage, if I type the following in a Terminal window, there is a list of available Java SDK versions (edited for brevity):</p>\n<pre><code>$ sdk list java\nAvailable Java Versions\n   + 17.0.9-oracle                                                                        \n &gt; + 11.0.21-zulu                                                                         \n     21.0.1-tem                     \n</code></pre>\n<p>Here <code>+</code> denotes that the version is installed. <code>&gt;</code> denotes which version is currently in use. To install a version:</p>\n<pre><code>$ sdk install java 21.0.1-tem\n</code></pre>\n<p>To use a version in this Terminal window:</p>\n<pre><code>$ sdk use java 21.0.1-tem\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 3484417,
+        "reputation": 508,
+        "user_id": 2915705,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/8a86902384ded64c6c4168a5e0640b9c?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": " Martin",
+        "link": "https://stackoverflow.com/users/2915705/martin"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1698297393,
+      "last_edit_date": 1698297393,
+      "creation_date": 1698296751,
+      "answer_id": 77364238,
+      "question_id": 26252591,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>When you want to maintain multiple JDK version (already installed) in Mac M1 then to switch easily between them add following lines in your ~/.zshrc file</p>\n<pre><code>alias jdk11=&quot;export JAVA_HOME=`/usr/libexec/java_home -v 11`; java -version&quot;\nalias jdk8=&quot;export JAVA_HOME=`/usr/libexec/java_home -v 1.8`; java -version&quot;\n</code></pre>\n<p>Now, these can be easily switched like following</p>\n<pre><code>% ~\n: jdk8\nopenjdk version &quot;1.8.0_382&quot;\nOpenJDK Runtime Environment (Zulu 8.72.0.17-CA-macos-aarch64) (build 1.8.0_382-b05)\nOpenJDK 64-Bit Server VM (Zulu 8.72.0.17-CA-macos-aarch64) (build 25.382-b05, mixed mode)\n% ~\n: java -version\nopenjdk version &quot;1.8.0_382&quot;\nOpenJDK Runtime Environment (Zulu 8.72.0.17-CA-macos-aarch64) (build 1.8.0_382-b05)\nOpenJDK 64-Bit Server VM (Zulu 8.72.0.17-CA-macos-aarch64) (build 25.382-b05, mixed mode)\n% ~\n:\n% ~\n: jdk11\nopenjdk version &quot;11.0.15&quot; 2022-04-19 LTS\nOpenJDK Runtime Environment Corretto-11.0.15.9.1 (build 11.0.15+9-LTS)\nOpenJDK 64-Bit Server VM Corretto-11.0.15.9.1 (build 11.0.15+9-LTS, mixed mode)\n% ~\n: java -version\nopenjdk version &quot;11.0.15&quot; 2022-04-19 LTS\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 1029180,
+        "reputation": 5100,
+        "user_id": 1037852,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/48affea2496e9ce713a0844dc60d9422?s=256&d=identicon&r=PG",
+        "display_name": "Vegard",
+        "link": "https://stackoverflow.com/users/1037852/vegard"
+      },
+      "is_accepted": false,
+      "score": 445,
+      "last_activity_date": 1684324227,
+      "last_edit_date": 1684324227,
+      "creation_date": 1412758952,
+      "answer_id": 26252993,
+      "question_id": 26252591,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Uninstall jdk8, install jdk7, then reinstall jdk8.</p>\n<p>My approach to switching between them (in .profile) :</p>\n<pre><code>export JAVA_7_HOME=$(/usr/libexec/java_home -v1.7)\nexport JAVA_8_HOME=$(/usr/libexec/java_home -v1.8)\nexport JAVA_9_HOME=$(/usr/libexec/java_home -v9)\nexport JAVA_20_HOME=$(/usr/libexec/java_home -v20)\n\nalias java7='export JAVA_HOME=$JAVA_7_HOME'\nalias java8='export JAVA_HOME=$JAVA_8_HOME'\nalias java9='export JAVA_HOME=$JAVA_9_HOME'\nalias java20='export JAVA_HOME=$JAVA_20_HOME'\n\n#default java8\nexport JAVA_HOME=$JAVA_8_HOME\n</code></pre>\n<p>Then you can simply type <code>java7</code> or <code>java8</code> in a terminal to switch versions.</p>\n<p>(edit: updated to add Dylans improvement for Java 9)</p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 12183171,
+        "reputation": 1314,
+        "user_id": 8894035,
+        "user_type": "registered",
+        "profile_image": "https://graph.facebook.com/1474662352641992/picture?type=large",
+        "display_name": "Wahab Khan Jadon",
+        "link": "https://stackoverflow.com/users/8894035/wahab-khan-jadon"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1664866508,
+      "post_id": 26252591,
+      "comment_id": 130562233,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 1141351,
+        "reputation": 19536,
+        "user_id": 1125159,
+        "user_type": "registered",
+        "accept_rate": 78,
+        "profile_image": "https://www.gravatar.com/avatar/3b5e38afbccf47011db011b392f8a178?s=256&d=identicon&r=PG",
+        "display_name": "Powers",
+        "link": "https://stackoverflow.com/users/1125159/powers"
+      },
+      "edited": false,
+      "score": 6,
+      "creation_date": 1604839510,
+      "post_id": 26252591,
+      "comment_id": 114463500,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "29195815": [
+      {
+        "owner": {
+          "account_id": 65080,
+          "reputation": 6159,
+          "user_id": 191761,
+          "user_type": "registered",
+          "accept_rate": 71,
+          "profile_image": "https://i.sstatic.net/umagg.jpg?s=256",
+          "display_name": "Adam Burley",
+          "link": "https://stackoverflow.com/users/191761/adam-burley"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1739133507,
+        "post_id": 29195815,
+        "comment_id": 140073830,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 2748916,
+          "reputation": 1057,
+          "user_id": 2368696,
+          "user_type": "registered",
+          "accept_rate": 38,
+          "profile_image": "https://i.sstatic.net/8i5S7.png?s=256",
+          "display_name": "Adi Prasetyo",
+          "link": "https://stackoverflow.com/users/2368696/adi-prasetyo"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1693314818,
+        "post_id": 29195815,
+        "comment_id": 135742032,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 4667393,
+          "reputation": 2273,
+          "user_id": 3780130,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/1700b6be5c0589c4ae6d3120d6334461?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Markus",
+          "link": "https://stackoverflow.com/users/3780130/markus"
+        },
+        "reply_to_user": {
+          "account_id": 1199784,
+          "reputation": 19161,
+          "user_id": 1170677,
+          "user_type": "registered",
+          "accept_rate": 54,
+          "profile_image": "https://www.gravatar.com/avatar/ce2bdf03db9d6eea0cf5adb14f0c7853?s=256&d=identicon&r=PG",
+          "display_name": "Adelin",
+          "link": "https://stackoverflow.com/users/1170677/adelin"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1664358782,
+        "post_id": 29195815,
+        "comment_id": 130451630,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1199784,
+          "reputation": 19161,
+          "user_id": 1170677,
+          "user_type": "registered",
+          "accept_rate": 54,
+          "profile_image": "https://www.gravatar.com/avatar/ce2bdf03db9d6eea0cf5adb14f0c7853?s=256&d=identicon&r=PG",
+          "display_name": "Adelin",
+          "link": "https://stackoverflow.com/users/1170677/adelin"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1632521252,
+        "post_id": 29195815,
+        "comment_id": 122524499,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 878759,
+          "reputation": 4128,
+          "user_id": 134044,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/eff44fbba202a5b3a99073258ad3d3d2?s=256&d=identicon&r=PG",
+          "display_name": "NeilG",
+          "link": "https://stackoverflow.com/users/134044/neilg"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1627651217,
+        "post_id": 29195815,
+        "comment_id": 121219952,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 878759,
+          "reputation": 4128,
+          "user_id": 134044,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/eff44fbba202a5b3a99073258ad3d3d2?s=256&d=identicon&r=PG",
+          "display_name": "NeilG",
+          "link": "https://stackoverflow.com/users/134044/neilg"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1627650374,
+        "post_id": 29195815,
+        "comment_id": 121219595,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 878759,
+          "reputation": 4128,
+          "user_id": 134044,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/eff44fbba202a5b3a99073258ad3d3d2?s=256&d=identicon&r=PG",
+          "display_name": "NeilG",
+          "link": "https://stackoverflow.com/users/134044/neilg"
+        },
+        "edited": false,
+        "score": 3,
+        "creation_date": 1627649404,
+        "post_id": 29195815,
+        "comment_id": 121219205,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 7888499,
+          "reputation": 1110,
+          "user_id": 5959593,
+          "user_type": "registered",
+          "accept_rate": 0,
+          "profile_image": "https://www.gravatar.com/avatar/91dad3607c51425f81aeef5625846075?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Minh Nghĩa",
+          "link": "https://stackoverflow.com/users/5959593/minh-ngh%c4%a9a"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1611057293,
+        "post_id": 29195815,
+        "comment_id": 116321934,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 435047,
+          "reputation": 872,
+          "user_id": 821415,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/dae8884cb6314f356ae7eea0ecde68d4?s=256&d=identicon&r=PG",
+          "display_name": "antimatter",
+          "link": "https://stackoverflow.com/users/821415/antimatter"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1588934288,
+        "post_id": 29195815,
+        "comment_id": 109097018,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "77934854": [
+      {
+        "owner": {
+          "account_id": -1,
+          "reputation": 1,
+          "user_id": -1,
+          "user_type": "moderator",
+          "profile_image": "https://www.gravatar.com/avatar/a007be5a61f6aa8f3e85ae2fc18dd66e?s=256&d=identicon&r=PG",
+          "display_name": "Community",
+          "link": "https://stackoverflow.com/users/-1/community"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1707369984,
+        "post_id": 77934854,
+        "comment_id": 137438170,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "47699905": [
+      {
+        "owner": {
+          "account_id": 424109,
+          "reputation": 18223,
+          "user_id": 803925,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/310d258cfa73835789e2d3015263f6d4?s=256&d=identicon&r=PG",
+          "display_name": "nbrooks",
+          "link": "https://stackoverflow.com/users/803925/nbrooks"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1763569291,
+        "post_id": 47699905,
+        "comment_id": 140862683,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 65080,
+          "reputation": 6159,
+          "user_id": 191761,
+          "user_type": "registered",
+          "accept_rate": 71,
+          "profile_image": "https://i.sstatic.net/umagg.jpg?s=256",
+          "display_name": "Adam Burley",
+          "link": "https://stackoverflow.com/users/191761/adam-burley"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1739133786,
+        "post_id": 47699905,
+        "comment_id": 140073840,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 4753684,
+          "reputation": 123,
+          "user_id": 3843021,
+          "user_type": "registered",
+          "accept_rate": 25,
+          "profile_image": "https://i.sstatic.net/zI7BE.jpg?s=256",
+          "display_name": "romerorsp",
+          "link": "https://stackoverflow.com/users/3843021/romerorsp"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1668207012,
+        "post_id": 47699905,
+        "comment_id": 131357642,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 2557734,
+          "reputation": 1951,
+          "user_id": 2219361,
+          "user_type": "registered",
+          "accept_rate": 88,
+          "profile_image": "https://i.sstatic.net/BAPKY.jpg?s=256",
+          "display_name": "Taoufik Mohdit",
+          "link": "https://stackoverflow.com/users/2219361/taoufik-mohdit"
+        },
+        "edited": false,
+        "score": 2,
+        "creation_date": 1602701788,
+        "post_id": 47699905,
+        "comment_id": 113807134,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 331909,
+          "reputation": 381,
+          "user_id": 656891,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/a3e3b698fad4535d1fbfc81d0ecaae9c?s=256&d=identicon&r=PG",
+          "display_name": "pob",
+          "link": "https://stackoverflow.com/users/656891/pob"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1586211611,
+        "post_id": 47699905,
+        "comment_id": 108041084,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "45134206": [
+      {
+        "owner": {
+          "account_id": 3716253,
+          "reputation": 94,
+          "user_id": 3110297,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/f479c3383c41d0823ca2e2aeafe67029?s=256&d=identicon&r=PG",
+          "display_name": "RobLW",
+          "link": "https://stackoverflow.com/users/3110297/roblw"
+        },
+        "edited": false,
+        "score": 4,
+        "creation_date": 1650909445,
+        "post_id": 45134206,
+        "comment_id": 127230284,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "77364238": [],
+    "26252993": [
+      {
+        "owner": {
+          "account_id": 21339013,
+          "reputation": 355,
+          "user_id": 15709786,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/08852532146cde68b9eaf06bd5918288?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "CVerica",
+          "link": "https://stackoverflow.com/users/15709786/cverica"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1712004301,
+        "post_id": 26252993,
+        "comment_id": 137965803,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 2626295,
+          "reputation": 692,
+          "user_id": 2273211,
+          "user_type": "registered",
+          "accept_rate": 67,
+          "profile_image": "https://i.sstatic.net/AzUPp.jpg?s=256",
+          "display_name": "KunYu Tsai",
+          "link": "https://stackoverflow.com/users/2273211/kunyu-tsai"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1711080545,
+        "post_id": 26252993,
+        "comment_id": 137871202,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 966208,
+          "reputation": 656,
+          "user_id": 989595,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/f9580e648d40b2ea6ed8c6340cdee0d3?s=256&d=identicon&r=PG",
+          "display_name": "Bright",
+          "link": "https://stackoverflow.com/users/989595/bright"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1705050344,
+        "post_id": 26252993,
+        "comment_id": 137164454,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 2567543,
+          "reputation": 583,
+          "user_id": 2227178,
+          "user_type": "registered",
+          "accept_rate": 0,
+          "profile_image": "https://i.sstatic.net/F4P8QTVo.png?s=256",
+          "display_name": "Askar",
+          "link": "https://stackoverflow.com/users/2227178/askar"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1649589304,
+        "post_id": 26252993,
+        "comment_id": 126909278,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1029180,
+          "reputation": 5100,
+          "user_id": 1037852,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/48affea2496e9ce713a0844dc60d9422?s=256&d=identicon&r=PG",
+          "display_name": "Vegard",
+          "link": "https://stackoverflow.com/users/1037852/vegard"
+        },
+        "reply_to_user": {
+          "account_id": 6623193,
+          "reputation": 535,
+          "user_id": 5114189,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/a824b6ab21137217a13ec7dc9819bc63?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "msilb",
+          "link": "https://stackoverflow.com/users/5114189/msilb"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1644236367,
+        "post_id": 26252993,
+        "comment_id": 125543208,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 6623193,
+          "reputation": 535,
+          "user_id": 5114189,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/a824b6ab21137217a13ec7dc9819bc63?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "msilb",
+          "link": "https://stackoverflow.com/users/5114189/msilb"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1609082341,
+        "post_id": 26252993,
+        "comment_id": 115743319,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 2801879,
+          "reputation": 717,
+          "user_id": 3810038,
+          "user_type": "registered",
+          "accept_rate": 100,
+          "profile_image": "https://i.sstatic.net/gGQN3.png?s=256",
+          "display_name": "John Red",
+          "link": "https://stackoverflow.com/users/3810038/john-red"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1587900866,
+        "post_id": 26252993,
+        "comment_id": 108685557,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

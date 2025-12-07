@@ -1,0 +1,77 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "dom"
+    ],
+    "owner": {
+      "account_id": 4130402,
+      "reputation": 2708,
+      "user_id": 3388491,
+      "user_type": "registered",
+      "accept_rate": 46,
+      "profile_image": "https://www.gravatar.com/avatar/5ed876f96de5511846deb012e56f7b73?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "oschlueter",
+      "link": "https://stackoverflow.com/users/3388491/oschlueter"
+    },
+    "is_answered": true,
+    "view_count": 20004,
+    "accepted_answer_id": 23361853,
+    "answer_count": 6,
+    "score": 30,
+    "last_activity_date": 1764852462,
+    "creation_date": 1398762495,
+    "last_edit_date": 1398762983,
+    "question_id": 23360278,
+    "content_license": "CC BY-SA 3.0",
+    "link": "https://stackoverflow.com/questions/23360278/how-to-use-org-w3c-dom-nodelist-with-java-8-stream-api",
+    "title": "How to use org.w3c.dom.NodeList with Java 8 Stream API?",
+    "body": "<p>I believe the Interface <a href=\"http://docs.oracle.com/javase/8/docs/api/org/w3c/dom/NodeList.html\">org.w3c.dom.NodeList</a> is missing a <code>stream()</code> function to make use of the benefits of Java 8's Stream API. Considering the introduction of default methods to ensure backwards compatibility, I fail to understand why this Interface doesn't have <code>stream()</code> function. </p>\n\n<p>So my questions are: </p>\n\n<ul>\n<li>How do I use a <code>NodeList</code> in combination with the Stream API?</li>\n<li>If it's discouraged to do so, what are the reasons for that?</li>\n</ul>\n\n<p>Thanks in advance!</p>\n\n<p>Edit: I'm currently using this utility wrapper:</p>\n\n<pre><code>private static Stream&lt;Node&gt; nodeStream(NodeList list) {\n    List&lt;Node&gt; nodes = new ArrayList&lt;&gt;();\n\n    for (int n = 0; n &lt; list.getLength(); ++n) {\n        nodes.add(list.item(n));\n    }\n\n    return nodes.stream();\n}\n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 50585,
+        "reputation": 43459,
+        "user_id": 150978,
+        "user_type": "registered",
+        "accept_rate": 78,
+        "profile_image": "https://www.gravatar.com/avatar/feadc214792e2581c3c750140e3eb2c7?s=256&d=identicon&r=PG",
+        "display_name": "Robert",
+        "link": "https://stackoverflow.com/users/150978/robert"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1764852462,
+      "creation_date": 1764852462,
+      "answer_id": 79837932,
+      "question_id": 23360278,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Another approach getting a <code>Stream&lt;org.w3c.dom.Node&gt;</code> is using <code>org.apache.commons.collections4.iterators.NodeListIterator</code>:</p>\n<pre><code>NodeList nodeList = ...\nIterable&lt;Node&gt; iterable = () -&gt; new NodeListIterator(nodeList);\nStream&lt;Node&gt; stream = StreamSupport.stream(iterable.spliterator(), false);\n</code></pre>\n<p><code>NodeListIterator</code> has the advantage that it has no fixed size, thus if the DOM would change  and change the number of elements returned this would be reflected by the stream.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 3887283,
+        "reputation": 379,
+        "user_id": 3218334,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/0b7bd6c17322f65f1cf8dc540b205c7f?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "A. Parolini",
+        "link": "https://stackoverflow.com/users/3218334/a-parolini"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1671698929,
+      "creation_date": 1671698929,
+      "answer_id": 74886103,
+      "question_id": 23360278,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Small variation if you want to convert children nodes to a stream of node Element only:</p>\n<pre><code>private Stream&lt;Element&gt; nodeLisToStreamElements(NodeList nodeList) {\n    return IntStream.range(0, nodeList.getLength())\n        .mapToObj(nodeList::item)\n        .filter(node -&gt; node instanceof Element)\n        .map(node -&gt; (Element) node);\n}\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79837932": [],
+    "74886103": []
+  }
+}

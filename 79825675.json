@@ -1,0 +1,74 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "kotlin"
+    ],
+    "owner": {
+      "account_id": 44747664,
+      "reputation": 1,
+      "user_id": 31915408,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/a22925249cbc30570fcc28bb74319c87?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "The-Pro Gamer",
+      "link": "https://stackoverflow.com/users/31915408/the-pro-gamer"
+    },
+    "is_answered": true,
+    "view_count": 62,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1763712190,
+    "creation_date": 1763652194,
+    "last_edit_date": 1763712190,
+    "question_id": 79825675,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79825675/custom-overlay-when-detecting-device-recording",
+    "title": "Custom overlay when detecting device recording",
+    "body": "<p>I am trying to make a custom overlay for my application that will hide the screen if any screen share or unauthorized recording of my app is running.</p>\n<p>The problem is, that I am trying to avoid using <code>FLAG_SECURE</code>, because it doesn't allow me to add custom elements to inform the user that the screen is being recorded and show them what is going on.</p>\n<p>I have tried creating custom logic, and here is what I have achieved so far:</p>\n<p>I managed to create a custom detection using <code>DisplayManager</code>, to catch whether recording is active. However, I found a bypass that I cannot fix. If you start recording before entering the app, your screen doesn't hide. Recording that starts outside of the app cannot be detected. The detection only works if recording starts while the app is in the background or on screen.</p>\n<p>So far, I have tested sharing my screen and starting recording while in the app. This works great and looks really nice to inform the user what is actually happening. But this can be bypassed if recording starts outside the app before entering.</p>\n<p>I have read forums and tried other approaches, but everyone says it is not possible without  <code>FLAG_SECURE</code>. Using <code>FLAG_SECURE</code> would also block screenshots, which is not what I want. My goal is to achieve something similar to what my iOS colleague has implemented.</p>\n<hr />\n<p>Here's the code I'm using:</p>\n<pre class=\"lang-java prettyprint-override\"><code>class ScreenRecordingDetectionManager(private val context: Context) {\n\n    private val controller: ScreenSecurityController =\n        (context as SmartApplication).getScreenSecurityController()\n            ?: throw IllegalStateException(&quot;ScreenSecurityController not initialized&quot;)\n\n    private val displayListener = object : DisplayManager.DisplayListener {\n        override fun onDisplayAdded(id: Int) {\n            if (id != Display.DEFAULT_DISPLAY) {\n                controller.showSecurityOverlay()\n            }\n        }\n\n        override fun onDisplayRemoved(id: Int) {\n            if (id != Display.DEFAULT_DISPLAY) {\n                controller.hideSecurityOverlay()\n            }\n        }\n\n        override fun onDisplayChanged(id: Int) {}\n    }\n\n    fun startMonitoring() {\n        val dm = context.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager\n        dm.registerDisplayListener(displayListener, null)\n\n        val handler = android.os.Handler(context.mainLooper)\n        handler.postDelayed({\n            val isExternalScreen =\n                dm.displays.any { it.displayId != Display.DEFAULT_DISPLAY }\n            val isMediaProjection =\n                controller.isMediaProjectionRecording()\n\n            if (isExternalScreen || isMediaProjection) {\n                controller.showSecurityOverlay()\n            }\n        }, 200)\n    }\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>class ScreenSecurityController(private val context: Context) :\n    Application.ActivityLifecycleCallbacks {\n\n    private var recordingOverlay: View? = null\n    private var isRecording = false\n\n    fun showSecurityOverlay() {\n        isRecording = true\n        applyOverlayToCurrentActivity()\n    }\n\n    fun hideSecurityOverlay() {\n        isRecording = false\n        recordingOverlay?.visibility = View.GONE\n    }\n\n    private fun applyOverlayToCurrentActivity() {\n\n        if (recordingOverlay != null &amp;&amp; recordingOverlay?.parent != null)\n            return\n\n        val activity = (context as? SmartApplication)?.currentActivity ?: return\n\n        val root = activity.findViewById&lt;ViewGroup&gt;(android.R.id.content)\n\n\n        recordingOverlay = LayoutInflater.from(activity)\n            .inflate(R.layout.screen_recording_overlay, root, false)\n        root.addView(recordingOverlay)\n\n        recordingOverlay?.bringToFront()\n        recordingOverlay?.visibility = if (isRecording) View.VISIBLE else View.GONE\n    }\n\n    override fun onActivityResumed(activity: Activity) {\n        if (isRecording) applyOverlayToCurrentActivity()\n    }\n\n    override fun onActivityCreated(a: Activity, b: Bundle?) {}\n    override fun onActivityStarted(a: Activity) {}\n    override fun onActivityPaused(a: Activity) {}\n    override fun onActivityStopped(a: Activity) {}\n    override fun onActivitySaveInstanceState(a: Activity, outState: Bundle) {}\n    override fun onActivityDestroyed(a: Activity) {}\n\n    @SuppressLint(&quot;PrivateApi&quot;)\n    fun isMediaProjectionRecording(): Boolean {\n        return try {\n            val service = Class.forName(&quot;android.os.SystemProperties&quot;)\n            val getter = service.getMethod(&quot;get&quot;, String::class.java)\n            val value = getter.invoke(null, &quot;sys.service.media.projection&quot;) as String\n            value.contains(&quot;running&quot;, ignoreCase = true)\n        } catch (e: Exception) {\n            false\n        }\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "posted_by_collectives": [
+        {
+          "tags": [
+            "ios",
+            "android"
+          ],
+          "external_links": [
+            {
+              "type": "support",
+              "link": "https://stackoverflow.com/contact?topic=15"
+            }
+          ],
+          "description": "A collective for developers who want to share their knowledge and learn more about mobile development practices and platforms",
+          "link": "/collectives/mobile-dev",
+          "name": "Mobile Development",
+          "slug": "mobile-dev"
+        }
+      ],
+      "owner": {
+        "account_id": 1790714,
+        "reputation": 94780,
+        "user_id": 1631193,
+        "user_type": "registered",
+        "accept_rate": 71,
+        "profile_image": "https://www.gravatar.com/avatar/ac9dfee58394495fa69f12f58a928be3?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Gabe Sechan",
+        "link": "https://stackoverflow.com/users/1631193/gabe-sechan"
+      },
+      "is_accepted": false,
+      "score": 2,
+      "last_activity_date": 1763656768,
+      "creation_date": 1763656768,
+      "answer_id": 79825738,
+      "question_id": 79825675,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Use FLAG_SECURE.  That is the official way of hiding data from those types of apps.  Anything else is a hack-  you will miss corner cases.  You already found one, I can think of a dozen others.  They added the official method for a reason.  There is no way to assure that you get all the corner cases other than using the official method.</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79825738": []
+  }
+}

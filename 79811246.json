@@ -1,0 +1,140 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "hibernate",
+      "jpa"
+    ],
+    "owner": {
+      "account_id": 1488686,
+      "reputation": 422,
+      "user_id": 1396337,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/6107b09afa6e90ec7a981625129a3b98?s=256&d=identicon&r=PG",
+      "display_name": "Mumrah",
+      "link": "https://stackoverflow.com/users/1396337/mumrah"
+    },
+    "is_answered": true,
+    "view_count": 120,
+    "answer_count": 2,
+    "score": 1,
+    "last_activity_date": 1762513289,
+    "creation_date": 1762431029,
+    "last_edit_date": 1762442356,
+    "question_id": 79811246,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79811246/hibernate-6-unidirectional-many-to-one-relationship-and-database-cascading-delet",
+    "title": "Hibernate 6 unidirectional many to one relationship and database cascading deletes",
+    "body": "<p>I have an extensive JPA model which exclusively uses unidirectional @ManyToOne relationships from child to parent, for example like this.</p>\n<pre><code>public class Child {\n  @ManyToOne(optional = false)\n  @JoinColumn(name = &quot;parent&quot;)\n  private Parent parent\n}\n</code></pre>\n<p>There are zillions of relations like this in a rather convoluted hierarchy leading to a root-most entity.  We've set up database cascading deletes, so it is only necessary to delete the root-most entity when we want to delete things.  This was considerably more efficient than doing it in JPA.  This used to work fine but with Hibernate 6 we're encountering a problem.</p>\n<p>If I've loaded an <code>Child</code> entity at some point in a test, say, then try to delete a <code>Parent</code> entity I get an exception like this</p>\n<pre><code>org.hibernate.TransientObjectException: persistent instance references an unsaved transient instance of 'Parent'\n</code></pre>\n<p>I can see from the stack that this exception is being raised via <code>CascadingAction.CHECK_ON_FLUSH</code>.  From debug I can also see that the relation triggering this is from child to parent.  This is perhaps not unreasonably checking that the loaded entities don't have any dangling references.  They obviously will, however, because we're not deleting things using JPA, it is done via data base cascading deletes.</p>\n<p>I really don't want to have to replicate the DB cascading deletes in JPA and as mention it is considerably slower than data base cascading deletes.</p>\n<p>Is there a way to disable this check, or to instead flag these relationships as data-base cascading deletes so Hibernate knows it can just remove the entities safely?</p>\n<p>NB I'm using Spring Boot.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 1488686,
+        "reputation": 422,
+        "user_id": 1396337,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/6107b09afa6e90ec7a981625129a3b98?s=256&d=identicon&r=PG",
+        "display_name": "Mumrah",
+        "link": "https://stackoverflow.com/users/1396337/mumrah"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1762513289,
+      "creation_date": 1762513289,
+      "answer_id": 79812262,
+      "question_id": 79811246,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>As per the comments the problem is that if the database cascades the deletes then the persistence context is left in an inconsistent state.  This used to be ignored but now Hibernate detects the inconsistency and raises an error.</p>\n<p>It is therefore necessary to either replicate all the cascading deletes in JPA (which is not DRY so I'm not doing that) or clear the persistence context.  Clearing the persistence context on delete can be achieved like this.</p>\n<pre><code>@NoRepositoryBean\npublic interface CascadingDeleteRepository&lt;TEntity, TId&gt; extends CrudRepository&lt;TEntity, TId&gt; {\n\n  @Override\n  default void delete(TEntity entity) {\n    cascadingDelete(entity);\n  }\n\n  @Query(&quot;DELETE FROM #{#entityName} e WHERE e = :entity&quot;)\n  @Modifying(clearAutomatically = true)\n  void cascadingDelete(@Param(&quot;entity&quot;) TEntity entity);\n}\n</code></pre>\n<p>In an ideal world, perhaps, there would be a way to tell JPA that an association is cascaded on delete by the DB, and then the persistence context could automatically clean up transitive references to the deleted entity.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 2792262,
+        "reputation": 190757,
+        "user_id": 2402272,
+        "user_type": "registered",
+        "accept_rate": 85,
+        "profile_image": "https://www.gravatar.com/avatar/1182b1d5518a596d4e8cfe0567a65c4d?s=256&d=identicon&r=PG",
+        "display_name": "John Bollinger",
+        "link": "https://stackoverflow.com/users/2402272/john-bollinger"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1762466540,
+      "creation_date": 1762466540,
+      "answer_id": 79811809,
+      "question_id": 79811246,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<blockquote>\n<p>We've set up database cascading deletes [...]. This was considerably more efficient than doing it in JPA.</p>\n</blockquote>\n<p>I can believe that it provided faster deletion behavior, but it was never a good idea.  JPA and other ORM systems are designed and built for <em>state management</em>, not merely query building.  Undercutting their ability to track the state they are entrusted with managing cannot reasonably be expected to end well.</p>\n<blockquote>\n<p>This used to work fine but with Hibernate 6 we're encountering a problem.</p>\n</blockquote>\n<p>I am prepared to believe that you did not recognize any problems with the database-level cascading deletes in conjunction with older versions of Hibernate.  It might even have been that there genuinely weren't any.  Nevertheless, see &quot;cannot reasonably be expected to end well&quot;, above.  Even if hadn't before, that misfortunate ending has arrived now.</p>\n<blockquote>\n<p>If I've loaded an <code>Child</code> entity at some point in a test, say, then try to delete a <code>Parent</code> entity I get an exception</p>\n</blockquote>\n<p>I presume you mean that you delete the particular <code>Parent</code> with which the <code>Child</code> in question is associated. The resulting DB-level cascading deletes then yank the persistent representation of the <code>Child</code> out from underneath the persistence unit.  The persistence unit is thereby made inconsistent: the state of the <code>Child</code> as judged by the database is deleted / transient, but it is still persistent / managed as far as the entity manager is concerned.  The best you can hope for is that the EM doesn't notice and / or doesn't care, but there is not, in general, any basis for assuming that that's what you will actually observe.</p>\n<blockquote>\n<p>I really don't want to have to replicate the DB cascading deletes in JPA and as mention it is considerably slower than data base cascading deletes.</p>\n</blockquote>\n<p>If Hibernate is to maintain synchronicity with the DB then there is more work to do than just removing rows from the DB.  Yes, that will be more costly than allowing Hibernate to lose sync, but losing sync was never a very good option.  However, you might get some relief by adding a (Hibernate-specific) <a href=\"https://docs.hibernate.org/orm/6.6/javadocs/org/hibernate/annotations/OnDelete.html\" rel=\"nofollow noreferrer\"><code>@OnDelete</code></a> annotation:</p>\n<pre><code>public class Child {\n  @ManyToOne(optional = false)\n  @JoinColumn(name = &quot;parent&quot;)\n  @OnDelete(action = CASCADE)\n  private Parent parent\n}\n</code></pre>\n<p>This tells Hibernate that there should be an <code>on delete cascade</code> clause on the foreign key constraint supporting the relationship. As I understand the docs, however, you would still need to use that together with JPA-level cascading removes in order for it to be effective in preventing the persistence context from losing synchronization with the DB. And I think that means you'll need to make the relationship bidirectional, though one or both ends can be lazy-loaded.  Hibernate will fetch the relationship if necessary so that it knows what entities need to be evicted from its cache, but with <code>@OnDelete</code>, is should not execute <code>delete</code> statements on the database for those.</p>\n<blockquote>\n<p>Is there a way to disable this check,</p>\n</blockquote>\n<p>Not as far as I can tell.</p>\n<blockquote>\n<p>or to instead flag these relationships as data-base cascading deletes</p>\n</blockquote>\n<p>See above, but, as already described, this ...</p>\n<blockquote>\n<p>so Hibernate knows it can just remove the entities safely?</p>\n</blockquote>\n<p>... does not follow.  Hibernate needs to know what child (and grandchild, <em>etc</em>) entities are deleted in order to manage its cache appropriately.  That will have a cost, both in code to map the other side of the relationship and in DB operations performed, but it should be at least a bit cheaper than without the <code>@OnDelete</code>.</p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 1488686,
+        "reputation": 422,
+        "user_id": 1396337,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/6107b09afa6e90ec7a981625129a3b98?s=256&d=identicon&r=PG",
+        "display_name": "Mumrah",
+        "link": "https://stackoverflow.com/users/1396337/mumrah"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1762853327,
+      "post_id": 79811246,
+      "comment_id": 140848225,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79812262": [],
+    "79811809": [
+      {
+        "owner": {
+          "account_id": 2792262,
+          "reputation": 190757,
+          "user_id": 2402272,
+          "user_type": "registered",
+          "accept_rate": 85,
+          "profile_image": "https://www.gravatar.com/avatar/1182b1d5518a596d4e8cfe0567a65c4d?s=256&d=identicon&r=PG",
+          "display_name": "John Bollinger",
+          "link": "https://stackoverflow.com/users/2402272/john-bollinger"
+        },
+        "reply_to_user": {
+          "account_id": 1488686,
+          "reputation": 422,
+          "user_id": 1396337,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/6107b09afa6e90ec7a981625129a3b98?s=256&d=identicon&r=PG",
+          "display_name": "Mumrah",
+          "link": "https://stackoverflow.com/users/1396337/mumrah"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1762521363,
+        "post_id": 79811809,
+        "comment_id": 140841874,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1488686,
+          "reputation": 422,
+          "user_id": 1396337,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/6107b09afa6e90ec7a981625129a3b98?s=256&d=identicon&r=PG",
+          "display_name": "Mumrah",
+          "link": "https://stackoverflow.com/users/1396337/mumrah"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1762513377,
+        "post_id": 79811809,
+        "comment_id": 140841644,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

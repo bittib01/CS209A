@@ -1,0 +1,76 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-security",
+      "authorization",
+      "abac"
+    ],
+    "owner": {
+      "account_id": 27554485,
+      "reputation": 25,
+      "user_id": 21028962,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/b0baf0a40e835452b13581ff247ef4a6?s=256&d=identicon&r=PG",
+      "display_name": "0xRelu",
+      "link": "https://stackoverflow.com/users/21028962/0xrelu"
+    },
+    "is_answered": false,
+    "view_count": 136,
+    "answer_count": 2,
+    "score": 4,
+    "last_activity_date": 1763564981,
+    "creation_date": 1762418392,
+    "question_id": 79811010,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79811010/how-did-you-implement-attribute-based-access-control-abac-in-spring-boot",
+    "title": "How did you implement Attribute-based Access Control (ABAC) in Spring Boot?",
+    "body": "<p>I’ve been working on an issue in our Spring Boot application for some time now: <strong>authorization</strong>. Because we have a more complex permission model — permissions depend not only on roles, but also on user-specific attributes (e.g., department) — we require <strong>Attribute-based Access Control (ABAC)</strong> instead of the typical <strong>Role-based Access Control (RBAC)</strong> used in Spring Security (see <a href=\"https://docs.spring.io/spring-security/reference/servlet/authorization/method-security.html\" rel=\"nofollow noreferrer\">Spring Docs - Method-based Security</a>).</p>\n<p>At the moment, we have a custom implementation that roughly follows the ABAC reference model (PEP, PDP, ...). However, it is neither particularly efficient nor easily scalable or maintainable. Therefore, I’d like to hear what solutions you have used and what has worked well in your projects.</p>\n<p>Below are some approaches I have explored or tested, but none of them seem to be a perfect fit so far:</p>\n<ol>\n<li><p><strong><a href=\"https://docs.spring.io/spring-security/reference/servlet/authorization/method-security.html#authorization-expressions\" rel=\"nofollow noreferrer\">SpEL</a></strong> <strong>(Method-based Security: @PreAuthorize / @PostAuthorize)</strong><br />\nSpring allows you to define authorization logic directly in annotations using SpEL. However, this is recommended only for simple logic (see <a href=\"https://docs.spring.io/spring-security/reference/servlet/authorization/method-security.html#favor-granting-authorities\" rel=\"nofollow noreferrer\">Spring Docs - Favor Granting Authorities</a>). Since our use case is more complex, this approach does not seem suitable.</p>\n</li>\n<li><p><strong><a href=\"https://docs.spring.io/spring-security/reference/servlet/authorization/method-security.html#use-programmatic-authorization\" rel=\"nofollow noreferrer\">SpEL - Programmatic Authorization</a></strong><br />\nInstead of writing logic directly in SpEL, one can reference a separate service from SpEL, which then performs the authorization checks. This seems more promising, but it raises questions like:<br />\n<em>Does it scale well?</em><br />\nAnd does it lead to a large number of AuthorizationService classes — potentially one for every business service — increasing code complexity?</p>\n</li>\n<li><p>External Policy Decision Point (e.g., <a href=\"https://www.cerbos.dev/ecosystem/spring-boot\" rel=\"nofollow noreferrer\">Cerbos</a> , OPA)<br />\nUsing an external PDP allows you to separate authorization logic from the application. I tested Cerbos in particular, since its SDK aligns better with our needs (as far as I know, OPA SDK does not easily support passing additional resource attributes specifiy for a method).<br />\nThis approach works in principle, but it introduces operational overhead: Cerbos would need to be deployed as a sidecar, which would complicate deployment, testing, and the general workflow. It is technically possible, but currently difficult to implement in our environment. So ideally, we would prefer a <strong>native Spring/Java solution.</strong></p>\n</li>\n</ol>\n<p><strong>How have you implemented ABAC efficiently and in a scalable way in your Spring Boot/Java applications?</strong><br />\nI would really appreciate your insights or examples of architectures that worked well for you.</p>\n<p>Thanks in advance! 😊</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 27554485,
+        "reputation": 25,
+        "user_id": 21028962,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/b0baf0a40e835452b13581ff247ef4a6?s=256&d=identicon&r=PG",
+        "display_name": "0xRelu",
+        "link": "https://stackoverflow.com/users/21028962/0xrelu"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1763564981,
+      "creation_date": 1763564981,
+      "answer_id": 79824619,
+      "question_id": 79811010,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Pretty interesting approach. I also tried something similar; however, I split <code>CheckPolicy</code> into two separate annotations — <code>PreAuthorize</code> and <code>PostAuthorize</code> (similar to the Spring Security annotations) — to differentiate when the policy logic is executed.</p>\n<p>That said, I’m not a fan of using Spring Security’s <code>PreAuthorize</code> and <code>PostAuthorize</code> for smaller policies, as it ends up scattering policy definitions across different places (mixing SpEL and Java-based policies if you also use the custom annotations).</p>\n<p>For externalized policy definitions, how would you parse YAML-based policies in Java to use them in a PDP?</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 30070712,
+        "reputation": 11,
+        "user_id": 23044730,
+        "user_type": "registered",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocIDd55mW7aHmIx0kCFgt15eV92S-pMRqxRp5ciigS4cEQ=k-s256",
+        "display_name": "Mohammad Askari",
+        "link": "https://stackoverflow.com/users/23044730/mohammad-askari"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1762762830,
+      "creation_date": 1762762830,
+      "answer_id": 79815335,
+      "question_id": 79811010,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>We’ve implemented ABAC in a few Spring Boot projects, and after trying different patterns, here’s what has worked best for us.</p>\n<p><strong>Keep the PDP logic inside Spring (don’t overcomplicate it at first)</strong></p>\n<p>Instead of introducing an external policy engine like OPA or Cerbos right away, we built a lightweight <strong>Policy Decision Point</strong> (PDP) inside the app. It uses a central AuthorizationService that evaluates user and resource attributes against a set of rules defined in code or configuration.\nEach rule is just a small, composable predicate — for example:</p>\n<pre><code>public interface PolicyRule {\n    boolean evaluate(UserPrincipal user, Object resource);\n}\n\n</code></pre>\n<p>Then our AuthorizationService just loops through applicable rules for that resource type.\nThis approach kept the logic easy to test and avoided spinning up external services.</p>\n<p><strong>Use custom annotations for Policy Enforcement (PEP)</strong></p>\n<p>We built annotations like <code>@CheckPolicy(&quot;DOCUMENT_VIEW&quot;)</code> and an AOP aspect that intercepts calls and delegates to the PDP.\nThat way, the policy logic stays separate from business code, and we can still leverage Spring’s AOP and security context.</p>\n<pre><code>@CheckPolicy(&quot;DOCUMENT_EDIT&quot;)\npublic void updateDocument(Document doc) { ... }\n\n</code></pre>\n<p>The aspect looks up user and resource attributes and passes them to the PDP for evaluation.</p>\n<p><strong>Use SpEL only for simple dynamic checks</strong></p>\n<p>We do use <code>@PreAuthorize</code> for quick conditions (like comparing IDs or departments), but for anything complex, we delegate to the PDP.\nEmbedding too much logic in SpEL quickly becomes unreadable and untestable.</p>\n<p>A key best practice for ABAC is having a single, consistent way to resolve user and resource attributes.\nWe defined a <code>ContextProvider</code> interface that can pull attributes (department, ownership, sensitivity level, etc.) from various sources — DB, JWT claims, or microservice calls.\nThis avoids duplicating that logic across services.</p>\n<p><strong>Keep the policy definitions externalizable (optional)</strong></p>\n<p>Once the internal PDP grew too complex, we moved the rules to YAML files that are parsed at startup.\nThat gave us flexibility similar to Cerbos, but without the operational overhead.</p>\n<p>Example snippet:</p>\n<pre><code>policies:\n  - action: DOCUMENT_VIEW\n    conditions:\n      - user.department == resource.department\n      - resource.visibility == 'PUBLIC'\n</code></pre>\n<p>If you’re already running Kubernetes and have solid CI/CD automation, offloading ABAC to an external PDP can be great for large, multi-service environments.</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79824619": [],
+    "79815335": []
+  }
+}

@@ -1,0 +1,145 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-security",
+      "vaadin-flow",
+      "java-21"
+    ],
+    "owner": {
+      "account_id": 18944447,
+      "reputation": 105,
+      "user_id": 13823700,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a-/AOh14GgtEA0BwTNM3NAUoElSgnw09281BGl203f3McYuew=k-s256",
+      "display_name": "Jennifer",
+      "link": "https://stackoverflow.com/users/13823700/jennifer"
+    },
+    "is_answered": true,
+    "view_count": 91,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1763033665,
+    "creation_date": 1762251155,
+    "last_edit_date": 1762382489,
+    "question_id": 79808779,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79808779/change-default-success-url-in-spring-security-using-vaadin-24",
+    "title": "Change default success URL in Spring Security using Vaadin 24",
+    "body": "<p>Has anyone been able to change the default success URL after login in Vaadin 24, where we are supposed to handle the filter as follows:</p>\n<pre><code>public SecurityFilterChain securityFilterChain(@NonNull HttpSecurity http) throws Exception {\n        return http.with(VaadinSecurityConfigurer.vaadin(),\n                        configurer -&gt; configurer.loginView(LoginView.class))\n                .authenticationProvider(authenticationProvider)\n                .build();\n    }\n</code></pre>\n<p>I tried adding .formLogin() after .with also after .authenticationProvider, but no result. It still redirects to /.</p>\n<p>I would be happy for any solution, including hacking the RequestCache if needed. But even Google AI mode could not help with this one. It eventually suggested that I use a different version of Vaadin (facepalm).</p>\n<p>PS: Extension of VaadinWebSecurity is deprecated since 24.9 and slated for deletion, which is why I am going with this &quot;new&quot; approach from the documentation.</p>\n<p><em>Today I tried this, but it did not work, maybe I have a problem with the approach?</em></p>\n<pre><code>http.with(VaadinSecurityConfigurer.vaadin(),\n                        configurer -&gt; configurer.loginView(LoginView.class)\n                                .withObjectPostProcessor(new ObjectPostProcessor&lt;FormLoginConfigurer&lt;HttpSecurity&gt;&gt;() {\n                                    @Override\n                                    public &lt;O extends FormLoginConfigurer&lt;HttpSecurity&gt;&gt; O postProcess(O object) {\n                                        return (O) object.defaultSuccessUrl(&quot;/my-success-path&quot;);\n                                    }\n                                }))\n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 4308659,
+        "reputation": 194,
+        "user_id": 4461115,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/D18Of.png?s=256",
+        "display_name": "Herberts Markūns",
+        "link": "https://stackoverflow.com/users/4461115/herberts-mark%c5%abns"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1763033665,
+      "last_edit_date": 1763033665,
+      "creation_date": 1762758957,
+      "answer_id": 79815291,
+      "question_id": 79808779,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>With the <code>VaadinAwareSecurityContextHolderStrategyConfiguration</code> configuration, you would need to provide an instance of <code>VaadinSavedRequestAwareAuthenticationSuccessHandler</code> as a shared object.</p>\n<pre class=\"lang-java prettyprint-override\"><code>import com.vaadin.flow.spring.security.VaadinSavedRequestAwareAuthenticationSuccessHandler;\n//...\n\n@Bean\npublic SecurityFilterChain vaadinSecurityFilterChain(HttpSecurity http) throws Exception {\n    //...\n    http.setSharedObject(VaadinSavedRequestAwareAuthenticationSuccessHandler.class, createSuccessHandler());\n\n    http.with(vaadin(), vaadin -&gt; {\n        vaadin.loginView(LoginView.class);\n    });\n\n    return http.build();\n}\n\n\npublic VaadinSavedRequestAwareAuthenticationSuccessHandler createSuccessHandler() {\n    var successHandler = new VaadinSavedRequestAwareAuthenticationSuccessHandler();\n    successHandler.setDefaultTargetUrl(&quot;/myview&quot;);\n    successHandler.setAlwaysUseDefaultTargetUrl(true);\n    return successHandler;\n}\n</code></pre>\n<p>It's possible in your <code>LoginView</code> you already have a redirect to <code>&quot;&quot;</code> if user is already logged in, so you would also need to change the URL there, for consistency.</p>\n<pre><code>@Override\npublic void beforeEnter(BeforeEnterEvent event) {\n    if (authenticatedUser.get().isPresent()) {\n        // Already logged in\n        setOpened(false);\n        event.forwardTo(&quot;/myview&quot;);\n    }\n    setError(event.getLocation().getQueryParameters().getParameters().containsKey(&quot;error&quot;));\n}\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79815291": [
+      {
+        "owner": {
+          "account_id": 4308659,
+          "reputation": 194,
+          "user_id": 4461115,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/D18Of.png?s=256",
+          "display_name": "Herberts Markūns",
+          "link": "https://stackoverflow.com/users/4461115/herberts-mark%c5%abns"
+        },
+        "reply_to_user": {
+          "account_id": 18944447,
+          "reputation": 105,
+          "user_id": 13823700,
+          "user_type": "registered",
+          "profile_image": "https://lh3.googleusercontent.com/a-/AOh14GgtEA0BwTNM3NAUoElSgnw09281BGl203f3McYuew=k-s256",
+          "display_name": "Jennifer",
+          "link": "https://stackoverflow.com/users/13823700/jennifer"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1763971921,
+        "post_id": 79815291,
+        "comment_id": 140869777,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 18944447,
+          "reputation": 105,
+          "user_id": 13823700,
+          "user_type": "registered",
+          "profile_image": "https://lh3.googleusercontent.com/a-/AOh14GgtEA0BwTNM3NAUoElSgnw09281BGl203f3McYuew=k-s256",
+          "display_name": "Jennifer",
+          "link": "https://stackoverflow.com/users/13823700/jennifer"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1763813556,
+        "post_id": 79815291,
+        "comment_id": 140867669,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 4308659,
+          "reputation": 194,
+          "user_id": 4461115,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/D18Of.png?s=256",
+          "display_name": "Herberts Markūns",
+          "link": "https://stackoverflow.com/users/4461115/herberts-mark%c5%abns"
+        },
+        "reply_to_user": {
+          "account_id": 18944447,
+          "reputation": 105,
+          "user_id": 13823700,
+          "user_type": "registered",
+          "profile_image": "https://lh3.googleusercontent.com/a-/AOh14GgtEA0BwTNM3NAUoElSgnw09281BGl203f3McYuew=k-s256",
+          "display_name": "Jennifer",
+          "link": "https://stackoverflow.com/users/13823700/jennifer"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1763033767,
+        "post_id": 79815291,
+        "comment_id": 140852246,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 18944447,
+          "reputation": 105,
+          "user_id": 13823700,
+          "user_type": "registered",
+          "profile_image": "https://lh3.googleusercontent.com/a-/AOh14GgtEA0BwTNM3NAUoElSgnw09281BGl203f3McYuew=k-s256",
+          "display_name": "Jennifer",
+          "link": "https://stackoverflow.com/users/13823700/jennifer"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1762955534,
+        "post_id": 79815291,
+        "comment_id": 140850507,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

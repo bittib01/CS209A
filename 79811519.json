@@ -1,0 +1,200 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "mapstruct",
+      "clean-architecture",
+      "annotation-processing"
+    ],
+    "owner": {
+      "account_id": 44583673,
+      "reputation": 11,
+      "user_id": 31828637,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/762c91fd5531b14972c3a9d83d31ba82?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "kevin liu kai",
+      "link": "https://stackoverflow.com/users/31828637/kevin-liu-kai"
+    },
+    "is_answered": true,
+    "view_count": 114,
+    "answer_count": 2,
+    "score": 1,
+    "last_activity_date": 1763039792,
+    "creation_date": 1762445482,
+    "last_edit_date": 1762490856,
+    "question_id": 79811519,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79811519/mapstruct-generated-implementation-cannot-find-imported-class-in-multi-module-sp",
+    "title": "mapstruct generated implementation cannot find imported class in multi-module Spring Boot project",
+    "body": "<p>I am using clean architecture and have 3 modules: application -&gt; details -&gt;  core<br />\nI'm trying to use Mapstruct to generate mappers in application &amp; mappers in details. I have this mapper in application module</p>\n<p>When I do <code>mvn package</code> in the parent pom to build all modules then <code>mvn spring-boot:run -pl application</code> when I send a request &amp; hit the mapper method it throws this error</p>\n<pre class=\"lang-none prettyprint-override\"><code>java.lang.Error: Unresolved compilation problems: \n        The import com.aura.app.http.rest.v1.institutions.requests cannot be resolved\n        The import com.aura.app.http.rest.v1.institutions.responses cannot be resolved\n        AppInstitutionMapper cannot be resolved to a type\n        CreateInstitutionRequestDTO cannot be resolved to a type\n        InstitutionResponseDTO cannot be resolved to a type\n        The method from(Institution) of type AppInstitutionMapperImpl must override or implement a supertype method\n        InstitutionResponseDTO cannot be resolved to a type\n        InstitutionResponseDTO cannot be resolved\n\n        at com.aura.app.http.rest.v1.institutions.mappers.AppInstitutionMapperImpl.&lt;init&gt;(AppInstitutionMapperImpl.java:3) ~[classes/:na]\n        at java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62) ~[na:na]\n        at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499) ~[na:na]\n        at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:483) ~[na:na]\n        at org.mapstruct.factory.Mappers.doGetMapper(Mappers.java:85) ~[mapstruct-1.6.3.jar:na]\n        at org.mapstruct.factory.Mappers.getMapper(Mappers.java:69) ~[mapstruct-1.6.3.jar:na]\n        at org.mapstruct.factory.Mappers.getMapper(Mappers.java:58) ~[mapstruct-1.6.3.jar:na]\n        at com.aura.app.http.rest.v1.institutions.mappers.AppInstitutionMapper.&lt;clinit&gt;(AppInstitutionMapper.java:11) ~[classes/:na]\n        at com.aura.app.http.rest.v1.institutions.InstitutionsController.createInstitution(InstitutionsController.java:51) ~[classes/:na]\n        at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104) ~[na:na]\n        at java.base/java.lang.reflect.Method.invoke(Method.java:565) ~[na:na]\n</code></pre>\n<p><code>AppInstitutionMapper.java</code>:</p>\n<pre class=\"lang-java prettyprint-override\"><code>package com.aura.app.http.rest.v1.institutions.mappers;\n\nimport com.aura.app.http.rest.v1.institutions.requests.CreateInstitutionRequestDTO;\nimport com.aura.app.http.rest.v1.institutions.responses.InstitutionResponseDTO;\nimport com.aura.core.institutions.entities.Institution;\nimport org.mapstruct.Mapper;\nimport org.mapstruct.factory.Mappers;\n\n@Mapper\npublic interface AppInstitutionMapper {\n    AppInstitutionMapper INSTANCE = Mappers.getMapper(AppInstitutionMapper.class);\n\n    Institution from(CreateInstitutionRequestDTO dto);\n\n    InstitutionResponseDTO from(Institution institution);\n}\n\n</code></pre>\n<p>This is the generated <code>AppInstitutionMapperImpl.java</code>:</p>\n<pre class=\"lang-java prettyprint-override\"><code>package com.aura.app.http.rest.v1.institutions.mappers;\n\nimport com.aura.app.http.rest.v1.institutions.requests.CreateInstitutionRequestDTO;\nimport com.aura.app.http.rest.v1.institutions.responses.InstitutionResponseDTO;\nimport com.aura.core.institutions.entities.Institution;\nimport javax.annotation.processing.Generated;\n\n@Generated(\n    value = &quot;org.mapstruct.ap.MappingProcessor&quot;,\n    date = &quot;2025-11-07T00:04:30+0800&quot;,\n    comments = &quot;version: 1.6.3, compiler: javac, environment: Java 25 (Homebrew)&quot;\n)\npublic class AppInstitutionMapperImpl implements AppInstitutionMapper {\n\n    @Override\n    public Institution from(CreateInstitutionRequestDTO dto) {\n        if ( dto == null ) {\n            return null;\n        }\n\n        Institution.InstitutionBuilder institution = Institution.builder();\n\n        institution.name( dto.getName() );\n        institution.email( dto.getEmail() );\n        institution.uen( dto.getUen() );\n        institution.address( dto.getAddress() );\n        institution.contactNumber( dto.getContactNumber() );\n\n        return institution.build();\n    }\n\n    @Override\n    public InstitutionResponseDTO from(Institution institution) {\n        if ( institution == null ) {\n            return null;\n        }\n\n        InstitutionResponseDTO.InstitutionResponseDTOBuilder institutionResponseDTO = InstitutionResponseDTO.builder();\n\n        institutionResponseDTO.id( institution.id() );\n        institutionResponseDTO.name( institution.name() );\n        institutionResponseDTO.email( institution.email() );\n        institutionResponseDTO.uen( institution.uen() );\n        institutionResponseDTO.address( institution.address() );\n        institutionResponseDTO.contactNumber( institution.contactNumber() );\n\n        return institutionResponseDTO.build();\n    }\n}\n\n</code></pre>\n<p>The <code>CreateInstitutionRequestDTO</code> exists in the correct package, likewise for <code>Institution</code> .</p>\n<p>In my parent pom I list out my modules like this:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;\n&lt;project xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot;\n         xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0          http://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&gt;\n    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;\n    &lt;groupId&gt;com.aura&lt;/groupId&gt;\n    &lt;artifactId&gt;parent&lt;/artifactId&gt;\n    &lt;version&gt;1.0.0&lt;/version&gt;\n    &lt;packaging&gt;pom&lt;/packaging&gt;\n    &lt;name&gt;Aura Parent&lt;/name&gt;\n    &lt;description&gt;Parent POM for Aura&lt;/description&gt;\n    &lt;modules&gt;\n        &lt;module&gt;core&lt;/module&gt;\n        &lt;module&gt;details&lt;/module&gt;\n        &lt;module&gt;application&lt;/module&gt;\n    &lt;/modules&gt;\n    &lt;properties&gt;\n        &lt;java.version&gt;24&lt;/java.version&gt;\n        &lt;maven.compiler.source&gt;24&lt;/maven.compiler.source&gt;\n        &lt;maven.compiler.target&gt;24&lt;/maven.compiler.target&gt;\n        &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;\n        &lt;!-- Dependency versions --&gt;\n        &lt;spring.boot.version&gt;3.5.6&lt;/spring.boot.version&gt;\n        &lt;lombok.version&gt;1.18.38&lt;/lombok.version&gt;\n        &lt;mapstruct.version&gt;1.6.3&lt;/mapstruct.version&gt;\n        &lt;lombok-mapstruct-binding.version&gt;0.2.0&lt;/lombok-mapstruct-binding.version&gt;\n        &lt;keycloak-admin-client.version&gt;26.0.7&lt;/keycloak-admin-client.version&gt;\n        &lt;hibernate-envers.version&gt;6.6.5.Final&lt;/hibernate-envers.version&gt;\n        &lt;springdoc-openapi-stgarter-webmvc-ui.version&gt;2.8.8&lt;/springdoc-openapi-stgarter-webmvc-ui.version&gt;\n        &lt;spring-boot-starter-data-jpa.version&gt;3.4.2&lt;/spring-boot-starter-data-jpa.version&gt;\n        &lt;jakarta-validation-api.version&gt;3.0.2&lt;/jakarta-validation-api.version&gt;\n        &lt;archunit.version&gt;1.4.1&lt;/archunit.version&gt;\n        &lt;junit.version&gt;4.13.2&lt;/junit.version&gt;\n        &lt;slf4j.version&gt;2.0.17&lt;/slf4j.version&gt;\n        &lt;!--        used for liquibase profile, TODO: check if needed--&gt;\n        &lt;liquibase.version&gt;4.27.0&lt;/liquibase.version&gt;\n        &lt;liquibase-maven-plugin.version&gt;4.27.0&lt;/liquibase-maven-plugin.version&gt;\n        &lt;liquibase-hibernate6.version&gt;4.23.0&lt;/liquibase-hibernate6.version&gt;\n        &lt;hibernate-validation.version&gt;8.0.2.Final&lt;/hibernate-validation.version&gt;\n        &lt;postgresql.version&gt;42.7.5&lt;/postgresql.version&gt;\n    &lt;/properties&gt;\n    &lt;dependencyManagement&gt;\n        &lt;dependencies&gt;\n            &lt;!-- Spring Boot BOM, only imports the SB dependency versioning --&gt;\n            &lt;dependency&gt;\n                &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n                &lt;artifactId&gt;spring-boot-dependencies&lt;/artifactId&gt;\n                &lt;version&gt;${spring.boot.version}&lt;/version&gt;\n                &lt;type&gt;pom&lt;/type&gt;\n                &lt;scope&gt;import&lt;/scope&gt;\n            &lt;/dependency&gt;\n        &lt;/dependencies&gt;\n    &lt;/dependencyManagement&gt;\n&lt;/project&gt;\n</code></pre>\n<p>and in the application module, I import the dependencies from <code>core</code> &amp; <code>details</code> module.</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;?xml version=&quot;1.0&quot;?&gt;\n&lt;project xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;\n         xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd&quot;\n         xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot;&gt;\n    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;\n    &lt;parent&gt;\n        &lt;groupId&gt;com.aura&lt;/groupId&gt;\n        &lt;artifactId&gt;parent&lt;/artifactId&gt;\n        &lt;version&gt;1.0.0&lt;/version&gt;\n    &lt;/parent&gt;\n    &lt;packaging&gt;jar&lt;/packaging&gt;\n    &lt;artifactId&gt;application&lt;/artifactId&gt;\n    &lt;version&gt;1.0.0&lt;/version&gt;\n    &lt;description&gt;aura application containing app runtime and configurations&lt;/description&gt;\n    &lt;dependencies&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;com.aura&lt;/groupId&gt;\n            &lt;artifactId&gt;core&lt;/artifactId&gt;\n            &lt;version&gt;1.0.0&lt;/version&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;com.aura&lt;/groupId&gt;\n            &lt;artifactId&gt;details&lt;/artifactId&gt;\n            &lt;version&gt;1.0.0&lt;/version&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.slf4j&lt;/groupId&gt;\n            &lt;artifactId&gt;slf4j-api&lt;/artifactId&gt;\n            &lt;version&gt;${slf4j.version}&lt;/version&gt;\n        &lt;/dependency&gt;\n        &lt;!-- Liquibase --&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.liquibase&lt;/groupId&gt;\n            &lt;artifactId&gt;liquibase-core&lt;/artifactId&gt;\n            &lt;version&gt;${liquibase.version}&lt;/version&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n            &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.springdoc&lt;/groupId&gt;\n            &lt;artifactId&gt;springdoc-openapi-starter-webmvc-ui&lt;/artifactId&gt;\n            &lt;version&gt;${springdoc-openapi-stgarter-webmvc-ui.version}&lt;/version&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.keycloak&lt;/groupId&gt;\n            &lt;artifactId&gt;keycloak-admin-client&lt;/artifactId&gt;\n            &lt;version&gt;${keycloak-admin-client.version}&lt;/version&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.postgresql&lt;/groupId&gt;\n            &lt;artifactId&gt;postgresql&lt;/artifactId&gt;\n            &lt;scope&gt;runtime&lt;/scope&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;com.h2database&lt;/groupId&gt;\n            &lt;artifactId&gt;h2&lt;/artifactId&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n            &lt;artifactId&gt;spring-boot-starter-validation&lt;/artifactId&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n            &lt;artifactId&gt;spring-boot-devtools&lt;/artifactId&gt;\n            &lt;scope&gt;runtime&lt;/scope&gt;\n            &lt;optional&gt;true&lt;/optional&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.mapstruct&lt;/groupId&gt;\n            &lt;artifactId&gt;mapstruct&lt;/artifactId&gt;\n            &lt;version&gt;${mapstruct.version}&lt;/version&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;\n            &lt;artifactId&gt;lombok&lt;/artifactId&gt;\n            &lt;version&gt;${lombok.version}&lt;/version&gt;\n            &lt;scope&gt;provided&lt;/scope&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n            &lt;artifactId&gt;spring-boot-starter-oauth2-resource-server&lt;/artifactId&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n            &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;\n            &lt;scope&gt;test&lt;/scope&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;\n            &lt;artifactId&gt;spring-cloud-contract-shade&lt;/artifactId&gt;\n            &lt;version&gt;4.1.0&lt;/version&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.springframework.security&lt;/groupId&gt;\n            &lt;artifactId&gt;spring-security-test&lt;/artifactId&gt;\n            &lt;scope&gt;test&lt;/scope&gt;\n        &lt;/dependency&gt;\n    &lt;/dependencies&gt;\n    &lt;profiles&gt;\n        &lt;profile&gt;\n            &lt;id&gt;generate-db-changelog&lt;/id&gt;\n            &lt;build&gt;\n                &lt;plugins&gt;\n                    &lt;plugin&gt;\n                        &lt;groupId&gt;org.liquibase&lt;/groupId&gt;\n                        &lt;artifactId&gt;liquibase-maven-plugin&lt;/artifactId&gt;\n                        &lt;version&gt;${liquibase-maven-plugin.version}&lt;/version&gt;\n                        &lt;configuration&gt;\n                            &lt;propertyFile&gt;src/main/resources/db/liquibase.properties&lt;/propertyFile&gt;\n                        &lt;/configuration&gt;\n                        &lt;dependencies&gt;\n                            &lt;dependency&gt;\n                                &lt;groupId&gt;org.liquibase.ext&lt;/groupId&gt;\n                                &lt;artifactId&gt;liquibase-hibernate6&lt;/artifactId&gt;\n                                &lt;version&gt;${liquibase-hibernate6.version}&lt;/version&gt;\n                            &lt;/dependency&gt;\n                            &lt;!-- Add this dependency --&gt;\n                            &lt;dependency&gt;\n                                &lt;groupId&gt;jakarta.validation&lt;/groupId&gt;\n                                &lt;artifactId&gt;jakarta.validation-api&lt;/artifactId&gt;\n                                &lt;version&gt;${jakarta-validation-api.version}&lt;/version&gt;\n                            &lt;/dependency&gt;\n                            &lt;!-- Also add the implementation --&gt;\n                            &lt;dependency&gt;\n                                &lt;groupId&gt;org.hibernate.validator&lt;/groupId&gt;\n                                &lt;artifactId&gt;hibernate-validator&lt;/artifactId&gt;\n                                &lt;version&gt;${hibernate-validation.version}&lt;/version&gt;\n                            &lt;/dependency&gt;\n                            &lt;!-- Include your PostgreSQL driver --&gt;\n                            &lt;dependency&gt;\n                                &lt;groupId&gt;org.postgresql&lt;/groupId&gt;\n                                &lt;artifactId&gt;postgresql&lt;/artifactId&gt;\n                                &lt;version&gt;${postgresql.version}&lt;/version&gt;\n                            &lt;/dependency&gt;\n                            &lt;!-- Add your database driver dependency here --&gt;\n\n                        &lt;/dependencies&gt;\n                    &lt;/plugin&gt;\n                &lt;/plugins&gt;\n            &lt;/build&gt;\n        &lt;/profile&gt;\n    &lt;/profiles&gt;\n    &lt;build&gt;\n        &lt;finalName&gt;report-api&lt;/finalName&gt;\n        &lt;plugins&gt;\n            &lt;plugin&gt;\n                &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;\n                &lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;\n                &lt;version&gt;3.11.0&lt;/version&gt;\n                &lt;configuration&gt;\n                    &lt;source&gt;${java.version}&lt;/source&gt;\n                    &lt;target&gt;${java.version}&lt;/target&gt;\n                    &lt;release&gt;${java.version}&lt;/release&gt;\n                    &lt;!-- processes annotations --&gt;\n                    &lt;annotationProcessorPaths&gt;\n                        &lt;path&gt;\n                            &lt;groupId&gt;org.mapstruct&lt;/groupId&gt;\n                            &lt;artifactId&gt;mapstruct-processor&lt;/artifactId&gt;\n                            &lt;version&gt;${mapstruct.version}&lt;/version&gt;\n                        &lt;/path&gt;\n                        &lt;path&gt;\n                            &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;\n                            &lt;artifactId&gt;lombok&lt;/artifactId&gt;\n                            &lt;version&gt;${lombok.version}&lt;/version&gt;\n                        &lt;/path&gt;\n                        &lt;path&gt;\n                            &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;\n                            &lt;artifactId&gt;lombok-mapstruct-binding&lt;/artifactId&gt;\n                            &lt;version&gt;${lombok-mapstruct-binding.version}&lt;/version&gt;\n                        &lt;/path&gt;\n                    &lt;/annotationProcessorPaths&gt;\n                &lt;/configuration&gt;\n            &lt;/plugin&gt;\n            &lt;plugin&gt;\n                &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n                &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;\n                &lt;version&gt;${spring.boot.version}&lt;/version&gt;\n                &lt;configuration&gt;\n                    &lt;mainClass&gt;com.aura.app.Application&lt;/mainClass&gt;\n                    &lt;layout&gt;JAR&lt;/layout&gt;\n                    &lt;excludes&gt;\n                        &lt;!-- Exclude Lombok as it's not needed at runtime --&gt;\n                        &lt;exclude&gt;\n                            &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;\n                            &lt;artifactId&gt;lombok&lt;/artifactId&gt;\n                        &lt;/exclude&gt;\n                    &lt;/excludes&gt;\n                    &lt;!-- Force unpacking of module dependencies --&gt;\n                    &lt;requiresUnpack&gt;\n                        &lt;dependency&gt;\n                            &lt;groupId&gt;com.aura&lt;/groupId&gt;\n                            &lt;artifactId&gt;core&lt;/artifactId&gt;\n                        &lt;/dependency&gt;\n                        &lt;dependency&gt;\n                            &lt;groupId&gt;com.aura&lt;/groupId&gt;\n                            &lt;artifactId&gt;details&lt;/artifactId&gt;\n                        &lt;/dependency&gt;\n                    &lt;/requiresUnpack&gt;\n                    &lt;!-- This ensures classes are included in the JAR properly --&gt;\n                    &lt;classifier&gt;exec&lt;/classifier&gt;\n                &lt;/configuration&gt;\n                &lt;executions&gt;\n                    &lt;execution&gt;\n                        &lt;id&gt;repackage&lt;/id&gt;\n                        &lt;goals&gt;\n                            &lt;goal&gt;repackage&lt;/goal&gt;\n                        &lt;/goals&gt;\n                    &lt;/execution&gt;\n                &lt;/executions&gt;\n            &lt;/plugin&gt;\n        &lt;/plugins&gt;\n    &lt;/build&gt;\n&lt;/project&gt;\n</code></pre>\n<p>Since the annotations for mapper are successfully being processed in both <code>details</code> &amp; <code>application</code> module, I do not know why when the <code>application</code> jar is run at runtime, the generated mapper implementation cannot find any of the other classes.</p>\n<p><strong>more details</strong>\nwhen i look into the jar of <code>application</code> module to check if the relevant classes are there i find that the classes are all there</p>\n<p>the details module dependency is in classpath as a jar</p>\n<pre><code>jar tf application/target/report-api.jar | grep /details\n&gt; BOOT-INF/lib/details-1.0.0.jar\n</code></pre>\n<p>the mapper modules seem to be there too</p>\n<pre><code>jar tf application/target/report-api.jar | grep /mapper \n&gt; BOOT-INF/classes/com/aura/app/http/rest/v1/institutions/mappers/\nBOOT-INF/classes/com/aura/app/http/rest/v1/institutions/mappers/AppInstitutionMapper.class\nBOOT-INF/classes/com/aura/app/http/rest/v1/institutions/mappers/AppInstitutionMapperImpl.class\nBOOT-INF/classes/com/aura/app/http/rest/v1/institutions/mappers/UserMapper.class\n</code></pre>\n<p>the DTO class which the <code>AppInstitutionMapperImpl</code> could not find is also there</p>\n<pre><code>jar tf application/target/report-api.jar | grep /response\nBOOT-INF/classes/com/aura/app/http/rest/v1/institutions/responses/\nBOOT-INF/classes/com/aura/app/http/rest/v1/institutions/responses/InstitutionResponseDTO$InstitutionResponseDTOBuilder.class\nBOOT-INF/classes/com/aura/app/http/rest/v1/institutions/responses/InstitutionResponseDTO.class\n</code></pre>\n<p>this is weird because the mapper class could not import the DTO class at runtime, however the DTO class is just literally in the same jar</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 44583673,
+        "reputation": 11,
+        "user_id": 31828637,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/762c91fd5531b14972c3a9d83d31ba82?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "kevin liu kai",
+        "link": "https://stackoverflow.com/users/31828637/kevin-liu-kai"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1763039792,
+      "last_edit_date": 1763039792,
+      "creation_date": 1762511162,
+      "answer_id": 79812205,
+      "question_id": 79811519,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Thanks @Max for solving this. I had to use <code>spring-boot-mvn-plugin</code> <code>repackage</code> goal to repackage the multiple modules to a standalone <code>fat</code> jar. this allowed the mapper classes to be able to import classes from other modules without errors</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 17553626,
+        "reputation": 508,
+        "user_id": 12733532,
+        "user_type": "registered",
+        "profile_image": "https://lh3.googleusercontent.com/-EAww28wDCxk/AAAAAAAAAAI/AAAAAAAAAAA/ACHi3rcgKS9dXdmUh-hOQPlZYZygBUfLwQ/s256-rj/photo.jpg",
+        "display_name": "Max",
+        "link": "https://stackoverflow.com/users/12733532/max"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1762452232,
+      "creation_date": 1762452232,
+      "answer_id": 79811621,
+      "question_id": 79811519,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Have you tried to swap mapstruct-processor and lombok? Like this</p>\n<pre><code>&lt;path&gt;\n    &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;\n    &lt;artifactId&gt;lombok&lt;/artifactId&gt;\n    &lt;version&gt;${lombok.version}&lt;/version&gt;\n&lt;/path&gt;\n&lt;path&gt;\n    &lt;groupId&gt;org.mapstruct&lt;/groupId&gt;\n    &lt;artifactId&gt;mapstruct-processor&lt;/artifactId&gt;\n    &lt;version&gt;${mapstruct.version}&lt;/version&gt;\n&lt;/path&gt;\n</code></pre>\n<p>Order might be important</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79812205": [
+      {
+        "owner": {
+          "account_id": 44583673,
+          "reputation": 11,
+          "user_id": 31828637,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/762c91fd5531b14972c3a9d83d31ba82?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "kevin liu kai",
+          "link": "https://stackoverflow.com/users/31828637/kevin-liu-kai"
+        },
+        "reply_to_user": {
+          "account_id": 4094217,
+          "reputation": 3274,
+          "user_id": 3361467,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/iEFF40j8.jpg?s=256",
+          "display_name": "Ray",
+          "link": "https://stackoverflow.com/users/3361467/ray"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1763039764,
+        "post_id": 79812205,
+        "comment_id": 140852419,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 4094217,
+          "reputation": 3274,
+          "user_id": 3361467,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/iEFF40j8.jpg?s=256",
+          "display_name": "Ray",
+          "link": "https://stackoverflow.com/users/3361467/ray"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1762589428,
+        "post_id": 79812205,
+        "comment_id": 140843075,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "79811621": [
+      {
+        "owner": {
+          "account_id": 44583673,
+          "reputation": 11,
+          "user_id": 31828637,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/762c91fd5531b14972c3a9d83d31ba82?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "kevin liu kai",
+          "link": "https://stackoverflow.com/users/31828637/kevin-liu-kai"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1762510980,
+        "post_id": 79811621,
+        "comment_id": 140841579,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 44583673,
+          "reputation": 11,
+          "user_id": 31828637,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/762c91fd5531b14972c3a9d83d31ba82?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "kevin liu kai",
+          "link": "https://stackoverflow.com/users/31828637/kevin-liu-kai"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1762508101,
+        "post_id": 79811621,
+        "comment_id": 140841500,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 17553626,
+          "reputation": 508,
+          "user_id": 12733532,
+          "user_type": "registered",
+          "profile_image": "https://lh3.googleusercontent.com/-EAww28wDCxk/AAAAAAAAAAI/AAAAAAAAAAA/ACHi3rcgKS9dXdmUh-hOQPlZYZygBUfLwQ/s256-rj/photo.jpg",
+          "display_name": "Max",
+          "link": "https://stackoverflow.com/users/12733532/max"
+        },
+        "reply_to_user": {
+          "account_id": 44583673,
+          "reputation": 11,
+          "user_id": 31828637,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/762c91fd5531b14972c3a9d83d31ba82?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "kevin liu kai",
+          "link": "https://stackoverflow.com/users/31828637/kevin-liu-kai"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1762502159,
+        "post_id": 79811621,
+        "comment_id": 140841317,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 44583673,
+          "reputation": 11,
+          "user_id": 31828637,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/762c91fd5531b14972c3a9d83d31ba82?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "kevin liu kai",
+          "link": "https://stackoverflow.com/users/31828637/kevin-liu-kai"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1762490266,
+        "post_id": 79811621,
+        "comment_id": 140841134,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

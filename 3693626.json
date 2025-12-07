@@ -1,0 +1,177 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "unit-testing",
+      "junit",
+      "junit4"
+    ],
+    "owner": {
+      "account_id": 109733,
+      "reputation": 32100,
+      "user_id": 290629,
+      "user_type": "registered",
+      "accept_rate": 88,
+      "profile_image": "https://i.sstatic.net/v2aGk.jpg?s=256",
+      "display_name": "卢声远 Shengyuan Lu",
+      "link": "https://stackoverflow.com/users/290629/%e5%8d%a2%e5%a3%b0%e8%bf%9c-shengyuan-lu"
+    },
+    "is_answered": true,
+    "view_count": 509373,
+    "protected_date": 1438019315,
+    "accepted_answer_id": 3693706,
+    "answer_count": 22,
+    "score": 483,
+    "last_activity_date": 1684943673,
+    "creation_date": 1284262526,
+    "last_edit_date": 1414493959,
+    "question_id": 3693626,
+    "content_license": "CC BY-SA 3.0",
+    "link": "https://stackoverflow.com/questions/3693626/how-to-run-test-methods-in-specific-order-in-junit4",
+    "title": "How to run test methods in specific order in JUnit4?",
+    "body": "<p>I want to execute test methods which are annotated by <code>@Test</code> in specific order.</p>\n\n<p>For example:</p>\n\n<pre><code>public class MyTest {\n    @Test public void test1(){}\n    @Test public void test2(){}\n}\n</code></pre>\n\n<p>I want to ensure to run <code>test1()</code> before <code>test2()</code> each time I run <code>MyTest</code>, but I couldn't find annotation like <code>@Test(order=xx)</code>.</p>\n\n<p>I think it's quite important feature for JUnit, if author of JUnit doesn't want the <strong>order feature</strong>, why?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 3286384,
+        "reputation": 3551,
+        "user_id": 2765792,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/QDWaYanZ.png?s=256",
+        "display_name": "Aman Goel",
+        "link": "https://stackoverflow.com/users/2765792/aman-goel"
+      },
+      "is_accepted": false,
+      "score": 21,
+      "last_activity_date": 1684943673,
+      "last_edit_date": 1684943673,
+      "creation_date": 1477289184,
+      "answer_id": 40211661,
+      "question_id": 3693626,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Its one of the main issue which I faced when I worked on Junit and I came up with following solution which works fine for me:</p>\n<pre><code>import java.util.ArrayList;\nimport java.util.Collections;\nimport java.util.Comparator;\nimport java.util.List;\n\nimport org.junit.runners.BlockJUnit4ClassRunner;\nimport org.junit.runners.model.FrameworkMethod;\nimport org.junit.runners.model.InitializationError;\n\npublic class OrderedRunner extends BlockJUnit4ClassRunner {\n\n    public OrderedRunner(Class&lt;?&gt; clazz) throws InitializationError {\n        super(clazz);\n    }\n\n    @Override\n    protected List&lt;FrameworkMethod&gt; computeTestMethods() {\n        List&lt;FrameworkMethod&gt; list = super.computeTestMethods();\n        List&lt;FrameworkMethod&gt; copy = new ArrayList&lt;FrameworkMethod&gt;(list);\n        Collections.sort(copy, new Comparator&lt;FrameworkMethod&gt;() {\n        \n            @Override\n            public int compare(FrameworkMethod f1, FrameworkMethod f2) {\n                Order o1 = f1.getAnnotation(Order.class);\n                Order o2 = f2.getAnnotation(Order.class);\n\n                if (o1 == null || o2 == null) {\n                    return -1;\n                }\n\n                return o1.order() - o2.order();\n            }\n        });\n        return copy;\n    }\n}\n</code></pre>\n<p>also create a interface like below:</p>\n<pre><code>@Retention(RetentionPolicy.RUNTIME)\n@Target({ ElementType.METHOD})\npublic @interface Order {\n    public int order();\n}\n</code></pre>\n<p>Now suppose you have class A where you have written several test cases like below:</p>\n<pre><code>@RunWith(OrderRunner.class)\nclass A {\n    @Test\n    @Order(order = 1)\n    void method() {\n        //do something\n    }\n}\n</code></pre>\n<p>So execution will start from method named &quot;method()&quot;.\nThanks!</p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 23966,
+        "reputation": 303,
+        "user_id": 60585,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/ad6ab7f839c5c9099d535704b32e288d?s=256&d=identicon&r=PG",
+        "display_name": "jrg",
+        "link": "https://stackoverflow.com/users/60585/jrg"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1684486521,
+      "post_id": 3693626,
+      "comment_id": 134527515,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 7445,
+        "reputation": 62917,
+        "user_id": 12943,
+        "user_type": "registered",
+        "accept_rate": 84,
+        "profile_image": "https://www.gravatar.com/avatar/d6a9924b767fe91c46def7edc7bce035?s=256&d=identicon&r=PG",
+        "display_name": "Bill K",
+        "link": "https://stackoverflow.com/users/12943/bill-k"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1663367619,
+      "post_id": 3693626,
+      "comment_id": 130231218,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 6089000,
+        "reputation": 208,
+        "user_id": 4751990,
+        "user_type": "registered",
+        "accept_rate": 100,
+        "profile_image": "https://www.gravatar.com/avatar/4274383c46b2d9db92ac1cbd91a270ce?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Egor Hans",
+        "link": "https://stackoverflow.com/users/4751990/egor-hans"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1649076848,
+      "post_id": 3693626,
+      "comment_id": 126777367,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 149396,
+        "reputation": 12433,
+        "user_id": 361855,
+        "user_type": "registered",
+        "accept_rate": 58,
+        "profile_image": "https://www.gravatar.com/avatar/68079962b0216cb8cf689ffe636555a8?s=256&d=identicon&r=PG",
+        "display_name": "Jason",
+        "link": "https://stackoverflow.com/users/361855/jason"
+      },
+      "reply_to_user": {
+        "account_id": 1556775,
+        "reputation": 5866,
+        "user_id": 1447641,
+        "user_type": "registered",
+        "accept_rate": 33,
+        "profile_image": "https://www.gravatar.com/avatar/69511d9203f4ea7aa052f1a4788a2934?s=256&d=identicon&r=PG",
+        "display_name": "Apfelsaft",
+        "link": "https://stackoverflow.com/users/1447641/apfelsaft"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1645473786,
+      "post_id": 3693626,
+      "comment_id": 125876388,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 15328195,
+        "reputation": 3610,
+        "user_id": 11058704,
+        "user_type": "registered",
+        "profile_image": "https://lh4.googleusercontent.com/-ztEBhSShv88/AAAAAAAAAAI/AAAAAAAAAAA/ACevoQPLzwJV-FCsThe1at4N__EBPxj_gg/mo/s256-rj/photo.jpg",
+        "display_name": "RamPrakash",
+        "link": "https://stackoverflow.com/users/11058704/ramprakash"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1641779265,
+      "post_id": 3693626,
+      "comment_id": 124888311,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 2309641,
+        "reputation": 5070,
+        "user_id": 2028066,
+        "user_type": "registered",
+        "accept_rate": 52,
+        "profile_image": "https://i.sstatic.net/U9hAY.jpg?s=256",
+        "display_name": "MiguelMunoz",
+        "link": "https://stackoverflow.com/users/2028066/miguelmunoz"
+      },
+      "edited": false,
+      "score": 9,
+      "creation_date": 1532368387,
+      "post_id": 3693626,
+      "comment_id": 89938203,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "40211661": []
+  }
+}

@@ -1,0 +1,140 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "postgresql",
+      "spring-boot",
+      "hibernate",
+      "enums"
+    ],
+    "owner": {
+      "account_id": 13545735,
+      "reputation": 162,
+      "user_id": 9772107,
+      "user_type": "registered",
+      "profile_image": "https://lh5.googleusercontent.com/-yr9ecP5Vcyk/AAAAAAAAAAI/AAAAAAAAAM0/S0vpfw3Wad8/s256-rj/photo.jpg",
+      "display_name": "Mojtaba jalambadani",
+      "link": "https://stackoverflow.com/users/9772107/mojtaba-jalambadani"
+    },
+    "is_answered": true,
+    "view_count": 1902,
+    "answer_count": 3,
+    "score": 8,
+    "last_activity_date": 1765058506,
+    "creation_date": 1699558254,
+    "question_id": 77455887,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77455887/how-to-update-hibernate-check-constraint-automatically-after-enum-modification-i",
+    "title": "How to Update Hibernate Check Constraint Automatically After Enum Modification in Spring Boot?",
+    "body": "<p>I have a Spring Boot application using Hibernate where I recently added new values to an enum ContactTypeConstant used in an entity class BlockItemEntity. The entity is mapped to a PostgreSQL database.</p>\n<p>Here's a simplified version of the entity and enum:</p>\n<p>BlockItemEntity:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Getter\n@Setter\n@NoArgsConstructor\n@AllArgsConstructor\n@Entity\n@Table(name = &quot;block_item&quot;, schema = &quot;public&quot;)\npublic class BlockItemEntity implements Serializable {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    protected long id;\n    \n    @Column(length = 256)\n    private String title; \n    \n    @Enumerated(EnumType.STRING)\n    private ContactTypeConstant contactType;\n\n}\n</code></pre>\n<p>ContactTypeConstant:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@RequiredArgsConstructor\n@Getter\npublic enum ContactTypeConstant {\n    EMAIL(10, &quot;email&quot;),\n    PHONE(20, &quot;phone&quot;);\n\n    private final long id;\n    private final String title;\n\n}\n</code></pre>\n<p>Initially, the database constraint was created without considering the additional enum values:</p>\n<pre class=\"lang-sql prettyprint-override\"><code>ALTER TABLE block_item\n    ADD CONSTRAINT block_item_contact_type_check\n        CHECK ((contact_type)::text = ANY\n               ((ARRAY ['EMAIL'::character varying, 'PHONE'::character varying])::text[]));\n</code></pre>\n<p>Later, I introduced new enum values &quot;MOBILE&quot; and &quot;SMS&quot; to the ContactTypeConstant. When Hibernate attempts to insert a new BlockItemEntity using these updated enum values, I encounter a constraint violation error:</p>\n<pre><code>ERROR: new row for relation &quot;block_item&quot; violates check constraint &quot;block_item_contact_type_check&quot;\n</code></pre>\n<p>Is there a way to make Hibernate automatically update the check constraint based on the modified enum values? If not, what is the recommended approach for handling such enum changes in the database with Hibernate and Spring Boot?</p>\n<p>I explored using <code>ALTER TABLE</code> to drop and recreate the table, updating the check constraint to include the new enum values. While I initially expected Hibernate to handle such updates automatically.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 44930935,
+        "reputation": 1,
+        "user_id": 32010746,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/e6da0886e38eb2c18dfe68e3825bbada?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Aur&#233;lien T",
+        "link": "https://stackoverflow.com/users/32010746/aur%c3%a9lien-t"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1765058506,
+      "creation_date": 1765058506,
+      "answer_id": 79839976,
+      "question_id": 77455887,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>I know this request is old, and has maybe been resolved since that.<br />\nBut i'm facing the same with SpringBoot 3.5.8, Spring 6.2.14, <strong>Hibernate 6.6.36.Final</strong>.</p>\n<p>This case in only about the case where your column is annotated with</p>\n<pre><code>@Enumerated(EnumType.STRING)\n</code></pre>\n<p>I found 2 workarounds to face this problem, both using custom Dialects overriding the default ones.<br />\nThis required to defined the property</p>\n<pre><code>spring.jpa.properties.hibernate.dialect=....XXXNoCheckDialect\n</code></pre>\n<p>With XXX being yout SGBD : H2, PostreSQL, ...</p>\n<ol>\n<li><p>Force the storage as <strong>Varchar</strong>, instead of contrained ENUM :</p>\n<pre><code>public class XXXNoCheckDialect extends XXXDialect{\n\n    @Override\n    public String getEnumTypeDeclaration(String name, String[] values) {\n        return castType(java.sql.Types.VARCHAR);\n    }\n\n}\n</code></pre>\n<p>With this one, the script creating/update the columns, will set it as VARCHAR.<br />\nTried successfully with H2 and PostGres.<br />\nThis one can be too much permissive when editing the db manually, but could be helpful in some cases, like if you wanna delete an enum value that is still used.</p>\n</li>\n<li><p>Use the storage as <strong>ENUM</strong>, but <strong>force updating the ENUM</strong> type with the available values on each start :</p>\n<pre><code>public class H2NoCheckDialect extends H2Dialect {\n\n    @Override\n    public String getEnumTypeDeclaration(String name, String[] values) {\n        return &quot; /*enum-&quot; + String.join(&quot;-&quot;, values) +&quot;*/ &quot; + super.getEnumTypeDeclaration(name, values);\n    }\n\n}\n</code></pre>\n<p>The trick here is to make add a changing comment, BEFORE the 'ENUM' type.<br />\nI dont know why, but i feel like Hibernate doesn't compare what is after the ENUM keyword generated by getEnumTypeDeclaration, and then doesnt detect a ENUM change. So Hibernate says &quot;no detection, i dont alter the column enum&quot;, even if it should.<br />\nWhen adding a comment before, hibernate detects the change between the current DB definition and the new one.</p>\n</li>\n</ol>\n"
+    },
+    {
+      "owner": {
+        "account_id": 18668898,
+        "reputation": 13,
+        "user_id": 13608212,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/789703aa38699670e3fc7f7535cf3755?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Vlado Lovis",
+        "link": "https://stackoverflow.com/users/13608212/vlado-lovis"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1733235851,
+      "creation_date": 1733235851,
+      "answer_id": 79247981,
+      "question_id": 77455887,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>This might not help resolve the original problem, but since this question pops up when searching for <em>Hibernate does not update the ENUM</em>, it might be helpful to some.</p>\n<hr>\n<p>So if hibernate does not update the ENUM (e.g. when you add new value to your java enum), even if you would expect it to do so, because you are using <code>spring.jpa.hibernate.ddl-auto=update</code>.</p>\n<p>Hibernate <b> will not update the database enum</b> for column defined like this</p>\n<pre><code>@Enumerated(EnumType.STRING)\n@Column(name = &quot;performed_action&quot;)\nprivate WorkflowAction performedAction;\n</code></pre>\n<p>However, for some reason, when you add a <code>length</code> property to the <code>@Column</code> anotation, hibernate <b>will update the database enum</b>. (Even though the length will be ignored, because the db type is <code>enum</code>...)</p>\n<pre><code>@Enumerated(EnumType.STRING)\n@Column(name = &quot;performed_action&quot;, length = 100)\nprivate WorkflowAction performedAction;\n</code></pre>\n<p>This is my experience on SpringBoot version 3.3.1 and MySQL8.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 20571535,
+        "reputation": 11,
+        "user_id": 15099759,
+        "user_type": "registered",
+        "profile_image": "https://lh6.googleusercontent.com/-y2K4vDkLlRI/AAAAAAAAAAI/AAAAAAAAAAA/AMZuucmM7tVAk-XdsC_1iGCd_KPZIFWjGw/s96-c/s256-rj/photo.jpg",
+        "display_name": "Nikolaos Lamprinos",
+        "link": "https://stackoverflow.com/users/15099759/nikolaos-lamprinos"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1709108537,
+      "creation_date": 1709108537,
+      "answer_id": 78072909,
+      "question_id": 77455887,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>My team had the same problem on Oracle 12c database with Spring Boot 3.1.1 and hibernate-core 6.2.5.Final.</p>\n<p>The problem has nothing related to Spring Data JPA, it belongs to hibernate. Hibernate in order not to corrupt the existing data of your database, does not make changes in such cases.</p>\n<p>It is better to use hibernate only for the initialization of your schema.\nFor migrations you could use data migration tools like <code>Flyway</code> and <code>Liquibase</code> on production environment.</p>\n<p>More <a href=\"https://github.com/spring-projects/spring-data-jpa/issues/3299\" rel=\"nofollow noreferrer\">here</a>.</p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 13545735,
+        "reputation": 162,
+        "user_id": 9772107,
+        "user_type": "registered",
+        "profile_image": "https://lh5.googleusercontent.com/-yr9ecP5Vcyk/AAAAAAAAAAI/AAAAAAAAAM0/S0vpfw3Wad8/s256-rj/photo.jpg",
+        "display_name": "Mojtaba jalambadani",
+        "link": "https://stackoverflow.com/users/9772107/mojtaba-jalambadani"
+      },
+      "reply_to_user": {
+        "account_id": 15260943,
+        "reputation": 415,
+        "user_id": 11010992,
+        "user_type": "registered",
+        "profile_image": "https://lh3.googleusercontent.com/-s2R9UuZl86o/AAAAAAAAAAI/AAAAAAAAAAA/ACevoQMaYswUYG7Qcn_VvFZtck-laPIBSQ/mo/s256-rj/photo.jpg",
+        "display_name": "Insane DA",
+        "link": "https://stackoverflow.com/users/11010992/insane-da"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1720279109,
+      "post_id": 77455887,
+      "comment_id": 138781691,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 15260943,
+        "reputation": 415,
+        "user_id": 11010992,
+        "user_type": "registered",
+        "profile_image": "https://lh3.googleusercontent.com/-s2R9UuZl86o/AAAAAAAAAAI/AAAAAAAAAAA/ACevoQMaYswUYG7Qcn_VvFZtck-laPIBSQ/mo/s256-rj/photo.jpg",
+        "display_name": "Insane DA",
+        "link": "https://stackoverflow.com/users/11010992/insane-da"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1720277644,
+      "post_id": 77455887,
+      "comment_id": 138781582,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79839976": [],
+    "79247981": [],
+    "78072909": []
+  }
+}

@@ -1,0 +1,142 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "lambda",
+      "collections",
+      "java-8",
+      "java-stream"
+    ],
+    "owner": {
+      "account_id": 1750802,
+      "reputation": 5947,
+      "user_id": 1599926,
+      "user_type": "registered",
+      "accept_rate": 83,
+      "profile_image": "https://www.gravatar.com/avatar/65f285be0b24fdd9516fba584de44f7e?s=256&d=identicon&r=PG",
+      "display_name": "Daniel K.",
+      "link": "https://stackoverflow.com/users/1599926/daniel-k"
+    },
+    "is_answered": true,
+    "view_count": 485206,
+    "accepted_answer_id": 14832470,
+    "answer_count": 15,
+    "score": 512,
+    "last_activity_date": 1740416026,
+    "creation_date": 1360664768,
+    "last_edit_date": 1609930859,
+    "question_id": 14830313,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/14830313/retrieving-a-list-from-a-java-util-stream-stream-in-java-8",
+    "title": "Retrieving a List from a java.util.stream.Stream in Java 8",
+    "body": "<p>I was playing around with Java 8 lambdas to easily filter collections. But I did not find a concise way to retrieve the result as a new list within the same statement. Here is my most concise approach so far:</p>\n\n<pre><code>List&lt;Long&gt; sourceLongList = Arrays.asList(1L, 10L, 50L, 80L, 100L, 120L, 133L, 333L);\nList&lt;Long&gt; targetLongList = new ArrayList&lt;&gt;();\nsourceLongList.stream().filter(l -&gt; l &gt; 100).forEach(targetLongList::add);\n</code></pre>\n\n<p>Examples on the net did not answer my question because they stop without generating a new result list. There must be a more concise way. I would have expected, that the <code>Stream</code> class has methods as <code>toList()</code>, <code>toSet()</code>, …</p>\n\n<p>Is there a way that the variables <code>targetLongList</code> can be directly be assigned by the third line?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 83276,
+        "reputation": 6292,
+        "user_id": 233598,
+        "user_type": "registered",
+        "accept_rate": 76,
+        "profile_image": "https://www.gravatar.com/avatar/1ba4afc8bcdaf8a5dd806f8ef162f783?s=256&d=identicon&r=PG",
+        "display_name": "MohamedSanaulla",
+        "link": "https://stackoverflow.com/users/233598/mohamedsanaulla"
+      },
+      "is_accepted": false,
+      "score": 200,
+      "last_activity_date": 1740416026,
+      "last_edit_date": 1740416026,
+      "creation_date": 1363501700,
+      "answer_id": 15458176,
+      "question_id": 14830313,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>One approach is to use <a href=\"https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/util/stream/Collectors.html#toList()\" rel=\"nofollow noreferrer\"><code>Collectors.toList</code></a> to collect the stream into a list:</p>\n<pre><code>targetLongList = \n    sourceLongList.stream().\n    filter(l -&gt; l &gt; 100).\n    collect(Collectors.toList());\n</code></pre>\n<p>If a specific <code>List</code> implementation is desired, <a href=\"https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/util/stream/Collectors.html#toCollection(java.util.function.Supplier)\" rel=\"nofollow noreferrer\"><code>Collectors.toCollection</code></a> can be used instead:</p>\n<pre><code>targetLongList = \n    sourceLongList.stream().\n    filter(l -&gt; l &gt; 100).\n    collect(Collectors.toCollection(ArrayList::new));\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 362885,
+        "reputation": 40084,
+        "user_id": 706317,
+        "user_type": "registered",
+        "accept_rate": 70,
+        "profile_image": "https://i.sstatic.net/1mafF.jpg?s=256",
+        "display_name": "ZhekaKozlov",
+        "link": "https://stackoverflow.com/users/706317/zhekakozlov"
+      },
+      "is_accepted": false,
+      "score": 17,
+      "last_activity_date": 1732668535,
+      "last_edit_date": 1732668535,
+      "creation_date": 1609749363,
+      "answer_id": 65559746,
+      "question_id": 14830313,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<h2><code>Stream#toList</code></h2>\n<p>There is a new method <a href=\"https://docs.oracle.com/en/java/javase/16/docs/api/java.base/java/util/stream/Stream.html#toList()\" rel=\"nofollow noreferrer\">Stream.toList()</a> in Java 16+, which accumulates the stream elements into an unmodifiable list:</p>\n<pre><code>List&lt;Long&gt; targetLongList = sourceLongList\n         .stream()\n         .filter(l -&gt; l &gt; 100)\n         .toList();\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 29398,
+        "reputation": 10573,
+        "user_id": 1859863,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/64c9b9875c1993a533f8460b37b4f98c?s=256&d=identicon&r=PG",
+        "display_name": "Maurice Naftalin",
+        "link": "https://stackoverflow.com/users/1859863/maurice-naftalin"
+      },
+      "is_accepted": true,
+      "score": 676,
+      "last_activity_date": 1705556467,
+      "last_edit_date": 1705556467,
+      "creation_date": 1360671770,
+      "answer_id": 14832470,
+      "question_id": 14830313,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>What you are doing may be the simplest way, provided your stream stays sequential—otherwise you will have to put a call to sequential() before <code>forEach</code>.</p>\n<p>The reason the call to sequential() is necessary is that the code as it stands (<code>forEach(targetLongList::add)</code>) would be racy if the stream was parallel. Even then, it will not achieve the effect intended, as <code>forEach</code> is explicitly nondeterministic—even in a sequential stream the order of element processing is not guaranteed. You would have to use <code>forEachOrdered</code> to ensure correct ordering. The intention of the Stream API designers is that you will use collector in this situation, as below:</p>\n<pre class=\"lang-java prettyprint-override\"><code>targetLongList = sourceLongList.stream()\n    .filter(l -&gt; l &gt; 100)\n    .collect(Collectors.toList());\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 1196398,
+        "reputation": 7240,
+        "user_id": 1168041,
+        "user_type": "registered",
+        "accept_rate": 72,
+        "profile_image": "https://www.gravatar.com/avatar/622f7d1078c49f826b490386f0a31a50?s=256&d=identicon&r=PG",
+        "display_name": "leeyuiwah",
+        "link": "https://stackoverflow.com/users/1168041/leeyuiwah"
+      },
+      "edited": false,
+      "score": 3,
+      "creation_date": 1532558029,
+      "post_id": 14830313,
+      "comment_id": 90025646,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "15458176": [],
+    "65559746": [],
+    "14832470": [
+      {
+        "owner": {
+          "account_id": 1646676,
+          "reputation": 4435,
+          "user_id": 1518100,
+          "user_type": "registered",
+          "accept_rate": 96,
+          "profile_image": "https://i.sstatic.net/EW5RK.jpg?s=256",
+          "display_name": "Lei Yang",
+          "link": "https://stackoverflow.com/users/1518100/lei-yang"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1593567184,
+        "post_id": 14832470,
+        "comment_id": 110824566,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

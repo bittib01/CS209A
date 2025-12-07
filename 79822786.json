@@ -1,0 +1,53 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "postman",
+      "backend"
+    ],
+    "owner": {
+      "account_id": 42003469,
+      "reputation": 9,
+      "user_id": 30550112,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/KnbKYJqG.jpg?s=256",
+      "display_name": "Thomastheguy",
+      "link": "https://stackoverflow.com/users/30550112/thomastheguy"
+    },
+    "is_answered": false,
+    "view_count": 28,
+    "closed_date": 1763447771,
+    "answer_count": 0,
+    "score": -2,
+    "last_activity_date": 1763414001,
+    "creation_date": 1763414001,
+    "question_id": 79822786,
+    "link": "https://stackoverflow.com/questions/79822786/error-415-unsupported-media-type-in-postman",
+    "closed_reason": "Duplicate",
+    "title": "ERROR 415 Unsupported Media Type In Postman",
+    "body": "<p>I'm trying to upload a property object (JSON) along with multiple images using <code>multipart/form-data</code>, but Spring Boot keeps returning:</p>\n<blockquote>\n<p>415 Unsupported Media Type</p>\n<p>Content-Type 'application/octet-stream' is not supported.</p>\n</blockquote>\n<p>my controller</p>\n<pre class=\"lang-java prettyprint-override\"><code>@PostMapping(consumes = {&quot;multipart/form-data&quot;})\npublic ResponseEntity&lt;PropertyResponseDto&gt; createProperty(\n        @RequestPart(value = &quot;property&quot;) @Valid PropertyRequestDto requestDto,\n        @RequestPart(value = &quot;images&quot;, required = false) MultipartFile[] images) throws IOException {\n\n    if (images != null &amp;&amp; images.length &gt; 0) {\n        List&lt;String&gt; uploadedUrls = cloudinaryService.uploadImages(images);\n        requestDto.setImages(uploadedUrls);\n    }\n\n    PropertyResponseDto responseDto = propertyService.createProperty(requestDto);\n\n    URI location = ServletUriComponentsBuilder\n            .fromCurrentRequest()\n            .path(&quot;/{id}&quot;)\n            .buildAndExpand(responseDto.getId())\n            .toUri();\n\n    return ResponseEntity.created(location).body(responseDto);\n}\n</code></pre>\n<p>Cloudinary Service:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class CloudinaryService {\n\n    private final Cloudinary cloudinary;\n\n    public String uploadImage(MultipartFile file) throws IOException {\n        Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(\n                &quot;use_filename&quot;, true,\n                &quot;unique_filename&quot;, false,\n                &quot;overwrite&quot;, true\n        ));\n        return uploadResult.get(&quot;secure_url&quot;).toString();\n    }\n\n    public List&lt;String&gt; uploadImages(MultipartFile[] files) throws IOException {\n        List&lt;String&gt; urls = new ArrayList&lt;&gt;();\n        for (MultipartFile file : files) {\n            urls.add(uploadImage(file));\n        }\n        return urls;\n    }\n}\n</code></pre>\n<p>Entity (Property Model)</p>\n<pre class=\"lang-java prettyprint-override\"><code>@ElementCollection\n@CollectionTable(name = &quot;property_images&quot;, joinColumns = @JoinColumn(name = &quot;property_id&quot;))\n@Column(name = &quot;image_url&quot;)\nprivate List&lt;String&gt; images = new ArrayList&lt;&gt;();\n</code></pre>\n<p><strong>Postman Request Setup</strong></p>\n<div class=\"s-table-container\"><table class=\"s-table\">\n<thead>\n<tr>\n<th>Key</th>\n<th>Type</th>\n<th>Value</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>property</td>\n<td>text</td>\n<td>(JSON body)</td>\n</tr>\n<tr>\n<td>images</td>\n<td>file</td>\n<td>*.jpg images</td>\n</tr>\n</tbody>\n</table></div>\n<p>But whenever I include images, Spring throws the <code>415 Unsupported Media Type</code>.</p>\n<p>If I remove the images field, everything works.</p>\n<p><strong>What I Have Tried</strong></p>\n<ul>\n<li><p>Adding <code>consumes = {&quot;multipart/form-data&quot;}</code> on the controller</p>\n</li>\n<li><p>Making sure Postman uses <code>multipart/form-data</code></p>\n</li>\n</ul>\n"
+  },
+  "answers": [],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 5007440,
+        "reputation": 118,
+        "user_id": 4024688,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/1f3d46d85f7546a7cdcf86609b21a8cc?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Davak72",
+        "link": "https://stackoverflow.com/users/4024688/davak72"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1763414458,
+      "post_id": 79822786,
+      "comment_id": 140859165,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {}
+}

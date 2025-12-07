@@ -1,0 +1,125 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "kotlin",
+      "android-intent"
+    ],
+    "owner": {
+      "account_id": 659394,
+      "reputation": 9805,
+      "user_id": 467895,
+      "user_type": "unregistered",
+      "profile_image": "https://www.gravatar.com/avatar/1a03403be2c922a378b6d40051ff9c22?s=256&d=identicon&r=PG",
+      "display_name": "Bastian",
+      "link": "https://stackoverflow.com/users/467895/bastian"
+    },
+    "is_answered": true,
+    "view_count": 571424,
+    "protected_date": 1477027786,
+    "answer_count": 19,
+    "score": 578,
+    "last_activity_date": 1717586211,
+    "creation_date": 1286365566,
+    "last_edit_date": 1612023283,
+    "question_id": 3872063,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/3872063/how-to-launch-an-activity-from-another-application-in-android",
+    "title": "How to launch an Activity from another Application in Android",
+    "body": "<p>I want to launch an installed package from my Android application. I assume that it is possible using intents, but I didn't find a way of doing it. Is there a link, where to find the information?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 3642523,
+        "reputation": 4664,
+        "user_id": 3036320,
+        "user_type": "registered",
+        "profile_image": "https://graph.facebook.com/100002410010067/picture?type=large",
+        "display_name": "Ahamadullah Saikat",
+        "link": "https://stackoverflow.com/users/3036320/ahamadullah-saikat"
+      },
+      "is_accepted": false,
+      "score": 22,
+      "last_activity_date": 1717586211,
+      "last_edit_date": 1717586211,
+      "creation_date": 1507799187,
+      "answer_id": 46705590,
+      "question_id": 3872063,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Add the packages inside <code>AndroidManifest.xml</code> file, which you want to use:</p>\n<pre><code>&lt;manifest\n............\n    &lt;queries&gt;\n        &lt;package android:name=&quot;com.google.android.gm&quot; /&gt;\n        ........\n    &lt;/queries&gt;\n&lt;/manifest&gt;\n</code></pre>\n<p><strong>Updated</strong></p>\n<pre><code>fun Context.isAppAvailable(packageName: String): Boolean {\n    var appStatus = false\n    try {\n        val ai = if (isFromAPI(33)) {\n            packageManager.getApplicationInfo(\n                packageName, PackageManager.ApplicationInfoFlags.of(0)\n            )\n        } else {\n            packageManager.getApplicationInfo(packageName, 0)\n        }\n        appStatus = ai.enabled\n    } catch (e: PackageManager.NameNotFoundException) {\n        e.printStackTrace()\n    }\n    return appStatus\n}\n</code></pre>\n<p><strong>Old - Java</strong></p>\n<pre><code>// in onCreate method\nString appName = &quot;Gmail&quot;;\nString packageName = &quot;com.google.android.gm&quot;;\nopenApp(context, appName, packageName);\n\npublic static void openApp(Context context, String appName, String packageName) {\n    if (isAppInstalled(context, packageName))\n        if (isAppEnabled(context, packageName))\n            context.startActivity(context.getPackageManager().getLaunchIntentForPackage(packageName));\n        else Toast.makeText(context, appName + &quot; app is not enabled.&quot;, Toast.LENGTH_SHORT).show();\n    else Toast.makeText(context, appName + &quot; app is not installed.&quot;, Toast.LENGTH_SHORT).show();\n}\n\nprivate static boolean isAppInstalled(Context context, String packageName) {\n    PackageManager pm = context.getPackageManager();\n    try {\n        pm.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES);\n        return true;\n    } catch (PackageManager.NameNotFoundException ignored) {\n    }\n    return false;\n}\n\nprivate static boolean isAppEnabled(Context context, String packageName) {\n    boolean appStatus = false;\n    try {\n        ApplicationInfo ai = context.getPackageManager().getApplicationInfo(packageName, 0);\n        if (ai != null) {\n            appStatus = ai.enabled;\n        }\n    } catch (PackageManager.NameNotFoundException e) {\n        e.printStackTrace();\n    }\n    return appStatus;\n}\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 6748111,
+        "reputation": 527,
+        "user_id": 5199061,
+        "user_type": "registered",
+        "accept_rate": 67,
+        "profile_image": "https://www.gravatar.com/avatar/a7f1de486a989b569cd10ac3dde675aa?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Waseem",
+        "link": "https://stackoverflow.com/users/5199061/waseem"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1705912883,
+      "creation_date": 1705912883,
+      "answer_id": 77858572,
+      "question_id": 3872063,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>I may be late for the party, but this could help someone.<br />\nAdd the launcher with the required package name and update the <code>AndroidManifest.xml</code> file</p>\n<pre><code>Intent launchIntent = getPackageManager().getLaunchIntentForPackage(&quot;com.other.app.id&quot;);\nif (launchIntent != null) { \n    startActivity(launchIntent);\n}\n</code></pre>\n<p>For Android version 10 and above, you must add the <code>&lt;queries&gt;</code> tag in the AndroidManifest.xml file (Outside of the Application tag). Otherwise <code>getLaunchIntentForPackage()</code> will return null</p>\n<p><code>&lt;queries&gt; &lt;package android:name=&quot;com.other.app.id&quot; /&gt; &lt;/queries</code>&gt;</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "46705590": [
+      {
+        "owner": {
+          "account_id": 3642523,
+          "reputation": 4664,
+          "user_id": 3036320,
+          "user_type": "registered",
+          "profile_image": "https://graph.facebook.com/100002410010067/picture?type=large",
+          "display_name": "Ahamadullah Saikat",
+          "link": "https://stackoverflow.com/users/3036320/ahamadullah-saikat"
+        },
+        "reply_to_user": {
+          "account_id": 185966,
+          "reputation": 537,
+          "user_id": 423017,
+          "user_type": "registered",
+          "accept_rate": 38,
+          "profile_image": "https://www.gravatar.com/avatar/ced21cc4ff386dcaf5d087bc0b7bf94a?s=256&d=identicon&r=PG",
+          "display_name": "priyamtheone",
+          "link": "https://stackoverflow.com/users/423017/priyamtheone"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1717585300,
+        "post_id": 46705590,
+        "comment_id": 138535842,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 185966,
+          "reputation": 537,
+          "user_id": 423017,
+          "user_type": "registered",
+          "accept_rate": 38,
+          "profile_image": "https://www.gravatar.com/avatar/ced21cc4ff386dcaf5d087bc0b7bf94a?s=256&d=identicon&r=PG",
+          "display_name": "priyamtheone",
+          "link": "https://stackoverflow.com/users/423017/priyamtheone"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1717576436,
+        "post_id": 46705590,
+        "comment_id": 138534405,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "77858572": []
+  }
+}

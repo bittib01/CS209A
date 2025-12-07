@@ -1,0 +1,294 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "docker",
+      "selenium",
+      "gitlab-ci",
+      "selenium-grid"
+    ],
+    "owner": {
+      "account_id": 23049641,
+      "reputation": 53,
+      "user_id": 17166674,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AATXAJzm4u3m9e4G8gWjt0jKuWLqpWVPQcC7TySD-b-K=k-s256",
+      "display_name": "AutoBeginner",
+      "link": "https://stackoverflow.com/users/17166674/autobeginner"
+    },
+    "is_answered": false,
+    "view_count": 2230,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1764876695,
+    "creation_date": 1636978580,
+    "last_edit_date": 1645877779,
+    "question_id": 69974278,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/69974278/how-to-set-up-a-selenium-test-of-download-a-file-in-gitlab-ci",
+    "title": "How to set up a selenium test of download a file in Gitlab CI",
+    "body": "<p>I am writing a selenium test to verify a file being downloaded. It works fine in locally. And I can easily access the file both through the 'target' folder and inside the container /home/seluser/Downloads.</p>\n<p>The test script is:</p>\n<pre><code>@BeforeMethod\npublic void setUp() throws  MalformedURLException {\n\n    folder = new File(&quot;target&quot;);\n    \n    for(File file : folder.listFiles()) {\n        file.delete();\n    } \n\n    System.setProperty(&quot;webdriver.chrome.driver&quot;, &quot;chromedriver.exe&quot;);\n    ChromeOptions options = new ChromeOptions();\n\n    Map&lt;String, Object&gt; prefs = new HashMap&lt;String, Object&gt;();\n    prefs.put(&quot;profile.default_content_settings.popups&quot;, 0);\n    prefs.put(&quot;download.default_directory&quot;, folder.getAbsolutePath());\n\n    options.setExperimentalOption(&quot;prefs&quot;, prefs);\n    DesiredCapabilities cap = new DesiredCapabilities();\n    cap.setBrowserName(&quot;chrome&quot;);\n    cap.setCapability(ChromeOptions.CAPABILITY, options);\n\n    //driver = new ChromeDriver(cap);\n    //driver = new RemoteWebDriver(new URL(&quot;http://localhost:4444/wd/hub&quot;), cap);\n    driver = new RemoteWebDriver(new URL(&quot;http://docker:4444/wd/hub&quot;), cap);\n}\n\n@AfterMethod\npublic void tearDown() {\n    driver.quit();\n}\n\n@Test\npublic void downloadFileTest() throws InterruptedException {\n    driver.get(&quot;http://the-internet.herokuapp.com/download&quot;);\n    driver.findElement(By.linkText(&quot;some-file.txt&quot;)).click();\n\n    Thread.sleep(2000);\n    File listOffFiles[] = folder.listFiles();\n    Assert.assertTrue(listOffFiles.length &gt; 0);\n\n    for(File file : listOffFiles) {\n        Assert.assertTrue(file.length() &gt; 0);\n    } \n}\n</code></pre>\n<p>Let me explain a little. First I create a folder named &quot;target&quot; in the project root repository. Then I set the download path in the chrome docker comtainer via container volumes in docker-compose file.</p>\n<pre><code>version: &quot;3&quot;\nservices:\n  chrome:\n    image: selenium/node-chrome:4.0.0-20211013\n    container_name: chrome\n    shm_size: 2gb\n    depends_on:\n      - selenium-hub\n    volumes:\n      - ./target:/home/seluser/Downloads\n    environment:\n      - SE_EVENT_BUS_HOST=selenium-hub\n      - SE_EVENT_BUS_PUBLISH_PORT=4442\n      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443\n      - SE_NODE_GRID_URL=http://localhost:4444\n    ports:\n      - &quot;6900:5900&quot;\n  selenium-hub:\n    image: selenium/hub:4.0.0-20211013\n    container_name: selenium-hub\n    ports:\n      - &quot;4444:4444&quot;\n</code></pre>\n<p>This setting works fine locally. when I run it in the gitlab CI, i cannot push a empty fold to gitlab, so i have to create a file and store it in the folder and push it to gitlab. But it the test script, I delete this file in the setup stage in case it disturb the assertion. But the pipeline fails. The result does not give me more details , just said the assertionException. Here is the gitlab-ci.yml:</p>\n<pre><code>image: adoptopenjdk/openjdk11\n\nstages:\n  - gradle-build\n  - docker-test\n\n.gradle_template: &amp;gradle_definition\n  variables:\n    GRADLE_OPTS: &quot;-Dorg.gradle.daemon=false&quot;\n  before_script:\n    - export GRADLE_USER_HOME=${CI_PROJECT_DIR}/.gradle\n\ngradle-build:\n  &lt;&lt;: *gradle_definition\n  stage: gradle-build\n  script:\n    - chmod +x ./gradlew\n    - ./gradlew --build-cache assemble\n  cache:\n    key: &quot;$CI_COMMIT_REF_NAME&quot;\n    paths:\n      - build\n      - .gradle\n  artifacts:\n    paths:\n      - build/libs/*.jar\n    expire_in: 1 day\n  only:\n    - feature/multi-browsers\n\nchrome-test:\n  stage: docker-test\n  image:\n    name: docker/compose:1.29.2\n    entrypoint: [ &quot;/bin/sh&quot;, &quot;-c&quot; ]\n  services:\n    - docker:19.03.12-dind\n  variables:\n    DOCKER_TLS_CERTDIR: &quot;&quot;\n    DOCKER_DRIVER: overlay2\n    DOCKER_HOST: tcp://docker:2375/\n  cache:\n    key: &quot;$CI_COMMIT_REF_NAME&quot;\n    policy: pull\n    paths:\n      - build\n      - .gradle\n  dependencies:\n    - gradle-build\n  before_script:\n    - docker info\n    - docker-compose --version\n  script:\n    - apk add --no-cache docker-compose\n    - apk add openjdk11\n    - docker-compose down\n    - docker-compose up --build --force-recreate --no-deps -d\n    - echo &quot;Hello, chrome-test&quot;\n    - chmod +x ./gradlew\n    - ./gradlew :test --tests &quot;LogInTest_chrome&quot;\n  artifacts:\n    when: always\n    reports:\n      junit: build/test-results/test/**/TEST-*.xml\n    paths:\n      - build/reports/*\n    expire_in: 1 day\n  only:\n    - feature/multi-browsers\n</code></pre>\n<p>I wonder if someone has experience with this download test in gitlab CI. I think the download path I set maybe not work in gitlab CI. I even have no ideas how to check if a file is downloaded or not it gitlab CI.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 23049641,
+        "reputation": 53,
+        "user_id": 17166674,
+        "user_type": "registered",
+        "profile_image": "https://lh3.googleusercontent.com/a/AATXAJzm4u3m9e4G8gWjt0jKuWLqpWVPQcC7TySD-b-K=k-s256",
+        "display_name": "AutoBeginner",
+        "link": "https://stackoverflow.com/users/17166674/autobeginner"
+      },
+      "reply_to_user": {
+        "account_id": 7575391,
+        "reputation": 42721,
+        "user_id": 5747944,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/WxXZjAjw.png?s=256",
+        "display_name": "sytech",
+        "link": "https://stackoverflow.com/users/5747944/sytech"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1637135101,
+      "post_id": 69974278,
+      "comment_id": 123741658,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 23049641,
+        "reputation": 53,
+        "user_id": 17166674,
+        "user_type": "registered",
+        "profile_image": "https://lh3.googleusercontent.com/a/AATXAJzm4u3m9e4G8gWjt0jKuWLqpWVPQcC7TySD-b-K=k-s256",
+        "display_name": "AutoBeginner",
+        "link": "https://stackoverflow.com/users/17166674/autobeginner"
+      },
+      "reply_to_user": {
+        "account_id": 7575391,
+        "reputation": 42721,
+        "user_id": 5747944,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/WxXZjAjw.png?s=256",
+        "display_name": "sytech",
+        "link": "https://stackoverflow.com/users/5747944/sytech"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1637132902,
+      "post_id": 69974278,
+      "comment_id": 123741083,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 7575391,
+        "reputation": 42721,
+        "user_id": 5747944,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/WxXZjAjw.png?s=256",
+        "display_name": "sytech",
+        "link": "https://stackoverflow.com/users/5747944/sytech"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1637084747,
+      "post_id": 69974278,
+      "comment_id": 123729725,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 23049641,
+        "reputation": 53,
+        "user_id": 17166674,
+        "user_type": "registered",
+        "profile_image": "https://lh3.googleusercontent.com/a/AATXAJzm4u3m9e4G8gWjt0jKuWLqpWVPQcC7TySD-b-K=k-s256",
+        "display_name": "AutoBeginner",
+        "link": "https://stackoverflow.com/users/17166674/autobeginner"
+      },
+      "reply_to_user": {
+        "account_id": 7575391,
+        "reputation": 42721,
+        "user_id": 5747944,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/WxXZjAjw.png?s=256",
+        "display_name": "sytech",
+        "link": "https://stackoverflow.com/users/5747944/sytech"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1637063507,
+      "post_id": 69974278,
+      "comment_id": 123720087,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 23049641,
+        "reputation": 53,
+        "user_id": 17166674,
+        "user_type": "registered",
+        "profile_image": "https://lh3.googleusercontent.com/a/AATXAJzm4u3m9e4G8gWjt0jKuWLqpWVPQcC7TySD-b-K=k-s256",
+        "display_name": "AutoBeginner",
+        "link": "https://stackoverflow.com/users/17166674/autobeginner"
+      },
+      "reply_to_user": {
+        "account_id": 7575391,
+        "reputation": 42721,
+        "user_id": 5747944,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/WxXZjAjw.png?s=256",
+        "display_name": "sytech",
+        "link": "https://stackoverflow.com/users/5747944/sytech"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1637061145,
+      "post_id": 69974278,
+      "comment_id": 123719163,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 23049641,
+        "reputation": 53,
+        "user_id": 17166674,
+        "user_type": "registered",
+        "profile_image": "https://lh3.googleusercontent.com/a/AATXAJzm4u3m9e4G8gWjt0jKuWLqpWVPQcC7TySD-b-K=k-s256",
+        "display_name": "AutoBeginner",
+        "link": "https://stackoverflow.com/users/17166674/autobeginner"
+      },
+      "reply_to_user": {
+        "account_id": 7575391,
+        "reputation": 42721,
+        "user_id": 5747944,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/WxXZjAjw.png?s=256",
+        "display_name": "sytech",
+        "link": "https://stackoverflow.com/users/5747944/sytech"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1637058462,
+      "post_id": 69974278,
+      "comment_id": 123718060,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 7575391,
+        "reputation": 42721,
+        "user_id": 5747944,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/WxXZjAjw.png?s=256",
+        "display_name": "sytech",
+        "link": "https://stackoverflow.com/users/5747944/sytech"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1637056603,
+      "post_id": 69974278,
+      "comment_id": 123717215,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 23049641,
+        "reputation": 53,
+        "user_id": 17166674,
+        "user_type": "registered",
+        "profile_image": "https://lh3.googleusercontent.com/a/AATXAJzm4u3m9e4G8gWjt0jKuWLqpWVPQcC7TySD-b-K=k-s256",
+        "display_name": "AutoBeginner",
+        "link": "https://stackoverflow.com/users/17166674/autobeginner"
+      },
+      "reply_to_user": {
+        "account_id": 7575391,
+        "reputation": 42721,
+        "user_id": 5747944,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/WxXZjAjw.png?s=256",
+        "display_name": "sytech",
+        "link": "https://stackoverflow.com/users/5747944/sytech"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1637056466,
+      "post_id": 69974278,
+      "comment_id": 123717160,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 7575391,
+        "reputation": 42721,
+        "user_id": 5747944,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/WxXZjAjw.png?s=256",
+        "display_name": "sytech",
+        "link": "https://stackoverflow.com/users/5747944/sytech"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1637004401,
+      "post_id": 69974278,
+      "comment_id": 123704209,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 7575391,
+        "reputation": 42721,
+        "user_id": 5747944,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/WxXZjAjw.png?s=256",
+        "display_name": "sytech",
+        "link": "https://stackoverflow.com/users/5747944/sytech"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1637001892,
+      "post_id": 69974278,
+      "comment_id": 123703302,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 7575391,
+        "reputation": 42721,
+        "user_id": 5747944,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/WxXZjAjw.png?s=256",
+        "display_name": "sytech",
+        "link": "https://stackoverflow.com/users/5747944/sytech"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1636999934,
+      "post_id": 69974278,
+      "comment_id": 123702562,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 23049641,
+        "reputation": 53,
+        "user_id": 17166674,
+        "user_type": "registered",
+        "profile_image": "https://lh3.googleusercontent.com/a/AATXAJzm4u3m9e4G8gWjt0jKuWLqpWVPQcC7TySD-b-K=k-s256",
+        "display_name": "AutoBeginner",
+        "link": "https://stackoverflow.com/users/17166674/autobeginner"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1636978737,
+      "post_id": 69974278,
+      "comment_id": 123693789,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {}
+}

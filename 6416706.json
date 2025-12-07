@@ -1,0 +1,97 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "collections",
+      "spring-data",
+      "iterable"
+    ],
+    "owner": {
+      "account_id": 38541,
+      "reputation": 13119,
+      "user_id": 110677,
+      "user_type": "registered",
+      "accept_rate": 83,
+      "profile_image": "https://www.gravatar.com/avatar/99e01ab8a0751d685f250e8a6477589c?s=256&d=identicon&r=PG",
+      "display_name": "Ula Krukar",
+      "link": "https://stackoverflow.com/users/110677/ula-krukar"
+    },
+    "is_answered": true,
+    "view_count": 446697,
+    "accepted_answer_id": 6416800,
+    "answer_count": 21,
+    "score": 506,
+    "last_activity_date": 1720959235,
+    "creation_date": 1308599804,
+    "last_edit_date": 1688747470,
+    "question_id": 6416706,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/6416706/easy-way-to-convert-iterable-to-collection",
+    "title": "Easy way to convert Iterable to Collection",
+    "body": "<p>In my application I use 3rd party library (<code>Spring Data for MongoDB</code> to be exact).</p>\n<p>Methods of this library return <code>Iterable&lt;T&gt;</code>, while the rest of my code expects <code>Collection&lt;T&gt;</code>.</p>\n<p>Is there any utility method somewhere that will let me quickly convert one to the other? I would like to avoid creating a bunch of <code>foreach</code> loops in my code for such a simple thing.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 25822,
+        "reputation": 82642,
+        "user_id": 66686,
+        "user_type": "registered",
+        "accept_rate": 87,
+        "profile_image": "https://www.gravatar.com/avatar/5c09f46f4edab31c43465b9f36638678?s=256&d=identicon&r=PG",
+        "display_name": "Jens Schauder",
+        "link": "https://stackoverflow.com/users/66686/jens-schauder"
+      },
+      "is_accepted": false,
+      "score": 52,
+      "last_activity_date": 1720959235,
+      "last_edit_date": 1720959235,
+      "creation_date": 1620284792,
+      "answer_id": 67413334,
+      "question_id": 6416706,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>When you get your <code>Iterable</code> from Spring Data you have a couple of additional alternatives.</p>\n<ol>\n<li><p>You can override the method that returns the <code>Iterable</code> in the repository with a version that returns a <code>List</code>, <code>Set</code> or <a href=\"https://docs.spring.io/spring-data/commons/docs/current/api/org/springframework/data/util/Streamable.html\" rel=\"noreferrer\"><code>Streamable</code></a>. This way Spring Data is doing the conversion for you.</p>\n</li>\n<li><p>You may do so in a super interface of your repositories so you don't have to repeat the override in all your repository interfaces.</p>\n</li>\n<li><p>If you happen to use Spring Data JPA this is already done for you in <code>JpaRepository</code></p>\n</li>\n<li><p>You may do the conversion using the just mentioned <code>Streamable</code> yourself:</p>\n<pre class=\"lang-java prettyprint-override\"><code>Iterable&lt;X&gt; iterable = repo.findAll();\nList&lt;X&gt; list = Streamable.of(iterable).toList();\n</code></pre>\n</li>\n</ol>\n<p>And since you mention being upset, maybe a little background for the decision to use <code>Iterable</code> help as well.</p>\n<ol>\n<li>It is expected that it is actually fairly rare to actually require a <code>Collection</code> so in many cases it shouldn't make a difference.</li>\n<li>Using the overriding mechanics one can return different types which wouldn't be possible with a more specific return type like <code>Collection</code>.\nThis would make it impossible to return a <code>Streamable</code> which is intended for cases where a store may decide to return a result before all elements have been fetched.</li>\n<li><code>Streamable</code> would actually be a flexible return type, since it offers easy conversions to <code>List</code>, <code>Set</code>, <code>Stream</code> and is itself an <code>Iterable</code>. But this would require you to use a Spring Data specific type in your application which many users wouldn't like.</li>\n</ol>\n<p>There is a <a href=\"https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#jpa.query-methods\" rel=\"noreferrer\">section about this in the reference documentation</a>.</p>\n<h2>Update</h2>\n<p>For quite some time Spring Data now has <code>ListCrudRepository</code> which returns a <code>List</code> directly and can be used with any store.</p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 874324,
+        "reputation": 105,
+        "user_id": 2003379,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/74e1e6f1e62c7ee1adda3703cc2c3a0c?s=256&d=identicon&r=PG",
+        "display_name": "Kevin Van Dyck",
+        "link": "https://stackoverflow.com/users/2003379/kevin-van-dyck"
+      },
+      "edited": false,
+      "score": 5,
+      "creation_date": 1518968264,
+      "post_id": 6416706,
+      "comment_id": 84710211,
+      "content_license": "CC BY-SA 3.0"
+    }
+  ],
+  "answer_comments": {
+    "67413334": [
+      {
+        "owner": {
+          "account_id": 5811477,
+          "reputation": 1761,
+          "user_id": 4582374,
+          "user_type": "registered",
+          "accept_rate": 80,
+          "profile_image": "https://i.sstatic.net/gvWsm.jpg?s=256",
+          "display_name": "l33tHax0r",
+          "link": "https://stackoverflow.com/users/4582374/l33thax0r"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1643758826,
+        "post_id": 67413334,
+        "comment_id": 125423988,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

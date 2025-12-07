@@ -1,0 +1,93 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "static"
+    ],
+    "owner": {
+      "account_id": 307834,
+      "reputation": 10352,
+      "user_id": 619361,
+      "user_type": "registered",
+      "accept_rate": 78,
+      "profile_image": "https://www.gravatar.com/avatar/d849c00caefc5f132b631f73ba69a514?s=256&d=identicon&r=PG",
+      "display_name": "Vamsi Emani",
+      "link": "https://stackoverflow.com/users/619361/vamsi-emani"
+    },
+    "is_answered": true,
+    "view_count": 312705,
+    "accepted_answer_id": 7026563,
+    "answer_count": 32,
+    "score": 730,
+    "last_activity_date": 1730591879,
+    "creation_date": 1313068477,
+    "last_edit_date": 1627533890,
+    "question_id": 7026507,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/7026507/why-are-static-variables-considered-evil",
+    "title": "Why are static variables considered evil?",
+    "body": "<p>I am a Java programmer who is new to the corporate world. Recently I've developed an application using <a href=\"http://en.wikipedia.org/wiki/Groovy_%28programming_language%29\" rel=\"noreferrer\">Groovy</a> and Java. All through the code I wrote used quite a good number of statics. I was asked by the senior technical lot to cut down on the number of statics used. I've googled about the same, and I find that many programmers are fairly against using static variables.</p>\n<p>I find static variables more convenient to use. And I presume that they are efficient too (please correct me if I am wrong), because if I had to make 10,000 calls to a function within a class, I would be glad to make the method static and use a straightforward <code>Class.methodCall()</code> on it instead of cluttering the memory with 10,000 instances of the class, right?</p>\n<p>Moreover statics reduce the inter-dependencies on the other parts of the code. They can act as perfect state holders. Adding to this I find that statics are widely implemented in some languages like <a href=\"https://en.wikipedia.org/wiki/Smalltalk\" rel=\"noreferrer\">Smalltalk</a> and <a href=\"http://en.wikipedia.org/wiki/Scala_%28programming_language%29\" rel=\"noreferrer\">Scala</a>. So why is this opposition to statics prevalent among programmers (especially in the world of Java)?</p>\n<p>PS: please do correct me if my assumptions about statics are wrong.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 51881,
+        "reputation": 39410,
+        "user_id": 155020,
+        "user_type": "registered",
+        "accept_rate": 80,
+        "profile_image": "https://i.sstatic.net/fEqVo.png?s=256",
+        "display_name": "chubbsondubs",
+        "link": "https://stackoverflow.com/users/155020/chubbsondubs"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1730591879,
+      "creation_date": 1730591879,
+      "answer_id": 79151800,
+      "question_id": 7026507,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<blockquote>\n<p>Moreover statics reduce the inter-dependencies on the other parts of the code</p>\n</blockquote>\n<p>This is most definitely a <strong>false</strong> statement.  The reason most people are against statics is they <strong>increase</strong>, not reduce, inter-dependencies between code.  What OO refers to as coupling.  To demonstrate what I mean let's pretend we are writing a game.  Games have a high degree of internal state that must be kept track of.  Under some of the &quot;pros&quot; you outlined for statics you felt they were great for holding state.</p>\n<blockquote>\n<p>They [static variables] can act as perfect state holders.</p>\n</blockquote>\n<p>So let's say we store the player in a static variable because the player is a part of that state.  So maybe we create a <code>Game</code> class and we store the player as a static like so:</p>\n<pre><code>public class Game {\n   public static Player player;\n}\n</code></pre>\n<p>Now when ever we want to talk about the player we would use do something like the following:</p>\n<pre><code>Game.player.walk()\n</code></pre>\n<p>Or say we create a Level class like this:</p>\n<pre><code>public class Level {\n\n   public void start() {\n      Game.player.start( this );\n   }\n\n   public void hit(int amount) {\n      Game.player.health -= amount;\n   }\n}\n</code></pre>\n<p>So we build our game and we do that everywhere.  The player is an important object in our system so you can imagine this reference method is going to be everywhere.  But, because it's a static we never really worry about how the parts of our code has to access it.  It's global.  You might think this is really great, but it's not.  Our level class is dependent upon Game and player, AND there can only be 1 player.  You only have to think about how your code would have to change if you decided &quot;It'd be nice if we added a 2nd player&quot; or maybe you want to go full-on multiplayer so N number of players.  Now Level has to change, game has to change, and all of those other places have to change where ever you used the static ref.  Things get even more challenging because that single player mentality creates very tricky life cycles and dependencies that aren't easy to change.  This is definitely <em>NOT</em> isolation.  There are <em>MORE</em> dependencies, not less, (ie all of those places that must change) under the static ref model.</p>\n<p>Now all of those places you wrote <code>Game.player</code> are going to have to get smarter about which player they should interact with.  And all of a sudden <code>Game.player</code> is going to create a lot of extra work that you didn't really need to do.  By using the static you never designed your system for isolation because state is global, and so small changes like adding another player all of a sudden create massive problems where the entire code base has to be overhauled.</p>\n<p>Maybe you want to use this Game object on the server where many games could be played by lots of players.  And if you used a static to refer to the Game instance you have the same problem.  Where if you'd restricted your design to using instances.  It's easier to handle changes like this.  If you need multiple games just new up a new instance.  Instant isolation.  Object Orientation is as much about creating methods that need to share scope as it is about reuse or inheritance, etc.  And it's thinking like this that drives isolation which makes reusability easier.</p>\n<pre><code>Game g1 = new Game();\nGame g2 = new Game();\n\ng1.play();\ng2.play();\n</code></pre>\n<p>Isn't that easy?!  By not using statics you allow for things like this to be possible.  Maybe the even the following:</p>\n<pre><code>public class Forum {\n\n   protected String region;\n\n   public Forum(String region) {\n      this.region = region;\n   }\n\n   protected List&lt;Game&gt; activeGames;\n   \n   public void startGame() {\n      Game g = new Game();\n      g.start();\n      activeGames.add( g );\n   }\n\n   public void endGame( Game g ) {\n      g.stop();\n      activeGames.remove( g );\n   }\n}\n\npublic class App {\n   public static void main(String[] args) {\n      Forum forum1 = new Forum(&quot;us-east-1&quot;);\n      Forum forum2 = new Forum(&quot;us-west-1&quot;);\n\n      forum1.start();\n      forum2.start();\n   }\n}\n</code></pre>\n<p>I hope that as you can see as I went up a level from player -&gt; Game -&gt; Forum at each point using instances enabled to access broader and broader scopes more easily.  You may want to argue that well maybe I'm on purpose creating a &quot;bad design&quot; to critic statics.  Or maybe you say, &quot;well...yeah but statics would only be used for the top level objects.&quot;  But as I've shown what is top level now might not be in the future, and by <strong>not</strong> using statics I could change what is the most top level object very easily.  You might want to argue &quot;I wouldn't make <code>player</code> static.&quot;  So maybe it's &quot;Game&quot; that is static?  Where do you draw the line?  And all of us that really dislike statics say &quot;Why do we need to even draw the line?&quot;</p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 1670747,
+        "reputation": 1617,
+        "user_id": 1537246,
+        "user_type": "registered",
+        "accept_rate": 26,
+        "profile_image": "https://www.gravatar.com/avatar/a1649b1fb461640474ecf0d44085353c?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "OlliP",
+        "link": "https://stackoverflow.com/users/1537246/ollip"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1758540550,
+      "post_id": 7026507,
+      "comment_id": 140751872,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 7505800,
+        "reputation": 308,
+        "user_id": 5767536,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/20Vuy.png?s=256",
+        "display_name": "H3sDW11e",
+        "link": "https://stackoverflow.com/users/5767536/h3sdw11e"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1565642723,
+      "post_id": 7026507,
+      "comment_id": 101409210,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79151800": []
+  }
+}

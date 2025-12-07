@@ -1,0 +1,250 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "code-generation",
+      "openapi",
+      "openapi-generator"
+    ],
+    "owner": {
+      "account_id": 6559787,
+      "reputation": 497,
+      "user_id": 5071324,
+      "user_type": "registered",
+      "accept_rate": 67,
+      "profile_image": "https://i.sstatic.net/HT3eB.jpg?s=256",
+      "display_name": "Bloodlex",
+      "link": "https://stackoverflow.com/users/5071324/bloodlex"
+    },
+    "is_answered": true,
+    "view_count": 23091,
+    "accepted_answer_id": 61369476,
+    "answer_count": 4,
+    "score": 16,
+    "last_activity_date": 1764719694,
+    "creation_date": 1587312073,
+    "last_edit_date": 1596989014,
+    "question_id": 61307411,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/61307411/openapi-generator-pageable-with-spring",
+    "title": "OpenAPI Generator Pageable with Spring",
+    "body": "<p>I would like the OpenAPI Generator (<a href=\"https://github.com/OpenAPITools/openapi-generator\" rel=\"noreferrer\">https://github.com/OpenAPITools/openapi-generator</a>) to be able to generate Pageable parameter in API according to the implementation in Spring Boot Data. I've been trying to find a suitable, out of the box solution, but couldn't find one.</p>\n\n<p>Ideally, this Pageable parameter should be added only to GET methods in a following manner:</p>\n\n<pre><code>default ResponseEntity&lt;User&gt; getUser(@ApiParam(value = \"value\",required=true) @PathVariable(\"id\") Long id, **Pageable pageable**)\n</code></pre>\n\n<p>So after implementing this interface in my Controller I would need to override it and having this aforementioned Pageable parameter. I don't want to have separate parameters for size or page, only this Pageable here.</p>\n\n<p>Thanks for any tips and help!</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 2278351,
+        "reputation": 1744,
+        "user_id": 2004087,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/x0xTy.jpg?s=256",
+        "display_name": "martins.tuga",
+        "link": "https://stackoverflow.com/users/2004087/martins-tuga"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1764719694,
+      "creation_date": 1764719694,
+      "answer_id": 79836413,
+      "question_id": 61307411,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>This might help who want to reuse existing classes to map OpenApi schemas:</p>\n<p><strong>schemaMappings</strong> below will be used to map schema Pageable instead of creating a PageableDto!</p>\n<pre><code>&lt;plugin&gt;\n    &lt;groupId&gt;org.openapitools&lt;/groupId&gt;\n    &lt;artifactId&gt;openapi-generator-maven-plugin&lt;/artifactId&gt;\n    &lt;version&gt;7.12.0&lt;/version&gt;\n    &lt;executions&gt;\n       &lt;execution&gt;\n          &lt;id&gt;generate-UserManagement-API&lt;/id&gt;\n          &lt;goals&gt;\n             &lt;goal&gt;generate&lt;/goal&gt;\n          &lt;/goals&gt;\n          &lt;configuration&gt;\n             &lt;inputSpec&gt;src/main/resources/openapi/flight_grid_app-openapi.yml&lt;/inputSpec&gt;\n             &lt;generatorName&gt;spring&lt;/generatorName&gt;\n                         &lt;schemaMappings&gt;Pageable=org.springframework.data.domain.Pageable&lt;/schemaMappings&gt;\n             &lt;configOptions&gt;\n                &lt;sourceFolder&gt;src/gen/java/main&lt;/sourceFolder&gt;\n                &lt;interfaceOnly&gt;true&lt;/interfaceOnly&gt;\n                &lt;useSpringBoot3&gt;true&lt;/useSpringBoot3&gt;\n                &lt;generateApiTests&gt;false&lt;/generateApiTests&gt;\n                &lt;generateModelTests&gt;false&lt;/generateModelTests&gt;\n                &lt;useJakartaEe&gt;true&lt;/useJakartaEe&gt;\n                &lt;useBeanValidation&gt;true&lt;/useBeanValidation&gt;\n                &lt;useTags&gt;true&lt;/useTags&gt;\n                &lt;modelPackage&gt;${swagger-codegen-maven-package}.api.model&lt;/modelPackage&gt;\n                &lt;apiPackage&gt;${swagger-codegen-maven-package}.api&lt;/apiPackage&gt;\n                &lt;serializableModel&gt;true&lt;/serializableModel&gt;\n             &lt;/configOptions&gt;\n             &lt;modelNameSuffix&gt;Dto&lt;/modelNameSuffix&gt;\n          &lt;/configuration&gt;\n       &lt;/execution&gt;\n    &lt;/executions&gt;\n&lt;/plugin&gt;\n</code></pre>\n<p><a href=\"https://stackoverflow.com/questions/75825152/openapi-generator-maven-plugin-doesnt-use-import-mappings\">OpenAPI generator maven plugin doesn&#39;t use import mappings</a></p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 7439748,
+        "reputation": 1744,
+        "user_id": 6350670,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/70a828b6e3eb6187ceb2e1f8314dc47a?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Gelerion",
+        "link": "https://stackoverflow.com/users/6350670/gelerion"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1744739906,
+      "creation_date": 1744739906,
+      "answer_id": 79575774,
+      "question_id": 61307411,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>I solved this using the <code>x-spring-provide-args</code> extension annotation. It adds an additional parameter to the generated method</p>\n<p>Example spec with included pagination and sorting parameters, along with the <code>x-spring-provide-args</code> :</p>\n<pre><code>  operationId: 'zyz'\n  parameters:\n    # Pagination &amp; Sorting\n    - $ref: '#/components/parameters/PageParam'\n    - $ref: '#/components/parameters/SizeParam'\n    - $ref: '#/components/parameters/SortParam'\n  x-spring-provide-args:\n    - 'org.springframework.data.domain.Pageable pageable'\n</code></pre>\n<p>The <code>Pageable</code> object is autopopulated by Spring's <code>PagedResourcesAssemblerArgumentResolver</code>.</p>\n<p>Make sure to set the generator name to <code>spring</code></p>\n<pre><code>generatorName.set(&quot;spring&quot;)\n</code></pre>\n<p>As drawback, the generated method includes both the individual parameters and the <code>Pageable</code> object, e.g.</p>\n<pre><code>public ResponseEntity&lt;ProductPage&gt; operation(Integer page, Integer size, List&lt;String&gt; sort, Pageable pageable) {\n    ...\n}\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 1315349,
+        "reputation": 1765,
+        "user_id": 1262371,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/b8275cd51c46ecd441233ec6ddd7b7db?s=256&d=identicon&r=PG",
+        "display_name": "Martin Hauner",
+        "link": "https://stackoverflow.com/users/1262371/martin-hauner"
+      },
+      "is_accepted": true,
+      "score": 12,
+      "last_activity_date": 1707984493,
+      "last_edit_date": 1707984493,
+      "creation_date": 1587570818,
+      "answer_id": 61369476,
+      "question_id": 61307411,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Unfortunately this is no final solution but it is half way. Maybe it is of help anyway.</p>\n<p>By defining the pageable parameters (size, page etc.) as an object query parameter it is possible to tell the generator to use the Spring object instead of generating a <code>Pageable</code> class from the api. This is done by an import mapping.</p>\n<p>in gradle:</p>\n<pre><code>openApiGenerate {\n    ....\n    importMappings = [\n        'Pageable': 'org.springframework.data.domain.Pageable'\n    ]\n}\n</code></pre>\n<p>which tells the generator to use the Spring class instead of the one defined in the api:</p>\n<pre><code>openapi: 3.0.2\ninfo:\n  title: Spring Page/Pageable API\n  version: 1.0.0\n\npaths:\n  /page:\n    get:\n      parameters:\n        - in: query \n          name: pageable\n          required: false\n          schema:\n            $ref: '#/components/schemas/Pageable'\n      responses:\n        ...\n\ncomponents:\n  schemas:\n    Pageable: \n      description: minimal Pageable query parameters\n      type: object\n      properties:\n        page:\n          type: integer\n        size:\n          type: integer\n</code></pre>\n<p>The issue with the mapping is that the generator still adds a <code>@RequestParam()</code> annotation and that <strong>breaks</strong> it again. It only works if it is <strong>NOT</strong> annotated.</p>\n<p>If you are a bit adventurous you could try <a href=\"https://github.com/openapi-processor/openapi-processor-spring\" rel=\"nofollow noreferrer\">openapi-processor-spring</a> (i'm the author). It it does handle the example above. But it may have other limitations you don't like.</p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 6559787,
+        "reputation": 497,
+        "user_id": 5071324,
+        "user_type": "registered",
+        "accept_rate": 67,
+        "profile_image": "https://i.sstatic.net/HT3eB.jpg?s=256",
+        "display_name": "Bloodlex",
+        "link": "https://stackoverflow.com/users/5071324/bloodlex"
+      },
+      "reply_to_user": {
+        "account_id": 1315349,
+        "reputation": 1765,
+        "user_id": 1262371,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/b8275cd51c46ecd441233ec6ddd7b7db?s=256&d=identicon&r=PG",
+        "display_name": "Martin Hauner",
+        "link": "https://stackoverflow.com/users/1262371/martin-hauner"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1587489302,
+      "post_id": 61307411,
+      "comment_id": 108529861,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 1315349,
+        "reputation": 1765,
+        "user_id": 1262371,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/b8275cd51c46ecd441233ec6ddd7b7db?s=256&d=identicon&r=PG",
+        "display_name": "Martin Hauner",
+        "link": "https://stackoverflow.com/users/1262371/martin-hauner"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1587399562,
+      "post_id": 61307411,
+      "comment_id": 108490875,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79836413": [],
+    "79575774": [],
+    "61369476": [
+      {
+        "owner": {
+          "account_id": 3603762,
+          "reputation": 1657,
+          "user_id": 3006465,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/G7kli.jpg?s=256",
+          "display_name": "electrobabe",
+          "link": "https://stackoverflow.com/users/3006465/electrobabe"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1756309284,
+        "post_id": 61369476,
+        "comment_id": 140696403,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 5133120,
+          "reputation": 125,
+          "user_id": 4112670,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/2e986b2d168d6edb7e30c015d0ab33bb?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Victor Mikhailov",
+          "link": "https://stackoverflow.com/users/4112670/victor-mikhailov"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1698236865,
+        "post_id": 61369476,
+        "comment_id": 136379231,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 9715277,
+          "reputation": 499,
+          "user_id": 7205901,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/NpZ8G.png?s=256",
+          "display_name": "OliverE",
+          "link": "https://stackoverflow.com/users/7205901/olivere"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1643375803,
+        "post_id": 61369476,
+        "comment_id": 125329406,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1315349,
+          "reputation": 1765,
+          "user_id": 1262371,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/b8275cd51c46ecd441233ec6ddd7b7db?s=256&d=identicon&r=PG",
+          "display_name": "Martin Hauner",
+          "link": "https://stackoverflow.com/users/1262371/martin-hauner"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1628835593,
+        "post_id": 61369476,
+        "comment_id": 121531495,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1965862,
+          "reputation": 3795,
+          "user_id": 1766166,
+          "user_type": "registered",
+          "accept_rate": 71,
+          "profile_image": "https://www.gravatar.com/avatar/eb10957bb63df3ecabe7e4ff94710d7e?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "zygimantus",
+          "link": "https://stackoverflow.com/users/1766166/zygimantus"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1628531169,
+        "post_id": 61369476,
+        "comment_id": 121440622,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 6559787,
+          "reputation": 497,
+          "user_id": 5071324,
+          "user_type": "registered",
+          "accept_rate": 67,
+          "profile_image": "https://i.sstatic.net/HT3eB.jpg?s=256",
+          "display_name": "Bloodlex",
+          "link": "https://stackoverflow.com/users/5071324/bloodlex"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1588486740,
+        "post_id": 61369476,
+        "comment_id": 108911317,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

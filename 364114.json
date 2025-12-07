@@ -1,0 +1,581 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "maven-2"
+    ],
+    "owner": {
+      "user_type": "does_not_exist",
+      "display_name": "purple"
+    },
+    "is_answered": true,
+    "view_count": 465388,
+    "protected_date": 1294859398,
+    "answer_count": 25,
+    "score": 746,
+    "last_activity_date": 1753819891,
+    "creation_date": 1229115451,
+    "last_edit_date": 1753807549,
+    "question_id": 364114,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/364114/can-i-add-jar-files-to-maven-2-build-classpath-without-installing-them",
+    "title": "Can I add JAR files to Maven 2 build classpath without installing them?",
+    "body": "<p>Maven 2 is driving me crazy during the experimentation / quick and dirty mock-up phase of development.</p>\n<p>I have a <em><a href=\"https://en.wikipedia.org/wiki/Central_processing_unit\" rel=\"nofollow noreferrer\">pom.xml</a></em> file that defines the dependencies for the web application framework I want to use, and I can quickly generate starter projects from that file.</p>\n<p>However, sometimes I want to link to a third-party library that doesn't already have a <em>pom.xml</em> file defined, so rather than create the <code>pom.xml</code> file for the third-party library by hand and install it, and add the dependency to my <em>pom.xml</em> file, I would just like to tell Maven: &quot;In addition to my defined dependencies, include any JAR files that are in <code>/lib</code> too.&quot;</p>\n<p>It seems like this ought to be simple, but if it is, I am missing something.</p>\n<p>Any pointers on how to do this are greatly appreciated. Short of that, if there is a simple way to point Maven to a <code>/lib</code> directory and easily create a <code>pom.xml</code> with all the enclosed JAR files mapped to a single dependency which I could then name / install and link to in one fell swoop would also suffice.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 6623097,
+        "reputation": 371,
+        "user_id": 5114119,
+        "user_type": "registered",
+        "profile_image": "https://lh6.googleusercontent.com/-ZeEnBA3gP-g/AAAAAAAAAAI/AAAAAAAAAB0/39qKzWUZXSQ/s256-rj/photo.jpg",
+        "display_name": "Shubham Singh",
+        "link": "https://stackoverflow.com/users/5114119/shubham-singh"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1753819891,
+      "last_edit_date": 1753819891,
+      "creation_date": 1730700195,
+      "answer_id": 79154337,
+      "question_id": 364114,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Regarding:</p>\n<pre class=\"lang-none prettyprint-override\"><code>mvn -D&quot;java.class.path=&lt;path to JAR file&gt;&quot; clean install\n</code></pre>\n<p>The above worked for me when adding a JAR file to the classpath with Maven.</p>\n<p><strong>Explanation</strong>: Maven uses the variable <code>java.class.path</code> to manage classpath. This variable by default only has only one JAR file (classworld-plexus-[version].jar). You can choose to add this JAR file if there is some problem in your project with the above line. The plexus JAR file path would be something like:</p>\n<pre class=\"lang-none prettyprint-override\"><code>C:\\Users\\UserName\\apache-maven-3.9.9\\boot\\plexus-classworlds-2.8.0.jar\n</code></pre>\n<p>And command would be like:</p>\n<pre class=\"lang-none prettyprint-override\"><code>mvn -D&quot;java.class.path=C:\\Users\\UserName\\apache-maven-3.9.9\\boot\\plexus-classworlds-2.8.0.jar;C:\\Users\\UserName\\path\\to\\myjarfile.jar&quot; clean install\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 1089299,
+        "reputation": 926,
+        "user_id": 1084306,
+        "user_type": "registered",
+        "accept_rate": 75,
+        "profile_image": "https://i.sstatic.net/awTzF.jpg?s=256",
+        "display_name": "Donovan",
+        "link": "https://stackoverflow.com/users/1084306/donovan"
+      },
+      "is_accepted": false,
+      "score": 2,
+      "last_activity_date": 1753817699,
+      "last_edit_date": 1753817699,
+      "creation_date": 1475861713,
+      "answer_id": 39922969,
+      "question_id": 364114,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>For those that didn't find a good answer here, this is what we are doing to get a JAR file with all the necessary dependencies in it. This answer (<em><a href=\"https://stackoverflow.com/questions/364114/can-i-add-jar-files-to-maven-2-build-classpath-without-installing-them/7623805#7623805\">Can I add JAR files to Maven 2 build classpath without installing them?</a></em>) mentions to use the Maven Assembly plugin but doesn't actually give an example in the answer.</p>\n<p>And if you don't read all the way to the end of the answer (it's pretty lengthy), you may miss it. Adding the below to your <em>pom.xml</em> fill will generate <code>target/${PROJECT_NAME}-${VERSION}-jar-with-dependencies.jar</code></p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;plugin&gt;\n    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;\n    &lt;artifactId&gt;maven-assembly-plugin&lt;/artifactId&gt;\n    &lt;version&gt;2.4.1&lt;/version&gt;\n    &lt;configuration&gt;\n        &lt;!-- Get all project dependencies --&gt;\n        &lt;descriptorRefs&gt;\n            &lt;descriptorRef&gt;jar-with-dependencies&lt;/descriptorRef&gt;\n        &lt;/descriptorRefs&gt;\n        &lt;!-- MainClass in mainfest make a executable JAR file --&gt;\n        &lt;archive&gt;\n          &lt;manifest&gt;\n            &lt;mainClass&gt;my.package.mainclass&lt;/mainClass&gt;\n          &lt;/manifest&gt;\n        &lt;/archive&gt;\n\n    &lt;/configuration&gt;\n    &lt;executions&gt;\n      &lt;execution&gt;\n        &lt;id&gt;make-assembly&lt;/id&gt;\n        &lt;!-- Bind to the packaging phase --&gt;\n        &lt;phase&gt;package&lt;/phase&gt;\n        &lt;goals&gt;\n            &lt;goal&gt;single&lt;/goal&gt;\n        &lt;/goals&gt;\n      &lt;/execution&gt;\n    &lt;/executions&gt;\n&lt;/plugin&gt;\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 1542372,
+        "reputation": 714,
+        "user_id": 1436698,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/3e1470f35bf6b0ba160e9261b9f01c65?s=256&d=identicon&r=PG",
+        "display_name": "atr",
+        "link": "https://stackoverflow.com/users/1436698/atr"
+      },
+      "is_accepted": false,
+      "score": 5,
+      "last_activity_date": 1753816748,
+      "last_edit_date": 1753816748,
+      "creation_date": 1475786631,
+      "answer_id": 39905292,
+      "question_id": 364114,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>To install the third-party JAR file which is not in the Maven repository, use <em>maven-install-plugin</em>.</p>\n<p>Below are the steps:</p>\n<ol>\n<li>Download the JAR file manually from the source (website)</li>\n<li>Create a folder and place your JAR file in it</li>\n<li>Run the below command to install the third-party JAR file in your local Maven repository</li>\n</ol>\n<blockquote>\n<p>mvn install:install-file -Dfile= -DgroupId=\n-DartifactId= -Dversion= -Dpackaging=</p>\n</blockquote>\n<p>Below is the e.g. one I used it for simonsite <a href=\"https://en.wikipedia.org/wiki/Log4j\" rel=\"nofollow noreferrer\">Log4j</a></p>\n<blockquote>\n<p>mvn install:install-file\n-Dfile=/Users/athanka/git/MyProject/repo/log4j-rolling-appender.jar -DgroupId=uk.org.simonsite -DartifactId=log4j-rolling-appender -Dversion=20150607-2059 -Dpackaging=jar</p>\n</blockquote>\n<ol start=\"4\">\n<li><p>In the <em>pom.xml</em> file,  include the dependency as below</p>\n<blockquote>\n<pre><code>  &lt;dependency&gt;\n        &lt;groupId&gt;uk.org.simonsite&lt;/groupId&gt;\n        &lt;artifactId&gt;log4j-rolling-appender&lt;/artifactId&gt;\n        &lt;version&gt;20150607-2059&lt;/version&gt;\n  &lt;/dependency&gt;\n</code></pre>\n</blockquote>\n</li>\n<li><p>Run the mvn clean install command to create your packaging</p>\n</li>\n</ol>\n<p>Reference: <em><a href=\"https://maven.apache.org/guides/mini/guide-3rd-party-jars-local.html\" rel=\"nofollow noreferrer\">Guide to installing third-party JAR files</a></em></p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 3187759,
+        "reputation": 3270,
+        "user_id": 2692914,
+        "user_type": "registered",
+        "accept_rate": 93,
+        "profile_image": "https://www.gravatar.com/avatar/37111c3b2cd407510de6151a63194442?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "lmiguelmh",
+        "link": "https://stackoverflow.com/users/2692914/lmiguelmh"
+      },
+      "is_accepted": false,
+      "score": 4,
+      "last_activity_date": 1753816523,
+      "last_edit_date": 1753816523,
+      "creation_date": 1463188535,
+      "answer_id": 37221449,
+      "question_id": 364114,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>A <em>quick-and-dirty</em> batch solution (based on <a href=\"https://stackoverflow.com/questions/364114/can-i-add-jar-files-to-maven-2-build-classpath-without-installing-them/5741365#5741365\">Alex's answer</a>):</p>\n<p><strong>libs.bat</strong></p>\n<pre><code>@ECHO OFF\nFOR %%I IN (*.jar) DO (\necho ^&lt;dependency^&gt;\necho ^&lt;groupId^&gt;local.dummy^&lt;/groupId^&gt;\necho ^&lt;artifactId^&gt;%%I^&lt;/artifactId^&gt;\necho ^&lt;version^&gt;0.0.1^&lt;/version^&gt;\necho ^&lt;scope^&gt;system^&lt;/scope^&gt;\necho ^&lt;systemPath^&gt;${project.basedir}/lib/%%I^&lt;/systemPath^&gt;\necho ^&lt;/dependency^&gt;\n)\n</code></pre>\n<p>Execute it like this: <code>libs.bat &gt; libs.txt</code>.\nThen open <code>libs.txt</code> and copy its content as dependencies.</p>\n<p>In my case, I only needed the libraries to compile my code, and this solution was the best for that purpose.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 19723,
+        "reputation": 1735,
+        "user_id": 46459,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/f9bf4810c7edd54fcc267e692a9c285f?s=256&d=identicon&r=PG",
+        "display_name": "realgt",
+        "link": "https://stackoverflow.com/users/46459/realgt"
+      },
+      "is_accepted": false,
+      "score": 8,
+      "last_activity_date": 1753816341,
+      "last_edit_date": 1753816341,
+      "creation_date": 1454615518,
+      "answer_id": 35210338,
+      "question_id": 364114,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>It seems simplest to me just to configure your <em>maven-compiler-plugin</em> to include your custom JAR files. This example will load any JAR files in a <code>lib</code> directory.</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;plugin&gt;\n    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;\n    &lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;\n    &lt;configuration&gt;\n        &lt;includes&gt;\n            &lt;include&gt;lib/*.jar&lt;/include&gt;\n        &lt;/includes&gt;\n    &lt;/configuration&gt;\n&lt;/plugin&gt;\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 1908606,
+        "reputation": 2080,
+        "user_id": 1722982,
+        "user_type": "registered",
+        "accept_rate": 75,
+        "profile_image": "https://www.gravatar.com/avatar/31655c1363683143df2ab3ed9961ed3b?s=256&d=identicon&r=PG",
+        "display_name": "boumbh",
+        "link": "https://stackoverflow.com/users/1722982/boumbh"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1753815721,
+      "last_edit_date": 1753815721,
+      "creation_date": 1445873398,
+      "answer_id": 33349540,
+      "question_id": 364114,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>I just wanted a quick-and-dirty workaround... I couldn't run <a href=\"https://stackoverflow.com/questions/364114/can-i-add-jar-files-to-maven-2-build-classpath-without-installing-them/7623805#7623805\">the script from Nikita Volkov</a>: syntax error + it requires a strict format for the JAR file names.</p>\n<p>I made this Perl script which works with whatever format for the JAR file names, and it generates the dependencies in an XML file, so it can be copy-pasted directly in a POM file.</p>\n<p>If you want to use it, make sure you understand what the script is doing. You may need to change the <code>lib</code> folder and the value for the <code>groupId</code> or <code>artifactId</code>...</p>\n<pre class=\"lang-perl prettyprint-override\"><code>#!/usr/bin/perl\n\nuse strict;\nuse warnings;\n\nopen(my $fh, '&gt;', 'dependencies.xml') or die &quot;Could not open file 'dependencies.xml' $!&quot;;\nforeach my $file (glob(&quot;lib/*.jar&quot;)) {\n    print &quot;$file\\n&quot;;\n    my $groupId = &quot;my.mess&quot;;\n    my $artifactId = &quot;&quot;;\n    my $version = &quot;0.1-SNAPSHOT&quot;;\n    if ($file =~ /\\/([^\\/]*?)(-([0-9v\\._]*))?\\.jar$/) {\n        $artifactId = $1;\n        if (defined($3)) {\n            $version = $3;\n        }\n        `mvn install:install-file -Dfile=$file -DgroupId=$groupId -DartifactId=$artifactId -Dversion=$version -Dpackaging=jar`;\n        print $fh &quot;&lt;dependency&gt;\\n\\t&lt;groupId&gt;$groupId&lt;/groupId&gt;\\n\\t&lt;artifactId&gt;$artifactId&lt;/artifactId&gt;\\n\\t&lt;version&gt;$version&lt;/version&gt;\\n&lt;/dependency&gt;\\n&quot;;\n        print &quot; =&gt; $groupId:$artifactId:$version\\n&quot;;\n    } else {\n        print &quot;##### BEUH...\\n&quot;;\n    }\n}\nclose $fh;\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 3352915,
+        "reputation": 7375,
+        "user_id": 2816571,
+        "user_type": "registered",
+        "accept_rate": 89,
+        "profile_image": "https://i.sstatic.net/8S452.jpg?s=256",
+        "display_name": "Paul",
+        "link": "https://stackoverflow.com/users/2816571/paul"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1753815470,
+      "last_edit_date": 1753815470,
+      "creation_date": 1392236889,
+      "answer_id": 21738885,
+      "question_id": 364114,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>I alluded to some Python code in a comment to <a href=\"https://stackoverflow.com/questions/364114/can-i-add-jar-files-to-maven-2-build-classpath-without-installing-them/5741365#5741365\">the answer from Alex Lehmann</a>, so I am posting it here.</p>\n<pre><code>def AddJars(jarList):\n  s1 = ''\n  for elem in jarList:\n   s1+= &quot;&quot;&quot;\n     &lt;dependency&gt;\n        &lt;groupId&gt;local.dummy&lt;/groupId&gt;\n        &lt;artifactId&gt;%s&lt;/artifactId&gt;\n        &lt;version&gt;0.0.1&lt;/version&gt;\n        &lt;scope&gt;system&lt;/scope&gt;\n        &lt;systemPath&gt;${project.basedir}/manual_jars/%s&lt;/systemPath&gt;\n     &lt;/dependency&gt;\\n&quot;&quot;&quot;%(elem, elem)\n  return s1\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 224936,
+        "reputation": 43420,
+        "user_id": 485115,
+        "user_type": "registered",
+        "accept_rate": 87,
+        "profile_image": "https://www.gravatar.com/avatar/59693d66b96ca17ca9d2fdb2393e2be3?s=256&d=identicon&r=PG",
+        "display_name": "Nikita Volkov",
+        "link": "https://stackoverflow.com/users/485115/nikita-volkov"
+      },
+      "is_accepted": false,
+      "score": 641,
+      "last_activity_date": 1753815322,
+      "last_edit_date": 1753815322,
+      "creation_date": 1317514509,
+      "answer_id": 7623805,
+      "question_id": 364114,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<h3>Problems of popular approaches</h3>\n<p>Most of the answers you'll find around the internet will suggest you to either install the dependency to your local repository or specify a &quot;system&quot; scope in the <code>pom</code> and distribute the dependency with the source of your project. But both of these solutions are actually flawed.</p>\n<h4>Why you shouldn't apply the &quot;Install to Local Repository&quot; approach</h4>\n<p>When you install a dependency to your local repository it remains there. Your distribution artifact will do fine as long as it has access to this repository. The problem is in most cases this repository will reside on your local machine, so there'll be no way to resolve this dependency on any other machine. Clearly making your artifact depend on a specific machine is not a way to handle things. Otherwise this dependency will have to be locally installed on every machine working with that project which is not any better.</p>\n<h4>Why you shouldn't apply the &quot;System Scope&quot; approach</h4>\n<p>The JAR files you depend on with the &quot;System Scope&quot; approach neither get installed to any repository or attached to your target packages. That's why your distribution package won't have a way to resolve that dependency when used. That I believe was the reason why the use of system scope even got deprecated. Anyway you don't want to rely on a deprecated feature.</p>\n<h3>The static in-project repository solution</h3>\n<p>After putting this in your POM file:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;repository&gt;\n    &lt;id&gt;repo&lt;/id&gt;\n    &lt;releases&gt;\n        &lt;enabled&gt;true&lt;/enabled&gt;\n        &lt;checksumPolicy&gt;ignore&lt;/checksumPolicy&gt;\n    &lt;/releases&gt;\n    &lt;snapshots&gt;\n        &lt;enabled&gt;false&lt;/enabled&gt;\n    &lt;/snapshots&gt;\n    &lt;url&gt;file://${project.basedir}/repo&lt;/url&gt;\n&lt;/repository&gt;\n</code></pre>\n<p>for each artifact with a group id of form <code>x.y.z</code> Maven will include the following location inside your project directory in its search for artifacts:</p>\n<pre class=\"lang-none prettyprint-override\"><code>repo/\n| - x/\n|   | - y/\n|   |   | - z/\n|   |   |   | - ${artifactId}/\n|   |   |   |   | - ${version}/\n|   |   |   |   |   | - ${artifactId}-${version}.jar\n</code></pre>\n<p>To elaborate more on this, you can read <a href=\"https://dub.podval.org/2010/01/28/maven-in-project-repository.html\" rel=\"nofollow noreferrer\">this blog post</a>.</p>\n<h4>Use Maven to install to project repository</h4>\n<p>Instead of creating this structure by hand, I recommend to use a Maven plugin to install your JAR files as artifacts. So, to install an artifact to an in-project repository under <code>repo</code> folder execute:</p>\n<pre class=\"lang-none prettyprint-override\"><code>mvn install:install-file -DlocalRepositoryPath=repo -DcreateChecksum=true -Dpackaging=jar -Dfile=[your-jar] -DgroupId=[...] -DartifactId=[...] -Dversion=[...]\n</code></pre>\n<p>If you'll choose this approach, you'll be able to simplify the repository declaration in the POM file to:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;repository&gt;\n    &lt;id&gt;repo&lt;/id&gt;\n    &lt;url&gt;file://${project.basedir}/repo&lt;/url&gt;\n&lt;/repository&gt;\n</code></pre>\n<h4>A helper script</h4>\n<p>Since executing installation command for each library is kind of annoying and definitely error-prone, I've created <a href=\"https://github.com/nikita-volkov/install-to-project-repo\" rel=\"nofollow noreferrer\">a utility script</a> which automatically installs all the JAR files from a <code>lib</code> folder to a project repository, while automatically resolving all metadata (groupId, artifactId, etc.) from names of files. The script also prints out the dependencies XML file for you to copy-paste in your POM file.</p>\n<h4>Include the dependencies in your target package</h4>\n<p>When you'll have your in-project repository created, you'll have solved a problem of distributing the dependencies of the project with its source, but since then your project's target artifact will depend on non-published JAR files, so when you'll install it to a repository, it will have unresolvable dependencies.</p>\n<p>To beat this problem, I suggest to include these dependencies in your target package. This you can do with either the <a href=\"https://stackoverflow.com/a/1729094/485115\">Assembly Plugin</a> or better with the <a href=\"http://code.google.com/p/onejar-maven-plugin/\" rel=\"nofollow noreferrer\">OneJar Plugin</a>. The official documentation on OneJar is easy to grasp.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 7433,
+        "reputation": 26196,
+        "user_id": 12916,
+        "user_type": "registered",
+        "accept_rate": 23,
+        "profile_image": "https://www.gravatar.com/avatar/53ab525063e3831bc781fa56af4181a5?s=256&d=identicon&r=PG",
+        "display_name": "Jesse Glick",
+        "link": "https://stackoverflow.com/users/12916/jesse-glick"
+      },
+      "is_accepted": false,
+      "score": 9,
+      "last_activity_date": 1753815282,
+      "last_edit_date": 1753815282,
+      "creation_date": 1368150435,
+      "answer_id": 16473926,
+      "question_id": 364114,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Using <code>&lt;scope&gt;system&lt;/scope&gt;</code> is a terrible idea for reasons explained by others. Installing the file manually to your local repository makes the build unreproducible, and using <code>&lt;url&gt;file://${project.basedir}/repo&lt;/url&gt;</code> is not a good idea either, because (1) that may not be a well-formed <code>file</code> URL (e.g., if the project is checked out in a directory with unusual characters), (2) the result is unusable if this project’s POM file is used as a dependency of someone else’s project.</p>\n<p>Assuming you are unwilling to upload the artifact to a public repository, <a href=\"https://stackoverflow.com/questions/364114/can-i-add-jar-files-to-maven-2-build-classpath-without-installing-them/14377305#14377305\">Simeon’s suggestion</a> of a helper module does the job. But there is an easier way now…</p>\n<h2>The recommendation</h2>\n<p>Use <a href=\"https://github.com/stephenc/non-maven-jar-maven-plugin\" rel=\"nofollow noreferrer\">non-maven-jar-maven-plugin</a>. It does exactly what you were asking for, with none of the drawbacks of the other approaches.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 1111217,
+        "reputation": 470,
+        "user_id": 1101647,
+        "user_type": "registered",
+        "accept_rate": 8,
+        "profile_image": "https://i.sstatic.net/hCsIm.jpg?s=256",
+        "display_name": "Simeon Angelov",
+        "link": "https://stackoverflow.com/users/1101647/simeon-angelov"
+      },
+      "is_accepted": false,
+      "score": 7,
+      "last_activity_date": 1753814702,
+      "last_edit_date": 1753814702,
+      "creation_date": 1358419595,
+      "answer_id": 14377305,
+      "question_id": 364114,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>After having a really long discussion with CloudBees guys about properly Maven packaging of such kind of JAR files, they made an interesting good proposal for a solution:</p>\n<p>Creation of a fake Maven project which attaches a preexisting JAR file as a primary artifact, running into a belonged POM install:install-file execution. Here is an example of such kind of POM file:</p>\n<pre class=\"lang-xml prettyprint-override\"><code> &lt;build&gt;\n    &lt;plugins&gt;\n        &lt;plugin&gt;\n            &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;\n            &lt;artifactId&gt;maven-install-plugin&lt;/artifactId&gt;\n            &lt;version&gt;2.3.1&lt;/version&gt;\n            &lt;executions&gt;\n                &lt;execution&gt;\n                    &lt;id&gt;image-util-id&lt;/id&gt;\n                    &lt;phase&gt;install&lt;/phase&gt;\n                    &lt;goals&gt;\n                        &lt;goal&gt;install-file&lt;/goal&gt;\n                    &lt;/goals&gt;\n                    &lt;configuration&gt;\n                        &lt;file&gt;${basedir}/file-you-want-to-include.jar&lt;/file&gt;\n                        &lt;groupId&gt;${project.groupId}&lt;/groupId&gt;\n                        &lt;artifactId&gt;${project.artifactId}&lt;/artifactId&gt;\n                        &lt;version&gt;${project.version}&lt;/version&gt;\n                        &lt;packaging&gt;jar&lt;/packaging&gt;\n                    &lt;/configuration&gt;\n                &lt;/execution&gt;\n            &lt;/executions&gt;\n        &lt;/plugin&gt;\n    &lt;/plugins&gt;\n&lt;/build&gt;\n</code></pre>\n<p>But in order to implement it, the existing project structure should be changed. First, you should have in mind that for each such kind of JAR file, there should be created a different fake Maven project (module). And there should be created a parent Maven project, including all sub-modules which are: all JAR file wrappers and existing main project. The structure could be:</p>\n<blockquote>\n<p>root project (this contains the parent POM file includes all sub-modules with <i>module</i> XML element) (POM packaging)</p>\n<p>JAR 1 wrapper Maven child project (POM packaging)</p>\n<p>JAR 2 wrapper Maven child project (POM packaging)</p>\n<p>main existing Maven child project (WAR, JAR, EAR .... packaging)</p>\n</blockquote>\n<p>When the parent is running via <code>mvn:install</code> or <code>mvn:packaging</code> is forced and submodules will be executed. That could be concerned as a minus here, since the project structure should be changed, but offers a nonstatic solution at the end.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 305881,
+        "reputation": 5425,
+        "user_id": 616290,
+        "user_type": "registered",
+        "accept_rate": 57,
+        "profile_image": "https://i.sstatic.net/1NpJm.jpg?s=256",
+        "display_name": "Dmytro Boichenko",
+        "link": "https://stackoverflow.com/users/616290/dmytro-boichenko"
+      },
+      "is_accepted": false,
+      "score": 73,
+      "last_activity_date": 1753814132,
+      "last_edit_date": 1753814132,
+      "creation_date": 1349442068,
+      "answer_id": 12746819,
+      "question_id": 364114,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>You may create a local repository in your project.</p>\n<p>For example, if you have <code>libs</code> folder in the project structure</p>\n<ul>\n<li><p>In the <code>libs</code> folder, you should create a directory structure like: <code>/groupId/artifactId/version/artifactId-version.jar</code></p>\n</li>\n<li><p>In your <em>pom.xml</em> file, you should register a repository</p>\n<pre><code> &lt;repository&gt;\n     &lt;id&gt;ProjectRepo&lt;/id&gt;\n     &lt;name&gt;ProjectRepo&lt;/name&gt;\n     &lt;url&gt;file://${project.basedir}/libs&lt;/url&gt;\n &lt;/repository&gt;\n</code></pre>\n</li>\n<li><p>and add a dependency as usual</p>\n<pre><code> &lt;dependency&gt;\n     &lt;groupId&gt;groupId&lt;/groupId&gt;\n     &lt;artifactId&gt;artifactId&lt;/artifactId&gt;\n     &lt;version&gt;version&lt;/version&gt;\n &lt;/dependency&gt;\n</code></pre>\n</li>\n</ul>\n<p>That is all.</p>\n<p>For detailed information: <a href=\"https://web.archive.org/web/20130801071744/http://charlie.cu.cc/2012/06/how-add-external-libraries-maven/\" rel=\"nofollow noreferrer\">How to add external libraries in Maven</a> (archived)</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 313582,
+        "reputation": 45,
+        "user_id": 628302,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/8dda628261c727044751af07c6c76403?s=256&d=identicon&r=PG",
+        "display_name": "Łukasz Klich",
+        "link": "https://stackoverflow.com/users/628302/%c5%81ukasz-klich"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1753814014,
+      "last_edit_date": 1753814014,
+      "creation_date": 1330692769,
+      "answer_id": 9533639,
+      "question_id": 364114,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>What <a href=\"https://stackoverflow.com/questions/364114/can-i-add-jar-files-to-maven-2-build-classpath-without-installing-them/7748177#7748177\">Archimedes Trajano wrote</a> works in our project, but we had something like this in our <em>.m2/settings.xml</em> file:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;mirror&gt;\n    &lt;id&gt;nexus&lt;/id&gt;\n    &lt;mirrorOf&gt;*&lt;/mirrorOf&gt;\n    &lt;url&gt;http://URL_to_our_repository&lt;/url&gt;\n&lt;/mirror&gt;\n</code></pre>\n<p>And the <code>*</code> should be changed to central. So if his answer doesn't work for you, you should check your <em>settings.xml</em> file.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 153349,
+        "reputation": 7315,
+        "user_id": 368544,
+        "user_type": "registered",
+        "accept_rate": 80,
+        "profile_image": "https://www.gravatar.com/avatar/1cd172ae553812ace293c4fe0142850b?s=256&d=identicon&r=PG",
+        "display_name": "Mart&#237;n Schonaker",
+        "link": "https://stackoverflow.com/users/368544/mart%c3%adn-schonaker"
+      },
+      "is_accepted": false,
+      "score": 4,
+      "last_activity_date": 1753812404,
+      "last_edit_date": 1753812404,
+      "creation_date": 1309936123,
+      "answer_id": 6592740,
+      "question_id": 364114,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>The problem with <code>systemPath</code> is that the dependencies' JAR files won't get distributed along your artifacts as transitive dependencies. Try what I've posted here: <em><a href=\"https://stackoverflow.com/questions/6571022/is-it-best-to-mavenize-your-project-jar-files-or-put-them-in-web-inf-lib/6592613#6592613\">Is it best to Mavenize your project JAR files or put them in WEB-INF/lib?</a></em></p>\n<p>Then declare dependencies as usual.</p>\n<p>And please read the footnote.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 13467,
+        "reputation": 698,
+        "user_id": 27069,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/3beea937ea4cc3017325d006a52bfa9f?s=256&d=identicon&r=PG",
+        "display_name": "Alex Lehmann",
+        "link": "https://stackoverflow.com/users/27069/alex-lehmann"
+      },
+      "is_accepted": false,
+      "score": 4,
+      "last_activity_date": 1753811924,
+      "last_edit_date": 1753811924,
+      "creation_date": 1303373829,
+      "answer_id": 5741365,
+      "question_id": 364114,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>If you want a quick-and-dirty solution, you can do the following (though I do not recommend this for anything except test projects, Maven will complain in length that this is not proper).</p>\n<p>Add a dependency entry for each JAR file you need, preferably with a Perl script or something similar and copy/paste that into your POM file.</p>\n<pre class=\"lang-none prettyprint-override\"><code>#! /usr/bin/perl\n\nforeach my $n (@ARGV) {\n\n    $n =~ s@.*/@@;\n\n    print &quot;&lt;dependency&gt;\n    &lt;groupId&gt;local.dummy&lt;/groupId&gt;\n    &lt;artifactId&gt;$n&lt;/artifactId&gt;\n    &lt;version&gt;0.0.1&lt;/version&gt;\n    &lt;scope&gt;system&lt;/scope&gt;\n    &lt;systemPath&gt;\\${project.basedir}/lib/$n&lt;/systemPath&gt;\n&lt;/dependency&gt;\n&quot;;\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 178608,
+        "reputation": 19687,
+        "user_id": 410693,
+        "user_type": "registered",
+        "accept_rate": 84,
+        "profile_image": "https://i.sstatic.net/QUapZ.png?s=256",
+        "display_name": "Praneel PIDIKITI",
+        "link": "https://stackoverflow.com/users/410693/praneel-pidikiti"
+      },
+      "is_accepted": false,
+      "score": 15,
+      "last_activity_date": 1753811436,
+      "last_edit_date": 1753811436,
+      "creation_date": 1297348738,
+      "answer_id": 4958434,
+      "question_id": 364114,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>This is how we add or install a local JAR file:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;dependency&gt;\n    &lt;groupId&gt;org.example&lt;/groupId&gt;\n    &lt;artifactId&gt;iamajar&lt;/artifactId&gt;\n    &lt;version&gt;1.0&lt;/version&gt;\n    &lt;scope&gt;system&lt;/scope&gt;\n    &lt;systemPath&gt;${project.basedir}/lib/iamajar.jar&lt;/systemPath&gt;\n&lt;/dependency&gt;\n</code></pre>\n<p>I gave some default groupId and artifactId, because they are mandatory :)</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 136796,
+        "reputation": 15223,
+        "user_id": 340556,
+        "user_type": "registered",
+        "accept_rate": 88,
+        "profile_image": "https://www.gravatar.com/avatar/275d0c818c8301f5682ff7d6b764dfbe?s=256&d=identicon&r=PG",
+        "display_name": "Cephalopod",
+        "link": "https://stackoverflow.com/users/340556/cephalopod"
+      },
+      "is_accepted": false,
+      "score": 3,
+      "last_activity_date": 1753811317,
+      "last_edit_date": 1753811317,
+      "creation_date": 1284838840,
+      "answer_id": 3743204,
+      "question_id": 364114,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Even though it does not exactly fit to your problem, I'll drop this here. My requirements were:</p>\n<ol>\n<li>JAR files that can not be found in an online Maven repository should be in the <a href=\"https://en.wikipedia.org/wiki/Apache_Subversion\" rel=\"nofollow noreferrer\">SVN</a> repository.</li>\n<li>If one developer adds another library, the other developers should not be bothered with manually installing them.</li>\n<li>The IDE (NetBeans in my case) should be able find the sources and javadocs to provide autocompletion and help.</li>\n</ol>\n<p>Let's talk about (3) first: Just having the JAR files in a folder and somehow merging them into the final JAR file will not work for here, since the IDE will not understand this. This means all libraries have to be installed properly. However, I don’t want to have everyone installing it using &quot;mvn install-file&quot;.</p>\n<p>In my project I needed metawidget. Here we go:</p>\n<ol>\n<li>Create a new Maven project (name it &quot;shared-libs&quot; or something like that).</li>\n<li>Download metawidget and extract the ZIP file into <em>src/main/lib</em>.</li>\n<li>The folder <em>doc/api</em> contains the javadocs. Create a ZIP file of the content (<em>doc/api/api.zip</em>).</li>\n<li>Modify the POM file <a href=\"http://pastebin.com/GscFtMUP\" rel=\"nofollow noreferrer\">like this</a></li>\n<li>Build the project and the library will be installed.</li>\n<li>Add the library as a dependency to your project, or (if you added the dependency in the shared-libs project) add shared-libs as dependency to get all libraries at once.</li>\n</ol>\n<p>Every time you have a new library, just add a new execution and tell everyone to build the project again (you can improve this process with project hierarchies).</p>\n<h3>Result</h3>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;\n&lt;project xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot; xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot;\n         xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt;\n    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;\n    &lt;groupId&gt;org.example&lt;/groupId&gt;\n    &lt;artifactId&gt;shared-libs&lt;/artifactId&gt;\n    &lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;\n    &lt;name&gt;shared-libs&lt;/name&gt;\n    &lt;url&gt;http://maven.apache.org&lt;/url&gt;\n    &lt;build&gt;\n        &lt;plugins&gt;\n            &lt;plugin&gt;\n                &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;\n                &lt;artifactId&gt;maven-install-plugin&lt;/artifactId&gt;\n                &lt;version&gt;2.3.1&lt;/version&gt;\n                &lt;executions&gt;\n                    &lt;execution&gt;\n                        &lt;id&gt;install metawidget&lt;/id&gt;\n                        &lt;goals&gt;&lt;goal&gt;install-file&lt;/goal&gt;&lt;/goals&gt;\n                        &lt;phase&gt;validate&lt;/phase&gt;\n                        &lt;configuration&gt;\n                            &lt;file&gt;${basedir}/src/main/lib/metawidget-0.99/metawidget.jar&lt;/file&gt;\n                            &lt;groupId&gt;org.metawidget&lt;/groupId&gt;\n                            &lt;artifactId&gt;metawidget&lt;/artifactId&gt;\n                            &lt;version&gt;0.99&lt;/version&gt;\n                            &lt;packaging&gt;jar&lt;/packaging&gt;\n                            &lt;javadoc&gt;${basedir}/src/main/lib/metawidget-0.99/doc/api/api.zip&lt;/javadoc&gt;\n                            &lt;!--&lt;sources&gt;no source available&lt;/sources&gt;--&gt;\n                        &lt;/configuration&gt;\n                    &lt;/execution&gt;\n                &lt;/executions&gt;\n            &lt;/plugin&gt;\n        &lt;/plugins&gt;\n    &lt;/build&gt;\n    &lt;dependencies&gt;\n        &lt;!-- optional, see comment --&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.metawidget&lt;/groupId&gt;\n            &lt;artifactId&gt;metawidget&lt;/artifactId&gt;\n            &lt;version&gt;0.99&lt;/version&gt;\n        &lt;/dependency&gt;\n    &lt;/dependencies&gt;\n&lt;/project&gt;\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 10393,
+        "reputation": 1549,
+        "user_id": 19621,
+        "user_type": "registered",
+        "accept_rate": 100,
+        "profile_image": "https://i.sstatic.net/Vj8zk.jpg?s=256",
+        "display_name": "Balint Pato",
+        "link": "https://stackoverflow.com/users/19621/balint-pato"
+      },
+      "is_accepted": false,
+      "score": 3,
+      "last_activity_date": 1753810764,
+      "last_edit_date": 1753810764,
+      "creation_date": 1284719388,
+      "answer_id": 3734547,
+      "question_id": 364114,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>A strange solution I found:</p>\n<p>Using <a href=\"https://en.wikipedia.org/wiki/Eclipse_%28software%29\" rel=\"nofollow noreferrer\">Eclipse</a></p>\n<ul>\n<li>create a simple (non-Maven) Java project</li>\n<li>add a Main class</li>\n<li>add all the JAR files to the classpath</li>\n<li>export Runnable JAR (it's important, because there isn't any other way here to do it)</li>\n<li>select <em>Extract required libraries into generated JAR</em></li>\n<li>decide the licence issues</li>\n<li>tadammm...install the generated JAR file to your m2repo</li>\n<li>add this single dependency to your other projects.</li>\n</ul>\n"
+    },
+    {
+      "owner": {
+        "account_id": 28876,
+        "reputation": 6852,
+        "user_id": 77489,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/5f46e5f33b0d23121af7113258485a2b?s=256&d=identicon&r=PG",
+        "display_name": "Brian Fox",
+        "link": "https://stackoverflow.com/users/77489/brian-fox"
+      },
+      "is_accepted": false,
+      "score": 14,
+      "last_activity_date": 1753810548,
+      "last_edit_date": 1753810548,
+      "creation_date": 1240107405,
+      "answer_id": 764684,
+      "question_id": 364114,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>You really ought to get a framework in place via a repository and identifying your dependencies up front. Using the system scope is a common mistake people use, because they &quot;don't care about the dependency management.&quot;</p>\n<p>The trouble is that doing this you end up with a perverted Maven build that will not show Maven in a normal condition. You would be better off following an approach like <a href=\"http://www.sonatype.com/people/2009/04/how-to-convert-from-ant-to-maven-in-5-minutes/\" rel=\"nofollow noreferrer\">this</a>.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 20406,
+        "reputation": 1351,
+        "user_id": 48759,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/074579e1d45e08e319ad282efbdef30e?s=256&d=identicon&r=PG",
+        "display_name": "toad",
+        "link": "https://stackoverflow.com/users/48759/toad"
+      },
+      "is_accepted": false,
+      "score": 10,
+      "last_activity_date": 1753810472,
+      "last_edit_date": 1753810472,
+      "creation_date": 1231453387,
+      "answer_id": 426267,
+      "question_id": 364114,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>The <a href=\"http://maven.apache.org/plugins/maven-install-plugin/usage.html\" rel=\"nofollow noreferrer\">Maven install plugin</a> has command line usage to install a JAR file into the local repository. <a href=\"https://www.prosettings.com/keycaps-guide/\" rel=\"nofollow noreferrer\">POM</a> is optional, but you will have to specify the GroupId, ArtifactId, Version and Packaging (all the POM stuff).</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 12892,
+        "reputation": 7931,
+        "user_id": 25625,
+        "user_type": "registered",
+        "accept_rate": 83,
+        "profile_image": "https://www.gravatar.com/avatar/653042951374048a6cfd84c5dd3a4ddd?s=256&d=identicon&r=PG",
+        "display_name": "Ed Brannin",
+        "link": "https://stackoverflow.com/users/25625/ed-brannin"
+      },
+      "is_accepted": false,
+      "score": 31,
+      "last_activity_date": 1753810366,
+      "last_edit_date": 1753810366,
+      "creation_date": 1231451909,
+      "answer_id": 426176,
+      "question_id": 364114,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Note: When using the System scope (<a href=\"https://stackoverflow.com/questions/364114/can-i-add-jars-to-maven-2-build-classpath-without-installing-them#364188\">as mentioned on this page</a>), Maven needs absolute paths.</p>\n<p>If your JAR files are under your project's root, you'll want to prefix your systemPath values with ${basedir}.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 11354,
+        "reputation": 28114,
+        "user_id": 21838,
+        "user_type": "registered",
+        "accept_rate": 82,
+        "profile_image": "https://www.gravatar.com/avatar/b2896eaafd7ead3a3063a9162aa1dcce?s=256&d=identicon&r=PG",
+        "display_name": "Pyrolistical",
+        "link": "https://stackoverflow.com/users/21838/pyrolistical"
+      },
+      "is_accepted": false,
+      "score": 508,
+      "last_activity_date": 1753810241,
+      "last_edit_date": 1753810241,
+      "creation_date": 1229116915,
+      "answer_id": 364188,
+      "question_id": 364114,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p><strong>For throwaway code only</strong></p>\n<p>Set scope == system and just make up a groupId, artifactId, and version:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;dependency&gt;\n    &lt;groupId&gt;org.swinglabs&lt;/groupId&gt;\n    &lt;artifactId&gt;swingx&lt;/artifactId&gt;\n    &lt;version&gt;0.9.2&lt;/version&gt;\n    &lt;scope&gt;system&lt;/scope&gt;\n    &lt;systemPath&gt;${project.basedir}/lib/swingx-0.9.3.jar&lt;/systemPath&gt;\n&lt;/dependency&gt;\n</code></pre>\n<p>Note: System dependencies are not copied into the resulting JAR/WAR file\n(see <em><a href=\"https://stackoverflow.com/questions/19065666/how-to-include-system-dependencies-in-war-built-using-maven\">How to include system dependencies in a WAR file built using Maven</a></em>)</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 13696,
+        "reputation": 17799,
+        "user_id": 27657,
+        "user_type": "registered",
+        "accept_rate": 65,
+        "profile_image": "https://www.gravatar.com/avatar/7b718f1f997edffed8e17f7875dea15f?s=256&d=identicon&r=PG",
+        "display_name": "javamonkey79",
+        "link": "https://stackoverflow.com/users/27657/javamonkey79"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1753809764,
+      "last_edit_date": 1753809764,
+      "creation_date": 1229115965,
+      "answer_id": 364139,
+      "question_id": 364114,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>This doesn't answer how to add them to your POM file and may be a no-brainer, but would just adding the library directory to your classpath work?</p>\n<p>I know that is what I do when I need an external JAR file that I don't want to add to my Maven repositories.</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79154337": [],
+    "39922969": [],
+    "39905292": [],
+    "37221449": [],
+    "35210338": [],
+    "33349540": [],
+    "21738885": [],
+    "7623805": [
+      {
+        "owner": {
+          "account_id": 6504821,
+          "reputation": 81,
+          "user_id": 5034191,
+          "user_type": "registered",
+          "accept_rate": 0,
+          "profile_image": "https://www.gravatar.com/avatar/695d4695a8bf9f010564de32c3444823?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "RRN",
+          "link": "https://stackoverflow.com/users/5034191/rrn"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1622760778,
+        "post_id": 7623805,
+        "comment_id": 119891668,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1733619,
+          "reputation": 413,
+          "user_id": 1586660,
+          "user_type": "registered",
+          "accept_rate": 100,
+          "profile_image": "https://www.gravatar.com/avatar/182e96b8d7b9a46c1e2f48c9ae4bc48f?s=256&d=identicon&r=PG",
+          "display_name": "thomas.st",
+          "link": "https://stackoverflow.com/users/1586660/thomas-st"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1610444415,
+        "post_id": 7623805,
+        "comment_id": 116128076,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "16473926": [],
+    "14377305": [],
+    "12746819": [],
+    "9533639": [],
+    "6592740": [],
+    "5741365": [],
+    "4958434": [],
+    "3743204": [],
+    "3734547": [],
+    "764684": [],
+    "426267": [
+      {
+        "owner": {
+          "account_id": 3016002,
+          "reputation": 434,
+          "user_id": 2558163,
+          "user_type": "registered",
+          "profile_image": "https://graph.facebook.com/100000006993147/picture?type=large",
+          "display_name": "Alexandre V.",
+          "link": "https://stackoverflow.com/users/2558163/alexandre-v"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1602000964,
+        "post_id": 426267,
+        "comment_id": 113578773,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "426176": [],
+    "364188": [
+      {
+        "owner": {
+          "account_id": 2598238,
+          "reputation": 722,
+          "user_id": 2251364,
+          "user_type": "registered",
+          "accept_rate": 45,
+          "profile_image": "https://www.gravatar.com/avatar/c387b641bba38ce5779f088c8f24ebdf?s=256&d=identicon&r=PG",
+          "display_name": "Hritik",
+          "link": "https://stackoverflow.com/users/2251364/hritik"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1713675780,
+        "post_id": 364188,
+        "comment_id": 138147642,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "364139": []
+  }
+}

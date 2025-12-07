@@ -1,0 +1,118 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "iterator"
+    ],
+    "owner": {
+      "account_id": 6710967,
+      "reputation": 18061,
+      "user_id": 5174436,
+      "user_type": "registered",
+      "accept_rate": 50,
+      "profile_image": "https://i.sstatic.net/2ox6D.jpg?s=256",
+      "display_name": "Matthew McPeak",
+      "link": "https://stackoverflow.com/users/5174436/matthew-mcpeak"
+    },
+    "is_answered": false,
+    "view_count": 95,
+    "answer_count": 4,
+    "score": 0,
+    "last_activity_date": 1762868978,
+    "creation_date": 1762822680,
+    "question_id": 79816153,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79816153/iterating-over-several-nested-iterators",
+    "title": "Iterating over several nested iterators",
+    "body": "<p>I have to implement an Iterator&lt;E&gt; that needs to internally iterate through multiple private iterators at different levels.  For example, an Iterator&lt;A&gt;, an Iterator&lt;B&gt;, and an Iterator&lt;C&gt;.  The Iterator&lt;A&gt; exists for the life of my Iterator, but the Iterator&lt;B&gt; and Iterator&lt;C&gt; instances are made from the current values for A and B, respectively.</p>\n<p>At any given iteration, the Iterator&lt;C&gt; might be exhausted and so I'll have to advance to the next() of Iterator&lt;B&gt;, from which I will establish a new Iterator&lt;C&gt;.  I hope this is clear.</p>\n<p><strong>My question is: is there any better structure than this (below)?</strong>  My real case has 5-6 levels of nested iterators and I'm finding this ugly and unsatisfying.</p>\n<pre><code>if ( this.cIterator == null || ! this.cIterator.hasNext() ) {\n    // We do not have a C iterator established, or the one we had established is exhausted\n    // We need a new one, which will come from the next B\n    if ( this.bIterator = null || !this.bIterator.hasNext() ) {\n        // We do not have a B iterator established or the one we had is exhausted.\n        // We need a new one, which will come from the next A\n        if ( this.aIterator == null || !this.aIterator.hasNext() ) {\n            // Our aIterator is non-existent or exhausted.  We are done.\n            throw new NoSuchElementException();\n    }\n        // At this point, we can move on to the next A.\n        this.currentA = this.aIterator.next();\n        this.bIterator = this.currentA.getIteratorSourceCollection().iterator();\n        // assert this.bIterator.hasNext(); // will be true in my case\n    }\n    // At this point, we are guaranteed to have a B iterator with at least one element left\n    this.currentB = bIterator.next();\n    this.cIterator = this.currentB.getIteratorSourceCollection().iterator();\n    // assert this.cIterator.hasNext();  // will be true in my case\n}\n// At this point, we are guaranteed to have a C iterator with a next element.\nreturn new E(this.currentA, this.currentB, this.cIterator.next());\n             \n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 1211967,
+        "reputation": 9964,
+        "user_id": 1180351,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/pKB8y.png?s=256",
+        "display_name": "Rob Spoor",
+        "link": "https://stackoverflow.com/users/1180351/rob-spoor"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1762868978,
+      "last_edit_date": 1762868978,
+      "creation_date": 1762867905,
+      "answer_id": 79816701,
+      "question_id": 79816153,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Another option could be to use streams as intermediate:</p>\n<pre class=\"lang-java prettyprint-override\"><code>Spliterator&lt;A&gt; spliteratorA = Spliterators.spliteratorUnknownSize(iteratorA, 0);\nIterator&lt;E&gt; iterator = StreamSupport.stream(spliteratorA, false)\n        .flatMap(a -&gt; {\n            Iterator&lt;B&gt; iteratorB = a.getIteratorSourceCollection().iterator();\n            Spliterator&lt;B&gt; spliteratorB = Spliterators.spliteratorUnknownSize(iteratorB, 0);\n            return StreamSupport.stream(spliteratorB, false)\n                    .flatMap(b -&gt; {\n                        Iterator&lt;C&gt; iteratorC = b.getIteratorSourceCollection().iterator();\n                        Spliterator&lt;C&gt; spliteratorC = Spliterators.spliteratorUnknownSize(iteratorC, 0);\n                        return StreamSupport.stream(spliteratorC, false)\n                                .map(c -&gt; new E(a, b, c));\n                    });\n        })\n        .iterator();\n</code></pre>\n<p>By adding a utility method for the conversion of iterator to stream you can simplify it a bit.</p>\n<p>As for performance, the returned iterator is just as lazy as its backing stream.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 465573,
+        "reputation": 200423,
+        "user_id": 869736,
+        "user_type": "registered",
+        "accept_rate": 82,
+        "profile_image": "https://www.gravatar.com/avatar/ae7bb06b9a23a4dd7eea69e853d47d12?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Louis Wasserman",
+        "link": "https://stackoverflow.com/users/869736/louis-wasserman"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1762835712,
+      "creation_date": 1762835712,
+      "answer_id": 79816235,
+      "question_id": 79816153,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Your approach looks entirely reasonable, but you might implement a more general iterator-of-iterators that does one level of nesting, perhaps with a <code>Function&lt;A, Iterator&lt;B&gt;&gt;</code>, and then use it several levels deeply.  You might profitably look at operators like <a href=\"https://guava.dev/releases/snapshot-jre/api/docs/com/google/common/collect/Iterators.html#concat(java.util.Iterator)\" rel=\"nofollow noreferrer\">Guava's <code>Iterators.concat(Iterator&lt;Iterator&lt;T&gt;&gt;)</code></a>.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 6710967,
+        "reputation": 18061,
+        "user_id": 5174436,
+        "user_type": "registered",
+        "accept_rate": 50,
+        "profile_image": "https://i.sstatic.net/2ox6D.jpg?s=256",
+        "display_name": "Matthew McPeak",
+        "link": "https://stackoverflow.com/users/5174436/matthew-mcpeak"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1762829200,
+      "creation_date": 1762829200,
+      "answer_id": 79816199,
+      "question_id": 79816153,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>I am using a 3rd party library that requires an Iterator.  It is important for performance that I be honest about the Iterator implementation rather than, say, pre-creating all the entries, storing them in a collection, and then just returning an iterator on that collection.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 71739,
+        "reputation": 311873,
+        "user_id": 207421,
+        "user_type": "registered",
+        "accept_rate": 82,
+        "profile_image": "https://www.gravatar.com/avatar/5cfe5f7d64f44be04f147295f5c7b88e?s=256&d=identicon&r=PG",
+        "display_name": "user207421",
+        "link": "https://stackoverflow.com/users/207421/user207421"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1762824339,
+      "creation_date": 1762824339,
+      "answer_id": 79816161,
+      "question_id": 79816153,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>I wonder whether this is really an occasion to use iterators at all, given the requirements to refresh those for B and C.</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79816701": [],
+    "79816235": [],
+    "79816199": [],
+    "79816161": []
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "coding-style"
+    ],
+    "owner": {
+      "account_id": 10187542,
+      "reputation": 2675,
+      "user_id": 20692967,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/NZSXm.jpg?s=256",
+      "display_name": "Sergey Zolotarev",
+      "link": "https://stackoverflow.com/users/20692967/sergey-zolotarev"
+    },
+    "is_answered": true,
+    "view_count": 82,
+    "answer_count": 2,
+    "score": 1,
+    "last_activity_date": 1762946698,
+    "creation_date": 1762878187,
+    "last_edit_date": 1762946698,
+    "question_id": 79816886,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79816886/guideline-for-method-ordering",
+    "title": "Guideline for method ordering",
+    "body": "<p>What's the best practice, preferably backed by a publicly available guideline issued by a tech company or a standards organization, when it comes to the order of method declarations in a Java source file?</p>\n<p>In particular, I'm interested in which should go first: private methods invoked from a constructor or public methods. One the one hand, it is advised, e.g. in Clean Code, to declare methods right after the first method from which it is first invoked.</p>\n<blockquote>\n<p>In general we want function call dependencies to point in the downward direction. That is, a function that is called should be below a function that does the calling. This creates a nice flow down the source code module from high level to low level.</p>\n<p><em>Clean Code. Chapter 5, &quot;Formatting&quot;.</em></p>\n</blockquote>\n<p>On the other hand, some say public methods should be declared first since one should be able to tell what a class does (not <em>how</em> it does it) at first glance at the source file. If a class is a GUI component, for example, initialization logic may be contained in a big number of private methods (e.g. <code>createContentPane()</code>, <code>createSubmitButton()</code>) which would pull any of its public methods way down if the latter have a lower priority.</p>\n<p>You may cite several guidelines if you wish.</p>\n<p>I haven't found it in <a href=\"https://google.github.io/styleguide/javaguide.html\" rel=\"nofollow noreferrer\">Google Java Style Guide</a>, it just opts out.</p>\n<blockquote>\n<p>The order you choose for the members and initializers of your class can have a great effect on learnability. However, there's no single correct recipe for how to do it; different classes may order their contents in different ways.</p>\n<p>What is important is that each class uses some logical order, which its maintainer could explain if asked.</p>\n</blockquote>\n<p>Oracle's <a href=\"https://www.oracle.com/java/technologies/javase/codeconventions-fileorganization.html\" rel=\"nofollow noreferrer\">Code Conventions</a> are also not very specific.</p>\n<blockquote>\n<p>These methods should be grouped by functionality rather than by scope or accessibility. For example, a private class method can be in between two public instance methods. The goal is to make reading and understanding the code easier.</p>\n</blockquote>\n<p>This is essentially an opt-out too: even if I, as in my example, group initialization methods together, <em>where do I put that group</em>, before or after public methods?</p>\n<p>Note <a href=\"https://stackoverflow.com/questions/4668218/are-there-any-java-method-ordering-conventions\">this</a> doesn't answer my question.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 8532578,
+        "reputation": 49884,
+        "user_id": 6395627,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/af0f9bfe593f36642a032cd7ea611e7d?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Slaw",
+        "link": "https://stackoverflow.com/users/6395627/slaw"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1762906655,
+      "last_edit_date": 1762906655,
+      "creation_date": 1762905964,
+      "answer_id": 79817235,
+      "question_id": 79816886,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>The main organization I see and expect in virtually all languages is to group functions by their purpose. So, I believe Oracle's code convention is the &quot;correct&quot; approach. In that context, your private methods invoked by constructors are part of the initialization logic and so they should be grouped with the constructors.</p>\n<p>The order of methods within a &quot;group&quot; is up to the current project. I prefer to then order by visibility, going from public to private. But that's not a hard rule of mine.</p>\n<p>If I had to try and define my own preferred ordering rules for Java, it would probably be something like the following (kind of by decreasing importance):</p>\n<ol>\n<li>Fields, methods, and constructors before nested types.</li>\n<li>Group by purpose</li>\n<li>Instance fields before constructors and static fields before static methods, unless it makes more sense to group the fields with the methods that use them (even if that mixes static with instance)</li>\n<li>Static factory methods before constructors</li>\n<li>Constructors before instance methods</li>\n<li>Visibility (greater before lesser)</li>\n<li>Parameter count (mainly with delegating overloads simulating default arguments, with less parameters before more parameters)</li>\n<li>Static before instance or sometimes vice versa (or interleaved if the class is &quot;complex&quot; enough)</li>\n<li>Utility methods shared between multiple &quot;groups&quot; of methods after said groups</li>\n</ol>\n<p>But again, those are not hard rules. Other than &quot;group by purpose&quot;, which I always try to follow, it comes down to whatever I think is most readable for the current class. For instance, many JavaFX classes (you mention GUIs, and you've asked JavaFX-related questions relatively recently) that have JavaFX properties group the property's field, getter, setter, and property-getter together instead of defining all the property fields in one place then their methods in another.</p>\n<p>And I agree with VGR. Visibility should never be the <em>primary</em> attribute used to organize methods of a class.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 2053598,
+        "reputation": 44936,
+        "user_id": 1831987,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/38b1c37530189ec4471a43a618e33f67?s=256&d=identicon&r=PG",
+        "display_name": "VGR",
+        "link": "https://stackoverflow.com/users/1831987/vgr"
+      },
+      "is_accepted": false,
+      "score": 4,
+      "last_activity_date": 1762884446,
+      "creation_date": 1762884446,
+      "answer_id": 79816986,
+      "question_id": 79816886,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>While you are asking this in a permitted venue now, the answer is still the same as what we said in your closed question and the question to which you've linked:  group your methods by their functionality.  No reputable source (like Sun Microsystems) has ever suggested any other way, because any simplified rule for method ordering would make things worse.  Which is also what was said in the other questions.</p>\n<p>Under no circumstances should you group methods by their access level.  If you are looking for an excuse to do that, you'll eventually find one somewhere, but the fact that someone somewhere online suggested it won't make it a good practice.</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79817235": [],
+    "79816986": []
+  }
+}

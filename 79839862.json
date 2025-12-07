@@ -1,0 +1,202 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "supercsv"
+    ],
+    "owner": {
+      "account_id": 44929436,
+      "reputation": 23,
+      "user_id": 32010115,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/43787db6b7b0c6f17caaddc1fbe2bc95?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Rahul Vasudeva",
+      "link": "https://stackoverflow.com/users/32010115/rahul-vasudeva"
+    },
+    "is_answered": true,
+    "view_count": 23,
+    "accepted_answer_id": 79839882,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1765047727,
+    "creation_date": 1765045379,
+    "last_edit_date": 1765047138,
+    "question_id": 79839862,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79839862/syper-csv-csvbeanwriter-giving-supercsvreflectionexceptionerror-extracting-bean",
+    "title": "Syper CSV CsvBeanWriter giving SuperCsvReflectionExceptionerror extracting bean value for field name error",
+    "body": "<pre><code>public class csvtest {\n\n    public  void main(){\n        CsvWriter();\n    }\n\n    private static CellProcessor[] getProcessors(){\n        final CellProcessor[] processors=new CellProcessor[] {\n                new NotNull(),\n                new NotNull(),\n                new NotNull()\n        };\n        return processors;\n    }\n    public void CsvWriter(){\n        try {\n            csvData data=new csvData(&quot;rahul&quot;,&quot;M&quot;,12);\n            ICsvBeanWriter beanWriter = new CsvBeanWriter(new\n            FileWriter(&quot;customer.csv&quot;),CsvPreference.STANDARD_PREFERENCE);\n\n            final String[] header= new String[]{&quot;name&quot;,&quot;sex&quot;,&quot;age&quot;};\n            beanWriter.writeHeader(header);\n            final CellProcessor[] processors = getProcessors();\n            beanWriter.write(data,header,processors);\n            beanWriter.close();\n        }\n\n        catch (Exception e){\n            System.err.println(e.getClass().getSimpleName()+e.getMessage());\n        }\n\n    }\n\n}\n</code></pre>\n<p>This is my csvData class</p>\n<pre><code>class csvData {\n    private String name;\n    private String sex;\n    private int age;\n    public csvData(){\n        name=null;\n        sex=null;\n        age=0;\n    }\n    public csvData(String name1,String sex1,int age1){\n        name=name1;\n        sex=sex1;\n        age=age1;\n    }\n\n    public String getName() {return name;}\n    public String getSex() {return sex;}\n    public int getAge() {return age;}\n\n    public void setname(String name1){name=name1;}\n    public void setsex(String sex1){sex=sex1;}\n    public void setage(int age1){age=age1;}\n\n}\n\n</code></pre>\n<p>I don't know what the error is I have been trying to find it for a long time. It does not write to the CSV file. I felt that the getters may be an issue but I cant wrap my head around it.<br />\nThis is the error:</p>\n<pre class=\"lang-none prettyprint-override\"><code>org.supercsv.exception.SuperCsvReflectionException: error extracting bean value for field name context=null \n    at org.supercsv.io.CsvBeanWriter.extractBeanValues(CsvBeanWriter.java:99) \n    at org.supercsv.io.CsvBeanWriter.write(CsvBeanWriter.java:133)\n    at csvtest.CsvWriter(csvtest.java:32)\n    at csvtest.main(csvtest.java:12)\nCaused by: java.lang.IllegalAccessException: class org.supercsv.io.CsvBeanWriter cannot access a member of class csvData with modifiers &quot;public&quot;\n    at java.base/jdk.internal.reflect.Reflection.newIllegalAccessException(Reflection.java:400)\n    at java.base/java.lang.reflect.AccessibleObject.checkAccess(AccessibleObject.java:670)\n    at java.base/java.lang.reflect.Method.invoke(Method.java:556)\n    at org.supercsv.io.CsvBeanWriter.extractBeanValues(CsvBeanWriter.java:96) ... 3 more\n</code></pre>\n<p>Which means it cannot access the getters but I cannot figure out why.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 22627540,
+        "reputation": 1183,
+        "user_id": 16805423,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/LA3Jp.jpg?s=256",
+        "display_name": "Brentspine",
+        "link": "https://stackoverflow.com/users/16805423/brentspine"
+      },
+      "is_accepted": true,
+      "score": 2,
+      "last_activity_date": 1765047727,
+      "creation_date": 1765047727,
+      "answer_id": 79839882,
+      "question_id": 79839862,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>The core problem is that SuperCSV cannot legally call your getters via reflection, because the <code>csvData</code> class itself is not <code>public</code>. The getters are <code>public</code>, but the class that contains them is package private, so when a library in another package tries to invoke <code>getName()</code> reflectively, the JVM throws an <code>IllegalAccessException</code>. SuperCSV catches that and wraps it as the <code>SuperCsvReflectionException: error extracting bean value for field name</code>.</p>\n<p>In other words: SuperCSV is not failing to <em>find</em> <code>getName()</code>, it is not <em>allowed</em> to call it, because the class is not publicly visible across packages.</p>\n<p>SuperCSV does roughly this internally:</p>\n<pre class=\"lang-java prettyprint-override\"><code>Method getter = ... // something like &quot;getName&quot;\nObject value = getter.invoke(bean);\n</code></pre>\n<p>For that <code>invoke</code> to succeed, two things must be accessible from the calling package:</p>\n<ul>\n<li>The method (<code>public String getName()</code>)</li>\n<li>The declaring class (<code>csvData</code>)</li>\n</ul>\n<p>Your getters are <code>public</code>, but your class is:</p>\n<pre class=\"lang-java prettyprint-override\"><code>class csvData {\n    ...\n}\n</code></pre>\n<p>No access modifier means package private. SuperCSV lives in <code>org.supercsv...</code>, which is a different package than your own (especially if you are in the default package). A <code>public</code> method on a non-<code>public</code> class is not invocable from another package via reflection, so <code>invoke</code> fails with <code>IllegalAccessException</code>, and SuperCSV rethrows that as the reflection exception you see.</p>\n<p>Fix: make the bean class itself <code>public</code> so the library can see it:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class csvData {\n    ...\n}\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 22627540,
+        "reputation": 1183,
+        "user_id": 16805423,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/LA3Jp.jpg?s=256",
+        "display_name": "Brentspine",
+        "link": "https://stackoverflow.com/users/16805423/brentspine"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1765047510,
+      "post_id": 79839862,
+      "comment_id": 140890647,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 44929436,
+        "reputation": 23,
+        "user_id": 32010115,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/43787db6b7b0c6f17caaddc1fbe2bc95?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Rahul Vasudeva",
+        "link": "https://stackoverflow.com/users/32010115/rahul-vasudeva"
+      },
+      "reply_to_user": {
+        "account_id": 22627540,
+        "reputation": 1183,
+        "user_id": 16805423,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/LA3Jp.jpg?s=256",
+        "display_name": "Brentspine",
+        "link": "https://stackoverflow.com/users/16805423/brentspine"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1765047429,
+      "post_id": 79839862,
+      "comment_id": 140890644,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 22627540,
+        "reputation": 1183,
+        "user_id": 16805423,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/LA3Jp.jpg?s=256",
+        "display_name": "Brentspine",
+        "link": "https://stackoverflow.com/users/16805423/brentspine"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1765047226,
+      "post_id": 79839862,
+      "comment_id": 140890641,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 22627540,
+        "reputation": 1183,
+        "user_id": 16805423,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/LA3Jp.jpg?s=256",
+        "display_name": "Brentspine",
+        "link": "https://stackoverflow.com/users/16805423/brentspine"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1765047118,
+      "post_id": 79839862,
+      "comment_id": 140890637,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 44929436,
+        "reputation": 23,
+        "user_id": 32010115,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/43787db6b7b0c6f17caaddc1fbe2bc95?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Rahul Vasudeva",
+        "link": "https://stackoverflow.com/users/32010115/rahul-vasudeva"
+      },
+      "reply_to_user": {
+        "account_id": 22627540,
+        "reputation": 1183,
+        "user_id": 16805423,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/LA3Jp.jpg?s=256",
+        "display_name": "Brentspine",
+        "link": "https://stackoverflow.com/users/16805423/brentspine"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1765046945,
+      "post_id": 79839862,
+      "comment_id": 140890635,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 44929436,
+        "reputation": 23,
+        "user_id": 32010115,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/43787db6b7b0c6f17caaddc1fbe2bc95?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Rahul Vasudeva",
+        "link": "https://stackoverflow.com/users/32010115/rahul-vasudeva"
+      },
+      "reply_to_user": {
+        "account_id": 22627540,
+        "reputation": 1183,
+        "user_id": 16805423,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/LA3Jp.jpg?s=256",
+        "display_name": "Brentspine",
+        "link": "https://stackoverflow.com/users/16805423/brentspine"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1765046879,
+      "post_id": 79839862,
+      "comment_id": 140890633,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 22627540,
+        "reputation": 1183,
+        "user_id": 16805423,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/LA3Jp.jpg?s=256",
+        "display_name": "Brentspine",
+        "link": "https://stackoverflow.com/users/16805423/brentspine"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1765046574,
+      "post_id": 79839862,
+      "comment_id": 140890622,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79839882": []
+  }
+}

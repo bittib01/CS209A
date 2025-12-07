@@ -1,0 +1,229 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "arrays",
+      "pdf"
+    ],
+    "owner": {
+      "user_type": "does_not_exist",
+      "display_name": "abhishek"
+    },
+    "is_answered": true,
+    "view_count": 268581,
+    "answer_count": 13,
+    "score": 41,
+    "last_activity_date": 1764458077,
+    "creation_date": 1247661112,
+    "last_edit_date": 1480330358,
+    "question_id": 1131116,
+    "content_license": "CC BY-SA 3.0",
+    "link": "https://stackoverflow.com/questions/1131116/pdf-to-byte-array-and-vice-versa",
+    "title": "PDF to byte array and vice versa",
+    "body": "<p>I need to convert pdf to byte array and vice versa.</p>\n\n<p>Can any one help me?</p>\n\n<p>This is how I am converting to byte array</p>\n\n<pre><code>public static byte[] convertDocToByteArray(String sourcePath) {\n\n    byte[] byteArray=null;\n    try {\n        InputStream inputStream = new FileInputStream(sourcePath);\n\n\n        String inputStreamToString = inputStream.toString();\n        byteArray = inputStreamToString.getBytes();\n\n        inputStream.close();\n    } catch (FileNotFoundException e) {\n        System.out.println(\"File Not found\"+e);\n    } catch (IOException e) {\n                System.out.println(\"IO Ex\"+e);\n    }\n    return byteArray;\n}\n</code></pre>\n\n<p>If I use following code to convert it back to document, pdf is getting created. But it's saying <code>'Bad Format. Not a pdf'</code>.</p>\n\n<pre><code>public static void convertByteArrayToDoc(byte[] b) {          \n\n    OutputStream out;\n    try {       \n        out = new FileOutputStream(\"D:/ABC_XYZ/1.pdf\");\n        out.close();\n        System.out.println(\"write success\");\n    }catch (Exception e) {\n        System.out.println(e);\n    }\n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 136833,
+        "reputation": 1487,
+        "user_id": 340613,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/eUoTF.jpg?s=256",
+        "display_name": "Chris Clark",
+        "link": "https://stackoverflow.com/users/340613/chris-clark"
+      },
+      "is_accepted": false,
+      "score": 47,
+      "last_activity_date": 1764458077,
+      "last_edit_date": 1764458077,
+      "creation_date": 1414596064,
+      "answer_id": 26634195,
+      "question_id": 1131116,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Java 7 introduced <code>Files.readAllBytes()</code>, which can read a PDF into a <code>byte[]</code> like so:</p>\n<pre><code>import java.nio.file.Path;\nimport java.nio.file.Paths;\nimport java.nio.file.Files;\n\nPath pdfPath = Paths.get(&quot;/path/to/file.pdf&quot;);\nbyte[] pdf = Files.readAllBytes(pdfPath);\n</code></pre>\n<p>This will work for reading any kind of file, not just PDFs. All files are ultimately just a bunch of bytes, and as such can be read into a <code>byte[]</code>.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 15883696,
+        "reputation": 1,
+        "user_id": 13002275,
+        "user_type": "registered",
+        "profile_image": "https://lh3.googleusercontent.com/-nNGONNbF5Qk/AAAAAAAAAAI/AAAAAAAAUTM/1MdPMCiCtAI/s256-rj/photo.jpg",
+        "display_name": "Jennifer CevallosY",
+        "link": "https://stackoverflow.com/users/13002275/jennifer-cevallosy"
+      },
+      "is_accepted": false,
+      "score": -1,
+      "last_activity_date": 1636499719,
+      "creation_date": 1636499719,
+      "answer_id": 69906219,
+      "question_id": 1131116,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<pre><code>public String encodeFileToBase64Binary(String fileName)\n        throws IOException {\n        System.out.println(&quot;encodeFileToBase64Binary: &quot;+ fileName);\n    File file = new File(fileName);\n    byte[] bytes = loadFile(file);\n    byte[] encoded = Base64.encodeBase64(bytes);\n    String encodedString = new String(encoded);\n    System.out.println(&quot;ARCHIVO B64: &quot;+encodedString);\n\n\n    return encodedString;\n}\n\n@SuppressWarnings(&quot;resource&quot;)\npublic static byte[] loadFile(File file) throws IOException {\n    InputStream is = new FileInputStream(file);\n\n    long length = file.length();\n    if (length &gt; Integer.MAX_VALUE) {\n        // File is too large\n    }\n    byte[] bytes = new byte[(int)length];\n\n    int offset = 0;\n    int numRead = 0;\n    while (offset &lt; bytes.length\n            &amp;&amp; (numRead=is.read(bytes, offset, bytes.length-offset)) &gt;= 0) {\n        offset += numRead;\n    }\n\n    if (offset &lt; bytes.length) {\n        throw new IOException(&quot;Could not completely read file &quot;+file.getName());\n    }\n\n    is.close();\n    return bytes;\n}\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 7205529,
+        "reputation": 690,
+        "user_id": 5501258,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/qPG3E.jpg?s=256",
+        "display_name": "Aseem Savio",
+        "link": "https://stackoverflow.com/users/5501258/aseem-savio"
+      },
+      "is_accepted": false,
+      "score": 4,
+      "last_activity_date": 1571859598,
+      "creation_date": 1571859598,
+      "answer_id": 58529931,
+      "question_id": 1131116,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>This worked for me. I haven't used any third-party libraries. Just the ones that are shipped with Java.</p>\n\n<pre><code>import java.io.*;\nimport java.nio.file.Files;\nimport java.nio.file.Path;\nimport java.nio.file.Paths;\n\npublic class PDFUtility {\n\npublic static void main(String[] args) throws IOException {\n    /**\n     * Converts byte stream into PDF.\n     */\n    PDFUtility pdfUtility = new PDFUtility();\n    byte[] byteStreamPDF = pdfUtility.convertPDFtoByteStream();\n    FileOutputStream fileOutputStream = new FileOutputStream(\"C:\\\\Users\\\\aseem\\\\Desktop\\\\BlaFolder\\\\BlaFolder2\\\\aseempdf.pdf\");\n    fileOutputStream.write(byteStreamPDF);\n    fileOutputStream.close();\n    System.out.println(\"File written successfully\");\n}\n\n/**\n * Creates PDF to Byte Stream\n *\n * @return\n * @throws IOException\n */\nprotected byte[] convertPDFtoByteStream() throws IOException {\n    Path path = Paths.get(\"C:\\\\Users\\\\aseem\\\\aaa.pdf\");\n    return Files.readAllBytes(path);\n}\n\n}\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 3187272,
+        "reputation": 3684,
+        "user_id": 5362244,
+        "user_type": "registered",
+        "accept_rate": 74,
+        "profile_image": "https://i.sstatic.net/P6at3.jpg?s=256",
+        "display_name": "dhS",
+        "link": "https://stackoverflow.com/users/5362244/dhs"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1705382363,
+      "post_id": 1131116,
+      "comment_id": 137197575,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "26634195": [
+      {
+        "owner": {
+          "account_id": 3187272,
+          "reputation": 3684,
+          "user_id": 5362244,
+          "user_type": "registered",
+          "accept_rate": 74,
+          "profile_image": "https://i.sstatic.net/P6at3.jpg?s=256",
+          "display_name": "dhS",
+          "link": "https://stackoverflow.com/users/5362244/dhs"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1705382514,
+        "post_id": 26634195,
+        "comment_id": 137197595,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 3830848,
+          "reputation": 3846,
+          "user_id": 3176408,
+          "user_type": "registered",
+          "accept_rate": 77,
+          "profile_image": "https://www.gravatar.com/avatar/41f18a29e75bbd90d78021314410e574?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Farooque",
+          "link": "https://stackoverflow.com/users/3176408/farooque"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1470718999,
+        "post_id": 26634195,
+        "comment_id": 65050019,
+        "content_license": "CC BY-SA 3.0"
+      },
+      {
+        "owner": {
+          "account_id": 136833,
+          "reputation": 1487,
+          "user_id": 340613,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/eUoTF.jpg?s=256",
+          "display_name": "Chris Clark",
+          "link": "https://stackoverflow.com/users/340613/chris-clark"
+        },
+        "reply_to_user": {
+          "account_id": 3830848,
+          "reputation": 3846,
+          "user_id": 3176408,
+          "user_type": "registered",
+          "accept_rate": 77,
+          "profile_image": "https://www.gravatar.com/avatar/41f18a29e75bbd90d78021314410e574?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Farooque",
+          "link": "https://stackoverflow.com/users/3176408/farooque"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1470688954,
+        "post_id": 26634195,
+        "comment_id": 65041887,
+        "content_license": "CC BY-SA 3.0"
+      }
+    ],
+    "69906219": [
+      {
+        "owner": {
+          "account_id": 3187272,
+          "reputation": 3684,
+          "user_id": 5362244,
+          "user_type": "registered",
+          "accept_rate": 74,
+          "profile_image": "https://i.sstatic.net/P6at3.jpg?s=256",
+          "display_name": "dhS",
+          "link": "https://stackoverflow.com/users/5362244/dhs"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1705382398,
+        "post_id": 69906219,
+        "comment_id": 137197581,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 3710550,
+          "reputation": 1109,
+          "user_id": 3087999,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/22b7d15478863b6ed0d4ad28634b961a?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "vipcxj",
+          "link": "https://stackoverflow.com/users/3087999/vipcxj"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1636511329,
+        "post_id": 69906219,
+        "comment_id": 123574944,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "58529931": [
+      {
+        "owner": {
+          "account_id": 3187272,
+          "reputation": 3684,
+          "user_id": 5362244,
+          "user_type": "registered",
+          "accept_rate": 74,
+          "profile_image": "https://i.sstatic.net/P6at3.jpg?s=256",
+          "display_name": "dhS",
+          "link": "https://stackoverflow.com/users/5362244/dhs"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1705382447,
+        "post_id": 58529931,
+        "comment_id": 137197588,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

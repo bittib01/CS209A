@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "google-chat"
+    ],
+    "owner": {
+      "account_id": 44555278,
+      "reputation": 11,
+      "user_id": 31813391,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/61ace8e6c629b12481fa69a6857167fe?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Dharmik Vaghela",
+      "link": "https://stackoverflow.com/users/31813391/dharmik-vaghela"
+    },
+    "is_answered": false,
+    "view_count": 26,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1762261512,
+    "creation_date": 1762261512,
+    "question_id": 79808943,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79808943/google-chat-api-403-forbidden-with-spring-boot-on-user-specific-spaces",
+    "title": "Google Chat API 403 Forbidden with Spring Boot on user-specific spaces",
+    "body": "<p>I'm using Spring Boot and a Service Account to send Google Chat notifications. In my application, each user provides their own target spaceId in their profile. The app retrieves this ID and sends a message to that user-configured space.</p>\n<p>This works for some users, but fails for others with a 403 Forbidden error.</p>\n<pre><code>{\n  &quot;error&quot;: {\n    &quot;code&quot;: 403,\n    &quot;message&quot;: &quot;Permission denied to perform the requested action on the specified resource, or the resource doesn't exist.&quot;,\n    &quot;status&quot;: &quot;PERMISSION_DENIED&quot;\n  }\n}\n</code></pre>\n<p>Simplified Code:\nMy code builds a standard RestTemplate call to the Google Chat API endpoint. The userConfiguredSpaceId is dynamic based on the user profile.</p>\n<pre><code>@Service\npublic class GoogleChatService {\n    public void sendMessage(String message, String userConfiguredSpaceId) {\n        String accessToken = getServiceAccountAccessToken();\n        String url = &quot;https://chat.googleapis.com/v1/spaces/&quot; + userConfiguredSpaceId + &quot;/messages&quot;;\n\n        HttpHeaders headers = new HttpHeaders();\n        headers.setBearerAuth(accessToken);\n        // ... build HttpEntity\n\n        // This line throws the 403 Forbidden\n        restTemplate.exchange(url, HttpMethod.POST, entity, String.class);\n    }\n}\n</code></pre>\n<p>Key Debugging Finding:</p>\n<ul>\n<li>My Service Account authenticates successfully.</li>\n<li>Crucially, if a failing user changes the spaceId in their profile to a known-good spaceId (one that works for me), the notification succeeds.</li>\n</ul>\n<p>This proves my application's code and authentication logic are correct, and the issue is tied to the specific spaceId the user has provided.</p>\n<p>My Question:</p>\n<p>Is it correct to conclude that this 403 error is caused by one of these two configuration issues?</p>\n<ol>\n<li><p>The spaceId stored in the failing user's profile is invalid (e.g., a typo or from a deleted space).</p>\n</li>\n<li><p>The spaceId is valid, but my Service Account (client_email) has not been added as a member to that specific chat space.</p>\n</li>\n</ol>\n<p>Are there any other possible causes I'm overlooking?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

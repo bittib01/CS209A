@@ -1,0 +1,152 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "tcp",
+      "limit"
+    ],
+    "owner": {
+      "account_id": 9717480,
+      "reputation": 17,
+      "user_id": 7207333,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/4ebc6ab660b287803e50b763ac666e08?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "davidto",
+      "link": "https://stackoverflow.com/users/7207333/davidto"
+    },
+    "is_answered": false,
+    "view_count": 191,
+    "closed_date": 1764643064,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1764849747,
+    "creation_date": 1764340056,
+    "last_edit_date": 1764504083,
+    "question_id": 79832652,
+    "link": "https://stackoverflow.com/questions/79832652/cant-open-more-than-8000-tcp-connections-with-java",
+    "closed_reason": "Not suitable for this site",
+    "title": "Can&#39;t open more than 8000 TCP connections with Java",
+    "body": "<p>I am trying to open to open 10K+ connections to a server, but my app stops at 8K connections when looking at the server logs. When using two remote servers, it will struggles when reaching between 8K and 9K connections. This makes me belief the problem is on the client side.</p>\n<p>I tried the following settings on the client:</p>\n<ul>\n<li><p>Setting the ephemeral ports:net.ipv4.ip_local_port_range = 32768 60999</p>\n</li>\n<li><p>Setting the ulimit to 65535</p>\n</li>\n</ul>\n<p>But still my Java application can't open more than 8K outgoing connections.</p>\n<p>Some experimenting showed that:</p>\n<ul>\n<li><p>Doing a little less than 8K in rapid succession is fine.</p>\n</li>\n<li><p>Doing 8.1K requests causes a 30 delay before it continues with only little bursts.</p>\n</li>\n<li><p>During the tests the machine never runs out of CPU or memory. During the delay it goes back to running at an idle 1-2%.</p>\n</li>\n<li><p>No error or exception is being thrown.</p>\n</li>\n</ul>\n<p>The code:</p>\n<pre><code>import java.io.IOException;\nimport java.net.URI;\nimport java.net.URL;\nimport java.net.http.HttpClient;\nimport java.net.http.HttpRequest;\nimport java.net.http.HttpResponse;\nimport java.time.Duration;\nimport java.util.concurrent.ExecutorService;\nimport java.util.concurrent.Executors;\nimport java.util.stream.IntStream;\n\npublic class SimpleRunner {\n    HttpClient client = HttpClient.newBuilder()\n            .version(HttpClient.Version.HTTP_1_1)\n            .followRedirects(HttpClient.Redirect.NORMAL)\n            .connectTimeout(Duration.ofDays(1))\n            .build();\n\n\n    public void main(String... args) throws IOException {\n        long pid = ProcessHandle.current().pid();\n        System.out.println(&quot;pid = &quot; + pid);\n\n        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {\n            benchmarkingMethod(executor);\n        }\n    }\n\n\n    private void benchmarkingMethod(ExecutorService executor) {\n        IntStream.range(0, 10_000).forEach(i -&gt;\n                executor.submit(() -&gt; {\n                    try {\n                        String response1 =  fetchJavaNineStyle(URI.create(&quot;http://localhost:8080/v1/delay/0&quot;).toURL());\n                    } catch (Exception e) {\n                        throw new RuntimeException(e);\n                    }\n                })\n        );\n    }\n\n    String fetchJavaNineStyle(URL url){\n        try {\n            return client.sendAsync(HttpRequest.newBuilder().GET().uri(url.toURI()).build(), HttpResponse.BodyHandlers.ofString()).get().body();\n        } catch (Exception e) {\n            throw new RuntimeException(e);\n        }\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 26544556,
+        "reputation": 362,
+        "user_id": 20174801,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/e3f952db11e56496176482f3c0122776?s=256&d=identicon&r=PG",
+        "display_name": "Synopsis",
+        "link": "https://stackoverflow.com/users/20174801/synopsis"
+      },
+      "is_accepted": false,
+      "score": -1,
+      "last_activity_date": 1764340331,
+      "creation_date": 1764340331,
+      "answer_id": 79832656,
+      "question_id": 79832652,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>write a service unit for systemd and put it into system slice (/etc/systemd/system).<br />\nas long as you execute it under a user (even root), you will be restricted.</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79832656": [
+      {
+        "owner": {
+          "account_id": 26544556,
+          "reputation": 362,
+          "user_id": 20174801,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/e3f952db11e56496176482f3c0122776?s=256&d=identicon&r=PG",
+          "display_name": "Synopsis",
+          "link": "https://stackoverflow.com/users/20174801/synopsis"
+        },
+        "reply_to_user": {
+          "account_id": 9717480,
+          "reputation": 17,
+          "user_id": 7207333,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/4ebc6ab660b287803e50b763ac666e08?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "davidto",
+          "link": "https://stackoverflow.com/users/7207333/davidto"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1764451710,
+        "post_id": 79832656,
+        "comment_id": 140879466,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 26544556,
+          "reputation": 362,
+          "user_id": 20174801,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/e3f952db11e56496176482f3c0122776?s=256&d=identicon&r=PG",
+          "display_name": "Synopsis",
+          "link": "https://stackoverflow.com/users/20174801/synopsis"
+        },
+        "reply_to_user": {
+          "account_id": 9717480,
+          "reputation": 17,
+          "user_id": 7207333,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/4ebc6ab660b287803e50b763ac666e08?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "davidto",
+          "link": "https://stackoverflow.com/users/7207333/davidto"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1764451657,
+        "post_id": 79832656,
+        "comment_id": 140879463,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 26544556,
+          "reputation": 362,
+          "user_id": 20174801,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/e3f952db11e56496176482f3c0122776?s=256&d=identicon&r=PG",
+          "display_name": "Synopsis",
+          "link": "https://stackoverflow.com/users/20174801/synopsis"
+        },
+        "reply_to_user": {
+          "account_id": 9717480,
+          "reputation": 17,
+          "user_id": 7207333,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/4ebc6ab660b287803e50b763ac666e08?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "davidto",
+          "link": "https://stackoverflow.com/users/7207333/davidto"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1764451496,
+        "post_id": 79832656,
+        "comment_id": 140879462,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 9717480,
+          "reputation": 17,
+          "user_id": 7207333,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/4ebc6ab660b287803e50b763ac666e08?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "davidto",
+          "link": "https://stackoverflow.com/users/7207333/davidto"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1764344287,
+        "post_id": 79832656,
+        "comment_id": 140877824,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

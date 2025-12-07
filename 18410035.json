@@ -1,0 +1,37 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "loops",
+      "collections",
+      "iteration"
+    ],
+    "owner": {
+      "account_id": 1200792,
+      "reputation": 11642,
+      "user_id": 1171509,
+      "user_type": "registered",
+      "accept_rate": 84,
+      "profile_image": "https://www.gravatar.com/avatar/c198605581434ac4ef852e88f70369ed?s=256&d=identicon&r=PG",
+      "display_name": "jacobq",
+      "link": "https://stackoverflow.com/users/1171509/jacobq"
+    },
+    "is_answered": true,
+    "view_count": 1410094,
+    "protected_date": 1416713558,
+    "accepted_answer_id": 18410489,
+    "answer_count": 13,
+    "score": 730,
+    "last_activity_date": 1746192234,
+    "creation_date": 1377284414,
+    "last_edit_date": 1519406568,
+    "question_id": 18410035,
+    "content_license": "CC BY-SA 3.0",
+    "link": "https://stackoverflow.com/questions/18410035/ways-to-iterate-over-a-list-in-java",
+    "title": "Ways to iterate over a list in Java",
+    "body": "<p>Being somewhat new to the Java language I'm trying to familiarize myself with all the ways (or at least the non-pathological ones) that one might iterate through a list (or perhaps other collections) and the advantages or disadvantages of each. </p>\n\n<p>Given a <code>List&lt;E&gt; list</code> object, I know of the following ways to loop through all elements:</p>\n\n<h3>Basic <a href=\"http://docs.oracle.com/javase/specs/jls/se7/html/jls-14.html#jls-14.14.1\" rel=\"noreferrer\">for</a> <a href=\"http://docs.oracle.com/javase/tutorial/java/nutsandbolts/for.html\" rel=\"noreferrer\">loop</a> (of course, there're equivalent <code>while</code> / <code>do while</code> loops as well)</h3>\n\n<pre><code>// Not recommended (see below)!\nfor (int i = 0; i &lt; list.size(); i++) {\n    E element = list.get(i);\n    // 1 - can call methods of element\n    // 2 - can use 'i' to make index-based calls to methods of list\n\n    // ...\n}\n</code></pre>\n\n<p>Note: As @amarseillan pointed out, this form is a poor choice\nfor iterating over <code>List</code>s, because the actual implementation of\nthe <code>get</code> method may not be as efficient as when using an <code>Iterator</code>.\nFor example, <code>LinkedList</code> implementations must traverse all of\nthe elements preceding i to get the i-th element.</p>\n\n<p>In the above example there's no way for the <code>List</code> implementation to\n\"save its place\" to make future iterations more efficient. \nFor an <code>ArrayList</code> it doesn't really matter, because the complexity/cost of <code>get</code> is constant time (O(1)) whereas for a <code>LinkedList</code> is it proportional to the size of the list (O(n)). </p>\n\n<p>For more information about the computational complexity of the built-in <code>Collections</code> implementations, check out <a href=\"https://stackoverflow.com/questions/559839/big-o-summary-for-java-collections-framework-implementations\">this question</a>.</p>\n\n<h3>Enhanced <a href=\"http://docs.oracle.com/javase/specs/jls/se7/html/jls-14.html#jls-14.14.2\" rel=\"noreferrer\">for loop</a> (nicely explained <a href=\"https://stackoverflow.com/questions/85190/how-does-the-java-for-each-loop-work\">in this question</a>)</h3>\n\n<pre><code>for (E element : list) {\n    // 1 - can call methods of element\n\n    // ...\n}\n</code></pre>\n\n<h3><a href=\"http://docs.oracle.com/javase/7/docs/api/java/util/Iterator.html\" rel=\"noreferrer\">Iterator</a></h3>\n\n<pre><code>for (Iterator&lt;E&gt; iter = list.iterator(); iter.hasNext(); ) {\n    E element = iter.next();\n    // 1 - can call methods of element\n    // 2 - can use iter.remove() to remove the current element from the list\n\n    // ...\n}\n</code></pre>\n\n<h3><a href=\"http://docs.oracle.com/javase/7/docs/api/java/util/ListIterator.html\" rel=\"noreferrer\">ListIterator</a></h3>\n\n<pre><code>for (ListIterator&lt;E&gt; iter = list.listIterator(); iter.hasNext(); ) {\n    E element = iter.next();\n    // 1 - can call methods of element\n    // 2 - can use iter.remove() to remove the current element from the list\n    // 3 - can use iter.add(...) to insert a new element into the list\n    //     between element and iter-&gt;next()\n    // 4 - can use iter.set(...) to replace the current element\n\n    // ...\n}\n</code></pre>\n\n<h3><a href=\"http://functionaljava.org/\" rel=\"noreferrer\">Functional Java</a></h3>\n\n<pre><code>list.stream().map(e -&gt; e + 1); // Can apply a transformation function for e\n</code></pre>\n\n<h3><a href=\"http://docs.oracle.com/javase/8/docs/api/java/lang/Iterable.html#forEach-java.util.function.Consumer-\" rel=\"noreferrer\">Iterable.forEach</a>, <a href=\"http://docs.oracle.com/javase/8/docs/api/java/util/stream/Stream.html#forEach-java.util.function.Consumer-\" rel=\"noreferrer\">Stream.forEach</a>, ...</h3>\n\n<p>(A map method from Java 8's Stream API (see @i_am_zero's answer).)</p>\n\n<p>In Java 8 collection classes that implement <code>Iterable</code> (for example, all <code>List</code>s) now have a <code>forEach</code> method, which can be used instead of the <a href=\"http://docs.oracle.com/javase/specs/jls/se7/html/jls-14.html#jls-14.14.1\" rel=\"noreferrer\">for loop statement</a> demonstrated above. (Here is <a href=\"https://stackoverflow.com/questions/16635398/java-8-iterable-foreach-vs-foreach-loop\">another question</a> that provides a good comparison.)</p>\n\n<pre><code>Arrays.asList(1,2,3,4).forEach(System.out::println);\n// 1 - can call methods of an element\n// 2 - would need reference to containing object to remove an item\n//     (TODO: someone please confirm / deny this)\n// 3 - functionally separates iteration from the action\n//     being performed with each item.\n\nArrays.asList(1,2,3,4).stream().forEach(System.out::println);\n// Same capabilities as above plus potentially greater\n// utilization of parallelism\n// (caution: consequently, order of execution is not guaranteed,\n// see [Stream.forEachOrdered][stream-foreach-ordered] for more\n// information about this).\n</code></pre>\n\n<p>What other ways are there, if any?</p>\n\n<p>(BTW, my interest does not stem at all from a desire to <a href=\"https://stackoverflow.com/questions/2113216/which-is-more-efficient-a-for-each-loop-or-an-iterator\">optimize performance</a>; I just want to know what forms are available to me as a developer.)</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

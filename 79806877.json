@@ -1,0 +1,96 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "postgresql",
+      "kotlin",
+      "hibernate"
+    ],
+    "owner": {
+      "account_id": 25939300,
+      "reputation": 151,
+      "user_id": 19659058,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/b5792eba96ccc54b7ceed52701ab0f36?s=256&d=identicon&r=PG",
+      "display_name": "gearbase",
+      "link": "https://stackoverflow.com/users/19659058/gearbase"
+    },
+    "is_answered": true,
+    "view_count": 217,
+    "accepted_answer_id": 79810478,
+    "answer_count": 3,
+    "score": 3,
+    "last_activity_date": 1762524591,
+    "creation_date": 1762041770,
+    "question_id": 79806877,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79806877/save-and-get-large-objects-blob-to-postgresql-using-hibernate-and-spring-data",
+    "title": "Save and get large objects (BLOB) to postgresql using hibernate and Spring Data JPA",
+    "body": "<p>experts!</p>\n<p>I encountered the following problem: when trying to read a large file from a PostgreSQL database in a Spring Boot application using the Spring Data JPA framework, all the data is loaded into memory, even though the Blob class specification says <a href=\"https://docs.oracle.com/en/java/javase/17/docs/api/java.sql/java/sql/Blob.html\" rel=\"nofollow noreferrer\">otherwise</a>:</p>\n<p><code>By default drivers, implement Blob using an SQL locator (BLOB), which means that a Blob object contains a logical pointer to the SQL BLOB data rather than the data itself.</code></p>\n<p>Details below:</p>\n<pre class=\"lang-kotlin prettyprint-override\"><code>@RestController\nclass LargeFileController(\n    val fileRepo: FileContentRepo\n) {\n    @PostMapping(&quot;/file&quot;, consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])\n    fun saveFile(@RequestBody file: MultipartFile) {\n        fileRepo.save(LargeFileContent(file))\n    }\n\n    @GetMapping(&quot;/file/{id}&quot;, produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])\n    @Transactional\n    fun getFileById(@PathVariable(&quot;id&quot;) id: Long): InputStreamResource {\n        val file = fileRepo.findById(id).orElseThrow()\n        // Here I see that all the data is stored in memory (regardless of file size) \n        // in the InputStream buffer (in the screenshot below) \n        // If I turn off the database at this point, I still have access to the entire contents of the file.\n        val content = file.content\n\n        return InputStreamResource {\n            file.content.binaryStream\n        }\n    }\n}\n\n@Entity\n@Table(name = &quot;file_content&quot;)\nclass LargeFileContent (\n    @Column(nullable = false)\n    @Lob\n    @JdbcTypeCode(java.sql.Types.BINARY)\n    val content: Blob,\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    val id: Long?=null,\n) {\n    constructor(file: MultipartFile) : this(\n        content = BlobProxy.generateProxy(file.inputStream, file.size)\n    )\n}\n\n@Repository\ninterface FileContentRepo: JpaRepository&lt;LargeFileContent, Long&gt; {\n}\n</code></pre>\n<p><a href=\"https://i.sstatic.net/QsYPp1gn.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/QsYPp1gn.png\" alt=\"All data saved in buf\" /></a></p>\n<p>My idea was to save the InputStream from the database to a temporary file on disk and then return the InputStream from that file to the client (so as not to hold up the database connection while the client reads). Is it possible to read the data from the Blob in chunks, rather than loading the entire contents into memory at once?</p>\n<p>Thanks in advance for your answers!</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 25939300,
+        "reputation": 151,
+        "user_id": 19659058,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/b5792eba96ccc54b7ceed52701ab0f36?s=256&d=identicon&r=PG",
+        "display_name": "gearbase",
+        "link": "https://stackoverflow.com/users/19659058/gearbase"
+      },
+      "is_accepted": true,
+      "score": 2,
+      "last_activity_date": 1762524591,
+      "last_edit_date": 1762524591,
+      "creation_date": 1762368098,
+      "answer_id": 79810478,
+      "question_id": 79806877,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>I found a solution: I should use the <code>Large Object API</code> for PostgreSQL instead of using <code>bytea</code> and <code>Blob</code> in my entities. Thanks to Andrey, who provided a very useful <a href=\"https://www.cybertec-postgresql.com/en/binary-data-performance-in-postgresql/\" rel=\"nofollow noreferrer\">resource</a> in the comments.</p>\n<p>Here's working code that allows you to get a stream from a database object. To avoid the &quot;slow client&quot; problem and connection pool exhaustion, the file from the database is read into a temporary file on disk and a stream from this file is returned to the client. After reading, the file will be deleted.</p>\n<pre class=\"lang-kotlin prettyprint-override\"><code>//the service level is deliberately omitted \n@RestController  \nclass LargeFileController(  \n    private val fileRepo: LargeFileContentRepo,  \n    private val dataSource: DataSource,  \n) {  \n  \n    @PostMapping(&quot;large/file&quot;, consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])  \n    @Transactional //working with lage object requires active transaction  \n    fun saveFile(@RequestBody file: MultipartFile) {  \n        val conn = DataSourceUtils.getConnection(dataSource)  \n        try {  \n            val pgConn = conn.unwrap(org.postgresql.PGConnection::class.java)  \n            val lobj = pgConn.largeObjectAPI  \n  \n            val oid = lobj.createLO(LargeObjectManager.WRITE)  \n            val obj = lobj.open(oid, LargeObjectManager.WRITE)  \n  \n            file.inputStream.use { input -&gt;  \n                input.copyTo(obj.outputStream)  \n            }  \n  \n            obj.close()  \n  \n            val entity = LargeFile(  \n                oid = oid,  \n                fileName = file.originalFilename,  \n                size = file.size,  \n                mimeType = file.contentType  \n            )  \n            fileRepo.save(entity)  \n        } finally {  \n            DataSourceUtils.releaseConnection(conn, dataSource)  \n        }  \n    }  \n  \n    @GetMapping(&quot;large/file/{id}&quot;, produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])  \n    @Transactional  \n    fun getFileById(@PathVariable(&quot;id&quot;) id: Long, response: HttpServletResponse): ResponseEntity&lt;InputStreamResource&gt; {  \n        val file = fileRepo.findById(id).orElseThrow()  \n        val tempFile = Files.createTempFile(UUID.randomUUID().toString(),file.fileName!!)  \n        return try {  \n            val conn: Connection = DataSourceUtils.getConnection(dataSource)  \n            try {  \n                val pgConn = conn.unwrap(org.postgresql.PGConnection::class.java)  \n                val lobj = pgConn.largeObjectAPI  \n  \n                val obj = lobj.open(file.oid, LargeObjectManager.READ)  \n                val inputStream = obj.inputStream  \n  \n                inputStream.use { lois -&gt;  \n                    tempFile.outputStream().use { fileOutputStream -&gt;  \n                        IOUtils.copy(lois, fileOutputStream)  \n                    }  \n                }  \n                obj.close()  \n  \n                val contentDisposition = ContentDisposition.builder(&quot;attachment&quot;)  \n                        .filename(file.fileName, StandardCharsets.UTF_8)  \n                        .build()  \n                ResponseEntity.ok()  \n                    .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())  \n                    .header(HttpHeaders.CONTENT_LENGTH, tempFile.fileSize().toString())  \n                    .contentType(MediaType.APPLICATION_OCTET_STREAM)  \n                    .body(InputStreamResource(tempFile.inputStream()))  \n                //or  \n  \n                /*tempFile.inputStream().use { input -&gt;                   \n                 val contentDisposition = ContentDisposition.builder(&quot;attachment&quot;)                        .filename(file.fileName, StandardCharsets.UTF_8)                                       .build()                    \n                 response.contentType = MediaType.MULTIPART_FORM_DATA_VALUE                             response.addHeader(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())  \n                 response.outputStream.use { output -&gt;                        \n                    IOUtils.copy(input, output)                    \n                 }                \n                }*/            \n            } finally {  \n                DataSourceUtils.releaseConnection(conn, dataSource)  \n            }  \n        } finally {  \n            try {  \n                if (Files.exists(tempFile)) {  \n                    Files.deleteIfExists(tempFile)  \n                }  \n            } catch (ex: Exception) {  \n                log.warn(&quot;Failed to delete temp file: ${tempFile.toAbsolutePath()}&quot;, ex)  \n            }  \n        }  \n    }  \n  \n    companion object {  \n        private val log = LoggerFactory.getLogger(LargeFileController::class.java)  \n    }  \n}\n</code></pre>\n<p>Full example <a href=\"https://github.com/gearbase/large-obj-in-db\" rel=\"nofollow noreferrer\">here</a></p>\n<p>UPDATE:</p>\n<p>My mistake was that I was trying to store a <code>Blob</code> in my table in a <code>bytea</code> column. All I had to do was change the column type in the database from <code>bytea</code> to <code>bigint</code> for this column. JPA works correctly with Blobs in this case (it stores the file's oid in the column).</p>\n<p>Here is a complete correct example:</p>\n<pre class=\"lang-kotlin prettyprint-override\"><code>\n@Entity\n@Table(name = &quot;file_content&quot;)\nclass FileContent (\n    //The field type in the database must be bigint, not bytea. This field will store the OID of the created file.\n    @Lob\n    val oid: Blob,\n\n    val name: String?,\n\n    val mimeType: String?,\n\n    val size: Long,\n\n    @OneToMany(cascade = [CascadeType.ALL], mappedBy = &quot;file&quot;)\n    @BatchSize(size = 20)\n    val tags: List&lt;FileTag&gt;,\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    val id: Long?=null,\n) {\n    constructor(file: MultipartFile) : this(\n        oid = BlobProxy.generateProxy(file.inputStream, file.size),\n        name = file.originalFilename!!,\n        mimeType = file.contentType!!,\n        size = file.size,\n        tags = listOf()\n    )\n}\n\n@Service\nclass FileService(\n    private val fileRepo: FileRepo\n) {\n\n    @Transactional\n    fun getFile(id: Long): Pair&lt;FileContent, File&gt; {\n        val fileInfo = fileRepo.findById(id).orElseThrow { RuntimeException(&quot;File not found&quot;) }.content\n        val largeObj = fileInfo.oid\n        val tmpFile = Files.createTempFile(fileInfo.name, null)\n        tmpFile.outputStream().use { out -&gt;\n            largeObj.binaryStream.use {\n                it.copyTo(out)\n            }\n        }\n        return fileInfo to tmpFile.toFile()\n    }\n\n    fun saveFile(file: MultipartFile): Long {\n        return fileRepo.save(FileMetadata(file)).id!!\n    }\n\n}\n\n@RestController\nclass BlobObjectController(\n    val fileService: FileService\n) {\n\n    @GetMapping(&quot;/file/{id}&quot;, produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])\n    fun getFileById(@PathVariable(&quot;id&quot;) id: Long): ResponseEntity&lt;StreamingResponseBody&gt; {\n        val (metadata, tempFile) = fileService.getFile(id)\n        val contentDisposition = ContentDisposition.builder(&quot;attachment&quot;)\n            .filename(metadata.name, StandardCharsets.UTF_8)\n            .build()\n        val contentType = metadata.mimeType\n            ?.let { runCatching { MediaType.valueOf(it) }.getOrNull() }\n            ?: MediaType.APPLICATION_OCTET_STREAM\n\n        val responseBody = StreamingResponseBody { outputStream -&gt;\n            tempFile.inputStream().use { input -&gt;\n                input.copyTo(outputStream)\n            }\n\n            val deleted = Files.deleteIfExists(tempFile.toPath())\n            log.info(&quot;File ${if (deleted) &quot;was deleted&quot; else &quot;WAS NOT DELETED&quot;} after response sent: ${tempFile.name}&quot;)\n        }\n        return ResponseEntity.ok()\n            .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())\n            .contentLength(metadata.size)\n            .contentType(contentType)\n            .body(responseBody)\n\n    }\n\n    @PostMapping(&quot;/file&quot;, consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])\n    fun saveFile(@RequestBody file: MultipartFile) {\n        fileService.saveFile(file)\n    }\n\n    companion object {\n        private val log = LoggerFactory.getLogger(BlobObjectController::class.java)\n    }\n}\n\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 4181375,
+        "reputation": 6263,
+        "user_id": 3426309,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/v58O6.jpg?s=256",
+        "display_name": "Andrey B. Panfilov",
+        "link": "https://stackoverflow.com/users/3426309/andrey-b-panfilov"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1762440910,
+      "creation_date": 1762440910,
+      "answer_id": 79811429,
+      "question_id": 79806877,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Looks like you have overingeneered something. There is no need to use PG API:</p>\n<pre><code>public class BlobTestIT {\n\n    @Autowired\n    private JdbcTemplate jdbcTemplate;\n\n    @Test\n    @Transactional\n    void test_blob() throws Exception {\n\n        byte[] bytes = new byte[1000];\n        Arrays.fill(bytes, (byte) 'a');\n\n        Path tempFile = Files.createTempFile(&quot;test_blob&quot;, &quot;.bin&quot;);\n        try (OutputStream os = Files.newOutputStream(tempFile)) {\n            os.write(bytes);\n        }\n\n        Long blobId;\n        try (InputStream is = Files.newInputStream(tempFile)) {\n            blobId = jdbcTemplate.query(&quot;select ?&quot;, ps -&gt; {\n                ps.setBlob(1, BlobProxy.generateProxy(is, tempFile.toFile().length()));\n            }, (rs, rowNum) -&gt; rs.getLong(1)).get(0);\n\n            assertThat(blobId).isNotNull();\n        }\n\n\n        Blob blob = jdbcTemplate.query(&quot;select ?&quot;, ps -&gt; {\n            ps.setLong(1, blobId);\n        }, (rs, rowNum) -&gt; rs.getBlob(1)).get(0);\n\n        assertThat(blob).isNotNull();\n\n        try (InputStream is = blob.getBinaryStream()) {\n            byte[] read = IOUtils.toByteArray(is);\n            assertThat(read)\n                    .containsExactly(bytes);\n        }\n    }\n\n}\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79810478": [],
+    "79811429": [
+      {
+        "owner": {
+          "account_id": 25939300,
+          "reputation": 151,
+          "user_id": 19659058,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/b5792eba96ccc54b7ceed52701ab0f36?s=256&d=identicon&r=PG",
+          "display_name": "gearbase",
+          "link": "https://stackoverflow.com/users/19659058/gearbase"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1762520386,
+        "post_id": 79811429,
+        "comment_id": 140841851,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

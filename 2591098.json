@@ -1,0 +1,87 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "json",
+      "parsing"
+    ],
+    "owner": {
+      "account_id": 67441,
+      "reputation": 34297,
+      "user_id": 2355649,
+      "user_type": "registered",
+      "accept_rate": 51,
+      "profile_image": "https://i.sstatic.net/xVkakLXi.jpg?s=256",
+      "display_name": "Muhammad Maqsoodur Rehman",
+      "link": "https://stackoverflow.com/users/2355649/muhammad-maqsoodur-rehman"
+    },
+    "is_answered": true,
+    "view_count": 2586076,
+    "protected_date": 1517417712,
+    "answer_count": 38,
+    "score": 1353,
+    "last_activity_date": 1740533431,
+    "creation_date": 1270630821,
+    "last_edit_date": 1660829507,
+    "question_id": 2591098,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/2591098/how-to-parse-json-in-java",
+    "title": "How to parse JSON in Java",
+    "body": "<p>I have the following JSON text. How can I parse it to get the values of <code>pageName</code>, <code>pagePic</code>, <code>post_id</code>, etc.?</p>\n<pre class=\"lang-json prettyprint-override\"><code>{\n  &quot;pageInfo&quot;: {\n    &quot;pageName&quot;: &quot;abc&quot;,\n    &quot;pagePic&quot;: &quot;http://example.com/content.jpg&quot;\n  },\n  &quot;posts&quot;: [\n    {\n      &quot;post_id&quot;: &quot;123456789012_123456789012&quot;,\n      &quot;actor_id&quot;: &quot;1234567890&quot;,\n      &quot;picOfPersonWhoPosted&quot;: &quot;http://example.com/photo.jpg&quot;,\n      &quot;nameOfPersonWhoPosted&quot;: &quot;Jane Doe&quot;,\n      &quot;message&quot;: &quot;Sounds cool. Can't wait to see it!&quot;,\n      &quot;likesCount&quot;: &quot;2&quot;,\n      &quot;comments&quot;: [],\n      &quot;timeOfPost&quot;: &quot;1234567890&quot;\n    }\n  ]\n}\n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 263210,
+        "reputation": 11366,
+        "user_id": 548634,
+        "user_type": "registered",
+        "accept_rate": 78,
+        "profile_image": "https://i.sstatic.net/XlKOm.jpg?s=256",
+        "display_name": "John Eipe",
+        "link": "https://stackoverflow.com/users/548634/john-eipe"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1740533431,
+      "creation_date": 1740533431,
+      "answer_id": 79468283,
+      "question_id": 2591098,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Using common JSON Libraries in Java:</p>\n<p><strong>Jackson</strong>:  Jackson is a very popular, high-performance library.  It's versatile and supports various JSON processing tasks, including streaming, data binding (mapping JSON to Java objects), and tree model processing.  It's widely used and well-documented.</p>\n<pre class=\"lang-java prettyprint-override\"><code>import com.fasterxml.jackson.databind.ObjectMapper;\n\nObjectMapper objectMapper = new ObjectMapper();\nString jsonString = &quot;{\\&quot;name\\&quot;:\\&quot;John\\&quot;, \\&quot;age\\&quot;:30}&quot;;\n\ntry {\n    MyObject myObject = objectMapper.readValue(jsonString, MyObject.class); // Data Binding\n    System.out.println(myObject.getName()); // Accessing data\n} catch (Exception e) {\n    e.printStackTrace();\n}\n\n// Example MyObject class (for data binding)\npublic class MyObject {\n    private String name;\n    private int age;\n    // Getters and setters...\n    public String getName() { return name;}\n    public void setName(String name) { this.name = name;}\n    public int getAge() { return age;}\n    public void setAge(int age) { this.age = age;}\n}\n</code></pre>\n<p><strong>Gson (Google Gson):</strong> Gson is another widely used library known for its simplicity and ease of use. It's particularly good for data binding.</p>\n<pre class=\"lang-java prettyprint-override\"><code>import com.google.gson.Gson;\n\nGson gson = new Gson();\nString jsonString = &quot;{\\&quot;name\\&quot;:\\&quot;John\\&quot;, \\&quot;age\\&quot;:30}&quot;;\n\nMyObject myObject = gson.fromJson(jsonString, MyObject.class);\nSystem.out.println(myObject.getName());\n</code></pre>\n<p><strong>JSON-java (org.json)</strong>: This is a simpler, lightweight library that's often included with Android. It's good for basic JSON parsing and doesn't require as many dependencies as Jackson or Gson.  It uses a JSONObject and JSONArray approach.</p>\n<pre class=\"lang-java prettyprint-override\"><code>import org.json.JSONObject;\n\nString jsonString = &quot;{\\&quot;name\\&quot;:\\&quot;John\\&quot;, \\&quot;age\\&quot;:30}&quot;;\n\ntry {\n    JSONObject jsonObject = new JSONObject(jsonString);\n    String name = jsonObject.getString(&quot;name&quot;);\n    int age = jsonObject.getInt(&quot;age&quot;);\n    System.out.println(name);\n} catch (Exception e) {\n    e.printStackTrace();\n}\n</code></pre>\n<p><strong>Parsing JSON Without Libraries</strong>:</p>\n<p>You can technically parse JSON manually using Java's built-in string manipulation capabilities (e.g., String.substring(), regular expressions). However, this is strongly discouraged for anything beyond the simplest JSON structures.</p>\n<pre><code>String jsonString = &quot;{\\&quot;name\\&quot;:\\&quot;John\\&quot;, \\&quot;age\\&quot;:30}&quot;;\n\n// Extremely simplified - doesn't handle escaping, complex structures, etc.\nint nameStartIndex = jsonString.indexOf(&quot;\\&quot;name\\&quot;:\\&quot;&quot;) + 7;\nint nameEndIndex = jsonString.indexOf(&quot;\\&quot;&quot;, nameStartIndex);\nString name = jsonString.substring(nameStartIndex, nameEndIndex);\n\nSystem.out.println(name); // Output: John\n</code></pre>\n<p><strong>Which library is the fastest and most performant</strong> ?</p>\n<p>You can periodically visit this github repository for the latest benchmarks: <a href=\"https://github.com/fabienrenaud/java-json-benchmark\" rel=\"nofollow noreferrer\">https://github.com/fabienrenaud/java-json-benchmark</a></p>\n<p>As of this writing <strong>&quot;fastjson&quot;</strong> is the winner!!!</p>\n<p><a href=\"https://i.sstatic.net/f5uQrDB6.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/f5uQrDB6.png\" alt=\"enter image description here\" /></a></p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 207965,
+        "reputation": 4274,
+        "user_id": 458157,
+        "user_type": "registered",
+        "accept_rate": 75,
+        "profile_image": "https://www.gravatar.com/avatar/41e194596f58b1836093c10a42a41647?s=256&d=identicon&r=PG",
+        "display_name": "gouessej",
+        "link": "https://stackoverflow.com/users/458157/gouessej"
+      },
+      "reply_to_user": {
+        "account_id": 1100188,
+        "reputation": 6261,
+        "user_id": 1201863,
+        "user_type": "registered",
+        "accept_rate": 58,
+        "profile_image": "https://www.gravatar.com/avatar/993b5c15ca4a2d520f80f0c0120f13e6?s=256&d=identicon&r=PG",
+        "display_name": "Luc",
+        "link": "https://stackoverflow.com/users/1201863/luc"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1690377923,
+      "post_id": 2591098,
+      "comment_id": 135345049,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79468283": []
+  }
+}

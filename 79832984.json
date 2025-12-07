@@ -1,0 +1,73 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "oop",
+      "orm"
+    ],
+    "owner": {
+      "account_id": 27813865,
+      "reputation": 12,
+      "user_id": 21235710,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AEdFTp6OFaDu0sSOCSAM8ZrYsDyhz4tiQ2SO1n8u-OnMXA=k-s256",
+      "display_name": "Mohamed Selmi",
+      "link": "https://stackoverflow.com/users/21235710/mohamed-selmi"
+    },
+    "is_answered": false,
+    "view_count": 94,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1764447189,
+    "creation_date": 1764373622,
+    "last_edit_date": 1764381785,
+    "question_id": 79832984,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79832984/java-oop-association-sql-equivalent",
+    "title": "Java OOP association SQL equivalent",
+    "body": "<p>I have two classes: Student and Group.</p>\n<p>Student attributes:</p>\n<pre><code>private String registrationNumber;\nprivate String firstName;\nprivate String lastName;\nprivate Date dateOfBirth;\nprivate String password;\nprivate Groupe groupe;\nprivate List&lt;Grades&gt; studentGrades;\n</code></pre>\n<p>Student Constructor:</p>\n<pre><code>\npublic Student(String registrationNumber, String firstName, String lastName, Date dateOfBirth, Groupe groupe,String password) {\n    super();\n    this.registrationNumber = registrationNumber;\n    this.firstName = firstName;\n    this.lastName = lastName;\n    this.dateOfBirth = dateOfBirth;\n    this.groupe = groupe;\n    this.password=password;\n}\n</code></pre>\n<p>Group attributes:</p>\n<pre><code>private int idGroup;\nprivate String nameGroup;\nprivate List&lt;Student&gt; students;\nprivate List&lt;Subject&gt; subjects;\n</code></pre>\n<p>Its constructor takes only idGroup and nameGroup.</p>\n<p>When registering, a student will select a group from a drop down menu (Swing interface) which will then call the addStudent function (controller to DAO).</p>\n<pre><code>public boolean addStudent( Student s) throws SQLException {\n        myStatement=myConnection.getMyConnection().createStatement();\n        String request=&quot;insert into student values('&quot;+s.getRegistrationNumber()+&quot;','&quot;+s.getFirstName()+&quot;','&quot;+s.getLastName()+&quot;','&quot;+s.getDateOfBirth()+&quot;','&quot;+s.getPassword()+&quot;')&quot;;\n        return myStatement.executeUpdate(request)&gt;0;\n    }\n</code></pre>\n<p>Which is currently missing the group attribute.</p>\n<p>How should I translate the group attribute (and by extension all other associations) from OOP to a relational format?</p>\n<p>Should I drop these association from student and use an int attribute that represents a foreign key which refrences the Group table's primary key and rely on joins for the List (1..n associations)?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 27813865,
+        "reputation": 12,
+        "user_id": 21235710,
+        "user_type": "registered",
+        "profile_image": "https://lh3.googleusercontent.com/a/AEdFTp6OFaDu0sSOCSAM8ZrYsDyhz4tiQ2SO1n8u-OnMXA=k-s256",
+        "display_name": "Mohamed Selmi",
+        "link": "https://stackoverflow.com/users/21235710/mohamed-selmi"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1764447189,
+      "creation_date": 1764447189,
+      "answer_id": 79833508,
+      "question_id": 79832984,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>This is the solution I have come up with after implementing everyone's input in case someone else runs into a similar problem.</p>\n<p>Starting with the student table:</p>\n<div class=\"s-table-container\"><table class=\"s-table\">\n<thead>\n<tr>\n<th>registration Number</th>\n<th>firstName</th>\n<th>lastName</th>\n<th>dateofBirth</th>\n<th>password</th>\n<th>idGroup</th>\n</tr>\n</thead>\n</table></div>\n<p>The updated addStudent function with SQL injection safety (Thanks for the clarification Tim Moore) :</p>\n<pre><code>public boolean addStudent( Student s) throws SQLException {\n        String request=&quot;INSERT INTO student values (?,?,?,?,?,?);&quot;;\n        PreparedStatement pst=myConnection.getMyConnection().prepareStatement(request);\n        pst.setString(1, s.getRegistrationNumber());\n        pst.setString(2, s.getFirstName());\n        pst.setString(3, s.getLastName());\n        pst.setDate(4, s.getDateOfBirth());\n        pst.setString(5, s.getPassword());\n        pst.setInt(6, s.getGroup().getIdGroup());\n        return pst.executeUpdate()&gt;0;\n    }\n</code></pre>\n<p><code>s.getGroup().getIdGroup() </code> saves the student's group to the foreign key <strong>idGroup</strong>.</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79833508": [
+      {
+        "owner": {
+          "account_id": 22124137,
+          "reputation": 4244,
+          "user_id": 16376827,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/1ImPw.png?s=256",
+          "display_name": "g00se",
+          "link": "https://stackoverflow.com/users/16376827/g00se"
+        },
+        "edited": false,
+        "score": 2,
+        "creation_date": 1764450001,
+        "post_id": 79833508,
+        "comment_id": 140879433,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

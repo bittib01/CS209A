@@ -1,0 +1,594 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "class",
+      "sealed-class",
+      "java-17",
+      "java-sealed-type"
+    ],
+    "owner": {
+      "user_type": "does_not_exist",
+      "display_name": "user16411474"
+    },
+    "is_answered": true,
+    "view_count": 69449,
+    "accepted_answer_id": 69218715,
+    "answer_count": 10,
+    "score": 71,
+    "last_activity_date": 1764702440,
+    "creation_date": 1631859507,
+    "last_edit_date": 1697653376,
+    "question_id": 69218585,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/69218585/what-are-sealed-classes-in-java-17",
+    "title": "What are sealed classes in Java 17?",
+    "body": "<p>Today, I updated my Java version from 16 to 17, and I found that <code>sealed</code> classes is a new feature in it. I think it can be declared like this:</p>\n<pre><code>public sealed class Main permits AClass, AnotherClass {\n}\n</code></pre>\n<p>But, what is the use of sealed classes in Java?</p>\n<p>I also knew that it was a <em>preview</em> feature in <a href=\"https://en.wikipedia.org/wiki/Java_version_history#Java_15\" rel=\"noreferrer\">JDK 15</a>.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 778256,
+        "reputation": 4970,
+        "user_id": 830988,
+        "user_type": "registered",
+        "accept_rate": 81,
+        "profile_image": "https://www.gravatar.com/avatar/ffe68fc6918cdde058a19cf275d8b603?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Eva",
+        "link": "https://stackoverflow.com/users/830988/eva"
+      },
+      "is_accepted": false,
+      "score": 13,
+      "last_activity_date": 1764702440,
+      "last_edit_date": 1764702440,
+      "creation_date": 1704124865,
+      "answer_id": 77742481,
+      "question_id": 69218585,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>The other answers have the title question down. (&quot;What are sealed classes in Java 17?&quot;) But your question in the body (&quot;What is the use of sealed classes?&quot;) hasn't really been addressed.</p>\n<p>Sealed classes/interfaces are a way to create a <a href=\"https://en.wikipedia.org/wiki/Tagged_union\" rel=\"nofollow noreferrer\">tagged union</a>. Tagged unions are to classes what Java enums are to objects.</p>\n<p>Java enums let you limit the possible objects a class can instantiate to a specific set of values. This helps you model days of the week like this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>enum Day {\n    SUNDAY, MONDAY, TUESDAY, WEDNESDAY,\n    THURSDAY, FRIDAY, SATURDAY;\n}\n\nboolean isWeekend(Day day) {\n    switch (day) {\n    case SUNDAY:\n    case SATURDAY:\n      return true;\n    default:\n      return false;\n}\n</code></pre>\n<p>instead of this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>boolean isWeekend(int day) {\n  switch (day) {\n  case 0:\n  case 6:\n    return true;\n  case 1:\n  case 2:\n  case 3:\n  case 4:\n  case 5:\n    return false;\n  default:\n    throw new IllegalArgumentException(&quot;day must be between 0 and 6&quot;);\n}\n</code></pre>\n<p>If you have an enum type, then you know you have every possible valid value. You can guarantee that your switch statements exhaustively handle all inputs.</p>\n<p>The limitation of enums is that they only apply to objects of a single class. Every enum value must have the same instance variables, the same methods, and the same constructor. Each enum value is a single object of the same class.</p>\n<p>Sealed classes/interfaces overcome this limitation. Since each subclass is its own class, you can vary anything that you could vary in classes, e.g. instance variables, methods, constructors, additional implemented interfaces. Here's an example:</p>\n<pre class=\"lang-java prettyprint-override\"><code>sealed interface UpsertUserResponse\n    permits UserCreated, UserUpdated, InvalidEmail, Unauthorized {\n}\n\nrecord UserCreated(UUID id) implements UpsertUserResponse {}\nrecord UserUpdated(String oldEmail) implements UpsertUserResponse {}\nrecord InvalidEmail(String reason) implements UpsertUserResponse {}\nrecord Unauthorized() implements UpsertUserResponse {}\n\nString getResponseMessage(UpsertUserResponse response) {\n  return switch (response) {\n    case UserCreated id -&gt; &quot;New user created with id &quot; + id.toString();\n    case UserUpdated oldEmail -&gt; &quot;Email updated from previous value of &quot; + oldEmail;\n    case InvalidEmail reason -&gt; &quot;The email you entered was invalid because &quot; + reason;\n    case Unauthorized ignored -&gt; &quot;You can't do that!&quot;;\n        };\n}\n</code></pre>\n<p>You know that your switch expression has handled every possible case. And you have the flexibility to support different user ids and email validation errors without resorting to nullable variables that could be in an impossible state. (For example, there's no way to mistakenly set both a user id and a validation error.)</p>\n<p>How do you mock out subclasses of sealed classes/interfaces in tests? You don't. Sealed classes/interfaces pair well with plain data aggregates, such as records. You don't write mocks for enums and you don't write mocks for sealed classes.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 5243556,
+        "reputation": 1,
+        "user_id": 4189960,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/7e3150595564a84cbe403c328a4afa3f?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "JJohn",
+        "link": "https://stackoverflow.com/users/4189960/jjohn"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1749737455,
+      "last_edit_date": 1749737455,
+      "creation_date": 1749715684,
+      "answer_id": 79663142,
+      "question_id": 69218585,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>A <strong>sealed class</strong> lets you control the <strong>class hierarchy</strong> more precisely by explicitly specifying the <strong>permitted subclasses</strong>. This is useful for maintaining control over inheritance, improving security, and enabling better compiler checks and pattern matching.</p>\n<p>Here's a practical example using a <strong>sealed class</strong> hierarchy for different types of users in an application: <code>AdminUser</code>, <code>GuestUser</code>, and <code>RegisteredUser</code></p>\n<pre class=\"lang-java prettyprint-override\"><code>// Sealed superclass\npublic sealed class User permits AdminUser, GuestUser, RegisteredUser {\n    String username;\n\n    public User(String username) {\n        this.username = username;\n    }\n\n    public String getUsername() {\n        return username;\n    }\n}\n\n// Final subclass - cannot be extended\npublic final class AdminUser extends User {\n    public AdminUser(String username) {\n        super(username);\n    }\n\n    public void accessAdminPanel() {\n        System.out.println(username + &quot; is accessing the admin panel.&quot;);\n    }\n}\n\n// Final subclass\npublic final class GuestUser extends User {\n    public GuestUser() {\n        super(&quot;Guest&quot;);\n    }\n\n    public void browseCatalog() {\n        System.out.println(&quot;Browsing as guest.&quot;);\n    }\n}\n\n// Final subclass\npublic final class RegisteredUser extends User {\n    public RegisteredUser(String username) {\n        super(username);\n    }\n\n    public void viewProfile() {\n        System.out.println(&quot;Viewing profile of &quot; + username);\n    }\n}\n</code></pre>\n<p>Using Sealed Class with Pattern Matching (Java 17+)</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class UserService {\n\n    public void handleUser(User user) {\n        if (user instanceof AdminUser admin) {\n            admin.accessAdminPanel();\n        } else if (user instanceof GuestUser guest) {\n            guest.browseCatalog();\n        } else if (user instanceof RegisteredUser registered) {\n            registered.viewProfile();\n        }\n    }\n\n    public static void main(String[] args) {\n        UserService service = new UserService();\n        \n        service.handleUser(new AdminUser(&quot;Alice&quot;));\n        service.handleUser(new GuestUser());\n        service.handleUser(new RegisteredUser(&quot;Bob&quot;));\n    }\n}\n</code></pre>\n<h2>Output:</h2>\n<pre><code>Alice is accessing the admin panel.\nBrowsing as guest.\nViewing profile of Bob\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 3549814,
+        "reputation": 810,
+        "user_id": 2964951,
+        "user_type": "registered",
+        "profile_image": "https://graph.facebook.com/1215519097/picture?type=large",
+        "display_name": "JDTheOne",
+        "link": "https://stackoverflow.com/users/2964951/jdtheone"
+      },
+      "is_accepted": true,
+      "score": 62,
+      "last_activity_date": 1715049508,
+      "last_edit_date": 1715049508,
+      "creation_date": 1631860187,
+      "answer_id": 69218715,
+      "question_id": 69218585,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>You can follow <a href=\"https://www.baeldung.com/java-sealed-classes-interfaces\" rel=\"noreferrer\">this link</a> for examples.</p>\n<p>In short, sealed classes gives you the control of which models, classes etc. that can implement or extend that class/interface.</p>\n<p>Example from the link:</p>\n<pre><code>public sealed interface Service permits Car, Truck {\n\n    int getMaxServiceIntervalInMonths();\n\n    default int getMaxDistanceBetweenServicesInKilometers() {\n        return 100000;\n    }\n}\n</code></pre>\n<p>This interface only permits Car and Truck to implement it.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 5845962,
+        "reputation": 354,
+        "user_id": 5023024,
+        "user_type": "registered",
+        "accept_rate": 0,
+        "profile_image": "https://www.gravatar.com/avatar/09f64f8c64fa5c5c199fb8a995a5cbac?s=256&d=identicon&r=PG",
+        "display_name": "Atul Rai",
+        "link": "https://stackoverflow.com/users/5023024/atul-rai"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1707408230,
+      "creation_date": 1707408230,
+      "answer_id": 77963102,
+      "question_id": 69218585,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Sealed classes are a new feature in Java that provide more control over class hierarchies and help enforce stronger encapsulation. By declaring a class as sealed, developers can specify which classes are allowed to extend it. This effectively restricts the subclasses to a predefined set, thereby preventing unauthorized extensions. Sealed classes are declared using the sealed modifier followed by the permitted subclasses within curly braces.</p>\n<p>Syntax</p>\n<pre><code>public sealed class MySealedClass permits Subclass1, Subclass2, Subclass3 {\n// Class members and methods\n}\n</code></pre>\n<blockquote>\n<p><strong>Note:</strong> Any attempt to create a subclass outside of this permitted set will result in a compilation error <code>java: invalid permits clause</code>.</p>\n</blockquote>\n<p><strong>Benefits of Sealed Classes</strong></p>\n<p>1.Enhanced Readability</p>\n<p>2.Stronger Encapsulation</p>\n<p>3.Improved Maintainability</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 8056033,
+        "reputation": 3375,
+        "user_id": 6073148,
+        "user_type": "registered",
+        "accept_rate": 75,
+        "profile_image": "https://i.sstatic.net/6LMP5.jpg?s=256",
+        "display_name": "Zahid Khan",
+        "link": "https://stackoverflow.com/users/6073148/zahid-khan"
+      },
+      "is_accepted": false,
+      "score": 2,
+      "last_activity_date": 1701066587,
+      "last_edit_date": 1701066587,
+      "creation_date": 1701016070,
+      "answer_id": 77552520,
+      "question_id": 69218585,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<h2>What Are Sealed Classes in Java?</h2>\n<p>The <code>final</code> modifier can be considered a strong form of sealing, where extension/implementation is prohibited <strong>completely</strong>.</p>\n<p>Conceptually: <code>final</code> = <code>sealed</code> + an empty <code>permits</code> clause.</p>\n<p>Unlike <code>final</code> which completely prohibits extension/implementation.\nA <code>Sealed</code> <code>class</code>/<code>interface</code> restrict which other classes or interfaces may extend or implement them.</p>\n<hr />\n<h2>History</h2>\n<ol>\n<li>Sealed Classes were proposed by JEP 360 and delivered in JDK 15 as a\npreview feature.</li>\n<li>They were proposed again, with refinements, by JEP 397 and delivered\nin JDK 16 as a preview feature.</li>\n<li>This JEP proposes to finalize Sealed\nClasses in JDK 17, with no changes from JDK 16.</li>\n</ol>\n<h2>Goals</h2>\n<ul>\n<li><p>Allow the author of a class or interface to control which code is\nresponsible for implementing it.</p>\n</li>\n<li><p>Provide a more declarative way than access modifiers to restrict the\nuse of a superclass.</p>\n</li>\n</ul>\n<h2>Description</h2>\n<ol>\n<li><p>A class/interface is sealed by applying the <code>sealed</code> modifier to its declaration.</p>\n</li>\n<li><p>Then, after any extends and implements clauses, the <code>permits</code> clause specifies the classes that are permitted to extend the sealed class.</p>\n<h4>Example</h4>\n<p>For example, the following declaration of <code>Loan</code> specifies permitted <code>UnsecuredLoan</code>, <code>SecuredLoan</code> subclasses:</p>\n<pre class=\"lang-java prettyprint-override\"><code>sealed interface Loan permits UnsecuredLoan,SecuredLoan{}\n\nfinal class UnsecuredLoan implements Loan {}\n\nrecord SecuredLoan() implements Loan{}\n</code></pre>\n</li>\n</ol>\n<h3>Benefits Of Sealed Class With Pattern Matching</h3>\n<p>Using Pattern Matching, instead of inspecting an instance of a sealed class with <em>if-else</em> chains, we can use a <code>switch</code> enhanced with type test patterns.</p>\n<p>This will allow the Java compiler to check all the permitted classes are covered for us.</p>\n<p>For example, consider this code:</p>\n<pre class=\"lang-java prettyprint-override\"><code>void checkLoanType(Loan loan) {\n    if (loan instanceof UnsecuredLoan unsecuredLoan) {\n//    something\n    } else if (loan instanceof SecuredLoan securedLoan) {\n//     something\n    }\n}\n</code></pre>\n<p><strong>The Java compiler cannot ensure that the instanceof tests cover all the permitted subclasses of Loan.</strong> Thus, no compile-time error message would be issued if any instanceof Loan was omitted.</p>\n<p>In contrast, using a pattern matching <code>switch</code> expression, the compiler can confirm that every permitted subclass of Loan is covered. <strong>The compiler will, moreover, issue an error message if any of the cases are missing</strong>:</p>\n<pre class=\"lang-java prettyprint-override\"><code>void checkLoanType(Loan loan) {\n     switch (loan) { \n       case SecuredLoan securedLoan -&gt; {} //generated by compiler.\n       case UnsecuredLoan unsecuredLoan -&gt; {} //generated by compiler.\n     }\n}\n</code></pre>\n<p>Reference:\n<a href=\"https://openjdk.org/jeps/360\" rel=\"nofollow noreferrer\">JEP 360: Sealed Classes</a></p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 322981,
+        "reputation": 346871,
+        "user_id": 642706,
+        "user_type": "registered",
+        "accept_rate": 58,
+        "profile_image": "https://i.sstatic.net/ZWEI3.jpg?s=256",
+        "display_name": "Basil Bourque",
+        "link": "https://stackoverflow.com/users/642706/basil-bourque"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1761775706,
+      "post_id": 69218585,
+      "comment_id": 140825935,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 6254221,
+        "reputation": 965,
+        "user_id": 4863347,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/fde8e1f639a8136f5d6e8b38939da08a?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Charlie Reitzel",
+        "link": "https://stackoverflow.com/users/4863347/charlie-reitzel"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1711639006,
+      "post_id": 69218585,
+      "comment_id": 137933648,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 2396133,
+        "reputation": 3222,
+        "user_id": 2638227,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/xi5la.png?s=256",
+        "display_name": "Mustafa &#214;z&#231;etin",
+        "link": "https://stackoverflow.com/users/2638227/mustafa-%c3%96z%c3%a7etin"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1704204047,
+      "post_id": 69218585,
+      "comment_id": 137063677,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 24885,
+        "reputation": 31351,
+        "user_id": 63550,
+        "user_type": "registered",
+        "accept_rate": 78,
+        "profile_image": "https://i.sstatic.net/RIZKi.png?s=256",
+        "display_name": "Peter Mortensen",
+        "link": "https://stackoverflow.com/users/63550/peter-mortensen"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1698262296,
+      "post_id": 69218585,
+      "comment_id": 136384472,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 1416522,
+        "reputation": 96391,
+        "user_id": 3553087,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/Q2cTS.gif?s=256",
+        "display_name": "Brian Goetz",
+        "link": "https://stackoverflow.com/users/3553087/brian-goetz"
+      },
+      "edited": false,
+      "score": 6,
+      "creation_date": 1631911068,
+      "post_id": 69218585,
+      "comment_id": 122360729,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 3040236,
+        "reputation": 101,
+        "user_id": 2577463,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/b7a32056bf8f5a1e86aac4b254d673e4?s=256&d=identicon&r=PG",
+        "display_name": "Doug Warren",
+        "link": "https://stackoverflow.com/users/2577463/doug-warren"
+      },
+      "edited": false,
+      "score": 3,
+      "creation_date": 1631892790,
+      "post_id": 69218585,
+      "comment_id": 122354884,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 1894950,
+        "reputation": 18654,
+        "user_id": 1712135,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/cErYR.png?s=256",
+        "display_name": "deHaar",
+        "link": "https://stackoverflow.com/users/1712135/dehaar"
+      },
+      "edited": false,
+      "score": 9,
+      "creation_date": 1631860282,
+      "post_id": 69218585,
+      "comment_id": 122341222,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "77742481": [
+      {
+        "owner": {
+          "account_id": 778256,
+          "reputation": 4970,
+          "user_id": 830988,
+          "user_type": "registered",
+          "accept_rate": 81,
+          "profile_image": "https://www.gravatar.com/avatar/ffe68fc6918cdde058a19cf275d8b603?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Eva",
+          "link": "https://stackoverflow.com/users/830988/eva"
+        },
+        "reply_to_user": {
+          "account_id": 2294271,
+          "reputation": 2013,
+          "user_id": 2016165,
+          "user_type": "registered",
+          "accept_rate": 45,
+          "profile_image": "https://www.gravatar.com/avatar/903c50cd9f03c52d8743d518020ae072?s=256&d=identicon&r=PG",
+          "display_name": "Neph",
+          "link": "https://stackoverflow.com/users/2016165/neph"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1762367798,
+        "post_id": 77742481,
+        "comment_id": 140838532,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 2294271,
+          "reputation": 2013,
+          "user_id": 2016165,
+          "user_type": "registered",
+          "accept_rate": 45,
+          "profile_image": "https://www.gravatar.com/avatar/903c50cd9f03c52d8743d518020ae072?s=256&d=identicon&r=PG",
+          "display_name": "Neph",
+          "link": "https://stackoverflow.com/users/2016165/neph"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1762344225,
+        "post_id": 77742481,
+        "comment_id": 140837691,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 778256,
+          "reputation": 4970,
+          "user_id": 830988,
+          "user_type": "registered",
+          "accept_rate": 81,
+          "profile_image": "https://www.gravatar.com/avatar/ffe68fc6918cdde058a19cf275d8b603?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Eva",
+          "link": "https://stackoverflow.com/users/830988/eva"
+        },
+        "reply_to_user": {
+          "account_id": 2179728,
+          "reputation": 81031,
+          "user_id": 10819573,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/MWKel.jpg?s=256",
+          "display_name": "Arvind Kumar Avinash",
+          "link": "https://stackoverflow.com/users/10819573/arvind-kumar-avinash"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1740394075,
+        "post_id": 77742481,
+        "comment_id": 140139817,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 2179728,
+          "reputation": 81031,
+          "user_id": 10819573,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/MWKel.jpg?s=256",
+          "display_name": "Arvind Kumar Avinash",
+          "link": "https://stackoverflow.com/users/10819573/arvind-kumar-avinash"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1740389702,
+        "post_id": 77742481,
+        "comment_id": 140139468,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 778256,
+          "reputation": 4970,
+          "user_id": 830988,
+          "user_type": "registered",
+          "accept_rate": 81,
+          "profile_image": "https://www.gravatar.com/avatar/ffe68fc6918cdde058a19cf275d8b603?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Eva",
+          "link": "https://stackoverflow.com/users/830988/eva"
+        },
+        "reply_to_user": {
+          "account_id": 2179728,
+          "reputation": 81031,
+          "user_id": 10819573,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/MWKel.jpg?s=256",
+          "display_name": "Arvind Kumar Avinash",
+          "link": "https://stackoverflow.com/users/10819573/arvind-kumar-avinash"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1740384654,
+        "post_id": 77742481,
+        "comment_id": 140139145,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 2179728,
+          "reputation": 81031,
+          "user_id": 10819573,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/MWKel.jpg?s=256",
+          "display_name": "Arvind Kumar Avinash",
+          "link": "https://stackoverflow.com/users/10819573/arvind-kumar-avinash"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1740154754,
+        "post_id": 77742481,
+        "comment_id": 140130640,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "79663142": [],
+    "69218715": [
+      {
+        "owner": {
+          "account_id": 1251686,
+          "reputation": 29444,
+          "user_id": 1531054,
+          "user_type": "registered",
+          "accept_rate": 95,
+          "profile_image": "https://i.sstatic.net/FpS9p.png?s=256",
+          "display_name": "s.d",
+          "link": "https://stackoverflow.com/users/1531054/s-d"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1705078555,
+        "post_id": 69218715,
+        "comment_id": 137169699,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 8532578,
+          "reputation": 49884,
+          "user_id": 6395627,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/af0f9bfe593f36642a032cd7ea611e7d?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Slaw",
+          "link": "https://stackoverflow.com/users/6395627/slaw"
+        },
+        "reply_to_user": {
+          "account_id": 300800,
+          "reputation": 11360,
+          "user_id": 608164,
+          "user_type": "registered",
+          "accept_rate": 62,
+          "profile_image": "https://www.gravatar.com/avatar/a242cd7866367e3df7a23e048ca1acfb?s=256&d=identicon&r=PG",
+          "display_name": "30thh",
+          "link": "https://stackoverflow.com/users/608164/30thh"
+        },
+        "edited": false,
+        "score": 3,
+        "creation_date": 1673594637,
+        "post_id": 69218715,
+        "comment_id": 132538505,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 8532578,
+          "reputation": 49884,
+          "user_id": 6395627,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/af0f9bfe593f36642a032cd7ea611e7d?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Slaw",
+          "link": "https://stackoverflow.com/users/6395627/slaw"
+        },
+        "reply_to_user": {
+          "account_id": 4463525,
+          "reputation": 486,
+          "user_id": 3631728,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/041b898f06296077fdf2b1f477b86fa6?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Calle Bergstr&#246;m",
+          "link": "https://stackoverflow.com/users/3631728/calle-bergstr%c3%b6m"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1673594139,
+        "post_id": 69218715,
+        "comment_id": 132538384,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 4463525,
+          "reputation": 486,
+          "user_id": 3631728,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/041b898f06296077fdf2b1f477b86fa6?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Calle Bergstr&#246;m",
+          "link": "https://stackoverflow.com/users/3631728/calle-bergstr%c3%b6m"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1670932359,
+        "post_id": 69218715,
+        "comment_id": 131982733,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1425678,
+          "reputation": 121,
+          "user_id": 1349263,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/45b9a4994f7644be8aabf0f31cada155?s=256&d=identicon&r=PG",
+          "display_name": "Yair Galler",
+          "link": "https://stackoverflow.com/users/1349263/yair-galler"
+        },
+        "reply_to_user": {
+          "account_id": 300800,
+          "reputation": 11360,
+          "user_id": 608164,
+          "user_type": "registered",
+          "accept_rate": 62,
+          "profile_image": "https://www.gravatar.com/avatar/a242cd7866367e3df7a23e048ca1acfb?s=256&d=identicon&r=PG",
+          "display_name": "30thh",
+          "link": "https://stackoverflow.com/users/608164/30thh"
+        },
+        "edited": false,
+        "score": 2,
+        "creation_date": 1658036560,
+        "post_id": 69218715,
+        "comment_id": 128948875,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 9162680,
+          "reputation": 3944,
+          "user_id": 6813506,
+          "user_type": "registered",
+          "accept_rate": 22,
+          "profile_image": "https://i.sstatic.net/5KpU0.png?s=256",
+          "display_name": "Rohit Gaikwad",
+          "link": "https://stackoverflow.com/users/6813506/rohit-gaikwad"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1635392238,
+        "post_id": 69218715,
+        "comment_id": 123287139,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 300800,
+          "reputation": 11360,
+          "user_id": 608164,
+          "user_type": "registered",
+          "accept_rate": 62,
+          "profile_image": "https://www.gravatar.com/avatar/a242cd7866367e3df7a23e048ca1acfb?s=256&d=identicon&r=PG",
+          "display_name": "30thh",
+          "link": "https://stackoverflow.com/users/608164/30thh"
+        },
+        "edited": false,
+        "score": 2,
+        "creation_date": 1632729418,
+        "post_id": 69218715,
+        "comment_id": 122561691,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 3549814,
+          "reputation": 810,
+          "user_id": 2964951,
+          "user_type": "registered",
+          "profile_image": "https://graph.facebook.com/1215519097/picture?type=large",
+          "display_name": "JDTheOne",
+          "link": "https://stackoverflow.com/users/2964951/jdtheone"
+        },
+        "reply_to_user": {
+          "account_id": 300800,
+          "reputation": 11360,
+          "user_id": 608164,
+          "user_type": "registered",
+          "accept_rate": 62,
+          "profile_image": "https://www.gravatar.com/avatar/a242cd7866367e3df7a23e048ca1acfb?s=256&d=identicon&r=PG",
+          "display_name": "30thh",
+          "link": "https://stackoverflow.com/users/608164/30thh"
+        },
+        "edited": false,
+        "score": 6,
+        "creation_date": 1632726314,
+        "post_id": 69218715,
+        "comment_id": 122560611,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 300800,
+          "reputation": 11360,
+          "user_id": 608164,
+          "user_type": "registered",
+          "accept_rate": 62,
+          "profile_image": "https://www.gravatar.com/avatar/a242cd7866367e3df7a23e048ca1acfb?s=256&d=identicon&r=PG",
+          "display_name": "30thh",
+          "link": "https://stackoverflow.com/users/608164/30thh"
+        },
+        "edited": false,
+        "score": 22,
+        "creation_date": 1632716571,
+        "post_id": 69218715,
+        "comment_id": 122558512,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "77963102": [],
+    "77552520": []
+  }
+}

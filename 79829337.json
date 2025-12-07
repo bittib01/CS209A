@@ -1,0 +1,56 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "dependency-injection"
+    ],
+    "owner": {
+      "account_id": 3313246,
+      "reputation": 27757,
+      "user_id": 2786156,
+      "user_type": "registered",
+      "accept_rate": 76,
+      "profile_image": "https://i.sstatic.net/fWMLm.jpg?s=256",
+      "display_name": "St.Antario",
+      "link": "https://stackoverflow.com/users/2786156/st-antario"
+    },
+    "is_answered": true,
+    "view_count": 37,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1764054620,
+    "creation_date": 1764050398,
+    "question_id": 79829337,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79829337/custom-annotation-for-performing-customized-injection-logic",
+    "title": "Custom annotation for performing customized injection logic",
+    "body": "<p>Spring 5.3</p>\n<p>Use case:</p>\n<p>I’ve got an annotation</p>\n<pre><code>public @interface MyInject {\n    String region();\n    String type();\n}\n</code></pre>\n<p>I want to use this annotation in a similar fashion to</p>\n<pre><code>@Resource(“beanName”)\n</code></pre>\n<p>but with runtime computed bean name to be injected. From googling and AI I found that there are multiple approaches for that:</p>\n<ul>\n<li><p><code>AutowiredAnnotationBeanPostProcessor</code></p>\n</li>\n<li><p><code>QualifierAnnotationAutowireCandidateResolver</code></p>\n</li>\n<li><p>Implementing a <code>BeanPostProcessor</code> from scratch that would do manual field set</p>\n</li>\n</ul>\n<p>The <code>AutowiredAnnotationBeanPostProcessor </code>approach looks quite verbose. It requires overriding <code>postProcessorProperties</code> and essentially performing the same manual <code>setField</code>.</p>\n<p>The <code>QualifierAnnotationAutowireCandidateResolver</code> approach  looks quite good and straightforward to implement, but the question is how to register the custom resolver w/o affecting the other parts of the code.</p>\n<p>The from scratch bean post processor approach does not look right to me since it might miss some subtle.</p>\n<p>Could you suggest in what is the best practice for such problems in spring?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 3192259,
+        "reputation": 126792,
+        "user_id": 2696260,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/qHEzx.png?s=256",
+        "display_name": "M. Deinum",
+        "link": "https://stackoverflow.com/users/2696260/m-deinum"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1764054620,
+      "last_edit_date": 1764054620,
+      "creation_date": 1764054077,
+      "answer_id": 79829374,
+      "question_id": 79829337,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>You will need to write your own if you want to use it for injection like <code>@Resource</code> / <code>@Autowired</code> (or as you already discovered extend the original ones). But that will lead probably to complexity in autowiring or at least configuring the <code>ApplicationContext</code> to start with.</p>\n<p>Instead I would suggest to ditch that approach and instead annotate your <code>@MyInject</code> with <code>@Qualifier</code> and make sure you can put it on types, methods and fields. That way you can mark your injection point (the field, constructor argument, method argument) with the annotation as well as your <code>@Component</code> class or <code>@Bean</code> method. The autowiring will then try to find the one to inject with the matching qualifying annotation (or the one marked <code>@Primary</code>).</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Target({ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.PARAMETER, ElementType.FIELD})\n@Retention(RetentionPolicy.RUNTIME)\n@Documented\n@Qualifier\npublic @interface MyInject {\n    String region();\n    String type();\n}\n</code></pre>\n<p>Then do this in the bean you need a specific one (if availabvle).</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Service\npublic class SomeService {\n\n  private final SomeDependency sd;\n\n  public SomeService(@MyInject(region=&quot;eu&quot;, type = &quot;main&quot;) SomeDependency sd) {\n    this.sd = sd;\n  }\n}\n</code></pre>\n<p>Now you can do something like this for a class implementing <code>SomeDependency</code> if it is an interface.</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Component\n@MyInject(region = &quot;eu&quot;, type = &quot;main&quot;)\npublic SomeDependencyImpl1 implements SomeDependency {\n}\n</code></pre>\n<p>or if it is a class with different configuration you can put it on an <code>@Bean</code> method.</p>\n<pre><code>@Bean\n@MyInject(region = &quot;eu&quot;, type = &quot;main&quot;)\npublic SomeDependency someDependencyEU() {\n  // create object here\n}\n\n@Bean\n@Primary\npublic SomeDependency someDependencyDefault() {\n// create some default instance here\n}\n</code></pre>\n<p>The default (the <code>@Primary</code> one) is used when no specific one can be found.</p>\n<p>The latter doesn't need any additional post processors etc. and will work out-of-the-box.</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79829374": []
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "mongodb",
+      "spring-boot"
+    ],
+    "owner": {
+      "account_id": 1159821,
+      "reputation": 1128,
+      "user_id": 1139581,
+      "user_type": "registered",
+      "accept_rate": 62,
+      "profile_image": "https://i.sstatic.net/E2PkS.jpg?s=256",
+      "display_name": "moretti.fabio",
+      "link": "https://stackoverflow.com/users/1139581/moretti-fabio"
+    },
+    "is_answered": true,
+    "view_count": 1341,
+    "accepted_answer_id": 72540627,
+    "answer_count": 2,
+    "score": 1,
+    "last_activity_date": 1764764909,
+    "creation_date": 1654637036,
+    "question_id": 72537715,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/72537715/spring-boot-and-mongodb-always-connect-to-database-test",
+    "title": "Spring boot and MongoDB: always connect to database &quot;test&quot;",
+    "body": "<p>I'm configuring mongoDB in my spring boot application like this:</p>\n<pre><code>@Configuration\n@SpringBootApplication\npublic class ConfigDbApp extends SpringBootServletInitializer {\n\n    @Value(&quot;${myapp.mongodb.uri}&quot;)\n    private String mongoDbUri;\n\n    [...]\n\n    @Bean\n    public MongoClient mongoClient() {\n        MongoClientSettings mongoClientSettings = MongoClientSettings.builder()\n            .applyConnectionString(new ConnectionString(mongoDbUri.trim()))\n            .build();\n        return MongoClients.create(mongoClientSettings);        \n    }\n\n    [...]\n    \n}\n</code></pre>\n<p>The database uri is:</p>\n<pre><code>myapp.mongodb.uri=mongodb://localhost:27017/myApp?sslInvalidHostNameAllowed=true&amp;streamType=netty&amp;ssl=false\n</code></pre>\n<p>The connection is fine but instead of connecting to &quot;myApp&quot; database it connect to &quot;test&quot; database (the default).\nIf I use the spring property:</p>\n<pre><code>spring.data.mongodb.uri=mongodb://localhost:27017/myApp?sslInvalidHostNameAllowed=true&amp;streamType=netty&amp;ssl=false\n</code></pre>\n<p>it works well, but I don't want to use it because I can have diferent apps in the same server reading the same configuration file.</p>\n<p>Any suggestion is appreciated, thanks.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 17470048,
+        "reputation": 1,
+        "user_id": 12666039,
+        "user_type": "registered",
+        "profile_image": "https://lh5.googleusercontent.com/-WgvZP0y8dnQ/AAAAAAAAAAI/AAAAAAAAAAA/ACHi3reQr_1r9o5_s8sVK_xn0QjaKehnwg/s256-rj/photo.jpg",
+        "display_name": "Napsta Kid",
+        "link": "https://stackoverflow.com/users/12666039/napsta-kid"
+      },
+      "is_accepted": false,
+      "score": -1,
+      "last_activity_date": 1764764909,
+      "last_edit_date": 1764764909,
+      "creation_date": 1764763299,
+      "answer_id": 79836845,
+      "question_id": 72537715,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p><strong>If you’re using Spring Boot 4.0.0 or above:</strong></p>\n<p>Instead of:</p>\n<pre><code>spring.data.mongodb.uri=mongodb://localhost:27017/loan\n</code></pre>\n<p>Use:</p>\n<pre><code>spring.mongodb.uri=mongodb://localhost:27017/loan\n</code></pre>\n<p><strong>If that doesn’t work, you can define your own <code>MongoTemplate</code> bean:</strong></p>\n<pre><code>@Configuration\npublic class MongoConfig {\n\n    @Bean\n    @Profile({&quot;dev&quot;, &quot;default&quot;})\n    public MongoTemplate mongoTemplateDev() {\n        return new MongoTemplate(mongoClient(), &quot;loan&quot;);\n    }\n\n    @Bean\n    @Profile(&quot;test&quot;)\n    public MongoTemplate mongoTemplateTest() {\n        return new MongoTemplate(mongoClient(), &quot;test&quot;);\n    }\n\n    @Bean\n    @Profile(&quot;prod&quot;)\n    public MongoTemplate mongoTemplateProd() {\n        return new MongoTemplate(mongoClient(), &quot;loan&quot;);\n    }\n\n    private MongoClient mongoClient() {\n        System.out.println(&quot;Connecting to MongoDB...&quot;);\n        return MongoClients.create(&quot;mongodb://localhost:27017&quot;);\n        }\n}\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79836845": [
+      {
+        "owner": {
+          "account_id": 1306358,
+          "reputation": 42517,
+          "user_id": 1255289,
+          "user_type": "registered",
+          "accept_rate": 89,
+          "profile_image": "https://www.gravatar.com/avatar/5ed02658b2440179f00eeff8beb7aa4c?s=256&d=identicon&r=PG",
+          "display_name": "miken32",
+          "link": "https://stackoverflow.com/users/1255289/miken32"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1764777123,
+        "post_id": 79836845,
+        "comment_id": 140885657,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": -1,
+          "reputation": 1,
+          "user_id": -1,
+          "user_type": "moderator",
+          "profile_image": "https://www.gravatar.com/avatar/a007be5a61f6aa8f3e85ae2fc18dd66e?s=256&d=identicon&r=PG",
+          "display_name": "Community",
+          "link": "https://stackoverflow.com/users/-1/community"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1764764525,
+        "post_id": 79836845,
+        "comment_id": 140885267,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

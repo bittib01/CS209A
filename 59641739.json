@@ -1,0 +1,362 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "maven",
+      "maven-release-plugin"
+    ],
+    "owner": {
+      "account_id": 888714,
+      "reputation": 36697,
+      "user_id": 927493,
+      "user_type": "registered",
+      "accept_rate": 61,
+      "profile_image": "https://i.sstatic.net/sxsnm.png?s=256",
+      "display_name": "JF Meier",
+      "link": "https://stackoverflow.com/users/927493/jf-meier"
+    },
+    "is_answered": true,
+    "view_count": 4294,
+    "accepted_answer_id": 67012045,
+    "answer_count": 1,
+    "score": 10,
+    "last_activity_date": 1764468759,
+    "creation_date": 1578470992,
+    "question_id": 59641739,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/59641739/maven-release-plugin-together-with-cifriendly-versions",
+    "title": "Maven Release Plugin together with cifriendly versions",
+    "body": "<p>I am just setting up a Maven multi-module project with <code>${revision}</code> as version as described in <a href=\"https://maven.apache.org/maven-ci-friendly.html\" rel=\"noreferrer\">https://maven.apache.org/maven-ci-friendly.html</a></p>\n\n<p>The property <code>${revision}</code> is set in the parent POM and used as version number throughout all modules. </p>\n\n<p>This works fine for SNAPSHOT builds, but when I run the Maven release plugin, the version gets replaced by something like <code>1.0.0</code> and then <code>1.0.1-SNAPSHOT</code>. So the cifriendly versions are gone after one release.</p>\n\n<p>Is there a way to configure the Maven release plugin in a way that cifriendly versions are not destroyed?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 127944,
+        "reputation": 14029,
+        "user_id": 325452,
+        "user_type": "registered",
+        "accept_rate": 71,
+        "profile_image": "https://www.gravatar.com/avatar/60ff43e8632a20984515ac2e2c8c2c24?s=256&d=identicon&r=PG",
+        "display_name": "ingyhere",
+        "link": "https://stackoverflow.com/users/325452/ingyhere"
+      },
+      "is_accepted": true,
+      "score": 18,
+      "last_activity_date": 1764468759,
+      "last_edit_date": 1764468759,
+      "creation_date": 1617916865,
+      "answer_id": 67012045,
+      "question_id": 59641739,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>The CI Friendly version scheme is intended to replace the <a href=\"https://maven.apache.org/maven-release/maven-release-plugin/\" rel=\"nofollow noreferrer\">Maven Release Plugin</a>, <em>not</em> complement it. In today's development world most teams are relying on CI servers for integration testing, performing automated tests and either releasing with continuous delivery or continuous deployment. <em>The concept of a <code>SNAPSHOT</code> is truly limited when everything is potentially a <code>SNAPSHOT</code>.</em></p>\n<p><a href=\"https://axelfontaine.com/blog/dead-burried.html\" rel=\"nofollow noreferrer\">Notably, the Release Plugin executes 4 to 5 times more processes than a properly implemented CI Friendly configuration.</a> Imagine a 50-minute build using the release plugin becoming a 15-minute build using the CI strategy. <a href=\"https://www.socallinuxexpo.org/scale/18x/_assets/www.socallinuxexpo.org/sites/default/files/presentations/SCaLE-18x-Maven_Renewed_u2.pdf\" rel=\"nofollow noreferrer\">Now that's modernization!</a></p>\n<p>The basic idea is that values used in versions will be collected from the <a href=\"https://en.wikipedia.org/wiki/Distributed_version_control\" rel=\"nofollow noreferrer\">DVCS</a> (<code>Git</code>, <code>SVN</code>, etc.) and the <a href=\"https://en.wikipedia.org/wiki/Continuous_integration\" rel=\"nofollow noreferrer\">CIS</a> (<code>Jenkins</code>, <code>Travis CI</code>, <code>GitLab</code>, etc.) at build time and used to modify or set the POM/release version. These values are things like the build number, the shortened Git hash or anything else.</p>\n<p><strong>Procedure to implement CI Friendly Maven builds:</strong></p>\n<ul>\n<li>Maven <a href=\"https://maven.apache.org/maven-ci-friendly.html\" rel=\"nofollow noreferrer\">supports only a handful of properties</a> in the <code>&lt;version&gt;</code> tag. These are <code>${revision}</code>, <code>${changelist}</code> and <code>${sha1}</code>.</li>\n<li>You can either use a hardcoded value and the acceptable properties or just something like <code>${revision}</code>. <strong>NOTE:</strong> I now recommend <code>${revision}</code>.</li>\n<li>In the <code>&lt;properties&gt;</code>, set values to acceptable defaults -- fake values that become clear they are from non-build machines, like <code>0</code> for the build number.</li>\n<li>In the <code>&lt;properties&gt;</code>, assemble the value for <code>&lt;revision&gt;</code>, e.g. the version, from other properties and hardcoded values. For instance, <code>&lt;revision&gt;1.0.0b${changelist}-${sha1}&lt;/revision&gt;</code>.</li>\n<li>At build time, use <code>-D</code> flags to set the actual values. For instance, the <code>${BUILD_NUMBER}</code> value is injected to every Jenkins build -- <code>-Dchangelist=${BUILD_NUMBER}</code>.</li>\n<li>You now have the flexibility to change the version number components.</li>\n</ul>\n<p>In the CI pipelines you can now detect the commit branch and perform releases from <code>master</code> by clearing all or some of these values. For instance, feature branches can calculate and add the Git hash. The semantic version is set above -- Developers now own and control it. They must know their code to make changes, and they have the freedom to increment the semantic version. It's a lot of valuable flexibility.</p>\n<p>The sound reasoning here, though, is to speed up things and get rid of a heavyweight process that really adds little to no relevant information that ties code to its precise origin. By using CI Friendly versions you will let deployers, testers and sysadmins see the compile number and code commit hash that allows the problem to be precisely correlated to an actual code release.</p>\n<p>It should be noted that this requires a bit of philosophical flexibility to accept a paradigm shift. Change is good, and ditching the release plugin will make your release pipelines better.</p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 888714,
+        "reputation": 36697,
+        "user_id": 927493,
+        "user_type": "registered",
+        "accept_rate": 61,
+        "profile_image": "https://i.sstatic.net/sxsnm.png?s=256",
+        "display_name": "JF Meier",
+        "link": "https://stackoverflow.com/users/927493/jf-meier"
+      },
+      "reply_to_user": {
+        "account_id": 127944,
+        "reputation": 14029,
+        "user_id": 325452,
+        "user_type": "registered",
+        "accept_rate": 71,
+        "profile_image": "https://www.gravatar.com/avatar/60ff43e8632a20984515ac2e2c8c2c24?s=256&d=identicon&r=PG",
+        "display_name": "ingyhere",
+        "link": "https://stackoverflow.com/users/325452/ingyhere"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1695285726,
+      "post_id": 59641739,
+      "comment_id": 136004895,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 127944,
+        "reputation": 14029,
+        "user_id": 325452,
+        "user_type": "registered",
+        "accept_rate": 71,
+        "profile_image": "https://www.gravatar.com/avatar/60ff43e8632a20984515ac2e2c8c2c24?s=256&d=identicon&r=PG",
+        "display_name": "ingyhere",
+        "link": "https://stackoverflow.com/users/325452/ingyhere"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1695252181,
+      "post_id": 59641739,
+      "comment_id": 136001132,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 888714,
+        "reputation": 36697,
+        "user_id": 927493,
+        "user_type": "registered",
+        "accept_rate": 61,
+        "profile_image": "https://i.sstatic.net/sxsnm.png?s=256",
+        "display_name": "JF Meier",
+        "link": "https://stackoverflow.com/users/927493/jf-meier"
+      },
+      "reply_to_user": {
+        "account_id": 127944,
+        "reputation": 14029,
+        "user_id": 325452,
+        "user_type": "registered",
+        "accept_rate": 71,
+        "profile_image": "https://www.gravatar.com/avatar/60ff43e8632a20984515ac2e2c8c2c24?s=256&d=identicon&r=PG",
+        "display_name": "ingyhere",
+        "link": "https://stackoverflow.com/users/325452/ingyhere"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1648143283,
+      "post_id": 59641739,
+      "comment_id": 126555998,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 127944,
+        "reputation": 14029,
+        "user_id": 325452,
+        "user_type": "registered",
+        "accept_rate": 71,
+        "profile_image": "https://www.gravatar.com/avatar/60ff43e8632a20984515ac2e2c8c2c24?s=256&d=identicon&r=PG",
+        "display_name": "ingyhere",
+        "link": "https://stackoverflow.com/users/325452/ingyhere"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1648136669,
+      "post_id": 59641739,
+      "comment_id": 126553220,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 888714,
+        "reputation": 36697,
+        "user_id": 927493,
+        "user_type": "registered",
+        "accept_rate": 61,
+        "profile_image": "https://i.sstatic.net/sxsnm.png?s=256",
+        "display_name": "JF Meier",
+        "link": "https://stackoverflow.com/users/927493/jf-meier"
+      },
+      "reply_to_user": {
+        "account_id": 112317,
+        "reputation": 98415,
+        "user_id": 296328,
+        "user_type": "registered",
+        "accept_rate": 60,
+        "profile_image": "https://i.sstatic.net/DSpH6.jpg?s=256",
+        "display_name": "khmarbaise",
+        "link": "https://stackoverflow.com/users/296328/khmarbaise"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1578560753,
+      "post_id": 59641739,
+      "comment_id": 105480565,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 888714,
+        "reputation": 36697,
+        "user_id": 927493,
+        "user_type": "registered",
+        "accept_rate": 61,
+        "profile_image": "https://i.sstatic.net/sxsnm.png?s=256",
+        "display_name": "JF Meier",
+        "link": "https://stackoverflow.com/users/927493/jf-meier"
+      },
+      "reply_to_user": {
+        "account_id": 112317,
+        "reputation": 98415,
+        "user_id": 296328,
+        "user_type": "registered",
+        "accept_rate": 60,
+        "profile_image": "https://i.sstatic.net/DSpH6.jpg?s=256",
+        "display_name": "khmarbaise",
+        "link": "https://stackoverflow.com/users/296328/khmarbaise"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1578514572,
+      "post_id": 59641739,
+      "comment_id": 105467700,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 112317,
+        "reputation": 98415,
+        "user_id": 296328,
+        "user_type": "registered",
+        "accept_rate": 60,
+        "profile_image": "https://i.sstatic.net/DSpH6.jpg?s=256",
+        "display_name": "khmarbaise",
+        "link": "https://stackoverflow.com/users/296328/khmarbaise"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1578514010,
+      "post_id": 59641739,
+      "comment_id": 105467468,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 888714,
+        "reputation": 36697,
+        "user_id": 927493,
+        "user_type": "registered",
+        "accept_rate": 61,
+        "profile_image": "https://i.sstatic.net/sxsnm.png?s=256",
+        "display_name": "JF Meier",
+        "link": "https://stackoverflow.com/users/927493/jf-meier"
+      },
+      "reply_to_user": {
+        "account_id": 112317,
+        "reputation": 98415,
+        "user_id": 296328,
+        "user_type": "registered",
+        "accept_rate": 60,
+        "profile_image": "https://i.sstatic.net/DSpH6.jpg?s=256",
+        "display_name": "khmarbaise",
+        "link": "https://stackoverflow.com/users/296328/khmarbaise"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1578511493,
+      "post_id": 59641739,
+      "comment_id": 105466427,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 888714,
+        "reputation": 36697,
+        "user_id": 927493,
+        "user_type": "registered",
+        "accept_rate": 61,
+        "profile_image": "https://i.sstatic.net/sxsnm.png?s=256",
+        "display_name": "JF Meier",
+        "link": "https://stackoverflow.com/users/927493/jf-meier"
+      },
+      "reply_to_user": {
+        "account_id": 112317,
+        "reputation": 98415,
+        "user_id": 296328,
+        "user_type": "registered",
+        "accept_rate": 60,
+        "profile_image": "https://i.sstatic.net/DSpH6.jpg?s=256",
+        "display_name": "khmarbaise",
+        "link": "https://stackoverflow.com/users/296328/khmarbaise"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1578511189,
+      "post_id": 59641739,
+      "comment_id": 105466314,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 112317,
+        "reputation": 98415,
+        "user_id": 296328,
+        "user_type": "registered",
+        "accept_rate": 60,
+        "profile_image": "https://i.sstatic.net/DSpH6.jpg?s=256",
+        "display_name": "khmarbaise",
+        "link": "https://stackoverflow.com/users/296328/khmarbaise"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1578509795,
+      "post_id": 59641739,
+      "comment_id": 105465729,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "67012045": [
+      {
+        "owner": {
+          "account_id": 127944,
+          "reputation": 14029,
+          "user_id": 325452,
+          "user_type": "registered",
+          "accept_rate": 71,
+          "profile_image": "https://www.gravatar.com/avatar/60ff43e8632a20984515ac2e2c8c2c24?s=256&d=identicon&r=PG",
+          "display_name": "ingyhere",
+          "link": "https://stackoverflow.com/users/325452/ingyhere"
+        },
+        "reply_to_user": {
+          "account_id": 13964222,
+          "reputation": 858,
+          "user_id": 10084505,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/7d1cf77a5c15cd178875d5220fec8157?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Walnussb&#228;r",
+          "link": "https://stackoverflow.com/users/10084505/walnussb%c3%a4r"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1735563221,
+        "post_id": 67012045,
+        "comment_id": 139868865,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 13964222,
+          "reputation": 858,
+          "user_id": 10084505,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/7d1cf77a5c15cd178875d5220fec8157?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Walnussb&#228;r",
+          "link": "https://stackoverflow.com/users/10084505/walnussb%c3%a4r"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1731426596,
+        "post_id": 67012045,
+        "comment_id": 139625681,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 127944,
+          "reputation": 14029,
+          "user_id": 325452,
+          "user_type": "registered",
+          "accept_rate": 71,
+          "profile_image": "https://www.gravatar.com/avatar/60ff43e8632a20984515ac2e2c8c2c24?s=256&d=identicon&r=PG",
+          "display_name": "ingyhere",
+          "link": "https://stackoverflow.com/users/325452/ingyhere"
+        },
+        "edited": false,
+        "score": 3,
+        "creation_date": 1630345547,
+        "post_id": 67012045,
+        "comment_id": 121926040,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

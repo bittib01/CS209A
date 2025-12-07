@@ -1,0 +1,173 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "exception",
+      "checked-exceptions"
+    ],
+    "owner": {
+      "account_id": 25591,
+      "reputation": 61636,
+      "user_id": 65868,
+      "user_type": "registered",
+      "accept_rate": 68,
+      "profile_image": "https://i.sstatic.net/1c5lJ.png?s=256",
+      "display_name": "TofuBeer",
+      "link": "https://stackoverflow.com/users/65868/tofubeer"
+    },
+    "is_answered": true,
+    "view_count": 89792,
+    "answer_count": 33,
+    "score": 542,
+    "last_activity_date": 1761129155,
+    "creation_date": 1236241134,
+    "last_edit_date": 1592759951,
+    "question_id": 613954,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/613954/the-case-against-checked-exceptions",
+    "title": "The case against checked exceptions",
+    "body": "<p>For a number of years now I have been unable to get a decent answer to the following question: why are some developers so against checked exceptions?  I have had numerous conversations, read things on blogs, read what Bruce Eckel had to say (the first person I saw speak out against them).</p>\n<p>I am currently writing some new code and paying very careful attention to how I deal with exceptions.  I am trying to see the point of view of the &quot;we don't like checked exceptions&quot; crowd and I still cannot see it.</p>\n<p>Every conversation I have ends with the same question going unanswered... let me set it up:</p>\n<p>In general (from how Java was designed),</p>\n<ul>\n<li><code>Error</code> is for things that should never be caught (VM has a peanut allergy and someone dropped a jar of peanuts on it)</li>\n<li><code>RuntimeException</code> is for things that the programmer did wrong (programmer walked off the end of an array)</li>\n<li><code>Exception</code> (except <code>RuntimeException</code>) is for things that are out of the programmer's control (disk fills up while writing to the file system, file handle limit for the process has been reached and you cannot open any more files)</li>\n<li><code>Throwable</code> is simply the parent of all of the exception types.</li>\n</ul>\n<p>A common argument I hear is that if an exception happens then all the developer is going to do is exit the program.</p>\n<p>Another common argument I hear is that checked exceptions make it harder to refactor code.</p>\n<p>For the &quot;all I am going to do is exit&quot; argument I say that even if you are exiting you need to display a reasonable error message.  If you are just punting on handling errors then your users won't be overly happy when the program exits without a clear indication of why.</p>\n<p>For the &quot;it makes it hard to refactor&quot; crowd, that indicates that the proper level of abstraction wasn't chosen.  Rather than declare a method throws an <code>IOException</code>, the <code>IOException</code> should be transformed into an exception that is more suited for what is going on.</p>\n<p>I don't have an issue with wrapping Main with <code>catch(Exception)</code> (or in some cases <code>catch(Throwable)</code> to ensure that the program can exit gracefully - but I always catch the specific exceptions I need to.  Doing that allows me to, at the very least, display an appropriate error message.</p>\n<p>The question that people never reply to is this:</p>\n<blockquote>\n<p>If you throw <code>RuntimeException</code>\nsubclasses instead of <code>Exception</code>\nsubclasses then how do you know what\nyou are supposed to catch?</p>\n</blockquote>\n<p>If the answer is catch <code>Exception</code> then you are also dealing with programmer errors the same way as system exceptions.  That seems wrong to me.</p>\n<p>If you catch <code>Throwable</code> then you are treating system exceptions and VM errors (and the like) the same way.  That seems wrong to me.</p>\n<p>If the answer is that you catch only the exceptions you know are thrown then how do you know what ones are thrown?  What happens when programmer X throws a new exception and forgot to catch it?  That seems very dangerous to me.</p>\n<p>I would say that a program that displays a stack trace is wrong.  Do people who don't like checked exceptions not feel that way?</p>\n<p>So, if you don't like checked exceptions can you explain why not AND answer the question that doesn't get answered please?</p>\n<p>I am not looking for advice on when to use either model, what I am looking for is <em>why</em> people extend from <code>RuntimeException</code> because they don't like extending from <code>Exception</code> and/or why they catch an exception and then rethrow a <code>RuntimeException</code> rather than add throws to their method.  I want to understand the motivation for disliking checked exceptions.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 367633,
+        "reputation": 6603,
+        "user_id": 713937,
+        "user_type": "registered",
+        "accept_rate": 84,
+        "profile_image": "https://www.gravatar.com/avatar/b41402ec931550d7a1c0f7eaa9aaa10b?s=256&d=identicon&r=PG",
+        "display_name": "Piotr Sobczyk",
+        "link": "https://stackoverflow.com/users/713937/piotr-sobczyk"
+      },
+      "is_accepted": false,
+      "score": 7,
+      "last_activity_date": 1761129155,
+      "last_edit_date": 1761129155,
+      "creation_date": 1325324905,
+      "answer_id": 8687448,
+      "question_id": 613954,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p><a href=\"https://web.archive.org/web/20120616021255/http://articles.vconst.com/2009/08/error-handling-and-exceptions-in-java.html\" rel=\"nofollow noreferrer\">This article</a> is the best piece of text on exception handling in Java I have ever read.</p>\n<p>It favours unchecked over checked exceptions but this choice is explained very thouroughly and based on strong arguments.</p>\n<p>I don't want to cite too much of the article content here (it's best to read it as a whole) but it covers most of arguments of unchecked exceptions advocates from this thread. Especially this argument (which seems to be quite popular) is covered:</p>\n<blockquote>\n<p>Take the case when the exception was thrown somewhere at the bottom of the API layers and just bubbled up because nobody knew it was even possible for this error to occur, this even though it was a type of error that was very plausible when the calling code threw it (FileNotFoundException for example as opposed to VogonsTrashingEarthExcept... in which case it would not matter if we handle it or not since there is nothing left to handle it with).</p>\n</blockquote>\n<p>The author &quot;responses&quot;:</p>\n<blockquote>\n<p>It is absolutely incorrect to assume that all runtime exceptions\nshould not be caught and allowed to propagate to the very &quot;top&quot; of the\napplication. (...) For every exceptional condition that is required to\nbe handled distinctly - by the system/business requirements -\nprogrammers must decide where to catch it and what to do once the\ncondition is caught. This must be done strictly according to the\nactual needs of the application, not based on a compiler alert. All\nother errors must be allowed to freely propagate to the topmost\nhandler where they would be logged and a graceful (perhaps,\ntermination) action will be taken.</p>\n</blockquote>\n<p>And the main thought or article is:</p>\n<blockquote>\n<p>When it comes to error handling in software, the only safe and correct assumption that may ever be made is that a failure may occur in absolutely every subroutine or module that exists!</p>\n</blockquote>\n<p>So if &quot;<em>nobody knew it was even possible for this error to occur</em>&quot; there is something wrong with that project. Such exception should be handled by at least the most generic exception handler (e.g. the one that handles all Exceptions not handled by more specific handlers) as author suggests.</p>\n<p>So sad not many poeple seems to discover this great article :-(. I recommend wholeheartly everyone who hesitates which approach is better to take some time and read it.</p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 442888,
+        "reputation": 314,
+        "user_id": 833771,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/ab563be7f06e99ff8b27ada5a3ada480?s=256&d=identicon&r=PG",
+        "display_name": "Pr0methean",
+        "link": "https://stackoverflow.com/users/833771/pr0methean"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1747283775,
+      "post_id": 613954,
+      "comment_id": 140427303,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 1251686,
+        "reputation": 29444,
+        "user_id": 1531054,
+        "user_type": "registered",
+        "accept_rate": 95,
+        "profile_image": "https://i.sstatic.net/FpS9p.png?s=256",
+        "display_name": "s.d",
+        "link": "https://stackoverflow.com/users/1531054/s-d"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1685722259,
+      "post_id": 613954,
+      "comment_id": 134705725,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 17056343,
+        "reputation": 1118,
+        "user_id": 12442137,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/UkRFT.png?s=256",
+        "display_name": "Captain Jack Sparrow",
+        "link": "https://stackoverflow.com/users/12442137/captain-jack-sparrow"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1646327065,
+      "post_id": 613954,
+      "comment_id": 126101240,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 5984980,
+        "reputation": 446,
+        "user_id": 4702788,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/5024855519cd2d8a2d61dbbedf42bb54?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Jorge Viana",
+        "link": "https://stackoverflow.com/users/4702788/jorge-viana"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1590244381,
+      "post_id": 613954,
+      "comment_id": 109610534,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 104440,
+        "reputation": 5659,
+        "user_id": 279236,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/0bb816508849359fa018cb8aace1e606?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "jwenting",
+        "link": "https://stackoverflow.com/users/279236/jwenting"
+      },
+      "reply_to_user": {
+        "account_id": 71739,
+        "reputation": 311873,
+        "user_id": 207421,
+        "user_type": "registered",
+        "accept_rate": 82,
+        "profile_image": "https://www.gravatar.com/avatar/5cfe5f7d64f44be04f147295f5c7b88e?s=256&d=identicon&r=PG",
+        "display_name": "user207421",
+        "link": "https://stackoverflow.com/users/207421/user207421"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1578481363,
+      "post_id": 613954,
+      "comment_id": 105449915,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 71739,
+        "reputation": 311873,
+        "user_id": 207421,
+        "user_type": "registered",
+        "accept_rate": 82,
+        "profile_image": "https://www.gravatar.com/avatar/5cfe5f7d64f44be04f147295f5c7b88e?s=256&d=identicon&r=PG",
+        "display_name": "user207421",
+        "link": "https://stackoverflow.com/users/207421/user207421"
+      },
+      "edited": false,
+      "score": 7,
+      "creation_date": 1555035367,
+      "post_id": 613954,
+      "comment_id": 97976963,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "8687448": []
+  }
+}

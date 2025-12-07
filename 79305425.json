@@ -1,0 +1,186 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "java-time"
+    ],
+    "owner": {
+      "account_id": 16773423,
+      "reputation": 749,
+      "user_id": 12125351,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/f47dff20003519ee81cd1a8b3bf28419?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "wannaBeDev",
+      "link": "https://stackoverflow.com/users/12125351/wannabedev"
+    },
+    "is_answered": true,
+    "view_count": 109,
+    "accepted_answer_id": 79305508,
+    "answer_count": 3,
+    "score": 3,
+    "last_activity_date": 1765013147,
+    "creation_date": 1735038747,
+    "question_id": 79305425,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79305425/add-a-fixed-amount-of-minutes-to-a-java-localtime-in-a-for-loop-until-midnight-w",
+    "title": "Add a fixed amount of minutes to a Java LocalTime in a for-loop until midnight without causing an infinite loop",
+    "body": "<p>Given a <code>LocalTime</code> add <code>n</code> minutes to it untill midnight and print those times to console. Example:</p>\n<pre><code>public static void main(String[] args) {\n\n    LocalTime start    = LocalTime.of(10, 12, 0);\n    LocalTime midnight = LocalTime.of(23, 59, 59);\n\n    for (LocalTime t = start; t.isBefore(midnight); t = t.plusMinutes(30)) {\n        System.out.println(t);\n    }\n}\n</code></pre>\n<p>Expected:</p>\n<pre><code>10:12\n10:42\n11:12\n11:42\n12:12\n...\n...\n21:42\n22:12\n22:42\n23:12\n23:42\n</code></pre>\n<p>The above results in an infinite loop. How to avoid it?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 7134495,
+        "reputation": 395,
+        "user_id": 5454656,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/DaOUXCh4.png?s=256",
+        "display_name": "June",
+        "link": "https://stackoverflow.com/users/5454656/june"
+      },
+      "is_accepted": false,
+      "score": 2,
+      "last_activity_date": 1765013147,
+      "last_edit_date": 1765013147,
+      "creation_date": 1735039572,
+      "answer_id": 79305455,
+      "question_id": 79305425,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>As the <code>LocalTime</code> documentation states, <em>&quot;<code>LocalTime</code> is an immutable date-time object that represents a time, often viewed as hour-minute-second.</em>&quot; <code>LocalTime</code> has no concept of a day, so 23:59:59 is the maximum value for <code>LocalTime</code>. The loop will only stop when, after several additions to start, it eventually becomes 23:59:59. Alternatively, you can use <code>LocalDateTime</code> to make it aware of the day.</p>\n<p>For example:</p>\n<pre class=\"lang-java prettyprint-override\"><code>LocalDateTime start = LocalDateTime.of(2024, 12, 24, 10, 12, 0);\nLocalDateTime midnight = LocalDateTime.of(2024, 12, 24, 23, 59, 59);\nfor (LocalDateTime t = start; t.isBefore(midnight); t = t.plusMinutes(30)) {\n    System.out.println(LocalTime.from(t));\n}\n</code></pre>\n<p>Above code will print what you want and stops normally:</p>\n<pre class=\"lang-none prettyprint-override\"><code>10:12\n10:42\n...\n23:12\n23:42\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 322981,
+        "reputation": 346871,
+        "user_id": 642706,
+        "user_type": "registered",
+        "accept_rate": 58,
+        "profile_image": "https://i.sstatic.net/ZWEI3.jpg?s=256",
+        "display_name": "Basil Bourque",
+        "link": "https://stackoverflow.com/users/642706/basil-bourque"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1764999009,
+      "last_edit_date": 1764999009,
+      "creation_date": 1764998691,
+      "answer_id": 79839504,
+      "question_id": 79305425,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<h2>Avoid “midnight” conceptually</h2>\n<blockquote>\n<p>LocalTime.of(23, 59, 59);</p>\n</blockquote>\n<p>Trying to represent a day in this manner leads to omitting that last full second of a day.</p>\n<p>A better approach in date-time handling is Half-Open. So a day begins with the first moment of the day, and runs up to, but does not include, the beginning of the <em>following</em> day.</p>\n<p>I recommend you abandon any notion of “midnight” in your date-time work. That concept is slippery, meaning different things to different people in different situations. Instead, focus on <em>first moment of the day</em>.</p>\n<h2><code>LocalDateTime</code></h2>\n<p>You may find working with 24-hour clock easier if you use dates along with the time-of-day.</p>\n<p>For such an approach, where you want to assume simplistic 24-hour clock, use <a href=\"https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/LocalDateTime.html\" rel=\"nofollow noreferrer\"><code>LocalDateTime</code></a> class. This class represents a date with time-of-day without regard for the context of a time zone or offset-from-UTC.</p>\n<p>Pick some date arbitrarily. I suggest the epoch reference date used by the <em>java.time</em> classes of first day of 1970. That date is conveniently stored as a constant, <a href=\"https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/LocalDate.html#EPOCH\" rel=\"nofollow noreferrer\"><code>LocalDate.EPOCH</code></a>. From that, <a href=\"https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/LocalDate.html#atStartOfDay()\" rel=\"nofollow noreferrer\">get the start of the day</a>.</p>\n<pre class=\"lang-java prettyprint-override\"><code>final LocalDateTime START = LocalDate.EPOCH.atStartOfDay() ;\n</code></pre>\n<p>Adjust to your desired start time.</p>\n<pre class=\"lang-java prettyprint-override\"><code>final LocalDateTime first = START.with( LocalTime.of( 10 , 12 ) ;  // Value drawn from the Question.\n</code></pre>\n<p>Add your duration of time until the date changes to the following day.</p>\n<pre class=\"lang-java prettyprint-override\"><code>…\nfinal Duration duration = Duration.ofMinutes( 30 ) ;\nList&lt; LocalTime &gt; times = new ArrayList() ;\nLocalDateTime dateTime = first ;\nwhile( dateTime.toLocalDate().equals( LocalDate.EPOCH ) )\n{\n    times.add( dateTime.toLocalTime() ) ;\n    dateTime = dateTime.plus( duration ) ;  // Set up the next loop. \n}  // Loop exits when we reach the next day.\nreturn list.copyOf( times ) ;  // Returning an unmodifiable collection is usually best. \n</code></pre>\n<h3>Caveat: Days are not always 24-hours long</h3>\n<p>Be aware that the discussion above is for generic 24-hour days. But in the real world, days are not always a simple 24 hours long. Because of anomalies such as Daylight Saving Time (DST), war, occupation, diplomacy, and other factors, a day may be 25 hours long, 23 hours long, or any number of hours and minutes.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 2053598,
+        "reputation": 44936,
+        "user_id": 1831987,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/38b1c37530189ec4471a43a618e33f67?s=256&d=identicon&r=PG",
+        "display_name": "VGR",
+        "link": "https://stackoverflow.com/users/1831987/vgr"
+      },
+      "is_accepted": true,
+      "score": 4,
+      "last_activity_date": 1735160439,
+      "last_edit_date": 1735160439,
+      "creation_date": 1735041092,
+      "answer_id": 79305508,
+      "question_id": 79305425,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>As you are observing, <code>t.isBefore(midnight)</code> will not suffice, because nearly every LocalTime value will satisfy that condition.</p>\n<p>What you really want is to determine whether adding 30 minutes will cause the time to be <em>less</em> than the current value of <code>t</code>:</p>\n<pre><code>for (LocalTime t = start; t.isBefore(t.plusMinutes(30)); t = t.plusMinutes(30)) {\n</code></pre>\n<p>That will stop the loop when adding 30 minutes to <code>t</code> results in a value which is less than <code>t</code> itself, which can only happen when the minutes addition wraps around at the end of a day.</p>\n<p>But it’s not perfect, because it won’t print the last value of the day.  You can do that with a second variable that tracks the previous time:</p>\n<pre><code>LocalTime previous = null;\nfor (LocalTime t = start;\n     previous == null || previous.isBefore(t);\n     previous = t, t = t.plusMinutes(30)) {\n\n    System.out.println(t);\n}\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 7612423,
+        "reputation": 87400,
+        "user_id": 5772882,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/8283c64511fa80afed5259d10850168f?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Anonymous",
+        "link": "https://stackoverflow.com/users/5772882/anonymous"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1735296370,
+      "post_id": 79305425,
+      "comment_id": 139857711,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 7612423,
+        "reputation": 87400,
+        "user_id": 5772882,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/8283c64511fa80afed5259d10850168f?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Anonymous",
+        "link": "https://stackoverflow.com/users/5772882/anonymous"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1735295281,
+      "post_id": 79305425,
+      "comment_id": 139857653,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 3159259,
+        "reputation": 111552,
+        "user_id": 2670892,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/4iPV5.png?s=256",
+        "display_name": "greg-449",
+        "link": "https://stackoverflow.com/users/2670892/greg-449"
+      },
+      "edited": false,
+      "score": 2,
+      "creation_date": 1735040405,
+      "post_id": 79305425,
+      "comment_id": 139847593,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79305455": [
+      {
+        "owner": {
+          "account_id": 7612423,
+          "reputation": 87400,
+          "user_id": 5772882,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/8283c64511fa80afed5259d10850168f?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Anonymous",
+          "link": "https://stackoverflow.com/users/5772882/anonymous"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1735295548,
+        "post_id": 79305455,
+        "comment_id": 139857668,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "79839504": [],
+    "79305508": [
+      {
+        "owner": {
+          "account_id": 16773423,
+          "reputation": 749,
+          "user_id": 12125351,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/f47dff20003519ee81cd1a8b3bf28419?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "wannaBeDev",
+          "link": "https://stackoverflow.com/users/12125351/wannabedev"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1735042242,
+        "post_id": 79305508,
+        "comment_id": 139847682,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

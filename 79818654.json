@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "fonts",
+      "pdf-generation",
+      "pdfbox"
+    ],
+    "owner": {
+      "account_id": 11146382,
+      "reputation": 380,
+      "user_id": 8180996,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/rqc5MYkZ.jpg?s=256",
+      "display_name": "Kiran Kandel",
+      "link": "https://stackoverflow.com/users/8180996/kiran-kandel"
+    },
+    "is_answered": true,
+    "view_count": 81,
+    "accepted_answer_id": 79819629,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1763091273,
+    "creation_date": 1763026221,
+    "last_edit_date": 1763028761,
+    "question_id": 79818654,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79818654/form-field-displays-gibberish-characters-when-using-subsetted-truetype-font",
+    "title": "Form field displays gibberish characters when using subsetted TrueType font",
+    "body": "<p>I'm using Apache PDFBox to create a PDF with form fields and embed a custom TrueType font (FreeSans.ttf) with subsetting enabled. However, when I set a value in the text field, it displays gibberish characters instead of the actual text.</p>\n<p>Versions : 2.x, 3.x</p>\n<p>Fonts: Any fonts loaded from external source except 14 Standard Fonts</p>\n<p>Reproducible Example:</p>\n<pre class=\"lang-java prettyprint-override\"><code>package org.example;\n\nimport org.apache.pdfbox.pdmodel.PDDocument;\nimport org.apache.pdfbox.pdmodel.PDPage;\nimport org.apache.pdfbox.pdmodel.PDResources;\nimport org.apache.pdfbox.pdmodel.common.PDRectangle;\nimport org.apache.pdfbox.pdmodel.font.PDType0Font;\nimport org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;\nimport org.apache.pdfbox.pdmodel.interactive.form.PDTextField;\n\nimport java.io.InputStream;\n\n\npublic class Main {\n\n    public static void main(String[] args) {\n        try (PDDocument document = new PDDocument()) {\n\n            PDPage page = new PDPage(PDRectangle.A4);\n            document.addPage(page);\n\n            PDAcroForm acroForm = new PDAcroForm(document);\n            document.getDocumentCatalog().setAcroForm(acroForm);\n\n            // Load external TrueType font with subsetting enabled\n            PDType0Font font;\n            try (InputStream fontStream = Main.class.getResourceAsStream(&quot;/FreeSans.ttf&quot;)) {\n                if (fontStream == null) {\n                    throw new RuntimeException(&quot;FreeSans.ttf not found in resources&quot;);\n                }\n                font = PDType0Font.load(document, fontStream, true);\n            }\n\n            // Add font to form resources\n            PDResources formResources = new PDResources();\n            String fontResourceName = formResources.add(font).getName();\n            acroForm.setDefaultResources(formResources);\n            acroForm.setDefaultAppearance(&quot;/&quot; + fontResourceName + &quot; 12 Tf 0 0 0 rg&quot;);\n\n            // Create text field with value\n            PDTextField textField = new PDTextField(acroForm);\n            textField.setPartialName(&quot;testField&quot;);\n            textField.setDefaultAppearance(&quot;/&quot; + fontResourceName + &quot; 12 Tf 0 0 0 rg&quot;);\n\n            // Set widget rectangle and add to page\n            textField.getWidgets().get(0).setRectangle(new PDRectangle(100, 700, 200, 20));\n            textField.getWidgets().get(0).setPage(page);\n            page.getAnnotations().add(textField.getWidgets().get(0));\n\n            acroForm.getFields().add(textField);\n\n            textField.setValue(&quot;Hello, this is a filled form field!&quot;);\n            \n            acroForm.setNeedAppearances(false);\n            acroForm.refreshAppearances();\n            \n            document.save(&quot;output.pdf&quot;);\n        } catch (Exception e) {\n            e.printStackTrace();\n        }\n    }\n}\n</code></pre>\n<p>Console Output:</p>\n<pre><code>WARNING: Using fallback font LiberationSans for CID-keyed TrueType font FreeSans\nWARNING: widget of field testField has no rectangle, no appearance stream created\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

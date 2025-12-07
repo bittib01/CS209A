@@ -1,0 +1,96 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "enums"
+    ],
+    "owner": {
+      "account_id": 46972,
+      "reputation": 360944,
+      "user_id": 139010,
+      "user_type": "registered",
+      "accept_rate": 81,
+      "profile_image": "https://www.gravatar.com/avatar/0df2f3c2d3b43605889eb90231fb6884?s=256&d=identicon&r=PG",
+      "display_name": "Matt Ball",
+      "link": "https://stackoverflow.com/users/139010/matt-ball"
+    },
+    "is_answered": true,
+    "view_count": 1149191,
+    "protected_date": 1346679891,
+    "accepted_answer_id": 1750453,
+    "answer_count": 15,
+    "score": 2226,
+    "last_activity_date": 1763406018,
+    "creation_date": 1258478787,
+    "last_edit_date": 1573316007,
+    "question_id": 1750435,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/1750435/comparing-java-enum-members-or-equals",
+    "title": "Comparing Java enum members: == or equals()?",
+    "body": "<p>I know that Java enums are compiled to classes with private constructors and a bunch of public static members. When comparing two members of a given enum, I've always used <code>.equals()</code>, e.g.</p>\n\n<pre><code>public useEnums(SomeEnum a)\n{\n    if(a.equals(SomeEnum.SOME_ENUM_VALUE))\n    {\n        ...\n    }\n    ...\n}\n</code></pre>\n\n<p>However, I just came across some code that uses the equals operator <code>==</code> instead of .equals():</p>\n\n<pre><code>public useEnums2(SomeEnum a)\n{\n    if(a == SomeEnum.SOME_ENUM_VALUE)\n    {\n        ...\n    }\n    ...\n}\n</code></pre>\n\n<p>Which operator is the one I should be using?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 322981,
+        "reputation": 346871,
+        "user_id": 642706,
+        "user_type": "registered",
+        "accept_rate": 58,
+        "profile_image": "https://i.sstatic.net/ZWEI3.jpg?s=256",
+        "display_name": "Basil Bourque",
+        "link": "https://stackoverflow.com/users/642706/basil-bourque"
+      },
+      "is_accepted": false,
+      "score": 26,
+      "last_activity_date": 1763406018,
+      "last_edit_date": 1763406018,
+      "creation_date": 1540782831,
+      "answer_id": 53038263,
+      "question_id": 1750435,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<h1>tl;dr</h1>\n<p>Another option is the <a href=\"https://docs.oracle.com/javase/10/docs/api/java/util/Objects.html#equals(java.lang.Object,java.lang.Object)\" rel=\"nofollow noreferrer\"><code>Objects.equals</code></a> utility method. No risk of <code>NullPointerException</code>.</p>\n<pre><code>Objects.equals( thisEnum , thatEnum )\n</code></pre>\n<h1><code>Objects.equals</code> for null-safety</h1>\n<blockquote>\n<p>equals operator == instead of .equals()</p>\n</blockquote>\n<blockquote>\n<p>Which operator is the one I should be using?</p>\n</blockquote>\n<p>A third option is the static <a href=\"https://docs.oracle.com/javase/10/docs/api/java/util/Objects.html#equals(java.lang.Object,java.lang.Object)\" rel=\"nofollow noreferrer\"><code>equals</code></a> method found on the <a href=\"https://docs.oracle.com/javase/10/docs/api/java/util/Objects.html\" rel=\"nofollow noreferrer\"><code>Objects</code></a> utility class <a href=\"https://www.javaworld.com/article/2074081/core-java/jdk-7--the-new-objects-class.html\" rel=\"nofollow noreferrer\">added to Java 7</a> and later.</p>\n<p>To quote the Javadoc:</p>\n<blockquote>\n<p>Returns <code>true</code> if the arguments are equal to each other and <code>false</code> otherwise. Consequently, if both arguments are <code>null</code>, <code>true</code> is returned and if exactly one argument is <code>null</code>, <code>false</code> is returned. Otherwise, equality is determined by using the <code>equals</code> method of the first argument.</p>\n</blockquote>\n<h2>Example</h2>\n<p>Here’s an example using the <a href=\"https://docs.oracle.com/javase/10/docs/api/java/time/Month.html\" rel=\"nofollow noreferrer\"><code>Month</code></a> enum.</p>\n<pre><code>boolean areEqual = Objects.equals( Month.FEBRUARY , Month.JUNE ) ;  // Returns `false`.\n</code></pre>\n<h2>Benefits</h2>\n<p>I find a couple benefits to this method:</p>\n<ul>\n<li><strong>Null-safety</strong>\n<ul>\n<li>Both null ➙ <code>true</code></li>\n<li>Either null ➙ <code>false</code></li>\n<li>No risk of throwing <a href=\"https://docs.oracle.com/javase/10/docs/api/java/lang/NullPointerException.html\" rel=\"nofollow noreferrer\"><code>NullPointerException</code></a></li>\n</ul>\n</li>\n<li><strong>Compact, readable</strong></li>\n</ul>\n<h2>How it works</h2>\n<p>What is the logic used by <a href=\"https://docs.oracle.com/javase/10/docs/api/java/util/Objects.html#equals(java.lang.Object,java.lang.Object)\" rel=\"nofollow noreferrer\"><code>Objects.equals</code></a>?</p>\n<p>See for yourself, from the <a href=\"http://hg.openjdk.java.net/jdk10/master/file/be620a591379/src/java.base/share/classes/java/util/Objects.java\" rel=\"nofollow noreferrer\">Java 10 source code</a> of <a href=\"https://en.wikipedia.org/wiki/OpenJDK\" rel=\"nofollow noreferrer\">OpenJDK</a>:</p>\n<pre><code>return \n    ( a == b ) \n    || \n    ( \n        a != null \n        &amp;&amp; \n        a.equals( b )\n    )\n;\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 6446680,
+        "reputation": 928,
+        "user_id": 4994985,
+        "user_type": "registered",
+        "accept_rate": 80,
+        "profile_image": "https://www.gravatar.com/avatar/8f18bbd7d7b691b74f641734974bf1db?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Maarten",
+        "link": "https://stackoverflow.com/users/4994985/maarten"
+      },
+      "edited": false,
+      "score": 4,
+      "creation_date": 1657098045,
+      "post_id": 1750435,
+      "comment_id": 128726216,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "53038263": [
+      {
+        "owner": {
+          "account_id": 11462792,
+          "reputation": 303,
+          "user_id": 8401926,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/AvM4G.png?s=256",
+          "display_name": "Roland",
+          "link": "https://stackoverflow.com/users/8401926/roland"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1668275151,
+        "post_id": 53038263,
+        "comment_id": 131367708,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

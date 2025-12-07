@@ -1,0 +1,338 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-mvc",
+      "jsp",
+      "hibernateexception"
+    ],
+    "owner": {
+      "account_id": 929110,
+      "reputation": 5563,
+      "user_id": 959321,
+      "user_type": "registered",
+      "accept_rate": 94,
+      "profile_image": "https://www.gravatar.com/avatar/e48dba67de9e1199f6d9e83797f46fda?s=256&d=identicon&r=PG",
+      "display_name": "Eugene",
+      "link": "https://stackoverflow.com/users/959321/eugene"
+    },
+    "is_answered": true,
+    "view_count": 839559,
+    "protected_date": 1533722815,
+    "accepted_answer_id": 11746720,
+    "answer_count": 34,
+    "score": 495,
+    "last_activity_date": 1707551262,
+    "creation_date": 1343758691,
+    "last_edit_date": 1704440843,
+    "question_id": 11746499,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/11746499/how-to-solve-the-failed-to-lazily-initialize-a-collection-of-role-hibernate-ex",
+    "title": "How to solve the “failed to lazily initialize a collection of role” Hibernate exception",
+    "body": "<p>This is the exception:</p>\n<blockquote>\n<p>org.hibernate.LazyInitializationException: failed to lazily initialize a collection of role: mvc3.model.Topic.comments, no session or session was closed</p>\n</blockquote>\n<p>Here is the model:</p>\n<pre><code>@Entity\n@Table(name = &quot;T_TOPIC&quot;)\npublic class Topic {\n\n    @Id\n    @GeneratedValue(strategy=GenerationType.AUTO)\n    private int id;\n\n    @ManyToOne\n    @JoinColumn(name=&quot;USER_ID&quot;)\n    private User author;\n\n    @Enumerated(EnumType.STRING)    \n    private Tag topicTag;\n\n    private String name;\n    private String text;\n\n    @OneToMany(mappedBy = &quot;topic&quot;, cascade = CascadeType.ALL)\n    private Collection&lt;Comment&gt; comments = new LinkedHashSet&lt;Comment&gt;();\n\n    ...\n\n    public Collection&lt;Comment&gt; getComments() {\n           return comments;\n    }\n\n}\n</code></pre>\n<p>The controller, which calls model looks like the following:</p>\n<pre><code>@Controller\n@RequestMapping(value = &quot;/topic&quot;)\npublic class TopicController {\n\n    @Autowired\n    private TopicService service;\n\n    private static final Logger logger = LoggerFactory.getLogger(TopicController.class);\n \n    @RequestMapping(value = &quot;/details/{topicId}&quot;, method = RequestMethod.GET)\n    public ModelAndView details(@PathVariable(value=&quot;topicId&quot;) int id) {\n    \n        Topic topicById = service.findTopicByID(id);\n        Collection&lt;Comment&gt; commentList = topicById.getComments();\n    \n        Hashtable modelData = new Hashtable();\n        modelData.put(&quot;topic&quot;, topicById);\n        modelData.put(&quot;commentList&quot;, commentList);\n    \n        return new ModelAndView(&quot;/topic/details&quot;, modelData);       \n     }\n}\n</code></pre>\n<p>The jsp-page looks li the following:</p>\n<pre><code>&lt;%@page import=&quot;com.epam.mvc3.helpers.Utils&quot;%&gt;\n&lt;%@ page language=&quot;java&quot; contentType=&quot;text/html; charset=UTF-8&quot; pageEncoding=&quot;UTF-8&quot;%&gt;\n&lt;%@ taglib uri=&quot;http://java.sun.com/jsp/jstl/core&quot; prefix=&quot;c&quot; %&gt;\n&lt;%@ page session=&quot;false&quot; %&gt;\n&lt;html&gt;\n    &lt;head&gt;\n        &lt;title&gt;View Topic&lt;/title&gt;\n    &lt;/head&gt;\n    &lt;body&gt;\n        &lt;ul&gt;\n            &lt;c:forEach items=&quot;${commentList}&quot; var=&quot;item&quot;&gt;\n                &lt;jsp:useBean id=&quot;item&quot; type=&quot;mvc3.model.Comment&quot;/&gt;\n                &lt;li&gt;${item.getText()}&lt;/li&gt;\n            &lt;/c:forEach&gt;\n        &lt;/ul&gt;\n    &lt;/body&gt;\n&lt;/html&gt;\n</code></pre>\n<p>The exception is raised when viewing the jsp. In the line with <em>c:forEach</em> loop</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 121925,
+        "reputation": 2427,
+        "user_id": 315385,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/OTbVL.jpg?s=256",
+        "display_name": "xilef",
+        "link": "https://stackoverflow.com/users/315385/xilef"
+      },
+      "is_accepted": false,
+      "score": 3,
+      "last_activity_date": 1707551262,
+      "creation_date": 1707551262,
+      "answer_id": 77972257,
+      "question_id": 11746499,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>I was getting this error in a spring boot integration test while trying to log the result of a JPA repository <code>findAll()</code>. Adding <code>@Transactional</code> to the test method fixed it.</p>\n<p><code>log.debug(&quot;entities {}&quot;, userRepository.findAll());</code></p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 9441688,
+        "reputation": 483,
+        "user_id": 7021926,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/9172ad96ae88d4a6f989751dcd283cae?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "RuiZhi Wang",
+        "link": "https://stackoverflow.com/users/7021926/ruizhi-wang"
+      },
+      "is_accepted": false,
+      "score": 45,
+      "last_activity_date": 1701422176,
+      "last_edit_date": 1701422176,
+      "creation_date": 1481713340,
+      "answer_id": 41140986,
+      "question_id": 11746499,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<pre><code>@Controller\n@RequestMapping(value = &quot;/topic&quot;)\n@Transactional\n</code></pre>\n<p>I solved this problem by adding <code>@Transactional</code>, I think this can open a session.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 1476033,
+        "reputation": 2531,
+        "user_id": 1386396,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/401403135cc2382f2f5ca0a5f34aec0b?s=256&d=identicon&r=PG",
+        "display_name": "Boris",
+        "link": "https://stackoverflow.com/users/1386396/boris"
+      },
+      "is_accepted": false,
+      "score": 224,
+      "last_activity_date": 1701270956,
+      "last_edit_date": 1701270956,
+      "creation_date": 1343805967,
+      "answer_id": 11754441,
+      "question_id": 11746499,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>From my experience, I have the following methods to solve the famous <code>LazyInitializationException</code>:</p>\n<p><strong>(1) Use Hibernate.initialize</strong></p>\n<pre><code>Hibernate.initialize(topics.getComments());\n</code></pre>\n<p><strong>(2) Use JOIN FETCH</strong></p>\n<p>You can use the <code>JOIN FETCH</code> syntax in your JPQL to explicitly fetch the child collection out. This is somehow like <code>EAGER</code> fetching.</p>\n<p><strong>(3) Use OpenSessionInViewFilter</strong></p>\n<p><code>LazyInitializationException</code> often occurs in the view layer. If you use Spring framework, you can use <code>OpenSessionInViewFilter</code>. However, I do not suggest you to do so. It may lead to performance issues if not used correctly.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 2759956,
+        "reputation": 6145,
+        "user_id": 2377044,
+        "user_type": "registered",
+        "accept_rate": 31,
+        "profile_image": "https://www.gravatar.com/avatar/7c220d9a4f38cc201c6b382e9c013f65?s=256&d=identicon&r=PG",
+        "display_name": "cnmuc",
+        "link": "https://stackoverflow.com/users/2377044/cnmuc"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1700738585,
+      "creation_date": 1700738585,
+      "answer_id": 77536471,
+      "question_id": 11746499,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>In my case the problem was passing a detached entity to a component (even annotated with @Transactional) within a test case. So after reloading the entity it worked:</p>\n<pre><code>@Entity\nclass Entity {\n   @ElementCollection\n   @BatchSize(size = 10)\n   private List&lt;String&gt; strings;\n}\n\n@Component\n@Transactional\nclass MyTestComponent {\n\n   public String method(Entity detachedEntity) {\n      // reloading the entity fixed it\n      Entity entity = entityRepository.findById(detachedEntity.getId());\n      // detachedEntity.getStrings(); caused the problem\n      entity.getStrings(); \n   }\n}\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 5588823,
+        "reputation": 1403,
+        "user_id": 4428658,
+        "user_type": "registered",
+        "accept_rate": 76,
+        "profile_image": "https://www.gravatar.com/avatar/1a3624806859c97e88476611de215c64?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "UncleBob",
+        "link": "https://stackoverflow.com/users/4428658/unclebob"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1761209336,
+      "post_id": 11746499,
+      "comment_id": 140812451,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "77972257": [],
+    "41140986": [
+      {
+        "owner": {
+          "account_id": 4034554,
+          "reputation": 3914,
+          "user_id": 4082254,
+          "user_type": "registered",
+          "accept_rate": 0,
+          "profile_image": "https://lh6.googleusercontent.com/-TN0K9Zwsjak/AAAAAAAAAAI/AAAAAAAAB2k/HDcOqSlXYRE/s256-rj/photo.jpg",
+          "display_name": "Alo",
+          "link": "https://stackoverflow.com/users/4082254/alo"
+        },
+        "reply_to_user": {
+          "account_id": 1313740,
+          "reputation": 2736,
+          "user_id": 1261162,
+          "user_type": "registered",
+          "accept_rate": 60,
+          "profile_image": "https://i.sstatic.net/1PwKU.jpg?s=256",
+          "display_name": "Rafael",
+          "link": "https://stackoverflow.com/users/1261162/rafael"
+        },
+        "edited": false,
+        "score": 3,
+        "creation_date": 1633581369,
+        "post_id": 41140986,
+        "comment_id": 122798872,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1313740,
+          "reputation": 2736,
+          "user_id": 1261162,
+          "user_type": "registered",
+          "accept_rate": 60,
+          "profile_image": "https://i.sstatic.net/1PwKU.jpg?s=256",
+          "display_name": "Rafael",
+          "link": "https://stackoverflow.com/users/1261162/rafael"
+        },
+        "reply_to_user": {
+          "account_id": 4034554,
+          "reputation": 3914,
+          "user_id": 4082254,
+          "user_type": "registered",
+          "accept_rate": 0,
+          "profile_image": "https://lh6.googleusercontent.com/-TN0K9Zwsjak/AAAAAAAAAAI/AAAAAAAAB2k/HDcOqSlXYRE/s256-rj/photo.jpg",
+          "display_name": "Alo",
+          "link": "https://stackoverflow.com/users/4082254/alo"
+        },
+        "edited": false,
+        "score": 2,
+        "creation_date": 1633545225,
+        "post_id": 41140986,
+        "comment_id": 122790891,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 4034554,
+          "reputation": 3914,
+          "user_id": 4082254,
+          "user_type": "registered",
+          "accept_rate": 0,
+          "profile_image": "https://lh6.googleusercontent.com/-TN0K9Zwsjak/AAAAAAAAAAI/AAAAAAAAB2k/HDcOqSlXYRE/s256-rj/photo.jpg",
+          "display_name": "Alo",
+          "link": "https://stackoverflow.com/users/4082254/alo"
+        },
+        "reply_to_user": {
+          "account_id": 1313740,
+          "reputation": 2736,
+          "user_id": 1261162,
+          "user_type": "registered",
+          "accept_rate": 60,
+          "profile_image": "https://i.sstatic.net/1PwKU.jpg?s=256",
+          "display_name": "Rafael",
+          "link": "https://stackoverflow.com/users/1261162/rafael"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1633542442,
+        "post_id": 41140986,
+        "comment_id": 122789845,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1313740,
+          "reputation": 2736,
+          "user_id": 1261162,
+          "user_type": "registered",
+          "accept_rate": 60,
+          "profile_image": "https://i.sstatic.net/1PwKU.jpg?s=256",
+          "display_name": "Rafael",
+          "link": "https://stackoverflow.com/users/1261162/rafael"
+        },
+        "reply_to_user": {
+          "account_id": 4034554,
+          "reputation": 3914,
+          "user_id": 4082254,
+          "user_type": "registered",
+          "accept_rate": 0,
+          "profile_image": "https://lh6.googleusercontent.com/-TN0K9Zwsjak/AAAAAAAAAAI/AAAAAAAAB2k/HDcOqSlXYRE/s256-rj/photo.jpg",
+          "display_name": "Alo",
+          "link": "https://stackoverflow.com/users/4082254/alo"
+        },
+        "edited": false,
+        "score": 3,
+        "creation_date": 1633515630,
+        "post_id": 41140986,
+        "comment_id": 122778215,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 4034554,
+          "reputation": 3914,
+          "user_id": 4082254,
+          "user_type": "registered",
+          "accept_rate": 0,
+          "profile_image": "https://lh6.googleusercontent.com/-TN0K9Zwsjak/AAAAAAAAAAI/AAAAAAAAB2k/HDcOqSlXYRE/s256-rj/photo.jpg",
+          "display_name": "Alo",
+          "link": "https://stackoverflow.com/users/4082254/alo"
+        },
+        "reply_to_user": {
+          "account_id": 1313740,
+          "reputation": 2736,
+          "user_id": 1261162,
+          "user_type": "registered",
+          "accept_rate": 60,
+          "profile_image": "https://i.sstatic.net/1PwKU.jpg?s=256",
+          "display_name": "Rafael",
+          "link": "https://stackoverflow.com/users/1261162/rafael"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1633151087,
+        "post_id": 41140986,
+        "comment_id": 122689491,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1313740,
+          "reputation": 2736,
+          "user_id": 1261162,
+          "user_type": "registered",
+          "accept_rate": 60,
+          "profile_image": "https://i.sstatic.net/1PwKU.jpg?s=256",
+          "display_name": "Rafael",
+          "link": "https://stackoverflow.com/users/1261162/rafael"
+        },
+        "reply_to_user": {
+          "account_id": 28700,
+          "reputation": 740,
+          "user_id": 76911,
+          "user_type": "registered",
+          "accept_rate": 57,
+          "profile_image": "https://www.gravatar.com/avatar/f4f61983fcfba581ac686d827a37d16c?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Amr Ellafy",
+          "link": "https://stackoverflow.com/users/76911/amr-ellafy"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1588880589,
+        "post_id": 41140986,
+        "comment_id": 109079092,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 28700,
+          "reputation": 740,
+          "user_id": 76911,
+          "user_type": "registered",
+          "accept_rate": 57,
+          "profile_image": "https://www.gravatar.com/avatar/f4f61983fcfba581ac686d827a37d16c?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Amr Ellafy",
+          "link": "https://stackoverflow.com/users/76911/amr-ellafy"
+        },
+        "reply_to_user": {
+          "account_id": 1313740,
+          "reputation": 2736,
+          "user_id": 1261162,
+          "user_type": "registered",
+          "accept_rate": 60,
+          "profile_image": "https://i.sstatic.net/1PwKU.jpg?s=256",
+          "display_name": "Rafael",
+          "link": "https://stackoverflow.com/users/1261162/rafael"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1588240713,
+        "post_id": 41140986,
+        "comment_id": 108825425,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "11754441": [],
+    "77536471": []
+  }
+}

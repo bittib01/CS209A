@@ -1,0 +1,123 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "maven",
+      "maven-3"
+    ],
+    "owner": {
+      "account_id": 1252925,
+      "reputation": 16725,
+      "user_id": 1212960,
+      "user_type": "registered",
+      "accept_rate": 93,
+      "profile_image": "https://i.sstatic.net/a7HwM.png?s=256",
+      "display_name": "Greg Kopff",
+      "link": "https://stackoverflow.com/users/1212960/greg-kopff"
+    },
+    "is_answered": true,
+    "view_count": 83074,
+    "accepted_answer_id": 14724000,
+    "answer_count": 2,
+    "score": 200,
+    "last_activity_date": 1764784215,
+    "creation_date": 1360131843,
+    "question_id": 14722873,
+    "content_license": "CC BY-SA 3.0",
+    "link": "https://stackoverflow.com/questions/14722873/sharing-src-test-classes-between-modules-in-a-multi-module-maven-project",
+    "title": "Sharing src/test classes between modules in a multi-module maven project",
+    "body": "<p>I have a multi-module Maven project.  For the sake of this example, consider two modules:</p>\n\n<ul>\n<li><code>data</code></li>\n<li><code>consumer</code></li>\n</ul>\n\n<p>Module <code>consumer</code> has module <code>data</code> as a dependency.</p>\n\n<p>Module <code>data</code> declares a bunch of core classes.  There are tests under <code>src/test</code> that use them.  These tests require some long-winded object creation, so I have a class with some utility methods in it to create these objects.  This utility class (<code>SampleDataHelper</code>) is in the <code>src/test</code> hierarchy.</p>\n\n<p>I also have some tests in the <code>consumer</code> module that need to create some of these long-winded objects.  I want to use my <code>SampleDataHelper</code> class (defined in <code>data src/test</code>) in tests that reside in my <code>consumer src/test</code> tree.  Unfortunately, even though <code>data</code> is a dependency of <code>consumer</code>, <code>consumer</code> can't see the classes that exist under <code>data src/test</code>.</p>\n\n<p>To combat this, I thought I might create <em>another</em> module (<code>data-test</code>), and move <code>SampleDataHelper</code> to it under <strong><code>src/main</code></strong>.  Then I would include <code>data-test</code> as a <em>test scope</em> dependency of <code>data</code>.  Unfortunately, this introduces a circular dependency: <code>data</code> uses <code>data-test</code>, but <code>data-test</code> also requires <code>data</code>. </p>\n\n<p>The only solution I've come up with is to place <code>SampleDataHelper</code> under <code>data src/main</code> under a <code>test</code> package and hope that no real application code ever calls it.</p>\n\n<p>How can I share my <code>SampleDataHelper</code> class between modules <em>without</em> putting it under <code>src/main</code>?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 218057,
+        "reputation": 69726,
+        "user_id": 474189,
+        "user_type": "registered",
+        "accept_rate": 72,
+        "profile_image": "https://www.gravatar.com/avatar/32b712ec4f7dcc2e8a6907b9903aa8ba?s=256&d=identicon&r=PG",
+        "display_name": "Duncan Jones",
+        "link": "https://stackoverflow.com/users/474189/duncan-jones"
+      },
+      "is_accepted": true,
+      "score": 254,
+      "last_activity_date": 1764784215,
+      "last_edit_date": 1764784215,
+      "creation_date": 1360136906,
+      "answer_id": 14724000,
+      "question_id": 14722873,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Your <code>consumer</code> project depends upon your <code>data</code> project, therefore <code>data</code> must be built prior to <code>consumer</code>. As a result, using the techniques suggested <a href=\"https://stackoverflow.com/questions/14722873/sharing-src-test-classes-between-modules-in-a-multi-module-maven-project#comment20596777_14722873\">in the comments</a>, ensure that your <code>data</code> project contains all the test code that you wish to share and configure the POM to produce a test <code>.jar</code>:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;plugin&gt;\n  &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;\n  &lt;artifactId&gt;maven-jar-plugin&lt;/artifactId&gt;\n  &lt;version&gt;2.2&lt;/version&gt;\n  &lt;executions&gt;\n    &lt;execution&gt;\n      &lt;goals&gt;\n        &lt;goal&gt;test-jar&lt;/goal&gt;\n      &lt;/goals&gt;\n    &lt;/execution&gt;\n  &lt;/executions&gt;\n&lt;/plugin&gt;\n</code></pre>\n<p>Your <code>consumer</code> project would then depend upon both the normal <code>data</code> <code>.jar</code> artifact, plus the additional <code>test-jar</code> artifact with test scope:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;dependency&gt;\n  &lt;groupId&gt;com.foo&lt;/groupId&gt;\n  &lt;artifactId&gt;data&lt;/artifactId&gt;\n  &lt;version&gt;1.0&lt;/version&gt;\n  &lt;type&gt;test-jar&lt;/type&gt;\n  &lt;scope&gt;test&lt;/scope&gt;\n&lt;/dependency&gt;\n</code></pre>\n<p>I've used this approach on many occasions and it works well.</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "14724000": [
+      {
+        "owner": {
+          "account_id": 3346139,
+          "reputation": 15579,
+          "user_id": 2811258,
+          "user_type": "registered",
+          "accept_rate": 88,
+          "profile_image": "https://i.sstatic.net/FpMa5.gif?s=256",
+          "display_name": "Johnny",
+          "link": "https://stackoverflow.com/users/2811258/johnny"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1440161855,
+        "post_id": 14724000,
+        "comment_id": 52171208,
+        "content_license": "CC BY-SA 3.0"
+      },
+      {
+        "owner": {
+          "account_id": 218057,
+          "reputation": 69726,
+          "user_id": 474189,
+          "user_type": "registered",
+          "accept_rate": 72,
+          "profile_image": "https://www.gravatar.com/avatar/32b712ec4f7dcc2e8a6907b9903aa8ba?s=256&d=identicon&r=PG",
+          "display_name": "Duncan Jones",
+          "link": "https://stackoverflow.com/users/474189/duncan-jones"
+        },
+        "reply_to_user": {
+          "account_id": 3346139,
+          "reputation": 15579,
+          "user_id": 2811258,
+          "user_type": "registered",
+          "accept_rate": 88,
+          "profile_image": "https://i.sstatic.net/FpMa5.gif?s=256",
+          "display_name": "Johnny",
+          "link": "https://stackoverflow.com/users/2811258/johnny"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1440157181,
+        "post_id": 14724000,
+        "comment_id": 52168295,
+        "content_license": "CC BY-SA 3.0"
+      },
+      {
+        "owner": {
+          "account_id": 3346139,
+          "reputation": 15579,
+          "user_id": 2811258,
+          "user_type": "registered",
+          "accept_rate": 88,
+          "profile_image": "https://i.sstatic.net/FpMa5.gif?s=256",
+          "display_name": "Johnny",
+          "link": "https://stackoverflow.com/users/2811258/johnny"
+        },
+        "edited": false,
+        "score": 2,
+        "creation_date": 1440076639,
+        "post_id": 14724000,
+        "comment_id": 52130995,
+        "content_license": "CC BY-SA 3.0"
+      }
+    ]
+  }
+}

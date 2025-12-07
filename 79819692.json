@@ -1,0 +1,136 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-spark",
+      "apache-spark-sql",
+      "bigdata",
+      "data-engineering"
+    ],
+    "owner": {
+      "account_id": 44673027,
+      "reputation": 1,
+      "user_id": 31875949,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/5b99f36517d45b9ee785aedbae674d4f?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Parth Sarthi Roy",
+      "link": "https://stackoverflow.com/users/31875949/parth-sarthi-roy"
+    },
+    "is_answered": true,
+    "view_count": 87,
+    "answer_count": 5,
+    "score": 0,
+    "last_activity_date": 1763731341,
+    "creation_date": 1763100806,
+    "question_id": 79819692,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79819692/pushing-down-filters-in-rdbms-with-java-spark",
+    "title": "Pushing down filters in RDBMS with Java Spark",
+    "body": "<p>I have been working as a <strong>Data Engineer</strong> and got this issue.<br />\nI came across a use case where I have a view(lets name it as inputView) which is created by reading data from some source.<br />\nNow somewhere later in the pipeline I have to again read data from RDBMS ,create a view(transactions).<br />\nThen I am running a Spark SQL query to join transactions view with input View based on some column.</p>\n<p><strong>Problem:</strong><br />\nThe problem here is that only the data which is required from transactions should be loaded but whole data is getting read.</p>\n<p><strong>Proposed Solution(Not Sure it is safe)</strong><br />\nTo solve this issue we are planning to create temp table in db and store inputView in RDBMS then do a join at db level and get data.<br />\nBut the issue seems with this approach that<br />\n1. Temp data is available per session only. Spark executors will have their separate session while inserting inputView data in db. So how are they going to read data after join as spark write api will create session write data and then closes session. Even before the join query the data will be gone.<br />\n2. If I write each record one by one from driver using JDBC prepareStatements. Then for doing join and reading data I have to use the same connection to read data, I can't use spark read api to read it. So I read data by JDBC only, which will eventually load all the data in the driver, that can cause OOM.<br />\n3. Suppose multiple pipelines are running and mulitple pipelines try to insert their inputView data in some temp table. The database will be getting a lot of load, Won't it crash ?</p>\n<p>Any Suggestion/Solution is welcomed.</p>\n<p>Thanks in advance.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 320466,
+        "reputation": 9560,
+        "user_id": 638764,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/TMRYvmDJ.jpg?s=256",
+        "display_name": "mazaneicha",
+        "link": "https://stackoverflow.com/users/638764/mazaneicha"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1763731341,
+      "creation_date": 1763731341,
+      "answer_id": 79826540,
+      "question_id": 79819692,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Perhaps you can rewrite your JOIN as IN clause so that Spark able to push it down to the db? And if the IN list is too long for a single query, partition it into multiple sub-lists. Painful as it is, it may be a better option than creating a temp table in rdbms.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 44673027,
+        "reputation": 1,
+        "user_id": 31875949,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/5b99f36517d45b9ee785aedbae674d4f?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Parth Sarthi Roy",
+        "link": "https://stackoverflow.com/users/31875949/parth-sarthi-roy"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1763700929,
+      "creation_date": 1763700929,
+      "answer_id": 79826138,
+      "question_id": 79819692,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>I know Spark will do a lazy evaluation and will push down the filters to the data source while loading the data. But it only pushes down dynamic filters in case of HDFS. For RDBMS it needs to have pre defined filter conditions to push down filter.<br />\nWhich in my case will be dynamic as the filter is based on the input view. So spark is loading the complete data from transactions table and then doing a join with input view later to filter data.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 71739,
+        "reputation": 311873,
+        "user_id": 207421,
+        "user_type": "registered",
+        "accept_rate": 82,
+        "profile_image": "https://www.gravatar.com/avatar/5cfe5f7d64f44be04f147295f5c7b88e?s=256&d=identicon&r=PG",
+        "display_name": "user207421",
+        "link": "https://stackoverflow.com/users/207421/user207421"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1763534646,
+      "last_edit_date": 1763534646,
+      "creation_date": 1763274054,
+      "answer_id": 79821311,
+      "question_id": 79819692,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>'Spark will load all the data from transactions table to create view': no it won't. Creating the view just registers the SQL that defines it. No data is loaded at all. <em>When you SELECT</em> from that view, the data required to fill it is loaded, but that won't be the entirety of any table provided you have suitable indexes matching your WHERE and JOIN ... USING  or ON clauses. A Data Engineer should already know all this, and you should certainly not just engage in guesswork as to how it all works. In other words make sure you've got a problem before you try to solve it.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 44673027,
+        "reputation": 1,
+        "user_id": 31875949,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/5b99f36517d45b9ee785aedbae674d4f?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Parth Sarthi Roy",
+        "link": "https://stackoverflow.com/users/31875949/parth-sarthi-roy"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1763201965,
+      "creation_date": 1763201965,
+      "answer_id": 79820736,
+      "question_id": 79819692,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p><strong>My goal is to load transactions for only those customers which is present in Input View and do some processing on them later.</strong></p>\n<p>The current implementation is:</p>\n<p>1. Hdfs has data for <strong>customers</strong> with <strong>columns (cust_id, date, uuid)</strong><br />\nSo , first I read this data and create input view on this one.</p>\n<p>2. Now later in the pipeline I have create a view from <strong>transactions</strong> table of DB having schema<br />\n<strong>(transaction_id, customer_id, date, transaction_amt, tran_type, current_amt).</strong></p>\n<p>3. At this point I now have both views with me input and transactions view. Then i am running SPARK SQL on them as &quot;Select i.cust_id, t.transaction_id, t.transaction_amt, t.tran_type from transactions t join input i on i.cust_id=t.customer_id &amp;&amp; i.date= t.date&quot;</p>\n<p>Now what happens here is that Spark will load all the data from transactions table to create view which is not efficient.<br />\n<strong>I want to achieve some filter push down in RDBMS also like Spark does for Hdfs.</strong></p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79826540": [],
+    "79826138": [
+      {
+        "owner": {
+          "account_id": -1,
+          "reputation": 1,
+          "user_id": -1,
+          "user_type": "moderator",
+          "profile_image": "https://www.gravatar.com/avatar/a007be5a61f6aa8f3e85ae2fc18dd66e?s=256&d=identicon&r=PG",
+          "display_name": "Community",
+          "link": "https://stackoverflow.com/users/-1/community"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1763703066,
+        "post_id": 79826138,
+        "comment_id": 140865577,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "79821311": [],
+    "79820736": []
+  }
+}

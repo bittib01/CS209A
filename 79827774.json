@@ -1,0 +1,103 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "linux",
+      "windows",
+      "delete-file"
+    ],
+    "owner": {
+      "account_id": 3949403,
+      "reputation": 1203,
+      "user_id": 3260495,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/7a50dbacc6549ee2a3f0c7751122faf6?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Robert Hume",
+      "link": "https://stackoverflow.com/users/3260495/robert-hume"
+    },
+    "is_answered": true,
+    "view_count": 118,
+    "closed_date": 1763982369,
+    "accepted_answer_id": 79827788,
+    "answer_count": 1,
+    "score": 3,
+    "last_activity_date": 1763905500,
+    "creation_date": 1763887859,
+    "last_edit_date": 1763889153,
+    "question_id": 79827774,
+    "link": "https://stackoverflow.com/questions/79827774/inconsistent-behavior-of-delete-on-close-between-platforms",
+    "closed_reason": "Duplicate",
+    "title": "Inconsistent behavior of DELETE_ON_CLOSE between platforms",
+    "body": "<p>Let's run this straightforward piece of code:</p>\n<pre><code>import java.io.*;\nimport java.nio.file.*;\nimport java.util.Arrays;\n\npublic class Main {\n\n    public static void main(String[] args) throws IOException {\n        Path path = Files.createTempFile(null, null);\n        byte[] array = &quot;test&quot;.getBytes();\n        Files.write(path, array);\n        System.err.println(&quot;1 File.length = &quot; + path.toFile().length());\n        System.err.println(&quot;1 Files.size = &quot; + Files.size(path));\n        try (InputStream in = Files.newInputStream(path, StandardOpenOption.DELETE_ON_CLOSE)) {\n            System.err.println(&quot;2 File.length = &quot; + path.toFile().length());\n            System.err.println(&quot;2 Files.size = &quot; + Files.size(path));\n            byte[] buf = new byte[array.length];\n            in.read(buf, 0, array.length);\n            if (Arrays.equals(array, buf)) {\n                System.err.println(&quot;Read OK&quot;);\n            }\n        } finally {\n            if (Files.deleteIfExists(path)) {\n                System.err.println(&quot;Deleted&quot;);\n            }\n        }\n    }\n}\n\n</code></pre>\n<p>Output on Windows:</p>\n<pre><code>1 File.length = 4\n1 Files.size = 4\n2 File.length = 4\n2 Files.size = 4\nRead OK\n</code></pre>\n<p>Output on Linux:</p>\n<pre><code>1 File.length = 4\n1 Files.size = 4\n2 File.length = 0\nException in thread &quot;main&quot; java.nio.file.NoSuchFileException: /tmp/1848835007433869473.tmp\n    at sun.nio.fs.UnixException.translateToIOException(UnixException.java:86)\n    at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:102)\n    at sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:107)\n    at sun.nio.fs.UnixFileAttributeViews$Basic.readAttributes(UnixFileAttributeViews.java:55)\n    at sun.nio.fs.UnixFileSystemProvider.readAttributes(UnixFileSystemProvider.java:144)\n    at sun.nio.fs.LinuxFileSystemProvider.readAttributes(LinuxFileSystemProvider.java:99)\n    at java.nio.file.Files.readAttributes(Files.java:1737)\n    at java.nio.file.Files.size(Files.java:2332)\n    at Main.main(Main.java:15)\n</code></pre>\n<p>Tested with JDK 8, 17 and 25.</p>\n<p>Without <code>StandardOpenOption.DELETE_ON_CLOSE</code> the program works consistently on the two platforms producing the Windows output.</p>\n<p><a href=\"https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/StandardOpenOption.html#DELETE_ON_CLOSE\" rel=\"nofollow noreferrer\">Javadoc for DELETE_ON_CLOSE</a> starts by saying this:</p>\n<blockquote>\n<p>When this option is present then the implementation makes a <em>best effort</em> attempt to delete the file when closed by the appropriate <code>close</code> method.</p>\n</blockquote>\n<p>but, as you can see, no <code>close</code> method has been called at all.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 20183595,
+        "reputation": 175,
+        "user_id": 14803523,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/v8YCJiJo.jpg?s=256",
+        "display_name": "iso53",
+        "link": "https://stackoverflow.com/users/14803523/iso53"
+      },
+      "is_accepted": true,
+      "score": 5,
+      "last_activity_date": 1763905500,
+      "last_edit_date": 1763905500,
+      "creation_date": 1763890662,
+      "answer_id": 79827788,
+      "question_id": 79827774,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<h2>Short Answer</h2>\n<p>It's because <code>DELETE_ON_CLOSE</code> does not wait for your stream to finish reading before unlinking the file on Linux. It unlinks immediately on <code>open()</code> and only removes the directory entry, not the file data. But Windows does not allow deleting a file that is open by another process. So it waits for your stream to finish.</p>\n<h2>Understanding Linux File System</h2>\n<p>Let's first understand the Linux file system little bit. We need to know the difference between <code>File</code> and <code>Inode</code>. Well what the heck is <a href=\"https://en.wikipedia.org/wiki/Inode\" rel=\"nofollow noreferrer\">Inode</a>?</p>\n<p>On Linux (and all Unix-like systems), a file is made of two different things. The <code>inode</code> = the real file (data + metadata). Think of an <code>inode</code> as:</p>\n<ul>\n<li>the file’s content</li>\n<li>permissions</li>\n<li>owner etc.</li>\n</ul>\n<p>And <code>file</code> or a directory entry (a file name) on the other hand is a pointer to the inode. So the filename and the real file are different things. You can delete the filename while keeping the inode alive.</p>\n<h2>What Happens in Your Code</h2>\n<p>When you call <code>Files.newInputStream(path, DELETE_ON_CLOSE)</code> on a Linux system:</p>\n<ol>\n<li>Java calls <code>open()</code> method and opens the file</li>\n<li>Java tells the OS 'Delete this on close'</li>\n<li>Linux unlinks the path <strong>immediately</strong> (deleting the file name but keeping the inode alive) causing\n<ul>\n<li><code>path.toFile().length()</code> returns 0 because the file is unlinked</li>\n<li><code>Files.size(path)</code> throws <code>NoSuchFileException</code></li>\n</ul>\n</li>\n<li>The underlying file (<code>inode</code>) still exists and <code>in.read()</code> works normally.</li>\n<li>When the stream closes, Linux drops the <code>inode</code> and fully deletes the file.</li>\n</ol>\n<h2>So What to Do?</h2>\n<p>Just don't use <code>DELETE_ON_CLOSE</code>. Use try/catch to manage your resources. And delete the file if it still exists at the end like this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>try (InputStream in = Files.newInputStream(path)) {\n    ...\n}\nFiles.deleteIfExists(path);\n</code></pre>\n<p>Keep in mind that your code is still perfectly executable. Just don't try to access anything but the stream (<code>in.read()</code>) after opening the file with <code>DELETE_ON_CLOSE</code>. If you want to get the file name or the file size get them before opening the file.</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79827788": [
+      {
+        "owner": {
+          "account_id": 20183595,
+          "reputation": 175,
+          "user_id": 14803523,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/v8YCJiJo.jpg?s=256",
+          "display_name": "iso53",
+          "link": "https://stackoverflow.com/users/14803523/iso53"
+        },
+        "reply_to_user": {
+          "account_id": 3949403,
+          "reputation": 1203,
+          "user_id": 3260495,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/7a50dbacc6549ee2a3f0c7751122faf6?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Robert Hume",
+          "link": "https://stackoverflow.com/users/3260495/robert-hume"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1763893653,
+        "post_id": 79827788,
+        "comment_id": 140868661,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 3949403,
+          "reputation": 1203,
+          "user_id": 3260495,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/7a50dbacc6549ee2a3f0c7751122faf6?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Robert Hume",
+          "link": "https://stackoverflow.com/users/3260495/robert-hume"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1763892161,
+        "post_id": 79827788,
+        "comment_id": 140868648,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

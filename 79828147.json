@@ -1,0 +1,120 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "json-ld",
+      "rdf4j"
+    ],
+    "owner": {
+      "account_id": 10568655,
+      "reputation": 455,
+      "user_id": 7786149,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/ca6ff7779fa37dd5f0077d413622ad91?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Joe",
+      "link": "https://stackoverflow.com/users/7786149/joe"
+    },
+    "is_answered": true,
+    "view_count": 95,
+    "accepted_answer_id": 79828580,
+    "answer_count": 2,
+    "score": 2,
+    "last_activity_date": 1764693181,
+    "creation_date": 1763936724,
+    "last_edit_date": 1763976886,
+    "question_id": 79828147,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79828147/how-to-write-rdf4j-model-to-a-string-while-preserving-the-original-structure",
+    "title": "How to write rdf4j Model to a string while preserving the original structure?",
+    "body": "<p>I have a plain java application that consumes a jsonld structured file, converts it to a Model class from rdf4j framework and then writes it as a string. The demo code is as so:</p>\n<pre><code>public static void main(String[] args) throws IOException {\n        InputStream dummyIS = Main.class.getResourceAsStream(&quot;/dummyJ.json&quot;);\n        Model output = Rio.parse(dummyIS, &quot;&quot;, RDFFormat.JSONLD);\n        \n        // logic to interact with output field\n\n        WriterConfig writerConfig = new WriterConfig();\n        writerConfig.set(JSONLDSettings.JSONLD_MODE, JSONLDMode.COMPACT);\n        StringWriter out = new StringWriter();\n        Rio.write(output, out, RDFFormat.JSONLD, writerConfig);\n        String finalOut = out.toString();\n\n         // saving string somewhere\n}\n</code></pre>\n<p>Now, I noticed that when I write Model to a string like demonstrated here, the structure of my file changes. If the starting json file looks as so:</p>\n<pre><code>{\n  &quot;@id&quot;: &quot;https://example.com/86b0db22-8478-4e5e-ac8b-456a07f7b203&quot;,\n  &quot;@graph&quot;: [\n    {\n      &quot;@id&quot;: &quot;https://example.com/123&quot;,\n      &quot;edm:dummy&quot;:[\n       {\n        &quot;@id&quot;: &quot;https://example.com/123#abc&quot;,\n        &quot;@field1&quot;: &quot;dummyData&quot;,\n        ...\n       }\n      ]\n    }\n  ],\n  &quot;@context&quot;:[...]\n}\n</code></pre>\n<p>Then when I write a file to a string as shown above, my file looks as so:</p>\n<pre><code>{\n  &quot;@graph&quot;:[\n   {\n    &quot;@id&quot;: &quot;_:genid-61d31e4b5a1a4ef397ec527041ed13d62-b0&quot;,\n    &quot;@graph&quot;: [\n      {\n        &quot;@id&quot;: &quot;https://example.com/123&quot;,\n        {\n          &quot;@id&quot;: &quot;https://example.com/123#abc&quot;,\n          &quot;@field1&quot;: &quot;dummyData&quot;,\n          ...\n        },\n        &quot;edm:dummy&quot;:[\n            &quot;@id&quot;: &quot;https://example.com/123#abc&quot;\n        ],\n        ...\n      }\n    ]\n   }\n  ],\n  &quot;@context&quot;:[...]\n}\n</code></pre>\n<p>As you can see, all my data except for <code>@context</code>, gets wrapped in additional <code>@graph</code> layer. The content of <code>edm:dummy</code> is stored outside of <code>edm:dummy</code> and <code>edm:dummy</code> now only contains <code>@id</code> fields. I also get random new fields such as <code>&quot;@id&quot;: &quot;_:genid-61d31e4b5a1a4ef397ec527041ed13d62-b0&quot;</code>.</p>\n<p>I don't want neither of those things happening. I want my output string to be in the same structure as it was at the start. Initially, I thought I made a mistake when manipulating my Model. However, even if I don't do any work with my Model and immediately convert Model back to string, I still see the same behaviour. Which makes me believe that I write my Model to a string incorrectly.</p>\n<p>My question is what am I doing wrong? How can I write a Model to a string such that I preserve the original structure without introducing extra fields &amp; wrapping my data into a <code>@graph</code> array?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 16188128,
+        "reputation": 23,
+        "user_id": 11687639,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/d948cba1d41a5dbbd2ff510772f2efb8?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Ted Carroll",
+        "link": "https://stackoverflow.com/users/11687639/ted-carroll"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1764693181,
+      "creation_date": 1764693181,
+      "answer_id": 79836104,
+      "question_id": 79828147,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Sounds good. Shame there is not framing for XML !  I also, do not know how many fields are in each document and what the fields are present,  so after editing using RDF4J, it is then possible to write out simple fields and collections as a hierachical XML document (without blank nodes),</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 10568655,
+        "reputation": 455,
+        "user_id": 7786149,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/ca6ff7779fa37dd5f0077d413622ad91?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Joe",
+        "link": "https://stackoverflow.com/users/7786149/joe"
+      },
+      "is_accepted": true,
+      "score": 2,
+      "last_activity_date": 1763984647,
+      "creation_date": 1763984647,
+      "answer_id": 79828580,
+      "question_id": 79828147,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>After further research, it seems in order to preserve initial structure I need to define a frame and use jsonld framing. I am not sure how it will work with rdf4j but it works with Jena, so I will end up switching to it.</p>\n<p>Here is a post that lead me to this conclusion that also showcases an example:<br />\n<a href=\"https://stackoverflow.com/questions/50588066/json-ld-blank-node-to-nested-object-in-apache-jena/50608262#50608262\">JSON-LD blank node to nested object in Apache Jena</a></p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79836104": [],
+    "79828580": [
+      {
+        "owner": {
+          "account_id": 10568655,
+          "reputation": 455,
+          "user_id": 7786149,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/ca6ff7779fa37dd5f0077d413622ad91?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Joe",
+          "link": "https://stackoverflow.com/users/7786149/joe"
+        },
+        "reply_to_user": {
+          "account_id": 16188128,
+          "reputation": 23,
+          "user_id": 11687639,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/d948cba1d41a5dbbd2ff510772f2efb8?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Ted Carroll",
+          "link": "https://stackoverflow.com/users/11687639/ted-carroll"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1764603613,
+        "post_id": 79828580,
+        "comment_id": 140881641,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 16188128,
+          "reputation": 23,
+          "user_id": 11687639,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/d948cba1d41a5dbbd2ff510772f2efb8?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Ted Carroll",
+          "link": "https://stackoverflow.com/users/11687639/ted-carroll"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1764576951,
+        "post_id": 79828580,
+        "comment_id": 140880978,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

@@ -1,0 +1,464 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "unit-testing",
+      "junit",
+      "mockito"
+    ],
+    "owner": {
+      "account_id": 444292,
+      "reputation": 1,
+      "user_id": 836018,
+      "user_type": "registered",
+      "accept_rate": 57,
+      "profile_image": "https://i.sstatic.net/JwOcN.png?s=256",
+      "display_name": "Jack",
+      "link": "https://stackoverflow.com/users/836018/jack"
+    },
+    "is_answered": false,
+    "view_count": 11274,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1764446580,
+    "creation_date": 1646919947,
+    "last_edit_date": 1647032135,
+    "question_id": 71425162,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/71425162/how-to-use-mockedstatic-verify-on-static-methods",
+    "title": "How to use MockedStatic verify on static methods?",
+    "body": "<p>I have the following mocks for 2 different static method; <code>UnitConversion.isCompatible()</code> and <code>Logging.error()</code> that are called in my service method.</p>\n<p>Here is my test method:</p>\n<pre><code>myService.demoMethod();\n\n\ntry (MockedStatic&lt;UnitConversion&gt; unitConversion= mockStatic(UnitConversion.class)) {\n    unitConversion.verify(never(), () -&gt; UnitConversion.isCompatible(any()));\n    UnitConversion.isUnitsCompatible(any());\n}\n\n\ntry (MockedStatic&lt;Logging&gt; logging = mockStatic(Logging.class)) {\n    logging.verify(times(1), () -&gt; Logging.error(any()));\n    Logging.error(any();\n}\n</code></pre>\n<p>The first method is never called while the second one is called one time when I debug. It is ok, but the test gives &quot;Wanted but not invoked&quot; error for the second method. I am not sure if I should call the static methods in try blocks, because I already call my service method that calls the static methods.</p>\n<p>So, how can I verify the static method calls using <code>MockedStatic</code> (not powermock, etc)? SHould I call them in try blocks?</p>\n<p><strong>Update:</strong> I use the following approach, but it still gives <em>&quot;Wanted but not invoked&quot;</em> error even if breakpoint hit once to the static method called from the service method.</p>\n<pre><code>// I also try to call the service method under the test here again\ndemoService.create(request);        \n\ntry (MockedStatic&lt;LoggingUtils&gt; mock = mockStatic(LoggingUtils.class)) {\n    // as the static method is void, no need to stub and not use &quot;when()&quot; in here\n\n    // I call the service method under the test\n    demoService.create(request);\n\n    // verify that the method is being invoked\n    mock.verify(times(1), () -&gt; LoggingUtils.error(any(), any()));\n}\n</code></pre>\n<p><strong>Update-II:</strong></p>\n<p><em><strong>demoService:</strong></em></p>\n<pre><code>public CommandDTO create(final PurchaseRequest request) {\n    // code omitted\n\n    addLog();\n    return CommandDTO.builder().uuid(purchase.getUuid()).build();\n}\n\nprivate void addLog() {\n    LoggingUtils.error(&quot;error&quot;, null);\n}\n</code></pre>\n<p><em><strong>LoggingUtils:</strong></em></p>\n<pre><code>public class LoggingUtils {\n\n    public static void error(String var1, Throwable var2) {\n        log.error(getString(var1), var2);\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 1713236,
+        "reputation": 26559,
+        "user_id": 1570854,
+        "user_type": "registered",
+        "accept_rate": 71,
+        "profile_image": "https://i.sstatic.net/ef6Ng.jpg?s=256",
+        "display_name": "Lesiak",
+        "link": "https://stackoverflow.com/users/1570854/lesiak"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1646994737,
+      "creation_date": 1646994737,
+      "answer_id": 71437168,
+      "question_id": 71425162,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>I can see a few issues in this snippet:</p>\n<pre class=\"lang-java prettyprint-override\"><code>try (MockedStatic&lt;UnitConversion&gt; unitConversionMockStatic = mockStatic(UnitConversion.class)) {\n    unitConversionMockStatic.verify(never(), () -&gt; UnitConversion.isCompatible(any()));\n    UnitConversion.isUnitsCompatible(any());\n}\n</code></pre>\n<ul>\n<li>you verify that the method is being called before calling it</li>\n<li>as you specified that you expect never(), this passes</li>\n<li>you call the method with the argument matcher. This is illegal - you need to call with normal parameter.</li>\n</ul>\n<p>Thus, the structure of the test should be</p>\n<pre class=\"lang-java prettyprint-override\"><code>try (MockedStatic&lt;UnitConversion&gt; unitConversionMockStatic = mockStatic(UnitConversion.class)) {\n    // if needed, stub the static method with when\n\n    // call the static method (probably indirectly, via service under thest)\n    UnitConversion.isUnitsCompatible(10);\n\n    // verify that the method is being invoked\n    unitConversionMockStatic.verify(times(1), () -&gt; UnitConversion.isCompatible(any()));\n}\n</code></pre>\n<p>Note the usage of try-with-resources, MockStatic is no longer in effect when it is closed (which happens when you exit from the try-with-resources block). Thus, you must invoke the method under test (which calls the static method) inside of the try-with-resources block.</p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 444292,
+        "reputation": 1,
+        "user_id": 836018,
+        "user_type": "registered",
+        "accept_rate": 57,
+        "profile_image": "https://i.sstatic.net/JwOcN.png?s=256",
+        "display_name": "Jack",
+        "link": "https://stackoverflow.com/users/836018/jack"
+      },
+      "reply_to_user": {
+        "account_id": 1713236,
+        "reputation": 26559,
+        "user_id": 1570854,
+        "user_type": "registered",
+        "accept_rate": 71,
+        "profile_image": "https://i.sstatic.net/ef6Ng.jpg?s=256",
+        "display_name": "Lesiak",
+        "link": "https://stackoverflow.com/users/1570854/lesiak"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1646978154,
+      "post_id": 71425162,
+      "comment_id": 126261622,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 1713236,
+        "reputation": 26559,
+        "user_id": 1570854,
+        "user_type": "registered",
+        "accept_rate": 71,
+        "profile_image": "https://i.sstatic.net/ef6Ng.jpg?s=256",
+        "display_name": "Lesiak",
+        "link": "https://stackoverflow.com/users/1570854/lesiak"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1646934751,
+      "post_id": 71425162,
+      "comment_id": 126252483,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "71437168": [
+      {
+        "owner": {
+          "account_id": 444292,
+          "reputation": 1,
+          "user_id": 836018,
+          "user_type": "registered",
+          "accept_rate": 57,
+          "profile_image": "https://i.sstatic.net/JwOcN.png?s=256",
+          "display_name": "Jack",
+          "link": "https://stackoverflow.com/users/836018/jack"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1647032092,
+        "post_id": 71437168,
+        "comment_id": 126279511,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1713236,
+          "reputation": 26559,
+          "user_id": 1570854,
+          "user_type": "registered",
+          "accept_rate": 71,
+          "profile_image": "https://i.sstatic.net/ef6Ng.jpg?s=256",
+          "display_name": "Lesiak",
+          "link": "https://stackoverflow.com/users/1570854/lesiak"
+        },
+        "reply_to_user": {
+          "account_id": 444292,
+          "reputation": 1,
+          "user_id": 836018,
+          "user_type": "registered",
+          "accept_rate": 57,
+          "profile_image": "https://i.sstatic.net/JwOcN.png?s=256",
+          "display_name": "Jack",
+          "link": "https://stackoverflow.com/users/836018/jack"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1647011757,
+        "post_id": 71437168,
+        "comment_id": 126272774,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 444292,
+          "reputation": 1,
+          "user_id": 836018,
+          "user_type": "registered",
+          "accept_rate": 57,
+          "profile_image": "https://i.sstatic.net/JwOcN.png?s=256",
+          "display_name": "Jack",
+          "link": "https://stackoverflow.com/users/836018/jack"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1647007261,
+        "post_id": 71437168,
+        "comment_id": 126270938,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1713236,
+          "reputation": 26559,
+          "user_id": 1570854,
+          "user_type": "registered",
+          "accept_rate": 71,
+          "profile_image": "https://i.sstatic.net/ef6Ng.jpg?s=256",
+          "display_name": "Lesiak",
+          "link": "https://stackoverflow.com/users/1570854/lesiak"
+        },
+        "reply_to_user": {
+          "account_id": 444292,
+          "reputation": 1,
+          "user_id": 836018,
+          "user_type": "registered",
+          "accept_rate": 57,
+          "profile_image": "https://i.sstatic.net/JwOcN.png?s=256",
+          "display_name": "Jack",
+          "link": "https://stackoverflow.com/users/836018/jack"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1647006262,
+        "post_id": 71437168,
+        "comment_id": 126270552,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 444292,
+          "reputation": 1,
+          "user_id": 836018,
+          "user_type": "registered",
+          "accept_rate": 57,
+          "profile_image": "https://i.sstatic.net/JwOcN.png?s=256",
+          "display_name": "Jack",
+          "link": "https://stackoverflow.com/users/836018/jack"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1647005669,
+        "post_id": 71437168,
+        "comment_id": 126270343,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 444292,
+          "reputation": 1,
+          "user_id": 836018,
+          "user_type": "registered",
+          "accept_rate": 57,
+          "profile_image": "https://i.sstatic.net/JwOcN.png?s=256",
+          "display_name": "Jack",
+          "link": "https://stackoverflow.com/users/836018/jack"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1647005407,
+        "post_id": 71437168,
+        "comment_id": 126270248,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1713236,
+          "reputation": 26559,
+          "user_id": 1570854,
+          "user_type": "registered",
+          "accept_rate": 71,
+          "profile_image": "https://i.sstatic.net/ef6Ng.jpg?s=256",
+          "display_name": "Lesiak",
+          "link": "https://stackoverflow.com/users/1570854/lesiak"
+        },
+        "reply_to_user": {
+          "account_id": 444292,
+          "reputation": 1,
+          "user_id": 836018,
+          "user_type": "registered",
+          "accept_rate": 57,
+          "profile_image": "https://i.sstatic.net/JwOcN.png?s=256",
+          "display_name": "Jack",
+          "link": "https://stackoverflow.com/users/836018/jack"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1647004749,
+        "post_id": 71437168,
+        "comment_id": 126270024,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 444292,
+          "reputation": 1,
+          "user_id": 836018,
+          "user_type": "registered",
+          "accept_rate": 57,
+          "profile_image": "https://i.sstatic.net/JwOcN.png?s=256",
+          "display_name": "Jack",
+          "link": "https://stackoverflow.com/users/836018/jack"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1647004480,
+        "post_id": 71437168,
+        "comment_id": 126269932,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1713236,
+          "reputation": 26559,
+          "user_id": 1570854,
+          "user_type": "registered",
+          "accept_rate": 71,
+          "profile_image": "https://i.sstatic.net/ef6Ng.jpg?s=256",
+          "display_name": "Lesiak",
+          "link": "https://stackoverflow.com/users/1570854/lesiak"
+        },
+        "reply_to_user": {
+          "account_id": 444292,
+          "reputation": 1,
+          "user_id": 836018,
+          "user_type": "registered",
+          "accept_rate": 57,
+          "profile_image": "https://i.sstatic.net/JwOcN.png?s=256",
+          "display_name": "Jack",
+          "link": "https://stackoverflow.com/users/836018/jack"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1647003751,
+        "post_id": 71437168,
+        "comment_id": 126269686,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 444292,
+          "reputation": 1,
+          "user_id": 836018,
+          "user_type": "registered",
+          "accept_rate": 57,
+          "profile_image": "https://i.sstatic.net/JwOcN.png?s=256",
+          "display_name": "Jack",
+          "link": "https://stackoverflow.com/users/836018/jack"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1647002463,
+        "post_id": 71437168,
+        "comment_id": 126269253,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1713236,
+          "reputation": 26559,
+          "user_id": 1570854,
+          "user_type": "registered",
+          "accept_rate": 71,
+          "profile_image": "https://i.sstatic.net/ef6Ng.jpg?s=256",
+          "display_name": "Lesiak",
+          "link": "https://stackoverflow.com/users/1570854/lesiak"
+        },
+        "reply_to_user": {
+          "account_id": 444292,
+          "reputation": 1,
+          "user_id": 836018,
+          "user_type": "registered",
+          "accept_rate": 57,
+          "profile_image": "https://i.sstatic.net/JwOcN.png?s=256",
+          "display_name": "Jack",
+          "link": "https://stackoverflow.com/users/836018/jack"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1647001798,
+        "post_id": 71437168,
+        "comment_id": 126269027,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 444292,
+          "reputation": 1,
+          "user_id": 836018,
+          "user_type": "registered",
+          "accept_rate": 57,
+          "profile_image": "https://i.sstatic.net/JwOcN.png?s=256",
+          "display_name": "Jack",
+          "link": "https://stackoverflow.com/users/836018/jack"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1647001308,
+        "post_id": 71437168,
+        "comment_id": 126268820,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1713236,
+          "reputation": 26559,
+          "user_id": 1570854,
+          "user_type": "registered",
+          "accept_rate": 71,
+          "profile_image": "https://i.sstatic.net/ef6Ng.jpg?s=256",
+          "display_name": "Lesiak",
+          "link": "https://stackoverflow.com/users/1570854/lesiak"
+        },
+        "reply_to_user": {
+          "account_id": 444292,
+          "reputation": 1,
+          "user_id": 836018,
+          "user_type": "registered",
+          "accept_rate": 57,
+          "profile_image": "https://i.sstatic.net/JwOcN.png?s=256",
+          "display_name": "Jack",
+          "link": "https://stackoverflow.com/users/836018/jack"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1646999738,
+        "post_id": 71437168,
+        "comment_id": 126268310,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 444292,
+          "reputation": 1,
+          "user_id": 836018,
+          "user_type": "registered",
+          "accept_rate": 57,
+          "profile_image": "https://i.sstatic.net/JwOcN.png?s=256",
+          "display_name": "Jack",
+          "link": "https://stackoverflow.com/users/836018/jack"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1646999637,
+        "post_id": 71437168,
+        "comment_id": 126268269,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1713236,
+          "reputation": 26559,
+          "user_id": 1570854,
+          "user_type": "registered",
+          "accept_rate": 71,
+          "profile_image": "https://i.sstatic.net/ef6Ng.jpg?s=256",
+          "display_name": "Lesiak",
+          "link": "https://stackoverflow.com/users/1570854/lesiak"
+        },
+        "reply_to_user": {
+          "account_id": 444292,
+          "reputation": 1,
+          "user_id": 836018,
+          "user_type": "registered",
+          "accept_rate": 57,
+          "profile_image": "https://i.sstatic.net/JwOcN.png?s=256",
+          "display_name": "Jack",
+          "link": "https://stackoverflow.com/users/836018/jack"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1646999597,
+        "post_id": 71437168,
+        "comment_id": 126268253,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 444292,
+          "reputation": 1,
+          "user_id": 836018,
+          "user_type": "registered",
+          "accept_rate": 57,
+          "profile_image": "https://i.sstatic.net/JwOcN.png?s=256",
+          "display_name": "Jack",
+          "link": "https://stackoverflow.com/users/836018/jack"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1646999516,
+        "post_id": 71437168,
+        "comment_id": 126268215,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

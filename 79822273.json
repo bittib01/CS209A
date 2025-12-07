@@ -1,0 +1,76 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "concurrency",
+      "race-condition",
+      "java.util.concurrent"
+    ],
+    "owner": {
+      "account_id": 21882864,
+      "reputation": 93,
+      "user_id": 16170862,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AATXAJwjXnDJbHnHX1Pc6dlGsUkm_XB3d6cwFRz5sY6i=k-s256",
+      "display_name": "Xin Zhang",
+      "link": "https://stackoverflow.com/users/16170862/xin-zhang"
+    },
+    "is_answered": true,
+    "view_count": 81,
+    "accepted_answer_id": 79822325,
+    "answer_count": 1,
+    "score": 3,
+    "last_activity_date": 1763384841,
+    "creation_date": 1763381070,
+    "question_id": 79822273,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79822273/is-it-possible-in-java-for-a-task-scheduled-with-scheduleatfixedrate-to-start-ex",
+    "title": "Is it possible in Java for a task scheduled with scheduleAtFixedRate to start executing before the returned ScheduledFuture has been assigned?",
+    "body": "<p>In Java, when using <code>scheduleAtFixedRate</code>, is it possible for a task to execute before the <code>ScheduledFuture</code> returned by <code>scheduleAtFixedRate</code> has been assigned?</p>\n<p>For example, could the following code throw an NullPointerException?</p>\n<pre><code>public class RaceCondition\n{\n    private ScheduledFuture&lt;?&gt; scheduledFuture;\n    private final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(10);\n\n    public void start()\n    {\n        scheduledFuture = scheduledExecutorService.scheduleAtFixedRate(this::doWork, 0, 1, TimeUnit.MILLISECONDS);\n    }\n\n    private void doWork()\n    {\n        scheduledFuture.cancel(false); // is it possible that scheduledFuture hasn't been assigned yet?\n    }\n\n    public void stop()\n    {\n        if (scheduledFuture != null) {\n            scheduledFuture.cancel(false);\n        }\n        scheduledExecutorService.shutdown();\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 6651855,
+        "reputation": 291985,
+        "user_id": 5133585,
+        "user_type": "registered",
+        "accept_rate": 96,
+        "profile_image": "https://i.sstatic.net/dfqcw.png?s=256",
+        "display_name": "Sweeper",
+        "link": "https://stackoverflow.com/users/5133585/sweeper"
+      },
+      "is_accepted": true,
+      "score": 5,
+      "last_activity_date": 1763384841,
+      "creation_date": 1763384841,
+      "answer_id": 79822325,
+      "question_id": 79822273,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p><a href=\"https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/util/concurrent/ExecutorService.html\" rel=\"noreferrer\">The docs</a> only guarantee the following regarding memory consistency,</p>\n<blockquote>\n<p>Memory consistency effects: Actions in a thread prior to the submission of a <code>Runnable</code> or <code>Callable</code> task to an <code>ExecutorService</code> happen-before any actions taken by that task, which in turn happen-before the result is retrieved via <code>Future.get()</code>.</p>\n</blockquote>\n<p>The assignment to <code>scheduledFuture</code> is not an action that is &quot;prior to the submission of a <code>Runnable</code> or <code>Callable</code> task to an <code>ExecutorService</code>&quot;. The assignment happens after the method has returned, by which time the task would have already been submitted.</p>\n<p>Therefore, there is no happens-before relationship between the write to <code>scheduledFuture</code> and the &quot;actions taken by that task&quot;, so it is possible for the code in <code>doWork</code> to not see the write.</p>\n<p>This can be verified by running <code>start</code> in an infinite loop,</p>\n<pre><code>public static void main(String[] args) throws InterruptedException {\n    while (true) {\n        new RaceCondition().start();\n    }\n}\n</code></pre>\n<p>with a slightly modified <code>doWork</code> to print something if a NPE is caught.</p>\n<pre><code>private void doWork()\n{\n    try {\n        scheduledFuture.cancel(false);\n    } catch (NullPointerException npe) {\n        System.out.println(&quot;NULL!&quot;);\n    }\n    stop(); // shutdown the executor so that we don't run out of threads\n}\n</code></pre>\n<p>On my machine &quot;NULL!&quot; gets printed quite often.</p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 6651855,
+        "reputation": 291985,
+        "user_id": 5133585,
+        "user_type": "registered",
+        "accept_rate": 96,
+        "profile_image": "https://i.sstatic.net/dfqcw.png?s=256",
+        "display_name": "Sweeper",
+        "link": "https://stackoverflow.com/users/5133585/sweeper"
+      },
+      "edited": false,
+      "score": 2,
+      "creation_date": 1763383589,
+      "post_id": 79822273,
+      "comment_id": 140858183,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79822325": []
+  }
+}

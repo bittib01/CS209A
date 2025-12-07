@@ -1,0 +1,1182 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "methods",
+      "parameter-passing",
+      "pass-by-reference",
+      "pass-by-value"
+    ],
+    "owner": {
+      "account_id": 3050,
+      "reputation": 4795,
+      "user_id": 4315,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/?s=256&d=identicon&r=PG",
+      "display_name": "user4315",
+      "link": "https://stackoverflow.com/users/4315/user4315"
+    },
+    "is_answered": true,
+    "view_count": 2825095,
+    "protected_date": 1308938923,
+    "answer_count": 87,
+    "community_owned_date": 1347646975,
+    "score": 7743,
+    "locked_date": 1701244089,
+    "last_activity_date": 1754960500,
+    "creation_date": 1220386469,
+    "last_edit_date": 1676406674,
+    "question_id": 40480,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/40480/is-java-pass-by-reference-or-pass-by-value",
+    "title": "Is Java &quot;pass-by-reference&quot; or &quot;pass-by-value&quot;?",
+    "body": "<p>I always thought Java uses <strong>pass-by-reference</strong>. However, I read <a href=\"http://javadude.com/articles/passbyvalue.htm\" rel=\"noreferrer\">a blog post</a> which claims that Java uses <strong>pass-by-value</strong>. I don't think I understand the distinction the author is making.</p>\n<p>What is the explanation?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 7257,
+        "reputation": 30740,
+        "user_id": 12541,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/Yk2vr.jpg?s=256",
+        "display_name": "Scott Stanchfield",
+        "link": "https://stackoverflow.com/users/12541/scott-stanchfield"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1347646975,
+      "score": 3627,
+      "last_activity_date": 1754960500,
+      "last_edit_date": 1754960500,
+      "creation_date": 1221575820,
+      "answer_id": 73021,
+      "question_id": 40480,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>I'm the author of the <a href=\"http://javadude.com/articles/passbyvalue.htm\" rel=\"noreferrer\">blog post</a> you're talking about. To clarify a few things:</p>\n<p>The Java Spec says that everything in Java is pass-by-value. There is no such thing as &quot;pass-by-reference&quot; in Java.</p>\n<p>The key to understanding this is that something like</p>\n<pre><code>Dog myDog;\n</code></pre>\n<p>is <em>not</em> a Dog; it's actually a <em>pointer</em> to a Dog. The use of the term &quot;reference&quot; in Java is very misleading and is what causes most of the confusion here. What they call &quot;references&quot; act/feel more like what we'd call &quot;pointers&quot; in most other languages.</p>\n<p>What that means, is when you have</p>\n<pre><code>Dog myDog = new Dog(&quot;Rover&quot;);\nfoo(myDog);\n</code></pre>\n<p>you're essentially passing the <em>address</em> of the created <code>Dog</code> object to the <code>foo</code> method.</p>\n<p>(I say essentially because Java pointers/references aren't direct addresses, but it's easiest to think of them that way.)</p>\n<p>Suppose the <code>Dog</code> object resides at memory address 42. This means we pass 42 to the method.</p>\n<p>if the Method were defined as</p>\n<pre><code>public void foo(Dog someDog) {\n    someDog.setName(&quot;Max&quot;);     // AAA\n    someDog = new Dog(&quot;Fifi&quot;);  // BBB\n    someDog.setName(&quot;Rowlf&quot;);   // CCC\n}\n</code></pre>\n<p>let's look at what's happening.</p>\n<ul>\n<li>the parameter <code>someDog</code> is set to the value 42</li>\n<li>at line &quot;AAA&quot;\n<ul>\n<li><code>someDog</code> is followed to the <code>Dog</code> it points to (the <code>Dog</code> object at address 42)</li>\n<li>that <code>Dog</code> (the one at address 42) is asked to change his name to Max</li>\n</ul>\n</li>\n<li>at line &quot;BBB&quot;\n<ul>\n<li>a new <code>Dog</code> is created. Let's say he's at address 74</li>\n<li>we assign the parameter <code>someDog</code> to 74</li>\n</ul>\n</li>\n<li>at line &quot;CCC&quot;\n<ul>\n<li>someDog is followed to the <code>Dog</code> it points to (the <code>Dog</code> object at address 74)</li>\n<li>that <code>Dog</code> (the one at address 74) is asked to change his name to Rowlf</li>\n</ul>\n</li>\n<li>then, we return</li>\n</ul>\n<p>Now let's think about what happens outside the method:</p>\n<p><em>Did <code>myDog</code> change?</em></p>\n<p>There's the key.</p>\n<p>Keeping in mind that <code>myDog</code> is a <em>pointer</em>, and not an actual <code>Dog</code>, the answer is NO. <code>myDog</code> still has the value 42; it's still pointing to the original <code>Dog</code> (but note that because of line &quot;AAA&quot;, its name is now &quot;Max&quot; - still the same Dog; <code>myDog</code>'s value has not changed.)</p>\n<p>It's perfectly valid to <em>follow</em> an address and change what's at the end of it; that does not change the variable, however.</p>\n<p>Java works exactly like C. You can assign a pointer, pass the pointer to a method, follow the pointer in the method and change the data that was pointed to. However, the caller will not see any changes you make to where that pointer points. (In a language with pass-by-reference semantics, the method function <em>can</em> change the pointer and the caller will see that change.)</p>\n<p>In C++, Ada, Pascal and other languages that support pass-by-reference, you can actually change the variable that was passed.</p>\n<p>If Java had pass-by-reference semantics, the <code>foo</code> method we defined above would have changed where <code>myDog</code> was pointing when it assigned <code>someDog</code> on line BBB.</p>\n<p>Think of reference parameters as being aliases for the variable passed in. When that alias is assigned, so is the variable that was passed in.</p>\n<p>A discussion in the comments warrants some clarification...</p>\n<p>In C, you can write</p>\n<pre class=\"lang-c prettyprint-override\"><code>void swap(int *x, int *y) {\n    int t = *x;\n    *x = *y;\n    *y = t;\n}\n\nint x = 1;\nint y = 2;\nswap(&amp;x, &amp;y);\n</code></pre>\n<p>This is not a special case in C. Both languages use pass-by-value semantics. Here the call site is creating additional data structure to assist the function to access and manipulate data.</p>\n<p>The function is being passed pointers to data, and follows those pointers to access and modify that data.</p>\n<p>A similar approach in Java, where the caller sets up assisting structure, might be:</p>\n<pre class=\"lang-java prettyprint-override\"><code>void swap(int[] x, int[] y) {\n    int temp = x[0];\n    x[0] = y[0];\n    y[0] = temp;\n}\n\nint[] x = {1};\nint[] y = {2};\nswap(x, y);\n</code></pre>\n<p>(or if you wanted both examples to demonstrate features the other language doesn't have, create a mutable IntWrapper class to use in place of the arrays)</p>\n<p>In these cases, both C and Java are <em>simulating</em> pass-by-reference. They're still both passing values (pointers to ints or arrays), and following those pointers inside the called function to manipulate the data.</p>\n<p>Pass-by-reference is all about the function <em>declaration/definition</em>, and how it handles its parameters. Reference semantics apply to <em>every</em> call to that function, and the call site only needs to pass variables, no additional data structure.</p>\n<p>These simulations require the call site and the function to cooperate. No doubt it's useful, but it's still pass-by-value.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 2207,
+        "reputation": 299,
+        "user_id": 3034,
+        "user_type": "registered",
+        "accept_rate": 75,
+        "profile_image": "https://www.gravatar.com/avatar/9f06bc2afaeed04467f4c1dc41ae7361?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "SWD",
+        "link": "https://stackoverflow.com/users/3034/swd"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1347646975,
+      "score": 41,
+      "last_activity_date": 1752005656,
+      "last_edit_date": 1752005656,
+      "creation_date": 1220885321,
+      "answer_id": 49857,
+      "question_id": 40480,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>I always think of it as &quot;pass by copy&quot;. It is a copy of the value, be it primitive or reference. If it is a primitive, it is a copy of the bits that are the value and if it is an Object it is a copy of the reference.</p>\n<pre><code>public class PassByCopy {\n    public static void changeName(Dog d) {\n        d.name = &quot;Fido&quot;;\n    }\n\n    public static void main(String[] args) {\n        Dog d = new Dog(&quot;Maxx&quot;);\n        System.out.println(&quot;name= &quot;+ d.name);\n        changeName(d);\n        System.out.println(&quot;name= &quot;+ d.name);\n    }\n}\n\nclass Dog {\n    public String name;\n    public Dog(String s) {\n        this.name = s;\n    }\n}\n</code></pre>\n<p>Output of the command line <code>java PassByCopy</code>:</p>\n<blockquote>\n<p>name= Maxx <br />\nname= Fido</p>\n</blockquote>\n<p>Primitive wrapper classes and Strings are immutable, so any example using those types will not work the same as other types/objects.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 20305,
+        "reputation": 4954,
+        "user_id": 48402,
+        "user_type": "registered",
+        "accept_rate": 70,
+        "profile_image": "https://www.gravatar.com/avatar/5c8f5e525d9fa687c10f3bc5ab4b42b5?s=256&d=identicon&r=PG",
+        "display_name": "kukudas",
+        "link": "https://stackoverflow.com/users/48402/kukudas"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1347646975,
+      "score": 64,
+      "last_activity_date": 1752005183,
+      "last_edit_date": 1752005183,
+      "creation_date": 1238621600,
+      "answer_id": 707416,
+      "question_id": 40480,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>As far as I know, Java only knows call by value. This means, for primitive data types, you will work with a copy, and for objects you will work with an copy of the reference to the objects. However, I think there are some pitfalls; for example, this will not work:</p>\n<pre><code>public static void swap(StringBuffer s1, StringBuffer s2) {\n    StringBuffer temp = s1;\n    s1 = s2;\n    s2 = temp;\n}\n\n\npublic static void main(String[] args) {\n    StringBuffer s1 = new StringBuffer(&quot;Hello,&quot;);\n    StringBuffer s2 = new StringBuffer(&quot;World!&quot;);\n    swap(s1, s2);\n    System.out.println(s1);\n    System.out.println(s2);\n}\n</code></pre>\n<p>This will populate &quot;Hello, World!&quot; and not &quot;World!&quot; &quot;Hello,&quot; because in the swap function you use copies which don't have any impact on the references in the main. But if your objects are not immutable, you can change it. For example:</p>\n<pre><code>public static void appendWorld(StringBuffer s1) {\n    s1.append(&quot; World!&quot;);\n}\n\npublic static void main(String[] args) {\n    StringBuffer s = new StringBuffer(&quot;Hello,&quot;);\n    appendWorld(s);\n    System.out.println(s);\n}\n</code></pre>\n<p>This will populate &quot;Hello, World!&quot; on the command line. If you change StringBuffer into String, it will produce just &quot;Hello, &quot; because String is immutable. For example:</p>\n<pre><code>public static void appendWorld(String s){\n    s = s+&quot; World!&quot;;\n}\n\npublic static void main(String[] args) {\n    String s = new String(&quot;Hello,&quot;);\n    appendWorld(s);\n    System.out.println(s);\n}\n</code></pre>\n<p>However, you could make a wrapper for String like this which would make it able to use it with Strings:</p>\n<pre><code>class StringWrapper {\n    public String value;\n\n    public StringWrapper(String value) {\n        this.value = value;\n    }\n}\n\npublic static void appendWorld(StringWrapper s){\n    s.value = s.value +&quot; World!&quot;;\n}\n\npublic static void main(String[] args) {\n    StringWrapper s = new StringWrapper(&quot;Hello,&quot;);\n    appendWorld(s);\n    System.out.println(s.value);\n}\n</code></pre>\n<p>I believe this is also the reason to use StringBuffer when it comes to &quot;adding&quot; two Strings, because you can modify the original object which you can't with immutable objects like String is.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 4844,
+        "reputation": 42949,
+        "user_id": 7488,
+        "user_type": "registered",
+        "accept_rate": 67,
+        "profile_image": "https://www.gravatar.com/avatar/fd633bcdc4aad15ea62e836d61f0dd8f?s=256&d=identicon&r=PG",
+        "display_name": "JacquesB",
+        "link": "https://stackoverflow.com/users/7488/jacquesb"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1347646975,
+      "score": 142,
+      "last_activity_date": 1751989281,
+      "last_edit_date": 1751989281,
+      "creation_date": 1231793425,
+      "answer_id": 436969,
+      "question_id": 40480,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>The crux of the matter is that the word <em>reference</em> in the expression &quot;pass by reference&quot; means something completely different from the usual meaning of the word <em>reference</em> in Java.</p>\n<p>Usually in Java, <em>reference</em> means a <em>reference to an object</em>. But the technical terms <em>pass by reference/value</em> from programming language theory is talking about a <em>reference to the memory cell holding the variable</em>, which is something completely different.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 22098,
+        "reputation": 1098,
+        "user_id": 54236,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/da4564c0cd535285f53473571cf285d9?s=256&d=identicon&r=PG",
+        "display_name": "Harald Schilly",
+        "link": "https://stackoverflow.com/users/54236/harald-schilly"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1347646975,
+      "score": 11,
+      "last_activity_date": 1751989246,
+      "last_edit_date": 1751989246,
+      "creation_date": 1231792442,
+      "answer_id": 436924,
+      "question_id": 40480,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>It's a bit hard to understand, but Java always copies the value. The point is, normally the value is a reference. Therefore you end up with the same object without thinking about it...</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 37,
+        "reputation": 18408,
+        "user_id": 46,
+        "user_type": "registered",
+        "accept_rate": 100,
+        "profile_image": "https://i.sstatic.net/U5kmD.jpg?s=256",
+        "display_name": "sven",
+        "link": "https://stackoverflow.com/users/46/sven"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1347646975,
+      "score": 31,
+      "last_activity_date": 1751989117,
+      "last_edit_date": 1751989117,
+      "creation_date": 1220885688,
+      "answer_id": 49863,
+      "question_id": 40480,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>I have created a question devoted to these kind of questions for <em>any</em> programming languages <a href=\"https://stackoverflow.com/questions/2027/pass-by-reference-or-pass-by-value\">here</a>.</p>\n<p><a href=\"https://stackoverflow.com/questions/2027/pass-by-reference-or-pass-by-value#2028\">Java is also mentioned</a>. Here is the short summary:</p>\n<ul>\n<li>Java passes it parameters by value</li>\n<li>&quot;by value&quot; is the only way in Java to pass a parameter to a method</li>\n<li>using methods from the object given as parameter will alter the\nobject as the references point to\nthe original objects (if that\nmethod itself alters some values).</li>\n</ul>\n"
+    },
+    {
+      "owner": {
+        "account_id": 237,
+        "reputation": 28856,
+        "user_id": 292,
+        "user_type": "registered",
+        "accept_rate": 68,
+        "profile_image": "https://www.gravatar.com/avatar/16db4bb794911afb2830e17e6c9d4702?s=256&d=identicon&r=PG",
+        "display_name": "shsteimer",
+        "link": "https://stackoverflow.com/users/292/shsteimer"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1347646975,
+      "score": 48,
+      "last_activity_date": 1751988744,
+      "last_edit_date": 1751988744,
+      "creation_date": 1220470923,
+      "answer_id": 42392,
+      "question_id": 40480,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>The distinction, or perhaps just the way I remember as I used to be under the same impression as the original poster is this: Java is always pass by value. All objects (in Java, anything except for primitives) in Java are references. These references are passed by value.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 9674049,
+        "reputation": 746,
+        "user_id": 7178104,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/e8cp7snv.jpg?s=256",
+        "display_name": "Raj Rusia",
+        "link": "https://stackoverflow.com/users/7178104/raj-rusia"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1504707202,
+      "score": 29,
+      "last_activity_date": 1751988573,
+      "last_edit_date": 1751988573,
+      "creation_date": 1504707202,
+      "answer_id": 46077533,
+      "question_id": 40480,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>One of the biggest confusions in the Java programming language is whether Java is <strong>pass by value</strong> or <strong>pass by reference</strong>.</p>\n<p>First of all, we should understand what is meant by pass by value or pass by reference.</p>\n<p><strong>Pass by value:</strong> The method parameter values are copied to another variable and then the copied object is passed. That’s why it’s called pass by value.</p>\n<p><strong>Pass by reference:</strong> An alias or reference to the actual parameter is passed to the method. That’s why it’s called pass by reference.</p>\n<p>Let’s say we have a class, Balloon, like below.</p>\n<pre><code>public class Balloon {\n\n    private String color;\n\n    public Balloon(){}\n\n    public Balloon(String c){\n        this.color=c;\n    }\n\n    public String getColor() {\n        return color;\n    }\n\n    public void setColor(String color) {\n        this.color = color;\n    }\n}\n</code></pre>\n<p>And we have a simple program with a generic method to swap two objects. The class looks like below.</p>\n<pre><code>public class Test {\n\n    public static void main(String[] args) {\n\n        Balloon red = new Balloon(&quot;Red&quot;); // Memory reference 50\n        Balloon blue = new Balloon(&quot;Blue&quot;); // Memory reference 100\n\n        swap(red, blue);\n        System.out.println(&quot;red color=&quot;+red.getColor());\n        System.out.println(&quot;blue color=&quot;+blue.getColor());\n\n        foo(blue);\n        System.out.println(&quot;blue color=&quot;+blue.getColor());\n\n    }\n\n    private static void foo(Balloon balloon) { // baloon=100\n        balloon.setColor(&quot;Red&quot;); // baloon=100\n        balloon = new Balloon(&quot;Green&quot;); // baloon=200\n        balloon.setColor(&quot;Blue&quot;); // baloon = 200\n    }\n\n    // Generic swap method\n    public static void swap(Object o1, Object o2){\n        Object temp = o1;\n        o1 = o2;\n        o2 = temp;\n    }\n}\n</code></pre>\n<p>When we execute the above program, we get following output.</p>\n<pre><code>red color=Red\nblue color=Blue\nblue color=Red\n</code></pre>\n<p>If you look at the first two lines of the output, it’s clear that swap method didn’t work. This is because Java is passed by value; this swap() method test can be used with any programming language to check whether it’s passed by value or passed by reference.</p>\n<p>Let’s analyze the program execution step by step.</p>\n<pre><code>Balloon red = new Balloon(&quot;Red&quot;);\nBalloon blue = new Balloon(&quot;Blue&quot;);\n</code></pre>\n<p>When we use the <code>new</code> operator to create an instance of a class, the instance is created and the variable contains the reference location of the memory where the object is saved. For our example, let’s assume that “red” is pointing to 50 and “blue” is pointing to 100, and these are the memory location of both <code>Balloon</code> objects.</p>\n<p>Now when we are calling the swap() method, two new variables <code>o1</code> and <code>o2</code> are created, pointing to 50 and 100, respectively.</p>\n<p>So the below code snippet explains what happened in the swap() method execution.</p>\n<pre><code>public static void swap(Object o1, Object o2){ // o1=50, o2=100\n    Object temp = o1; // temp=50, o1=50, o2=100\n    o1 = o2; // temp=50, o1=100, o2=100\n    o2 = temp; // temp=50, o1=100, o2=50\n} // Method terminated\n</code></pre>\n<p>Notice that we are changing the values of <code>o1</code> and <code>o2</code>, but they are copies of “red” and “blue” reference locations, so actually, there isn't any change in the values of “red” and “blue” and hence the output.</p>\n<p>If you have understood this far, you can easily understand the cause of the confusion. Since the variables are just the references to the objects, we get confused that we are passing the reference, so Java is passed by reference. However, we are passing a copy of the reference and hence it’s passed by value. I hope it clears all the questions now.</p>\n<p>Now let’s analyze the <strong>foo()</strong> method execution.</p>\n<pre><code>private static void foo(Balloon balloon) { // baloon=100\n    balloon.setColor(&quot;Red&quot;); // baloon=100\n    balloon = new Balloon(&quot;Green&quot;); // baloon=200\n    balloon.setColor(&quot;Blue&quot;); // baloon = 200\n}\n</code></pre>\n<p>The first line is the important one. When we call a method, the method is called on the Object at the reference location. At this point, the balloon is pointing to 100 and hence it’s color is changed to Red.</p>\n<p>In the next line, the balloon reference is changed to 200 and any further methods executed are happening on the object at memory location 200 and is not having any effect on the object at memory location 100. This explains the third line of our program output printing blue color=Red.</p>\n<p>I hope the above explanation clears all the questions. Just remember that variables are references or pointers and its copy is passed to the methods, so Java is always passed by value. It would be more clear when you will learn about heap and stack memory and where different objects and references are stored.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 12041169,
+        "reputation": 45,
+        "user_id": 8808036,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/JDdA8.jpg?s=256",
+        "display_name": "NAGHMAAN MOHASEEN",
+        "link": "https://stackoverflow.com/users/8808036/naghmaan-mohaseen"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1508656124,
+      "score": 19,
+      "last_activity_date": 1751987297,
+      "last_edit_date": 1751987297,
+      "creation_date": 1508656124,
+      "answer_id": 46871427,
+      "question_id": 40480,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<h3>Java is strictly passed by value</h3>\n<p>When I say <em><strong>pass by value</strong></em> it means whenever the caller has invoked the callee the arguments (i.e., the data to be passed to the other function) <strong>is copied</strong> and placed in the formal parameters (callee's local variables for receiving the input). Java makes data communications from one function to other function only in a pass by value environment.</p>\n<p>An important point would be to know that even C language is strictly passed by value only:\n<em>I.e.:</em>, data is copied from caller to the callee and moreover, the operations performed by the callee are on the same memory location and\nwhat we pass them is the address of that location that we obtain from (&amp;) operator and the identifier used in the formal parameters are declared to be a pointer variable (*) using which we can get inside the memory location for accessing the data in it.</p>\n<p>Hence, here the formal parameter is nothing but mere aliases for that location. And any modifications done on that location is visible where ever that scope of the variable (that identifies that location) is alive.</p>\n<p>In Java, there isn't any concept of pointers (<em>i.e.</em>, there isn't anything called a pointer variable), although we can think of a reference variable, as a pointer technically in Java we call it a handle. The reason why we call the pointer to an address as a handle in Java is  because a pointer variable is capable of performing not just single dereferencing, but multiple dereferencing.\nFor example: <code>int *p;</code> in P means p points to an integer\nand <code>int **p;</code> in C means p is pointer to a pointer to an integer.\nWe don’t have this facility in Java, so it’s absolutely correct and technically legitimate to say it as an handle. Also, there are rules for pointer arithmetic in C. Which allows performing arithmetic operation on pointers with constraints on it.</p>\n<p>In C, we call such a mechanism of passing address and receiving them with pointer variables as <em>pass by reference</em> since we are passing their addresses and receiving them as pointer variable in a formal parameter, but at the compiler level that address is copied into a pointer variable (since data here is an address even then its data), hence we can be 100% sure that C is <em>strictly</em> passed by value (as we are passing data only).</p>\n<p>(And if we pass the data directly in C, we call that pass by value.)</p>\n<p>In Java, when we do the same, we do it with the handles; since they are not called pointer variables like in (as discussed above) even though we are passing the references, we cannot say it’s passed by reference, since we are not collecting that with a pointer variable in Java.</p>\n<p>Hence, Java <strong>strictly use the pass by value mechanism</strong>.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 1875874,
+        "reputation": 75445,
+        "user_id": 1697099,
+        "user_type": "registered",
+        "accept_rate": 100,
+        "profile_image": "https://i.sstatic.net/gerXo.png?s=256",
+        "display_name": "Premraj",
+        "link": "https://stackoverflow.com/users/1697099/premraj"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1513419550,
+      "score": 16,
+      "last_activity_date": 1751985191,
+      "last_edit_date": 1751985191,
+      "creation_date": 1513419550,
+      "answer_id": 47844599,
+      "question_id": 40480,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Data is shared between functions by passing parameters. Now, there are two ways of passing parameters:</p>\n<ul>\n<li><p><strong>passed by reference:</strong> the caller and callee use the same variable for parameter.</p>\n</li>\n<li><p><strong>passed by value:</strong> the caller and callee have two independent variables with the same value.</p>\n</li>\n</ul>\n<p>Java uses <em><strong>pass by value</strong></em></p>\n<ul>\n<li>When passing primitive data, it copies the value of the primitive data type.</li>\n<li>When passing object, it copies the address of object and passes to the callee method variable.</li>\n</ul>\n<p>Java follows the following rules in storing variables:</p>\n<ul>\n<li>Local variables like primitives and object references are created on stack memory.</li>\n<li>Objects are created on heap memory.</li>\n</ul>\n<p>Example using primitive data type:</p>\n<pre><code>public class PassByValuePrimitive {\n    public static void main(String[] args) {\n        int i = 5;\n        System.out.println(i);  // Prints 5\n        change(i);\n        System.out.println(i);  // Prints 5\n    }\n\n\n    private static void change(int i) {\n        System.out.println(i);  // Prints 5\n        i = 10;\n        System.out.println(i); // Prints 10\n\n    }\n}\n</code></pre>\n<p>Example using object:</p>\n<pre><code>public class PassByValueObject {\n    public static void main(String[] args) {\n        List&lt;String&gt; list = new ArrayList&lt;&gt;();\n        list.add(&quot;prem&quot;);\n        list.add(&quot;raj&quot;);\n        new PassByValueObject().change(list);\n        System.out.println(list); // prints [prem, raj, ram]\n\n    }\n\n\n    private void change(List list) {\n        System.out.println(list.get(0)); // prem\n        list.add(&quot;ram&quot;);\n        list = null;\n        System.out.println(list.add(&quot;bheem&quot;)); // Gets NullPointerException\n    }\n}\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 2244007,
+        "reputation": 2197,
+        "user_id": 1977836,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/34HNM.jpg?s=256",
+        "display_name": "Felypp Oliveira",
+        "link": "https://stackoverflow.com/users/1977836/felypp-oliveira"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1517606636,
+      "score": 23,
+      "last_activity_date": 1751984516,
+      "last_edit_date": 1751984516,
+      "creation_date": 1517606636,
+      "answer_id": 48591063,
+      "question_id": 40480,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>This is the best way to answer the question, in my opinion...</p>\n<p>First, we must understand that, in Java, the <em>parameter passing behavior</em>...</p>\n<pre><code>public void foo(Object param)\n{\n  // Some code in foo...\n}\n\npublic void bar()\n{\n  Object obj = new Object();\n\n  foo(obj);\n}\n</code></pre>\n<p>is exactly the same as...</p>\n<pre><code>public void bar()\n{\n  Object obj = new Object();\n\n  Object param = obj;\n\n  // Some code in foo...\n}\n</code></pre>\n<p>not considering stack locations, which aren't relevant in this discussion.</p>\n<p>So, in fact, what we're looking for in Java is how <em>variable assignment</em> works. I found it in <a href=\"https://docs.oracle.com/javase/tutorial/java/nutsandbolts/op1.html\" rel=\"nofollow noreferrer\">the documentation</a>:</p>\n<blockquote>\n<p>One of the most common operators that you'll encounter is the simple assignment operator &quot;=&quot; [...] <b>it assigns the value</b> on its right to the operand on its left:</p>\n<p>int cadence = 0;\nint speed = 0;\nint gear = 1;</p>\n<p>This operator can also be used on objects to assign <b>object references</b> [...]</p>\n</blockquote>\n<p>It's clear how this operator acts in two distinct ways: assign values and assign references. The last, when it's an object... the first, when it isn't an object, that is, when it's a primitive. But so, can we understand that Java's function parameters can be <em>pass-by-value</em> and <em>pass-by-reference</em>?</p>\n<p>The truth is in the code. Let's try it:</p>\n<pre><code>public class AssignmentEvaluation\n{\n  static public class MyInteger\n  {\n    public int value = 0;\n  }\n\n  static public void main(String[] args)\n  {\n    System.out.println(&quot;Assignment operator evaluation using two MyInteger objects named height and width\\n&quot;);\n\n    MyInteger height = new MyInteger();\n    MyInteger width  = new MyInteger();\n\n    System.out.println(&quot;[1] Assign distinct integers to height and width values&quot;);\n\n    height.value = 9;\n    width.value  = 1;\n\n    System.out.println(&quot;-&gt;  height is &quot; + height.value + &quot; and width is &quot; + width.value + &quot;, we are different things! \\n&quot;);\n\n    System.out.println(&quot;[2] Assign to height's value the width's value&quot;);\n\n    height.value = width.value;\n\n    System.out.println(&quot;-&gt;  height is &quot; + height.value + &quot; and width is &quot; + width.value + &quot;, are we the same thing now? \\n&quot;);\n\n    System.out.println(&quot;[3] Assign to height's value an integer other than width's value&quot;);\n\n    height.value = 9;\n\n    System.out.println(&quot;-&gt;  height is &quot; + height.value + &quot; and width is &quot; + width.value + &quot;, we are different things yet! \\n&quot;);\n\n    System.out.println(&quot;[4] Assign to height the width object&quot;);\n\n    height = width;\n\n    System.out.println(&quot;-&gt;  height is &quot; + height.value + &quot; and width is &quot; + width.value + &quot;, are we the same thing now? \\n&quot;);\n\n    System.out.println(&quot;[5] Assign to height's value an integer other than width's value&quot;);\n\n    height.value = 9;\n\n    System.out.println(&quot;-&gt;  height is &quot; + height.value + &quot; and width is &quot; + width.value + &quot;, we are the same thing now! \\n&quot;);\n\n    System.out.println(&quot;[6] Assign to height a new MyInteger and an integer other than width's value&quot;);\n\n    height = new MyInteger();\n    height.value = 1;\n\n    System.out.println(&quot;-&gt;  height is &quot; + height.value + &quot; and width is &quot; + width.value + &quot;, we are different things again! \\n&quot;);\n  }\n}\n</code></pre>\n<p>This is the output of my run:</p>\n<pre>\nAssignment operator evaluation using two MyInteger objects named height and width\n\n[1] Assign distinct integers to height and width values\n->  height is 9 and width is 1, we are different things!\n\n[2] Assign to height's value the width's value\n->  height is 1 and width is 1, are we the same thing now?\n\n[3] Assign to height's value an integer other than width's value\n->  height is 9 and width is 1, we are different things yet!\n\n[4] Assign to height the width object\n->  height is 1 and width is 1, are we the same thing now?\n\n[5] Assign to height's value an integer other than width's value\n->  height is 9 and width is 9, we are the same thing now!\n\n[6] Assign to height a new MyInteger and an integer other than width's value\n->  height is 1 and width is 9, we are different things again!\n</pre>\n<p>In <em>[2]</em> we have distinct objects and assign one variable's value to the other. But after assigning a new value in <em>[3]</em> the objects had different values, which means that in <em>[2]</em> the assigned value was a copy of the primitive variable, usually called <strong>pass-by-value</strong>, otherwise, the values printed in <em>[3]</em> should be the same.</p>\n<p>In <em>[4]</em> we still have distinct objects and assign one object to the other. And after assigning a new value in <em>[5]</em> the objects had the same values, which means that in <em>[4]</em> the assigned object was not a copy of the other, which should be called <strong>pass-by-reference</strong>. But, if we look carefully in <em>[6]</em>, we can't be so sure that no copy was done... ?????</p>\n<p>We can't be so sure because in <em>[6]</em> the objects were the same, then we assigned a new object to one of them, and after, the objects had different values! How can they be distinct now if they were the same? They should be the same here too!  ?????</p>\n<p>We'll need to remember <a href=\"https://docs.oracle.com/javase/tutorial/java/nutsandbolts/op1.html\" rel=\"nofollow noreferrer\">the documentation</a> to understand what's going on:</p>\n<blockquote>\n<p>This operator can also be used on objects to assign <b>object references</b></p>\n</blockquote>\n<p>So our two variables were storing references... our variables had the same reference after <em>[4]</em> and different references after <em>[6]</em>... if such a thing is possible, this means that assignment of objects is done by copy of the object's reference, otherwise, if it was not a copy of reference, the printed value of the variables in <em>[6]</em> should be the same. So objects (references), just like primitives, are copied to variables through assignment, what people usually call <em>pass-by-value</em>. That's the only <em>pass-by-</em> in Java.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 3885484,
+        "reputation": 3780,
+        "user_id": 3216970,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/f67e18f9f7fbd955061a894c16e82040?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "mc01",
+        "link": "https://stackoverflow.com/users/3216970/mc01"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1521242734,
+      "score": 8,
+      "last_activity_date": 1751984241,
+      "last_edit_date": 1751984241,
+      "creation_date": 1521242734,
+      "answer_id": 49330809,
+      "question_id": 40480,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<h2>PT 1: Of Realty Listings</h2>\n<p>There is a blue, 120 sq-ft (11 m2) &quot;Tiny House&quot; currently parked at 1234 Main St with a nicely manicured lawn &amp; flower bed out front.</p>\n<p>A realtor with a local firm is hired and told to keep a listing for that house.</p>\n<p>Let's call that realtor &quot;Bob.&quot; Hi Bob.</p>\n<p>Bob keeps his listing, which he calls <code>tinyHouseAt1234Main</code>, up to date with a webcam that allows him to note any changes to the actual house in real time. He also keeps a tally of how many people have asked about the listing.\nBob's integer <code>viewTally</code> for the house is at 42 today.</p>\n<p>Whenever someone wants info about the blue Tiny House at 1234 Main St, they ask Bob.</p>\n<p>Bob looks up his listing <code>tinyHouseAt1234Main</code> and tells them all about it - the color, the nice lawn, the loft bed and the composting toilet, etc. Then he adds their inquiry to his <code>viewTally</code>. He doesn't tell them the real, physical address though, because Bob's firm specializes in Tiny Houses that could be moved at any time. The tally is now 43.</p>\n<p>At another firm, Realtors might explicitly say their listing &quot;points&quot; to the house at 1234 Main St, denoting this with a little <code>*</code> next to it, because they mainly deal with houses that rarely ever move (though presumably there are reasons for doing so). Bob's firm doesn't bother doing this.</p>\n<p>Now, of course Bob doesn't physically go and put the <em>actual</em> house on a truck to show it to clients directly - that would be impractical and a ridiculous waste of resources. Passing a full copy of his tally sheet is one thing, but passing around the whole house all the time is costly and ridiculous.</p>\n<p>(Aside: Bob's firm also doesn't 3D print new and unique copies of a listed house every single time someone asks about it. That's what the upstart, similarly named web-based firm and its spinoffs do; that's expensive and slower, and people often get the two firms confused, but they're quite popular anyway).</p>\n<p>At some other, older firms closer to the Sea, a realtor like Bob might not even exist to manage the listings. Clients might instead consult the Rolodex &quot;Annie&quot; (<code>&amp;</code> for short) for the direct address of the house. Instead of reading off the referenced house details from the listing like Bob does, clients instead get the house address from Annie (<code>&amp;</code>), and go directly to 1234 Main St, sometimes w/no idea what they might find there.</p>\n<p>One day, Bob's firm begins offering a new automated service that needs the listing for a house the client is interested in.</p>\n<p>Well, the person with that info is Bob, so the client has Bob call up the service and send it a copy of the listing.</p>\n<p><code>jobKillingAutomatedListingService(Listing tinyHouseAt1234Main, int viewTally)</code> Bob sends along ...</p>\n<p>The service, on its end, calls this listing <code>houseToLookAt</code>, but really what it receives is an exact copy of Bob's listing, with the exact same VALUEs in it, that refer to the house at 1234 Main St.</p>\n<p>This new service also has its own internal tally of how many people have viewed the listing. The service accepts Bob's tally out of professional courtesy, but it doesn't really care and overwrites it entirely with its own local copy anyway. It's tally for today is 1, while Bob's is still 43.</p>\n<p>The realty firms call this &quot;pass-by-value&quot; since Bob's passing the current value of his <code>viewTally</code> and his listing <code>tinyHouseAt1234Main</code>. He's not actually passing along the entire physical house, because that's impractical. Nor is he passing the real physical address like Annie(<code>&amp;</code>) would do.</p>\n<p>But he <em>is</em> passing a copy of <em>the value</em> <em><strong>of</strong></em> the reference he has to the house. Seems like a silly pedantic difference in some ways, but that's how his firm works ...\n..............</p>\n<h2>PT II: Where things get confusing and dangerous ...</h2>\n<p>The new automated service, not being all functional and math-oriented like some other trendy financial and scientific firms, can have unforeseen side effects...</p>\n<p>Once given a Listing object it allows clients to <em>actually</em> repaint the <em>real</em> house at 1234 Main St, using a remote drone robot fleet! It allows clients to control a robot bulldozer to <em>actually</em> dig up the flower bed! This is madness!!!</p>\n<p>The service also lets clients completely redirect <code>houseToLookAt</code> to some other house at another address, without involving Bob or his listing. All of a sudden they could be looking at 4321 Elm St. instead, which has no connection whatsoever to Bob's listing (thankfully they can't do anymore damage).</p>\n<p>Bob watches all this on his real-time webcam.\nResigned to the drudgery of his sole job responsibility, he tells clients about the new ugly paint job &amp; sudden lack of curb appeal. His listing <em>is</em> still for 1234 Main St., after all. The new service's <code>houseToLookAt</code> couldn't change that. Bob reports the details of his <code>tinyHouseAt1234Main</code> accurately and dutifully as always, until he gets fired or the house is destroyed entirely by The Nothing.</p>\n<p>Really the only thing the service <em>can't</em> do with its <code>houseToLookAt</code> copy of the Bob's original listing is change the address from 1234 Main St. to some other address, or to a void of nothingness, or to some random type of object like a Platypus. Bob's listing still always points to 1234 Main St, for whatever it's still worth. He passes its current value around like always.</p>\n<p>This bizarre side effect of passing a listing to the new automated service is confusing for people who ask about how it works. Really, what's the difference between the ability to remotely control robots that alter the state of the house at 1234 Main, vs. <em>actually</em> physically going there and wreaking havoc because Annie gave you the address??</p>\n<p>It seems like kind of a nitpicky semantic argument if what you generally care about is the <em>state</em> of the house in the listing being copied and passed around, right?</p>\n<p>I mean, if you were in the business of actually picking up houses and physically moving them to other addresses (not like mobile or Tiny Homes where that's sort of an expected function of the platform), or you were accessing, renaming, and shuffling entire neighborhoods like some sort of low-level God-playing madman, <em>then</em> maybe you'd care more about passing around those specific address references instead of just copies of the the latest value of the house details...</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 6590996,
+        "reputation": 151,
+        "user_id": 5092157,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/b638f348a9290c4004a5345efd17372b?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "asok",
+        "link": "https://stackoverflow.com/users/5092157/asok"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1526560906,
+      "score": 7,
+      "last_activity_date": 1751981130,
+      "last_edit_date": 1751981130,
+      "creation_date": 1526560906,
+      "answer_id": 50391764,
+      "question_id": 40480,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Java is only passed by value. There isn't any pass by reference. For example, you can see the following example.</p>\n<pre><code>package com.asok.cop.example.task;\npublic class Example {\n    int data = 50;\n\n    void change(int data) {\n        data = data + 100;// Changes will be in the local variable\n        System.out.println(&quot;after add &quot; + data);\n        }\n\n    public static void main(String args[]) {\n        Example op = new Example();\n        System.out.println(&quot;before change &quot; + op.data);\n        op.change(500);\n        System.out.println(&quot;after change &quot; + op.data);\n    }\n}\n</code></pre>\n<p>Output:</p>\n<pre><code>before change 50\nafter add 600\nafter change 50\n</code></pre>\n<p>as Michael says in the comments:</p>\n<blockquote>\n<p>objects are still passed by value even though operations on them behave like pass-by-reference. Consider <code>void changePerson(Person person){ person = new Person(); }</code> the callers reference to the person object will remain unchanged. Objects themselves are passed by value but their members can be affected by changes. To be true pass-by-reference, we would have to be able to reassign the argument to a new object and have the change be reflected in the caller.</p>\n</blockquote>\n"
+    },
+    {
+      "owner": {
+        "account_id": 1017281,
+        "reputation": 1595,
+        "user_id": 1028560,
+        "user_type": "registered",
+        "accept_rate": 83,
+        "profile_image": "https://www.gravatar.com/avatar/0357781c153374f699360c669c31b4fa?s=256&d=identicon&r=PG",
+        "display_name": "Sanjeev",
+        "link": "https://stackoverflow.com/users/1028560/sanjeev"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1548452250,
+      "score": 114,
+      "last_activity_date": 1751980683,
+      "last_edit_date": 1751980683,
+      "creation_date": 1548452250,
+      "answer_id": 54373107,
+      "question_id": 40480,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>There are already great answers that cover this. I wanted to make a small contribution by sharing a <strong>very simple example</strong> (which will compile) contrasting the behaviors between pass by reference (PBR) in C++ and pass by value in Java.</p>\n<p>A few points:</p>\n<ol>\n<li>The term &quot;reference&quot; is a overloaded with two separate meanings. In Java, it simply means a pointer, but in the context of &quot;pass by reference&quot; it means a handle to the original variable which was passed in.</li>\n<li><strong>Java is pass by value</strong>. Java is a descendent of C (among other languages). Before C, several (but not all) earlier languages, like <a href=\"https://en.wikipedia.org/wiki/Fortran\" rel=\"nofollow noreferrer\">Fortran</a> and <a href=\"https://en.wikipedia.org/wiki/COBOL\" rel=\"nofollow noreferrer\">COBOL</a>, supported PBR, but C did not. PBR allowed these other languages to make changes to the passed variables inside subroutines. In order to accomplish the same thing (i.e., change the values of variables inside functions), C programmers passed pointers to variables into functions. Languages inspired by C, such as Java, borrowed this idea and continue to pass pointer to methods as C did, except that Java calls its pointers References. Again, this is a different use of the word &quot;Reference&quot; than in &quot;pass by reference&quot;.</li>\n<li><strong>C++ allows pass by reference</strong> by declaring a reference parameter using the &quot;&amp;&quot; character (which happens to be the same character used to indicate &quot;the address of a variable&quot; in both C and C++). For example, if we pass in a pointer by reference, the parameter and the argument are not just pointing to the same object. Rather, they are the same variable. If one gets set to a different address or to null, so does the other.</li>\n<li>In the C++ example below I'm passing a <strong>pointer</strong> to a null terminated string <strong>by reference</strong>. And in the Java example below I'm passing a Java reference to a String (again, the same as a pointer to a String) by value. Notice the output in the comments.</li>\n</ol>\n<p>C++ pass by reference example:</p>\n<pre><code>using namespace std;\n#include &lt;iostream&gt;\n\nvoid change (char *&amp;str) // The '&amp;' makes this a reference parameter\n{\n    str = NULL;\n}\n\nint main()\n{\n    char *str = &quot;not Null&quot;;\n    change(str);\n    cout&lt;&lt;&quot;str is &quot; &lt;&lt; str;      // ==&gt;str is &lt;null&gt;\n}\n</code></pre>\n<p>Java pass &quot;a Java reference&quot; by value example:</p>\n<pre><code>public class ValueDemo {\n\n    public void change (String str) {\n        str = null;\n    }\n\n     public static void main(String []args) {\n        ValueDemo vd = new ValueDemo();\n        String str = &quot;not null&quot;;\n        vd.change(str);\n        System.out.println(&quot;str is &quot; + str);    // ==&gt; str is not null!!\n                                                // Note that if &quot;str&quot; was\n                                                // pass by reference, it\n                                                // WOULD BE NULL after the\n                                                // call to change().\n     }\n}\n</code></pre>\n<p>Several people have written comments which seem to indicate that either they are not looking at my examples or they don't get the C++ example. I am not sure where the disconnect is, but guessing the C++ example is not clear. I'm posting the same example in <a href=\"https://en.wikipedia.org/wiki/Pascal_%28programming_language%29\" rel=\"nofollow noreferrer\">Pascal</a> because I think pass by reference looks cleaner in Pascal, but I could be wrong. I might just be confusing people more; I hope not.</p>\n<p>In Pascal, parameters pass by reference are called &quot;var parameters&quot;. In the procedure setToNil below, please note the keyword 'var' which precedes the parameter 'ptr'. When a pointer is passed to this procedure, it will be passed <strong>by reference</strong>. Note the behavior: when this procedure sets <code>ptr</code> to nil (that's Pascal speak for NULL), it will set the argument to nil—you can't do that in Java.</p>\n<pre><code>program passByRefDemo;\ntype\n   iptr = ^integer;\nvar\n   ptr: iptr;\n\n   procedure setToNil(var ptr : iptr);\n   begin\n       ptr := nil;\n   end;\n\nbegin\n   new(ptr);\n   ptr^ := 10;\n   setToNil(ptr);\n   if (ptr = nil) then\n       writeln('ptr seems to be nil'); { ptr should be nil, so this line will run. }\nend.\n</code></pre>\n<p>Some excerpts from <strong>&quot;The Java Programming Language&quot;</strong> by Ken Arnold, <strong><a href=\"https://en.wikipedia.org/wiki/James_Gosling\" rel=\"nofollow noreferrer\">James Gosling</a></strong> (the guy who invented Java), and David Holmes, chapter 2, section 2.6.5</p>\n<blockquote>\n<p><strong>All parameters to methods are passed &quot;by value&quot;</strong>. In other words,\nvalues of parameter variables in a method are copies of the invoker\nspecified as arguments.</p>\n</blockquote>\n<p>He goes on to make the same point regarding objects...</p>\n<blockquote>\n<p>You should note that when the parameter is an object reference, it is\nthe object reference-not the object itself-that is <strong>passed &quot;by value&quot;</strong>.</p>\n</blockquote>\n<p>And towards the end of the same section he makes a broader statement about Java being only pass by value and never pass by reference.</p>\n<blockquote>\n<p>The Java programming language <strong>does not pass objects by reference; it</strong>\n<strong>passes object references by value</strong>. Because two copies of the same\nreference refer to the same actual object, changes made through one\nreference variable are visible through the other. There is exactly one\nparameter passing mode-<strong>pass by value</strong>-and that helps keep things\nsimple.</p>\n</blockquote>\n<p>This section of the book has a great explanation of parameter passing in Java and of the distinction between pass by reference and pass-by-value, and it's by the creator of Java. I would encourage anyone to read it, especially if you're still not convinced.</p>\n<p>I think the difference between the two models is very subtle and unless you've done programming where you actually used pass by reference, it's easy to miss where two models differ.</p>\n<p>I hope this settles the debate, but probably won't.</p>\n<p>I might be a little obsessed with this post. Probably because I feel that the makers of Java inadvertently spread misinformation. If instead of using the word &quot;reference&quot; for pointers they had used something else, say dingleberry, there would've been no problem. You could say, &quot;Java passes dingleberries by value and not by reference&quot;, and nobody would be confused.</p>\n<p>That's the reason only Java developers have issue with this. They look at the word &quot;reference&quot; and think they know exactly what that means, so they don't even bother to consider the opposing argument.</p>\n<p>Anyway, I noticed a comment in an older post, which made a balloon analogy which I really liked. So much so that I decided to glue together some clip-art to make a set of cartoons to illustrate the point.</p>\n<p><strong>Passing a reference by value</strong>—Changes to the reference are not reflected in the caller's scope, but the changes to the object are. This is because the reference is copied, but the both the original and the copy refer to the same object.</p>\n<p><a href=\"https://i.sstatic.net/RvkqU.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/RvkqU.png\" alt=\"Passing Object references By Value\" /></a></p>\n<p><strong>Pass by reference</strong>—There isn't any copy of the reference. Single reference is shared by both the caller and the function being called. Any changes to the reference or the Object's data are reflected in the caller's scope.</p>\n<p><a href=\"https://i.sstatic.net/SHXkC.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/SHXkC.png\" alt=\"Pass by reference\" /></a></p>\n<p>I have seen posts on this topic which describe the low level implementation of parameter passing in Java, which I think is great and very helpful because it makes an abstract idea concrete. However, to me the question is more about <strong>the behavior described in the language specification</strong> than about the technical implementation of the behavior. This is an excerpt from the <a href=\"https://docs.oracle.com/javase/specs/jls/se19/html/jls-8.html#jls-8.4.1\" rel=\"nofollow noreferrer\">Java Language Specification, section 8.4.1</a>:</p>\n<blockquote>\n<p>When the method or constructor is invoked (§15.12), <strong>the values of the\nactual argument expressions initialize newly created parameter\nvariables, each of the declared type, before execution of the body of\nthe method or constructor.</strong> The Identifier that appears in the\nDeclaratorId may be used as a simple name in the body of the method or\nconstructor to refer to the formal parameter.</p>\n</blockquote>\n<p>Which means, Java creates a copy of the passed parameters before executing a method. Like most people who studied compilers in college, I used <a href=\"https://rads.stackoverflow.com/amzn/click/com/0201100886\" rel=\"nofollow noreferrer\" rel=\"nofollow noreferrer\">&quot;The Dragon Book&quot;</a> which is <em><strong>the</strong></em> compilers book. It has a good description of &quot;call by value&quot; and &quot;call by reference&quot; in Chapter 1. The call by value description matches up with Java specifications exactly.</p>\n<p>Back when I studied compilers, in the 1990s, I used the first edition of the book from 1986 which predated Java by about 9 or 10 years. However, I just ran across a copy of the <a href=\"https://rads.stackoverflow.com/amzn/click/com/B009TGD06W\" rel=\"nofollow noreferrer\" rel=\"nofollow noreferrer\">2nd edition</a> from 2007 <strong>which actually mentions Java!</strong> Section 1.6.6 labeled &quot;Parameter Passing Mechanisms&quot; describes parameter passing pretty nicely. Here is an excerpt under the heading &quot;Call-by-value&quot; which mentions Java:</p>\n<blockquote>\n<p>In call-by-value, the actual parameter is evaluated (if it is an\nexpression) or copied (if it is a variable). The value is placed in\nthe location belonging to the corresponding formal parameter of the\ncalled procedure. <strong>This method is used in C and Java, and is a common\noption in C++, as well as in most other languages.</strong></p>\n</blockquote>\n<p>I just asked <a href=\"https://en.wikipedia.org/wiki/GitHub_Copilot\" rel=\"nofollow noreferrer\">GitHub Copilot</a> this questions:</p>\n<blockquote>\n<p>There are some people on Stack Overflow who assert that Java is a pass\nby reference language. What's an insulting way to tell them they\nare wrong.</p>\n</blockquote>\n<p>The answer I got:</p>\n<blockquote>\n<p>Ah, debating Java's pass-by-value nature can certainly stir up some\npassionate responses! While it’s always best to keep discussions\nconstructive, if you’re looking for a clever way to correct\nmisconceptions, you could say something like:</p>\n<p>&quot;Java is as pass-by-reference as a hologram is a solid object. They're\nconfusing the copy of the reference with the reference itself. 🤦&quot;</p>\n<p>Remember, it's always good to pair a bit of humor with a dash of\nrespect to keep things civil and educational!</p>\n</blockquote>\n<p>Nicely done, AI!</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 929792,
+        "reputation": 3301,
+        "user_id": 959876,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/7fYC4.jpg?s=256",
+        "display_name": "moldovean",
+        "link": "https://stackoverflow.com/users/959876/moldovean"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1556635845,
+      "score": 14,
+      "last_activity_date": 1751977118,
+      "last_edit_date": 1751977118,
+      "creation_date": 1556635845,
+      "answer_id": 55923549,
+      "question_id": 40480,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Long story short:</p>\n<ol>\n<li>Non-primitives: Java passes the <em>value of the reference</em>.</li>\n<li>Primitives: just value.</li>\n</ol>\n<p>The end.</p>\n<p>(2) is too easy. Now if you want to think of what (1) implies, imagine you have a class, <code>Apple</code>:</p>\n<pre><code>class Apple {\n    private double weight;\n\n    public Apple(double weight) {\n        this.weight = weight;\n    }\n\n    // Getters and setters ...\n\n}\n</code></pre>\n<p>Then when you pass an instance of this class to the main method:</p>\n<pre><code>class Main {\n    public static void main(String[] args) {\n        Apple apple = new Apple(3.14);\n        transmogrify(apple);\n        System.out.println(apple.getWeight() + &quot; the goose drank wine...&quot;;\n\n    }\n\n    private static void transmogrify(Apple apple) {\n        // Does something with apple ...\n        apple.setWeight(apple.getWeight() + 0.55);\n    }\n}\n</code></pre>\n<p>Oh... But you probably know that you're interested in what happens when you do something like this:</p>\n<pre><code>class Main {\n    public static void main(String[] args) {\n        Apple apple = new Apple(3.14);\n        transmogrify(apple);\n        System.out.println(&quot;Who ate my: &quot; + apple.getWeight()); // Will it still be 3.14?\n\n    }\n\n    private static void transmogrify(Apple apple) {\n        // Assign a new apple to the reference passed...\n        apple = new Apple(2.71);\n    }\n\n}\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 10944401,
+        "reputation": 369,
+        "user_id": 9892438,
+        "user_type": "registered",
+        "profile_image": "https://lh6.googleusercontent.com/-zClReelxPio/AAAAAAAAAAI/AAAAAAAAAA4/Odp25J4l0QI/s256-rj/photo.jpg",
+        "display_name": "Amit Sharma",
+        "link": "https://stackoverflow.com/users/9892438/amit-sharma"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1563340243,
+      "score": 3,
+      "last_activity_date": 1751977010,
+      "last_edit_date": 1751977010,
+      "creation_date": 1563340243,
+      "answer_id": 57068881,
+      "question_id": 40480,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p><strong>Java passes parameters by value. There isn't any option of passing a reference in Java.</strong></p>\n<p>But at the compiler binding level layer, it uses reference internally not exposed to the user.</p>\n<p>It is essential, as it saves a lot of memory and improves speed.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 4912431,
+        "reputation": 51,
+        "user_id": 3957354,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/af4c0417512a63de5aaf58c131e19cc8?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "natwar kumar",
+        "link": "https://stackoverflow.com/users/3957354/natwar-kumar"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1564199762,
+      "score": 3,
+      "last_activity_date": 1751976926,
+      "last_edit_date": 1751976926,
+      "creation_date": 1564199762,
+      "answer_id": 57229012,
+      "question_id": 40480,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Consider:</p>\n<pre><code>public class Test {\n\n    static class Dog {\n        String name;\n\n        @Override\n        public int hashCode() {\n            final int prime = 31;\n            int result = 1;\n            result = prime * result + ((name == null) ? 0 : name.hashCode());\n            return result;\n        }\n\n        @Override\n        public boolean equals(Object obj) {\n            if (this == obj)\n                return true;\n            if (obj == null)\n                return false;\n            if (getClass() != obj.getClass())\n                return false;\n            Dog other = (Dog) obj;\n            if (name == null) {\n                if (other.name != null)\n                    return false;\n            } else if (!name.equals(other.name))\n                return false;\n            return true;\n        }\n\n        public String getName() {\n            return name;\n        }\n\n        public void setName(String nb) {\n            this.name = nb;\n        }\n\n        Dog(String sd) {\n            this.name = sd;\n        }\n    }\n    /**\n     *\n     * @param args\n     */\n    public static void main(String[] args) {\n        Dog aDog = new Dog(&quot;Max&quot;);\n\n        // We pass the object to foo\n        foo(aDog);\n        Dog oldDog = aDog;\n\n        System.out.println(&quot; 1: &quot; + aDog.getName().equals(&quot;Max&quot;)); // false\n        System.out.println(&quot; 2 &quot; + aDog.getName().equals(&quot;huahua&quot;)); // false\n        System.out.println(&quot; 3 &quot; + aDog.getName().equals(&quot;moron&quot;)); // true\n        System.out.println(&quot; 4 &quot; + &quot; &quot; + (aDog == oldDog)); // true\n\n        // part2\n        Dog aDog1 = new Dog(&quot;Max&quot;);\n\n        foo(aDog1, 5);\n        Dog oldDog1 = aDog;\n\n        System.out.println(&quot; 5 : &quot; + aDog1.getName().equals(&quot;huahua&quot;)); // true\n        System.out.println(&quot; part2 : &quot; + (aDog1 == oldDog1)); // false\n\n        Dog oldDog2 = foo(aDog1, 5, 6);\n        System.out.println(&quot; 6 &quot; + (aDog1 == oldDog2)); // true\n        System.out.println(&quot; 7 &quot; + (aDog1 == oldDog)); // false\n        System.out.println(&quot; 8 &quot; + (aDog == oldDog2)); // false\n    }\n\n    /**\n     *\n     * @param d\n     */\n    public static void foo(Dog d) {\n        System.out.println(d.getName().equals(&quot;Max&quot;)); // true\n\n        d.setName(&quot;moron&quot;);\n\n        d = new Dog(&quot;huahua&quot;);\n        System.out.println(&quot; -:-  &quot; + d.getName().equals(&quot;huahua&quot;)); // true\n    }\n\n    /**\n     *\n     * @param d\n     * @param a\n     */\n    public static void foo(Dog d, int a) {\n        d.getName().equals(&quot;Max&quot;); // true\n\n        d.setName(&quot;huahua&quot;);\n    }\n\n    /**\n     *\n     * @param d\n     * @param a\n     * @param b\n     * @return\n     */\n    public static Dog foo(Dog d, int a, int b) {\n        d.getName().equals(&quot;Max&quot;); // true\n        d.setName(&quot;huahua&quot;);\n        return d;\n    }\n}\n</code></pre>\n<p>The sample code to demonstrate the impact of changes to the object at different functions.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 14174665,
+        "reputation": 338,
+        "user_id": 10240338,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/275ee5523a59ca3eef248956b2393b5f?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "grindlewald",
+        "link": "https://stackoverflow.com/users/10240338/grindlewald"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1566503229,
+      "score": 5,
+      "last_activity_date": 1751976653,
+      "last_edit_date": 1751976653,
+      "creation_date": 1566503229,
+      "answer_id": 57616177,
+      "question_id": 40480,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>First let's understand memory allocation in Java:\nThe stack and heap are the part of memory that JVM allocates for different purposes. The stack memory is preallocated to s thread, when it is created, and therefore a thread cannot access the stack of other thread. But the heap is available to all threads in a program.</p>\n<p>For a thread, the stack stores all local data, metadata of program, primitive type data and object reference. And, the heap is responsible for storage of the actual object.</p>\n<pre><code>Book book = new Book(&quot;Effective Java&quot;);\n</code></pre>\n<p>In the above example, the reference variable is &quot;book&quot; which is stored on the stack. The instance created by the <code>new</code> operator (<code>new Book(&quot;Effective Java&quot;)</code>) is stored on the heap. The ref variable &quot;book&quot; has the address of the object allocated on the heap. Let's say the address is 1001.</p>\n<p><a href=\"https://i.sstatic.net/uw7tE.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/uw7tE.png\" alt=\"Enter image description here\" /></a></p>\n<p>Consider passing a primitive data type, i.e. int, float, double, etc.</p>\n<pre><code>public class PrimitiveTypeExample {\n    public static void main(string[] args) {\n       int num = 10;\n       System.out.println(&quot;Value before calling method: &quot; + num);\n       printNum(num);\n       System.out.println(&quot;Value after calling method: &quot; + num);\n    }\n    public static void printNum(int num){\n       num = num + 10;\n       System.out.println(&quot;Value inside printNum method: &quot; + num);\n    }\n}\n</code></pre>\n<p>The output is:\nValue before calling method: 10\nValue inside printNum method: 20\nValue after calling method: 10</p>\n<p>int num =10; -&gt; this allocates the memory for &quot;int&quot; in Stack of the running thread, because, it is a primitive type.  Now when printNum(..) is called, a private stack is created within the same thread. When &quot;num&quot; is passed to this method, a copy of &quot;num&quot; is created in the method stack frame.</p>\n<p>num = num+10; -&gt; this adds 10 and modifies the the int variable within the method stack frame.\nTherefore, the original num outside the method stack frame remains unchanged.</p>\n<p>Consider, the example of passing the object of a custom class as an argument.</p>\n<p><a href=\"https://i.sstatic.net/J1XRW.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/J1XRW.png\" alt=\"Enter image description here\" /></a></p>\n<p>In the above example, the ref variable &quot;book&quot; resides in the stack of the thread executing the program, and the object of class Book is created in the heap space when the program executes new Book(). This memory location on the heap is referred by &quot;book&quot;. When &quot;book&quot; is passed as a method argument, a copy of &quot;book&quot; is created in a private stack frame of the method within the same stack of the thread. Therefore, the copied reference variable points to the same object of class &quot;Book&quot; on the heap.</p>\n<p><a href=\"https://i.sstatic.net/ggqd5.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/ggqd5.png\" alt=\"Enter image description here\" /></a></p>\n<p>The reference variable within method stack frame sets a new value to same object. Therefore, it is reflected when the original ref variable &quot;book&quot; gets its value.\nNote that in case of passing a reference variable, if it is initialized again in the called method, it then points to a new memory location and any operation does not affect the previous object on the heap.</p>\n<p>Therefore, when anything is passed as a method argument, it is always the stack entity, either a primitive or reference variable. We never pass something that is stored on the heap. Hence, in Java, we always pass the value on the stack, and it is passed by value.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 16238087,
+        "reputation": 57,
+        "user_id": 11725130,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/153aced38248e502c3524c7f139a14af?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Rose",
+        "link": "https://stackoverflow.com/users/11725130/rose"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1569053347,
+      "score": 3,
+      "last_activity_date": 1751974976,
+      "last_edit_date": 1751974976,
+      "creation_date": 1569053347,
+      "answer_id": 58038425,
+      "question_id": 40480,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>I think this simple explanation might help you understand as I wanted to understand this same thing when I was struggling through this.</p>\n<p>When you pass a primitive data to a function call, its content is being copied to the function's argument and when you pass an object, its reference is being copied to the function's argument. Speaking of object, you can't change the copied reference-<em>the argument variable is referencing to</em> in the calling function.</p>\n<p>Consider this simple example, String is an object in Java and when you change the content of a string the reference variable will now point to some new reference as String objects are immutable in Java.</p>\n<pre class=\"lang-java prettyprint-override\"><code>String name=&quot;Mehrose&quot;;  // Name referencing to 100\n\nChangeContenet(String name) {\n    name = &quot;Michael&quot;; // The reference has changed to 1001\n\n}\nSystem.out.print(name);  // Displays Mehrose\n</code></pre>\n<p>It is fairly simple, because, as I mentioned, you are not allowed to change the copied reference in the calling function. But the problem is with the array when you pass an array of String/Object. Let us see.</p>\n<pre class=\"lang-java prettyprint-override\"><code>String names[] = {&quot;Mehrose&quot;, &quot;Michael&quot;};\n\nchangeContent(String[] names) {\n    names[0] = &quot;Rose&quot;;\n    names[1] = &quot;Janet&quot;\n}\n\nSystem.out.println(Arrays.toString(names)); // Displays [Rose,Janet]\n</code></pre>\n<p>As we said, we can't change the copied reference in the function call, and we also have seen in the case of a single String object. The reason is names[] variable referencing to let's say 200 and names[0] referencing to 205 and so on. You see, we didn't change the names[] reference; it still points to the old same reference still after the function call but now names[0] and names[1] reference has been changed. We Still stand on our definition that we can't change the reference variable's reference so we didn't.</p>\n<p>The same thing happens when you pass a Student object to a method and you are still able to change the Student name or other attributes. The point is we are not changing the actual Student object rather we are changing the contents of it.</p>\n<p>You can't do this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>Student student1 = new Student(&quot;Mehrose&quot;);\n\nchangeContent(Student Obj) {\n obj = new Student(&quot;Michael&quot;) // Invalid\n obj.setName(&quot;Michael&quot;)  // Valid\n\n}\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 16488689,
+        "reputation": 481,
+        "user_id": 11913248,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/4Bfq0.jpg?s=256",
+        "display_name": "Pallav Khare",
+        "link": "https://stackoverflow.com/users/11913248/pallav-khare"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1605982662,
+      "score": 10,
+      "last_activity_date": 1751973778,
+      "last_edit_date": 1751973778,
+      "creation_date": 1605982662,
+      "answer_id": 64946506,
+      "question_id": 40480,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Java is always pass by value, not pass by reference</p>\n<p>First of all, we need to understand what pass by value and pass by reference are.</p>\n<p><strong>Pass by value</strong> means that you are making a copy in memory of the actual parameter's value that is passed in. This is a copy of the contents of the actual parameter.</p>\n<p><strong>Pass by reference</strong> (also called pass by address) means that a copy of the address of the actual parameter is stored.</p>\n<p>Sometimes Java can give the illusion of pass by reference. Let's see how it works by using the example below:</p>\n<pre><code>public class PassByValue {\n    public static void main(String[] args) {\n        Test t = new Test();\n        t.name = &quot;initialvalue&quot;;\n        new PassByValue().changeValue(t);\n        System.out.println(t.name);\n    }\n    \n    public void changeValue(Test f) {\n        f.name = &quot;changevalue&quot;;\n    }\n}\n\nclass Test {\n    String name;\n}\n</code></pre>\n<p>The output of this program is:</p>\n<pre><code>changevalue\n</code></pre>\n<p>Let's understand step by step:</p>\n<pre><code>Test t = new Test();\n</code></pre>\n<p>As we all know it will create an object in the heap and return the reference value back to t. For example, suppose the value of t is 0x100234 (we don't know the actual JVM internal value, this is just an example) .</p>\n<p>first illustration</p>\n<pre><code>new PassByValue().changeValue(t);\n</code></pre>\n<p>When passing reference t to the function it will not directly pass the actual reference value of object test, but it will create a copy of t and then pass it to the function. Since it is passing by value, it passes a copy of the variable rather than the actual reference of it. Since we said the value of t was 0x100234, both t and f will have the same value and hence they will point to the same object.</p>\n<p>second illustration</p>\n<p>If you change anything in the function using reference f it will modify the existing contents of the object. That is why we got the output changevalue, which is updated in the function.</p>\n<p>To understand this more clearly, consider the following example:</p>\n<pre><code>public class PassByValue {\n    public static void main(String[] args) {\n        Test t = new Test();\n        t.name = &quot;initialvalue&quot;;\n        new PassByValue().changeRefence(t);\n        System.out.println(t.name);\n    }\n    \n    public void changeRefence(Test f) {\n        f = null;\n    }\n}\n\nclass Test {\n    String name;\n}\n</code></pre>\n<p>Will this throw a NullPointerException? No, because it only passes a copy of the reference. In the case of passing by reference, it could have thrown a NullPointerException, as seen below:</p>\n<p>third illustration</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 12239426,
+        "reputation": 1981,
+        "user_id": 8932910,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/d973b2cb54f5a0fe3ebf42731818ca5e?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "jack",
+        "link": "https://stackoverflow.com/users/8932910/jack"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1609015769,
+      "score": 12,
+      "last_activity_date": 1751973723,
+      "last_edit_date": 1751973723,
+      "creation_date": 1609015769,
+      "answer_id": 65460603,
+      "question_id": 40480,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Not to repeat, but one point to those who might still be confused after reading many answers:</p>\n<ul>\n<li><em>pass by value</em> in Java is <em><strong>not equal</strong></em> to <em>pass by value</em> in C++, though it sounds like that, which is probably why there's confusion</li>\n</ul>\n<p>Breaking it down:</p>\n<ul>\n<li><em>pass by value</em> in C++ means passing the value of the object (if object), literarily the copy of the object</li>\n<li><em>pass by value</em> in Java means passing the address value of the object (if object), not really the &quot;value&quot; (a copy) of the object like C++</li>\n<li>By <em>pass by value</em> in Java, operating on an object (e.g. <code>myObj.setName(&quot;new&quot;)</code>) inside a function <strong>has effects</strong> on the object outside the function; by <code>pass by value</code> in C++, it doesn't have <em><strong>any</strong></em> effects on the one outside.</li>\n<li>However, by <em>pass by reference</em> in C++, operating on an object in a function <em><strong>does</strong></em> have effects on the one outside! Similar (<em>just similar, not the same</em>) to <code>pass by value</code> in Java, no?.. and people always repeat &quot;<em>there's no pass by reference in Java</em>&quot;, =&gt; <em><strong>boom,</strong></em> <strong>confusion starts...</strong></li>\n</ul>\n<p>So, friends, all is just about the <strong>difference</strong> of terminology definition (across languages), you just need to know how it works and that's it (<em>though sometimes a bit confusing how it's called I admit</em>)!</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 5095326,
+        "reputation": 265,
+        "user_id": 4086871,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/f5e5d63244d64e4fda1be6bd1b79acb8?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "charles",
+        "link": "https://stackoverflow.com/users/4086871/charles"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1615170277,
+      "score": 4,
+      "last_activity_date": 1751973569,
+      "last_edit_date": 1751973569,
+      "creation_date": 1615170277,
+      "answer_id": 66523582,
+      "question_id": 40480,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Here is a more precise definition:</p>\n<ul>\n<li><strong>Pass/call by value:</strong> Formal parameter is like a local variable in\nscope of function, it evaluates to actual parameter at the moment of\nfunction call.</li>\n<li><strong>Pass/call by reference:</strong> Formal parameter is just a alias for the real\nvalue, any change of it in the scope of function can have side\neffects outside in any other part of code.</li>\n</ul>\n<p>So in C/C++, you can create a function that swaps two values passed using the references:</p>\n<pre><code>void swap(int&amp; a, int&amp; b)\n{\n    int tmp = a;\n    a = b;\n    b = tmp;\n}\n</code></pre>\n<p>You can see it has a unique reference to a and b, so we do not have a copy; <code>tmp</code> just holds unique references.</p>\n<p>The same function in Java does not have side effects. The parameter passing is just like the code above without references.</p>\n<p>Although Java works with pointers/references, the parameters are not unique pointers. In each attribution, they are copied instead of just assigned like C/C++.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 1015802,
+        "reputation": 406,
+        "user_id": 1027385,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/1b3aa31a7f925410c18bce1fa6a1640e?s=256&d=identicon&r=PG",
+        "display_name": "frostcs",
+        "link": "https://stackoverflow.com/users/1027385/frostcs"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1619590671,
+      "score": 5,
+      "last_activity_date": 1751973380,
+      "last_edit_date": 1751973380,
+      "creation_date": 1619590671,
+      "answer_id": 67294696,
+      "question_id": 40480,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p><strong>For simplicity and verbosity</strong></p>\n<p>It’s <em>pass reference by value</em>:</p>\n<pre><code>public static void main(String[] args) {\n    Dog aDog = new Dog(&quot;Max&quot;);\n    Dog oldDog = aDog;\n\n    // We pass the object to foo\n    foo(aDog);\n    // aDog variable is still pointing to the &quot;Max&quot; dog when foo(...) returns\n    aDog.getName().equals(&quot;Max&quot;); // true\n    aDog.getName().equals(&quot;Fifi&quot;); // false\n    aDog == oldDog; // true\n}\n\npublic static void foo(Dog d) {\n    d.getName().equals(&quot;Max&quot;); // true\n    // Change d inside of foo() to point to a new Dog instance &quot;Fifi&quot;\n    d = new Dog(&quot;Fifi&quot;);\n    d.getName().equals(&quot;Fifi&quot;); // true\n}\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 2056278,
+        "reputation": 25176,
+        "user_id": 1833961,
+        "user_type": "registered",
+        "accept_rate": 54,
+        "profile_image": "https://i.sstatic.net/WzG31.png?s=256",
+        "display_name": "bvdb",
+        "link": "https://stackoverflow.com/users/1833961/bvdb"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1376734191,
+      "score": 7,
+      "last_activity_date": 1751973206,
+      "last_edit_date": 1751973206,
+      "creation_date": 1376734191,
+      "answer_id": 18287583,
+      "question_id": 40480,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Shortest answer :)</p>\n<ul>\n<li>Java has pass-by-value (and pass-reference-by-value.)</li>\n<li><strong>C# also has pass-by-reference</strong></li>\n</ul>\n<p>In C#, this is accomplished with the &quot;out&quot; and &quot;ref&quot; keywords.</p>\n<p>Pass By Reference: The variable is passed in such a way that <strong>a reassignment inside the method is reflected even outside the method.</strong></p>\n<p>Here follows <strong>an example of passing-by-reference (C#)</strong>.\nThis feature does not exist in Java.</p>\n<pre><code>class Example\n{\n    static void InitArray(out int[] arr)\n    {\n        arr = new int[5] { 1, 2, 3, 4, 5 };\n    }\n\n    static void Main()\n    {\n        int[] someArray;\n        InitArray(out someArray);\n\n        // This is true !\n        boolean isTrue = (someArray[0] == 1);\n    }\n}\n</code></pre>\n<p>See also: <a href=\"http://msdn.microsoft.com/en-us/library/szasx730.aspx\" rel=\"nofollow noreferrer\" title=\"MSDN library: passing arrays by ref and out\">MSDN library (C#): passing arrays by ref and out</a></p>\n<p>See also: <a href=\"http://msdn.microsoft.com/en-us/library/0f66670z.aspx\" rel=\"nofollow noreferrer\" title=\"MSDN library: passing by reference\">MSDN library (C#): passing by by value and by reference</a></p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 2158210,
+        "reputation": 221,
+        "user_id": 1912964,
+        "user_type": "registered",
+        "accept_rate": 0,
+        "profile_image": "https://www.gravatar.com/avatar/16f779b71407273a7684844925d322f7?s=256&d=identicon&r=PG",
+        "display_name": "Gaurav",
+        "link": "https://stackoverflow.com/users/1912964/gaurav"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1373437887,
+      "score": 38,
+      "last_activity_date": 1751973049,
+      "last_edit_date": 1751973049,
+      "creation_date": 1373437887,
+      "answer_id": 17563873,
+      "question_id": 40480,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Java has only pass by value. Here is a very simple example to validate this:</p>\n<pre><code>public void test() {\n    MyClass obj = null;\n    init(obj);\n    // After calling the init method, 'obj' still points to null\n    // This is because obj is passed as value and not as reference.\n}\n\nprivate void init(MyClass objVar) {\n    objVar = new MyClass();\n}\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 1307057,
+        "reputation": 5982,
+        "user_id": 1255825,
+        "user_type": "registered",
+        "accept_rate": 74,
+        "profile_image": "https://www.gravatar.com/avatar/c2e0b7aaa9705618953d6fd5ecd2f160?s=256&d=identicon&r=PG",
+        "display_name": "JasonG",
+        "link": "https://stackoverflow.com/users/1255825/jasong"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1372180334,
+      "score": 11,
+      "last_activity_date": 1751972949,
+      "last_edit_date": 1751972949,
+      "creation_date": 1372180334,
+      "answer_id": 17303467,
+      "question_id": 40480,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>In an attempt to add even more to this, I thought I'd include the <a href=\"https://en.wiktionary.org/wiki/SCJP#Noun\" rel=\"nofollow noreferrer\">SCJP</a> Study Guide section on the topic. This is from the guide that is made to pass the Sun/Oracle test on the behaviour of Java so it's a good source to use for this discussion.</p>\n<blockquote>\n<p>Passing Variables into Methods (Objective 7.3)</p>\n<p>7.3 Determine the effect upon object references and primitive values when they are passed into methods that perform assignments or other modifying operations on the parameters.</p>\n</blockquote>\n<blockquote>\n<p>Methods can be declared to take primitives and/or object references. You need to know how (or if) the caller's variable can be affected by the called method. The difference between object reference and primitive variables, when passed into methods, is huge and important. To understand this section, you'll need to be comfortable with the assignments section covered in the first part of this chapter.</p>\n</blockquote>\n<blockquote>\n<p>Passing Object Reference Variables</p>\n</blockquote>\n<blockquote>\n<p>When you pass an object variable into a method, you must keep in mind that you're passing the object reference, and not the actual object itself. Remember that a reference variable holds bits that represent (to the underlying VM) a way to get to a specific object in memory (on the heap). More importantly, you must remember that you aren't even passing the actual reference variable, but rather a copy of the reference variable. A copy of a variable means you get a copy of the bits in that variable, so when you pass a reference variable, you're passing a copy of the bits representing how to get to a specific object. In other words, both the caller and the called method will now have identical copies of the reference, and thus both will refer to the same exact (not a copy) object on the heap.</p>\n</blockquote>\n<blockquote>\n<p>For this example, we'll use the Dimension class from the java.awt package:</p>\n</blockquote>\n<pre><code>1. import java.awt.Dimension;\n2. class ReferenceTest {\n3.     public static void main (String [] args) {\n4.         Dimension d = new Dimension(5,10);\n5.         ReferenceTest rt = new ReferenceTest();\n6.         System.out.println(&quot;Before modify() d.height = &quot; + d.height);\n7.         rt.modify(d);\n8.         System.out.println(&quot;After modify() d.height = &quot;\n9.     }\n10.\n11.\n12.\n13.   }\n14. }\n</code></pre>\n<blockquote>\n<p>When we run this class, we can see that the modify() method was indeed able to modify the original (and only) Dimension object created on line 4.</p>\n</blockquote>\n<pre>\nC:\\Java Projects\\Reference>java ReferenceTest\nBefore modify() d.height = 10\ndim = 11\nAfter modify() d.height = 11\n</pre>\n<blockquote>\n<p>Notice when the Dimension object on line 4 is passed to the modify() method, any changes to the object that occur inside the method are being made to the object whose reference was passed. In the preceding example, reference variables d and dim both point to the same object.</p>\n</blockquote>\n<blockquote>\n<p>Does Java Use Pass-By-Value Semantics?</p>\n</blockquote>\n<blockquote>\n<p>If Java passes objects by passing the reference variable instead, does that mean Java uses pass-by-reference for objects? Not exactly, although you'll often hear and read that it does. Java is actually pass-by-value for all variables running within a single VM. Pass-by-value means pass-by-variable-value. And that means, pass-by-copy-of- the-variable! (There's that word copy again!)</p>\n</blockquote>\n<blockquote>\n<p>It makes no difference if you're passing primitive or reference variables, you are always passing a copy of the bits in the variable. So for a primitive variable, you're passing a copy of the bits representing the value. For example, if you pass an int variable with the value of 3, you're passing a copy of the bits representing 3. The called method then gets its own copy of the value, to do with it what it likes.</p>\n</blockquote>\n<blockquote>\n<p>And if you're passing an object reference variable, you're passing a copy of the bits representing the reference to an object. The called method then gets its own copy of the reference variable, to do with it what it likes. But because two identical reference variables refer to the exact same object, if the called method modifies the object (by invoking setter methods, for example), the caller will see that the object the caller's original variable refers to has also been changed. In the next section, we'll look at how the picture changes when we're talking about primitives.</p>\n</blockquote>\n<blockquote>\n<p>The bottom line on pass-by-value: the called method can't change the caller's variable, although for object reference variables, the called method can change the object the variable referred to. What's the difference between changing the variable and changing the object? For object references, it means the called method can't reassign the caller's original reference variable and make it refer to a different object, or null. For example, in the following code fragment,</p>\n</blockquote>\n<pre><code>        void bar() {\n           Foo f = new Foo();\n           doStuff(f);\n        }\n        void doStuff(Foo g) {\n           g.setName(&quot;Boo&quot;);\n           g = new Foo();\n        }\n</code></pre>\n<blockquote>\n<p>reassigning g does not reassign f! At the end of the bar() method, two Foo objects have been created, one referenced by the local variable f and one referenced by\nthe local (argument) variable g. Because the doStuff() method has a copy of the reference variable, it has a way to get to the original Foo object, for instance to call the setName() method. But, the doStuff() method does not have a way to get to the f reference variable. So doStuff() can change values within the object f refers to, but doStuff() can't change the actual contents (bit pattern) of f. In other words, doStuff() can change the state of the object that f refers to, but it can't make f refer to a different object!</p>\n</blockquote>\n<blockquote>\n<p>Passing Primitive Variables</p>\n</blockquote>\n<blockquote>\n<p>Let's look at what happens when a primitive variable is passed to a method:</p>\n</blockquote>\n<pre><code>class ReferenceTest {\n    public static void main (String [] args) {\n      int a = 1;\n      ReferenceTest rt = new ReferenceTest();\n      System.out.println(&quot;Before modify() a = &quot; + a);\n      rt.modify(a);\n      System.out.println(&quot;After modify() a = &quot; + a);\n    }\n    void modify(int number) {\n      number = number + 1;\n      System.out.println(&quot;number = &quot; + number);\n    }\n}\n</code></pre>\n<blockquote>\n<p>In this simple program, the variable a is passed to a method called modify(),\nwhich increments the variable by 1. The resulting output looks like this:</p>\n</blockquote>\n<pre><code>  Before modify() a = 1\n  number = 2\n  After modify() a = 1\n</code></pre>\n<blockquote>\n<p>Notice that a did not change after it was passed to the method. Remember, it was a copy of a that was passed to the method. When a primitive variable is passed to a method, it is passed by value, which means pass-by-copy-of-the-bits-in-the-variable.</p>\n</blockquote>\n"
+    },
+    {
+      "owner": {
+        "account_id": 2439364,
+        "reputation": 5990,
+        "user_id": 2128327,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/fdb32ecba89326d1528dbf8673e68b20?s=256&d=identicon&r=PG",
+        "display_name": "Khaled.K",
+        "link": "https://stackoverflow.com/users/2128327/khaled-k"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1370151044,
+      "score": 9,
+      "last_activity_date": 1751972706,
+      "last_edit_date": 1751972706,
+      "creation_date": 1370151044,
+      "answer_id": 16880062,
+      "question_id": 40480,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Java is always pass-by-value. The parameters are copies of what the variables passed, all Objects are defined using a reference, and reference is a variable that stores a memory address of where the object is in memory.</p>\n<p>Check the comments to understand what happens in execution; follow numbers as they show the flow of execution...</p>\n<pre><code>class Example\n{\n    public static void test (Cat ref)\n    {\n        // 3 - &lt;ref&gt; is a copy of the reference &lt;a&gt;\n        // both currently reference Grumpy\n        System.out.println(ref.getName());\n\n        // 4 - now &lt;ref&gt; references a new &lt;Cat&gt; object named &quot;Nyan&quot;\n        ref = new Cat(&quot;Nyan&quot;);\n\n        // 5 - this should print &quot;Nyan&quot;\n        System.out.println( ref.getName() );\n    }\n\n    public static void main (String [] args)\n    {\n        // 1 - a is a &lt;Cat&gt; reference that references a Cat object in memory with name &quot;Grumpy&quot;\n        Cat a = new Cat(&quot;Grumpy&quot;);\n\n        // 2 - call to function test which takes a &lt;Cat&gt; reference\n        test (a);\n\n        // 6 - function call ends, and &lt;ref&gt; life-time ends\n        // &quot;Nyan&quot; object has no references and the Garbage\n        // Collector will remove it from memory when invoked\n\n        // 7 - this should print &quot;Grumpy&quot;\n        System.out.println(a.getName());\n    }\n}\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 294022,
+        "reputation": 118190,
+        "user_id": 597657,
+        "user_type": "registered",
+        "accept_rate": 99,
+        "profile_image": "https://i.sstatic.net/0h5ec.jpg?s=256",
+        "display_name": "Eng.Fouad",
+        "link": "https://stackoverflow.com/users/597657/eng-fouad"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1347646975,
+      "score": 2140,
+      "last_activity_date": 1751971613,
+      "last_edit_date": 1751971613,
+      "creation_date": 1347646975,
+      "answer_id": 12429953,
+      "question_id": 40480,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Java always passes arguments <em>by value</em>, <em>not</em> by reference.</p>\n<hr />\n<p>Let me explain this through <a href=\"https://stackoverflow.com/a/9404727/597657\">an example</a>:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class Main {\n\n     public static void main(String[] args) {\n          Foo f = new Foo(&quot;f&quot;);\n          changeReference(f); // It won't change the reference!\n          modifyReference(f); // It will modify the object that the reference variable &quot;f&quot; refers to!\n     }\n\n     public static void changeReference(Foo a) {\n          Foo b = new Foo(&quot;b&quot;);\n          a = b;\n     }\n\n     public static void modifyReference(Foo c) {\n          c.setAttribute(&quot;c&quot;);\n     }\n\n}\n</code></pre>\n<p>I will explain this in steps:</p>\n<ol>\n<li><p>Declaring a reference named <code>f</code> of type <code>Foo</code> and assign it a new object of type <code>Foo</code> with an attribute <code>&quot;f&quot;</code>.</p>\n<pre><code>Foo f = new Foo(&quot;f&quot;);\n</code></pre>\n<p><img src=\"https://i.sstatic.net/arXpP.png\" alt=\"enter image description here\" /></p>\n</li>\n<li><p>From the method side, a reference of type <code>Foo</code> with a name <code>a</code> is declared and it's initially assigned <code>null</code>.</p>\n<pre><code>public static void changeReference(Foo a)\n</code></pre>\n<p><img src=\"https://i.sstatic.net/k2LBD.png\" alt=\"enter image description here\" /></p>\n</li>\n<li><p>As you call the method <code>changeReference</code>, the reference <code>a</code> will be assigned the object which is passed as an argument.</p>\n<pre><code>changeReference(f);\n</code></pre>\n<p><img src=\"https://i.sstatic.net/1Ez74.png\" alt=\"Enter image description here\" /></p>\n</li>\n<li><p>Declaring a reference named <code>b</code> of type <code>Foo</code> and assign it a new object of type <code>Foo</code> with an attribute <code>&quot;b&quot;</code>.</p>\n<pre><code>Foo b = new Foo(&quot;b&quot;);\n</code></pre>\n<p><img src=\"https://i.sstatic.net/Krx4N.png\" alt=\"Enter image description here\" /></p>\n</li>\n<li><p><code>a = b</code> makes a new assignment to the reference <code>a</code>, <strong>not</strong> <code>f</code>, of the object whose attribute is <code>&quot;b&quot;</code>.</p>\n<p><img src=\"https://i.sstatic.net/rCluu.png\" alt=\"Enter image description here\" /></p>\n</li>\n<li><p>As you call <code>modifyReference(Foo c)</code> method, a reference <code>c</code> is created and assigned the object with attribute <code>&quot;f&quot;</code>.</p>\n<p><img src=\"https://i.sstatic.net/PRZPg.png\" alt=\"Enter image description here\" /></p>\n</li>\n<li><p><code>c.setAttribute(&quot;c&quot;);</code> will change the attribute of the object that reference <code>c</code> points to it, and it's the same object that reference <code>f</code> points to it.</p>\n<p><img src=\"https://i.sstatic.net/H9Qsf.png\" alt=\"Enter image description here\" /></p>\n</li>\n</ol>\n"
+    },
+    {
+      "owner": {
+        "account_id": 5304861,
+        "reputation": 1951,
+        "user_id": 4233180,
+        "user_type": "registered",
+        "profile_image": "https://lh5.googleusercontent.com/-FXCjt68DFoA/AAAAAAAAAAI/AAAAAAAAACs/hqpMFb_4--c/s256-rj/photo.jpg",
+        "display_name": "Supriya",
+        "link": "https://stackoverflow.com/users/4233180/supriya"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1504464768,
+      "score": 11,
+      "last_activity_date": 1751971510,
+      "last_edit_date": 1751971510,
+      "creation_date": 1504464768,
+      "answer_id": 46026822,
+      "question_id": 40480,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Java is pass by value.</p>\n<p>There are already great answers on this question. Somehow, I was never clear on pass by value/reference with respect to primitive data types and with respect to objects. Therefore, I tested it out for my satisfaction and clarity with the following piece of code; might help somebody seeking similar clarity:</p>\n<pre><code>class Test {\n\n    public static void main (String[] args) throws java.lang.Exception\n    {\n        // Primitive type\n        System.out.println(&quot;Primitve: &quot;);\n        int a = 5;\n        primitiveFunc(a);\n        System.out.println(&quot;Three: &quot; + a); // 5\n\n        // Object\n        System.out.println(&quot;Object: &quot;);\n        DummyObject dummyObject = new DummyObject();\n        System.out.println(&quot;One: &quot; + dummyObject.getObj()); // 555\n        objectFunc(dummyObject);\n        System.out.println(&quot;Four: &quot; + dummyObject.getObj()); // 666 (555 if line in method uncommented.)\n\n    }\n\n    private static void primitiveFunc(int b) {\n        System.out.println(&quot;One: &quot; + b); // 5\n        b = 10;\n        System.out.println(&quot;Two: &quot; + b); // 10\n    }\n\n    private static void objectFunc(DummyObject b) {\n        System.out.println(&quot;Two: &quot; + b.getObj()); // 555\n        //b = new DummyObject();\n        b.setObj(666);\n        System.out.println(&quot;Three: &quot; + b.getObj()); // 666\n    }\n\n}\n\nclass DummyObject {\n    private int obj = 555;\n    public int getObj() { return obj; }\n    public void setObj(int num) { obj = num; }\n}\n</code></pre>\n<p>If the line <code>b = new DummyObject()</code> is uncommented, the modifications made thereafter are made on a <em>new</em> object, a new instantiation. Hence, it is not reflected in the place where the method is called from. However, otherwise, the change is reflected as the modifications are only made on a &quot;reference&quot; of the object, i.e - b points to the same dummyObject.</p>\n<p>Illustrations in one of the answers in this question (<em><a href=\"https://stackoverflow.com/questions/40480/is-java-pass-by-reference-or-pass-by-value/12429953#12429953\">Is Java &quot;pass-by-reference&quot; or &quot;pass-by-value&quot;?</a></em>) can help gain a deeper understanding.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 4507628,
+        "reputation": 159,
+        "user_id": 3664592,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/I2gv7.jpg?s=256",
+        "display_name": "Himanshu arora",
+        "link": "https://stackoverflow.com/users/3664592/himanshu-arora"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1491630689,
+      "score": 90,
+      "last_activity_date": 1751971306,
+      "last_edit_date": 1751971306,
+      "creation_date": 1491630689,
+      "answer_id": 43290680,
+      "question_id": 40480,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Java is a pass by value (stack memory)</p>\n<p>How it works</p>\n<ul>\n<li><p>Let's first understand where Java stores primitive data type and object data type.</p>\n</li>\n<li><p>Primitive data types itself and object references are stored on the stack.\nObjects themselves are stored on the heap.</p>\n</li>\n<li><p>It means, stack memory stores primitive data types and also the addresses of objects.</p>\n</li>\n<li><p>And you always pass a copy of the bits of the value of the reference.</p>\n</li>\n<li><p>If it's a primitive data type then these copied bits contain the value of the primitive data type itself, That's why when we change the value of argument inside the method then it does not reflect the changes outside.</p>\n</li>\n<li><p>If it's an object data type, like <strong>Foo foo=new Foo()</strong>, then in this case, the copy of the address of the object passes like a file shortcut. Suppose we have a text file <strong>abc.txt</strong> at <strong>C:\\desktop</strong>. Suppose we make a shortcut of the same file and put this inside <strong>C:\\desktop\\abc-shortcut</strong>. So when you access the file from <strong>C:\\desktop\\abc.txt</strong>, write <strong>'Stack Overflow'</strong>, close the file, again you open the file from shortcut, you write <strong>' is the largest online community for programmers to learn'</strong>, then the total file change will be <strong>'Stack Overflow is the largest online community for programmers to learn'</strong>. This means it doesn't matter from where you open the file. Each time we were accessing the same file, here we can assume <strong>Foo</strong> as a file and suppose foo is stored at <strong>123hd7h</strong>(original address like <strong>C:\\desktop\\abc.txt</strong> ) address and <strong>234jdid</strong>(copied address like <strong>C:\\desktop\\abc-shortcut</strong>, which actually contains the original address of the file inside)...\nSo for better understanding make a shortcut file and feel...</p>\n</li>\n</ul>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "73021": [
+      {
+        "owner": {
+          "account_id": 11712763,
+          "reputation": 889,
+          "user_id": 9437799,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/d1cc59d70a60f0fd154bbf9a2c3d4087?s=256&d=identicon&r=PG",
+          "display_name": "Sam Ginrich",
+          "link": "https://stackoverflow.com/users/9437799/sam-ginrich"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1755016351,
+        "post_id": 73021,
+        "comment_id": 140660725,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 7257,
+          "reputation": 30740,
+          "user_id": 12541,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/Yk2vr.jpg?s=256",
+          "display_name": "Scott Stanchfield",
+          "link": "https://stackoverflow.com/users/12541/scott-stanchfield"
+        },
+        "reply_to_user": {
+          "account_id": 11712763,
+          "reputation": 889,
+          "user_id": 9437799,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/d1cc59d70a60f0fd154bbf9a2c3d4087?s=256&d=identicon&r=PG",
+          "display_name": "Sam Ginrich",
+          "link": "https://stackoverflow.com/users/9437799/sam-ginrich"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1754960584,
+        "post_id": 73021,
+        "comment_id": 140658797,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 11712763,
+          "reputation": 889,
+          "user_id": 9437799,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/d1cc59d70a60f0fd154bbf9a2c3d4087?s=256&d=identicon&r=PG",
+          "display_name": "Sam Ginrich",
+          "link": "https://stackoverflow.com/users/9437799/sam-ginrich"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1710062040,
+        "post_id": 73021,
+        "comment_id": 137749341,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 7257,
+          "reputation": 30740,
+          "user_id": 12541,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/Yk2vr.jpg?s=256",
+          "display_name": "Scott Stanchfield",
+          "link": "https://stackoverflow.com/users/12541/scott-stanchfield"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1688442081,
+        "post_id": 73021,
+        "comment_id": 135071165,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 2016836,
+          "reputation": 145,
+          "user_id": 3521337,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/WPj2Q.jpg?s=256",
+          "display_name": "Fuad Efendi",
+          "link": "https://stackoverflow.com/users/3521337/fuad-efendi"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1688313833,
+        "post_id": 73021,
+        "comment_id": 135054474,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 16559,
+          "reputation": 2173,
+          "user_id": 36223,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/bh9Vd.png?s=256",
+          "display_name": "DaveB",
+          "link": "https://stackoverflow.com/users/36223/daveb"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1683740567,
+        "post_id": 73021,
+        "comment_id": 134414646,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 540420,
+          "reputation": 6382,
+          "user_id": 908621,
+          "user_type": "registered",
+          "accept_rate": 61,
+          "profile_image": "https://www.gravatar.com/avatar/f275c40d3a1fefc35699d94b20bb4acd?s=256&d=identicon&r=PG",
+          "display_name": "fishinear",
+          "link": "https://stackoverflow.com/users/908621/fishinear"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1660665919,
+        "post_id": 73021,
+        "comment_id": 129583715,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 7257,
+          "reputation": 30740,
+          "user_id": 12541,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/Yk2vr.jpg?s=256",
+          "display_name": "Scott Stanchfield",
+          "link": "https://stackoverflow.com/users/12541/scott-stanchfield"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1660569635,
+        "post_id": 73021,
+        "comment_id": 129556659,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 540420,
+          "reputation": 6382,
+          "user_id": 908621,
+          "user_type": "registered",
+          "accept_rate": 61,
+          "profile_image": "https://www.gravatar.com/avatar/f275c40d3a1fefc35699d94b20bb4acd?s=256&d=identicon&r=PG",
+          "display_name": "fishinear",
+          "link": "https://stackoverflow.com/users/908621/fishinear"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1660479458,
+        "post_id": 73021,
+        "comment_id": 129538312,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 7257,
+          "reputation": 30740,
+          "user_id": 12541,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/Yk2vr.jpg?s=256",
+          "display_name": "Scott Stanchfield",
+          "link": "https://stackoverflow.com/users/12541/scott-stanchfield"
+        },
+        "reply_to_user": {
+          "account_id": 540420,
+          "reputation": 6382,
+          "user_id": 908621,
+          "user_type": "registered",
+          "accept_rate": 61,
+          "profile_image": "https://www.gravatar.com/avatar/f275c40d3a1fefc35699d94b20bb4acd?s=256&d=identicon&r=PG",
+          "display_name": "fishinear",
+          "link": "https://stackoverflow.com/users/908621/fishinear"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1660326327,
+        "post_id": 73021,
+        "comment_id": 129514894,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 540420,
+          "reputation": 6382,
+          "user_id": 908621,
+          "user_type": "registered",
+          "accept_rate": 61,
+          "profile_image": "https://www.gravatar.com/avatar/f275c40d3a1fefc35699d94b20bb4acd?s=256&d=identicon&r=PG",
+          "display_name": "fishinear",
+          "link": "https://stackoverflow.com/users/908621/fishinear"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1660304662,
+        "post_id": 73021,
+        "comment_id": 129507192,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 540420,
+          "reputation": 6382,
+          "user_id": 908621,
+          "user_type": "registered",
+          "accept_rate": 61,
+          "profile_image": "https://www.gravatar.com/avatar/f275c40d3a1fefc35699d94b20bb4acd?s=256&d=identicon&r=PG",
+          "display_name": "fishinear",
+          "link": "https://stackoverflow.com/users/908621/fishinear"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1660304162,
+        "post_id": 73021,
+        "comment_id": 129507011,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 540420,
+          "reputation": 6382,
+          "user_id": 908621,
+          "user_type": "registered",
+          "accept_rate": 61,
+          "profile_image": "https://www.gravatar.com/avatar/f275c40d3a1fefc35699d94b20bb4acd?s=256&d=identicon&r=PG",
+          "display_name": "fishinear",
+          "link": "https://stackoverflow.com/users/908621/fishinear"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1660303756,
+        "post_id": 73021,
+        "comment_id": 129506873,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 7257,
+          "reputation": 30740,
+          "user_id": 12541,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/Yk2vr.jpg?s=256",
+          "display_name": "Scott Stanchfield",
+          "link": "https://stackoverflow.com/users/12541/scott-stanchfield"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1660160364,
+        "post_id": 73021,
+        "comment_id": 129470072,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 7257,
+          "reputation": 30740,
+          "user_id": 12541,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/Yk2vr.jpg?s=256",
+          "display_name": "Scott Stanchfield",
+          "link": "https://stackoverflow.com/users/12541/scott-stanchfield"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1660160211,
+        "post_id": 73021,
+        "comment_id": 129470029,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 7257,
+          "reputation": 30740,
+          "user_id": 12541,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/Yk2vr.jpg?s=256",
+          "display_name": "Scott Stanchfield",
+          "link": "https://stackoverflow.com/users/12541/scott-stanchfield"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1660160006,
+        "post_id": 73021,
+        "comment_id": 129469961,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 540420,
+          "reputation": 6382,
+          "user_id": 908621,
+          "user_type": "registered",
+          "accept_rate": 61,
+          "profile_image": "https://www.gravatar.com/avatar/f275c40d3a1fefc35699d94b20bb4acd?s=256&d=identicon&r=PG",
+          "display_name": "fishinear",
+          "link": "https://stackoverflow.com/users/908621/fishinear"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1660152465,
+        "post_id": 73021,
+        "comment_id": 129467609,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 7257,
+          "reputation": 30740,
+          "user_id": 12541,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/Yk2vr.jpg?s=256",
+          "display_name": "Scott Stanchfield",
+          "link": "https://stackoverflow.com/users/12541/scott-stanchfield"
+        },
+        "reply_to_user": {
+          "account_id": 540420,
+          "reputation": 6382,
+          "user_id": 908621,
+          "user_type": "registered",
+          "accept_rate": 61,
+          "profile_image": "https://www.gravatar.com/avatar/f275c40d3a1fefc35699d94b20bb4acd?s=256&d=identicon&r=PG",
+          "display_name": "fishinear",
+          "link": "https://stackoverflow.com/users/908621/fishinear"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1660148046,
+        "post_id": 73021,
+        "comment_id": 129466120,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 540420,
+          "reputation": 6382,
+          "user_id": 908621,
+          "user_type": "registered",
+          "accept_rate": 61,
+          "profile_image": "https://www.gravatar.com/avatar/f275c40d3a1fefc35699d94b20bb4acd?s=256&d=identicon&r=PG",
+          "display_name": "fishinear",
+          "link": "https://stackoverflow.com/users/908621/fishinear"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1660048482,
+        "post_id": 73021,
+        "comment_id": 129436187,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 540420,
+          "reputation": 6382,
+          "user_id": 908621,
+          "user_type": "registered",
+          "accept_rate": 61,
+          "profile_image": "https://www.gravatar.com/avatar/f275c40d3a1fefc35699d94b20bb4acd?s=256&d=identicon&r=PG",
+          "display_name": "fishinear",
+          "link": "https://stackoverflow.com/users/908621/fishinear"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1660048408,
+        "post_id": 73021,
+        "comment_id": 129436159,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "49857": [],
+    "707416": [],
+    "436969": [],
+    "436924": [],
+    "49863": [],
+    "42392": [],
+    "46077533": [],
+    "46871427": [],
+    "47844599": [],
+    "48591063": [],
+    "49330809": [],
+    "50391764": [],
+    "54373107": [
+      {
+        "owner": {
+          "account_id": 18094497,
+          "reputation": 890,
+          "user_id": 13153117,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/zP8ps.jpg?s=256",
+          "display_name": "Stan",
+          "link": "https://stackoverflow.com/users/13153117/stan"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1674251620,
+        "post_id": 54373107,
+        "comment_id": 132682651,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "55923549": [],
+    "57068881": [],
+    "57229012": [],
+    "57616177": [
+      {
+        "owner": {
+          "account_id": 24885,
+          "reputation": 31351,
+          "user_id": 63550,
+          "user_type": "registered",
+          "accept_rate": 78,
+          "profile_image": "https://i.sstatic.net/RIZKi.png?s=256",
+          "display_name": "Peter Mortensen",
+          "link": "https://stackoverflow.com/users/63550/peter-mortensen"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1751976771,
+        "post_id": 57616177,
+        "comment_id": 140573541,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "58038425": [],
+    "64946506": [
+      {
+        "owner": {
+          "account_id": 24885,
+          "reputation": 31351,
+          "user_id": 63550,
+          "user_type": "registered",
+          "accept_rate": 78,
+          "profile_image": "https://i.sstatic.net/RIZKi.png?s=256",
+          "display_name": "Peter Mortensen",
+          "link": "https://stackoverflow.com/users/63550/peter-mortensen"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1751973797,
+        "post_id": 64946506,
+        "comment_id": 140573383,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "65460603": [
+      {
+        "owner": {
+          "account_id": 1630934,
+          "reputation": 3821,
+          "user_id": 1505487,
+          "user_type": "registered",
+          "accept_rate": 40,
+          "profile_image": "https://www.gravatar.com/avatar/32a89e70bccdffd6f50c1ec96224ab2d?s=256&d=identicon&r=PG",
+          "display_name": "Solubris",
+          "link": "https://stackoverflow.com/users/1505487/solubris"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1696488022,
+        "post_id": 65460603,
+        "comment_id": 136159728,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "66523582": [],
+    "67294696": [],
+    "18287583": [],
+    "17563873": [],
+    "17303467": [],
+    "16880062": [],
+    "12429953": [
+      {
+        "owner": {
+          "account_id": 1832955,
+          "reputation": 613,
+          "user_id": 1679112,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/RRaA1.jpg?s=256",
+          "display_name": "evaldeslacasa",
+          "link": "https://stackoverflow.com/users/1679112/evaldeslacasa"
+        },
+        "edited": false,
+        "score": 2,
+        "creation_date": 1733831977,
+        "post_id": 12429953,
+        "comment_id": 139779897,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "46026822": [],
+    "43290680": []
+  }
+}

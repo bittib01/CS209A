@@ -1,0 +1,88 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "java-8",
+      "java-stream",
+      "iterable"
+    ],
+    "owner": {
+      "account_id": 95715,
+      "reputation": 21736,
+      "user_id": 260511,
+      "user_type": "registered",
+      "accept_rate": 81,
+      "profile_image": "https://www.gravatar.com/avatar/cb68ec638fbe351fe832fc8483f554be?s=256&d=identicon&r=PG",
+      "display_name": "rayman",
+      "link": "https://stackoverflow.com/users/260511/rayman"
+    },
+    "is_answered": true,
+    "view_count": 177033,
+    "protected_date": 1541341899,
+    "accepted_answer_id": 23936723,
+    "answer_count": 8,
+    "score": 536,
+    "last_activity_date": 1705556160,
+    "creation_date": 1401362188,
+    "last_edit_date": 1538669971,
+    "question_id": 23932061,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/23932061/convert-iterable-to-stream-using-java-8-jdk",
+    "title": "Convert Iterable to Stream using Java 8 JDK",
+    "body": "<p>I have an interface which returns <code>java.lang.Iterable&lt;T&gt;</code>.</p>\n\n<p>I would like to manipulate that result using the Java 8 Stream API.</p>\n\n<p>However Iterable can't \"stream\".</p>\n\n<p>Any idea how to use the Iterable as a Stream without converting it to List?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 1416522,
+        "reputation": 96391,
+        "user_id": 3553087,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/Q2cTS.gif?s=256",
+        "display_name": "Brian Goetz",
+        "link": "https://stackoverflow.com/users/3553087/brian-goetz"
+      },
+      "is_accepted": true,
+      "score": 726,
+      "last_activity_date": 1705556160,
+      "last_edit_date": 1705556160,
+      "creation_date": 1401376555,
+      "answer_id": 23936723,
+      "question_id": 23932061,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p><code>Iterable</code> has a <code>spliterator()</code> method, which you can pass to <a href=\"https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/StreamSupport.html#stream(java.util.Spliterator,boolean)\" rel=\"noreferrer\"><code>StreamSupport.stream</code></a> to create a stream:</p>\n<pre class=\"lang-java prettyprint-override\"><code>StreamSupport.stream(iterable.spliterator(), false)\n             .filter(...)\n             .moreStreamOps(...);\n</code></pre>\n<p>This is a much better answer than using <code>spliteratorUnknownSize</code> directly, as it is both easier and gets a better result.  In the worst case, it's the same code (the default implementation uses <code>spliteratorUnknownSize</code>), but in the more common case, where your <code>Iterable</code> is already a collection, you'll get a better spliterator, and therefore better stream performance (maybe even good parallelism).  It's also less code.</p>\n<p>As you can see, getting a stream from an <code>Iterable</code> (see also <a href=\"https://stackoverflow.com/questions/23114015/why-does-iterablet-not-provide-stream-and-parallelstream-methods?rq=1\">this question</a>) is not very painful.</p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 406441,
+        "reputation": 34843,
+        "user_id": 775954,
+        "user_type": "registered",
+        "accept_rate": 85,
+        "profile_image": "https://www.gravatar.com/avatar/9f5a87db35489d2958945f35b457f1ee?s=256&d=identicon&r=PG",
+        "display_name": "Matthias Braun",
+        "link": "https://stackoverflow.com/users/775954/matthias-braun"
+      },
+      "reply_to_user": {
+        "account_id": 10694047,
+        "reputation": 11,
+        "user_id": 7871899,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/13e99e92900cfb6d0a50695fed36d225?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Guillaume",
+        "link": "https://stackoverflow.com/users/7871899/guillaume"
+      },
+      "edited": false,
+      "score": 14,
+      "creation_date": 1538669798,
+      "post_id": 23932061,
+      "comment_id": 92234308,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "23936723": []
+  }
+}

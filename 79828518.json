@@ -1,0 +1,73 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "clamav"
+    ],
+    "owner": {
+      "account_id": 2799515,
+      "reputation": 997,
+      "user_id": 6647878,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/6a33b19f4e1cfe88fac1b728c3eff3d8?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Nidhi257",
+      "link": "https://stackoverflow.com/users/6647878/nidhi257"
+    },
+    "is_answered": true,
+    "view_count": 67,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1764063361,
+    "creation_date": 1763980541,
+    "question_id": 79828518,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79828518/java-code-how-to-configure-and-scan-file-from-clamav-server",
+    "title": "Java Code | How to configure and scan file from clamAV server",
+    "body": "<p>The ClamAVScanner class is a Spring service that provides functionality to scan files for viruses using a ClamAV server.</p>\n<p>It connects to a ClamAV server (configurable host/port, with optional SSL) and streams file data for virus scanning.</p>\n<p>It is used to ensure uploaded files are safe and do not contain viruses</p>\n<pre><code> public VirusScanDto scan(final InputStream inputStream) throws IOException {\n\n    Socket socket = null;\n    InputStream inStream = null;\n    OutputStream outStream = null;\n    try {\n        if (secureScan)\n            socket = SSLSocketFactory.getDefault().createSocket();\n        else {\n            socket = new Socket();\n        }\n        socket.connect(new InetSocketAddress(host, port), connectionTimeout);\n        socket.setSoTimeout(readTimeout);\n\n        outStream = new BufferedOutputStream(socket.getOutputStream());\n        outStream.write(&quot;zINSTREAM\\0&quot;.getBytes(StandardCharsets.UTF_8));\n        outStream.flush();\n\n        byte[] buffer = new byte[chunkSize];\n        inStream = socket.getInputStream();\n        int read = inputStream.read(buffer);\n\n        while (read &gt;= 0) {\n            byte[] chunkSize = ByteBuffer.allocate(4).putInt(read).array();\n            outStream.write(chunkSize);\n            outStream.write(buffer, 0, read);\n\n            if (inStream.available() &gt; 0) {\n                byte[] reply = IOUtils.toByteArray(inStream);\n                throw new IOException(\n                        &quot;Reply from server: &quot; + new String(reply, StandardCharsets.UTF_8));\n            }\n            read = inputStream.read(buffer);\n        }\n        outStream.write(new byte[]{0, 0, 0, 0});\n        outStream.flush();\n        logger.debug(&quot;Time require to process file &quot; + (System.currentTimeMillis() - startTime) + &quot; milli sec&quot;);\n\n        return populateVirusScanResult(new String(IOUtils.toByteArray(inStream)).trim());\n    } catch (IOException e) {\n        return new VirusScanDto(&quot;CONNECTION_FAILED&quot;, e.getMessage());\n    } finally {\n        try {\n            if (Objects.nonNull(inStream)) {\n                inStream.close();\n            }\n            if (Objects.nonNull(outStream)) {\n                outStream.flush();\n                outStream.close();\n            }\n            if (socket != null &amp;&amp; socket.isConnected()) {\n                socket.close();\n            }\n        } catch (Exception e) {\n           System.out.println(&quot;Error closing instance, &quot; + e.getMessage());\n        }\n    }\n}\n\nprivate VirusScanDto populateVirusScanResult(final String result) {\n    VirusScanDto scanResult = new VirusScanDto();\n    scanResult.setStatus(&quot;FAILED&quot;);\n    scanResult.setResult(result);\n\n    if (result == null || result.isEmpty()) {\n        scanResult.setStatus(&quot;ERROR&quot;);\n    } else if (responseOk.equals(result)) {\n        scanResult.setStatus(&quot;PASSED&quot;);\n    } else if (result.endsWith(foundSuffix)) {\n        scanResult.setSignature(\n                result.substring(streamPrefix.length(), result.lastIndexOf(foundSuffix) - 1).trim());\n    } else if (result.endsWith(errorSuffix)) {\n        scanResult.setStatus(&quot;ERROR&quot;);\n    }\n    return scanResult;\n}\n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 1888781,
+        "reputation": 2498,
+        "user_id": 1707427,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/4d1a2608ee35e2df7d2400a02e62bb20?s=256&d=identicon&r=PG",
+        "display_name": "S&#246;ren",
+        "link": "https://stackoverflow.com/users/1707427/s%c3%b6ren"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1764063361,
+      "creation_date": 1764063361,
+      "answer_id": 79829511,
+      "question_id": 79828518,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Did you mean to post this on <a href=\"https://codereview.stackexchange.com/\">codereview</a>?</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 22124137,
+        "reputation": 4244,
+        "user_id": 16376827,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/1ImPw.png?s=256",
+        "display_name": "g00se",
+        "link": "https://stackoverflow.com/users/16376827/g00se"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1763982633,
+      "creation_date": 1763982633,
+      "answer_id": 79828556,
+      "question_id": 79828518,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Is there a question here somewhere?</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79829511": [],
+    "79828556": []
+  }
+}

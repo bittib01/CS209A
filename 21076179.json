@@ -1,0 +1,272 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "ssl-certificate",
+      "httpurlconnection"
+    ],
+    "owner": {
+      "account_id": 1148416,
+      "reputation": 12096,
+      "user_id": 1130672,
+      "user_type": "registered",
+      "accept_rate": 74,
+      "profile_image": "https://i.sstatic.net/ZwRzr.jpg?s=256",
+      "display_name": "bofanda",
+      "link": "https://stackoverflow.com/users/1130672/bofanda"
+    },
+    "is_answered": true,
+    "view_count": 4059634,
+    "protected_date": 1500092113,
+    "accepted_answer_id": 36427118,
+    "answer_count": 64,
+    "score": 1007,
+    "last_activity_date": 1751192257,
+    "creation_date": 1389539085,
+    "last_edit_date": 1746446560,
+    "question_id": 21076179,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/21076179/pkix-path-building-failed-and-unable-to-find-valid-certification-path-to-requ",
+    "title": "&quot;PKIX path building failed&quot; and &quot;unable to find valid certification path to requested target&quot;",
+    "body": "<p>I'm trying to get tweets using twitter4j library for my java project,<br />\nwhich uses under the covers <code>java.net.HttpURLConnection</code> (as can be seen in stack trace).</p>\n<p>On my first run I got an error about certificate <code>sun.security.validator.ValidatorException</code> and <code>sun.security.provider.certpath.SunCertPathBuilderException</code>.</p>\n<p>Then I added the twitter certificate by:</p>\n<pre><code>C:\\Program Files\\Java\\jdk1.7.0_45\\jre\\lib\\security&gt;keytool -importcert -trustcacerts -file PathToCert -alias ca_alias -keystore &quot;C:\\Program Files\\Java\\jdk1.7.0_45\\jre\\lib\\security\\cacerts&quot;\n</code></pre>\n<p>but without success.</p>\n<p>Here is the procedure to get tweets:</p>\n<pre><code>public static void main(String[] args) throws TwitterException {\n    ConfigurationBuilder cb = new ConfigurationBuilder();\n    cb.setDebugEnabled(true)\n        .setOAuthConsumerKey(&quot;myConsumerKey&quot;)\n        .setOAuthConsumerSecret(&quot;myConsumerSecret&quot;)\n        .setOAuthAccessToken(&quot;myAccessToken&quot;)\n        .setOAuthAccessTokenSecret(&quot;myAccessTokenSecret&quot;);\n    \n    TwitterFactory tf = new TwitterFactory(cb.build());\n    Twitter twitter = tf.getInstance();\n    \n    try {\n        Query query = new Query(&quot;iphone&quot;);\n        QueryResult result;\n        result = twitter.search(query);\n        System.out.println(&quot;Total amount of tweets: &quot; + result.getTweets().size());\n        List&lt;Status&gt; tweets = result.getTweets();\n        \n        for (Status tweet : tweets) {\n            System.out.println(&quot;@&quot; + tweet.getUser().getScreenName() + &quot; : &quot; + tweet.getText());\n        }\n    } catch (TwitterException te) {\n        te.printStackTrace();\n        System.out.println(&quot;Failed to search tweets: &quot; + te.getMessage());\n    }\n</code></pre>\n<p>And here is the error:</p>\n<pre><code>sun.security.validator.ValidatorException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target\nRelevant discussions can be found on the Internet at:\n    http://www.google.co.jp/search?q=d35baff5 or\n    http://www.google.co.jp/search?q=1446302e\nTwitterException{exceptionCode=[d35baff5-1446302e 43208640-747fd158 43208640-747fd158 43208640-747fd158], statusCode=-1, message=null, code=-1, retryAfter=-1, rateLimitStatus=null, version=3.0.5}\n    at twitter4j.internal.http.HttpClientImpl.request(HttpClientImpl.java:177)\n    at twitter4j.internal.http.HttpClientWrapper.request(HttpClientWrapper.java:61)\n    at twitter4j.internal.http.HttpClientWrapper.get(HttpClientWrapper.java:81)\n    at twitter4j.TwitterImpl.get(TwitterImpl.java:1929)\n    at twitter4j.TwitterImpl.search(TwitterImpl.java:306)\n    at jku.cc.servlets.TweetsAnalyzer.main(TweetsAnalyzer.java:38)\nCaused by: javax.net.ssl.SSLHandshakeException: sun.security.validator.ValidatorException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target\n    at sun.security.ssl.Alerts.getSSLException(Unknown Source)\n    at sun.security.ssl.SSLSocketImpl.fatal(Unknown Source)\n    at sun.security.ssl.Handshaker.fatalSE(Unknown Source)\n    at sun.security.ssl.Handshaker.fatalSE(Unknown Source)\n    at sun.security.ssl.ClientHandshaker.serverCertificate(Unknown Source)\n    at sun.security.ssl.ClientHandshaker.processMessage(Unknown Source)\n    at sun.security.ssl.Handshaker.processLoop(Unknown Source)\n    at sun.security.ssl.Handshaker.process_record(Unknown Source)\n    at sun.security.ssl.SSLSocketImpl.readRecord(Unknown Source)\n    at sun.security.ssl.SSLSocketImpl.performInitialHandshake(Unknown Source)\n    at sun.security.ssl.SSLSocketImpl.startHandshake(Unknown Source)\n    at sun.security.ssl.SSLSocketImpl.startHandshake(Unknown Source)\n    at sun.net.www.protocol.https.HttpsClient.afterConnect(Unknown Source)\n    at sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.connect(Unknown Source)\n    at sun.net.www.protocol.http.HttpURLConnection.getInputStream(Unknown Source)\n    at java.net.HttpURLConnection.getResponseCode(Unknown Source)\n    at sun.net.www.protocol.https.HttpsURLConnectionImpl.getResponseCode(Unknown Source)\n    at twitter4j.internal.http.HttpResponseImpl.&lt;init&gt;(HttpResponseImpl.java:34)\n    at twitter4j.internal.http.HttpClientImpl.request(HttpClientImpl.java:141)\n    ... 5 more\nCaused by: sun.security.validator.ValidatorException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target\n    at sun.security.validator.PKIXValidator.doBuild(Unknown Source)\n    at sun.security.validator.PKIXValidator.engineValidate(Unknown Source)\n    at sun.security.validator.Validator.validate(Unknown Source)\n    at sun.security.ssl.X509TrustManagerImpl.validate(Unknown Source)\n    at sun.security.ssl.X509TrustManagerImpl.checkTrusted(Unknown Source)\n    at sun.security.ssl.X509TrustManagerImpl.checkServerTrusted(Unknown Source)\n    ... 20 more\nCaused by: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target\n    at sun.security.provider.certpath.SunCertPathBuilder.engineBuild(Unknown Source)\n    at java.security.cert.CertPathBuilder.build(Unknown Source)\n    ... 26 more\nFailed to search tweets: sun.security.validator.ValidatorException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target\n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 6672550,
+        "reputation": 381,
+        "user_id": 5148256,
+        "user_type": "registered",
+        "profile_image": "https://lh4.googleusercontent.com/-71w6moI7his/AAAAAAAAAAI/AAAAAAAABYg/kY3GS4i1sLc/s256-rj/photo.jpg",
+        "display_name": "Sajjad Serajzadeh",
+        "link": "https://stackoverflow.com/users/5148256/sajjad-serajzadeh"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1751192257,
+      "creation_date": 1751192257,
+      "answer_id": 79683657,
+      "question_id": 21076179,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<h3>Add the Server's Certificate to the JVM Truststore</h3>\n<p>This error usually means the server you're calling uses a certificate that is either <strong>self-signed</strong> or <strong>not trusted by the JVM’s default truststore</strong>.</p>\n<h4>🔽 Step 1: Download the certificate</h4>\n<p>You can manually export the certificate from the server using your browser:</p>\n<ul>\n<li><p><strong>Chrome</strong>:</p>\n<ul>\n<li><p>Visit the server URL (e.g., <code>https://your-server.com</code>)</p>\n</li>\n<li><p>Click the padlock icon in the address bar → <code>Connection is secure</code> → <code>Certificate is valid</code></p>\n</li>\n<li><p>Go to the <strong>Details</strong> tab and click <strong>Copy to File</strong> to export the certificate (e.g., <code>myserver.crt</code>)</p>\n</li>\n</ul>\n</li>\n<li><p><strong>Firefox</strong>:</p>\n<ul>\n<li><p>Visit the server URL</p>\n</li>\n<li><p>Click the padlock icon → <code>Connection secure</code> → <code>More Information</code> → <code>View Certificate</code></p>\n</li>\n<li><p>Use <strong>Export</strong> to save the certificate</p>\n</li>\n</ul>\n</li>\n</ul>\n<h4>🔽 Step 2: Import the certificate into your JVM truststore:</h4>\n<pre><code>keytool -import -trustcacerts -alias myserver \\\n  -file myserver.crt \\\n  -keystore $JAVA_HOME/lib/security/cacerts \\\n  -storepass changeit\n</code></pre>\n<p><code>alias</code> is any name you choose for the certificate.</p>\n<ul>\n<li>Default password for the truststore is usually <code>changeit</code>.</li>\n</ul>\n<blockquote>\n<p>✅ After this, the certificate will be trusted by all Java applications running with that JDK.</p>\n</blockquote>\n"
+    },
+    {
+      "owner": {
+        "account_id": 13243884,
+        "reputation": 379,
+        "user_id": 9563588,
+        "user_type": "registered",
+        "profile_image": "https://graph.facebook.com/1405705712790241/picture?type=large",
+        "display_name": "Mic&#243; Papp",
+        "link": "https://stackoverflow.com/users/9563588/mic%c3%b3-papp"
+      },
+      "is_accepted": false,
+      "score": 2,
+      "last_activity_date": 1744875451,
+      "last_edit_date": 1744875451,
+      "creation_date": 1677067379,
+      "answer_id": 75532442,
+      "question_id": 21076179,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>The suggestions above do work, but I wanted a simpler, purely command-line solution, since I need it quite often — so I made <code>jssl</code>.</p>\n<p><strong>EDIT</strong><br />\nsyntax changed with jssl 2.x</p>\n<pre><code>jssl install example.com\n</code></pre>\n<p>or pipe a failing maven command</p>\n<pre><code>mvn package | jssl doctor\n</code></pre>\n<p><strong>ORIGINAL (jssl 1.x)</strong></p>\n<p>TLDR:<br />\n<code>jssl example.com install</code><br />\n<code>jssl example.com ping</code><br />\n<code>jssl example.com uninstall</code></p>\n<p>You can install jssl via homebrew:<br />\n<code>brew install pmamico/keg/jssl</code><br />\nor without homebrew:<br />\n<code>curl -sL https://raw.githubusercontent.com/pmamico/jssl/main/install.sh | bash</code></p>\n<p>It works on Windows, macOS and Linux also.<br />\nSee more at <a href=\"https://github.com/pmamico/jssl\" rel=\"nofollow noreferrer\">https://github.com/pmamico/jssl</a></p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 4716379,
+        "reputation": 1411,
+        "user_id": 3901138,
+        "user_type": "registered",
+        "accept_rate": 41,
+        "profile_image": "https://i.sstatic.net/z3jlM.png?s=256",
+        "display_name": "Park JongBum",
+        "link": "https://stackoverflow.com/users/3901138/park-jongbum"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1744165284,
+      "creation_date": 1744165284,
+      "answer_id": 79563342,
+      "question_id": 21076179,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>At one point of time, JavaMailSender wasn't able to send out email for my app under development. The message was :</p>\n<pre><code>PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target\n</code></pre>\n<p>During the transition time, somehow &quot;<strong>Norton 360 for Gamers</strong>&quot; was installed. So, I suspected it and removed Norton. Then mail sending function worked as normal.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 2066910,
+        "reputation": 251,
+        "user_id": 1842262,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/5dc133f7a6c9cd8f4ebe84c8e1175733?s=256&d=identicon&r=PG",
+        "display_name": "Venkatesh",
+        "link": "https://stackoverflow.com/users/1842262/venkatesh"
+      },
+      "is_accepted": false,
+      "score": 20,
+      "last_activity_date": 1726540469,
+      "last_edit_date": 1726540469,
+      "creation_date": 1595595933,
+      "answer_id": 63074163,
+      "question_id": 21076179,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>After struggling for half-day, found one more way to solve this problem. I was able to solve this in MAC 10.15.5 ( Catalina). Followed the below steps.</p>\n<ul>\n<li>This problem occurs when we are running behind a company proxy , In my case its Zscaler.</li>\n<li>Open Key chain access, export CA certificate.(Select CA certificate, <code>File-&gt;export items</code> and save with the desired name)</li>\n<li>Copy the path of existing cacerts from java folder(<code>/Library/Java/JavaVirtualMachines/jdk1.8.0_251.jdk/Contents/Home/jre/lib/security/cacerts</code>\n)</li>\n<li>Open terminal and navigate to the Keytool folder (<code>/Library/Java/JavaVirtualMachines/jdk1.8.0_251.jdk/Contents/Home/jre/bin</code>\n)</li>\n<li>Run the below command.</li>\n<li><code>Keytool -importcert -file (Path to exported cert from the keychainaccess) -alias (give a name) -keystore (Path of existing cacerts from java folder)</code></li>\n<li><code>sudo Keytool -importcert -file /Users/Desktop/RootCA.cer -alias demo -keystore /Library/Java/JavaVirtualMachines/jdk1.8.0_251.jdk/Contents/Home/jre/lib/security/cacerts</code></li>\n<li>It will ask for password , give it as : <code>changeit</code></li>\n<li>It asks for confirmation , Say : yes</li>\n</ul>\n<p>After all of these steps, Quit eclipse and terminal start fresh session.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 8287442,
+        "reputation": 1041,
+        "user_id": 6230157,
+        "user_type": "registered",
+        "profile_image": "https://lh3.googleusercontent.com/-WNhDcqj4Bm8/AAAAAAAAAAI/AAAAAAAAAaQ/3s-LIcsL8Bw/s256-rj/photo.jpg",
+        "display_name": "JenkaBY",
+        "link": "https://stackoverflow.com/users/6230157/jenkaby"
+      },
+      "is_accepted": false,
+      "score": 2,
+      "last_activity_date": 1711900026,
+      "creation_date": 1711900026,
+      "answer_id": 78251925,
+      "question_id": 21076179,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>I know my answer is not about fixing certificate validation from the source but the google landed me here because an error message I faced was the same.</p>\n<p>Given:</p>\n<ol>\n<li>Windows 10</li>\n<li>company's proxy behind (don't know exactly what's going on behind corporate's network but have Symantic Endpoint Protection is being run locally)</li>\n<li>several JDKs installed locally (8-21). JAVA_HOME points out the coretto-17.</li>\n<li>a simple brand new spring boot project generated from the spring-initializer.io (old gradle projects behave the same).</li>\n<li></li>\n</ol>\n<p>build.gradle</p>\n<pre><code>plugins {\n    id 'java'\n    id 'io.spring.dependency-management' version '1.1.4'\n    id 'org.springframework.boot' version '3.2.3'\n\n}\n\ngroup = 'com.test'\nversion = '0.0.1-SNAPSHOT'\n\njava {\n    sourceCompatibility = '17'\n}\n\nconfigurations {\n    compileOnly {\n        extendsFrom annotationProcessor\n    }\n}\n\nrepositories {\n    mavenCentral()\n}\n\ndependencies {\n    implementation 'org.springframework.boot:spring-boot-starter-web'\n    compileOnly 'org.projectlombok:lombok:1.18.32'\n    annotationProcessor 'org.projectlombok:lombok:1.18.32'\n}\n</code></pre>\n<p>settings.gradle</p>\n<pre><code>rootProject.name = 'gradle-fail'\n</code></pre>\n<p>The output I was trying to fix:</p>\n<pre><code>FAILURE: Build failed with an exception.\n\n* What went wrong:\nA problem occurred configuring root project 'gradle'.\n&gt; Could not resolve all files for configuration ':classpath'.\n   &gt; Could not resolve org.springframework.boot:spring-boot-buildpack-platform:3.2.3.\n     Required by:\n         project : &gt; org.springframework.boot:org.springframework.boot.gradle.plugin:3.2.3 &gt; org.springframework.boot:spring-boot-gradle-plugin:3.2.3\n      &gt; Could not resolve org.springframework.boot:spring-boot-buildpack-platform:3.2.3.\n         &gt; Could not get resource 'https://plugins.gradle.org/m2/org/springframework/boot/spring-boot-buildpack-platform/3.2.3/spring-boot-buildpack-platform-3.2.3.pom'.\n            &gt; Could not GET 'https://jcenter.bintray.com/org/springframework/boot/spring-boot-buildpack-platform/3.2.3/spring-boot-buildpack-platform-3.2.3.pom'.\n               &gt; PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target\n</code></pre>\n<p>I tried to build project via idea, gradle 8.5(7.5, 8.7) and gradle wrapper 8.5. I have to admit that the same project built via maven was compiled successfully.</p>\n<p>The most voted solution didn't help. The gradle plugin portal is being redirected to jcenter repo even though it has been deprecated. Local build is still attempting to download libs from the jcenter.</p>\n<p>My workaround was to disable jcenter repo and enforce using maven central or another maven repo for plugin resolution. Eventually I managed to fix it.\nThe final solution is pretty simple. Just needed to add mavenCentral to plugin management repository config:</p>\n<p>settings.gradle</p>\n<pre><code>pluginManagement {\n    repositories {\n        mavenCentral()\n    }\n}\nrootProject.name = 'gradle-failed'\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 543631,
+        "reputation": 10695,
+        "user_id": 912829,
+        "user_type": "registered",
+        "accept_rate": 53,
+        "profile_image": "https://www.gravatar.com/avatar/7253953e22cc6dbf31aef624f03e5cc3?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "ACV",
+        "link": "https://stackoverflow.com/users/912829/acv"
+      },
+      "is_accepted": false,
+      "score": 4,
+      "last_activity_date": 1710861777,
+      "creation_date": 1710861777,
+      "answer_id": 78187787,
+      "question_id": 21076179,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Most of the answers above regarding getting the certificate from the browser and importing it into your JRE <code>cacerts</code> are correct. I just wanted to clarify why this is happening and why is this necessary sometimes?</p>\n<p>Simply put, this could happen in 2 cases:</p>\n<ol>\n<li>When the certificate used by the target server is signed by an unknown CA (Certificate Authority). By unknown here is meant - unknown to your java. Java maintains a list of trusted CAs in its cacert and if the certificate was signed by some unknown CA or an incomplete set of CAs, the error will happen</li>\n<li>When you are behind a proxy which sniffs the https connection and replaces the target server certificate with its own certificate (e.g. Zscaler). Same thing, you need to get that certificate and import it into your JRE.</li>\n</ol>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 6570595,
+        "reputation": 3469,
+        "user_id": 5078765,
+        "user_type": "registered",
+        "accept_rate": 100,
+        "profile_image": "https://i.sstatic.net/4zU9N.jpg?s=256",
+        "display_name": "ADJenks",
+        "link": "https://stackoverflow.com/users/5078765/adjenks"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1625618203,
+      "post_id": 21076179,
+      "comment_id": 120672576,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 9992410,
+        "reputation": 542,
+        "user_id": 8710383,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/bI0e7.jpg?s=256",
+        "display_name": "Oleksandr",
+        "link": "https://stackoverflow.com/users/8710383/oleksandr"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1616497272,
+      "post_id": 21076179,
+      "comment_id": 118014538,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 15387,
+        "reputation": 67728,
+        "user_id": 32453,
+        "user_type": "registered",
+        "accept_rate": 92,
+        "profile_image": "https://www.gravatar.com/avatar/bec38d63650c8912b6ba9b557fb953b9?s=256&d=identicon&r=PG",
+        "display_name": "rogerdpack",
+        "link": "https://stackoverflow.com/users/32453/rogerdpack"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1614010116,
+      "post_id": 21076179,
+      "comment_id": 117246835,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79683657": [],
+    "75532442": [
+      {
+        "owner": {
+          "account_id": 2277880,
+          "reputation": 303,
+          "user_id": 2003712,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/5bc5dc0f344e9621afc82723afe033dc?s=256&d=identicon&r=PG",
+          "display_name": "brajmohan",
+          "link": "https://stackoverflow.com/users/2003712/brajmohan"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1689315232,
+        "post_id": 75532442,
+        "comment_id": 135198644,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "79563342": [],
+    "63074163": [
+      {
+        "owner": {
+          "account_id": 6608940,
+          "reputation": 730,
+          "user_id": 5483731,
+          "user_type": "registered",
+          "accept_rate": 72,
+          "profile_image": "https://www.gravatar.com/avatar/c7804d31372ede1ab6c4c3a6b850fdef?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "linuxNoob",
+          "link": "https://stackoverflow.com/users/5483731/linuxnoob"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1611170112,
+        "post_id": 63074163,
+        "comment_id": 116367870,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "78251925": [],
+    "78187787": [
+      {
+        "owner": {
+          "account_id": 1669453,
+          "reputation": 2056,
+          "user_id": 1536197,
+          "user_type": "registered",
+          "accept_rate": 21,
+          "profile_image": "https://www.gravatar.com/avatar/0b9e1e12435e9bdadd37ee0578547924?s=256&d=identicon&r=PG",
+          "display_name": "Hernaldo Gonzalez",
+          "link": "https://stackoverflow.com/users/1536197/hernaldo-gonzalez"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1721772065,
+        "post_id": 78187787,
+        "comment_id": 138906646,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

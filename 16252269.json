@@ -1,0 +1,141 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "list",
+      "sorting",
+      "arraylist",
+      "collections"
+    ],
+    "owner": {
+      "account_id": 1360527,
+      "reputation": 5021,
+      "user_id": 1297994,
+      "user_type": "registered",
+      "accept_rate": 83,
+      "profile_image": "https://www.gravatar.com/avatar/a3af97b52118a87600d305ad9ed24c4c?s=256&d=identicon&r=PG",
+      "display_name": "Himanshu",
+      "link": "https://stackoverflow.com/users/1297994/himanshu"
+    },
+    "is_answered": true,
+    "view_count": 1409090,
+    "protected_date": 1502107925,
+    "accepted_answer_id": 16252290,
+    "answer_count": 22,
+    "score": 484,
+    "last_activity_date": 1759852959,
+    "creation_date": 1367066896,
+    "last_edit_date": 1759610847,
+    "question_id": 16252269,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/16252269/how-to-sort-a-list-arraylist",
+    "title": "How to sort a List/ArrayList?",
+    "body": "<p>I have a <code>List</code> of <code>Double</code> objects in Java. I want to sort the <code>ArrayList</code> in descending order.</p>\n<p>Input <code>ArrayList</code>:</p>\n<pre><code>List&lt;Double&gt; testList = new ArrayList();\n\ntestList.add(0.5);\ntestList.add(0.2);\ntestList.add(0.9);\ntestList.add(0.1);\ntestList.add(0.1);\ntestList.add(0.1);\ntestList.add(0.54);\ntestList.add(0.71);\ntestList.add(0.71);\ntestList.add(0.71);\ntestList.add(0.92);\ntestList.add(0.12);\ntestList.add(0.65);\ntestList.add(0.34);\ntestList.add(0.62);\n    \n</code></pre>\n<p>The out put should be like this</p>\n<pre><code>0.92\n0.9\n0.71\n0.71\n0.71\n0.65\n0.62\n0.54\n0.5\n0.34\n0.2\n0.12\n0.1\n0.1\n0.1\n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 322981,
+        "reputation": 346871,
+        "user_id": 642706,
+        "user_type": "registered",
+        "accept_rate": 58,
+        "profile_image": "https://i.sstatic.net/ZWEI3.jpg?s=256",
+        "display_name": "Basil Bourque",
+        "link": "https://stackoverflow.com/users/642706/basil-bourque"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1759852959,
+      "last_edit_date": 1759852959,
+      "creation_date": 1759614448,
+      "answer_id": 79782693,
+      "question_id": 16252269,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<h2>tl;dr</h2>\n<p>In modern Java:</p>\n<pre class=\"lang-java prettyprint-override\"><code>List                          // Literals syntax, instead of multiple `.add` calls. \n.of( 0.5 , 0.2 , 0.9 , 0.1 , 0.1 , 0.1 , 0.54 , 0.71 , 0.71 , 0.71 , 0.92 , 0.12 , 0.65 , 0.34 , 0.62 )\n.stream()                     // Auto-boxing in line above produced `Double` objects, here fed into a stream as `Double` object elements.\n.sorted()                     // Elements of stream are sorted using natural-order.\n.toList()                     // Returns an unmodifiable `List` object of an unspecified `List` implementation class. \n.reversed()                   // For descending order, return a view onto that collection, in reverse order. Does *not* actually create a new collection, so very fast.\n.forEach( IO :: println );    // Streams our list of `Double` objects, passing each to the `println` method of the `IO` class that is a convenient alternative to `System.out`. \n</code></pre>\n<p>When run:</p>\n<pre class=\"lang-none prettyprint-override\"><code>0.92\n0.9\n0.71\n0.71\n0.71\n0.65\n0.62\n0.54\n0.5\n0.34\n0.2\n0.12\n0.1\n0.1\n0.1\n</code></pre>\n<h2>Literals syntax</h2>\n<p>In Java 9+, we can use convenient literals syntax for your input of <code>double</code> primitive values. As always, <a href=\"https://en.wikipedia.org/wiki/Boxing_(computer_programming)#Autoboxing\" rel=\"nofollow noreferrer\">auto-boxing</a> converts the primitives to <a href=\"https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Double.html\" rel=\"nofollow noreferrer\"><code>Double</code></a> objects.</p>\n<pre class=\"lang-java prettyprint-override\"><code>List &lt; Double &gt; inputs = List.of( 0.5 , 0.2 , 0.9 , 0.1 , 0.1 , 0.1 , 0.54 , 0.71 , 0.71 , 0.71 , 0.92 , 0.12 , 0.65 , 0.34 , 0.62 );\n</code></pre>\n<h2><code>Stream#toList</code></h2>\n<p>From your list, you can get a <a href=\"https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html#sorted()\" rel=\"nofollow noreferrer\">sorted</a> <a href=\"https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html\" rel=\"nofollow noreferrer\">stream</a>, as discussed in other Answers. But those other Answers use the older longer syntax <code>.collect(Collectors.toList())</code>. You can now use the briefer syntax <a href=\"https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html#toList()\" rel=\"nofollow noreferrer\"><code>.toList()</code></a> in Java 16+.</p>\n<pre><code>List &lt; Double &gt; sorted = inputs.stream().sorted().toList();\n</code></pre>\n<p>This sorting works because the <a href=\"https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Double.html\" rel=\"nofollow noreferrer\"><code>Double</code></a> class implements <a href=\"https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Comparable.html\" rel=\"nofollow noreferrer\"><code>Comparable</code></a>. Its <a href=\"https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Comparable.html#compareTo(T)\" rel=\"nofollow noreferrer\"><code>compareTo</code></a> method means the <code>Double</code> objects know how to sort themselves, known as “natural order”.</p>\n<p>You want descending order, with larger numbers first rather than last. So pass a <a href=\"https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Comparator.html\" rel=\"nofollow noreferrer\"><code>Comparator</code></a> to <a href=\"https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Comparator.html#reverseOrder()\" rel=\"nofollow noreferrer\">reverse the sort</a> order.</p>\n<pre class=\"lang-java prettyprint-override\"><code>List &lt; Double &gt; sorted = inputs.stream().sorted( Comparator.reverseOrder() ).toList();\n</code></pre>\n<p>Let's reformat that for clarity.</p>\n<pre class=\"lang-java prettyprint-override\"><code>List &lt; Double &gt; sorted = \n    inputs\n        .stream()\n        .sorted( \n            Comparator.reverseOrder() \n        )\n        .toList();\n</code></pre>\n<p>When run:</p>\n<blockquote>\n<p>sorted = [0.92, 0.9, 0.71, 0.71, 0.71, 0.65, 0.62, 0.54, 0.5, 0.34, 0.2, 0.12, 0.1, 0.1, 0.1]</p>\n</blockquote>\n<h2><code>SequencedCollection</code></h2>\n<p>Java 21+ brings <a href=\"https://openjdk.org/jeps/431\" rel=\"nofollow noreferrer\">sequenced collections</a> (<a href=\"https://youtu.be/6yuDqkkYTGU\" rel=\"nofollow noreferrer\">video</a>).</p>\n<p>Now <a href=\"https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html\" rel=\"nofollow noreferrer\"><code>List</code></a>, and therefore <code>ArrayList</code>/<code>LinkedList</code>, extend from <a href=\"https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/SequencedCollection.html\" rel=\"nofollow noreferrer\"><code>SequencedCollection</code></a> interface.</p>\n<p><a href=\"https://i.sstatic.net/JT4VNN2C.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/JT4VNN2C.png\" alt=\"class diagram of sequenced collections in Java 21+\" /></a></p>\n<p>If appropriate to your situation, you may want to refer to your list as the more general <code>SequencedCollection</code>.</p>\n<pre class=\"lang-java prettyprint-override\"><code>SequencedCollection &lt; Double &gt; sorted = inputs.stream().sorted().toList();\n</code></pre>\n<p>For example, if later you decide to eliminate duplicate values in your data, you could simply swap out the <code>List</code> with a <a href=\"https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/SequencedSet.html\" rel=\"nofollow noreferrer\"><code>SequencedSet</code></a> such as <a href=\"https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/TreeSet.html\" rel=\"nofollow noreferrer\"><code>TreeSet</code></a> — without breaking your existing code base. This works because a <code>SequencedSet</code> is also a <code>SequencedCollection</code>.</p>\n<pre class=\"lang-java prettyprint-override\"><code>SequencedCollection &lt; Double &gt; sorted = new TreeSet&lt;&gt;( inputs ) ;  // `TreeSet` automatically sorts while also eliminating duplicates. \n</code></pre>\n<h2><code>List#reversed</code></h2>\n<p>You want your list in descending order, rather than ascending. In code above we used <a href=\"https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Comparator.html#reverseOrder()\" rel=\"nofollow noreferrer\"><code>Comparator.reverseOrder()</code></a> to accomplish that goal within our stream.</p>\n<p>That is fine. But, FYI, there is an alternative with sequenced collections. The <code>SequencedCollection</code> interface requires the method <a href=\"https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/SequencedCollection.html#reversed()\" rel=\"nofollow noreferrer\"><code>reversed</code></a> which returns a reverse-ordered view of the collection.</p>\n<p>This means we could create the reversed view after the stream has finished. Just an option; not necessarily better in this particular case. (It is briefer code; I suppose that is one advantage.)</p>\n<pre class=\"lang-java prettyprint-override\"><code>List &lt; Double &gt; sorted = inputs.stream().sorted().toList().reversed();\n</code></pre>\n<p>Be aware that as a view, the new reversed collection is actually the same original collection. The view and the original are one and the same. So changing the original changes the reversed one as well. (In this particular case, that aspect is irrelevant. In our code above, no reference remains pointing to the <code>List</code> produced by <code>toList</code>. All that remains <a href=\"https://en.wikipedia.org/wiki/Tracing_garbage_collection#Reachability_of_an_object\" rel=\"nofollow noreferrer\">reachable</a> is our reversed view.)</p>\n<h2><code>IO</code></h2>\n<p>Java 25 gave us the handy convenience class <a href=\"https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/IO.html\" rel=\"nofollow noreferrer\"><code>IO</code></a> for easier access to the console.</p>\n<p>You may choose to use its <code>print</code>, <a href=\"https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/IO.html#println(java.lang.Object)\" rel=\"nofollow noreferrer\"><code>println</code></a>, and <a href=\"https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/IO.html#readln(java.lang.String)\" rel=\"nofollow noreferrer\"><code>readln</code></a> methods in place of <code>System.out</code>/<code>System.in</code>.</p>\n<pre class=\"lang-java prettyprint-override\"><code>sorted.forEach( IO :: println ) ;  // Dump to console.\n</code></pre>\n<h2>Example code</h2>\n<p>Putting all these ideas together:</p>\n<pre class=\"lang-java prettyprint-override\"><code>List   \n.of( 0.5 , 0.2 , 0.9 , 0.1 , 0.1 , 0.1 , 0.54 , 0.71 , 0.71 , 0.71 , 0.92 , 0.12 , 0.65 , 0.34 , 0.62 )\n.stream() \n.sorted()     \n.toList()                   \n.reversed()                  \n.forEach( IO :: println );  \n</code></pre>\n<p>When run:</p>\n<pre class=\"lang-none prettyprint-override\"><code>0.92\n0.9\n0.71\n0.71\n0.71\n0.65\n0.62\n0.54\n0.5\n0.34\n0.2\n0.12\n0.1\n0.1\n0.1\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 1712726,
+        "reputation": 6836,
+        "user_id": 1570415,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/Scl35.jpg?s=256",
+        "display_name": "Donald Raab",
+        "link": "https://stackoverflow.com/users/1570415/donald-raab"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1693811202,
+      "last_edit_date": 1693811202,
+      "creation_date": 1487641049,
+      "answer_id": 42357183,
+      "question_id": 16252269,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>With <a href=\"https://www.eclipse.org/collections/\" rel=\"nofollow noreferrer\">Eclipse Collections</a> you could create a primitive double list, sort it and then reverse it to put it in descending order.  This approach would avoid boxing the doubles.</p>\n<pre><code>MutableDoubleList doubleList =\n    DoubleLists.mutable.with(\n        0.5, 0.2, 0.9, 0.1, 0.1, 0.1, 0.54, 0.71,\n        0.71, 0.71, 0.92, 0.12, 0.65, 0.34, 0.62)\n        .sortThis().reverseThis();\ndoubleList.each(System.out::println);\n</code></pre>\n<p><strong>Updated:</strong> Sept. 2023</p>\n<p>Since the 10.3 release, <a href=\"https://medium.com/javarevisited/eclipse-collections-now-supports-indirect-sorting-of-primitive-lists-e2447ca5dbc3\" rel=\"nofollow noreferrer\">Eclipse Collections supports indirect sorting of primitive lists</a>.</p>\n<pre><code>@Test\npublic void sortDoubleListInDescendingOrder()\n{\n    MutableDoubleList testList = DoubleLists.mutable\n            .with(0.5, 0.2, 0.9, 0.1, 0.1, 0.1, 0.54, 0.71, 0.71,\n                  0.71, 0.92, 0.12, 0.65, 0.34, 0.62);\n\n    DoubleList expected = DoubleLists.mutable\n            .with(0.92, 0.9, 0.71, 0.71, 0.71, 0.65, 0.62, 0.54,\n                  0.5, 0.34, 0.2, 0.12, 0.1, 0.1, 0.1);\n\n    Assertions.assertNotEquals(expected, testList);\n\n    testList.sortThis((i, j) -&gt; -Double.compare(i, j));\n\n    Assertions.assertEquals(expected, testList);\n}\n</code></pre>\n<p><strong>End Update</strong></p>\n<p>If you want a <code>List&lt;Double&gt;</code>, then the following would work.</p>\n<pre><code>List&lt;Double&gt; objectList =\n    Lists.mutable.with(\n        0.5, 0.2, 0.9, 0.1, 0.1, 0.1, 0.54, 0.71,\n        0.71, 0.71, 0.92, 0.12, 0.65, 0.34, 0.62)\n        .sortThis(Collections.reverseOrder());\nobjectList.forEach(System.out::println);\n</code></pre>\n<p>If you want to keep the type as <code>ArrayList&lt;Double&gt;</code>, you can initialize and sort the list using the <code>ArrayListIterate</code> utility class as follows:</p>\n<pre><code>ArrayList&lt;Double&gt; arrayList =\n    ArrayListIterate.sortThis(\n            new ArrayList&lt;&gt;(objectList), Collections.reverseOrder());\narrayList.forEach(System.out::println);\n</code></pre>\n<p>Note: I am a committer for <a href=\"https://www.eclipse.org/collections/\" rel=\"nofollow noreferrer\">Eclipse Collections</a>.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 7732355,
+        "reputation": 731,
+        "user_id": 5855034,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/2cab187b6f620d2964407bb52b74261e?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "cyrus",
+        "link": "https://stackoverflow.com/users/5855034/cyrus"
+      },
+      "is_accepted": false,
+      "score": 72,
+      "last_activity_date": 1693806049,
+      "last_edit_date": 1693806049,
+      "creation_date": 1454034824,
+      "answer_id": 35075891,
+      "question_id": 16252269,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Using lambdas (Java 8), and stripping it down to the barest of syntax (the JVM will infer <em>plenty</em> in this case), you get:</p>\n<pre><code>Collections.sort(testList, (a, b) -&gt; b.compareTo(a));\n</code></pre>\n<p>A more verbose version:</p>\n<pre class=\"lang-java prettyprint-override\"><code>// Implement a reverse-order Comparator by lambda function\nComparator&lt;Double&gt; comp = (Double a, Double b) -&gt; {\n    return b.compareTo(a);\n};\n\nCollections.sort(testList, comp);\n</code></pre>\n<p>The use of a lambda is possible because the Comparator interface has only a single method to implement, so the VM can infer which method it's implementing. Since the types of the params can be inferred, they don't need to be stated, i.e. <code>(a, b)</code> instead of <code>(Double a, Double b)</code>. And since the lambda body has only a single line, and the method is expected to return a value, the <code>return</code> is inferred and the braces aren't necessary.</p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 2109967,
+        "reputation": 7219,
+        "user_id": 1875434,
+        "user_type": "registered",
+        "accept_rate": 67,
+        "profile_image": "https://www.gravatar.com/avatar/dc064a0af5b489a8a5aec8dcf53cc21e?s=256&d=identicon&r=PG",
+        "display_name": "abbas",
+        "link": "https://stackoverflow.com/users/1875434/abbas"
+      },
+      "edited": false,
+      "score": 2,
+      "creation_date": 1615811698,
+      "post_id": 16252269,
+      "comment_id": 117798565,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79782693": [],
+    "42357183": [],
+    "35075891": [
+      {
+        "owner": {
+          "account_id": 8547073,
+          "reputation": 360,
+          "user_id": 6405287,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/0d3bc190e5e0849a42f9713e3f2bc357?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Skillz",
+          "link": "https://stackoverflow.com/users/6405287/skillz"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1679964051,
+        "post_id": 35075891,
+        "comment_id": 133811916,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

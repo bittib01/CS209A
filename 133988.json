@@ -1,0 +1,362 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "multithreading",
+      "synchronization",
+      "thread-safety",
+      "synchronized"
+    ],
+    "owner": {
+      "account_id": 3001,
+      "reputation": 140375,
+      "user_id": 4249,
+      "user_type": "registered",
+      "accept_rate": 84,
+      "profile_image": "https://www.gravatar.com/avatar/c11c60c7e6d29cb4b87f3c0a3b692181?s=256&d=identicon&r=PG",
+      "display_name": "matt b",
+      "link": "https://stackoverflow.com/users/4249/matt-b"
+    },
+    "is_answered": true,
+    "view_count": 67724,
+    "accepted_answer_id": 134014,
+    "answer_count": 21,
+    "score": 63,
+    "last_activity_date": 1764431492,
+    "creation_date": 1222356427,
+    "last_edit_date": 1598532830,
+    "question_id": 133988,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/133988/synchronizing-on-string-objects-in-java",
+    "title": "Synchronizing on String objects in Java",
+    "body": "<p>I have a webapp that I am in the middle of doing some load/performance testing on, particularily on a feature where we expect a few hundred users to be accessing the same page and hitting refresh about every 10 seconds on this page. One area of improvement that we found we could make with this function was to cache the responses from the web service for some period of time, since the data is not changing.</p>\n<p>After implementing this basic caching, in some further testing I found out that I didn't consider how concurrent threads could access the Cache at the same time. I found that within the matter of ~100ms, about 50 threads were trying to fetch the object from the Cache, finding that it had expired, hitting the web service to fetch the data, and then putting the object back in the cache.</p>\n<p>The original code looked something like this:</p>\n<pre><code>private SomeData[] getSomeDataByEmail(WebServiceInterface service, String email) {\n\n  final String key = &quot;Data-&quot; + email;\n  SomeData[] data = (SomeData[]) StaticCache.get(key);\n\n  if (data == null) {\n      data = service.getSomeDataForEmail(email);\n\n      StaticCache.set(key, data, CACHE_TIME);\n  }\n  else {\n      logger.debug(&quot;getSomeDataForEmail: using cached object&quot;);\n  }\n\n  return data;\n}\n</code></pre>\n<p>So, to make sure that only one thread was calling the web service when the object at <code>key</code> expired, I thought I needed to synchronize the Cache get/set operation, and it seemed like using the cache key would be a good candidate for an object to synchronize on (this way, calls to this method for email b@b.com would not be blocked by method calls to a@a.com).</p>\n<p>I updated the method to look like this:</p>\n<pre><code>private SomeData[] getSomeDataByEmail(WebServiceInterface service, String email) {\n\n  \n  SomeData[] data = null;\n  final String key = &quot;Data-&quot; + email;\n  \n  synchronized(key) {      \n    data =(SomeData[]) StaticCache.get(key);\n\n    if (data == null) {\n        data = service.getSomeDataForEmail(email);\n        StaticCache.set(key, data, CACHE_TIME);\n    }\n    else {\n      logger.debug(&quot;getSomeDataForEmail: using cached object&quot;);\n    }\n  }\n\n  return data;\n}\n</code></pre>\n<p>I also added logging lines for things like &quot;before synchronization block&quot;, &quot;inside synchronization block&quot;, &quot;about to leave synchronization block&quot;, and &quot;after synchronization block&quot;, so I could determine if I was effectively synchronizing the get/set operation.</p>\n<p>However it doesn't seem like this has worked. My test logs have output like:</p>\n<pre><code>(log output is 'threadname' 'logger name' 'message')  \nhttp-80-Processor253 jsp.view-page - getSomeDataForEmail: about to enter synchronization block  \nhttp-80-Processor253 jsp.view-page - getSomeDataForEmail: inside synchronization block  \nhttp-80-Processor253 cache.StaticCache - get: object at key [SomeData-test@test.com] has expired  \nhttp-80-Processor253 cache.StaticCache - get: key [SomeData-test@test.com] returning value [null]  \nhttp-80-Processor263 jsp.view-page - getSomeDataForEmail: about to enter synchronization block  \nhttp-80-Processor263 jsp.view-page - getSomeDataForEmail: inside synchronization block  \nhttp-80-Processor263 cache.StaticCache - get: object at key [SomeData-test@test.com] has expired  \nhttp-80-Processor263 cache.StaticCache - get: key [SomeData-test@test.com] returning value [null]  \nhttp-80-Processor131 jsp.view-page - getSomeDataForEmail: about to enter synchronization block  \nhttp-80-Processor131 jsp.view-page - getSomeDataForEmail: inside synchronization block  \nhttp-80-Processor131 cache.StaticCache - get: object at key [SomeData-test@test.com] has expired  \nhttp-80-Processor131 cache.StaticCache - get: key [SomeData-test@test.com] returning value [null]  \nhttp-80-Processor104 jsp.view-page - getSomeDataForEmail: inside synchronization block  \nhttp-80-Processor104 cache.StaticCache - get: object at key [SomeData-test@test.com] has expired  \nhttp-80-Processor104 cache.StaticCache - get: key [SomeData-test@test.com] returning value [null]  \nhttp-80-Processor252 jsp.view-page - getSomeDataForEmail: about to enter synchronization block  \nhttp-80-Processor283 jsp.view-page - getSomeDataForEmail: about to enter synchronization block  \nhttp-80-Processor2 jsp.view-page - getSomeDataForEmail: about to enter synchronization block  \nhttp-80-Processor2 jsp.view-page - getSomeDataForEmail: inside synchronization block  \n</code></pre>\n<p>I wanted to see only one thread at a time entering/exiting the synchronization block around the get/set operations.</p>\n<p>Is there an issue in synchronizing on String objects? I thought the cache-key would be a good choice as it is unique to the operation, and even though the <code>final String key</code> is declared within the method, I was thinking that each thread would be getting a reference to <em>the same object</em> and therefore would synchronization on this single object.</p>\n<p>What am I doing wrong here?</p>\n<p><strong>Update</strong>: after looking further at the logs, it seems like methods with the same synchronization logic where the key is always the same, such as</p>\n<pre><code>final String key = &quot;blah&quot;;\n...\nsynchronized(key) { ...\n</code></pre>\n<p>do not exhibit the same concurrency problem - only one thread at a time is entering the block.</p>\n<p><strong>Update 2</strong>: Thanks to everyone for the help! I accepted the first answer about <code>intern()</code>ing Strings, which solved my initial problem - where multiple threads were entering synchronized blocks where I thought they shouldn't, because the <code>key</code>'s had the same value.</p>\n<p>As others have pointed out, using <code>intern()</code> for such a purpose and synchronizing on those Strings does indeed turn out to be a bad idea - when running JMeter tests against the webapp to simulate the expected load, I saw the used heap size grow to almost 1GB in just under 20 minutes.</p>\n<p>Currently I'm using the simple solution of just synchronizing the entire method - but I <strong>really</strong> like the code samples provided by martinprobst and MBCook, but since I have about 7 similar <code>getData()</code> methods in this class currently (since it needs about 7 different pieces of data from a web service), I didn't want to add almost-duplicate logic about getting and releasing locks to each method. But this is definitely very, very valuable info for future usage. I think these are ultimately the correct answers on how best to make an operation like this thread-safe, and I'd give out more votes to these answers if I could!</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 238051,
+        "reputation": 364,
+        "user_id": 506678,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/1875117d8c980647eedef5ab2102ea5f?s=256&d=identicon&r=PG",
+        "display_name": "ragnaroh",
+        "link": "https://stackoverflow.com/users/506678/ragnaroh"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1764431492,
+      "last_edit_date": 1764431492,
+      "creation_date": 1511655374,
+      "answer_id": 47491816,
+      "question_id": 133988,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>The following code is not easy to reason about, but it works as expected:</p>\n<pre><code>import java.util.Map;\nimport java.util.concurrent.ConcurrentHashMap;\nimport java.util.concurrent.atomic.AtomicInteger;\nimport java.util.function.Supplier;\n\npublic class KeySynchronizer&lt;T&gt; {\n\n    private final Map&lt;T, CounterLock&gt; locks = new ConcurrentHashMap&lt;&gt;();\n\n    public &lt;U&gt; U synchronize(T key, Supplier&lt;U&gt; supplier) {\n        CounterLock lock = locks.compute(key, (k, v) -&gt; \n                v == null ? new CounterLock() : v.increment());\n        synchronized (lock) {\n            try {\n                return supplier.get();\n            } finally {\n                if (lock.decrement() == 0) {\n                    // Only removes if key still points to the same value,\n                    // to avoid issue described below.\n                    locks.remove(key, lock);\n                }\n            }\n        }\n    }\n\n    private static final class CounterLock {\n\n        private final AtomicInteger remaining = new AtomicInteger(1);\n\n        private CounterLock increment() {\n            // Returning a new CounterLock object if remaining = 0 to ensure that\n            // the lock is not removed in step 5 of the following execution sequence:\n            // 1) Thread 1 obtains a new CounterLock object from locks.compute (after evaluating &quot;v == null&quot; to true)\n            // 2) Thread 2 evaluates &quot;v == null&quot; to false in locks.compute\n            // 3) Thread 1 calls lock.decrement() which sets remaining = 0\n            // 4) Thread 2 calls v.increment() in locks.compute\n            // 5) Thread 1 calls locks.remove(key, lock)\n            return remaining.getAndIncrement() == 0 ? new CounterLock() : this;\n        }\n\n        private int decrement() {\n            return remaining.decrementAndGet();\n        }\n    }\n}\n</code></pre>\n<p>In the case of the OP, it would be used like this:</p>\n<pre><code>private final KeySynchronizer&lt;String&gt; keySynchronizer = new KeySynchronizer&lt;&gt;();\n\nprivate SomeData[] getSomeDataByEmail(WebServiceInterface service, String email) {\n    String key = &quot;Data-&quot; + email;\n    return keySynchronizer.synchronize(key, () -&gt; {\n        SomeData[] existing = (SomeData[]) StaticCache.get(key);\n        if (existing == null) {\n            SomeData[] data = service.getSomeDataForEmail(email);\n            StaticCache.set(key, data, CACHE_TIME);\n            return data;\n        }\n        logger.debug(&quot;getSomeDataForEmail: using cached object&quot;);\n        return existing;\n    });\n}\n</code></pre>\n<p>If nothing should be returned from the synchronized code, the synchronize method can be written like this:</p>\n<pre><code>public void synchronize(T key, Runnable runnable) {\n    CounterLock lock = locks.compute(key, (k, v) -&gt; \n            v == null ? new CounterLock() : v.increment());\n    synchronized (lock) {\n        try {\n            runnable.run();\n        } finally {\n            if (lock.decrement() == 0) {\n                // Only removes if key still points to the same value,\n                // to avoid issue described below.\n                locks.remove(key, lock);\n            }\n        }\n    }\n}\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 18429491,
+        "reputation": 1,
+        "user_id": 13424976,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/5007e53715f19ce65f63189848ee7b48?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Raphael",
+        "link": "https://stackoverflow.com/users/13424976/raphael"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1702641024,
+      "creation_date": 1702641024,
+      "answer_id": 77666064,
+      "question_id": 133988,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>If done in the right way (without other libs or using intern()) this adds a bit of complexity to your code. It depends on the applicaition if it's worth using the following approach. Its based on <a href=\"https://stackoverflow.com/users/603516/vadzim\">vadzim</a>'s answer further up. I just added a keyLockCounter Map to resolve the race conditions which could have occured as mentioned from him. So in the keyLockCounter Map we sum up the waiting threads for the specific key.</p>\n<pre><code>    private final Map&lt;String, Object&gt; keyLocks = new ConcurrentHashMap&lt;&gt;();\n    private final Map&lt;String, AtomicInteger&gt; keyLockCounter = new ConcurrentHashMap&lt;&gt;();\n\n    private SomeData[] getSomeDataByEmail(WebServiceInterface service, String email) {\n        final String key = &quot;Data-&quot; + email;\n        synchronized (keyLocks.compute(key, (k, value) -&gt; {\n            if (value == null) {\n                keyLockCounter.put(key, new AtomicInteger(1));\n                return new Object();\n            } else {\n                var counterValue = keyLockCounter.computeIfAbsent(key, k2 -&gt; new AtomicInteger(0));\n                if (counterValue.incrementAndGet() == 1) {\n                    return new Object();\n                }\n                return value;\n            }\n        })) {\n            try {\n                // Do anything which needs to be synchronized\n            } finally {\n                var lockValue = keyLocks.get(key);\n                var counterValue = keyLockCounter.get(key);\n                if (counterValue.decrementAndGet() == 0) {\n                    if(keyLocks.remove(filename, lockValue)) {\n                        keyLockCounter.remove(filename, counterValue);\n                    }\n                }\n            }\n        }\n    }\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 292208,
+        "reputation": 11569,
+        "user_id": 2245707,
+        "user_type": "registered",
+        "accept_rate": 17,
+        "profile_image": "https://i.sstatic.net/Klcqr.gif?s=256",
+        "display_name": "pveentjer",
+        "link": "https://stackoverflow.com/users/2245707/pveentjer"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1602057563,
+      "last_edit_date": 1602057563,
+      "creation_date": 1602056896,
+      "answer_id": 64239564,
+      "question_id": 133988,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>You should be very careful using short lived objects with synchronization. Every Java object has an attached monitor and by default this monitor is deflated; however if 2 threads contend on acquiring the monitor, the monitor gets inflated. If the object would be long lived, this isn't a problem. However if the object is short lived, then cleaning up this inflated monitor can be a serious hit on GC times (so higher latencies and reduced throughput). And it can even be tricky to spot on the GC times since it isn't always listed.</p>\n<p>If you do want to synchronize, you could use a java.util.concurrent.Lock. Or make use of a manually crafted striped lock and use the hash of the string as an index on that striped lock. This striped lock you keep around so you don't get the GC problems.</p>\n<p>So something like this:</p>\n<pre><code>static final Object[] locks = newLockArray();\n\nObject lock = locks[hashToIndex(key.hashcode(),locks.length];\nsynchronized(lock){\n       ....\n}\n\nint hashToIndex(int hash, int length) {\n    if (hash == Integer.MIN_VALUE return 0;\n    return abs(hash) % length;\n}\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 11436232,
+        "reputation": 1362,
+        "user_id": 8383549,
+        "user_type": "registered",
+        "profile_image": "https://lh4.googleusercontent.com/-nlL_iZpaWhM/AAAAAAAAAAI/AAAAAAAADEw/vLJ1mIH_6nc/s256-rj/photo.jpg",
+        "display_name": "Vijay Rajpurohit",
+        "link": "https://stackoverflow.com/users/8383549/vijay-rajpurohit"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1566900973,
+      "creation_date": 1566900973,
+      "answer_id": 57672487,
+      "question_id": 133988,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p><strong>Latest update 2019,</strong></p>\n\n<p>If you are searching for <strong>new ways of implementing synchronization in JAVA</strong>, this answer is for you.</p>\n\n<p><a href=\"https://i.sstatic.net/tZVvW.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/tZVvW.png\" alt=\"enter image description here\"></a></p>\n\n<p>I found this amazing blog by Anatoliy Korovin this will help you understand the syncronized deeply.</p>\n\n<p><a href=\"https://dzone.com/articles/synchronized-by-the-value-of-the-object-in-java\" rel=\"nofollow noreferrer\">How to Synchronize Blocks by the Value of the Object in Java</a>.</p>\n\n<p><strong>This helped me hope new developers will find this useful too.</strong></p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 371567,
+        "reputation": 1722,
+        "user_id": 720163,
+        "user_type": "registered",
+        "accept_rate": 73,
+        "profile_image": "https://www.gravatar.com/avatar/1d7322a7e51af369dd7bf6041bc57c3b?s=256&d=identicon&r=PG",
+        "display_name": "Matej Tymes",
+        "link": "https://stackoverflow.com/users/720163/matej-tymes"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1561072082,
+      "creation_date": 1561072082,
+      "answer_id": 56694923,
+      "question_id": 133988,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>In your case you could use something like this (this doesn't leak any memory):</p>\n\n<pre><code>private Synchronizer&lt;String&gt; synchronizer = new Synchronizer();\n\nprivate SomeData[] getSomeDataByEmail(WebServiceInterface service, String email) {\n    String key = \"Data-\" + email;\n\n    return synchronizer.synchronizeOn(key, () -&gt; {\n\n        SomeData[] data = (SomeData[]) StaticCache.get(key);\n        if (data == null) {\n            data = service.getSomeDataForEmail(email);\n            StaticCache.set(key, data, CACHE_TIME);\n        } else {\n          logger.debug(\"getSomeDataForEmail: using cached object\");\n        }\n        return data;\n\n    });\n}\n</code></pre>\n\n<p>to use it you just add a dependency:</p>\n\n<pre><code>compile 'com.github.matejtymes:javafixes:1.3.0'\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 3688056,
+        "reputation": 1,
+        "user_id": 3071391,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/688c9eb328236a1697607bdbe05244a8?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "val",
+        "link": "https://stackoverflow.com/users/3071391/val"
+      },
+      "is_accepted": false,
+      "score": -1,
+      "last_activity_date": 1552081779,
+      "last_edit_date": 1552081779,
+      "creation_date": 1551896285,
+      "answer_id": 55029752,
+      "question_id": 133988,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>You can safely use String.intern for synchronize if you can reasonably guarantee that the string value is unique across your system. UUIDS are a good way to approach this. You can associate a UUID with your actual string key, either via a cache, a map, or maybe even store the uuid as a field on your entity object.</p>\n\n<pre><code>    @Service   \n    public class MySyncService{\n\n      public Map&lt;String, String&gt; lockMap=new HashMap&lt;String, String&gt;();\n\n      public void syncMethod(String email) {\n\n        String lock = lockMap.get(email);\n        if(lock==null) {\n            lock = UUID.randomUUID().toString();\n            lockMap.put(email, lock);\n        }   \n\n        synchronized(lock.intern()) {\n                //do your sync code here\n        }\n    }\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 297814,
+        "reputation": 26439,
+        "user_id": 603516,
+        "user_type": "registered",
+        "accept_rate": 100,
+        "profile_image": "https://www.gravatar.com/avatar/40895ef337d0a2eb7d538f5f8b3e6d58?s=256&d=identicon&r=PG",
+        "display_name": "Vadzim",
+        "link": "https://stackoverflow.com/users/603516/vadzim"
+      },
+      "is_accepted": false,
+      "score": 14,
+      "last_activity_date": 1546383518,
+      "last_edit_date": 1546383518,
+      "creation_date": 1510437968,
+      "answer_id": 47243259,
+      "question_id": 133988,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Here is a safe short Java 8 solution that uses a map of dedicated lock objects for synchronization:</p>\n\n<pre><code>private static final Map&lt;String, Object&gt; keyLocks = new ConcurrentHashMap&lt;&gt;();\n\nprivate SomeData[] getSomeDataByEmail(WebServiceInterface service, String email) {\n    final String key = \"Data-\" + email;\n    synchronized (keyLocks.computeIfAbsent(key, k -&gt; new Object())) {\n        SomeData[] data = StaticCache.get(key);\n        if (data == null) {\n            data = service.getSomeDataForEmail(email);\n            StaticCache.set(key, data);\n        }\n    }\n    return data;\n}\n</code></pre>\n\n<p>It has a drawback that keys and lock objects would retain in map forever.</p>\n\n<p>This can be worked around like this:</p>\n\n<pre><code>private SomeData[] getSomeDataByEmail(WebServiceInterface service, String email) {\n    final String key = \"Data-\" + email;\n    synchronized (keyLocks.computeIfAbsent(key, k -&gt; new Object())) {\n        try {\n            SomeData[] data = StaticCache.get(key);\n            if (data == null) {\n                data = service.getSomeDataForEmail(email);\n                StaticCache.set(key, data);\n            }\n        } finally {\n            keyLocks.remove(key); // vulnerable to race-conditions\n        }\n    }\n    return data;\n}\n</code></pre>\n\n<p>But then popular keys would be constantly reinserted in map with lock objects being reallocated.</p>\n\n<p><strong>Update</strong>: And this leaves race condition possibility when two threads would concurrently enter synchronized section for the same key but with different locks.</p>\n\n<p>So it may be more safe and efficient to use <a href=\"https://github.com/google/guava/wiki/CachesExplained\" rel=\"noreferrer\">expiring Guava Cache</a>:</p>\n\n<pre><code>private static final LoadingCache&lt;String, Object&gt; keyLocks = CacheBuilder.newBuilder()\n        .expireAfterAccess(10, TimeUnit.MINUTES) // max lock time ever expected\n        .build(CacheLoader.from(Object::new));\n\nprivate SomeData[] getSomeDataByEmail(WebServiceInterface service, String email) {\n    final String key = \"Data-\" + email;\n    synchronized (keyLocks.getUnchecked(key)) {\n        SomeData[] data = StaticCache.get(key);\n        if (data == null) {\n            data = service.getSomeDataForEmail(email);\n            StaticCache.set(key, data);\n        }\n    }\n    return data;\n}\n</code></pre>\n\n<p>Note that it's assumed here that <code>StaticCache</code> is thread-safe and wouldn't suffer from concurrent reads and writes for different keys.</p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 40307,
+        "reputation": 3398,
+        "user_id": 116810,
+        "user_type": "registered",
+        "accept_rate": 80,
+        "profile_image": "https://i.sstatic.net/vDT8U.jpg?s=256",
+        "display_name": "Kimball Robinson",
+        "link": "https://stackoverflow.com/users/116810/kimball-robinson"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1519430958,
+      "post_id": 133988,
+      "comment_id": 84922821,
+      "content_license": "CC BY-SA 3.0"
+    },
+    {
+      "owner": {
+        "account_id": 94225,
+        "reputation": 2098,
+        "user_id": 257364,
+        "user_type": "registered",
+        "accept_rate": 0,
+        "profile_image": "https://www.gravatar.com/avatar/fd01dd06eefc977f4746b1ff55799c2b?s=256&d=identicon&r=PG",
+        "display_name": "Volksman",
+        "link": "https://stackoverflow.com/users/257364/volksman"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1487264849,
+      "post_id": 133988,
+      "comment_id": 71717316,
+      "content_license": "CC BY-SA 3.0"
+    }
+  ],
+  "answer_comments": {
+    "47491816": [],
+    "77666064": [],
+    "64239564": [],
+    "57672487": [],
+    "56694923": [],
+    "55029752": [],
+    "47243259": [
+      {
+        "owner": {
+          "account_id": 297814,
+          "reputation": 26439,
+          "user_id": 603516,
+          "user_type": "registered",
+          "accept_rate": 100,
+          "profile_image": "https://www.gravatar.com/avatar/40895ef337d0a2eb7d538f5f8b3e6d58?s=256&d=identicon&r=PG",
+          "display_name": "Vadzim",
+          "link": "https://stackoverflow.com/users/603516/vadzim"
+        },
+        "reply_to_user": {
+          "account_id": 39208,
+          "reputation": 269347,
+          "user_id": 112968,
+          "user_type": "registered",
+          "accept_rate": 68,
+          "profile_image": "https://i.sstatic.net/zHTaT.png?s=256",
+          "display_name": "knittl",
+          "link": "https://stackoverflow.com/users/112968/knittl"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1546383770,
+        "post_id": 47243259,
+        "comment_id": 94836190,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 39208,
+          "reputation": 269347,
+          "user_id": 112968,
+          "user_type": "registered",
+          "accept_rate": 68,
+          "profile_image": "https://i.sstatic.net/zHTaT.png?s=256",
+          "display_name": "knittl",
+          "link": "https://stackoverflow.com/users/112968/knittl"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1546378985,
+        "post_id": 47243259,
+        "comment_id": 94835340,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 297814,
+          "reputation": 26439,
+          "user_id": 603516,
+          "user_type": "registered",
+          "accept_rate": 100,
+          "profile_image": "https://www.gravatar.com/avatar/40895ef337d0a2eb7d538f5f8b3e6d58?s=256&d=identicon&r=PG",
+          "display_name": "Vadzim",
+          "link": "https://stackoverflow.com/users/603516/vadzim"
+        },
+        "reply_to_user": {
+          "account_id": 39208,
+          "reputation": 269347,
+          "user_id": 112968,
+          "user_type": "registered",
+          "accept_rate": 68,
+          "profile_image": "https://i.sstatic.net/zHTaT.png?s=256",
+          "display_name": "knittl",
+          "link": "https://stackoverflow.com/users/112968/knittl"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1546377517,
+        "post_id": 47243259,
+        "comment_id": 94835044,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 39208,
+          "reputation": 269347,
+          "user_id": 112968,
+          "user_type": "registered",
+          "accept_rate": 68,
+          "profile_image": "https://i.sstatic.net/zHTaT.png?s=256",
+          "display_name": "knittl",
+          "link": "https://stackoverflow.com/users/112968/knittl"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1546251757,
+        "post_id": 47243259,
+        "comment_id": 94809714,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 297814,
+          "reputation": 26439,
+          "user_id": 603516,
+          "user_type": "registered",
+          "accept_rate": 100,
+          "profile_image": "https://www.gravatar.com/avatar/40895ef337d0a2eb7d538f5f8b3e6d58?s=256&d=identicon&r=PG",
+          "display_name": "Vadzim",
+          "link": "https://stackoverflow.com/users/603516/vadzim"
+        },
+        "reply_to_user": {
+          "account_id": 39208,
+          "reputation": 269347,
+          "user_id": 112968,
+          "user_type": "registered",
+          "accept_rate": 68,
+          "profile_image": "https://i.sstatic.net/zHTaT.png?s=256",
+          "display_name": "knittl",
+          "link": "https://stackoverflow.com/users/112968/knittl"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1546191359,
+        "post_id": 47243259,
+        "comment_id": 94797059,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 39208,
+          "reputation": 269347,
+          "user_id": 112968,
+          "user_type": "registered",
+          "accept_rate": 68,
+          "profile_image": "https://i.sstatic.net/zHTaT.png?s=256",
+          "display_name": "knittl",
+          "link": "https://stackoverflow.com/users/112968/knittl"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1546164967,
+        "post_id": 47243259,
+        "comment_id": 94791165,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

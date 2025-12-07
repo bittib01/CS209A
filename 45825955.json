@@ -1,0 +1,96 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-mvc",
+      "spring-test",
+      "spring-test-mvc"
+    ],
+    "owner": {
+      "account_id": 1018172,
+      "reputation": 862,
+      "user_id": 1029247,
+      "user_type": "registered",
+      "accept_rate": 89,
+      "profile_image": "https://i.sstatic.net/dlF8s.jpg?s=256",
+      "display_name": "thisdotnull",
+      "link": "https://stackoverflow.com/users/1029247/thisdotnull"
+    },
+    "is_answered": true,
+    "view_count": 109483,
+    "accepted_answer_id": 45835655,
+    "answer_count": 2,
+    "score": 40,
+    "last_activity_date": 1764949111,
+    "creation_date": 1503431641,
+    "last_edit_date": 1591816962,
+    "question_id": 45825955,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/45825955/using-spring-mockmvc-to-test-optional-path-variables",
+    "title": "Using Spring mockMvc to test optional path variables",
+    "body": "<p>I have a method in Spring MVC with optional path variable. I am trying to test it for a scenario when optional path variable is not provided.  </p>\n\n<p>Snippet from Controller, resource URI to invoke-</p>\n\n<pre><code>@RequestMapping(value = \"/some/uri/{foo}/{bar}\", method = RequestMethod.PUT)\npublic &lt;T&gt; ResponseEntity&lt;T&gt; someMethod(\n     @PathVariable(\"foo\") String foo, \n     @PathVariable(value = \"bar\", required = false) String bar\n) {\n    LOGGER.info(\"foo: {}, bar: {}\", foo, bar);\n}\n</code></pre>\n\n<p>Snippet from my test using MockMvc-</p>\n\n<pre><code>//inject context\n@Autowired\nprivate WebApplicationContext webApplicationContext;\n\nprotected MockMvc mockMvc;\n\n@Before\npublic void setup() {\n    //build mockMvc\n    mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();\n}\n\n@Test\npublic void someMethodTest() throws Exception {\n    //works as expected\n    mockMvc.perform(put(\"/some/uri/{foo}/{bar}\", \"foo\", \"bar\"))\n            .andExpect(status().isOk()); //works\n\n    //following doesn't work\n\n    //pass null for optional\n    mockMvc.perform(put(\"/some/uri/{foo}/{bar}\", \"foo\", null))\n            .andExpect(status().isOk()); //throws 404\n\n    //pass empty for optional\n    mockMvc.perform(put(\"/some/uri/{foo}/{bar}\", \"foo\", \"\"))\n            .andExpect(status().isOk()); //throws 404\n\n    //remove optional from URI\n    mockMvc.perform(put(\"/some/uri/{foo}\", \"foo\"))\n            .andExpect(status().isOk()); //throws 404\n}\n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 16591313,
+        "reputation": 11,
+        "user_id": 11989425,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/4b00504aac7ce9bfb6de5cfff9f45589?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Manoj Kumar S",
+        "link": "https://stackoverflow.com/users/11989425/manoj-kumar-s"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1764949111,
+      "last_edit_date": 1764949111,
+      "creation_date": 1566998540,
+      "answer_id": 57693491,
+      "question_id": 45825955,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>This is late but I faced recently this situation and thought this post would help others.</p>\n<p>In case of mocking endpoints with optional request param or path variable, you can specify it like this.</p>\n<p>Say I have a method with params as <code>m1(String param1, String param2)</code> called from controller.</p>\n<p>Where param 2 is an optional param for controller, so at runtime null would be passed if it is not passed.</p>\n<p>How to mock:</p>\n<pre class=\"lang-java prettyprint-override\"><code>Mockito.when(m1(Mockito.anyString(), Mockito.eq(null))\n        .thenReturn(&lt;whatever you want to return&gt;)\n</code></pre>\n<p>Use <code>Mockito.eq(null)</code> in your test to pass it as null for optional param.</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "57693491": [
+      {
+        "owner": {
+          "account_id": 1018172,
+          "reputation": 862,
+          "user_id": 1029247,
+          "user_type": "registered",
+          "accept_rate": 89,
+          "profile_image": "https://i.sstatic.net/dlF8s.jpg?s=256",
+          "display_name": "thisdotnull",
+          "link": "https://stackoverflow.com/users/1029247/thisdotnull"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1567089413,
+        "post_id": 57693491,
+        "comment_id": 101867301,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 10012521,
+          "reputation": 3468,
+          "user_id": 7404943,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/81631e51ba16ace132086d80f41d3a4b?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "barbsan",
+          "link": "https://stackoverflow.com/users/7404943/barbsan"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1567000238,
+        "post_id": 57693491,
+        "comment_id": 101832092,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

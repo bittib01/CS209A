@@ -1,0 +1,238 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "math",
+      "optimization",
+      "perfect-square"
+    ],
+    "owner": {
+      "account_id": 9921,
+      "reputation": 109843,
+      "user_id": 18511,
+      "user_type": "registered",
+      "accept_rate": 92,
+      "profile_image": "https://www.gravatar.com/avatar/c621039e41aef415ad25054da3bf3f9a?s=256&d=identicon&r=PG",
+      "display_name": "Kip",
+      "link": "https://stackoverflow.com/users/18511/kip"
+    },
+    "is_answered": true,
+    "view_count": 335256,
+    "protected_date": 1347961711,
+    "accepted_answer_id": 424936,
+    "answer_count": 37,
+    "community_owned_date": 1373578333,
+    "score": 1616,
+    "last_activity_date": 1704997277,
+    "creation_date": 1226929401,
+    "last_edit_date": 1572368434,
+    "question_id": 295579,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/295579/fastest-way-to-determine-if-an-integers-square-root-is-an-integer",
+    "title": "Fastest way to determine if an integer&#39;s square root is an integer",
+    "body": "<p>I'm looking for the fastest way to determine if a <code>long</code> value is a perfect square (i.e. its square root is another integer): </p>\n\n<ol>\n<li>I've done it the easy way, by using the built-in <a href=\"https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/Math.html#sqrt(double)\" rel=\"noreferrer\"><code>Math.sqrt()</code></a>\nfunction, but I'm wondering if there is a way to do it faster by\nrestricting yourself to integer-only domain.</li>\n<li>Maintaining a lookup table is impractical (since there are about\n2<sup>31.5</sup> integers whose square is less than 2<sup>63</sup>).</li>\n</ol>\n\n<p>Here is the very simple and straightforward way I'm doing it now:</p>\n\n<pre><code>public final static boolean isPerfectSquare(long n)\n{\n  if (n &lt; 0)\n    return false;\n\n  long tst = (long)(Math.sqrt(n) + 0.5);\n  return tst*tst == n;\n}\n</code></pre>\n\n<p><sub>Note: I'm using this function in many <a href=\"http://projecteuler.net/\" rel=\"noreferrer\">Project Euler</a> problems.  So no one else will ever have to maintain this code.  And this kind of micro-optimization could actually make a difference, since part of the challenge is to do every algorithm in less than a minute, and this function will need to be called millions of times in some problems.</sub></p>\n\n<hr>\n\n<p>I've tried the different solutions to the problem:</p>\n\n<ul>\n<li>After exhaustive testing, I found that adding <code>0.5</code> to the result of Math.sqrt() is not necessary, at least not on my machine.</li>\n<li>The <a href=\"https://en.wikipedia.org/wiki/Fast_inverse_square_root\" rel=\"noreferrer\">fast inverse square root</a> was faster, but it gave incorrect results for n >= 410881.  However, as suggested by <a href=\"https://stackoverflow.com/users/38426/bobbyshaftoe\">BobbyShaftoe</a>, we can use the FISR hack for n &lt; 410881.</li>\n<li>Newton's method was a good bit slower than <code>Math.sqrt()</code>.  This is probably because <code>Math.sqrt()</code> uses something similar to Newton's Method, but implemented in the hardware so it's much faster than in Java.  Also, Newton's Method still required use of doubles.</li>\n<li>A modified Newton's method, which used a few tricks so that only integer math was involved, required some hacks to avoid overflow (I want this function to work with all positive 64-bit signed integers), and it was still slower than <code>Math.sqrt()</code>.</li>\n<li>Binary chop was even slower.  This makes sense because the binary chop will on average require 16 passes to find the square root of a 64-bit number.</li>\n<li>According to John's tests, using <code>or</code> statements is faster in C++ than using a <code>switch</code>, but in Java and C# there appears to be no difference between <code>or</code> and <code>switch</code>.</li>\n<li>I also tried making a lookup table (as a private static array of 64 boolean values).  Then instead of either switch or <code>or</code> statement, I would just say <code>if(lookup[(int)(n&amp;0x3F)]) { test } else return false;</code>.  To my surprise, this was (just slightly) slower. This is because <a href=\"https://stackoverflow.com/questions/299079/why-is-this-code-with-several-or-statements-slightly-faster-than-using-a-lookup-t#299205\">array bounds are checked in Java</a>. </li>\n</ul>\n"
+  },
+  "answers": [],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 20016172,
+        "reputation": 3035,
+        "user_id": 14672114,
+        "user_type": "registered",
+        "profile_image": "https://lh3.googleusercontent.com/a-/AOh14Gh77XbK_ZXsqVwrM6a6K6g2DNN4_XD_K1wOopWCVA=k-s256",
+        "display_name": "RARE Kpop Manifesto",
+        "link": "https://stackoverflow.com/users/14672114/rare-kpop-manifesto"
+      },
+      "reply_to_user": {
+        "account_id": 100551,
+        "reputation": 31231,
+        "user_id": 270986,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/c49652c88a43a35bbf0095abfdae3515?s=256&d=identicon&r=PG",
+        "display_name": "Mark Dickinson",
+        "link": "https://stackoverflow.com/users/270986/mark-dickinson"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1716365331,
+      "post_id": 295579,
+      "comment_id": 138419624,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 20016172,
+        "reputation": 3035,
+        "user_id": 14672114,
+        "user_type": "registered",
+        "profile_image": "https://lh3.googleusercontent.com/a-/AOh14Gh77XbK_ZXsqVwrM6a6K6g2DNN4_XD_K1wOopWCVA=k-s256",
+        "display_name": "RARE Kpop Manifesto",
+        "link": "https://stackoverflow.com/users/14672114/rare-kpop-manifesto"
+      },
+      "reply_to_user": {
+        "account_id": 100551,
+        "reputation": 31231,
+        "user_id": 270986,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/c49652c88a43a35bbf0095abfdae3515?s=256&d=identicon&r=PG",
+        "display_name": "Mark Dickinson",
+        "link": "https://stackoverflow.com/users/270986/mark-dickinson"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1716352304,
+      "post_id": 295579,
+      "comment_id": 138418283,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 100551,
+        "reputation": 31231,
+        "user_id": 270986,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/c49652c88a43a35bbf0095abfdae3515?s=256&d=identicon&r=PG",
+        "display_name": "Mark Dickinson",
+        "link": "https://stackoverflow.com/users/270986/mark-dickinson"
+      },
+      "reply_to_user": {
+        "account_id": 20016172,
+        "reputation": 3035,
+        "user_id": 14672114,
+        "user_type": "registered",
+        "profile_image": "https://lh3.googleusercontent.com/a-/AOh14Gh77XbK_ZXsqVwrM6a6K6g2DNN4_XD_K1wOopWCVA=k-s256",
+        "display_name": "RARE Kpop Manifesto",
+        "link": "https://stackoverflow.com/users/14672114/rare-kpop-manifesto"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1716272567,
+      "post_id": 295579,
+      "comment_id": 138409073,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 20016172,
+        "reputation": 3035,
+        "user_id": 14672114,
+        "user_type": "registered",
+        "profile_image": "https://lh3.googleusercontent.com/a-/AOh14Gh77XbK_ZXsqVwrM6a6K6g2DNN4_XD_K1wOopWCVA=k-s256",
+        "display_name": "RARE Kpop Manifesto",
+        "link": "https://stackoverflow.com/users/14672114/rare-kpop-manifesto"
+      },
+      "reply_to_user": {
+        "account_id": 100551,
+        "reputation": 31231,
+        "user_id": 270986,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/c49652c88a43a35bbf0095abfdae3515?s=256&d=identicon&r=PG",
+        "display_name": "Mark Dickinson",
+        "link": "https://stackoverflow.com/users/270986/mark-dickinson"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1716271420,
+      "post_id": 295579,
+      "comment_id": 138408933,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 20016172,
+        "reputation": 3035,
+        "user_id": 14672114,
+        "user_type": "registered",
+        "profile_image": "https://lh3.googleusercontent.com/a-/AOh14Gh77XbK_ZXsqVwrM6a6K6g2DNN4_XD_K1wOopWCVA=k-s256",
+        "display_name": "RARE Kpop Manifesto",
+        "link": "https://stackoverflow.com/users/14672114/rare-kpop-manifesto"
+      },
+      "reply_to_user": {
+        "account_id": 100551,
+        "reputation": 31231,
+        "user_id": 270986,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/c49652c88a43a35bbf0095abfdae3515?s=256&d=identicon&r=PG",
+        "display_name": "Mark Dickinson",
+        "link": "https://stackoverflow.com/users/270986/mark-dickinson"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1716270477,
+      "post_id": 295579,
+      "comment_id": 138408843,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 20016172,
+        "reputation": 3035,
+        "user_id": 14672114,
+        "user_type": "registered",
+        "profile_image": "https://lh3.googleusercontent.com/a-/AOh14Gh77XbK_ZXsqVwrM6a6K6g2DNN4_XD_K1wOopWCVA=k-s256",
+        "display_name": "RARE Kpop Manifesto",
+        "link": "https://stackoverflow.com/users/14672114/rare-kpop-manifesto"
+      },
+      "reply_to_user": {
+        "account_id": 100551,
+        "reputation": 31231,
+        "user_id": 270986,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/c49652c88a43a35bbf0095abfdae3515?s=256&d=identicon&r=PG",
+        "display_name": "Mark Dickinson",
+        "link": "https://stackoverflow.com/users/270986/mark-dickinson"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1716270175,
+      "post_id": 295579,
+      "comment_id": 138408813,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 100551,
+        "reputation": 31231,
+        "user_id": 270986,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/c49652c88a43a35bbf0095abfdae3515?s=256&d=identicon&r=PG",
+        "display_name": "Mark Dickinson",
+        "link": "https://stackoverflow.com/users/270986/mark-dickinson"
+      },
+      "reply_to_user": {
+        "account_id": 20016172,
+        "reputation": 3035,
+        "user_id": 14672114,
+        "user_type": "registered",
+        "profile_image": "https://lh3.googleusercontent.com/a-/AOh14Gh77XbK_ZXsqVwrM6a6K6g2DNN4_XD_K1wOopWCVA=k-s256",
+        "display_name": "RARE Kpop Manifesto",
+        "link": "https://stackoverflow.com/users/14672114/rare-kpop-manifesto"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1716111048,
+      "post_id": 295579,
+      "comment_id": 138395673,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 20016172,
+        "reputation": 3035,
+        "user_id": 14672114,
+        "user_type": "registered",
+        "profile_image": "https://lh3.googleusercontent.com/a-/AOh14Gh77XbK_ZXsqVwrM6a6K6g2DNN4_XD_K1wOopWCVA=k-s256",
+        "display_name": "RARE Kpop Manifesto",
+        "link": "https://stackoverflow.com/users/14672114/rare-kpop-manifesto"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1715887914,
+      "post_id": 295579,
+      "comment_id": 138378774,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {}
+}

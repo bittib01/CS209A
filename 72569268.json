@@ -1,0 +1,74 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "mysql",
+      "eclipse",
+      "hibernate",
+      "jdbc"
+    ],
+    "owner": {
+      "account_id": 25471688,
+      "reputation": 11,
+      "user_id": 19269755,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/211bc533008c16cbdcf36eef9eb57f52?s=256&d=identicon&r=PG",
+      "display_name": "Karna79",
+      "link": "https://stackoverflow.com/users/19269755/karna79"
+    },
+    "is_answered": false,
+    "view_count": 14852,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1764414640,
+    "creation_date": 1654837162,
+    "question_id": 72569268,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/72569268/getting-unable-to-create-requested-service-org-hibernate-engine-jdbc-env-spi",
+    "title": "Getting: &#39;Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment]&#39; Exception when doing Hibernate CRUD project",
+    "body": "<p>I am doing a 'JAVA project' in Eclipse Enterprise Edition IDE. Hibernate CRUD project to create user (student) details in my MySQL database (hibernatestudent). Hibernate version is Hibernate ORM core version 5.6.9.Final. My MySQL version is 8.0.29. I have the same version connector jar file for JDBC added in the build path library. All other related jar files related to Hibernate have been added also. I have tried the suggested solutions from other such issues of users but none seems to solve my problem.</p>\n<p>Below shows Exception when running StudentDAO.java file.</p>\n<p><strong>Exception</strong></p>\n<pre><code>Jun 10, 2022 11:46:40 AM org.hibernate.Version logVersion\nINFO: HHH000412: Hibernate ORM core version 5.6.9.Final\nJun 10, 2022 11:46:40 AM org.hibernate.annotations.common.reflection.java.JavaReflectionManager &lt;clinit&gt;\nINFO: HCANN000001: Hibernate Commons Annotations {5.1.2.Final}\norg.hibernate.service.spi.ServiceException: Unable to create requested service [org.hibernate.engine.jdbc.env.spi.JdbcEnvironment]\n</code></pre>\n<p><strong>POJO Class file</strong></p>\n<pre><code>package com;\n// POJO Class file (persistent class)\nimport javax.persistence.Column;\nimport javax.persistence.Entity;\nimport javax.persistence.GeneratedValue;\nimport javax.persistence.GenerationType;\nimport javax.persistence.Id;\nimport javax.persistence.Table;\n\n@Entity \n@Table(name = &quot;Student&quot;) \n\npublic class Student {\n    @Id // Primary key for this table.\n    @GeneratedValue(strategy = GenerationType.AUTO) \n    @Column(name = &quot;id&quot;) \n\n    private int id;\n    private String firstName;\n    private String lastName;\n    private String email;\n\n    public int getId() {    // Generating getters &amp; setters.\n        return id;\n    }\n    public void setId(int id) {\n        this.id = id;\n    }\n    public String getFirstName() {\n        return firstName;\n    }\n    public void setFirstName(String firstName) {\n        this.firstName = firstName;\n    }\n    public String getLastName() {\n        return lastName;\n    }\n    public void setLastName(String lastName) {\n        this.lastName = lastName;\n    }\n    public String getEmail() {\n        return email;\n    }\n    public void setEmail(String email) {\n        this.email = email;\n    }\n\n}\n\n</code></pre>\n<p><strong>StudentDAO.java file</strong></p>\n<pre><code>package com;\n\nimport org.hibernate.Session;\nimport org.hibernate.SessionFactory;\nimport org.hibernate.cfg.Configuration;\n\npublic class StudentDao {\n\n    \n    public static void main(String[] args) { // Main method\n        StudentDao.insert_data();\n    }\n    \n    public static void insert_data() {\n        try {\n            // Hibernate API to save this objects to DB\n            //Session factory is created only ONCE\n            SessionFactory sessionFactory = new Configuration().configure(&quot;hibernate.cfg.xml&quot;).buildSessionFactory();\n            Session session = sessionFactory.openSession();\n            \n            // create transaction\n            session.beginTransaction();\n            \n            Student obj_Student = new Student(); // Sending the above collected values to this entity class to be stored in our database.\n            \n            obj_Student.setFirstName(&quot;Student_One&quot;); \n            obj_Student.setId(987); \n                    \n            session.save(obj_Student);\n            session.getTransaction().commit();\n            \n            //Closing the session\n            session.close();\n            sessionFactory.close();\n            \n            \n        }catch (Exception e) {\n            System.out.println(e);\n        }\n\n    }\n    \n}\n</code></pre>\n<p><strong>hibernate cfg xml file</strong></p>\n<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;\n&lt;!DOCTYPE hibernate-configuration PUBLIC \n  &quot;-//Hibernate/Hibernate Configuration DTD 3.0//EN&quot; \n  &quot;http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd&quot;&gt;\n&lt;!-- Version 8 MySQL hibernate.cfg.xml for Hibernate 5 --&gt;\n\n&lt;hibernate-configuration&gt;\n            &lt;session-factory&gt;\n                &lt;!-- Database connection settings --&gt;\n                &lt;property name=&quot;hibernate.connection.datasource&quot;&gt;jdbc/myDS&lt;/property&gt;\n                &lt;property name=&quot;jndi.class&quot;&gt;weblogic.jndi.WLInitialContextFactory&lt;/property&gt;\n                \n                &lt;property name=&quot;hibernate.connection.driver_class&quot;&gt;com.mysql.cj.jdbc.Driver&lt;/property&gt;\n                &lt;property name=&quot;hibernate.connection.url&quot;&gt;javax.persistence.jdbc.url=jdbc:mysql://localhost:3306/hibernatestudent&lt;/property&gt;\n                &lt;property name=&quot;hibernate.connection.username&quot;&gt;root&lt;/property&gt;\n                &lt;property name=&quot;hibernate.connection.password&quot;&gt;password&lt;/property&gt;\n\n                &lt;!-- Disable auto commit mode --&gt;\n                &lt;property name=&quot;hibernate.connection.autocommit&quot;&gt;false&lt;/property&gt;\n                \n                &lt;!-- JDBC connection pool (use the built-in) --&gt;\n                &lt;property name=&quot;connection.pool_size&quot;&gt;4&lt;/property&gt;\n                \n                &lt;property name=&quot;current_session_context_class&quot;&gt;thread&lt;/property&gt;\n                \n                &lt;!-- SQL dialect --&gt;\n                &lt;property name=&quot;hibernate.dialect&quot;&gt;org.hibernate.dialect.MySQL8Dialect&lt;/property&gt;   \n                &lt;!-- Echo all executed SQL to stdout --&gt;\n                &lt;property name=&quot;show_sql&quot;&gt;true&lt;/property&gt;\n                &lt;!-- Format SQL --&gt;\n                &lt;property name=&quot;format_sql&quot;&gt;true&lt;/property&gt;\n                \n                &lt;!-- Database tables are automatically created --&gt;\n                &lt;property name=&quot;hbm2ddl.auto&quot;&gt;create&lt;/property&gt;\n                \n                &lt;property name=&quot;hibernate.transaction.factory_class&quot;&gt;org.hibernate.transaction.JDBCTransactionFactory&lt;/property&gt;\n                \n                &lt;!-- Names the annotated entity class--&gt;\n                &lt;mapping class =&quot;com.Student&quot;/&gt;\n            &lt;/session-factory&gt;\n&lt;/hibernate-configuration&gt;\n\n</code></pre>\n<p><strong>jar files used are as below</strong>\n<a href=\"https://i.sstatic.net/7iWKs.jpg\" rel=\"nofollow noreferrer\">jar files</a></p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 17214454,
+        "reputation": 31,
+        "user_id": 12462843,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/a6eca09a1a30310656b28933beac000d?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "kaad abdo",
+        "link": "https://stackoverflow.com/users/12462843/kaad-abdo"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1666980298,
+      "creation_date": 1666980298,
+      "answer_id": 74239308,
+      "question_id": 72569268,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>verify your configuration properties, i got this error and it was due to a bad url.\nyou can refer to this question: <a href=\"https://stackoverflow.com/questions/36345377/unable-to-create-requested-service-org-hibernate-engine-jdbc-env-spi-jdbcenviro\">https://stackoverflow.com/questions/36345377/unable-to-create-requested-service-org-hibernate-engine-jdbc-env-spi-jdbcenviro.\n</a></p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "74239308": [
+      {
+        "owner": {
+          "account_id": -1,
+          "reputation": 1,
+          "user_id": -1,
+          "user_type": "moderator",
+          "profile_image": "https://www.gravatar.com/avatar/a007be5a61f6aa8f3e85ae2fc18dd66e?s=256&d=identicon&r=PG",
+          "display_name": "Community",
+          "link": "https://stackoverflow.com/users/-1/community"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1667295889,
+        "post_id": 74239308,
+        "comment_id": 131129422,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

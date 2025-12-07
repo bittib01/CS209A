@@ -1,0 +1,177 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-kafka",
+      "spring-kafka",
+      "kafka-consumer-api",
+      "apache-kafka-streams"
+    ],
+    "owner": {
+      "account_id": 30355866,
+      "reputation": 23,
+      "user_id": 23263239,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocLoTZGKC239-h9SO9Tp8vLmubg2f-sKVicEU7PVPv6c=k-s256",
+      "display_name": "Andreas10001",
+      "link": "https://stackoverflow.com/users/23263239/andreas10001"
+    },
+    "is_answered": true,
+    "view_count": 59,
+    "answer_count": 7,
+    "score": 0,
+    "last_activity_date": 1763593576,
+    "creation_date": 1763367650,
+    "last_edit_date": 1763373324,
+    "question_id": 79822029,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79822029/how-to-populate-two-stores-from-one-topic-using-kafka-streams-globalktable",
+    "title": "How to populate two stores from one topic using Kafka Streams GlobalKTable",
+    "body": "<p>I am using Kafka Streams, and trying to figure out the best practice for handling multiple stores that are populated using the same data without having to read it twice.<br />\nMy Kafka Streams service is required to reload the entire Kafka topic on startup, and afterwards subscribe to any new message put on the topic. The store(s) must be accessible everywhere, and thus I ended up reading about GlobalKTables. This fits my use-case very nicely, as I'm unable to specify a random group id for my consumer and GlobalKTables seem to read everything for every startup. So far so good.</p>\n<p>However, I seem to be limited in populating more than one store using the same global store and I would like to avoid having to read every message twice or really n-number of times with n being the number of stores I need for any specific topic.</p>\n<p>I came across an example like the one below with two stores, and having to manually add them to my state stores. The global store only references the <strong>myStoreBuilder</strong> and not both of them. Is this the recommended approach, or is there any better way to do this? My <strong>GlobalProcessor</strong> currently retrieves both stores and populates both as I wish, but something tells me my current approach is a workaround. Perhaps I'm not meant to work with two stores within the same processor, but I should rather invoke addGlobalStore twice - once for each of my store builders and then just accept data is read twice.</p>\n<pre class=\"lang-java prettyprint-override\"><code>var myStoreBuilder = Stores.keyValueStoreBuilder(\n        Stores.inMemoryKeyValueStore(&quot;MY_STORE_NAME&quot;),\n        Serdes.String(),\n        Serdes.String()\n);\n\nvar myStoreBuilder2 = Stores.keyValueStoreBuilder(\n        Stores.inMemoryKeyValueStore(&quot;MY_STORE_NAME2&quot;),\n        Serdes.String(),\n        Serdes.String()\n);\n\nmyStreamsBuilder().addStateStore(myStoreBuilder);\nmyStreamsBuilder().addStateStore(myStoreBuilder2);\n\nmyStreamsBuilder().addGlobalStore(\n        myStoreBuilder,\n        &quot;my_topic&quot;,\n        Consumed.with(Serdes.String(), Serdes.String()),\n        new DataGlobalProcessorSupplier()\n);\n</code></pre>\n<p>Any help is appreciated.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 6384814,
+        "reputation": 62840,
+        "user_id": 4953079,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/HwySN.jpg?s=256",
+        "display_name": "Matthias J. Sax",
+        "link": "https://stackoverflow.com/users/4953079/matthias-j-sax"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1763593576,
+      "creation_date": 1763593576,
+      "answer_id": 79824988,
+      "question_id": 79822029,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Thanks for clarifying. -- Indeed, what you want to do is not possible directly. You could still do a pre-processing step, reading the original input topic, and map the record from type A to B/C, and write B and C records into different output topic, and use these two output topics is input for two global state stores.</p>\n<p>An alternative could be, to read everything into a single global store, and somehow change the encoding, by prefixing the key of each record with the record type information. This way, when you do a lookup into the store, you also prefix the lookup key accordingly. (You would need to use Kafka Streams 3.8 or newer for this case: <a href=\"https://issues.apache.org/jira/browse/KAFKA-7663\" rel=\"nofollow noreferrer\">https://issues.apache.org/jira/browse/KAFKA-7663</a>)</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 30355866,
+        "reputation": 23,
+        "user_id": 23263239,
+        "user_type": "registered",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocLoTZGKC239-h9SO9Tp8vLmubg2f-sKVicEU7PVPv6c=k-s256",
+        "display_name": "Andreas10001",
+        "link": "https://stackoverflow.com/users/23263239/andreas10001"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1763448847,
+      "creation_date": 1763448847,
+      "answer_id": 79823062,
+      "question_id": 79822029,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Thanks again for taking the time to respond.</p>\n<p>I realize my use-case might go against what is officially supported. The data I am loading can be divided into two data structures. Meaning, a single message from my Kafka topic of type A can be split into type B and type C. For my service I need two stores, one mapping something like a <strong>String -&gt; B</strong> (first store) and an <strong>Integer -&gt; C</strong> (second store). For the sake of the example I'm trying to keep it simple.</p>\n<p>So I require two different stores even though the global store reads from a single input topic. I am not creating duplicated data, as the input data is split into new types and divided into their respective store.</p>\n<p>Side note: I don't believe I was creating two stores with the same name. My example on the main post has two unique name - one for each store.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 6384814,
+        "reputation": 62840,
+        "user_id": 4953079,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/HwySN.jpg?s=256",
+        "display_name": "Matthias J. Sax",
+        "link": "https://stackoverflow.com/users/4953079/matthias-j-sax"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1763400864,
+      "creation_date": 1763400864,
+      "answer_id": 79822601,
+      "question_id": 79822029,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<blockquote>\n<p>but instead provide a list of store builders when invoking addGlobalStore?</p>\n</blockquote>\n<p>A global store reads from a single input topic. So there is no API to have multiple store builders. There is no reason to put the data from the topic into two stores. That's just a waste of resources. Why would you need two global stores for the same input topic?</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 6384814,
+        "reputation": 62840,
+        "user_id": 4953079,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/HwySN.jpg?s=256",
+        "display_name": "Matthias J. Sax",
+        "link": "https://stackoverflow.com/users/4953079/matthias-j-sax"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1763400769,
+      "creation_date": 1763400769,
+      "answer_id": 79822600,
+      "question_id": 79822029,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<blockquote>\n<p>I find it strange having to manually add myStoreBuilder and myStoreBuilder2 using addStateStore(..) but then only reference one of them when setting up my GlobalStore afterwards.</p>\n</blockquote>\n<p>As said. This should throw an runtime exception. You cannot have a regular store, and global store with the same name. What are you trying to achieve?</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 6384814,
+        "reputation": 62840,
+        "user_id": 4953079,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/HwySN.jpg?s=256",
+        "display_name": "Matthias J. Sax",
+        "link": "https://stackoverflow.com/users/4953079/matthias-j-sax"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1763400669,
+      "creation_date": 1763400669,
+      "answer_id": 79822596,
+      "question_id": 79822029,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Also not 100% sure what the question is. Are you trying to read the same input topic into two global store? For this case, why would you want to do this? It's not supported, because it's unnecessary data duplication. -- Also, each store (global or regular), must have a unique name. Otherwise, two stores cannot be distinguished. So you code example, re-using the same StoreBuilder for a regular and global store, should actually throw a runtime exception, due to overlapping names.</p>\n<p>Can you clarify again, what you try to do, and what problem you are seeing?</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 30355866,
+        "reputation": 23,
+        "user_id": 23263239,
+        "user_type": "registered",
+        "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocLoTZGKC239-h9SO9Tp8vLmubg2f-sKVicEU7PVPv6c=k-s256",
+        "display_name": "Andreas10001",
+        "link": "https://stackoverflow.com/users/23263239/andreas10001"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1763373171,
+      "creation_date": 1763373171,
+      "answer_id": 79822131,
+      "question_id": 79822029,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>I'm not sure I follow you. Did I say something which does not make sense?\nWill try again. I wish to read once from my topic and populate two stores inside my DataProcessor. I find it strange having to manually add myStoreBuilder and myStoreBuilder2 using addStateStore(..) but then only reference one of them when setting up my GlobalStore afterwards.\nWhat are the implications of this, and is there another way where I do not have to invoke addStateStore(..) twice, but instead provide a list of store builders when invoking addGlobalStore?</p>\n<p>Let me know if my use-case is not clear enough. Thanks!</p>\n<p>EDIT(Tried to explain it better in the main post)</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 3116234,
+        "reputation": 9469,
+        "user_id": 2636929,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/85fa83a02c04af43fcd224821ca9b750?s=256&d=identicon&r=PG",
+        "display_name": "Stultuske",
+        "link": "https://stackoverflow.com/users/2636929/stultuske"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1763367771,
+      "creation_date": 1763367771,
+      "answer_id": 79822033,
+      "question_id": 79822029,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>how exactly would you think to &quot;populate both&quot; without &quot;populating both&quot;?</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79824988": [],
+    "79823062": [],
+    "79822601": [],
+    "79822600": [],
+    "79822596": [],
+    "79822131": [],
+    "79822033": []
+  }
+}

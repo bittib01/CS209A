@@ -1,0 +1,56 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "arduino",
+      "processing"
+    ],
+    "owner": {
+      "account_id": 44417941,
+      "reputation": 53,
+      "user_id": 31742341,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/baecb1f4d733baf58687358bdd66e213?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Martin Forster",
+      "link": "https://stackoverflow.com/users/31742341/martin-forster"
+    },
+    "is_answered": true,
+    "view_count": 78,
+    "accepted_answer_id": 79821780,
+    "answer_count": 1,
+    "score": 5,
+    "last_activity_date": 1763331604,
+    "creation_date": 1763309739,
+    "last_edit_date": 1763315767,
+    "question_id": 79821582,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79821582/sending-serial-data-from-processing-to-arduino",
+    "title": "sending serial data from processing to arduino",
+    "body": "<p>I'm a beginner in programming and looking for a solution for a windows  user- interface to change parameters on a arduino board.</p>\n<p>The whole target is a control unit for camera, flash and valves to make photos of water-drops. Hardware and arduino IDE is already running, but changing timing in Arduino IDE sketch is not very friendly.</p>\n<p>So I made my first tests for serial data transfer based on the answer of user apodidae in <a href=\"https://stackoverflow.com/questions/76049477/how-can-i-use-processing-to-make-a-gui-that-sends-data-to-arduino-and-receives-d\">How can I use Processing to make a GUI that sends data to Arduino and receives data back to display in the GUI?</a></p>\n<p>Now I have the following problem:</p>\n<p>When I use it without changes, it will send 2 datasets. The second will overwrite the first with value 0. <a href=\"https://i.sstatic.net/gwSNihPI.png\" rel=\"noreferrer\">image serial overwrite</a></p>\n<p>Excluding line 120-122 will send only one dataset, but there is a shift and the first value is missing <a href=\"https://i.sstatic.net/wiVoUGtY.png\" rel=\"noreferrer\">image serial datashift</a></p>\n<p>Can some explain and show me a solution?</p>\n<p>Processing code</p>\n<pre class=\"lang-java prettyprint-override\"><code>import controlP5.*;\nimport java.util.*;\nimport processing.serial.*;\n\nControlP5 cp5;\n\nSerial myPort;\n\n\nPFont font;\nPFont fontB;\nPFont fontT;\n\nint ypos_event_1 = 50;\nint ypos_event_step = 50;\n\nint xpos_event_A = 80;\n\nint xpos_event_S = 180;\n\nint xpos_event_D = 320;\n\nint[] sliderVal = {0, 10, 20, 0, 30, 40};\n\nint slider0Value = sliderVal[0];\nint slider1Value = sliderVal[1];\nint slider2Value = sliderVal[2];\n\nint slider3Value = sliderVal[3];\nint slider4Value = sliderVal[4];\nint slider5Value = sliderVal[5];\n\nvoid setup() {\n  size(600, 1000);\n  surface.setTitle(&quot;ValveTime&quot;);\n  cp5 = new ControlP5(this);\n  font = createFont(&quot;calibri bold&quot;, 8);    // custom fonts for \n  fontB = createFont(&quot;calibri bold&quot;, 12);    // custom fonts for buttons\n  fontT = createFont(&quot;calibri bold&quot;, 20);    // custom fonts for title\n  \n  \n  //* add a ScrollableList\nList l = Arrays.asList(&quot;Leer&quot;,&quot;Kamera&quot;, &quot;Blitz_1&quot;, &quot;Blitz_2&quot;, &quot;Blitz_3&quot;, &quot;Vent_1&quot;, &quot;Vent_2&quot;, &quot;Vent_3&quot;, &quot;Vent_4&quot;);\n\n  // slider value linked to variable 'sliderNumValue'\n  cp5.addScrollableList(&quot;slider0Value&quot;)\n    .setPosition( xpos_event_A, ypos_event_1)\n    .setSize(80, 50)\n    .setBarHeight(20)\n    .setItemHeight(20)\n    .setFont(font)\n    .addItems(l)\n    .setCaptionLabel(&quot; A1&quot;)\n    ;\n  cp5.addSlider(&quot;slider1Value&quot;)\n    .setPosition(xpos_event_S, ypos_event_1)\n    .setHeight(24)\n    .setRange(0, 10000)\n    .setFont(font)\n    .setCaptionLabel(&quot; S1&quot;)\n    ;\n  cp5.addSlider(&quot;slider2Value&quot;)\n    .setPosition(xpos_event_D, ypos_event_1)\n    .setHeight(24)\n    .setRange(0, 1000)\n    .setFont(font)\n    .setCaptionLabel(&quot; D1&quot;)\n    ;\n\n  cp5.addScrollableList(&quot;slider3Value&quot;)\n    .setPosition( xpos_event_A, (ypos_event_1+1*ypos_event_step))\n    .setSize(80, 50)\n    .setBarHeight(20)\n    .setItemHeight(20)\n    .setFont(font)\n    .addItems(l)\n    .setCaptionLabel(&quot; A2&quot;)\n    ;\n  cp5.addSlider(&quot;slider4Value&quot;)\n    .setPosition(xpos_event_S, (ypos_event_1+1*ypos_event_step))\n    .setHeight(24)\n    .setRange(0, 10000)\n    .setFont(font)\n    .setCaptionLabel(&quot; S2&quot;)\n    ;  \n  cp5.addSlider(&quot;slider5Value&quot;)\n    .setPosition(xpos_event_D, (ypos_event_1+1*ypos_event_step))\n    .setHeight(24)\n    .setRange(0, 1000)\n    .setFont(font)\n    .setCaptionLabel(&quot; D2&quot;)\n    ;\n\n  // Send_Data button\n  cp5.addButton(&quot;Send_Data&quot;)\n    .setPosition(220, 900)\n    .setSize(100, 24)\n    ;\n// printArray(Serial.list());\n  myPort = new Serial(this, &quot;COM3&quot;, 9600); \n \n}\n\nvoid draw() {\n  background(0);\n}\n\npublic void Send_Data() {\n  println(&quot;Send_Data button hit.&quot;);\n  sliderVal[0] = slider0Value;\n  sliderVal[1] = slider1Value;\n  sliderVal[2] = slider2Value;\n  sliderVal[3] = slider3Value;\n  sliderVal[4] = slider4Value;\n  sliderVal[5] = slider5Value;\n\n  printArray(sliderVal);\n\n  for (int i = 0; i &lt; (sliderVal.length); ++i) {\n//   if (i == 0) {\n//      myPort.write(&quot;\\n&quot;); //So first value will show up\n//    }\n    myPort.write(sliderVal[i]+&quot;\\n&quot;);\n  }\n}\n\nvoid serialEvent(Serial p) {\n  String inStr = p.readStringUntil('\\n');\n  if (inStr != null) {\n    print(&quot;received: &quot;, inStr);\n  }  \n}\n</code></pre>\n<p>Arduino code</p>\n<pre class=\"lang-cpp prettyprint-override\"><code>int event_1A = 0;\nint event_1S = 0;\nint event_1D = 0;\nint event_2A = 0;\nint event_2S = 0;\nint event_2D = 20;\n\nint busyPin = 8;\n\nvoid setup() {\n  Serial.begin(9600);\n}\n\nvoid loop() {\n  if (Serial.available() &gt; 0) {\n    Serial.readStringUntil('\\n');\n    Serial.println(&quot;#################&quot;);\n    event_1A = Serial.parseInt();\n    Serial.println(event_1A);\n    event_1S = Serial.parseInt();\n    Serial.println(event_1S);\n    event_1D = Serial.parseInt();\n    Serial.println(event_1D);\n    event_2A = Serial.parseInt();\n    Serial.println(event_2A);\n    event_2S = Serial.parseInt();\n    Serial.println(event_2S);\n    event_2D = Serial.parseInt();\n    Serial.println(event_2D);\n    Serial.println(&quot;=================&quot;);\n \n  }\n  if (event_1A == 6) \n    digitalWrite (busyPin, HIGH);\n    \n  else\n    digitalWrite (busyPin, LOW);\n  \n}\n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 909180,
+        "reputation": 7514,
+        "user_id": 943435,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/z4lJF.png?s=256",
+        "display_name": "Yogi",
+        "link": "https://stackoverflow.com/users/943435/yogi"
+      },
+      "is_accepted": true,
+      "score": 4,
+      "last_activity_date": 1763331604,
+      "creation_date": 1763331604,
+      "answer_id": 79821780,
+      "question_id": 79821582,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>I can reproduce the problem using an <a href=\"https://docs.arduino.cc/hardware/uno-rev3/\" rel=\"nofollow noreferrer\">Arduino UNO R3</a> and the <a href=\"https://processing.org/\" rel=\"nofollow noreferrer\">Processing IDE</a>.</p>\n<p>The Java code needs to send a carriage return to signal the start of transmission. Without this start signal, the microcontroller misses the first array value and the entire array is shifted.</p>\n<pre class=\"lang-java prettyprint-override\"><code>  myPort.write(&quot;\\n&quot;);  //&lt;-- added\n\n  for (int i = 0; i &lt; (sliderVal.length); ++i) {\n    // send data array\n  }\n</code></pre>\n<p>And after reading the integer array sent by the above code, the Arduino needs to clear the final carriage return. Otherwise it mistakes the final return as the start of of another data packet.</p>\n<pre class=\"lang-cpp prettyprint-override\"><code>...\nevent_2D = Serial.parseInt();\nSerial.println(event_2D);\nSerial.readString();  // &lt;---- added\n</code></pre>\n<p>These changes fix the problems described.  However, the code is not very robust and reviewing examples in <a href=\"https://forum.arduino.cc/t/serial-input-basics-updated/382007\" rel=\"nofollow noreferrer\">Serial Input Basics - updated</a> might be helpful.</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79821780": []
+  }
+}

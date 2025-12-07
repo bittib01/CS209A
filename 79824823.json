@@ -1,0 +1,118 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "algorithm",
+      "sorting"
+    ],
+    "owner": {
+      "account_id": 44005281,
+      "reputation": 1,
+      "user_id": 31526732,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/eAdOpHCv.png?s=256",
+      "display_name": "Neptunium-Eater",
+      "link": "https://stackoverflow.com/users/31526732/neptunium-eater"
+    },
+    "is_answered": true,
+    "view_count": 80,
+    "accepted_answer_id": 79824984,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1763662533,
+    "creation_date": 1763577671,
+    "last_edit_date": 1763591480,
+    "question_id": 79824823,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79824823/shell-sorting-applying-ciuras-gap-sequence-or-some-other-optimal-sequence-fo",
+    "title": "(Shell Sorting) Applying Ciura&#39;s gap sequence (or some other optimal sequence formula)",
+    "body": "<p>I've been trying to teach myself various sort methods just for the sake of being able to use them in the future and right now I've been teaching myself about shell sorts. I understand the way shell sorts themselves work (they're in essence insertions sorts except it only occurs between gaps that progressively decreases in size, allowing items to be moved across &quot;larger distances&quot;). One thing that I've heard about this algorithm is that you do have freedom over how you choose your gap sequence, since apparently if you choose a bad one it can make the sequence less efficient than even normal insertion sort. This is how I got to introduced to Ciura's gap sequence (1, 4, 10, 23, 57, 132, 301, 701 etc if I'm not mistaken) and Sedgewick's gap sequence formula which I think is 4*9^i-9*2^i+1.</p>\n<p>The part where my confusion begins is trying to use these in context to a shell sorting method. Just as an example I've been looking at a simple function for a shell sort written in Java by GeeksForGeeks.</p>\n<pre class=\"lang-java prettyprint-override\"><code>public static void shellSort(int[] arr) {\n   int n = arr.length;\n\n   for (int gap = n / 2; gap &gt; 0; gap /= 2) {\n\n     for (int i = gap; i &lt; n; i++) {\n                \n     int temp = arr[i]; \n     int j = i;\n\n     while (j &gt;= gap &amp;&amp; arr[j - gap] &gt; temp) {\n       arr[j] = arr[j - gap];\n       j -= gap;\n     }\n\n     arr[j] = temp;\n   }\n}\n</code></pre>\n<p>I've spent about an hour or so trying to think about how this method could be refactored to use either Sedgewick's formula or Ciura's, but I've been stumped on this. For context I should say that the way I've been teaching myself these sort algorithms is by learning what the algorithm is both conceptually and from a basic code logic sense and then writing simple (but still fitting/functional) versions of them in Java so that I have a reference for applying them in other languages (since Java was the first language I learned). For example one problem that I've been thinking over is how 'large' the sequence should be. Should the first/highest gap value be equivalent to the array/structure's size or something else? Should the gap values then be stored in their own array to be referenced against the parameter, or should the for loop be able to handle that for me if I write it correctly?</p>\n<p>I really wish I could crunch this question down into a TLDR, but I can't think of a good one as I've opted to lay out as much context to this as I could think of. Hopefully you can forgive me for that.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 7142980,
+        "reputation": 357178,
+        "user_id": 5459839,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/lUUgh.png?s=256",
+        "display_name": "trincot",
+        "link": "https://stackoverflow.com/users/5459839/trincot"
+      },
+      "is_accepted": true,
+      "score": 0,
+      "last_activity_date": 1763662533,
+      "last_edit_date": 1763662533,
+      "creation_date": 1763593004,
+      "answer_id": 79824984,
+      "question_id": 79824823,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>One idea could be to provide a <em>stream</em> of increasing gaps as second argument to the <code>shellSort</code> function. Then the caller can choose which gap sequence to provide. The sort function will then consume as many gaps as are needed for the given array, reverse that list of gaps, and then do the loop as you had it.</p>\n<pre><code>    // Shell sort now takes a gap sequence as second argument\n    public static void shellSort(int[] arr, Stream&lt;Integer&gt; gapSequence) {\n        int n = arr.length;\n        // Collect gaps &lt;= n\n        List&lt;Integer&gt; gaps = gapSequence\n                                .takeWhile(g -&gt; g &lt; n)\n                                .collect(Collectors.toList());\n\n        // Iterate gaps in reverse order\n        Collections.reverse(gaps);\n\n        for (int gap : gaps) {\n            for (int i = gap; i &lt; n; i++) {\n                int temp = arr[i];\n                int j = i;\n                while (j &gt;= gap &amp;&amp; arr[j - gap] &gt; temp) {\n                    arr[j] = arr[j - gap];\n                    j -= gap;\n                }\n                arr[j] = temp;\n            }\n        }\n    }\n\n    // Example gap sequence: this is Sedgewick, 1986, sequence https://oeis.org/A033622\n    public static Stream&lt;Integer&gt; sedgewickSequence() {\n        return Stream.iterate(0, i -&gt; i + 1)\n                     .map(i -&gt; 1 + \n                         ((9 - i % 2) &lt;&lt; i) - (((3 - i % 2) * 3) &lt;&lt; ((i + 1) / 2))\n                     );\n    }\n    \n    public static void main(String[] args) {\n        int[] arr = {23, 12, 1, 8, 34, 54, 2, 3, 18, 22, 6, 36, 7, 0, 27, 30, 11, 19, 14, 9};\n\n        shellSort(arr, sedgewickSequence());\n\n        System.out.println(Arrays.toString(arr));\n    }\n</code></pre>\n<p>For Ciura's gap sequence there is no known formula as it was experimentally derived. But you could still create an infinite stream that starts with the known Ciura values, and then continues with some chosen formula when larger gaps are needed:</p>\n<pre><code>    public static Stream&lt;Integer&gt; ciuraSequence() {\n        return Stream.concat(Stream.of(1, 4, 10, 23, 57, 132, 301, 701, 1750), // Ciura -- empirical\n                             Stream.iterate(1750, g -&gt; (int)(g * 2.25)));      // ...continuation after known gaps\n    }\n</code></pre>\n<p>Here is the same with generators in other languages:</p>\n<h2>JavaScript</h2>\n<p><div class=\"snippet\" data-lang=\"js\" data-hide=\"false\" data-console=\"true\" data-babel=\"false\" data-babel-preset-react=\"false\" data-babel-preset-ts=\"false\">\n<div class=\"snippet-code\">\n<pre class=\"snippet-code-js lang-js prettyprint-override\"><code>// Helper function\nfunction* takeWhile(iter, predicate) {\n    for (const value of iter) {\n        if (!predicate(value)) break;\n        yield value;\n    }\n}\n\n// Shell sort now takes a gap sequence as second argument\nfunction shellSort(arr, gapSequence) {\n    const n = arr.length;\n    // Collect gaps &lt;= n\n    const gaps = [...takeWhile(gapSequence, g =&gt; g &lt; n)];\n\n    // Iterate gaps in reverse order\n    gaps.reverse();\n\n    for (const gap of gaps) {\n        for (let i = gap; i &lt; n; i++) {\n            const temp = arr[i];\n            let j = i;\n            while (j &gt;= gap &amp;&amp; arr[j - gap] &gt; temp) {\n                arr[j] = arr[j - gap];\n                j -= gap;\n            }\n            arr[j] = temp;\n        }\n    }\n}\n\n// Example gap sequence: this is Sedgewick, 1986, sequence https://oeis.org/A033622\nfunction* sedgewickSequence() {\n    for (let i = 0; true; i++) {\n        yield 1 + ((9 - i % 2) &lt;&lt; i) - (((3 - i % 2) * 3) &lt;&lt; ((i + 1) / 2));\n    }\n}\n\n// main\nconst arr = [23, 12, 1, 8, 34, 54, 2, 3, 18, 22, 6, 36, 7, 0, 27, 30, 11, 19, 14, 9];\n\nshellSort(arr, sedgewickSequence());\n\nconsole.log(...arr);</code></pre>\n</div>\n</div>\n</p>\n<h2>Python</h2>\n<pre class=\"lang-py prettyprint-override\"><code>from itertools import takewhile, count\n\n# Shell sort now takes a gap sequence as second argument\ndef shell_sort(lst, gap_sequence):\n    n = len(lst)\n    # Collect gaps &lt;= n\n    gaps = list(takewhile(lambda g: g &lt; n, gap_sequence))\n\n    # Iterate gaps in reverse order\n    gaps.reverse()\n\n    for gap in gaps:\n        for i in range(gap, n):\n            temp = lst[i]\n            for j in range(i, gap-1, -gap):\n                if lst[j - gap] &lt;= temp:\n                    break\n                lst[j], lst[j - gap] = lst[j - gap], temp\n\n# Example gap sequence: this is Sedgewick, 1986, sequence https://oeis.org/A033622\ndef sedgewick_sequence():\n    for i in count(0):\n        yield 1 + ((9 - i % 2) &lt;&lt; i) - (((3 - i % 2) * 3) &lt;&lt; ((i + 1) // 2))\n\n# main\nlst = [23, 12, 1, 8, 34, 54, 2, 3, 18, 22, 6, 36, 7, 0, 27, 30, 11, 19, 14, 9]\n\nshell_sort(lst, sedgewick_sequence())\n\nprint(*lst)\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79824984": [
+      {
+        "owner": {
+          "account_id": 7142980,
+          "reputation": 357178,
+          "user_id": 5459839,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/lUUgh.png?s=256",
+          "display_name": "trincot",
+          "link": "https://stackoverflow.com/users/5459839/trincot"
+        },
+        "reply_to_user": {
+          "account_id": 44005281,
+          "reputation": 1,
+          "user_id": 31526732,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/eAdOpHCv.png?s=256",
+          "display_name": "Neptunium-Eater",
+          "link": "https://stackoverflow.com/users/31526732/neptunium-eater"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1763628171,
+        "post_id": 79824984,
+        "comment_id": 140863858,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 13170666,
+          "reputation": 91467,
+          "user_id": 9513184,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/176386ce0b94057e55352484e69707f9?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Unmitigated",
+          "link": "https://stackoverflow.com/users/9513184/unmitigated"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1763605053,
+        "post_id": 79824984,
+        "comment_id": 140863457,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 44005281,
+          "reputation": 1,
+          "user_id": 31526732,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/eAdOpHCv.png?s=256",
+          "display_name": "Neptunium-Eater",
+          "link": "https://stackoverflow.com/users/31526732/neptunium-eater"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1763600680,
+        "post_id": 79824984,
+        "comment_id": 140863415,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

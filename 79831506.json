@@ -1,0 +1,139 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot"
+    ],
+    "owner": {
+      "account_id": 17750,
+      "reputation": 27240,
+      "user_id": 40064,
+      "user_type": "registered",
+      "accept_rate": 69,
+      "profile_image": "https://www.gravatar.com/avatar/6f118f710d3077f91c0c0d722f7be0a3?s=256&d=identicon&r=PG",
+      "display_name": "Wim Deblauwe",
+      "link": "https://stackoverflow.com/users/40064/wim-deblauwe"
+    },
+    "is_answered": true,
+    "view_count": 149,
+    "accepted_answer_id": 79831592,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1764258529,
+    "creation_date": 1764232632,
+    "last_edit_date": 1764235293,
+    "question_id": 79831506,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79831506/how-to-fail-at-startup-in-spring-boot-4-if-the-base-url-property-is-not-set",
+    "title": "How to fail at startup in Spring Boot 4 if the base-url property is not set?",
+    "body": "<p>With Spring Boot 3, I created a <code>@ConfigurationProperties</code> record with <code>@NotBlank</code> validation to manually set the base URL on the <code>RestClient</code> that is passed to the <code>HttpServiceProxyFactory</code> For example:</p>\n<pre><code>@Validated\n@ConfigurationProperties(prefix = &quot;myapp&quot;)\npublic record MyAppProperties(@NotBlank String myRemoteApiBaseUrl){}\n</code></pre>\n<p>With the <a href=\"https://docs.spring.io/spring-framework/reference/7.0/integration/rest-clients.html#rest-http-service-client\" rel=\"nofollow noreferrer\">Spring Boot 4 HTTP Service Client</a>, there is no need anymore to manually create the <code>RestClient</code> and <code>HttpServiceProxyFactory</code>. The recommended way is to set the base url via:</p>\n<pre class=\"lang-yaml prettyprint-override\"><code>spring:\n  http:\n    serviceclient:\n      my-remote-api:\n        base-url: 'https://www.my-remote-api'\n</code></pre>\n<p>However, if the <code>base-url</code> is not set, the application will not be able to make the remote call, and an <code>IllegalArgumentException</code> is thrown when a call is actually tried. I would like to have the application already fail at startup when the <code>base-url</code> was forgotten to be configured.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 3192259,
+        "reputation": 126792,
+        "user_id": 2696260,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/qHEzx.png?s=256",
+        "display_name": "M. Deinum",
+        "link": "https://stackoverflow.com/users/2696260/m-deinum"
+      },
+      "is_accepted": true,
+      "score": 1,
+      "last_activity_date": 1764258529,
+      "last_edit_date": 1764258529,
+      "creation_date": 1764237681,
+      "answer_id": 79831592,
+      "question_id": 79831506,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Looking at the code of the <a href=\"https://docs.spring.io/spring-boot/api/java/org/springframework/boot/restclient/autoconfigure/service/HttpServiceClientAutoConfiguration.html\" rel=\"nofollow noreferrer\"><code>HttpServiceClientAutoConfiguration</code></a> there is the <a href=\"https://docs.spring.io/spring-boot/api/java/org/springframework/boot/http/client/autoconfigure/service/HttpServiceClientProperties.html\" rel=\"nofollow noreferrer\"><code>HttpServiceClientProperties</code></a> which contains all the client configurations. You could create an <code>@Configuration</code> class which obtains the <code>HttpServiceClientProperties</code> and iterates over all the keys/values in the properties to check the presence of the <code>base-url</code>.</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Configuration\npublic class HttpServiceClientValidatingConfig implements InitializingBean {\n\n  private final HttpServiceClientProperties props;\n\n  HttpServiceClientValidatingConfig(HttpServiceClientProperties props) {\n    this.props = props;\n  }\n\n  public void afterPropertiesSet() {\n    var missing = new ArrayList&lt;String&gt;();\n    for (var prop : props.entrySet() ) {\n      var name = prop.getKey();\n      var clientProps = prop.getValue();\n      if (StringUtils.isEmpty(clientProps.getBaseUrl()) {\n        missing.add(&quot;spring.http.service-client.&quot; + name + &quot;.base-url&quot;);\n      }\n    }\n\n    if (!missing.isEmpty()) {\n      throw new IllegalStateException(&quot;Required properties not set! (&quot; + missing + &quot;)&quot;);\n    }\n  }\n}\n</code></pre>\n<p>Something along those lines.</p>\n<p>Based on my comment, you could probably write something like this as wel.</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Configuration\n@Validated\n@HttpServiceClientValidatingConfig.ValidateRequiredProperties\npublic class HttpServiceClientValidatingConfig {\n\n  private final HttpServiceClientProperties props;\n\n  HttpServiceClientValidatingConfig(HttpServiceClientProperties props) {\n    this.props = props;\n  }\n\n  HttpServiceClientProperties getProps() {\n    return props;\n  }\n\n  @Target({ElementType.TYPE})\n  @Retention(RetentionPolicy.RUNTIME)\n  @Constraint(validatedBy = ValidateRequiredPropertiesValidator.class)\n  @Documented\n  public static @interface ValidateRequiredProperties {\n    String message() default &quot;{jakarta.validation.constraints.NotBlank.message}&quot;;\n    Class&lt;?&gt;[] groups() default {};\n    Class&lt;? extends Payload&gt;[] payload() default {};\n  }\n\n  public static class ValidateRequiredPropertiesValidator\n      implements ConstraintValidator&lt;ValidateRequiredProperties, HttpServiceClientValidatingConfig&gt; {\n\n    private String message;\n\n    @Override\n    public void initialize(ValidateRequiredProperties ca) {\n      this.message = ca.message();\n    }\n\n    @Override\n    public boolean isValid(HttpServiceClientValidatingConfig httpServiceClientValidatingConfig, ConstraintValidatorContext ctx) {\n      var props = httpServiceClientValidatingConfig.getProps();\n      var valid = true;\n      for (var prop : props.entrySet()) {\n        var name = prop.getKey();\n        var value = prop.getValue();\n        var url = value.getBaseUrl();\n        if (ObjectUtils.isEmpty(url)) {\n          valid = false;\n          ctx.buildConstraintViolationWithTemplate(this.message)\n              .addPropertyNode(&quot;spring.http.service-client.&quot; + name + &quot;.base-url&quot;)\n              .addConstraintViolation().disableDefaultConstraintViolation();\n        }\n      }\n      return valid;\n    }\n  }\n}\n</code></pre>\n<p>This would integrate with the regular validation cycle and handling.</p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 187094,
+        "reputation": 5301,
+        "user_id": 424903,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/8oHZF.png?s=256",
+        "display_name": "Gimby",
+        "link": "https://stackoverflow.com/users/424903/gimby"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1764246749,
+      "post_id": 79831506,
+      "comment_id": 140876108,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 3192259,
+        "reputation": 126792,
+        "user_id": 2696260,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/qHEzx.png?s=256",
+        "display_name": "M. Deinum",
+        "link": "https://stackoverflow.com/users/2696260/m-deinum"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1764236937,
+      "post_id": 79831506,
+      "comment_id": 140875864,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79831592": [
+      {
+        "owner": {
+          "account_id": 3192259,
+          "reputation": 126792,
+          "user_id": 2696260,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/qHEzx.png?s=256",
+          "display_name": "M. Deinum",
+          "link": "https://stackoverflow.com/users/2696260/m-deinum"
+        },
+        "reply_to_user": {
+          "account_id": 17750,
+          "reputation": 27240,
+          "user_id": 40064,
+          "user_type": "registered",
+          "accept_rate": 69,
+          "profile_image": "https://www.gravatar.com/avatar/6f118f710d3077f91c0c0d722f7be0a3?s=256&d=identicon&r=PG",
+          "display_name": "Wim Deblauwe",
+          "link": "https://stackoverflow.com/users/40064/wim-deblauwe"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1764256139,
+        "post_id": 79831592,
+        "comment_id": 140876306,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 17750,
+          "reputation": 27240,
+          "user_id": 40064,
+          "user_type": "registered",
+          "accept_rate": 69,
+          "profile_image": "https://www.gravatar.com/avatar/6f118f710d3077f91c0c0d722f7be0a3?s=256&d=identicon&r=PG",
+          "display_name": "Wim Deblauwe",
+          "link": "https://stackoverflow.com/users/40064/wim-deblauwe"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1764252443,
+        "post_id": 79831592,
+        "comment_id": 140876235,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

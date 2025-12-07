@@ -1,0 +1,90 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring"
+    ],
+    "owner": {
+      "account_id": 18936970,
+      "reputation": 341,
+      "user_id": 13817825,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/cbced2a5eafd2c2cec5f5dd41b288905?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "phildeg31",
+      "link": "https://stackoverflow.com/users/13817825/phildeg31"
+    },
+    "is_answered": false,
+    "view_count": 92,
+    "answer_count": 1,
+    "score": 4,
+    "last_activity_date": 1762512568,
+    "creation_date": 1762503186,
+    "last_edit_date": 1762503691,
+    "question_id": 79812066,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79812066/optional-bean-from-creation-to-usage",
+    "title": "Optional bean from creation to usage",
+    "body": "<p>In the <code>application.yml</code>, some properties can be given or not (according to the environment, the treatment at the end can be done or not). If not given, then the bean initialized with these properties in a configuration must not be initialized. I saw that it is not recommended to return null.</p>\n<p>In the code, for the service, I want to initalize it only if the bean has been created in the configuration.</p>\n<p>In the code, in a service where the previous service is used, I saw that I can use <code>Optional&lt;MyService&gt;</code> in the constructor or <code>@Autowired(required = false)</code> on the attribute and then I will do <code>if(myService != null)</code> to not do the code if service does not exist.</p>\n<p>An exemple of the code in the configuration with a comment where I do not know what to do:</p>\n<pre><code>@Configuration\npublic class MyConfiguration {\n    // Empty value by default if not given\n    @Value(&quot;${property.value:}&quot;)\n    private String myProperty;\n    \n    @Bean(&quot;myBean&quot;)\n    public MyBeanObject myBeanObject() {\n        if (StringUtils.isNotEmpty(this.myProperty)) {\n            return new MyBeanObject;\n        } else {\n            // How to do?\n        }\n    }\n}\n</code></pre>\n<p>An exemple of the first service with a comment where I do not know how to do:</p>\n<pre><code>// How to make this service optional and not created if bean does not exist?\n@Service(&quot;myFirstService&quot;)\npublic class MyFirstServiceImpl extends AbstractMyService {\n    @Autowired\n    public MyFirstServiceImpl(@Qualifier(&quot;myBean&quot;) MyBeanObject myBeanObject) {\n        super(myBeanObject);\n    }\n}\n</code></pre>\n<p>An exemple of the second service where I do the treatment only if the service exists (I do not know if it is correct):</p>\n<pre><code>@Service\npublic class MySecondServiceImpl {\n    private AbstractMyService myService;\n    \n    @Autowired\n    public MySecondServiceImpl(@Qualifier(&quot;myFirstService&quot;) Optional&lt;AbstractMyService&gt; myServiceOpt) {\n        if(myServiceOpt.isPresent()) {\n            this.myService = myServiceOpt.get();\n        }\n    }\n    \n    public void method() {\n        if(this.myService != null) {\n            // treatment\n        }\n   }\n}\n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 18936970,
+        "reputation": 341,
+        "user_id": 13817825,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/cbced2a5eafd2c2cec5f5dd41b288905?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "phildeg31",
+        "link": "https://stackoverflow.com/users/13817825/phildeg31"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1762512568,
+      "creation_date": 1762512568,
+      "answer_id": 79812243,
+      "question_id": 79812066,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Thanks to M. Deinum, this is the solution I did:</p>\n<ul>\n<li><p>I created an interface based on Conditional for an annotation permitting to check that multiple String properties are not empty (based on an excemple found in this site, I just adapted it to my case):</p>\n<pre><code>@Target({ ElementType.TYPE, ElementType.METHOD })\n@Retention(RetentionPolicy.RUNTIME)\n@Conditional(ConditionalOnPropertyNotEmpty.OnPropertyNotEmptyCondition.class)\npublic @interface ConditionalOnPropertyNotEmpty {\n    String[] value() default {};\n\n    class OnPropertyNotEmptyCondition implements Condition {\n\n        @Override\n        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {\n            Map&lt;String, Object&gt; attrs = metadata.getAnnotationAttributes(ConditionalOnPropertyNotEmpty.class.getName());\n            if (attrs == null) {\n                return false;\n            }\n            String[] properties = (String[]) attrs.get(&quot;value&quot;);\n            List&lt;String&gt; propertyNames = Arrays.asList(properties);\n            for (String propertyName : propertyNames) {\n                String val = context.getEnvironment().getProperty(propertyName);\n                if (StringUtils.isEmpty(val)) {\n                    return false;\n                }\n            }\n            return true;\n        }\n    }\n}\n</code></pre>\n</li>\n<li><p>I use it to create my beans (or not) in the configuration:</p>\n<pre><code>@Configuration\npublic class MyConfiguration {\n    // Empty value by default if not given\n    @Value(&quot;${property1.value:}&quot;)\n    private String myFirstProperty;\n    @Value(&quot;${property2.value:}&quot;)\n    private String mySecondProperty;\n\n    @Bean(&quot;myBean&quot;)\n    @ConditionalOnPropertyNotEmpty({ &quot;property1.value&quot;, &quot;property2.value&quot; })\n    public MyBeanObject myBeanObject() {\n        return new MyBeanObject(this.myFirstProperty, this.mySecondProperty);\n    }\n\n    @Bean(&quot;myFirstService&quot;)\n    @ConditionalOnPropertyNotEmpty({ &quot;property1.value&quot;, &quot;property2.value&quot; })\n    public AbstractMyService myFirstServiceBean() {\n        return new MyFirstServiceImpl(@Qualifier(&quot;myBean&quot;) MyBeanObject myBeanObject);\n    }\n}\n</code></pre>\n</li>\n<li><p>In the second service, I do the treatment only if the bean of the first service exist</p>\n</li>\n</ul>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 18936970,
+        "reputation": 341,
+        "user_id": 13817825,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/cbced2a5eafd2c2cec5f5dd41b288905?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "phildeg31",
+        "link": "https://stackoverflow.com/users/13817825/phildeg31"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1762592922,
+      "post_id": 79812066,
+      "comment_id": 140843124,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79812243": [
+      {
+        "owner": {
+          "account_id": 31928324,
+          "reputation": 1,
+          "user_id": 24738709,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/51ahZIBH.jpg?s=256",
+          "display_name": "Williams",
+          "link": "https://stackoverflow.com/users/24738709/williams"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1762740329,
+        "post_id": 79812243,
+        "comment_id": 140845988,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

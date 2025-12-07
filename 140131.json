@@ -1,0 +1,113 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "byte",
+      "hex",
+      "dump"
+    ],
+    "owner": {
+      "account_id": 6922,
+      "reputation": 5006,
+      "user_id": 11798,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/93895b38891b7e696fbe321dc420f627?s=256&d=identicon&r=PG",
+      "display_name": "rafraf",
+      "link": "https://stackoverflow.com/users/11798/rafraf"
+    },
+    "is_answered": true,
+    "view_count": 653118,
+    "protected_date": 1417826712,
+    "accepted_answer_id": 140861,
+    "answer_count": 25,
+    "score": 462,
+    "last_activity_date": 1689424063,
+    "creation_date": 1222441965,
+    "last_edit_date": 1532845881,
+    "question_id": 140131,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/140131/convert-a-string-representation-of-a-hex-dump-to-a-byte-array-using-java",
+    "title": "Convert a string representation of a hex dump to a byte array using Java?",
+    "body": "<p>I am looking for a way to convert a long string (from a dump), that represents hex values into a byte array.</p>\n\n<p>I couldn't have phrased it better than the person that posted <a href=\"http://www.experts-exchange.com/Programming/Programming_Languages/Java/Q_21062554.html\" rel=\"noreferrer\">the same question here</a>.</p>\n\n<p>But to keep it original, I'll phrase it my own way: suppose I have a string <code>\"00A0BF\"</code> that I would like interpreted as the</p>\n\n<pre><code>byte[] {0x00,0xA0,0xBf}\n</code></pre>\n\n<p>what should I do?</p>\n\n<p>I am a Java novice and ended up using <code>BigInteger</code> and watching out for leading hex zeros. But I think it is ugly and I am sure I am missing something simple. </p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 1286972,
+        "reputation": 2716,
+        "user_id": 1239858,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/5d64617c2d12176fc4a20f746ceed1a4?s=256&d=identicon&r=PG",
+        "display_name": "Bert Regelink",
+        "link": "https://stackoverflow.com/users/1239858/bert-regelink"
+      },
+      "is_accepted": false,
+      "score": 28,
+      "last_activity_date": 1689424063,
+      "last_edit_date": 1689424063,
+      "creation_date": 1340284775,
+      "answer_id": 11139098,
+      "question_id": 140131,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<blockquote>\n<p><strong>One-liners:</strong></p>\n<pre><code>import jakarta.xml.bind.DatatypeConverter;\n\npublic static String toHexString(byte[] array) {\n    return DatatypeConverter.printHexBinary(array);\n}\n\npublic static byte[] toByteArray(String s) {\n    return DatatypeConverter.parseHexBinary(s);\n}\n</code></pre>\n</blockquote>\n<p>For those of you interested in the actual code behind the <strong>One-liners</strong> from <a href=\"https://stackoverflow.com/users/173677/fractalizer\">FractalizeR</a> (I needed that since javax.xml.bind is not available for Android and Java 9+ by default), this comes from <a href=\"https://github.com/jakartaee/jaxb-api/blob/master/api/src/main/java/jakarta/xml/bind/DatatypeConverterImpl.java#L436C1-L482C6\" rel=\"nofollow noreferrer\">jakarta.xml.bind.DatatypeConverterImpl.java</a>:</p>\n<pre><code>public byte[] parseHexBinary(String s) {\n    final int len = s.length();\n\n    // &quot;111&quot; is not a valid hex encoding.\n    if (len % 2 != 0) {\n        throw new IllegalArgumentException(&quot;hexBinary needs to be even-length: &quot; + s);\n    }\n\n    byte[] out = new byte[len / 2];\n\n    for (int i = 0; i &lt; len; i += 2) {\n        int h = hexToBin(s.charAt(i));\n        int l = hexToBin(s.charAt(i + 1));\n        if (h == -1 || l == -1) {\n            throw new IllegalArgumentException(&quot;contains illegal character for hexBinary: &quot; + s);\n        }\n\n        out[i / 2] = (byte) (h * 16 + l);\n    }\n\n    return out;\n}\n\nprivate static int hexToBin(char ch) {\n    if ('0' &lt;= ch &amp;&amp; ch &lt;= '9') {\n        return ch - '0';\n    }\n    if ('A' &lt;= ch &amp;&amp; ch &lt;= 'F') {\n        return ch - 'A' + 10;\n    }\n    if ('a' &lt;= ch &amp;&amp; ch &lt;= 'f') {\n        return ch - 'a' + 10;\n    }\n    return -1;\n}\n\nprivate static final char[] hexCode = &quot;0123456789ABCDEF&quot;.toCharArray();\n\npublic String printHexBinary(byte[] data) {\n    StringBuilder r = new StringBuilder(data.length * 2);\n    for (byte b : data) {\n        r.append(hexCode[(b &gt;&gt; 4) &amp; 0xF]);\n        r.append(hexCode[(b &amp; 0xF)]);\n    }\n    return r.toString();\n}\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 1782787,
+        "reputation": 10611,
+        "user_id": 1650674,
+        "user_type": "registered",
+        "accept_rate": 92,
+        "profile_image": "https://i.sstatic.net/6U9F1.png?s=256",
+        "display_name": "tir38",
+        "link": "https://stackoverflow.com/users/1650674/tir38"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1568221516,
+      "post_id": 140131,
+      "comment_id": 102209028,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 13546471,
+        "reputation": 3578,
+        "user_id": 9772691,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/NRRPE.jpg?s=256",
+        "display_name": "John McClane",
+        "link": "https://stackoverflow.com/users/9772691/john-mcclane"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1543109678,
+      "post_id": 140131,
+      "comment_id": 93798986,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 9640511,
+        "reputation": 4475,
+        "user_id": 7154924,
+        "user_type": "registered",
+        "accept_rate": 86,
+        "profile_image": "https://www.gravatar.com/avatar/8c111adcdb9a53d603a68e9fc1c1b8ac?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "flow2k",
+        "link": "https://stackoverflow.com/users/7154924/flow2k"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1540320891,
+      "post_id": 140131,
+      "comment_id": 92819600,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "11139098": []
+  }
+}

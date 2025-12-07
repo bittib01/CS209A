@@ -1,0 +1,87 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "android-layout",
+      "getter"
+    ],
+    "owner": {
+      "account_id": 53659,
+      "reputation": 8236,
+      "user_id": 160463,
+      "user_type": "registered",
+      "accept_rate": 93,
+      "profile_image": "https://www.gravatar.com/avatar/27757f7cbb2bd00a2c089e8e9719ab1b?s=256&d=identicon&r=PG",
+      "display_name": "ngreenwood6",
+      "link": "https://stackoverflow.com/users/160463/ngreenwood6"
+    },
+    "is_answered": true,
+    "view_count": 425677,
+    "accepted_answer_id": 3594216,
+    "answer_count": 28,
+    "score": 625,
+    "last_activity_date": 1720892603,
+    "creation_date": 1283017622,
+    "last_edit_date": 1679170795,
+    "question_id": 3591784,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/3591784/views-getwidth-and-getheight-returns-0",
+    "title": "View&#39;s getWidth() and getHeight() returns 0",
+    "body": "<p>I am creating all of the elements in my android project dynamically. I am trying to get the width and height of a button so that I can rotate that button around. I am just trying to learn how to work with the android language. However, it returns 0.</p>\n<p>I did some research and I saw that it needs to be done somewhere other than in the <code>onCreate()</code> method. If someone can give me an example of how to do it, that would be great.</p>\n<p>Here is my current code:</p>\n<pre><code>package com.animation;\n\nimport android.app.Activity;\nimport android.os.Bundle;\nimport android.view.animation.Animation;\nimport android.view.animation.LinearInterpolator;\nimport android.view.animation.RotateAnimation;\nimport android.widget.Button;\nimport android.widget.LinearLayout;\n\npublic class AnimateScreen extends Activity {\n\n\n//Called when the activity is first created.\n@Override\npublic void onCreate(Bundle savedInstanceState) {\n    super.onCreate(savedInstanceState);\n    \n    LinearLayout ll = new LinearLayout(this);\n    \n    LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);\n    layoutParams.setMargins(30, 20, 30, 0);\n\n    Button bt = new Button(this);\n    bt.setText(String.valueOf(bt.getWidth()));\n   \n    RotateAnimation ra = new RotateAnimation(0,360,bt.getWidth() / 2,bt.getHeight() / 2);\n    ra.setDuration(3000L);\n    ra.setRepeatMode(Animation.RESTART);\n    ra.setRepeatCount(Animation.INFINITE);\n    ra.setInterpolator(new LinearInterpolator());\n\n    bt.startAnimation(ra);\n    \n    ll.addView(bt,layoutParams);\n    \n    setContentView(ll);\n}\n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 405484,
+        "reputation": 35402,
+        "user_id": 774398,
+        "user_type": "registered",
+        "accept_rate": 83,
+        "profile_image": "https://www.gravatar.com/avatar/52ff4dddcaea4c2df64711c8e3d70e23?s=256&d=identicon&r=PG",
+        "display_name": "Patrick",
+        "link": "https://stackoverflow.com/users/774398/patrick"
+      },
+      "is_accepted": false,
+      "score": 1000,
+      "last_activity_date": 1720892603,
+      "last_edit_date": 1720892603,
+      "creation_date": 1401879433,
+      "answer_id": 24035591,
+      "question_id": 3591784,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>The basic problem is, that you have to wait for the drawing phase for the actual measurements (especially with dynamic values like <code>wrap_content</code> or <code>match_parent</code>), but usually this phase hasn't been finished up to <code>onResume()</code>. So you need a workaround for waiting for this phase. There are different possible solutions to this:</p>\n<h2>1. Listen to Draw/Layout Events: ViewTreeObserver</h2>\n<p>A ViewTreeObserver gets fired for different drawing events. Usually the <a href=\"http://developer.android.com/reference/android/view/ViewTreeObserver.OnGlobalLayoutListener.html\" rel=\"noreferrer\"><code>OnGlobalLayoutListener</code></a> is what you want for getting the measurement, so the code in the listener will be called after the layout phase, so the measurements are ready:</p>\n<pre class=\"lang-java prettyprint-override\"><code>view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {\n    @Override\n    public void onGlobalLayout() {\n        view.getViewTreeObserver().removeOnGlobalLayoutListener(this);\n        view.getHeight(); //height is ready\n    }\n});\n</code></pre>\n<p><em>Note</em>: The listener will be immediately removed because otherwise it will fire on every layout event. If you have to support apps <em>SDK Level &lt; 16</em> use this to unregister the listener:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public void removeGlobalOnLayoutListener (ViewTreeObserver.OnGlobalLayoutListener victim)\n</code></pre>\n<h2>2. Add a runnable to the layout queue: View.post()</h2>\n<p>Not very well known and my favourite solution. Basically just use the View's post method with your own runnable. This basically queues your code <em>after</em> the view's measure, layout, etc. as stated by <a href=\"https://stackoverflow.com/users/298575/romain-guy\">Romain Guy</a>:</p>\n<blockquote>\n<p>The UI event queue will process events in order. After\nsetContentView() is invoked, the event queue will contain a message\nasking for a relayout, so anything you post to the queue will happen\nafter the layout pass</p>\n</blockquote>\n<p>Example:</p>\n<pre class=\"lang-java prettyprint-override\"><code>final View view=...;\n...\nview.post(new Runnable() {\n            @Override\n            public void run() {\n                view.getHeight(); //height is ready\n            }\n        });\n</code></pre>\n<p>Make sure that this runnable <a href=\"https://stackoverflow.com/questions/12850143/android-basics-running-code-in-the-ui-thread\">runs on the UI thread</a>, otherwise this might not work.</p>\n<p>The advantage over <code>ViewTreeObserver</code>:</p>\n<ul>\n<li>your code is only executed once, and you don't have to disable the Observer after execution which can be a hassle</li>\n<li>less verbose syntax</li>\n</ul>\n<p>References:</p>\n<ul>\n<li><a href=\"https://stackoverflow.com/a/3602144/774398\">https://stackoverflow.com/a/3602144/774398</a></li>\n<li><a href=\"https://stackoverflow.com/a/3948036/774398\">https://stackoverflow.com/a/3948036/774398</a></li>\n</ul>\n<br />  \n<h2>3. Overwrite Views's onLayout Method</h2>\n<p>This is only practical in certain situation when the logic can be encapsulated in the view itself, otherwise this is a quite verbose and cumbersome syntax.</p>\n<pre class=\"lang-java prettyprint-override\"><code>view = new View(this) {\n    @Override\n    protected void onLayout(boolean changed, int l, int t, int r, int b) {\n        super.onLayout(changed, l, t, r, b);\n        view.getHeight(); //height is ready\n    }\n};\n</code></pre>\n<p>Also mind, that onLayout will be called many times, so be considerate what you do in the method, or disable your code after the first time</p>\n<h2>4. Check if has been through layout phase</h2>\n<p>If you have code that is executing multiple times while creating the UI you could use the following support v4 lib method:</p>\n<pre class=\"lang-java prettyprint-override\"><code>View viewYouNeedHeightFrom = ...\n...\nif(ViewCompat.isLaidOut(viewYouNeedHeightFrom)) {\n   viewYouNeedHeightFrom.getHeight();\n}\n</code></pre>\n<blockquote>\n<p>Returns true if view has been through at least one layout since it was\nlast attached to or detached from a window.</p>\n</blockquote>\n<h2>Additional: Getting statically defined measurements</h2>\n<p>If it suffices to just get the statically defined height/width, you can just do this with:</p>\n<ul>\n<li><a href=\"http://developer.android.com/reference/android/view/View.html#getMeasuredWidth()\" rel=\"noreferrer\"><code>View.getMeasuredWidth()</code></a></li>\n<li><a href=\"http://developer.android.com/reference/android/view/View.html#getMeasuredHeight()\" rel=\"noreferrer\"><code>View.getMeasuredHeigth()</code></a></li>\n</ul>\n<p>But mind you, that this might be different to the actual width/height after drawing. The Javadoc describes the difference in more detail:</p>\n<blockquote>\n<p>The size of a view is expressed with a width and a height. A view\nactually possess two pairs of width and height values.</p>\n<p>The first pair is known as measured width and measured height. These\ndimensions define how big a view wants to be within its parent (see\nLayout for more details.) The measured dimensions can be obtained by\ncalling getMeasuredWidth() and getMeasuredHeight().</p>\n<p>The second pair is simply known as width and height, or sometimes\ndrawing width and drawing height. These dimensions define the actual\nsize of the view on screen, at drawing time and after layout. These\nvalues may, but do not have to, be different from the measured width\nand height. The width and height can be obtained by calling getWidth()\nand getHeight().</p>\n</blockquote>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "24035591": [
+      {
+        "owner": {
+          "account_id": 9086240,
+          "reputation": 388,
+          "user_id": 6764107,
+          "user_type": "registered",
+          "profile_image": "https://lh3.googleusercontent.com/-c17wqD_WYso/AAAAAAAAAAI/AAAAAAAAAIA/aOuBusaSwHw/s256-rj/photo.jpg",
+          "display_name": "Chester Fung",
+          "link": "https://stackoverflow.com/users/6764107/chester-fung"
+        },
+        "reply_to_user": {
+          "account_id": 6214038,
+          "reputation": 335,
+          "user_id": 4839442,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/CyTVH.jpg?s=256",
+          "display_name": "Adrian Buciuman",
+          "link": "https://stackoverflow.com/users/4839442/adrian-buciuman"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1677344429,
+        "post_id": 24035591,
+        "comment_id": 133321013,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

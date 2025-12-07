@@ -1,0 +1,117 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "generics",
+      "lower-bound"
+    ],
+    "owner": {
+      "account_id": 2238186,
+      "reputation": 4365,
+      "user_id": 1973933,
+      "user_type": "registered",
+      "accept_rate": 58,
+      "profile_image": "https://www.gravatar.com/avatar/45e1e6d2acd53544362e57016421d3bf?s=256&d=identicon&r=PG",
+      "display_name": "Melad Basilius",
+      "link": "https://stackoverflow.com/users/1973933/melad-basilius"
+    },
+    "is_answered": true,
+    "view_count": 62,
+    "answer_count": 4,
+    "score": 0,
+    "last_activity_date": 1764609958,
+    "creation_date": 1764587392,
+    "last_edit_date": 1764588047,
+    "question_id": 79834724,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79834724/lower-bounded-wildcards-is-it-about-supertype-or-subtype",
+    "title": "Lower Bounded Wildcards: is it about superType or subType",
+    "body": "<p><a href=\"https://docs.oracle.com/javase/tutorial/java/generics/lowerBounded.html\" rel=\"nofollow noreferrer\">Oracle documentation</a> mentioned it clearly.</p>\n<blockquote>\n<p>a <em>lower bounded</em> wildcard restricts the unknown type to be a specific type or a <em>super type</em> of that type.</p>\n</blockquote>\n<blockquote>\n<p>To write the method that works on lists of Integer and the <strong>supertypes</strong> of Integer, such as Integer, Number, and Object, you would specify List&lt;? super Integer&gt;. The term List&lt;Integer&gt; is more restrictive than List&lt;? super Integer&gt; because the former matches a list of type Integer only, whereas the latter matches a list of any type<br />\nthat is a supertype of Integer.</p>\n</blockquote>\n<p>However when I try to add a supertype to a lower bounded collection it produce compiler error.</p>\n<pre><code>\n\nclass Item {\n}\n\nclass SubItem1 extends Item {\n}\n\nclass SubItem2 extends Item {\n}\n\nclass ItemManager {\n    public Collection&lt;? super Item&gt; items;\n\n    public void addItems() {\n        items.add(new Item());\n        items.add(new SubItem1());\n        items.add(new SubItem2());\n        items.add(new Object()); //compiler error\n    }\n}\n</code></pre>\n<p>Does the expression <strong>Collection&lt;? super Item&gt;</strong> means any superType to Item or any subType of Item <strong>?</strong></p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 162699,
+        "reputation": 141035,
+        "user_id": 3788176,
+        "user_type": "registered",
+        "accept_rate": 54,
+        "profile_image": "https://www.gravatar.com/avatar/44c841338e1646af9a977f1fa0e23948?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Andy Turner",
+        "link": "https://stackoverflow.com/users/3788176/andy-turner"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1764609958,
+      "creation_date": 1764609958,
+      "answer_id": 79835122,
+      "question_id": 79834724,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>A simpler way to think of it, I think is:</p>\n<ul>\n<li>A <code>List&lt;? extends Integer&gt;</code> is a list containing elements of a <em>specific, but unknown</em> type; but you can get elements out of it which can be cast safely to <code>Integer</code>.\n<ul>\n<li>That is, the elements you get out might be instances of <code>Integer</code>, instances of subclasses of <code>Integer</code> (not that any exist), or <code>null</code> (since <code>null</code> can be safely cast to any type).</li>\n</ul>\n</li>\n<li>A <code>List&lt;? super Integer&gt;</code> is a list containing elements of a <em>specific, but unknown</em> type; but you can add elements into it if that element can be safely cast to <code>Integer</code>.\n<ul>\n<li>That is, you can add in instances of <code>Integer</code>, instances of subclasses (yes, I <strong>do</strong> mean subclass) of <code>Integer</code> or <code>null</code>.</li>\n</ul>\n</li>\n</ul>\n"
+    },
+    {
+      "owner": {
+        "account_id": 401843,
+        "reputation": 107175,
+        "user_id": 768644,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/b13bedc5215730fbce5edff6c130988a?s=256&d=identicon&r=PG",
+        "display_name": "rzwitserloot",
+        "link": "https://stackoverflow.com/users/768644/rzwitserloot"
+      },
+      "is_accepted": false,
+      "score": 3,
+      "last_activity_date": 1764601886,
+      "creation_date": 1764601886,
+      "answer_id": 79834993,
+      "question_id": 79834724,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>You need to read the <code>?</code> as &quot;I do not know&quot;.</p>\n<p>Thus, <code>List&lt;? super Item&gt;</code> is best read as:</p>\n<p>&quot;A List restricted to only contain.. I do not know. All I know is, whatever restriction is on it, it's either <code>Item</code>, or a supertype of <code>Item</code>&quot;. The stuff in the <code>&lt;&gt;</code> describes the <em>restriction</em>.</p>\n<p>So, given a List of things with this &quot;I do not know&quot; restriction, which operations are still completely safe?</p>\n<p>Well, you can add an expression of type <code>Item</code> to such a list. That always works out. It doesn't matter if we are dealing with an <code>ArrayList&lt;Object&gt;</code> or an <code>ArrayList&lt;Item&gt;</code>; calling <code>.add(new Item())</code> on either one is fine. Hence, you're allowed to do that.</p>\n<p>calling <code>.add(new Object())</code> is not fine. There are lists with restrictions that fit in the description &quot;I do not know.. all I know is, it's either <code>Item</code> or a supertype of <code>Item</code>&quot; (such as an <code>ArrayList&lt;Item&gt;</code>) where <code>.add(new Object())</code> is <strong>not</strong> safe - it would put a non-item in a list that says everything inside it is treatable a an <code>Item</code>.</p>\n<p>Similarly, <code>.get(0)</code> on your 'List of I do not know...' returns an Object. Because that is necessarily safe: No matter which of the many lists it could be, treating what comes out of .get(0) as an object is never going to be wrong.</p>\n<p>The point of the &quot;I do not know&quot; (?) in generics is to allow your code to work with many different kinds of stuff in the <code>&lt;&gt;</code> by the caller / user of your code.</p>\n<p>This method:</p>\n<pre><code>public int sumAsInt(List&lt;Number&gt; numbers) {\n  int result = 0;\n  for (Number n : numbers) result += n.intValue();\n  return result;\n}\n</code></pre>\n<p>Cannot be invoked with a list of integers:</p>\n<pre><code>List&lt;Integer&gt; list = new ArrayList&lt;Integer&gt;();\nlist.add(5);\nlist.add(10);\nSystem.out.println(sumAsInt(list));\n</code></pre>\n<p>will not compile. However, make that <code>List&lt;? extends Number&gt; numbers</code> and it <em>would</em> compile. The 'downside' is, you can no longer invoke <code>.add</code> on a <code>List&lt;? extends Number&gt;</code>, because there is no expression that works for all possible things that fit the restraint &quot;A list restricted to contain only.. I do not know, all I know is, either Number or some subtype thereof&quot;. After all, both <code>List&lt;Double&gt;</code> and <code>List&lt;Integer&gt;</code> fit that restriction, and there is nothing that is <em>both</em> an <code>Integer</code> <em>and</em> a <code>Double</code>.</p>\n<p>Except the literal <code>null</code> constant, which is all types, and indeed <code>.add(null)</code> is the one and only way to invoke <code>add</code> on a <code>List&lt;? extends Anything&gt;</code>.</p>\n<p>That's why you add those <code>?</code>: You reduce what you can do with such an argument but you increase what kinds of things can be passed to your code.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 3211603,
+        "reputation": 300971,
+        "user_id": 2711488,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/t2hoD.jpg?s=256",
+        "display_name": "Holger",
+        "link": "https://stackoverflow.com/users/2711488/holger"
+      },
+      "is_accepted": false,
+      "score": 2,
+      "last_activity_date": 1764597046,
+      "creation_date": 1764597046,
+      "answer_id": 79834917,
+      "question_id": 79834724,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>In other words, you can write <code>items = new ArrayList&lt;Object&gt;();</code> because <code>Object</code> is a supertype of <code>Item</code>.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 7612423,
+        "reputation": 87400,
+        "user_id": 5772882,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/8283c64511fa80afed5259d10850168f?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Anonymous",
+        "link": "https://stackoverflow.com/users/5772882/anonymous"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1764591533,
+      "creation_date": 1764591533,
+      "answer_id": 79834805,
+      "question_id": 79834724,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>No, <code>Collection&lt;? super Item&gt; </code> does not mean that. It means the element type is <code>Item</code> or some unknown supertype of <code>Item</code>. Your <code>items</code> may for instance refer to an <code>ArrayList&lt;Item&gt;</code>  or a  <code>HashSet&lt;Object&gt;</code> , Java doesn’t know.</p>\n<p>In your case the (strict) supertype could only be <code>Object</code>. In general a type can have many supertypes. But as I said, the question mark could also stand for <code>Item</code>, in which case it isn’t permissible to add an <code>Object</code> to your collection. Since Java doesn’t know whether the element type is indeed <code>Object</code>, it refuses to let you add the <code>Object</code>.</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79835122": [],
+    "79834993": [],
+    "79834917": [],
+    "79834805": []
+  }
+}

@@ -1,0 +1,186 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "java-8",
+      "option-type"
+    ],
+    "owner": {
+      "account_id": 4858495,
+      "reputation": 7455,
+      "user_id": 3918862,
+      "user_type": "registered",
+      "profile_image": "https://graph.facebook.com/654625367/picture?type=large",
+      "display_name": "Neil Stevens",
+      "link": "https://stackoverflow.com/users/3918862/neil-stevens"
+    },
+    "is_answered": true,
+    "view_count": 372770,
+    "accepted_answer_id": 31923105,
+    "answer_count": 28,
+    "score": 703,
+    "last_activity_date": 1728687888,
+    "creation_date": 1439218680,
+    "last_edit_date": 1675501016,
+    "question_id": 31922866,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/31922866/why-should-java-8s-optional-not-be-used-in-arguments",
+    "title": "Why should Java 8&#39;s Optional not be used in arguments",
+    "body": "<p>I've read on many Web sites Optional should be used as a return type only, and not used in method arguments.  I'm struggling to find a logical reason why.  For example I have a piece of logic which has 2 optional parameters.  Therefore I think it would make sense to write my method signature like this (solution 1):</p>\n<pre><code>public int calculateSomething(Optional&lt;String&gt; p1, Optional&lt;BigDecimal&gt; p2) {\n    // my logic\n}\n</code></pre>\n<p>Many web pages specify Optional should not be used as method arguments. With this in mind, I could use the following method signature and add a clear Javadoc comment to specify that the arguments may be null, hoping future maintainers will read the Javadoc and therefore always carry out null checks prior to using the arguments (solution 2):</p>\n<pre><code>public int calculateSomething(String p1, BigDecimal p2) {\n    // my logic\n}\n</code></pre>\n<p>Alternatively I could replace my method with four public methods to provide a nicer interface and make it more obvious p1 and p2 are optional (solution 3):</p>\n<pre><code>public int calculateSomething() {\n    calculateSomething(null, null);\n}\n\npublic int calculateSomething(String p1) {\n    calculateSomething(p1, null);\n}\n\npublic int calculateSomething(BigDecimal p2) {\n    calculateSomething(null, p2);\n}\n\npublic int calculateSomething(String p1, BigDecimal p2) {\n    // my logic\n}\n</code></pre>\n<p>Now I try writing the code of the class which invokes this piece of logic for each approach.  I first retrieve the two input parameters from another object which returns <code>Optional</code>s and then, I invoke <code>calculateSomething</code>.  Therefore, if solution 1 is used the calling code would look like this:</p>\n<pre><code>Optional&lt;String&gt; p1 = otherObject.getP1();\nOptional&lt;BigInteger&gt; p2 = otherObject.getP2();\nint result = myObject.calculateSomething(p1, p2);\n</code></pre>\n<p>if solution 2 is used, the calling code would look like this:</p>\n<pre><code>Optional&lt;String&gt; p1 = otherObject.getP1();\nOptional&lt;BigInteger&gt; p2 = otherObject.getP2();\nint result = myObject.calculateSomething(p1.orElse(null), p2.orElse(null));\n</code></pre>\n<p>if solution 3 is applied, I could use the code above or I could use the following (but it's significantly more code):</p>\n<pre><code>Optional&lt;String&gt; p1 = otherObject.getP1();\nOptional&lt;BigInteger&gt; p2 = otherObject.getP2();\nint result;\nif (p1.isPresent()) {\n    if (p2.isPresent()) {\n        result = myObject.calculateSomething(p1, p2);\n    } else {\n        result = myObject.calculateSomething(p1);\n    }\n} else {\n    if (p2.isPresent()) {\n        result = myObject.calculateSomething(p2);\n    } else {\n        result = myObject.calculateSomething();\n    }\n}\n</code></pre>\n<p><strong>So my question is: Why is it considered bad practice to use <code>Optional</code>s as method arguments (see solution 1)?</strong>  It looks like the most readable solution to me and makes it most obvious that the parameters could be empty/null to future maintainers.  (I'm aware the designers of <code>Optional</code> intended it to only be used as a return type, but I can't find any logical reasons not to use it in this scenario).</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 4793258,
+        "reputation": 1824,
+        "user_id": 3871834,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/30b54e8e9058dd72267d2be6b28cec72?s=256&d=identicon&r=PG",
+        "display_name": "Mark Perry",
+        "link": "https://stackoverflow.com/users/3871834/mark-perry"
+      },
+      "is_accepted": false,
+      "score": 152,
+      "last_activity_date": 1728687888,
+      "last_edit_date": 1728687888,
+      "creation_date": 1439224790,
+      "answer_id": 31924845,
+      "question_id": 31922866,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>There are almost no good reasons for not using <code>Optional</code> as parameters.  The arguments against this rely on arguments from authority (see Brian Goetz - his argument is we can't enforce non null optionals) or that the <code>Optional</code> arguments may be null (essentially the same argument).  Of course, any reference in Java can be null, we need to encourage rules being enforced by the compiler, not programmers' memory (which is problematic and does not scale).</p>\n<p>Functional programming languages encourage <code>Optional</code> parameters.  One of the best ways of using this is to have multiple optional parameters and using <code>liftM2</code> to use a function assuming the parameters are not empty and returning an optional (see <a href=\"http://www.functionaljava.org/javadoc/4.4/functionaljava/fj/data/Option.html#liftM2-fj.F-\" rel=\"noreferrer\">http://www.functionaljava.org/javadoc/4.4/functionaljava/fj/data/Option.html#liftM2-fj.F-</a>).  Java 8 has unfortunately implemented a very limited library supporting optional.</p>\n<p>As Java programmers, we should only be using <code>null</code> to interact with legacy libraries.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 6160013,
+        "reputation": 318,
+        "user_id": 4801932,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/S2lw9.png?s=256",
+        "display_name": "Marko",
+        "link": "https://stackoverflow.com/users/4801932/marko"
+      },
+      "is_accepted": false,
+      "score": -1,
+      "last_activity_date": 1720512872,
+      "creation_date": 1720512872,
+      "answer_id": 78724437,
+      "question_id": 31922866,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>In case you want to have an Optional argument in your function rather do it using another functional interface. For example:</p>\n<pre><code>void doSomething(Supplier&lt;Optional&lt;String&gt;&gt; urlSupplier) {\n    urlSupplier.get()\n                .filter(StringUtils::isNotBlank)\n                .isPresent((url) -&gt; System.out.println(url));\n}\n</code></pre>\n<p>You can use Function instead of Supplier it is up to you. Then you can just call it. For example:</p>\n<pre><code>void myMethod() {\n    doSomething(() -&gt; methodToGetUrlAsOptional());\n}\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 2450311,
+        "reputation": 3078,
+        "user_id": 2136767,
+        "user_type": "registered",
+        "accept_rate": 74,
+        "profile_image": "https://i.sstatic.net/uF2N3.jpg?s=256",
+        "display_name": "Paul",
+        "link": "https://stackoverflow.com/users/2136767/paul"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1652272648,
+      "post_id": 31922866,
+      "comment_id": 127565787,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 5481141,
+        "reputation": 7955,
+        "user_id": 4398050,
+        "user_type": "registered",
+        "accept_rate": 94,
+        "profile_image": "https://lh6.googleusercontent.com/-AgrMk4aAiaQ/AAAAAAAAAAI/AAAAAAAAAp8/TNowIX0T3CY/s256-rj/photo.jpg",
+        "display_name": "pedrorijo91",
+        "link": "https://stackoverflow.com/users/4398050/pedrorijo91"
+      },
+      "edited": false,
+      "score": 8,
+      "creation_date": 1582614172,
+      "post_id": 31922866,
+      "comment_id": 106827966,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 7445,
+        "reputation": 62917,
+        "user_id": 12943,
+        "user_type": "registered",
+        "accept_rate": 84,
+        "profile_image": "https://www.gravatar.com/avatar/d6a9924b767fe91c46def7edc7bce035?s=256&d=identicon&r=PG",
+        "display_name": "Bill K",
+        "link": "https://stackoverflow.com/users/12943/bill-k"
+      },
+      "edited": false,
+      "score": 19,
+      "creation_date": 1517354895,
+      "post_id": 31922866,
+      "comment_id": 84059888,
+      "content_license": "CC BY-SA 3.0"
+    }
+  ],
+  "answer_comments": {
+    "31924845": [
+      {
+        "owner": {
+          "account_id": 72095,
+          "reputation": 20588,
+          "user_id": 208273,
+          "user_type": "moderator",
+          "profile_image": "https://www.gravatar.com/avatar/65129b14ad4a755ba297a84f0ea03727?s=256&d=identicon&r=PG",
+          "display_name": "Ryan M",
+          "link": "https://stackoverflow.com/users/208273/ryan-m"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1728687933,
+        "post_id": 31924845,
+        "comment_id": 139439047,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1475,
+          "reputation": 549399,
+          "user_id": 1968,
+          "user_type": "registered",
+          "accept_rate": 83,
+          "profile_image": "https://www.gravatar.com/avatar/fdd630f72eef3790bfb4ef38d08c7f85?s=256&d=identicon&r=PG",
+          "display_name": "Konrad Rudolph",
+          "link": "https://stackoverflow.com/users/1968/konrad-rudolph"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1675077119,
+        "post_id": 31924845,
+        "comment_id": 132843610,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 304966,
+          "reputation": 12832,
+          "user_id": 614800,
+          "user_type": "registered",
+          "accept_rate": 88,
+          "profile_image": "https://i.sstatic.net/IZDYN.png?s=256",
+          "display_name": "beluchin",
+          "link": "https://stackoverflow.com/users/614800/beluchin"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1611174486,
+        "post_id": 31924845,
+        "comment_id": 116369701,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "78724437": []
+  }
+}

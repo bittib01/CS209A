@@ -1,0 +1,103 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "arrays",
+      "lambda",
+      "byte"
+    ],
+    "owner": {
+      "account_id": 37604239,
+      "reputation": 105,
+      "user_id": 28332552,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/5a84dbd7a917124e895a66d1b7b38d61?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Lucy",
+      "link": "https://stackoverflow.com/users/28332552/lucy"
+    },
+    "is_answered": true,
+    "view_count": 142,
+    "accepted_answer_id": 79811851,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1762471298,
+    "creation_date": 1762467412,
+    "question_id": 79811820,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79811820/why-cant-i-return-type-byte-in-lambda-expression-in-arrays-setall",
+    "title": "Why can&#39;t I return type byte in lambda expression in Arrays.setAll",
+    "body": "<p>I'm trying to implement a lambda function (for educational purposes) to initiate an array to append to the front of potentially encrypted data to save information like salt and initiation vector, which uses an if-elseif conditional to set its first byte to its own length (so you know where the buffer ends and data starts), and then to add the salt and initiation vector.\nProblem is I keep getting these errors:</p>\n<blockquote>\n<p>The method setAll(T[], IntFunction&lt;? extends T&gt;) in the type Arrays is\nnot applicable for the arguments (byte[]::buffer, ( i) -&gt; {})</p>\n<p>The target type of this expression must be a functional interface</p>\n<p>Type mismatch: cannot convert from byte to T</p>\n</blockquote>\n<p>From what I understand, this is because it doesn't like me using bytes. Why is this, and what are some ways to work around this?</p>\n<p>The byte[] casting before buffer in the setAll parameter is added because I tried to make it not be T[] in an attempt to have it accept bytes.</p>\n<pre><code>public final class App {\n   public static void main(final String[] args) {\n        byte[] salt = new byte[16];\n        SecureRandom secRand = new SecureRandom();\n        secRand.nextBytes(salt);\n        byte[] initVectorBytes = new byte[16];\n        secRand.nextBytes(initVectorBytes);\n        byte[] buffer = new byte[salt.length + initVectorBytes.length + 1];\n        Arrays.setAll(byte[] buffer, i -&gt; {\n            if(i ==0) {\n                return (byte) (salt.length + initVectorBytes.length + 1)\n            }else if(i &lt; 17) {\n                return salt[i-1];\n            }else if(i &gt;= 17) {\n                return initVectorBytes[i-17];\n            }\n        });\n   }\n}\n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 2792262,
+        "reputation": 190757,
+        "user_id": 2402272,
+        "user_type": "registered",
+        "accept_rate": 85,
+        "profile_image": "https://www.gravatar.com/avatar/1182b1d5518a596d4e8cfe0567a65c4d?s=256&d=identicon&r=PG",
+        "display_name": "John Bollinger",
+        "link": "https://stackoverflow.com/users/2402272/john-bollinger"
+      },
+      "is_accepted": true,
+      "score": 8,
+      "last_activity_date": 1762471298,
+      "last_edit_date": 1762471298,
+      "creation_date": 1762470830,
+      "answer_id": 79811851,
+      "question_id": 79811820,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<blockquote>\n<p>From what I understand, this is because it doesn't like me using bytes. Why is this, and what are some ways to work around this?</p>\n</blockquote>\n<p>It doesn't like you using bytes because arrays of different element types are not compatible, and none of the overloads of <code>Arrays.setAll()</code> accepts an array argument of type <code>byte[]</code>. That includes the generic one, because type parameters can match only reference types, whereas <code>byte</code> is a primitive type.</p>\n<p>In your particular case, the best workaround is probably to stop trying to be so clever.  It would be clearer, shorter, and almost surely faster to do this, instead:</p>\n<pre><code>    final static int SALT_LENGTH = 16;\n    final static int INIT_VECTOR_LENGTH = 16;\n\n    // ...\n\n        SecureRandom secRand = new SecureRandom();\n        byte[] buffer = new byte[1 + SALT_LENGTH + INIT_VECTOR_LENGTH];\n        secRand.nextBytes(buffer);\n        buffer[0] = buffer.length;\n</code></pre>\n<p>Even if there were a <code>setAll()</code> that worked on <code>byte</code> arrays, it wouldn't offer an advantage over that.</p>\n<p>Note also that if this were for use in a method that might be invoked more than once then it it would be better to have a single <code>SecureRandom</code> that you reuse, instead of setting up a new one every time the method is invoked.</p>\n<p>Furthermore, if you wanted to generate random bytes for only a small portion of a large array, such that it didn't make sense to start by filling the whole array, then <code>System.arraycopy()</code> is a much better way to copy a range of elements from from one array into another than <code>Arrays.setAll()</code>.</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79811851": [
+      {
+        "owner": {
+          "account_id": 2792262,
+          "reputation": 190757,
+          "user_id": 2402272,
+          "user_type": "registered",
+          "accept_rate": 85,
+          "profile_image": "https://www.gravatar.com/avatar/1182b1d5518a596d4e8cfe0567a65c4d?s=256&d=identicon&r=PG",
+          "display_name": "John Bollinger",
+          "link": "https://stackoverflow.com/users/2402272/john-bollinger"
+        },
+        "reply_to_user": {
+          "account_id": 37604239,
+          "reputation": 105,
+          "user_id": 28332552,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/5a84dbd7a917124e895a66d1b7b38d61?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Lucy",
+          "link": "https://stackoverflow.com/users/28332552/lucy"
+        },
+        "edited": false,
+        "score": 3,
+        "creation_date": 1762521889,
+        "post_id": 79811851,
+        "comment_id": 140841880,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 37604239,
+          "reputation": 105,
+          "user_id": 28332552,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/5a84dbd7a917124e895a66d1b7b38d61?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Lucy",
+          "link": "https://stackoverflow.com/users/28332552/lucy"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1762514285,
+        "post_id": 79811851,
+        "comment_id": 140841682,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

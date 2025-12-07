@@ -1,0 +1,57 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "hibernate",
+      "jpa",
+      "pgvector"
+    ],
+    "owner": {
+      "account_id": 44226426,
+      "reputation": 21,
+      "user_id": 31642875,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/TwsbxWJj.png?s=256",
+      "display_name": "Iwan de Jong",
+      "link": "https://stackoverflow.com/users/31642875/iwan-de-jong"
+    },
+    "is_answered": true,
+    "view_count": 38,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1764832132,
+    "creation_date": 1764760794,
+    "last_edit_date": 1764775937,
+    "question_id": 79836804,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79836804/hibernate-invalid-stream-header-0-when-trying-to-deserialize-pgvector-embe",
+    "title": "Hibernate: Invalid stream header &quot;[-0.&quot; when trying to deserialize pgvector embedding into JPA entity",
+    "body": "<p>I created a PGvector database:</p>\n<pre class=\"lang-sql prettyprint-override\"><code>CREATE TABLE IF NOT EXISTS vector_store (\n    id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,\n    content text,\n    metadata jsonb,\n    embedding vector(1024),\n    created_at timestamptz DEFAULT now()\n);\n</code></pre>\n<p>and defined a JPA entity following <a href=\"https://docs.hibernate.org/orm/current/userguide/html_single/#vector-module\" rel=\"nofollow noreferrer\">Hibernate's documentation regarding vectors</a>:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Entity\n@Table(name = &quot;vector_store&quot;)\npublic class Document {\n    @Id\n    @Column(columnDefinition = &quot;uuid&quot;)\n    private UUID id;\n\n    @Column(columnDefinition = &quot;text&quot;)\n    private String content;\n\n    @JdbcTypeCode(SqlTypes.JSON)\n    @Column(columnDefinition = &quot;jsonb&quot;)\n    private LogMetadata metadata;\n\n    @JdbcTypeCode(SqlTypes.VECTOR)\n    @Column(columnDefinition = &quot;vector(1024)&quot;)\n    @Array(length = 1024)\n    private double[] embedding;\n\n    // getters and setters\n}\n</code></pre>\n<p>However, when trying to deserialize the embedding into a Document object,</p>\n<pre class=\"lang-java prettyprint-override\"><code>public List&lt;Document&gt; fetchAllDocuments() {\n    return documentRepository.findAll();\n}\n</code></pre>\n<p>I get the following error:</p>\n<pre><code>org.hibernate.type.SerializationException: could not deserialize\n...\njava.io.StreamCorruptedException: invalid stream header: 5B2D302E\n</code></pre>\n<p>Info: <code>5B2D302E</code> translates to <code>[-0.</code>, which is the first few characters of the embedding of an entry.</p>\n<p>I tried <code>SqlTypes.VECTOR_FLOAT64</code> as well, but without luck.</p>\n<p>Any idea what this could be?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 44226426,
+        "reputation": 21,
+        "user_id": 31642875,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/TwsbxWJj.png?s=256",
+        "display_name": "Iwan de Jong",
+        "link": "https://stackoverflow.com/users/31642875/iwan-de-jong"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1764832132,
+      "creation_date": 1764832132,
+      "answer_id": 79837618,
+      "question_id": 79836804,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Fixed it by using <code>float[]</code> type <a href=\"https://docs.hibernate.org/orm/current/userguide/html_single/#vector-module\" rel=\"nofollow noreferrer\">as per documentation</a> and making sure there is a getter and setter for the <code>float[]</code> type specifically.</p>\n<p>Previously I had a <code>float[]</code>-to-<code>double[]</code> getter and a <code>double[]</code>-to-<code>float[]</code> setter:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public double[] getEmbedding() {\n    double[] doubleEmbedding = new double[embedding.length];\n    for (int i = 0; i &lt; embedding.length; i++) {\n        doubleEmbedding[i] = embedding[i];\n    }\n    return doubleEmbedding;\n}\n\npublic void setEmbedding(double[] embedding) {\n    this.embedding = new float[embedding.length];\n    for (int i = 0; i &lt; embedding.length; i++) {\n        this.embedding[i] = (float) embedding[i];\n    }\n}\n</code></pre>\n<p>I kept those (because I'm using doubles in my app), but added:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public float[] getFloatEmbedding() {\n    return embedding;\n}\n\npublic void setFloatEmbedding(float[] embedding) {\n    this.embedding = embedding;\n}\n</code></pre>\n<p>Thanks for the help, John! (See comments)</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79837618": []
+  }
+}

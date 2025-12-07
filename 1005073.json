@@ -1,0 +1,339 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "collections",
+      "arraylist",
+      "initialization"
+    ],
+    "owner": {
+      "account_id": 41275,
+      "reputation": 93321,
+      "user_id": 119895,
+      "user_type": "registered",
+      "accept_rate": 92,
+      "profile_image": "https://i.sstatic.net/dEYOs.jpg?s=256",
+      "display_name": "Macarse",
+      "link": "https://stackoverflow.com/users/119895/macarse"
+    },
+    "is_answered": true,
+    "view_count": 4052692,
+    "protected_date": 1428573066,
+    "accepted_answer_id": 1005083,
+    "answer_count": 36,
+    "score": 3414,
+    "last_activity_date": 1756825921,
+    "creation_date": 1245211820,
+    "last_edit_date": 1574329708,
+    "question_id": 1005073,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/1005073/initialization-of-an-arraylist-in-one-line",
+    "title": "Initialization of an ArrayList in one line",
+    "body": "<p>I wanted to create a list of options for testing purposes. At first, I did this:</p>\n\n<pre><code>ArrayList&lt;String&gt; places = new ArrayList&lt;String&gt;();\nplaces.add(\"Buenos Aires\");\nplaces.add(\"Córdoba\");\nplaces.add(\"La Plata\");\n</code></pre>\n\n<p>Then, I refactored the code as follows:</p>\n\n<pre><code>ArrayList&lt;String&gt; places = new ArrayList&lt;String&gt;(\n    Arrays.asList(\"Buenos Aires\", \"Córdoba\", \"La Plata\"));\n</code></pre>\n\n<p>Is there a better way to do this?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 83010,
+        "reputation": 28004,
+        "user_id": 233014,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/XyJIf.jpg?s=256",
+        "display_name": "Christoffer Hammarstr&#246;m",
+        "link": "https://stackoverflow.com/users/233014/christoffer-hammarstr%c3%b6m"
+      },
+      "is_accepted": false,
+      "score": 1158,
+      "last_activity_date": 1756825921,
+      "last_edit_date": 1756825921,
+      "creation_date": 1284035595,
+      "answer_id": 3676539,
+      "question_id": 1005073,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<h1>The simple answer</h1>\n<hr />\n<h2>Java 9 or later:</h2>\n<pre><code>List&lt;String&gt; strings = List.of(&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;);\n</code></pre>\n<p><a href=\"https://docs.oracle.com/javase/9/docs/api/java/util/List.html#immutable\" rel=\"nofollow noreferrer\"><code>List.of(...)</code></a> will give you an <em>immutable</em> <code>List</code>, so it cannot be changed.<br />\nWhich is what you want in most cases where you're prepopulating it.</p>\n<p>This does not allow <code>null</code> elements.</p>\n<hr />\n<h2>Java 8 or earlier:</h2>\n<pre><code>List&lt;String&gt; strings = Arrays.asList(&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;);\n</code></pre>\n<p><a href=\"https://docs.oracle.com/javase/8/docs/api/java/util/Arrays.html#asList-T...-\" rel=\"nofollow noreferrer\"><code>Arrays.asList(...)</code></a> will give you a <code>List</code><sup>*</sup> backed by the passed in arguments array, so it cannot change length.<br />\nBut you can call <code>List.set(...)</code>, so it's still <em>mutable</em>.</p>\n<p>This does allow <code>null</code> elements.</p>\n<p><sup>*<sub>\nImplementation detail: It's a private nested class inside <code>java.util.Arrays</code>, named <code>ArrayList</code>,<br />\nwhich is a different class from <code>java.util.ArrayList</code>, even though their simple names are the same.</sub></sup></p>\n<h3>Static import</h3>\n<p>You can make Java 8 <code>Arrays.asList</code> even shorter with a static import:</p>\n<pre><code>import static java.util.Arrays.asList;  \n...\nList&lt;String&gt; strings = asList(&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;);\n</code></pre>\n<p>Any modern IDE<sup>*</sup> will suggest and do this for you.</p>\n<p>I don't recommend statically importing the <code>List.of</code> method as just <code>of</code>, because it's confusing.</p>\n<p><sup>*<sub>\nFor example, in IntelliJ IDEA you press <code>Alt+Enter</code> and select <code>Static import method...</code></sub></sup></p>\n<hr />\n<h1>Using <code>Stream</code>s</h1>\n<p>Why does it have to be a <code>List</code>?<br />\nWith Java 8 or later you can use a <a href=\"https://docs.oracle.com/javase/8/docs/api/java/util/stream/Stream.html\" rel=\"nofollow noreferrer\"><code>Stream</code></a> which is more flexible:</p>\n<pre><code>Stream&lt;String&gt; strings = Stream.of(&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;);\n</code></pre>\n<p>You can concatenate <code>Stream</code>s:</p>\n<pre><code>Stream&lt;String&gt; strings = Stream.concat(Stream.of(&quot;foo&quot;, &quot;bar&quot;),\n                                       Stream.of(&quot;baz&quot;, &quot;qux&quot;));\n</code></pre>\n<p>Or you can go from a <code>Stream</code> to a <code>List</code>:</p>\n<pre><code>import static java.util.stream.Collectors.*;\n...\nList&lt;String&gt; strings = Stream.of(&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;).toList(); // Java 16, immutable\n\nList&lt;String&gt; strings = Stream.of(&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;).collect(toUnmodifiableList()); // Java 10, immutable\n\nList&lt;String&gt; strings = Stream.of(&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;).collect(toList()); // Java 8, an ArrayList in practice\n</code></pre>\n<p><code>Collectors.toList()</code> is documented to have <a href=\"https://docs.oracle.com/javase/8/docs/api/java/util/stream/Collectors.html#toList--:%7E:text=There%20are%20no%20guarantees%20on%20the%20type%2C%20mutability%2C%20serializability%2C%20or%20thread%2Dsafety%20of%20the%20List%20returned\" rel=\"nofollow noreferrer\">&quot;no guarantees on the type, mutability, serializability, or thread-safety&quot;</a> but in practice it has always returned an <code>ArrayList</code>, and that's very unlikely to change because it would break a lot of code.</p>\n<p>Preferably, just use the <code>Stream</code> without collecting it to a <code>List</code>.</p>\n<hr />\n<h1>If you specifically need a <code>java.util.ArrayList</code><sup>*</sup></h1>\n<p>If you want to <em>both</em> prepopulate an <code>ArrayList</code> <em>and</em> add to it afterwards, use</p>\n<pre><code>List&lt;String&gt; strings = new ArrayList&lt;&gt;(List.of(&quot;foo&quot;, &quot;bar&quot;));\n</code></pre>\n<p>or in Java 8 or earlier:</p>\n<pre><code>List&lt;String&gt; strings = new ArrayList&lt;&gt;(asList(&quot;foo&quot;, &quot;bar&quot;));\n</code></pre>\n<p>or using <code>Stream</code>:</p>\n<pre><code>import static java.util.stream.Collectors.toCollection;\n\nList&lt;String&gt; strings = Stream.of(&quot;foo&quot;, &quot;bar&quot;)\n                             .collect(toCollection(ArrayList::new));\n</code></pre>\n<p>Then you can add to it after construction:</p>\n<pre><code>strings.add(&quot;baz&quot;);\n</code></pre>\n<p>But again, it's better to just use the <code>Stream</code> directly instead of collecting it to a <code>List</code>.</p>\n<p><sup>*<sub>You probably don't need specifically an <code>ArrayList</code>. To quote <a href=\"http://openjdk.java.net/jeps/269\" rel=\"nofollow noreferrer\">JEP 269</a>:</sub></p>\n<blockquote>\n<p><sub>There is a <strong>small set</strong> of use cases for initializing a mutable collection instance with a predefined set of values. It's usually preferable to have those predefined values be in an immutable collection, and then to initialize the mutable collection via a copy constructor.</sub></p>\n</blockquote>\n<p><sub>(emphasis mine)</sub></sup></p>\n<hr />\n<h2>Program to interfaces, not to implementations</h2>\n<p>You said you've declared the list as an <code>ArrayList</code> in your code, but you should only do that if you're using some member of <code>ArrayList</code> that's not in <code>List</code>.</p>\n<p>Which you are most likely not doing.</p>\n<p>Usually you should just declare variables by the most general interface that you are going to use (e.g. <code>Iterable</code>, <code>Collection</code>, or <code>List</code>), and initialize them with the specific implementation (e.g. <code>ArrayList</code>, <code>LinkedList</code> or <code>Arrays.asList()</code>).</p>\n<p>Otherwise you're limiting your code to that specific type, and it'll be harder to change when you want to.</p>\n<p>For example, if you're passing an <code>ArrayList</code> to a <code>void method(...)</code>:</p>\n<pre><code>// Iterable if you just need iteration, for (String s : strings):\nvoid method(Iterable&lt;String&gt; strings) { \n    for (String s : strings) { ... } \n}\n\n// Collection if you also need .size(), .isEmpty(), or .stream():\nvoid method(Collection&lt;String&gt; strings) {\n    if (!strings.isEmpty()) { strings.stream()... }\n}\n\n// List if you also need indexed access, .get(index):\nvoid method(List&lt;String&gt; strings) {\n    strings.get(index)\n}\n\n// Don't declare a specific list implementation\n// unless you're sure you need it:\nvoid method(ArrayList&lt;String&gt; strings) {\n    ??? // You don't want to limit yourself to just ArrayList\n}\n</code></pre>\n<p>Another example would be always declaring variable an <code>InputStream</code> even though it is usually a <code>FileInputStream</code> or a <code>BufferedInputStream</code>, because one day soon you or somebody else will want to use some other kind of <code>InputStream</code>.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 5539,
+        "reputation": 45121,
+        "user_id": 8969,
+        "user_type": "registered",
+        "accept_rate": 67,
+        "profile_image": "https://i.sstatic.net/15JSR.jpg?s=256",
+        "display_name": "Tom",
+        "link": "https://stackoverflow.com/users/8969/tom"
+      },
+      "is_accepted": false,
+      "score": 2784,
+      "last_activity_date": 1751891833,
+      "last_edit_date": 1751891833,
+      "creation_date": 1245212106,
+      "answer_id": 1005089,
+      "question_id": 1005073,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>It would be simpler if you were to just declare it as a fixed-size <code>List</code> (but with mutable elements) - does it have to be an ArrayList?</p>\n<pre><code>List&lt;String&gt; places = Arrays.asList(&quot;Buenos Aires&quot;, &quot;Córdoba&quot;, &quot;La Plata&quot;);\n</code></pre>\n<p>Or if you have only one element:</p>\n<pre><code>List&lt;String&gt; places2 = Collections.singletonList(&quot;Buenos Aires&quot;);\n</code></pre>\n<p>This would mean that <code>places2</code> is <strong>immutable</strong> (trying to change it in any way will cause an <code>UnsupportedOperationException</code> exception to be thrown).</p>\n<p>To make a variable-size list that is a concrete <code>ArrayList</code> you can create an <code>ArrayList</code> from the fixed-size list:</p>\n<pre><code>ArrayList&lt;String&gt; places = new ArrayList&lt;&gt;(Arrays.asList(&quot;Buenos Aires&quot;, &quot;Córdoba&quot;, &quot;La Plata&quot;));\n</code></pre>\n<p>And import the correct package:</p>\n<pre><code>import java.util.Arrays;\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 145555,
+        "reputation": 22473,
+        "user_id": 355438,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/eb132c7de803cf864996a922a073e5f2?s=256&d=identicon&r=PG",
+        "display_name": "Ilya Serbis",
+        "link": "https://stackoverflow.com/users/355438/ilya-serbis"
+      },
+      "reply_to_user": {
+        "account_id": 6379814,
+        "reputation": 4573,
+        "user_id": 4949653,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/AV8al.jpg?s=256",
+        "display_name": "torina",
+        "link": "https://stackoverflow.com/users/4949653/torina"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1751897219,
+      "post_id": 1005073,
+      "comment_id": 140570859,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "3676539": [
+      {
+        "owner": {
+          "account_id": 83010,
+          "reputation": 28004,
+          "user_id": 233014,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/XyJIf.jpg?s=256",
+          "display_name": "Christoffer Hammarstr&#246;m",
+          "link": "https://stackoverflow.com/users/233014/christoffer-hammarstr%c3%b6m"
+        },
+        "reply_to_user": {
+          "account_id": 31180,
+          "reputation": 29752,
+          "user_id": 85421,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/kKvXH.gif?s=256",
+          "display_name": "user85421",
+          "link": "https://stackoverflow.com/users/85421/user85421"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1751924349,
+        "post_id": 3676539,
+        "comment_id": 140571915,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 31180,
+          "reputation": 29752,
+          "user_id": 85421,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/kKvXH.gif?s=256",
+          "display_name": "user85421",
+          "link": "https://stackoverflow.com/users/85421/user85421"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1751920028,
+        "post_id": 3676539,
+        "comment_id": 140571766,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1077457,
+          "reputation": 9133,
+          "user_id": 1075282,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/70efe94a6c2237ec96f429402a03a27d?s=256&d=identicon&r=PG",
+          "display_name": "Renat",
+          "link": "https://stackoverflow.com/users/1075282/renat"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1685700379,
+        "post_id": 3676539,
+        "comment_id": 134701006,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 113319,
+          "reputation": 2918,
+          "user_id": 298511,
+          "user_type": "registered",
+          "accept_rate": 79,
+          "profile_image": "https://www.gravatar.com/avatar/0e6f6781a4fc277e6fefbb3d49023d36?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Mike Lowery",
+          "link": "https://stackoverflow.com/users/298511/mike-lowery"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1674504638,
+        "post_id": 3676539,
+        "comment_id": 132724224,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 83010,
+          "reputation": 28004,
+          "user_id": 233014,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/XyJIf.jpg?s=256",
+          "display_name": "Christoffer Hammarstr&#246;m",
+          "link": "https://stackoverflow.com/users/233014/christoffer-hammarstr%c3%b6m"
+        },
+        "reply_to_user": {
+          "account_id": 113319,
+          "reputation": 2918,
+          "user_id": 298511,
+          "user_type": "registered",
+          "accept_rate": 79,
+          "profile_image": "https://www.gravatar.com/avatar/0e6f6781a4fc277e6fefbb3d49023d36?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Mike Lowery",
+          "link": "https://stackoverflow.com/users/298511/mike-lowery"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1674500437,
+        "post_id": 3676539,
+        "comment_id": 132722973,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 113319,
+          "reputation": 2918,
+          "user_id": 298511,
+          "user_type": "registered",
+          "accept_rate": 79,
+          "profile_image": "https://www.gravatar.com/avatar/0e6f6781a4fc277e6fefbb3d49023d36?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Mike Lowery",
+          "link": "https://stackoverflow.com/users/298511/mike-lowery"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1674331874,
+        "post_id": 3676539,
+        "comment_id": 132693643,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 83010,
+          "reputation": 28004,
+          "user_id": 233014,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/XyJIf.jpg?s=256",
+          "display_name": "Christoffer Hammarstr&#246;m",
+          "link": "https://stackoverflow.com/users/233014/christoffer-hammarstr%c3%b6m"
+        },
+        "reply_to_user": {
+          "account_id": 113319,
+          "reputation": 2918,
+          "user_id": 298511,
+          "user_type": "registered",
+          "accept_rate": 79,
+          "profile_image": "https://www.gravatar.com/avatar/0e6f6781a4fc277e6fefbb3d49023d36?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Mike Lowery",
+          "link": "https://stackoverflow.com/users/298511/mike-lowery"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1674244349,
+        "post_id": 3676539,
+        "comment_id": 132681143,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 113319,
+          "reputation": 2918,
+          "user_id": 298511,
+          "user_type": "registered",
+          "accept_rate": 79,
+          "profile_image": "https://www.gravatar.com/avatar/0e6f6781a4fc277e6fefbb3d49023d36?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Mike Lowery",
+          "link": "https://stackoverflow.com/users/298511/mike-lowery"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1674175214,
+        "post_id": 3676539,
+        "comment_id": 132664800,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "1005089": [
+      {
+        "owner": {
+          "account_id": 145555,
+          "reputation": 22473,
+          "user_id": 355438,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/eb132c7de803cf864996a922a073e5f2?s=256&d=identicon&r=PG",
+          "display_name": "Ilya Serbis",
+          "link": "https://stackoverflow.com/users/355438/ilya-serbis"
+        },
+        "reply_to_user": {
+          "account_id": 367825,
+          "reputation": 1341,
+          "user_id": 714249,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/5d7d56398e3e55f20b3b5afdb30d3e9f?s=256&d=identicon&r=PG",
+          "display_name": "Splash",
+          "link": "https://stackoverflow.com/users/714249/splash"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1751891390,
+        "post_id": 1005089,
+        "comment_id": 140570577,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 4651114,
+          "reputation": 389,
+          "user_id": 3768429,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/7fs9R.jpg?s=256",
+          "display_name": "Mauro Lacy",
+          "link": "https://stackoverflow.com/users/3768429/mauro-lacy"
+        },
+        "edited": false,
+        "score": 8,
+        "creation_date": 1694676135,
+        "post_id": 1005089,
+        "comment_id": 135923056,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1085259,
+          "reputation": 80173,
+          "user_id": 1081110,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/Fp4Pm.jpg?s=256",
+          "display_name": "Dawood ibn Kareem",
+          "link": "https://stackoverflow.com/users/1081110/dawood-ibn-kareem"
+        },
+        "edited": false,
+        "score": 2,
+        "creation_date": 1657166292,
+        "post_id": 1005089,
+        "comment_id": 128747000,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

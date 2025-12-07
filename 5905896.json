@@ -1,0 +1,191 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "maven",
+      "intellij-idea",
+      "intellij-inspections"
+    ],
+    "owner": {
+      "account_id": 384409,
+      "reputation": 8310,
+      "user_id": 740904,
+      "user_type": "registered",
+      "accept_rate": 75,
+      "profile_image": "https://www.gravatar.com/avatar/e178ec2f6936d956f200070cbb9723d8?s=256&d=identicon&r=PG",
+      "display_name": "Kevin Sitze",
+      "link": "https://stackoverflow.com/users/740904/kevin-sitze"
+    },
+    "is_answered": true,
+    "view_count": 880720,
+    "protected_date": 1540547547,
+    "accepted_answer_id": 5905931,
+    "answer_count": 67,
+    "score": 789,
+    "last_activity_date": 1737402471,
+    "creation_date": 1304645048,
+    "last_edit_date": 1520334220,
+    "question_id": 5905896,
+    "content_license": "CC BY-SA 3.0",
+    "link": "https://stackoverflow.com/questions/5905896/intellij-inspection-gives-cannot-resolve-symbol-but-still-compiles-code",
+    "title": "IntelliJ inspection gives &quot;Cannot resolve symbol&quot; but still compiles code",
+    "body": "<p>Platform: IntelliJ Community Edition 10.0.3<br>\nSDK: jdk1.6.0_21<br>\nOS: Windows 7</p>\n\n<p>So I have a strange situation with IntelliJ that has me completely stumped.  I setup a Maven project and add log4j as a dependency in the pom.xml file.  The IDEA inspections run fine and my unit tests all compile and run.</p>\n\n<p>I then added hunnysoft's jmime library to my local maven repository using the mvn install:install-file as follows.</p>\n\n<pre><code>mvn install:install-file -Dfile=jmime.jar -DgroupId=jmime \\\n-DartifactId=jmime -Dversion=3.1.1e -Dpackaging=jar\n</code></pre>\n\n<p>Maven installed the jar file just fine into my local repository.</p>\n\n<p>I then went into IntelliJ's Settings => Maven => Repository Services and Updated my local repository (so that IntelliJ would reindex the repository contents).</p>\n\n<p>Finally, I added the following dependency to my pom.xml file (just above the log4j dependency).</p>\n\n<pre><code>&lt;dependency&gt;\n    &lt;groupId&gt;jmime&lt;/groupId&gt;\n    &lt;artifactId&gt;jmime&lt;/artifactId&gt;\n    &lt;version&gt;3.1.1e&lt;/version&gt;\n&lt;/dependency&gt;\n</code></pre>\n\n<p>I now create a new class as follows:</p>\n\n<pre><code>package com.stackoverflow.question;\n\nimport org.apache.log4j.Logger;\nimport com.hunnysoft.jmime.ByteString;\nimport com.hunnysoft.jmime.Field;\nimport com.hunnysoft.jmime.FieldBody;\n\npublic class StackOverflowQuestion {\n    public Field create(String name, String text) {\n        Logger.getLogger(getClass()).debug(\"create entered\");\n        FieldBody body = new FieldBody();\n        body.setText(new ByteString(text));\n        Field field = new Field();\n        field.setFieldName(name);\n        field.setFieldBody(body);\n        return field;\n    }\n}\n</code></pre>\n\n<p>Now for the weirdness.  IntelliJ's intention mechanism picks up and recognizes the Logger import in the maven pom file just fine.  However, for all of the hunnysoft imports it reports: \"Cannot resolve symbol 'ByteString/Field/FieldBody'\", <em>BUT</em> Build => Compile 'StackOverflowQuestion.java' compiles everything correctly and the unit test I created for this class runs fine (though the intentions mark the call to create() as a problem area too).</p>\n\n<p>So somewhere, somehow IntelliJ is ignoring the jmime.jar file for the intention subsystem.  I'm confused because the log4j dependency works fine and everything compiles and runs fine.  F12 (\"Go To Declaration\") works on the Logger import, but breaks on all the jmime imports.</p>\n\n<p>Oh, one other thing, if I go to the 'Packages' view in the \"Projects\" window the \"com.hunnysoft.jmime\" package appears and I can see ALL of the classes I imported in the code snippet above under \"Libraries\".  Removing the above dependency from the pom.xml file causes this package to disappear and the compilation breaks.</p>\n\n<p>It appears that the inspection's classpath is broken, but there does not seem to be a setting for this anywhere in the Settings => Intentions | Compiler areas (not that I expected any such settings, I believe the IDEA should already know the correct classpath based on the pom file and JDK).</p>\n\n<p>As a final experiment I created a brand new standard J2SE application project (without using maven) and added the jmime.jar file directly to the project as one of its libraries.  I run into exactly the same problems as described above in this new project.</p>\n\n<p>Here is the MANIFEST.MF from the jmime jar file.</p>\n\n<pre><code>Manifest-Version: 1.0\nAnt-Version: Apache Ant 1.5.4\nCreated-By: 10.0-b23 (Sun Microsystems Inc.)\n\nName: com/hunnysoft/jmime/\nSealed: true\nSpecification-Title: Hunny JMIME\nSpecification-Version: 3.1.1\nSpecification-Vendor: Hunny Software, Inc.\nImplementation-Title: com.hunnysoft.jmime\nImplementation-Version: 3.1.1E\nImplementation-Vendor: Hunny Software, Inc.\n</code></pre>\n\n<p>I don't see anything unusual in this jar file.</p>\n\n<p>My best guess is that perhaps the problem might be a missing dependency issue.  But AFAIK jmime is supposed to be self contained (JarAnalyzer doesn't come up with anything, but I'm not sure it would if a dependency jar is missing).</p>\n\n<p>So, anyone have any IDEAs?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 19142129,
+        "reputation": 1218,
+        "user_id": 13994294,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/35c1e275447934acaab712afef7d777f?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Christoph Thiede",
+        "link": "https://stackoverflow.com/users/13994294/christoph-thiede"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1737402471,
+      "creation_date": 1737402471,
+      "answer_id": 79372490,
+      "question_id": 5905896,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>In my case, waiting for the project to be fully indexed was enough.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 13137240,
+        "reputation": 53,
+        "user_id": 9489816,
+        "user_type": "registered",
+        "profile_image": "https://graph.facebook.com/736428439901268/picture?type=large",
+        "display_name": "Vamshi",
+        "link": "https://stackoverflow.com/users/9489816/vamshi"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1715251819,
+      "creation_date": 1715251819,
+      "answer_id": 78453919,
+      "question_id": 5905896,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>If you are expecting a particular class to be compiled from a yaml spec(which actually is my case), then just <strong>Generate Sources and Update Folders For All Projects</strong> and you can see the missing classes in your project's classpath</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 428762,
+        "reputation": 1696,
+        "user_id": 811293,
+        "user_type": "registered",
+        "accept_rate": 30,
+        "profile_image": "https://www.gravatar.com/avatar/8ce65dae68b7c4cc4e5782efc77c7d69?s=256&d=identicon&r=PG",
+        "display_name": "joseluisbz",
+        "link": "https://stackoverflow.com/users/811293/joseluisbz"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1713538135,
+      "creation_date": 1713538135,
+      "answer_id": 78354544,
+      "question_id": 5905896,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>For me works this.</p>\n<p>On the Main menu select <code>File</code> -&gt; <code>Project Structure</code>, select <code>Project</code> in <code>Project Settings</code> -&gt; Click <code>Edit</code> Button.</p>\n<p><a href=\"https://i.sstatic.net/pEjdR.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/pEjdR.png\" alt=\"enter image description here\" /></a></p>\n<p>Or go directly selecting <code>SDKs</code> in <code>Platform Settings</code> then select the right SDK or remove the others.</p>\n<p><a href=\"https://i.sstatic.net/iwF4m.jpg\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/iwF4m.jpg\" alt=\"enter image description here\" /></a></p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 1393034,
+        "reputation": 2598,
+        "user_id": 1323374,
+        "user_type": "registered",
+        "accept_rate": 50,
+        "profile_image": "https://i.sstatic.net/YpDz1.jpg?s=256",
+        "display_name": "Ninja",
+        "link": "https://stackoverflow.com/users/1323374/ninja"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1687766275,
+      "post_id": 5905896,
+      "comment_id": 134977109,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 7311387,
+        "reputation": 373,
+        "user_id": 6293720,
+        "user_type": "registered",
+        "accept_rate": 58,
+        "profile_image": "https://www.gravatar.com/avatar/862c00d038ad9e10a3e346c38153bc01?s=256&d=identicon&r=PG",
+        "display_name": "ProgrammingBaKa",
+        "link": "https://stackoverflow.com/users/6293720/programmingbaka"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1679584641,
+      "post_id": 5905896,
+      "comment_id": 133751036,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 1352612,
+        "reputation": 4548,
+        "user_id": 1357094,
+        "user_type": "registered",
+        "accept_rate": 85,
+        "profile_image": "https://www.gravatar.com/avatar/73b4bd192fc3756a1ad0de1bb534f11c?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "cellepo",
+        "link": "https://stackoverflow.com/users/1357094/cellepo"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1653002572,
+      "post_id": 5905896,
+      "comment_id": 127750965,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 3398201,
+        "reputation": 1143,
+        "user_id": 2851184,
+        "user_type": "registered",
+        "accept_rate": 43,
+        "profile_image": "https://i.sstatic.net/WwzNm.jpg?s=256",
+        "display_name": "M Alok",
+        "link": "https://stackoverflow.com/users/2851184/m-alok"
+      },
+      "edited": false,
+      "score": 2,
+      "creation_date": 1614580434,
+      "post_id": 5905896,
+      "comment_id": 117418268,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 1769203,
+        "reputation": 9201,
+        "user_id": 1614378,
+        "user_type": "registered",
+        "accept_rate": 55,
+        "profile_image": "https://www.gravatar.com/avatar/5f4cb0d2f97a2f20b9e2d64996164043?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "devops",
+        "link": "https://stackoverflow.com/users/1614378/devops"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1551871477,
+      "post_id": 5905896,
+      "comment_id": 96797158,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79372490": [],
+    "78453919": [],
+    "78354544": []
+  }
+}

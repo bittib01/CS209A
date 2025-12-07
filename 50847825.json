@@ -1,0 +1,56 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "localbroadcastmanager"
+    ],
+    "owner": {
+      "account_id": 4119767,
+      "reputation": 1482,
+      "user_id": 3380456,
+      "user_type": "registered",
+      "accept_rate": 74,
+      "profile_image": "https://www.gravatar.com/avatar/157acd5fee4ca2844bc6eb75e2e18fae?s=256&d=identicon&r=PG",
+      "display_name": "Neglected Sanity",
+      "link": "https://stackoverflow.com/users/3380456/neglected-sanity"
+    },
+    "is_answered": false,
+    "view_count": 457,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1764840324,
+    "creation_date": 1528934206,
+    "question_id": 50847825,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/50847825/localbroadcastmanager-not-receiving-messages-correctly",
+    "title": "LocalBroadcastManager not receiving messages correctly",
+    "body": "<p>I have a, what I thought was a, simple task. I have a list of achievements in a recyclerView in my MainActivity. Clicking on one of the achievements launches the AchievementDetailActivity. You do an action in the AchievementDetailActivity and it completes the achievement. When that happens, I need the thumbnail on the MainActivity to be the achievement icon and not the locked icon. What I thought was I could just use the LocalBroadcastManager to send and receive messages from one activity to another, but that isn't working. From everything I have read you are supposed to unregister the listener in your activity onPause and onStop lifecycle methods, however, if you unregister the listener in the onPause of MainActivity, it gets unregistered when the AchievementDetailActivity starts and nothing gets delivered to the MainActivity. I don't understand how you can use LocalBroadCastManager with receivers to send information between activities when they get unregistered as soon as you start a new activity. The following example shows it unregisters as soon as the second activity is started, so the first activity will never get the broadcast...</p>\n\n<pre><code>public class MainActivity extends AppCompatActivity {\n\n  public static final String ACTION = \"update\";\n\n  private BroadcastReceiver receiver = new BroadcastReceiver() {\n    @Override\n    public void onReceive(Context context, Intent intent) {\n        Log.d(\"MAIN ACTIVITY\", \"RECEIVED EVENT\");\n    }\n  }\n  public void onStart() {\n    super.onStart();\n    LocalBroadcastManager.getInstance(this).registerReceiver(receiver), new IntentFilter(ACTION));\n  }\n\n  public void onPause() {\n    Log.d(\"MAIN ACTIVITY\", \"REMOVING LISTENER\");\n    LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);\n  }\n  //.. The rest of MainActivity\n}\n\npublic class SecondActivity extends AppCompatActivity {\n\n  @Override\n  public void onStart() {\n    super.onStart();\n    //initialize view and such\n    button.setOnClickListener(new View.OnClickListener() {\n      @Override\n      public void onClick(View view) {\n        LocalBroadcastManager manager = LocalBroadcastManager.getInstance(getApplicationContext());\n        Intent intent = new Intent(MainActivity.ACTION);\n        intent.putExtra(\"Something\", \"somewhere\");\n        manager.sendBroadcast(intent);\n      }\n    )};\n  }\n</code></pre>\n\n<p>If you run the above, obviously with the buttons and such, you will get a message that shows it unregisters the listener as soon as SecondActivity starts and the MainActivity will never get the message it is supposed to get when you click a button on the second activity.</p>\n\n<p>Is there a way to send information from activity to activity, or because of the lifecycle events is that not possible? Everything I read said LocalBroadcastManager was the right way to do it, but it gets unregistered so, how can it? Please help, this is driving me nuts. Thank you.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 1335995,
+        "reputation": 25047,
+        "user_id": 4390381,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/NLMC7.jpg?s=256",
+        "display_name": "Sagar",
+        "link": "https://stackoverflow.com/users/4390381/sagar"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1764840324,
+      "last_edit_date": 1764840324,
+      "creation_date": 1528935760,
+      "answer_id": 50847996,
+      "question_id": 50847825,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>It's not a great idea to use <code>LocalBroadcastReceiver</code> for this purpose. Use <code>startActivityForResult</code> instead. Follow this  <a href=\"https://developer.android.com/training/basics/intents/result\" rel=\"nofollow noreferrer\">Official doc</a> for implementation details.</p>\n<p>The reason it's not working is you are registering the receiver in <code>onStart</code> and unregistering it in <code>onPause()</code>. When your second activity is shown, <code>onPause ()</code> will be called as a result the <code>BroadcastReceiver</code> is unregistered.</p>\n<p>It's not a great idea to keep it registered since it would lead to memory leaks.</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "50847996": []
+  }
+}

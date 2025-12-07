@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "web-applications",
+      "soap",
+      "soapui"
+    ],
+    "owner": {
+      "account_id": 76433,
+      "reputation": 1927,
+      "user_id": 218811,
+      "user_type": "registered",
+      "accept_rate": 61,
+      "profile_image": "https://www.gravatar.com/avatar/1fb4582e2ffc67e2b97f7191ece16f87?s=256&d=identicon&r=PG",
+      "display_name": "Phil",
+      "link": "https://stackoverflow.com/users/218811/phil"
+    },
+    "is_answered": false,
+    "view_count": 23593,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1764612330,
+    "creation_date": 1347985517,
+    "last_edit_date": 1348000260,
+    "question_id": 12481129,
+    "content_license": "CC BY-SA 3.0",
+    "link": "https://stackoverflow.com/questions/12481129/soap-dont-know-what-my-endpoint-url-is",
+    "title": "SOAP - don&#39;t know what my endpoint URL is",
+    "body": "<p>I hope this problem is extremely simple and it's just me being an idiot. I am new to SOAP and am attempting to set up a SOAP WebService (using Java and Spring) and then using the tool SoapUI I attempt to send a SOAP request to my Web service. However I always get 404 Not Found errors when I submit my request. I suspect / hope that I have just set my Endpoint incorrectly in SoapUI, but I don't know what value I should be putting there. Can anyone help?</p>\n\n<p>These are the steps I have taken to setup my WebApp with SOAP support:</p>\n\n<p>1) I am using an existing WebApp (which has existing REST Web Services) running in Spring Tool Suite (which is based on Eclipse) and using Jetty. In my web.xml file I added a new SOAP Web Service:</p>\n\n<pre><code>&lt;servlet-mapping&gt;\n    &lt;servlet-name&gt;SOAPWebService&lt;/servlet-name&gt;\n    &lt;url-pattern&gt;/ws/SOAP/*&lt;/url-pattern&gt;\n&lt;/servlet-mapping&gt;\n&lt;servlet&gt;\n     &lt;servlet-name&gt;SOAPWebService&lt;/servlet-name&gt;\n     &lt;servlet-class&gt;org.springframework.ws.transport.http.MessageDispatcherServlet&lt;/servlet-class&gt;\n     &lt;init-param&gt;\n         &lt;param-name&gt;transformWsdlLocations&lt;/param-name&gt;\n         &lt;param-value&gt;true&lt;/param-value&gt;\n     &lt;/init-param&gt;\n     &lt;load-on-startup&gt;1&lt;/load-on-startup&gt;\n&lt;/servlet&gt;\n</code></pre>\n\n<p>2) I created a new class \"ProjectSearchEndpoint\" which has an annotation of @Endpoint. The payload root = @PayloadRoot(namespace = \"http://FOO.FOO/foo\", localPart = \"ProjectRequest\")</p>\n\n<p>3) I added the DSD to the WEB-INF of my WebApp: ws-project.xsd</p>\n\n<p>4) I created a servlet XML file called: SOAPWebService-servlet.xml which references the DSD</p>\n\n<pre><code>&lt;bean id=\"projectSearch\" class=\"org.springframework.ws.wsdl.wsdl11.DefaultWsdl11Definition\"&gt;\n  &lt;property name=\"schema\" ref=\"schema\"/&gt;\n  &lt;property name=\"portTypeName\" value=\"ProjectSearch\"/&gt;\n&lt;/bean&gt;\n\n&lt;bean id=\"schema\" class=\"org.springframework.xml.xsd.SimpleXsdSchema\"&gt;\n    &lt;property name=\"xsd\" value=\"/WEB-INF/ws-project.xsd\"/&gt;\n&lt;/bean&gt;\n</code></pre>\n\n<p><strong>NOTE:</strong> the endpoint code and DSD come from the blog:\n<a href=\"http://javaclue.blogspot.co.uk/2012/05/soap-web-service-using-spring-ws-20.html\" rel=\"nofollow\">http://javaclue.blogspot.co.uk/2012/05/soap-web-service-using-spring-ws-20.html</a> I edited the namespace to make it \"http://FOO.FOO/foo\" but apart from that the code is the same although I have added System.out lines to show when the object is constructed (it is) and when the \"searchProjects\" method is invoked (it never is).</p>\n\n<p>I can start my webApp successfully and if in my browser I navigate to the URL: </p>\n\n<pre><code>http://localhost:8080/MyApp/ws/SOAP/projectSearch.wsdl \n</code></pre>\n\n<p>I get to see the WSDL. All good so far. </p>\n\n<p>When I use SoapUI I create a new project and pass in the WSDL. SoapUI seems happy. I ask for a request and SoapUI creates a Soap Envelope with my ProjectRequest in it. Everything is going very well! However to submit this request SoapUI wants an Endpoint. I think my endpoint is:</p>\n\n<pre><code>http://localhost:8080/MyApp/ws/SOAP/\n</code></pre>\n\n<p>but this just returns a 404 not found. Trying other combinations such as </p>\n\n<pre><code>http://localhost:8080/MyApp/ws/SOAP/projectSearch\nhttp://localhost:8080/MyApp/ws/SOAP/projectSearch?wsdl\nhttp://localhost:8080/MyApp/ws/SOAP/ProjectRequest\n</code></pre>\n\n<p>all result in 404. What is my endpoint? What value should I be putting into SoapUI?</p>\n\n<p><strong>Update 1</strong></p>\n\n<p>For clarity this is what I am doing in soapUI</p>\n\n<p>Having started soapUI, I create a \"new soapUI Project\". The name is A1. The Initial WSDL is: </p>\n\n<pre><code>http://localhost:8080/MyApp/ws/SOAP/projectSearch.wsdl \n</code></pre>\n\n<p>also \"Create Requests\" is ticked in the dialog box.</p>\n\n<p>I click OK and it creates a ProjectSearchSoap11 (with an icon of a green I next to it) with a single Project underneath it (icon of red arrows) and under that \"Request1\" (icon the word SOAP). I right-click Request1 and select \"Show Request Editor\". This displays a window with a SOAP envelope and my namespace and ProjectRequest. This all looks good. </p>\n\n<p>I now want to click \"Submit request to sepecified Endpoint URL\" (green arrow at top-left) but this is greyed-out until I specify an endpoint (to the right). I click on the endpoints drop-down and select \"edit-current\". A dialog appears. I enter: </p>\n\n<pre><code>http://localhost:8080/MyApp/ws/SOAP/ \n</code></pre>\n\n<p>and click ok. Now the run icon is enabled (green). Clicking this icon then results in a \"response\" window appearing, which is blank, but the raw data is:</p>\n\n<pre><code>HTTP/1.1 404 Not Found\nContent-Length: 0\nServer: Jetty(6.1.26)\n</code></pre>\n\n<p>I am guessing that the endpoint I am choosing is wrong. Can you confirm that this is the wrong format or I'm missing a suffix of some kind. If you think it's correct then it must be my setup on the web application that is at fault.</p>\n\n<p>Thanks,</p>\n\n<p>Phil</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

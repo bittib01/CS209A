@@ -1,0 +1,80 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "multithreading",
+      "synchronization"
+    ],
+    "owner": {
+      "account_id": 2556881,
+      "reputation": 1479,
+      "user_id": 2218653,
+      "user_type": "registered",
+      "accept_rate": 31,
+      "profile_image": "https://www.gravatar.com/avatar/6d3abfb3c79c43d3327cb2241e33e728?s=256&d=identicon&r=PG",
+      "display_name": "Suvasis",
+      "link": "https://stackoverflow.com/users/2218653/suvasis"
+    },
+    "is_answered": true,
+    "view_count": 181704,
+    "protected_date": 1428586228,
+    "accepted_answer_id": 16706193,
+    "answer_count": 43,
+    "score": 23,
+    "last_activity_date": 1764937590,
+    "creation_date": 1369218581,
+    "last_edit_date": 1436960425,
+    "question_id": 16689449,
+    "content_license": "CC BY-SA 3.0",
+    "link": "https://stackoverflow.com/questions/16689449/printing-even-and-odd-using-two-threads-in-java",
+    "title": "Printing Even and Odd using two Threads in Java",
+    "body": "<p>I tried the code below. I took this piece of code from some other post which is correct as per the author. But when I try running, it doesn't give me the exact result. </p>\n\n<p>This is mainly to print even and odd values in sequence.</p>\n\n<pre><code>public class PrintEvenOddTester {\n\n\n\n    public static void main(String ... args){\n        Printer print = new Printer(false);\n        Thread t1 = new Thread(new TaskEvenOdd(print));\n        Thread t2 = new Thread(new TaskEvenOdd(print));\n        t1.start();\n        t2.start();\n    }\n\n\n}\n\n\n\nclass TaskEvenOdd implements Runnable {\n\n    int number=1;\n    Printer print;\n\n    TaskEvenOdd(Printer print){\n        this.print = print;\n    }\n\n    @Override\n    public void run() {\n\n        System.out.println(\"Run method\");\n        while(number&lt;10){\n\n            if(number%2 == 0){\n                System.out.println(\"Number is :\"+ number);\n                print.printEven(number);\n                number+=2;\n            }\n            else {\n                System.out.println(\"Number is :\"+ number);\n                print.printOdd(number);\n                number+=2;\n            }\n        }\n\n      }\n\n    }\n\nclass Printer {\n\n    boolean isOdd;\n\n    Printer(boolean isOdd){\n        this.isOdd = isOdd;\n    }\n\n    synchronized void printEven(int number) {\n\n        while(isOdd){\n            try {\n                wait();\n            } catch (InterruptedException e) {\n                e.printStackTrace();\n            }\n        }\n        System.out.println(\"Even:\"+number);\n        isOdd = true;\n        notifyAll();\n    }\n\n    synchronized void printOdd(int number) {\n        while(!isOdd){\n            try {\n                wait();\n            } catch (InterruptedException e) {\n                e.printStackTrace();\n            }\n        }\n        System.out.println(\"Odd:\"+number);\n        isOdd = false;\n        notifyAll();\n    }\n\n}\n</code></pre>\n\n<p>Can someone help me in fixing this?</p>\n\n<p><strong>EDIT</strong>\nExpected result:\nOdd:1\nEven:2\nOdd:3\nEven:4\nOdd:5\nEven:6\nOdd:7\nEven:8\nOdd:9</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 5952635,
+        "reputation": 49,
+        "user_id": 4680205,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/def2bd1f409416a2629f931f8ae9cd03?s=256&d=identicon&r=PG",
+        "display_name": "yokesh sharma",
+        "link": "https://stackoverflow.com/users/4680205/yokesh-sharma"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1764937590,
+      "last_edit_date": 1764937590,
+      "creation_date": 1764935491,
+      "answer_id": 79838849,
+      "question_id": 16689449,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>A simple solution using one class with one main method, one print utility that is called from two threads within main method:</p>\n<pre><code>public class OddEven{\n\n    private volatile int count = 1; // volatile so that different threads read from main memory and not local caches\n    private static final int LIMIT = 10;\n    private static OddEven thisClass = new OddEven();\n    private static final int print_delay_ms = 500;\n    \n    public static void main(String[] args)\n    {\n        Thread t1 = new Thread(new Runnable() {\n            @Override\n            public void run() {\n                thisClass.printNumber(true);\n            }\n        }, &quot;_Even_&quot;);\n        Thread t2 = new Thread(new Runnable() {\n            @Override\n            public void run() {\n                thisClass.printNumber(false);\n            }\n        }, &quot;_Odd_&quot;);\n\n        t1.start();\n        t2.start();\n    }\n\n    public void printNumber(boolean isEven) {\n        synchronized (thisClass) {\n            while (count &lt; LIMIT) {\n                if(count % 2 != 0 &amp;&amp; isEven || count % 2 == 0 &amp;&amp; !isEven) {\n                    try {\n                        wait(); //if even thread and count is odd, wait for count to convert to even by other thread\n                    } catch (InterruptedException e) {\n                        e.printStackTrace();\n                    }\n                }\n                System.out.println(&quot;Thread: &quot; + Thread.currentThread().getName() + &quot;: &quot; + count + &quot; &quot;);\n                try {\n                    Thread.sleep(print_delay_ms);\n                } catch (InterruptedException e) {\n                    throw new RuntimeException(e);\n                }\n                count++; // only when count is incremented, it turn from odd to even, we notify other thread\n                notify(); // since only 1 other thread, otherwise notifyAll();\n            }\n        }\n    }\n}\n</code></pre>\n<p>Below will be the output of above programe:</p>\n<pre><code>Thread: _Odd_: 1 \nThread: _Even_: 2 \nThread: _Odd_: 3 \nThread: _Even_: 4 \nThread: _Odd_: 5 \nThread: _Even_: 6 \nThread: _Odd_: 7 \nThread: _Even_: 8 \nThread: _Odd_: 9 \nThread: _Even_: 10 \n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 5717867,
+        "reputation": 281,
+        "user_id": 4517414,
+        "user_type": "registered",
+        "profile_image": "https://lh6.googleusercontent.com/-DPCcc6lLpEk/AAAAAAAAAAI/AAAAAAAAAB8/T-0bHwGhj0U/s256-rj/photo.jpg",
+        "display_name": "Vikash Singh",
+        "link": "https://stackoverflow.com/users/4517414/vikash-singh"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1670170825,
+      "last_edit_date": 1670170825,
+      "creation_date": 1670170519,
+      "answer_id": 74678453,
+      "question_id": 16689449,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>We can print odd and even using two separate threads using <code>CompletableFuture</code> as well:</p>\n<pre><code>import java.util.concurrent.CompletableFuture;\nimport java.util.function.IntPredicate;\nimport java.util.stream.IntStream;\n\npublic class OddEvenBy2Thread {\n\n    private static Object object = new Object();\n\n    private static IntPredicate evenCondition = e -&gt; e % 2 == 0;\n    private static IntPredicate oddCondition = e -&gt; e % 2 != 0;\n\n    public static void main(String[] args) throws InterruptedException {\n\n        // Odd number printer\n        CompletableFuture.runAsync(() -&gt; OddEvenBy2Thread.printNumber(oddCondition));\n\n        // Even number printer\n        CompletableFuture.runAsync(() -&gt; OddEvenBy2Thread.printNumber(evenCondition));\n\n        Thread.sleep(1000);\n    }\n\n    public static void printNumber(IntPredicate condition){\n        IntStream.rangeClosed(1, 10).filter(condition).forEach(OddEvenBy2Thread::execute);\n    }\n\n    public static void execute(int num){\n        synchronized (object){\n            try{\n                System.out.println(Thread.currentThread().getName()+&quot; : &quot;+num);\n                object.notify();\n                object.wait();\n            }catch (InterruptedException e){\n                e.printStackTrace();\n            }\n        }\n\n    }\n}\n\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79838849": [],
+    "74678453": []
+  }
+}

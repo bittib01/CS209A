@@ -1,0 +1,216 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "selenium-webdriver",
+      "assert",
+      "webdriverwait"
+    ],
+    "owner": {
+      "account_id": 11548912,
+      "reputation": 3,
+      "user_id": 8462150,
+      "user_type": "registered",
+      "profile_image": "https://lh4.googleusercontent.com/-ehPAkBQHANI/AAAAAAAAAAI/AAAAAAAAAN8/3YHCQ2OXHdU/s256-rj/photo.jpg",
+      "display_name": "J. Script",
+      "link": "https://stackoverflow.com/users/8462150/j-script"
+    },
+    "is_answered": true,
+    "view_count": 132,
+    "accepted_answer_id": 79816447,
+    "answer_count": 3,
+    "score": 0,
+    "last_activity_date": 1762866208,
+    "creation_date": 1762777610,
+    "last_edit_date": 1762851685,
+    "question_id": 79815585,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79815585/using-selenium-assert-with-wait",
+    "title": "Using selenium assert with wait",
+    "body": "<p>I'm trying to use asserts in selenium java. I read that for every validation, I need to use an assert as best practice.<br />\nI stumbled upon this code example:</p>\n<pre><code>WebElement button = wait.until(ExpectedConditions.visibilityOf(signInAndUpBtn));\nAssert.assertTrue(button.isDisplayed(), &quot;Sign In button should be visible on Home Page&quot;);\n</code></pre>\n<p>In this example, the assertion will never fail because it will fail previously on the wait. However, I want to combine the use of wait and assert, but I'm not sure what's the best way to do it.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 1096470,
+        "reputation": 29415,
+        "user_id": 1089967,
+        "user_type": "registered",
+        "accept_rate": 59,
+        "profile_image": "https://www.gravatar.com/avatar/1f256b904ff621d678598d8fa49f86c5?s=256&d=identicon&r=PG",
+        "display_name": "lance-java",
+        "link": "https://stackoverflow.com/users/1089967/lance-java"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1762866208,
+      "last_edit_date": 1762866208,
+      "creation_date": 1762851094,
+      "answer_id": 79816418,
+      "question_id": 79815585,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Perhaps you could try a <code>WaitWrapper</code> that returns <code>Optional</code></p>\n<pre><code>@Slf4j\npublic class WaitWrapper {\n   private final Wait&lt;WebDriver&gt; wait;\n\n   public WaitWrapper(Wait&lt;WebDriver&gt; wait) { this.wait = wait }\n\n   public &lt;T&gt; Optional&lt;T&gt; until(Function&lt;WebDriver, T&gt; function) {\n      try {\n         return Optional.of(wait.until(function));\n      } catch (TimeoutException e) {\n         LOG.error(e);\n         return Optional.empty();\n      }\n   }\n}\n</code></pre>\n<p>Then you could use <a href=\"https://jdriven.com/blog/2023/07/Awesome-AssertJ-Writing-Assertions-For-Optional\" rel=\"nofollow noreferrer\">AssertJ's Optional Support</a> in your tests</p>\n<pre><code>import static org.assertj.core.api.Assertions.assertThat;\n...\nWaitWrapper wait = new WaitWrapper(new FluentWait&lt;&gt;(driver).withTimeout(...));\nOptional&lt;WebElement&gt; buttonOption = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id(&quot;my-button&quot;));\nassertThat(buttonOption)\n   .as(&quot;My fantastic button&quot;) // used in assertion failure messages\n   .isPresent()\n   .map(WebElement::isDisplayed).hasValue(true);\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 44485404,
+        "reputation": 16,
+        "user_id": 31777453,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/5b09d0bfc2d0d6730b98156aa0e75661?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Idan_Z",
+        "link": "https://stackoverflow.com/users/31777453/idan-z"
+      },
+      "is_accepted": true,
+      "score": 1,
+      "last_activity_date": 1762852645,
+      "creation_date": 1762852645,
+      "answer_id": 79816447,
+      "question_id": 79815585,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>The assertTrue() after a wait.until() will never run if the element is not found or not visible. That’s because wait.until(...) throws a TimeoutException when the condition is not met within the given time. So the assertion becomes redundant.</p>\n<p>But you can control the assertion output - for example, to show a clean test failure message instead of a raw timeout exception, you can catch the TimeoutException and explicitly fail the test with your own assertion message.</p>\n<pre class=\"lang-java prettyprint-override\"><code>WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));\ntry { \n    wait.until(ExpectedConditions.visibilityOfElementLocated(locator));\n} catch (TimeoutException e) {\n    Assert.fail(message + &quot; (Element not visible after &quot; + timeoutSeconds + &quot;s)&quot;);\n}\n</code></pre>\n<p>hope this is help :)</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 1096470,
+        "reputation": 29415,
+        "user_id": 1089967,
+        "user_type": "registered",
+        "accept_rate": 59,
+        "profile_image": "https://www.gravatar.com/avatar/1f256b904ff621d678598d8fa49f86c5?s=256&d=identicon&r=PG",
+        "display_name": "lance-java",
+        "link": "https://stackoverflow.com/users/1089967/lance-java"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1762782233,
+      "last_edit_date": 1762782233,
+      "creation_date": 1762781479,
+      "answer_id": 79815650,
+      "question_id": 79815585,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>The wait API is for synchronization and the predicate must pass to avoid a <code>TimeoutException</code> so it's not really possible to avoid a pass/fail on the predicate.</p>\n<p>Perhaps you could wait for something else (eg wait for the spinner to disappear)</p>\n<pre class=\"lang-java prettyprint-override\"><code>wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id(&quot;spinner&quot;)));\nWebElement button = driver.findElement(By.id(&quot;my-button&quot;)); // Note this may throw NoSuchElementException\nAssert.assertTrue(button.isDisplayed(), &quot;Sign in button should be visible on Home Page&quot;);\n</code></pre>\n<p>I guess if you really want to continue regardless of the exception you could do</p>\n<pre><code>WebElement button = null;\ntry {\n   button = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id(&quot;my-button&quot;)));\n} catch (TimeoutException e) {}\nAssert.assertTrue(button != null &amp;&amp; button.isDisplayed(), &quot;Sign In button should be visible on Home Page&quot;);\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 8866,
+        "reputation": 61498,
+        "user_id": 16148,
+        "user_type": "registered",
+        "accept_rate": 73,
+        "profile_image": "https://i.sstatic.net/XTzm1.jpg?s=256",
+        "display_name": "Corey Goldberg",
+        "link": "https://stackoverflow.com/users/16148/corey-goldberg"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1762787168,
+      "post_id": 79815585,
+      "comment_id": 140846996,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79816418": [],
+    "79816447": [],
+    "79815650": [
+      {
+        "owner": {
+          "account_id": 2772450,
+          "reputation": 26443,
+          "user_id": 2386774,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/dea7da142cb7e85d5d5a8576e2625431?s=256&d=identicon&r=PG",
+          "display_name": "JeffC",
+          "link": "https://stackoverflow.com/users/2386774/jeffc"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1762874961,
+        "post_id": 79815650,
+        "comment_id": 140848798,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1096470,
+          "reputation": 29415,
+          "user_id": 1089967,
+          "user_type": "registered",
+          "accept_rate": 59,
+          "profile_image": "https://www.gravatar.com/avatar/1f256b904ff621d678598d8fa49f86c5?s=256&d=identicon&r=PG",
+          "display_name": "lance-java",
+          "link": "https://stackoverflow.com/users/1089967/lance-java"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1762850064,
+        "post_id": 79815650,
+        "comment_id": 140848146,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 11548912,
+          "reputation": 3,
+          "user_id": 8462150,
+          "user_type": "registered",
+          "profile_image": "https://lh4.googleusercontent.com/-ehPAkBQHANI/AAAAAAAAAAI/AAAAAAAAAN8/3YHCQ2OXHdU/s256-rj/photo.jpg",
+          "display_name": "J. Script",
+          "link": "https://stackoverflow.com/users/8462150/j-script"
+        },
+        "reply_to_user": {
+          "account_id": 2772450,
+          "reputation": 26443,
+          "user_id": 2386774,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/dea7da142cb7e85d5d5a8576e2625431?s=256&d=identicon&r=PG",
+          "display_name": "JeffC",
+          "link": "https://stackoverflow.com/users/2386774/jeffc"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1762847992,
+        "post_id": 79815650,
+        "comment_id": 140848078,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 2772450,
+          "reputation": 26443,
+          "user_id": 2386774,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/dea7da142cb7e85d5d5a8576e2625431?s=256&d=identicon&r=PG",
+          "display_name": "JeffC",
+          "link": "https://stackoverflow.com/users/2386774/jeffc"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1762834205,
+        "post_id": 79815650,
+        "comment_id": 140847836,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 11548912,
+          "reputation": 3,
+          "user_id": 8462150,
+          "user_type": "registered",
+          "profile_image": "https://lh4.googleusercontent.com/-ehPAkBQHANI/AAAAAAAAAAI/AAAAAAAAAN8/3YHCQ2OXHdU/s256-rj/photo.jpg",
+          "display_name": "J. Script",
+          "link": "https://stackoverflow.com/users/8462150/j-script"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1762813944,
+        "post_id": 79815650,
+        "comment_id": 140847634,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "rest"
+    ],
+    "owner": {
+      "account_id": 44691632,
+      "reputation": 11,
+      "user_id": 31885720,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/db26db7571956c9dddd52eca9b2706f9?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "user31885720",
+      "link": "https://stackoverflow.com/users/31885720/user31885720"
+    },
+    "is_answered": false,
+    "view_count": 88,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1763310041,
+    "creation_date": 1763246076,
+    "last_edit_date": 1763246253,
+    "question_id": 79821173,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79821173/java-springboot-api-endpoint-overload",
+    "title": "Java Springboot API endpoint overload",
+    "body": "<p>I'm making a banking application where a user can create a bank account, this account can be a savings account with a monthly income or a current account with a monthly upkeep, the classes of both types of account inherit a regular account class.</p>\n<p>Is it possible to make a API endpoint &quot;overload&quot; with the same method (Post) and endpoint (&quot;/account&quot;) that can receive both a SavingsAccount or a CurrentAccount Object as its RequestBody?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 21851467,
+        "reputation": 974,
+        "user_id": 16143492,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/PMrGU.png?s=256",
+        "display_name": "nineninesevenfour",
+        "link": "https://stackoverflow.com/users/16143492/nineninesevenfour"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1763310041,
+      "last_edit_date": 1763310041,
+      "creation_date": 1763300909,
+      "answer_id": 79821504,
+      "question_id": 79821173,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>No, Java allows it, but <code>@RestController</code> does not.</p>\n<p>While this is valid Java code...</p>\n<pre class=\"lang-java prettyprint-override\"><code>    @PostMapping(&quot;/account&quot;)\n    public ResponseEntity&lt;Void&gt; postAccount(SavingsAccount account) {\n        log.info(&quot;savings account posted&quot;);\n        // process savings account\n        return ResponseEntity.ok().build();\n    }\n\n    @PostMapping(&quot;/account&quot;)\n    public ResponseEntity&lt;Void&gt; postAccount(CurrentAccount account) {\n        log.info(&quot;current account posted&quot;);\n        // process current account\n        return ResponseEntity.ok().build();\n    }\n</code></pre>\n<p>...you will get an error like this at startup, because you can not have two methods with the same path and method:</p>\n<pre><code>org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'requestMappingHandlerMapping' defined in class path resource [org/springframework/boot/autoconfigure/web/servlet/WebMvcAutoConfiguration$EnableWebMvcConfiguration.class]: Ambiguous mapping. Cannot map 'demoController' method \norg.example.restdemo.DemoController#postAccount(SavingsAccount)\nto {POST [/account]}: There is already 'demoController' bean method\n...\nCaused by: java.lang.IllegalStateException: Ambiguous mapping. Cannot map 'demoController' method \norg.example.restdemo.DemoController#postAccount(SavingsAccount)\nto {POST [/account]}: There is already 'demoController' bean method\norg.example.restdemo.DemoController#postAccount(CurrentAccount) mapped.\n</code></pre>\n<p>What you can do is use inheritance, meaning you let your method receive a common base class of <code>SavingsAccount</code> and <code>BankAccount</code> and add a <em>discriminator</em> property, so Spring is able to use the corresponding type automatically (it won't work without it). This is equivalent to using <code>oneOf</code> with <a href=\"https://swagger.io/docs/specification/v3_0/data-models/inheritance-and-polymorphism/#discriminator\" rel=\"nofollow noreferrer\"><code>discriminator</code></a> in an OpenAPI definition.</p>\n<p>A minimal example for the base class with an <code>accountType</code> discriminator could look like this (the annotations are from package <code>com.fasterxml.jackson.annotation</code>):</p>\n<pre class=\"lang-java prettyprint-override\"><code>@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = &quot;accountType&quot;)\n@JsonSubTypes({\n  @JsonSubTypes.Type(value = CurrentAccount.class, name = &quot;currentAccount&quot;),\n  @JsonSubTypes.Type(value = SavingsAccount.class, name = &quot;savingsAccount&quot;)\n})\npublic interface BaseAccount {\n    public String getAccountType();\n}\n</code></pre>\n<p>Your <code>SavingsAccount</code> and <code>BankAccount</code> would need to have <code>implements BaseAccount</code>.</p>\n<p>And a minimal example of the corresponding <code>postAccount</code> method:</p>\n<pre class=\"lang-java prettyprint-override\"><code>    @PostMapping(value = &quot;/account&quot;, consumes = MediaType.APPLICATION_JSON_VALUE)\n    public ResponseEntity&lt;Void&gt; postAccount(BaseAccount account) {\n        if (account instanceof SavingsAccount savingsAccount) {\n            // process savingsAccount\n        }\n        else if (account instanceof CurrentAccount currentAccount) {\n            // process currentAccount\n        }\n        else {\n            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);\n        }\n        return ResponseEntity.ok().build();\n    }\n</code></pre>\n<p>However, personally, I do not recommend to do it that way. It bears the risk of accidental invalid submissions from your API consumers, if validation is not implemented carefully. Since your API consumers should know which account type they want to submit, they should be able to call a distinct endpoint <code>/savingsAccount</code> or <code>/currentAccount</code> respectively.</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79821504": []
+  }
+}

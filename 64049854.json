@@ -1,0 +1,58 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-data-jpa",
+      "event-driven-design",
+      "domain-events"
+    ],
+    "owner": {
+      "account_id": 1512577,
+      "reputation": 970,
+      "user_id": 1494134,
+      "user_type": "registered",
+      "accept_rate": 38,
+      "profile_image": "https://www.gravatar.com/avatar/e0ad40b49b7be9f65ddd411039814672?s=256&d=identicon&r=PG",
+      "display_name": "Carmine Ingaldi",
+      "link": "https://stackoverflow.com/users/1494134/carmine-ingaldi"
+    },
+    "is_answered": false,
+    "view_count": 1890,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1764859700,
+    "creation_date": 1600962099,
+    "last_edit_date": 1600962545,
+    "question_id": 64049854,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/64049854/sending-spring-domain-events-using-a-custom-applicationeventpublisher",
+    "title": "Sending Spring domain events using a custom ApplicationEventPublisher",
+    "body": "<p>I'm trying to implement an application using Spring Boot/Spring Data, following DDD architecture guidelines. I have an Aggregate Root which publish domain events using the method <em>AbstractAggregateRoot::registerEvent()</em> . Furthermore, I need to intercept those events for Logging/Tracing purposes so I decided to make an experiment:</p>\n<p>First, implement a custom ApplicationEvent Publisher</p>\n<pre><code>public class CustomEventPublisher implements ApplicationEventPublisher {\n    private final ApplicationEventPublisher publisher;\n\n    private final Logger logger = getLogger(CustomEventPublisher.class);\n\n    public CustomEventPublisher(ApplicationEventPublisher publisher) {\n        this.publisher = publisher;\n    }\n\n    @Override\n    public void publishEvent(ApplicationEvent event) {\n        logger.info(&quot;sending an event...&quot;);\n        publisher.publishEvent(event);\n    }\n\n    //.....\n}\n</code></pre>\n<p>And then registering as bean</p>\n<pre><code>@Configuration\npublic class CustomEventPublisherConfig {\n\n    @Bean\n    @Primary\n    public ApplicationEventPublisher getCustomEventPublisher(ApplicationEventPublisher publisher , RabbitTemplate rabbitTemplate) {\n        return new CustomEventPublisher(publisher, rabbitTemplate);\n    }\n}\n</code></pre>\n<p>this works fine once I explicitly publish events from some sample object with an injected ApplicationEventPublisher</p>\n<pre><code>public void pub() {\n    publisher.publishEvent(new Event(this , 1));\n}\n\n@EventListener\npublic void sub(Event e) {\n    this.value = e.getValue();\n}\n</code></pre>\n<p>and I got the <strong>&quot;sending an event...&quot;</strong> log entry</p>\n<p>then I've tried to define the aggregate root</p>\n<pre><code>@Entity\npublic class AggregateRoot extends AbstractAggregateRoot {\n\n    @Id\n    @GeneratedValue\n    private Long id;\n\n    private int value = 0;\n\n    public AggregateRoot setValue(int value) {\n        registerEvent(new Event(this , value));\n        return this;\n    }\n}\n</code></pre>\n<p>and</p>\n<pre><code>public void pub() {\n    repository.save(new AggregateRoot().setValue(1));\n}\n</code></pre>\n<p>Test pass again but I can clearly see that Spring Data is not using the CustomEventPublisher. I've tried to understand if there is some way to intercept repository.save() call and override the default behaviour, this approach could work even if needs to reinvent the wheel (I don't think that the domain event publishing code is so complicated though) but the only thing I've found is about Spring Data REST that is out of my scope</p>\n<p>Any suggestion to overcome this problem?</p>\n<p>Thanks in advance</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 6802958,
+        "reputation": 156,
+        "user_id": 5235723,
+        "user_type": "registered",
+        "profile_image": "https://lh5.googleusercontent.com/-UtytXmO9UZ8/AAAAAAAAAAI/AAAAAAAATYE/dE51DcdAYXk/s256-rj/photo.jpg",
+        "display_name": "Arley P&#225;dua",
+        "link": "https://stackoverflow.com/users/5235723/arley-p%c3%a1dua"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1764859700,
+      "creation_date": 1764859700,
+      "answer_id": 79838047,
+      "question_id": 64049854,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Not sure if this is still relevant, but was able to override the event publisher by relying on post processors:</p>\n<pre><code>@Component\nclass OutboxEventPublisherConfiguration(\n    private val eventPublisher: OutboxEventPublisher,\n) : BeanPostProcessor {\n    override fun postProcessBeforeInitialization(bean: Any, beanName: String): Any? {\n        if (bean !is JpaRepositoryFactoryBean&lt;*, *, *&gt;) {\n            return bean\n        }\n\n        bean.setApplicationEventPublisher(eventPublisher)\n        return bean\n    }\n}\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79838047": []
+  }
+}

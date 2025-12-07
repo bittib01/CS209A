@@ -1,0 +1,96 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "flutter",
+      "gradle",
+      "build"
+    ],
+    "owner": {
+      "account_id": 21762849,
+      "reputation": 45,
+      "user_id": 16067176,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AATXAJyvqMT1o6rFYdxxtLro2VZrhNbgtzHR1UWe0xBQ=k-s256",
+      "display_name": "Akhil Antony",
+      "link": "https://stackoverflow.com/users/16067176/akhil-antony"
+    },
+    "is_answered": true,
+    "view_count": 7668,
+    "answer_count": 3,
+    "score": 3,
+    "last_activity_date": 1765068153,
+    "creation_date": 1754378212,
+    "question_id": 79725728,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79725728/how-to-suppress-restricted-method-called-java-lang-systemload-warning-when",
+    "title": "How to suppress &quot;Restricted method called: java.lang.System::load&quot; warning when using native-platform in Gradle on JDK 22+",
+    "body": "<p>I'm working with Gradle 8.12 and Java 22, and I'm encountering the following warning during build:</p>\n<pre><code>WARNING: A restricted method in java.lang.System has been called\nWARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader...\nWARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning...\nWARNING: Restricted methods will be blocked in a future release unless native access is enabled\n</code></pre>\n<p>I understand this relates to Java's native access restrictions introduced in newer JDKs. I'm trying to silence the warning by setting:</p>\n<pre><code>--enable-native-access=ALL-UNNAMED\n</code></pre>\n<p>However, I'm unsure of the best way to add this JVM argument to Gradle. Should it go in gradle.properties, as an environment variable, or somewhere else? Also, is this the recommended way for builds using native-platform?</p>\n<p>Any guidance on where exactly to configure this in a Gradle project (and whether this approach is safe/portable) would be appreciated!</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 21739342,
+        "reputation": 31,
+        "user_id": 16046927,
+        "user_type": "registered",
+        "profile_image": "https://lh3.googleusercontent.com/a-/AOh14GhEoluQD4wKb7we29DOpjROFrhTt2BVt16QiJKn=k-s256",
+        "display_name": "Lawal Hayde",
+        "link": "https://stackoverflow.com/users/16046927/lawal-hayde"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1765068153,
+      "creation_date": 1765068153,
+      "answer_id": 79840018,
+      "question_id": 79725728,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<h2>THE SOLUTION: Downgrade to Java 21 or Java 17</h2>\n<pre><code>Option 1: Install Java 21 (Recommended)\n\n# Install Java 21 using Homebrew\nbrew install openjdk@21\n# Set it as your JAVA_HOME\nexport JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home\necho 'export JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home' &gt;&gt; ~/.zshrc\nsource ~/.zshrc\n# Verify\njava -version\n</code></pre>\n<pre><code>\nOption 2: Use Android Studio's Java (You already have it!)\nYou have Android Studio's JDK installed. Use that instead:\n\nexport JAVA_HOME=&quot;/Users/lawal/Applications/Android Studio.app/Contents/jbr/Contents/Home&quot;\necho 'export JAVA_HOME=&quot;/Users/lawal/Applications/Android Studio.app/Contents/jbr/Contents/Home&quot;' &gt;&gt; ~/.zshrc\nsource ~/.zshrc\n# Verify\njava -version\n</code></pre>\n<pre><code>Then try again:\n\n./gradlew --stop\n\n./gradlew --run or\n./gradlew ktlintFormat or whatever command you want\n\n</code></pre>\n<p><strong>That's the issue!</strong> Java 25 is too bleeding edge for your Gradle/Kotlin setup. Drop down to Java 17 or 21 and everything will work!</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 6014861,
+        "reputation": 20252,
+        "user_id": 7939871,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/1199ba5dde05e4083823a058c5ac6bed?s=256&d=identicon&r=PG",
+        "display_name": "L&#233;a Gris",
+        "link": "https://stackoverflow.com/users/7939871/l%c3%a9a-gris"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1761565503,
+      "creation_date": 1761565503,
+      "answer_id": 79801779,
+      "question_id": 79725728,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>To suppress this warning I added this to my <code>~/.bashrc</code>:</p>\n<pre class=\"lang-bash prettyprint-override\"><code># Prevents gradle WARNING: A restricted method in java.lang.System has been called\njava_major=$(java --version 2&gt;&amp;1 | awk 'NR==1 {split($2,a,&quot;.&quot;); if(a[1]==&quot;1&quot;) print a[2]; else print a[1]}')\nif [ &quot;$java_major&quot; -gt 21 ]; then\n  case $GRADLE_OPTS in\n    *--enable-native-access*) ;; # already set, do nothing\n    *) export GRADLE_OPTS=${GRADLE_OPTS:+&quot;$GRADLE_OPTS &quot;}--enable-native-access=ALL-UNNAMED ;;\n  esac\nfi\n</code></pre>\n<p>This adds the Java option to the <code>GRADLE_OPTS</code> environment variable, which is used by the Gradle Wrapper</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 43462385,
+        "reputation": 41,
+        "user_id": 31255698,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/5227cd6ee4a5371bf9a2a6fe9c749c05?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "BPSWags",
+        "link": "https://stackoverflow.com/users/31255698/bpswags"
+      },
+      "is_accepted": false,
+      "score": 5,
+      "last_activity_date": 1755550379,
+      "creation_date": 1755550379,
+      "answer_id": 79739232,
+      "question_id": 79725728,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>If you are using IntelliJ IDEA (2025.2 Community Edition)</p>\n<p>Edit your running configuration</p>\n<p>You should see Build and run</p>\n<p>Click modify options to the left</p>\n<p>Under the Java section there is add VM options</p>\n<p>paste it</p>\n<p>click apply run</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79840018": [],
+    "79801779": [],
+    "79739232": []
+  }
+}

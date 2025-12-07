@@ -1,0 +1,135 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-mvc",
+      "compatibility"
+    ],
+    "owner": {
+      "account_id": 15796951,
+      "reputation": 21,
+      "user_id": 11398506,
+      "user_type": "registered",
+      "profile_image": "https://lh4.googleusercontent.com/-yrupkhMAd5w/AAAAAAAAAAI/AAAAAAAABxs/9BvRZ3ZLHbE/s256-rj/photo.jpg",
+      "display_name": "Med Cezir",
+      "link": "https://stackoverflow.com/users/11398506/med-cezir"
+    },
+    "is_answered": false,
+    "view_count": 117,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1764664727,
+    "creation_date": 1750414169,
+    "last_edit_date": 1764664727,
+    "question_id": 79673205,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79673205/spring-boot-3-upgrade-causes-nosuchmethoderror-for-clienthttpresponse-getstatusc",
+    "title": "Spring Boot 3 upgrade causes NoSuchMethodError for ClientHttpResponse.getStatusCode() — how to support legacy Spring Boot 2 libraries?",
+    "body": "<p>I'm upgrading my main application from <strong>Spring Boot 2.x to 3.x</strong>.</p>\n<p>The upgrade is mostly successful, except for a <strong>runtime compatibility issue</strong> caused by 3rd-party or legacy internal libraries that still depend on Spring Boot 2.x and the <code>RestTemplate</code> API.</p>\n<hr />\n<p>Context:</p>\n<ul>\n<li><p>My main application now uses:</p>\n<ul>\n<li>Spring Boot: <code>3.x</code></li>\n<li>Spring Framework: <code>6.x</code></li>\n<li>JDK: <code>17</code></li>\n</ul>\n</li>\n<li><p>However, I have <strong>hundreds of shared SDKs/libraries</strong> (some internal, some 3rd-party) that:</p>\n<ul>\n<li>Are compiled against <strong>Spring Boot 2.x</strong></li>\n<li>Use <code>org.springframework.web.client.RestTemplate</code></li>\n<li>Internally call:\n<pre class=\"lang-java prettyprint-override\"><code>org.springframework.http.client.ClientHttpResponse#getStatusCode()\n</code></pre>\nexpecting it to return <code>org.springframework.http.HttpStatus</code>.</li>\n</ul>\n</li>\n</ul>\n<hr />\n<p>After upgrading, I’m getting the following error during runtime:\n<code>java.lang.NoSuchMethodError: ‘org.springframework.http.HttpStatus org.springframework.http.client.ClientHttpResponse.getStatusCode()</code></p>\n<p>This happens inside a <code>ClientHttpRequestInterceptor</code> in one of the legacy SDKs that I cannot modify.</p>\n<p>Here’s a snippet from the stack trace:</p>\n<pre><code>Caused by: java.lang.NoSuchMethodError: ‘org.springframework.http.HttpStatus org.springframework.http.client.ClientHttpResponse.getStatusCode()’\nat com.legacy.sdk.interceptor.LegacyInterceptor.intercept(LegacyInterceptor.java:46)\nat org.springframework.web.client.RestTemplate.doExecute(RestTemplate.java:900)\n</code></pre>\n<p>This makes sense because Spring Framework 6.x changed the method signature:</p>\n<p>Old (Spring Boot 2.x / Framework 5.x):\nHttpStatus ClientHttpResponse.getStatusCode();</p>\n<p>New (Spring Boot 3.x / Framework 6.x):\nHttpStatusCode ClientHttpResponse.getStatusCode();</p>\n<p>The old method was removed (not deprecated), so libraries expecting the old signature will crash.</p>\n<p>Additional Details</p>\n<ul>\n<li>I cannot update these legacy libraries immediately — some are external, some very deeply integrated.</li>\n<li>I’ve already migrated my own code to use <code>RestClient</code> instead of <code>RestTemplate</code>.</li>\n<li>However, legacy dependencies still use <code>RestTemplate</code>, and I can’t change them.</li>\n</ul>\n<p>Is there any official or community-recommended strategy to run Spring Boot 2.x compiled SDKs (that rely on deprecated/removed methods like ClientHttpResponse#getStatusCode()) inside a Spring Boot 3 application?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 9983336,
+        "reputation": 5256,
+        "user_id": 7769052,
+        "user_type": "registered",
+        "accept_rate": 75,
+        "profile_image": "https://i.sstatic.net/t94zs.jpg?s=256",
+        "display_name": "camilajenny",
+        "link": "https://stackoverflow.com/users/7769052/camilajenny"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1750750657,
+      "creation_date": 1750750657,
+      "answer_id": 79677184,
+      "question_id": 79673205,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<blockquote>\n<p>So you could write a piece of code which does reflection to extract the <code>HttpStatus</code> enum (either directly or through a cast).</p>\n</blockquote>\n<p>Will the reflection even work in this case? The classes are loaded and the methods linked before any reflection even happens? I don't think it has any chance of working?</p>\n<p>Maybe you can try with <a href=\"https://bytebuddy.net/#/\" rel=\"nofollow noreferrer\">Byte Buddy</a>. You can intercept the loaded Spring class before your application starts and provide a new method signature there, like</p>\n<pre class=\"lang-java prettyprint-override\"><code>ByteBuddyAgent.install();\n\nnew ByteBuddy()\n    .redefine(org.springframework.http.client.ClientHttpResponse.class)\n    .defineMethod(&quot;getStatusCode&quot;, HttpStatus.class, java.lang.reflect.Modifier.PUBLIC)\n    .intercept(MethodDelegation.to(ClientHttpResponseShim.class))\n    .make()\n    .load(\n        org.springframework.http.client.ClientHttpResponse.class.getClassLoader(),\n        ClassReloadingStrategy.fromInstalledAgent()\n    );\n\n\nSpringApplication.run(Application.class);\n</code></pre>\n<p>and define the desired method in your class</p>\n<pre><code>public class ClientHttpResponseShim {\n    public static HttpStatus getStatusCode() {\n        // copy the implementation from Spring 2, it's open source\n    }\n}\n</code></pre>\n<p>Good luck!</p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 3192259,
+        "reputation": 126792,
+        "user_id": 2696260,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/qHEzx.png?s=256",
+        "display_name": "M. Deinum",
+        "link": "https://stackoverflow.com/users/2696260/m-deinum"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1750658201,
+      "post_id": 79673205,
+      "comment_id": 140534116,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 15064163,
+        "reputation": 17085,
+        "user_id": 10871900,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/720202b6e19abc330dcd92e6a1254562?s=256&d=identicon&r=PG",
+        "display_name": "dan1st",
+        "link": "https://stackoverflow.com/users/10871900/dan1st"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1750483446,
+      "post_id": 79673205,
+      "comment_id": 140530972,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 15796951,
+        "reputation": 21,
+        "user_id": 11398506,
+        "user_type": "registered",
+        "profile_image": "https://lh4.googleusercontent.com/-yrupkhMAd5w/AAAAAAAAAAI/AAAAAAAABxs/9BvRZ3ZLHbE/s256-rj/photo.jpg",
+        "display_name": "Med Cezir",
+        "link": "https://stackoverflow.com/users/11398506/med-cezir"
+      },
+      "reply_to_user": {
+        "account_id": 3192259,
+        "reputation": 126792,
+        "user_id": 2696260,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/qHEzx.png?s=256",
+        "display_name": "M. Deinum",
+        "link": "https://stackoverflow.com/users/2696260/m-deinum"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1750416872,
+      "post_id": 79673205,
+      "comment_id": 140529236,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 3192259,
+        "reputation": 126792,
+        "user_id": 2696260,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/qHEzx.png?s=256",
+        "display_name": "M. Deinum",
+        "link": "https://stackoverflow.com/users/2696260/m-deinum"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1750415356,
+      "post_id": 79673205,
+      "comment_id": 140529188,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79677184": []
+  }
+}

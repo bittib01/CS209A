@@ -1,0 +1,251 @@
+{
+  "question": {
+    "tags": [
+      "java"
+    ],
+    "owner": {
+      "account_id": 16894060,
+      "reputation": 13,
+      "user_id": 12217028,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a-/AAuE7mDaXMTrKfNcZwD1ow8aDr6m0a8l5MkruGXVPdDWrA=k-s256",
+      "display_name": "Max Jacobs",
+      "link": "https://stackoverflow.com/users/12217028/max-jacobs"
+    },
+    "is_answered": false,
+    "view_count": 12141,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1764410650,
+    "creation_date": 1572205988,
+    "last_edit_date": 1572206848,
+    "question_id": 58582824,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/58582824/recursive-sierpinski-triangle-in-java",
+    "title": "Recursive Sierpinski triangle in Java?",
+    "body": "<p>I need to create a program that draws a Sierpinski triangle of order n. To do this, I have a few methods. Height, filledTriangle, and sierpinski. I made some progress in printing triangles recursively in the bottom left, but now that I'm trying to create triangles to the right and up things aren't working out. I think my problem lies in the filledTriangle method, as I'm not sure how to accommodate all the triangles with different vertexes.</p>\n\n<pre><code>public class Sierpinski {\n\n    // Height of an equilateral triangle whose sides are of the specified length. \n    public static double height(double length) {\n\n        double height = length * Math.sqrt(3.0)/2;\n\n        return height;\n\n    }\n\n    // Draws a filled equilateral triangle whose bottom vertex is (x, y) \n    // of the specified side length. \n    public static void filledTriangle(double x, double y, double length) {\n\n        double x2 = x - x/2;\n        double y2 = y + height(length)/2;\n\n        double x3 = x + (x/2);\n        double y3 = y + height(length)/2;\n\n        double[] xx = {x, x2, x3};\n        double[] yy = {y, y2, y3};\n\n        StdDraw.filledPolygon(xx, yy);\n\n    }\n\n    // Draws a Sierpinski triangle of order n, such that the largest filled \n    // triangle has bottom vertex (x, y) and sides of the specified length. \n    public static void sierpinski(int n, double x, double y, double length)\n    {\n        filledTriangle(x, y, length);\n\n        if (n == 1) {\n            System.out.println(\"Done!\");\n        } else {\n            filledTriangle(x, height(length)/2, length/2);\n                x = x/2;\n                length = length/2;\n            filledTriangle(x, y, length);\n            filledTriangle(3*x, y, length);\n            n--;\n            sierpinski(n, x, y, length);               \n        }\n\n    }\n\n    // Takes an integer command-line argument n; \n    // draws the outline of an equilateral triangle (pointed upwards) of length 1; \n    // whose bottom-left vertex is (0, 0) and bottom-right vertex is (1, 0); and \n    // draws a Sierpinski triangle of order n that fits snugly inside the outline. \n    public static void main(String[] args) {\n\n        int length = 1;\n        int n = Integer.parseInt(args[0]);\n        double t = Math.sqrt(3.0) / 2.0;\n        StdDraw.line(0.0, 0.0, 1.0, 0.0);\n        StdDraw.line(1.0, 0.0, 0.5, height(length));\n        StdDraw.line(0.5, height(length), 0.0, 0.0);\n\n        double x = 0.5;\n        double y = 0;\n\n        sierpinski(n, x, y, length);\n\n    }\n}\n</code></pre>\n\n<p>A Sierpinski triangle of order 3 should look like this: <a href=\"https://i.sstatic.net/7dzJm.jpg\" rel=\"nofollow noreferrer\">https://i.sstatic.net/7dzJm.jpg</a>\nMy output is this: <a href=\"https://i.sstatic.net/ZHx0f.jpg\" rel=\"nofollow noreferrer\">https://i.sstatic.net/ZHx0f.jpg</a></p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 194308,
+        "reputation": 80455,
+        "user_id": 436560,
+        "user_type": "registered",
+        "accept_rate": 87,
+        "profile_image": "https://i.sstatic.net/2GESV.jpg?s=256",
+        "display_name": "Lajos Arpad",
+        "link": "https://stackoverflow.com/users/436560/lajos-arpad"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1572209318,
+      "creation_date": 1572209318,
+      "answer_id": 58583239,
+      "question_id": 58582824,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Take a look at this method:</p>\n\n<pre><code>public static void sierpinski(int n, double x, double y, double length)\n{\n    filledTriangle(x, y, length);\n\n    if (n == 1) {\n        System.out.println(\"Done!\");\n    } else {\n        filledTriangle(x, height(length)/2, length/2);\n            x = x/2;\n            length = length/2;\n        filledTriangle(x, y, length);\n        filledTriangle(3*x, y, length);\n        n--;\n        sierpinski(n, x, y, length);               \n    }\n\n}\n</code></pre>\n\n<p>You are passing a decreased <code>n</code> and a halved <code>length</code> to <code>sierpinski</code>, but you do not change <code>x</code> and <code>y</code>. This is not a good approach. It would be much better to pass the coordinates of the \"current\" triangle and you will know that at each time there will be 3x as many triangles to be drawn. You would need to call <code>sierpinski</code> 3 times each time (except when the process has to end) a <code>sierpinski</code> triangle was drawn. You have only one sierpinski call, which explains why the number of triangles doesn't increase threefold on each depth. You should thing coordinates of triangle points and know that the half of each side will be a point in the next depth.</p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 16894060,
+        "reputation": 13,
+        "user_id": 12217028,
+        "user_type": "registered",
+        "profile_image": "https://lh3.googleusercontent.com/a-/AAuE7mDaXMTrKfNcZwD1ow8aDr6m0a8l5MkruGXVPdDWrA=k-s256",
+        "display_name": "Max Jacobs",
+        "link": "https://stackoverflow.com/users/12217028/max-jacobs"
+      },
+      "reply_to_user": {
+        "account_id": 10164431,
+        "reputation": 1096,
+        "user_id": 7506861,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/34a58f935ed6872a158a19a0616eedd1?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Emily",
+        "link": "https://stackoverflow.com/users/7506861/emily"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1572208317,
+      "post_id": 58582824,
+      "comment_id": 103480625,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 10164431,
+        "reputation": 1096,
+        "user_id": 7506861,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/34a58f935ed6872a158a19a0616eedd1?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Emily",
+        "link": "https://stackoverflow.com/users/7506861/emily"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1572207571,
+      "post_id": 58582824,
+      "comment_id": 103480427,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "58583239": [
+      {
+        "owner": {
+          "account_id": 194308,
+          "reputation": 80455,
+          "user_id": 436560,
+          "user_type": "registered",
+          "accept_rate": 87,
+          "profile_image": "https://i.sstatic.net/2GESV.jpg?s=256",
+          "display_name": "Lajos Arpad",
+          "link": "https://stackoverflow.com/users/436560/lajos-arpad"
+        },
+        "reply_to_user": {
+          "account_id": 16894060,
+          "reputation": 13,
+          "user_id": 12217028,
+          "user_type": "registered",
+          "profile_image": "https://lh3.googleusercontent.com/a-/AAuE7mDaXMTrKfNcZwD1ow8aDr6m0a8l5MkruGXVPdDWrA=k-s256",
+          "display_name": "Max Jacobs",
+          "link": "https://stackoverflow.com/users/12217028/max-jacobs"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1572216383,
+        "post_id": 58583239,
+        "comment_id": 103482220,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 194308,
+          "reputation": 80455,
+          "user_id": 436560,
+          "user_type": "registered",
+          "accept_rate": 87,
+          "profile_image": "https://i.sstatic.net/2GESV.jpg?s=256",
+          "display_name": "Lajos Arpad",
+          "link": "https://stackoverflow.com/users/436560/lajos-arpad"
+        },
+        "reply_to_user": {
+          "account_id": 16894060,
+          "reputation": 13,
+          "user_id": 12217028,
+          "user_type": "registered",
+          "profile_image": "https://lh3.googleusercontent.com/a-/AAuE7mDaXMTrKfNcZwD1ow8aDr6m0a8l5MkruGXVPdDWrA=k-s256",
+          "display_name": "Max Jacobs",
+          "link": "https://stackoverflow.com/users/12217028/max-jacobs"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1572216255,
+        "post_id": 58583239,
+        "comment_id": 103482192,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 194308,
+          "reputation": 80455,
+          "user_id": 436560,
+          "user_type": "registered",
+          "accept_rate": 87,
+          "profile_image": "https://i.sstatic.net/2GESV.jpg?s=256",
+          "display_name": "Lajos Arpad",
+          "link": "https://stackoverflow.com/users/436560/lajos-arpad"
+        },
+        "reply_to_user": {
+          "account_id": 16894060,
+          "reputation": 13,
+          "user_id": 12217028,
+          "user_type": "registered",
+          "profile_image": "https://lh3.googleusercontent.com/a-/AAuE7mDaXMTrKfNcZwD1ow8aDr6m0a8l5MkruGXVPdDWrA=k-s256",
+          "display_name": "Max Jacobs",
+          "link": "https://stackoverflow.com/users/12217028/max-jacobs"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1572216182,
+        "post_id": 58583239,
+        "comment_id": 103482175,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 194308,
+          "reputation": 80455,
+          "user_id": 436560,
+          "user_type": "registered",
+          "accept_rate": 87,
+          "profile_image": "https://i.sstatic.net/2GESV.jpg?s=256",
+          "display_name": "Lajos Arpad",
+          "link": "https://stackoverflow.com/users/436560/lajos-arpad"
+        },
+        "reply_to_user": {
+          "account_id": 16894060,
+          "reputation": 13,
+          "user_id": 12217028,
+          "user_type": "registered",
+          "profile_image": "https://lh3.googleusercontent.com/a-/AAuE7mDaXMTrKfNcZwD1ow8aDr6m0a8l5MkruGXVPdDWrA=k-s256",
+          "display_name": "Max Jacobs",
+          "link": "https://stackoverflow.com/users/12217028/max-jacobs"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1572215412,
+        "post_id": 58583239,
+        "comment_id": 103482069,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 194308,
+          "reputation": 80455,
+          "user_id": 436560,
+          "user_type": "registered",
+          "accept_rate": 87,
+          "profile_image": "https://i.sstatic.net/2GESV.jpg?s=256",
+          "display_name": "Lajos Arpad",
+          "link": "https://stackoverflow.com/users/436560/lajos-arpad"
+        },
+        "reply_to_user": {
+          "account_id": 16894060,
+          "reputation": 13,
+          "user_id": 12217028,
+          "user_type": "registered",
+          "profile_image": "https://lh3.googleusercontent.com/a-/AAuE7mDaXMTrKfNcZwD1ow8aDr6m0a8l5MkruGXVPdDWrA=k-s256",
+          "display_name": "Max Jacobs",
+          "link": "https://stackoverflow.com/users/12217028/max-jacobs"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1572215014,
+        "post_id": 58583239,
+        "comment_id": 103482010,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 16894060,
+          "reputation": 13,
+          "user_id": 12217028,
+          "user_type": "registered",
+          "profile_image": "https://lh3.googleusercontent.com/a-/AAuE7mDaXMTrKfNcZwD1ow8aDr6m0a8l5MkruGXVPdDWrA=k-s256",
+          "display_name": "Max Jacobs",
+          "link": "https://stackoverflow.com/users/12217028/max-jacobs"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1572211197,
+        "post_id": 58583239,
+        "comment_id": 103481245,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

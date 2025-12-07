@@ -1,0 +1,135 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "mocking",
+      "mockito"
+    ],
+    "owner": {
+      "account_id": 205218,
+      "reputation": 6652,
+      "user_id": 453865,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/1060e05488fbf9ceea1bf3c78c615c72?s=256&d=identicon&r=PG",
+      "display_name": "Emma",
+      "link": "https://stackoverflow.com/users/453865/emma"
+    },
+    "is_answered": true,
+    "view_count": 536688,
+    "accepted_answer_id": 8088220,
+    "answer_count": 14,
+    "score": 529,
+    "last_activity_date": 1733611865,
+    "creation_date": 1320970466,
+    "question_id": 8088179,
+    "content_license": "CC BY-SA 3.0",
+    "link": "https://stackoverflow.com/questions/8088179/using-mockito-with-multiple-calls-to-the-same-method-with-the-same-arguments",
+    "title": "Using Mockito with multiple calls to the same method with the same arguments",
+    "body": "<p>Is there a way to have a stubbed method return different objects on subsequent invocations? I'd like to do this to test nondeterminate responses from an <code>ExecutorCompletionService</code>. i.e. to test that irrespective of the return order of the methods, the outcome remains constant.</p>\n\n<p>The code I'm looking to test looks something like this.</p>\n\n<pre><code>// Create an completion service so we can group these tasks together\nExecutorCompletionService&lt;T&gt; completionService =\n        new ExecutorCompletionService&lt;T&gt;(service);\n\n// Add all these tasks to the completion service\nfor (Callable&lt;T&gt; t : ts)\n    completionService.submit(request);\n\n// As an when each call finished, add it to the response set.\nfor (int i = 0; i &lt; calls.size(); i ++) {\n    try {\n        T t = completionService.take().get();\n        // do some stuff that I want to test\n    } catch (...) { }        \n}\n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 1085259,
+        "reputation": 80173,
+        "user_id": 1081110,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/Fp4Pm.jpg?s=256",
+        "display_name": "Dawood ibn Kareem",
+        "link": "https://stackoverflow.com/users/1081110/dawood-ibn-kareem"
+      },
+      "is_accepted": false,
+      "score": 993,
+      "last_activity_date": 1733611865,
+      "last_edit_date": 1733611865,
+      "creation_date": 1323148914,
+      "answer_id": 8395685,
+      "question_id": 8088179,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>How about</p>\n<pre><code>when(method-call).thenReturn(value1, value2, value3);\n</code></pre>\n<p>You can put as many arguments as you like in the brackets of thenReturn, provided they're all the correct type.  The first value will be returned the first time the method is called, then the second answer, and so on.  The last value will be returned repeatedly once all the other values are used up.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 1096470,
+        "reputation": 29415,
+        "user_id": 1089967,
+        "user_type": "registered",
+        "accept_rate": 59,
+        "profile_image": "https://www.gravatar.com/avatar/1f256b904ff621d678598d8fa49f86c5?s=256&d=identicon&r=PG",
+        "display_name": "lance-java",
+        "link": "https://stackoverflow.com/users/1089967/lance-java"
+      },
+      "is_accepted": false,
+      "score": 3,
+      "last_activity_date": 1698314315,
+      "last_edit_date": 1698314315,
+      "creation_date": 1613148470,
+      "answer_id": 66175809,
+      "question_id": 8088179,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>You can use a <code>LinkedList</code> and an <a href=\"https://javadoc.io/static/org.mockito/mockito-core/3.2.4/org/mockito/stubbing/Answer.html\" rel=\"nofollow noreferrer\"><code>Answer</code></a>. Eg</p>\n<pre class=\"lang-java prettyprint-override\"><code>MyService mock = mock(MyService.class);\nLinkedList&lt;String&gt; results = new LinkedList&lt;&gt;(List.of(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;));\nwhen(mock.doSomething(any())).thenAnswer(invocation -&gt; results.removeFirst());\n</code></pre>\n<p>Or perhaps</p>\n<pre class=\"lang-java prettyprint-override\"><code>LinkedList&lt;Answer&lt;String&gt;&gt; answers = new LinkedList&lt;&gt;();\nanswers.add(invocation -&gt; &quot;A&quot;);\nanswers.add(invocation -&gt; &quot;B&quot;);\nanswers.add(invocation -&gt; { throw new Exception(); });\nwhen(mock.doSomething(any())).thenAnswer(invocation -&gt; results.removeFirst().apply(invocation));\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 706860,
+        "reputation": 11354,
+        "user_id": 601844,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/ya3dBz0w.png?s=256",
+        "display_name": "epox",
+        "link": "https://stackoverflow.com/users/601844/epox"
+      },
+      "is_accepted": false,
+      "score": 62,
+      "last_activity_date": 1687210648,
+      "last_edit_date": 1687210648,
+      "creation_date": 1564352077,
+      "answer_id": 57245355,
+      "question_id": 8088179,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<h1>BDD style:</h1>\n<pre><code>import static org.mockito.BDDMockito.given;\n        ...\n\n        given(yourMock.yourMethod()).willReturn(1, 2, 3);\n</code></pre>\n<h1>Classic style:</h1>\n<pre><code>import static org.mockito.Mockito.when;\n        ...\n\n        when(yourMock.yourMethod()).thenReturn(1, 2, 3);\n</code></pre>\n<h1>Explicit style:</h1>\n<pre><code>        ...\n\n        when(yourMock.yourMethod())\n            .thenReturn(1)\n            .thenReturn(2)\n            .thenReturn(3);\n</code></pre>\n<h1>Depending on an arg</h1>\n<p><strong>Option #1</strong></p>\n<p>Suppose we have 2 args, and check the size of the 2nd (list) arg:</p>\n<pre><code>        ...\n\n        when(yourMock.yourMethod(any(), anyList()))\n             .thenAnswer(args -&gt; ((List) args.getArgument(1)).size() &lt; 2\n                                 ? 1\n                                 : 3);\n</code></pre>\n<p>args are Objects, so we have to cast an arg to our type. I cast ^^^ to <code>(List)</code> in my case.</p>\n<p><strong>Option #2 (BDD)</strong></p>\n<pre><code>        ...\n\n        given(yourMock.yourMethod(any(), anyList()))\n             .willAnswer(args -&gt; ((List) args.getArgument(1)).size() &lt; 2\n                                 ? 1\n                                 : 3);\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "8395685": [
+      {
+        "owner": {
+          "account_id": 106759,
+          "reputation": 1038,
+          "user_id": 284263,
+          "user_type": "registered",
+          "accept_rate": 66,
+          "profile_image": "https://www.gravatar.com/avatar/27a696b2606968635d5f4a5c6e2c7871?s=256&d=identicon&r=PG",
+          "display_name": "Dimitrios K.",
+          "link": "https://stackoverflow.com/users/284263/dimitrios-k"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1622211042,
+        "post_id": 8395685,
+        "comment_id": 119734977,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 7642085,
+          "reputation": 58,
+          "user_id": 6113965,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/1e6af534f9ea84056940bef6608ce96b?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Joker",
+          "link": "https://stackoverflow.com/users/6113965/joker"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1594378896,
+        "post_id": 8395685,
+        "comment_id": 111112090,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "66175809": [],
+    "57245355": []
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "oauth-2.0",
+      "spring-restclient"
+    ],
+    "owner": {
+      "account_id": 18879058,
+      "reputation": 23,
+      "user_id": 13771883,
+      "user_type": "registered",
+      "profile_image": "https://graph.facebook.com/947756132339193/picture?type=large",
+      "display_name": "FakiB",
+      "link": "https://stackoverflow.com/users/13771883/fakib"
+    },
+    "is_answered": false,
+    "view_count": 54,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1763056762,
+    "creation_date": 1763056762,
+    "question_id": 79819274,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79819274/oauth2-client-in-spring",
+    "title": "Oauth2 client in spring",
+    "body": "<p>Im posting here because cant get a working example of oauth2 client implementation in spring boot 3.5.7<br />\nThis is my first time ever implementing this type of authentication and cant manage to make it work.<br />\nim trying to figure out what to do by looking <a href=\"https://docs.spring.io/spring-security/reference/servlet/oauth2/index.html\" rel=\"nofollow noreferrer\">the documentation here</a></p>\n<p>I've been provided with 2 apis:</p>\n<ol>\n<li>https://myapi/.../openid-connect/token (this is the only uri i have, i dont have an issuer-uri)<br />\nrequest:</li>\n</ol>\n<ul>\n<li><p>grant_type -&gt; client_credentials</p>\n</li>\n<li><p>client_secret -&gt; mysecret</p>\n</li>\n<li><p>scope -&gt; openid</p>\n</li>\n<li><p>client_id -&gt; mycompanyname</p>\n<p>response:</p>\n</li>\n<li><p>access_token</p>\n</li>\n</ul>\n<ol start=\"2\">\n<li>https://anotherapi/mylist<br />\nrequest:</li>\n</ol>\n<ul>\n<li>Bearer Token access_token</li>\n</ul>\n<p>Here are the steps i followed:</p>\n<ol>\n<li><p>create a spring boot app with oaut2client and starter web</p>\n</li>\n<li><p>yaml file as follows:</p>\n<pre><code>security:\n  oauth2:\n    client:\n      registration:\n        my-client:\n          provider: my-provider\n          client-id: mycompanyname\n          client-secret: mysecret\n          authorization-grant-type: client_credentials\n          scope: openid\n      provider:\n        day-provider:\n          token-uri: https://myapi/.../openid-connect/token \n</code></pre>\n</li>\n<li><p>then i follow <a href=\"https://docs.spring.io/spring-security/reference/servlet/oauth2/client/authorization-grants.html#oauth2-client-client-credentials\" rel=\"nofollow noreferrer\">this part</a><br />\nso i setup the following beans</p>\n<pre><code>@Bean\npublic OAuth2AccessTokenResponseClient&lt;OAuth2ClientCredentialsGrantRequest&gt; accessTokenResponseClient() {\n return new RestClientClientCredentialsTokenResponseClient();\n}\n</code></pre>\n<p>i don't think i need to customize my request/response so i skip to where i create the following bean</p>\n<pre><code>@Bean\npublic OAuth2AuthorizedClientManager authorizedClientManager(\n     ClientRegistrationRepository clientRegistrationRepository,\n     OAuth2AuthorizedClientRepository authorizedClientRepository) {\n\n OAuth2AuthorizedClientProvider authorizedClientProvider =\n         OAuth2AuthorizedClientProviderBuilder.builder()\n                 .clientCredentials()\n                 .build();\n\n DefaultOAuth2AuthorizedClientManager authorizedClientManager =\n         new DefaultOAuth2AuthorizedClientManager(\n                 clientRegistrationRepository, authorizedClientRepository);\n authorizedClientManager.setAuthorizedClientProvider(authorizedClientProvider);\n\n return authorizedClientManager;\n}\n</code></pre>\n<p>Then, when i create the</p>\n<pre><code>@Controller\npublic class OAuth2ClientController {\n\n @Autowired\n private OAuth2AuthorizedClientManager authorizedClientManager;\n\n @GetMapping(&quot;/&quot;)\n public String index(Authentication authentication,\n                     HttpServletRequest servletRequest,\n                     HttpServletResponse servletResponse) {\n\n     OAuth2AuthorizeRequest authorizeRequest = OAuth2AuthorizeRequest.withClientRegistrationId(&quot;okta&quot;)\n             .principal(authentication)\n             .attributes(attrs -&gt; {\n                 attrs.put(HttpServletRequest.class.getName(), servletRequest);\n                 attrs.put(HttpServletResponse.class.getName(), servletResponse);\n             })\n             .build();\n     OAuth2AuthorizedClient authorizedClient = this.authorizedClientManager.authorize(authorizeRequest);\n\n     OAuth2AccessToken accessToken = authorizedClient.getAccessToken();\n\n     // ...\n\n     return &quot;index&quot;;\n }\n}\n</code></pre>\n<p>and i will try to access the &quot;/&quot; endpoint i get an  exception:<br />\n<code>IllegalArgumentException: principal cannot be null.</code><br />\nif i try to access /oauth2/authorization/my-client i get this exception instead<br />\n<code>Invalid Authorization Grant Type (client_credentials) for Client Registration with Id: my-client</code><br />\nAnd of course, if i try to access the second api, i'll get an exception again.<br />\nI don't use reactive programming so im not using spring WebClient</p>\n<pre><code>@RestController\npublic class TestController {\n    private final RestClient restClient;\n\n    public TestController(RestClient restClient) {\n        this.restClient = restClient;\n    }\n\n    @GetMapping(&quot;/sites&quot;)\n    public SiteListResponse listaLocali(@RequestParam String vat) {\n        return this.restClient.get()\n                         .uri(&quot;https://anotherapi/mylist?vat_number=&quot; + vat)\n                         .attributes(clientRegistrationId(&quot;my-client&quot;))\n                         .retrieve()\n                         .body(SiteListResponse.class);\n    }\n}\n</code></pre>\n<p>I’m not the quickest learner, I’m more of a visual learner, and find hard to understand the documentation at first, so please don't be mean thanks.<br />\nI tried to follow some videos like <a href=\"https://www.youtube.com/watch?v=nFKcJDpUuZ8&amp;t=1395s\" rel=\"nofollow noreferrer\">this</a> one but doesn't seem to solve my problem.</p>\n</li>\n</ol>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,74 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "android-fragments",
+      "navigation-drawer",
+      "android-bottomnav"
+    ],
+    "owner": {
+      "account_id": 18715779,
+      "reputation": 165,
+      "user_id": 13644836,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/1fd3b7bf3134fbaf202420accd1999ee?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "markato",
+      "link": "https://stackoverflow.com/users/13644836/markato"
+    },
+    "is_answered": true,
+    "view_count": 1085,
+    "answer_count": 2,
+    "score": 1,
+    "last_activity_date": 1765039482,
+    "creation_date": 1591367411,
+    "question_id": 62217714,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/62217714/how-to-pass-data-between-bottom-navigation-fragments-or-navigation-drawer",
+    "title": "How to pass data between Bottom Navigation fragments (or Navigation Drawer)?",
+    "body": "<p>I have a situation, I´m not good enough in android dev to implement a way to pass data between Bottom Navigation destinations.</p>\n\n<p>I would need to get text from EditText from CreateFragment to a RecipesFragment, where I would add a new item in the database and the RecyclerView would update (I´m using LiveData + MVVM) based on this data.</p>\n\n<p><a href=\"https://i.sstatic.net/xM4va.png\" rel=\"nofollow noreferrer\">My Bottom Navigation Bar</a></p>\n\n<p>So, I´m asking for a way. I couldn´t find any proper/specific explanation and I think that passing data between fragments in Bottom Navigation or Navigation Drawer is important feauture but hard i guess for beginners like me :(.</p>\n\n<p>Additional info: I host a FrameLayout(id-fragment_container) in my MainActivity in what I change fragments based on location in Bottom Nav selected. (check code)</p>\n\n<p>MainActivity.java</p>\n\n<pre><code>public class MainActivity extends AppCompatActivity {\nprivate BottomNavigationView bottomNavigationView;\n\n@Override\nprotected void onCreate(Bundle savedInstanceState) {\n    super.onCreate(savedInstanceState);\n    setContentView(R.layout.activity_main);\n\n    bottomNavigationView = findViewById(R.id.bottom_navigation);\n    bottomNavigationView.setOnNavigationItemSelectedListener(navListener);\n\n    // Keeps the current fragment opened when the device rotates\n    if (savedInstanceState == null) {\n\n        // Sets the default selected item in NavigationView\n        bottomNavigationView.setSelectedItemId(R.id.nav_home);\n    }\n}\n\n// Handles switching the view based on NavigationView item selected\nprivate BottomNavigationView.OnNavigationItemSelectedListener navListener =\n        new BottomNavigationView.OnNavigationItemSelectedListener() {\n            @Override\n            public boolean onNavigationItemSelected(@NonNull MenuItem item) {\n                Fragment selectedFragment = null;\n\n                switch (item.getItemId()) {\n                    case R.id.nav_home:\n                        selectedFragment = new HomeFragment();\n                        break;\n                    case R.id.nav_recipes:\n                        selectedFragment = new RecipesFragment();\n                        break;\n                    case R.id.nav_create:\n                        selectedFragment = new CreateFragment();\n                        break;\n                }\n\n                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,\n                        selectedFragment).commit();\n\n                return true;\n            }\n        };\n</code></pre>\n\n<p>CreateFragment.java</p>\n\n<pre><code>private void saveRecipe() { //trigered on floating button press\n    String title = edit_title.getText().toString();\n    String ingredients = edit_ingredients.getText().toString();\n\n    if (title.trim().isEmpty() || ingredients.trim().isEmpty()) {\n        Toast.makeText(getActivity(), \"Please insert a title and description\", Toast.LENGTH_SHORT).show();\n        return;\n    }\n\n    // THIS SHOULD PASS DATA TO RecipesFragment INTO RECYCLERVIEW\n    // TODO\n\n    //\n}\n</code></pre>\n\n<p>RecipesFragment.java</p>\n\n<pre><code>    public void getRecipeFromCreateFragment() {\n\n    // THERE SHOULD BE PASSED DATA FROM CREATE ACTIVITY\n    // TODO\n\n\n\n\n\n    //\n\n    Recipe recipe =\n            new Recipe(\"hh\", \"title\", \"ingredients\", \"instructions\", \"ss\", \"image\");\n    recipeViewModel.insert(recipe);\n\n    Toast.makeText(getActivity(), \"Recipe saved\", Toast.LENGTH_SHORT).show();\n}\n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 44928719,
+        "reputation": 1,
+        "user_id": 32009747,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/30566200a5ec948a77717c5b751e9499?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Re Dsdc",
+        "link": "https://stackoverflow.com/users/32009747/re-dsdc"
+      },
+      "is_accepted": false,
+      "score": -1,
+      "last_activity_date": 1765039482,
+      "creation_date": 1765039482,
+      "answer_id": 79839800,
+      "question_id": 62217714,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<pre><code>&lt;// MainActivity.java\n\nimport androidx.annotation.NonNull;\nimport androidx.appcompat.app.AppCompatActivity;\nimport androidx.fragment.app.Fragment;\nimport android.os.Bundle;\nimport android.view.MenuItem;\n\nimport com.google.android.material.bottomnavigation.BottomNavigationView;\n\npublic class MainActivity extends AppCompatActivity {\n\n    private BottomNavigationView bottomNavigationView;\n\n    @Override\n    protected void onCreate(Bundle savedInstanceState) {\n        super.onCreate(savedInstanceState);\n        setContentView(R.layout.activity_main);\n\n        bottomNavigationView = findViewById(R.id.bottom_navigation);\n        \n        // অ্যাপ চালু হওয়ার সাথে সাথে 'হোম' ট্যাবটি লোড হবে\n        if (savedInstanceState == null) {\n            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, \n                    new HomeFragment()).commit();\n        }\n\n        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {\n            @Override\n            public boolean onNavigationItemSelected(@NonNull MenuItem item) {\n                Fragment selectedFragment = null;\n                int itemId = item.getItemId();\n\n                // আইডিগুলো আপনার মেনু XML থেকে আসবে। উদাহরণস্বরূপ:\n                if (itemId == R.id.nav_home) {\n                    selectedFragment = new HomeFragment();\n                } else if (itemId == R.id.nav_games) {\n                    selectedFragment = new GamesFragment();\n                } else if (itemId == R.id.nav_wallet) {\n                    selectedFragment = new WalletFragment();\n                } else if (itemId == R.id.nav_support) {\n                    selectedFragment = new SupportFragment();\n                } else if (itemId == R.id.nav_settings) {\n                    selectedFragment = new SettingsFragment();\n                }\n\n                if (selectedFragment != null) {\n                    getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,\n                            selectedFragment).commit();\n                }\n\n                return true;\n            }\n        });\n    }\n\n    // এখন আপনাকে প্রতিটি ফ্র্যাগমেন্ট (HomeFragment, GamesFragment, ইত্যাদি) তৈরি করতে হবে। \n    // যেমন: HomeFragment.java, GamesFragment.java ইত্যাদি।\n    // প্রতিটি ফ্র্যাগমেন্টে সেই সেকশনের UI/ফিচার তৈরি হবে। \n}\n\n// **দ্রষ্টব্য:** এই কোডটি রান করার জন্য আপনাকে \n// 1. Android Studio-তে একটি নতুন প্রজেক্ট তৈরি করতে হবে।\n// 2. 'HomeFragment', 'GamesFragment', 'WalletFragment', 'SupportFragment', এবং 'SettingsFragment' নামে ৫টি খালি ফ্র্যাগমেন্ট তৈরি করতে হবে।\n// 3. 'res/menu' ফোল্ডারে একটি 'bottom_navigation_menu.xml' ফাইল তৈরি করতে হবে (নিচে দে\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79839800": [
+      {
+        "owner": {
+          "account_id": 22627540,
+          "reputation": 1183,
+          "user_id": 16805423,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/LA3Jp.jpg?s=256",
+          "display_name": "Brentspine",
+          "link": "https://stackoverflow.com/users/16805423/brentspine"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1765041655,
+        "post_id": 79839800,
+        "comment_id": 140890539,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

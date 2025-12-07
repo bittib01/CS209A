@@ -1,0 +1,56 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android"
+    ],
+    "owner": {
+      "account_id": 8207364,
+      "reputation": 25,
+      "user_id": 6176673,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/f002ac24b301aebca6d3311c6e0c8461?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "deadstone1991",
+      "link": "https://stackoverflow.com/users/6176673/deadstone1991"
+    },
+    "is_answered": true,
+    "view_count": 149,
+    "accepted_answer_id": 56011041,
+    "answer_count": 3,
+    "score": -2,
+    "last_activity_date": 1764575731,
+    "creation_date": 1557166371,
+    "last_edit_date": 1557208037,
+    "question_id": 56010382,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/56010382/data-null-onactivityresult",
+    "title": "data null onActivityResult",
+    "body": "<p>Activity results is <code>NullPointerException</code>, What I have done wrong or missed?</p>\n\n<p>Photo gallery application(Eventually), followed the instructions on the android developer site about taking photos with inbuilt camera. onActivityResult giving null pointer. I am new to android so can't figure it out.\nBecause of this it crashes, i expect it to show a bitmap in the activity.</p>\n\n<pre><code>public class aCamera extends AppCompatActivity {\n\n    static  final  int REQUEST_IMAGE_CAPTURE = 1;\n    static final int REQUEST_TAKE_PHOTO = 1;\n    ImageView imageView;\n    String currentPhotoPath;\n\n\n    @Override\n    protected void onCreate(Bundle savedInstanceState) {\n        super.onCreate(savedInstanceState);\n        setContentView(R.layout.activity_a_camera);\n        dispatchTakePictureIntent();\n\n    }\n\n    private void dispatchTakePictureIntent() {\n        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);\n        // Ensure that there's a camera activity to handle the intent\n        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {\n\n            File photoFile = null;\n            try {\n                photoFile = createImageFile();\n                Log.i(\"DTPI-1\", \"dispatchTakePictureIntent: The IF AND TRY\");\n            } catch (IOException ex) {\n                Log.i(\"DTPI-3\" , \"dispatchTakePictureIntent: catch\");\n            }\n            // Continue only if the File was successfully created\n            if (photoFile != null) {\n                Log.i(\"photoURI\", \"dispatchTakePictureIntent: PHOTO FILE NOT EMPTY\");\n                Uri photoURI = FileProvider.getUriForFile(this,\n                    \"com.example.android.fileprovider\",\n                    photoFile);\n                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);\n                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);\n                //setResult(RESULT_OK, takePictureIntent);\n            }\n        }\n    }\n\n    private File createImageFile() throws IOException {\n        // Create an image file name\n        Log.i(\"CIF -1\", \"createImageFile: Create FILE\");\n        String timeStamp = new SimpleDateFormat(\"yyyyMMdd_HHmmss\").format(new Date());\n        String imageFileName = \"JPEG_\" + timeStamp + \"_\";\n        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);\n        File image = File.createTempFile(\n            imageFileName,  /* prefix */\n            \".jpg\",   /* suffix */\n            storageDir      /* directory */\n    );\n\n        // Save a file: path for use with ACTION_VIEW intents\n        currentPhotoPath = image.getAbsolutePath();\n        return image;\n    }\n\n    @Override\n    protected void onActivityResult(int requestCode, int resultCode, Intent data) {\n        Log.i(\"Result\", \"onActivityResult: WE GET HERE\");\n        if (requestCode == REQUEST_IMAGE_CAPTURE &amp;&amp; resultCode == RESULT_OK) {\n            Bundle extras = data.getExtras();\n            Bitmap imageBitmap = (Bitmap) extras.get(\"data\");\n            imageView = findViewById(R.id.imageView);\n            imageView.setImageBitmap(imageBitmap);\n        }\n}\n</code></pre>\n\n<p><strong>Error logs.</strong></p>\n\n<pre><code>2019-05-06 20:01:33.555 23363-23363/com.example.camera E/AndroidRuntime: FATAL EXCEPTION: main\nProcess: com.example.camera, PID: 23363\njava.lang.RuntimeException: Failure delivering result ResultInfo{who=null, request=1, result=-1, data=null} to activity {com.example.camera/com.example.camera.aCamera}: java.lang.NullPointerException: Attempt to invoke virtual method 'android.os.Bundle android.content.Intent.getExtras()' on a null object reference\n    at android.app.ActivityThread.deliverResults(ActivityThread.java:4339)\n    at android.app.ActivityThread.handleSendResult(ActivityThread.java:4382)\n    at android.app.ActivityThread.-wrap19(Unknown Source:0)\n    at android.app.ActivityThread$H.handleMessage(ActivityThread.java:1654)\n    at android.os.Handler.dispatchMessage(Handler.java:105)\n    at android.os.Looper.loop(Looper.java:251)\n    at android.app.ActivityThread.main(ActivityThread.java:6572)\n    at java.lang.reflect.Method.invoke(Native Method)\n    at com.android.internal.os.Zygote$MethodAndArgsCaller.run(Zygote.java:240)\n    at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:767)\n Caused by: java.lang.NullPointerException: Attempt to invoke virtual method 'android.os.Bundle android.content.Intent.getExtras()' on a null object reference\n    at com.example.camera.aCamera.onActivityResult(aCamera.java:81)\n    at android.app.Activity.dispatchActivityResult(Activity.java:7235)\n    at android.app.ActivityThread.deliverResults(ActivityThread.java:4335)\n    at android.app.ActivityThread.handleSendResult(ActivityThread.java:4382) \n    at android.app.ActivityThread.-wrap19(Unknown Source:0) \n    at android.app.ActivityThread$H.handleMessage(ActivityThread.java:1654) \n    at android.os.Handler.dispatchMessage(Handler.java:105) \n    at android.os.Looper.loop(Looper.java:251) \n    at android.app.ActivityThread.main(ActivityThread.java:6572) \n    at java.lang.reflect.Method.invoke(Native Method) \n    at com.android.internal.os.Zygote$MethodAndArgsCaller.run(Zygote.java:240) \n    at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:767) \n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 8207364,
+        "reputation": 25,
+        "user_id": 6176673,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/f002ac24b301aebca6d3311c6e0c8461?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "deadstone1991",
+        "link": "https://stackoverflow.com/users/6176673/deadstone1991"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1764575731,
+      "last_edit_date": 1764575731,
+      "creation_date": 1557217261,
+      "answer_id": 56018368,
+      "question_id": 56010382,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>As mentioned by @AalapPatel, the issue is not with <code>onActivityResult</code>, it is with one line in <code>dispatchTakePictureIntent</code> method.</p>\n<p><code>takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);</code></p>\n<p>adding to this is the code that he also mentions.</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "56018368": []
+  }
+}

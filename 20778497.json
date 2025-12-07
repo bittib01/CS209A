@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "json",
+      "eclipse",
+      "jar",
+      "gson"
+    ],
+    "owner": {
+      "account_id": 3543148,
+      "reputation": 1616,
+      "user_id": 2959748,
+      "user_type": "registered",
+      "accept_rate": 68,
+      "profile_image": "https://www.gravatar.com/avatar/fe2f875ae3bb0e23383da9696bcc20ef?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "bijiDango",
+      "link": "https://stackoverflow.com/users/2959748/bijidango"
+    },
+    "is_answered": false,
+    "view_count": 24535,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1764817610,
+    "creation_date": 1388025270,
+    "last_edit_date": 1388026793,
+    "question_id": 20778497,
+    "content_license": "CC BY-SA 3.0",
+    "link": "https://stackoverflow.com/questions/20778497/gson-throws-malformedjsonexception-and-other-exceptions",
+    "title": "Gson throws MalformedJsonException, and other Exceptions",
+    "body": "<p>I tried to save data to json string in a txt file using Gson and then restore it using Gson either. Things go well if I do it in eclipse. But when packaged to jar, Gson throws Exceptions.</p>\n\n<p>Here is the code for saving the file.</p>\n\n<pre><code>String gsonStr = gson.toJson(masterShips);  // masterShips is ArrayList&lt;Ship&gt;\nBufferedWriter writer = null;\ntry {\n    writer = new BufferedWriter(new FileWriter(\"D:\\\\master_ship.txt\"));\n    writer.write(gsonStr);\n} catch (IOException e) {\n    System.err.println(e);\n} finally {\n    if (writer != null) {\n        try {\n            writer.close();\n        } catch (IOException e) {\n            System.err.println(e);\n        }\n    }\n}\n</code></pre>\n\n<p>Then I read the file in eclipse using this code (and it works):</p>\n\n<pre><code>Scanner in = new Scanner(new FileReader(\"D:\\\\master_ship.txt\"));\n\nString str = in.nextLine();\nLog.toDebug(str);\nin.close();\nJsonParser parser = new JsonParser();\nJsonElement je = parser.parse(str);\nJsonArray ja = je.getAsJsonArray();\nfor (int i=0; i&lt;ja.size(); ++i) { \n    ... \n}\n</code></pre>\n\n<p>But after packaged into jar and run in cmd, Exception occurs:</p>\n\n<pre><code>Exception in thread \"main\" com.google.gson.JsonSyntaxException: com.google.gson.\nstream.MalformedJsonException: Use JsonReader.setLenient(true) to accept malform\ned JSON at line 1 column 4\n        at com.google.gson.JsonParser.parse(JsonParser.java:65)\n        at com.google.gson.JsonParser.parse(JsonParser.java:45)\n        at kan.util.Master.loadMasterShip(Master.java:44)\n        at kan.util.Master.load(Master.java:27)\n        at kan.Main.main(Main.java:22)\nCaused by: com.google.gson.stream.MalformedJsonException: Use JsonReader.setLeni\nent(true) to accept malformed JSON at line 1 column 4\n        at com.google.gson.stream.JsonReader.syntaxError(JsonReader.java:1505)\n        at com.google.gson.stream.JsonReader.checkLenient(JsonReader.java:1386)\n        at com.google.gson.stream.JsonReader.doPeek(JsonReader.java:531)\n        at com.google.gson.stream.JsonReader.peek(JsonReader.java:414)\n        at com.google.gson.JsonParser.parse(JsonParser.java:60)\n        ... 4 more\n</code></pre>\n\n<p>According to the hint of the Exception, I changed my code and it still works in eclipse:</p>\n\n<pre><code>Scanner in = new Scanner(new FileReader(\"D:\\\\master_ship.txt\"));\n\nString str = in.nextLine();\nin.close();\n\nReader reader = new StringReader(str);\nJsonReader jr = new JsonReader(reader);\njr.setLenient(true);\nJsonParser parser = new JsonParser();\nJsonElement je = parser.parse(jr);\nJsonArray ja = je.getAsJsonArray();\nfor (int i=0; i&lt;ja.size(); ++i) { \n... \n}\n</code></pre>\n\n<p>But jar failed and throws </p>\n\n<pre><code>Exception in thread \"main\" java.lang.IllegalStateException: This is not a JSON A\nrray.\n    at com.google.gson.JsonElement.getAsJsonArray(JsonElement.java:106)\n    at kan.util.Master.loadMasterShip(Master.java:58)\n    at kan.util.Master.load(Master.java:30)\n    at kan.Main.main(Main.java:22)\n</code></pre>\n\n<p><strong>As suggested by Sotirios I cut the length of the arraylist down, and when I increase the number of ships to 4, things go wrong. Here is the json:</strong></p>\n\n<pre><code>[{\"id\":1,\"name\":\"睦月\",\"type\":2,\"rank\":2,\"fuelMax\":15,\"bulletMax\":15,\"slotNum\":2,\"speed\":10,\"afterLv\":20,\"afterId\":254,\"range\":1,\"powerups\":[1,1,0,0]},{\"id\":2,\"name\":\"如月\",\"type\":2,\"rank\":1,\"fuelMax\":15,\"bulletMax\":15,\"slotNum\":2,\"speed\":10,\"afterLv\":20,\"afterId\":255,\"range\":1,\"powerups\":[0,1,0,0]},{\"id\":6,\"name\":\"長月\",\"type\":2,\"rank\":1,\"fuelMax\":15,\"bulletMax\":15,\"slotNum\":2,\"speed\":10,\"afterLv\":20,\"afterId\":258,\"range\":1,\"powerups\":[0,1,0,0]},{\"id\":7,\"name\":\"三日月\",\"type\":2,\"rank\":1,\"fuelMax\":15,\"bulletMax\":15,\"slotNum\":2,\"speed\":10,\"afterLv\":20,\"afterId\":260,\"range\":1,\"powerups\":[0,1,0,0]}]\n                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ↑ colunm 473\n\nException in thread \"main\" com.google.gson.JsonSyntaxException: com.google.gson.\nstream.MalformedJsonException: Unterminated object at line 1 column 473\n        at com.google.gson.internal.Streams.parse(Streams.java:56)\n        at com.google.gson.JsonParser.parse(JsonParser.java:84)\n        at kan.util.Master.loadMasterShip(Master.java:55)\n        at kan.util.Master.load(Master.java:30)\n        at kan.Main.main(Main.java:22)\nCaused by: com.google.gson.stream.MalformedJsonException: Unterminated object at\n line 1 column 473\n        at com.google.gson.stream.JsonReader.syntaxError(JsonReader.java:1505)\n        at com.google.gson.stream.JsonReader.doPeek(JsonReader.java:480)\n        at com.google.gson.stream.JsonReader.hasNext(JsonReader.java:403)\n        at com.google.gson.internal.bind.TypeAdapters$25.read(TypeAdapters.java:\n666)\n        at com.google.gson.internal.bind.TypeAdapters$25.read(TypeAdapters.java:\n659)\n        at com.google.gson.internal.bind.TypeAdapters$25.read(TypeAdapters.java:\n642)\n        at com.google.gson.internal.Streams.parse(Streams.java:44)\n        ... 4 more\n</code></pre>\n\n<p>Can anyone help me with this, you will be reaally preciated!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

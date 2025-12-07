@@ -1,0 +1,395 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hibernate",
+      "maven",
+      "jpa",
+      "javafx"
+    ],
+    "owner": {
+      "account_id": 10369604,
+      "reputation": 561,
+      "user_id": 7647658,
+      "user_type": "registered",
+      "accept_rate": 71,
+      "profile_image": "https://lh4.googleusercontent.com/-q6rixRNwaEM/AAAAAAAAAAI/AAAAAAAAAB4/lkaUbIx6x9E/s256-rj/photo.jpg",
+      "display_name": "GenerationLost",
+      "link": "https://stackoverflow.com/users/7647658/generationlost"
+    },
+    "is_answered": true,
+    "view_count": 157,
+    "accepted_answer_id": 79814249,
+    "answer_count": 1,
+    "score": 5,
+    "last_activity_date": 1762684722,
+    "creation_date": 1762551301,
+    "last_edit_date": 1762683290,
+    "question_id": 79812806,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79812806/integrating-a-jakarta-persistence-implementation-with-modular-javafx-maven-jlink",
+    "title": "Integrating a Jakarta Persistence implementation with modular JavaFX/Maven/JLink app",
+    "body": "<p>Quick background information for context: I'm writing a relatively small tool for a small gaming community to download and manage user generated content. It's a modular Java 24 + JavaFX Project done with Maven and IntelliJ.</p>\n<p>I store data on a SQLite DB. So far I've used bare-metal <a href=\"https://en.wikipedia.org/wiki/Java_Database_Connectivity\" rel=\"nofollow noreferrer\">JDBC</a> and wrote queries myself. As the tool grows, I would like to simplify DB access. At work we use <a href=\"https://en.wikipedia.org/wiki/Hibernate_(framework)\" rel=\"nofollow noreferrer\">Hibernate</a> <a href=\"https://en.wikipedia.org/wiki/Object%E2%80%93relational_mapping\" rel=\"nofollow noreferrer\">ORM</a> in a <a href=\"https://en.wikipedia.org/wiki/Jakarta_EE\" rel=\"nofollow noreferrer\">Jakarta EE</a> environment with <a href=\"https://jakarta.ee/specifications/cdi/\" rel=\"nofollow noreferrer\">Jakarta Contexts and Dependency Injection (CDI)</a> etc., but I've read you can use Hibernate without relying on dependency injection.</p>\n<p>So I've tried Hibernate for my tool and it does work well in my dev environment. Problems arise when trying to package a build via jlink, specifically using the <code>javafx-maven-plugin</code> to make things a lot easier for me.</p>\n<p>The downside is that Hibernate does not seem to be modularized. Meaning I cannot easily package it with <a href=\"https://openjdk.org/jeps/282\" rel=\"nofollow noreferrer\"><em>jlink</em></a>. Running <code>mvn javafx:jlink</code> reports the &quot;automatic module cannot be used with jlink&quot;.</p>\n<p>I've then tried <a href=\"https://en.wikipedia.org/wiki/EclipseLink\" rel=\"nofollow noreferrer\">EclipseLink</a> as an alternative <a href=\"https://jakarta.ee/specifications/persistence/\" rel=\"nofollow noreferrer\">Jakarta Persistence (JPA)</a> implementation, had no issues with automatic modules but other resources apparently not being properly packaged with jlink. Specifically some locale resources appeared to be missing when trying to launch the packaged app, so they got left out the final package.</p>\n<p>The last resort would be trying some SQL-first libraries like <a href=\"https://en.wikipedia.org/wiki/JOOQ_Object_Oriented_Querying\" rel=\"nofollow noreferrer\">jOOQ</a> to at least make it more bearable than plain JDBC. But I'd really prefer a Jakarta Persistence/ORM approach to keep database handling as easy and painless as possible.</p>\n<p>Does anyone have a working approach I can use for my case? Or share your setup that actually works for you? Or find a way to get any Jakarta Persistence implementation to work well with the module system and Maven/JLink? The reason I'm using these is that packaging really is as simple as invoking a single Maven goal and for the most part that worked really well. Especially because of that I'm hesitant to get into any other packaging method, like the other jlink Maven plugin or something like jpackage, which seem to be very tedious to configure and get working.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 10369604,
+        "reputation": 561,
+        "user_id": 7647658,
+        "user_type": "registered",
+        "accept_rate": 71,
+        "profile_image": "https://lh4.googleusercontent.com/-q6rixRNwaEM/AAAAAAAAAAI/AAAAAAAAAB4/lkaUbIx6x9E/s256-rj/photo.jpg",
+        "display_name": "GenerationLost",
+        "link": "https://stackoverflow.com/users/7647658/generationlost"
+      },
+      "is_accepted": true,
+      "score": 4,
+      "last_activity_date": 1762684722,
+      "last_edit_date": 1762684722,
+      "creation_date": 1762613527,
+      "answer_id": 79814249,
+      "question_id": 79812806,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>The remaining issue that prevented my jlink build was rather simple to solve, thanks to a crucial hint in the <a href=\"https://stackoverflow.com/questions/79812806/jpa-implementation-that-works-well-with-javafx-maven-jlink#comment140842732_79812806\">comments by jewelsea</a>. So here is a more complete overview of a working scenario.</p>\n<p><a href=\"https://mvnrepository.com/artifact/org.eclipse.persistence/eclipselink\" rel=\"nofollow noreferrer\">EclipseLink</a> is a modular dependency that works well with jlink packaging through the <a href=\"https://mvnrepository.com/artifact/org.openjfx/javafx-maven-plugin\" rel=\"nofollow noreferrer\"><code>javafx-maven-plugin</code></a>. To satisfy dependency modules on <code>jakarta.transaction</code>, an additional dependency to <code>jakarta.enterprise.cdi-api</code> is needed in your Maven project, even if <a href=\"https://jakarta.ee/specifications/cdi/\" rel=\"nofollow noreferrer\">CDI</a> is not used in the project itself.</p>\n<p>Required modules in the <a href=\"https://www.baeldung.com/java-modularity\" rel=\"nofollow noreferrer\"><code>module-info.java</code></a> file would be:</p>\n<ul>\n<li>jakarta.persistence</li>\n<li>jakarta.transaction</li>\n<li>org.eclipse.persistence.jpa</li>\n<li>org.eclipse.persistence.core</li>\n</ul>\n<h2><code>include-locales</code></h2>\n<p>The last missing step is to let jlink include locales, so the necessary resources needed for EclipseLink are bundled with the application. For this, an option needs to be added to the <code>javafx-maven-plugin</code>:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;options&gt;\n    &lt;option&gt;--include-locales=en&lt;/option&gt;\n&lt;/options&gt;\n</code></pre>\n<p>This way, there are no dependencies on automatic modules that jlink can't handle (like for example with <code>hibernate</code>) and the packaging and resulting runtime image works just fine.</p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 322981,
+        "reputation": 346871,
+        "user_id": 642706,
+        "user_type": "registered",
+        "accept_rate": 58,
+        "profile_image": "https://i.sstatic.net/ZWEI3.jpg?s=256",
+        "display_name": "Basil Bourque",
+        "link": "https://stackoverflow.com/users/642706/basil-bourque"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1762618321,
+      "post_id": 79812806,
+      "comment_id": 140844472,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 5998820,
+        "reputation": 16284,
+        "user_id": 4712734,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/f6e922a2cb7e2da59286f27b162aaca5?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "DuncG",
+        "link": "https://stackoverflow.com/users/4712734/duncg"
+      },
+      "reply_to_user": {
+        "account_id": 8532578,
+        "reputation": 49884,
+        "user_id": 6395627,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/af0f9bfe593f36642a032cd7ea611e7d?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Slaw",
+        "link": "https://stackoverflow.com/users/6395627/slaw"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1762614410,
+      "post_id": 79812806,
+      "comment_id": 140844403,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 8532578,
+        "reputation": 49884,
+        "user_id": 6395627,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/af0f9bfe593f36642a032cd7ea611e7d?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Slaw",
+        "link": "https://stackoverflow.com/users/6395627/slaw"
+      },
+      "reply_to_user": {
+        "account_id": 5998820,
+        "reputation": 16284,
+        "user_id": 4712734,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/f6e922a2cb7e2da59286f27b162aaca5?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "DuncG",
+        "link": "https://stackoverflow.com/users/4712734/duncg"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1762614290,
+      "post_id": 79812806,
+      "comment_id": 140844400,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 10369604,
+        "reputation": 561,
+        "user_id": 7647658,
+        "user_type": "registered",
+        "accept_rate": 71,
+        "profile_image": "https://lh4.googleusercontent.com/-q6rixRNwaEM/AAAAAAAAAAI/AAAAAAAAAB4/lkaUbIx6x9E/s256-rj/photo.jpg",
+        "display_name": "GenerationLost",
+        "link": "https://stackoverflow.com/users/7647658/generationlost"
+      },
+      "reply_to_user": {
+        "account_id": 1180113,
+        "reputation": 160447,
+        "user_id": 1155209,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/5192e7cbcf2f72a847d6fb0d1552f049?s=256&d=identicon&r=PG",
+        "display_name": "jewelsea",
+        "link": "https://stackoverflow.com/users/1155209/jewelsea"
+      },
+      "edited": false,
+      "score": 3,
+      "creation_date": 1762606624,
+      "post_id": 79812806,
+      "comment_id": 140843316,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 5998820,
+        "reputation": 16284,
+        "user_id": 4712734,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/f6e922a2cb7e2da59286f27b162aaca5?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "DuncG",
+        "link": "https://stackoverflow.com/users/4712734/duncg"
+      },
+      "reply_to_user": {
+        "account_id": 2053598,
+        "reputation": 44936,
+        "user_id": 1831987,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/38b1c37530189ec4471a43a618e33f67?s=256&d=identicon&r=PG",
+        "display_name": "VGR",
+        "link": "https://stackoverflow.com/users/1831987/vgr"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1762589275,
+      "post_id": 79812806,
+      "comment_id": 140843073,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 8532578,
+        "reputation": 49884,
+        "user_id": 6395627,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/af0f9bfe593f36642a032cd7ea611e7d?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Slaw",
+        "link": "https://stackoverflow.com/users/6395627/slaw"
+      },
+      "reply_to_user": {
+        "account_id": 5998820,
+        "reputation": 16284,
+        "user_id": 4712734,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/f6e922a2cb7e2da59286f27b162aaca5?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "DuncG",
+        "link": "https://stackoverflow.com/users/4712734/duncg"
+      },
+      "edited": false,
+      "score": 2,
+      "creation_date": 1762573469,
+      "post_id": 79812806,
+      "comment_id": 140842911,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 2053598,
+        "reputation": 44936,
+        "user_id": 1831987,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/38b1c37530189ec4471a43a618e33f67?s=256&d=identicon&r=PG",
+        "display_name": "VGR",
+        "link": "https://stackoverflow.com/users/1831987/vgr"
+      },
+      "reply_to_user": {
+        "account_id": 5998820,
+        "reputation": 16284,
+        "user_id": 4712734,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/f6e922a2cb7e2da59286f27b162aaca5?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "DuncG",
+        "link": "https://stackoverflow.com/users/4712734/duncg"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1762558376,
+      "post_id": 79812806,
+      "comment_id": 140842796,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 1180113,
+        "reputation": 160447,
+        "user_id": 1155209,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/5192e7cbcf2f72a847d6fb0d1552f049?s=256&d=identicon&r=PG",
+        "display_name": "jewelsea",
+        "link": "https://stackoverflow.com/users/1155209/jewelsea"
+      },
+      "edited": false,
+      "score": 3,
+      "creation_date": 1762554110,
+      "post_id": 79812806,
+      "comment_id": 140842732,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 5998820,
+        "reputation": 16284,
+        "user_id": 4712734,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/f6e922a2cb7e2da59286f27b162aaca5?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "DuncG",
+        "link": "https://stackoverflow.com/users/4712734/duncg"
+      },
+      "edited": false,
+      "score": 2,
+      "creation_date": 1762553313,
+      "post_id": 79812806,
+      "comment_id": 140842718,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 209503,
+        "reputation": 23867,
+        "user_id": 460557,
+        "user_type": "registered",
+        "accept_rate": 100,
+        "profile_image": "https://www.gravatar.com/avatar/b4565f97815833390c9c880e9e8522e4?s=256&d=identicon&r=PG",
+        "display_name": "Jorge Campos",
+        "link": "https://stackoverflow.com/users/460557/jorge-campos"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1762551890,
+      "post_id": 79812806,
+      "comment_id": 140842692,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 209503,
+        "reputation": 23867,
+        "user_id": 460557,
+        "user_type": "registered",
+        "accept_rate": 100,
+        "profile_image": "https://www.gravatar.com/avatar/b4565f97815833390c9c880e9e8522e4?s=256&d=identicon&r=PG",
+        "display_name": "Jorge Campos",
+        "link": "https://stackoverflow.com/users/460557/jorge-campos"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1762551820,
+      "post_id": 79812806,
+      "comment_id": 140842691,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79814249": [
+      {
+        "owner": {
+          "account_id": 8532578,
+          "reputation": 49884,
+          "user_id": 6395627,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/af0f9bfe593f36642a032cd7ea611e7d?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Slaw",
+          "link": "https://stackoverflow.com/users/6395627/slaw"
+        },
+        "reply_to_user": {
+          "account_id": 1180113,
+          "reputation": 160447,
+          "user_id": 1155209,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/5192e7cbcf2f72a847d6fb0d1552f049?s=256&d=identicon&r=PG",
+          "display_name": "jewelsea",
+          "link": "https://stackoverflow.com/users/1155209/jewelsea"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1763677494,
+        "post_id": 79814249,
+        "comment_id": 140865271,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1180113,
+          "reputation": 160447,
+          "user_id": 1155209,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/5192e7cbcf2f72a847d6fb0d1552f049?s=256&d=identicon&r=PG",
+          "display_name": "jewelsea",
+          "link": "https://stackoverflow.com/users/1155209/jewelsea"
+        },
+        "edited": false,
+        "score": 2,
+        "creation_date": 1763007100,
+        "post_id": 79814249,
+        "comment_id": 140851620,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 10369604,
+          "reputation": 561,
+          "user_id": 7647658,
+          "user_type": "registered",
+          "accept_rate": 71,
+          "profile_image": "https://lh4.googleusercontent.com/-q6rixRNwaEM/AAAAAAAAAAI/AAAAAAAAAB4/lkaUbIx6x9E/s256-rj/photo.jpg",
+          "display_name": "GenerationLost",
+          "link": "https://stackoverflow.com/users/7647658/generationlost"
+        },
+        "reply_to_user": {
+          "account_id": 1180113,
+          "reputation": 160447,
+          "user_id": 1155209,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/5192e7cbcf2f72a847d6fb0d1552f049?s=256&d=identicon&r=PG",
+          "display_name": "jewelsea",
+          "link": "https://stackoverflow.com/users/1155209/jewelsea"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1762986235,
+        "post_id": 79814249,
+        "comment_id": 140851380,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1180113,
+          "reputation": 160447,
+          "user_id": 1155209,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/5192e7cbcf2f72a847d6fb0d1552f049?s=256&d=identicon&r=PG",
+          "display_name": "jewelsea",
+          "link": "https://stackoverflow.com/users/1155209/jewelsea"
+        },
+        "edited": false,
+        "score": 2,
+        "creation_date": 1762807219,
+        "post_id": 79814249,
+        "comment_id": 140847517,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "mongodb",
+      "testcontainers",
+      "docker-network",
+      "open-liberty"
+    ],
+    "owner": {
+      "account_id": 14456747,
+      "reputation": 112,
+      "user_id": 10442734,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/WdWyl.jpg?s=256",
+      "display_name": "VR7",
+      "link": "https://stackoverflow.com/users/10442734/vr7"
+    },
+    "is_answered": false,
+    "view_count": 45,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1763830905,
+    "creation_date": 1763803254,
+    "question_id": 79827227,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79827227/mongotimeoutexception-in-testcontainers-integration-test-open-liberty-app-atte",
+    "title": "MongoTimeoutException in Testcontainers Integration Test : Open Liberty app attempts to connect to Kubernetes FQDNs instead of local alias",
+    "body": "<p><strong>Title</strong> - MongoTimeoutException in Testcontainers Integration Test : Open Liberty app attempts to connect to Kubernetes FQDNs instead of local alias</p>\n<p>I am writing integration tests for an Open Liberty-based microservice using Testcontainers (Java). The application is designed to run in Kubernetes with a MongoDB Replica Set (3 nodes).</p>\n<p>When running the tests locally, the application fails to start or connect to the database because it insists on resolving the production Kubernetes FQDNs (e.g., mongodb-0.mongodb-headless...) instead of using the local Testcontainers alias I provided.</p>\n<p>The Setup: I am manually managing the container lifecycle in @BeforeAll to ensure the MongoDB container starts first, allowing me to fetch its internal IP and attempt DNS mapping.</p>\n<p>Test Code (ServiceEndpointIT.java):</p>\n<p>Java</p>\n<p>public class ServiceEndpointIT {</p>\n<pre><code>public static Network network = Network.newNetwork();\npublic static MongoDBContainer mongoDbContainer;\npublic static GenericContainer&lt;?&gt; openLibertyContainer;\n\n@BeforeAll\npublic static void setup() {\n    // 1. Start MongoDB\n    mongoDbContainer = new MongoDBContainer(&quot;mongo:6.0&quot;)\n            .withNetwork(network)\n            .withNetworkAliases(&quot;testmongo&quot;) \n            .withExposedPorts(27017);\n    mongoDbContainer.start();\n\n    // 2. Get Internal IP for DNS mapping\n    String mongoIp = mongoDbContainer.getContainerInfo()\n            .getNetworkSettings().getNetworks().values().iterator().next().getIpAddress();\n\n    // 3. Start Open Liberty\n    openLibertyContainer = new GenericContainer&lt;&gt;(&quot;icr.io/my-repo/my-app:latest&quot;)\n            .withNetwork(network)\n            .withExposedPorts(9080)\n            // Attempting to override connection details via Env Vars\n            .withEnv(&quot;MONGO_HOSTS&quot;, &quot;testmongo:27017&quot;)\n            .withEnv(&quot;MONGO_REPLICASET&quot;, &quot;rs0&quot;)\n            .withEnv(&quot;MONGO_REPLICAS&quot;, &quot;0&quot;) // Trying to force single node mode\n            \n            // Attempting to map the K8s Hostnames to the local Mongo IP\n            .withExtraHost(&quot;mongodb-0.mongodb-headless.ibm-storage-defender-dev.svc.cluster.local&quot;, mongoIp)\n            .withExtraHost(&quot;mongodb-1.mongodb-headless.ibm-storage-defender-dev.svc.cluster.local&quot;, mongoIp)\n            .withExtraHost(&quot;mongodb-2.mongodb-headless.ibm-storage-defender-dev.svc.cluster.local&quot;, mongoIp)\n            \n            .withStartupTimeout(Duration.ofMinutes(3))\n            .waitingFor(Wait.forHttp(&quot;/health&quot;).forStatusCode(200));\n\n    openLibertyContainer.start();\n}\n</code></pre>\n<p>}</p>\n<p>The Error: Despite using .withExtraHost() to map the FQDNs to the container IP, and attempting to override the config via Environment Variables, the application crashes with a timeout caused by an UnknownHostException. It seems the driver is discovering the cluster topology and failing to reach the nodes.</p>\n<p>Plaintext</p>\n<p>com.mongodb.MongoTimeoutException: Timed out while waiting for a server that matches WritableServerSelector.\nClient view of cluster state is {type=REPLICA_SET, servers=[\n{address=mongodb-0.mongodb-headless.ibm-storage-defender-dev.svc.cluster.local:27017, type=UNKNOWN, state=CONNECTING,\nexception={com.mongodb.MongoSocketException: mongodb-0.mongodb-headless.ibm-storage-defender-dev.svc.cluster.local},\ncaused by {java.net.UnknownHostException: mongodb-0.mongodb-headless.ibm-storage-defender-dev.svc.cluster.local}},\n...\n]}\nat com.mongodb.internal.connection.BaseCluster.logAndThrowTimeoutException(BaseCluster.java:431)\n...\nat com.ibm.storage.defender.service.mongodb.ClusterManagerImpl.createIndex(ClusterManagerImpl.java:94)\nWhat I have tried:</p>\n<p>Environment Variables: Set MONGO_REPLICAS=&quot;0&quot; and MONGO_HOSTS=&quot;testmongo:27017&quot; to try and force a single-node configuration, but the logs show the client view is still expecting a REPLICA_SET with the K8s addresses.</p>\n<p>DNS Mapping: Used .withExtraHost() to map the specific K8s FQDNs to the MongoDB container's internal Docker IP.</p>\n<p>Network Aliases: Tried adding the FQDNs as .withNetworkAliases() on the MongoDB container side.</p>\n<p>Environment:</p>\n<p>Java 17 / Jakarta EE</p>\n<p>Open Liberty (MicroProfile)</p>\n<p>MongoDB Driver (Sync)</p>\n<p>Testcontainers 1.19.x</p>\n<p>Question: How can I force the Open Liberty application (or the underlying Mongo Driver) to ignore the K8s replica set topology and connect to the single testmongo container? Or why is withExtraHost failing to resolve the UnknownHostException in this Docker-in-Docker scenario?</p>\n<p>(Note - Used ChatGPT to phrase the question )</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 2638471,
+        "reputation": 28991,
+        "user_id": 2282634,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/46c5a01e93856e53a2f16eec3267a9b2?s=256&d=identicon&r=PG",
+        "display_name": "Joe",
+        "link": "https://stackoverflow.com/users/2282634/joe"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1763830905,
+      "creation_date": 1763830905,
+      "answer_id": 79827449,
+      "question_id": 79827227,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Modern mongodb drivers use unified topology which automatically detects if a replica set is in use.  Try using the 'diectConnection' option: <a href=\"https://www.mongodb.com/docs/manual/reference/connection-string-options/#mongodb-urioption-urioption.directConnection\" rel=\"nofollow noreferrer\">https://www.mongodb.com/docs/manual/reference/connection-string-options/#mongodb-urioption-urioption.directConnection</a></p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79827449": [
+      {
+        "owner": {
+          "account_id": 14456747,
+          "reputation": 112,
+          "user_id": 10442734,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/WdWyl.jpg?s=256",
+          "display_name": "VR7",
+          "link": "https://stackoverflow.com/users/10442734/vr7"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1763841933,
+        "post_id": 79827449,
+        "comment_id": 140868160,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 14456747,
+          "reputation": 112,
+          "user_id": 10442734,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/WdWyl.jpg?s=256",
+          "display_name": "VR7",
+          "link": "https://stackoverflow.com/users/10442734/vr7"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1763841718,
+        "post_id": 79827449,
+        "comment_id": 140868156,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

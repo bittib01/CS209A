@@ -1,0 +1,205 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "generics"
+    ],
+    "owner": {
+      "account_id": 6508,
+      "reputation": 16597,
+      "user_id": 10973,
+      "user_type": "registered",
+      "accept_rate": 94,
+      "profile_image": "https://www.gravatar.com/avatar/6d8b216e6afd93a0bf480d3cb9fe9707?s=256&d=identicon&r=PG",
+      "display_name": "Kevin Day",
+      "link": "https://stackoverflow.com/users/10973/kevin-day"
+    },
+    "is_answered": true,
+    "view_count": 148,
+    "accepted_answer_id": 79820535,
+    "answer_count": 3,
+    "score": 3,
+    "last_activity_date": 1763227948,
+    "creation_date": 1763157124,
+    "last_edit_date": 1763161488,
+    "question_id": 79820460,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79820460/symbol-not-found-error-with-complex-generics-and-lambda-arrangement",
+    "title": "Symbol not found error with complex generics and lambda arrangement",
+    "body": "<p>The following test renders fine in my IDE (Eclipse), but fails to compile when building via Maven.</p>\n<p>The compiler error is shown in the comment line in the code block below.</p>\n<p>It looks like the compiler is unable to determine the type of the 'o' input to the lambda.  And if I cast o to the MyObj class, then it compiles fine.</p>\n<p>I realize that this is a somewhat convoluted situation (we really do need this complexiy, though).  And there really <em>should</em> be enough type info here for the compiler to determine the type (and the built-in compiler in Eclipse does so).</p>\n<p>Am I doing something wrong with the generics declarations?</p>\n<p>JDK is 21.0.5</p>\n<pre><code>public class AnotherTestClass {\n\n    public static class MyObj{\n        private final String arg1;\n        \n        public MyObj(String arg1) {\n            this.arg1 = arg1;\n        }\n        \n        public String getArg1() { return arg1; }\n    }\n\n    public static class MyFunctionHolder&lt;T, R&gt;{\n        Function&lt;T, R&gt; f;\n\n        public MyFunctionHolder(Function&lt;T, R&gt; f) {\n            this.f = f;\n        }\n        \n    }\n    \n    public static &lt;C extends Collection&lt;E&gt;, E, R&gt; MyFunctionHolder&lt;C, R&gt; forCollectionOfType(Class&lt;? extends C&gt; collectionClass, Class&lt;E&gt; elementClass, Function&lt;C, R&gt; function){\n        return new MyFunctionHolder&lt;C, R&gt;(function);\n    }\n\n    \n    @Test\n    public void testMultiLevelStreams() {\n        List&lt;MyObj&gt; list = Arrays.asList(new MyObj(&quot;one&quot;), new MyObj(&quot;two&quot;));\n        \n        MyFunctionHolder&lt;List&lt;MyObj&gt;, List&lt;String&gt;&gt; fh = forCollectionOfType(   List.class, \n                                                    MyObj.class, \n                                                    l -&gt; l.stream()\n                                                    .map(o -&gt; o.getArg1())  // compile error &quot;cannot find symbol\\n  symbol:   method getArg1()\\n  variable o of type java.lang.Object&quot;\n                                                    .toList()\n                            );\n        \n        List&lt;String&gt; rslt = fh.f.apply(list);\n        \n    }\n\n}\n</code></pre>\n<p>The objective is to have the static forCollectionOfType method accept the class of a collection, the class of the elements in the collection, and a function to apply to the collection itself.</p>\n<p>One potentially useful data point is that when I do this, I get compile errors in Eclipse as well - so I'm really thinking I must be doing something wrong with the generics:</p>\n<pre><code>    Function&lt;List&lt;MyObj&gt;, List&lt;String&gt;&gt; listFunction = l -&gt; l.stream().map(o -&gt; o.getArg1()).toList();\n    \n    MyFunctionHolder&lt;List&lt;MyObj&gt;, List&lt;String&gt;&gt; fh2 = forCollectionOfType(  List.class, \n            MyObj.class, \n            listFunction\n            );\n</code></pre>\n<hr />\n<p>Update</p>\n<p>After reading this:  <a href=\"https://stackoverflow.com/questions/4343202/difference-between-super-t-and-extends-t-in-java\">Difference between &lt;? super T&gt; and &lt;? extends T&gt; in Java</a></p>\n<p>I wound up making a small change to the generics in the method declaration:</p>\n<p>Instead of <code>Class&lt;? extends C&gt; collectionClass</code>, I changed it to <code>Class&lt;? super C&gt; collectionClass</code></p>\n<p>The compiler error is now gone.  However, I can now pass Object.class to the static method - and there is no compile time check to make sure the function generic parameters are consistent with the collection and element classes we pass in:</p>\n<pre><code>    MyFunctionHolder&lt;List&lt;MyObj&gt;, List&lt;String&gt;&gt; fh = forCollectionOfType(   Object.class, // Whoa - that's not a Collection!\n                                                MyObj.class, \n                                                l -&gt; l.stream()\n                                                .map(o -&gt; o.getArg1())\n                                                .toList()\n</code></pre>\n<p>It actually seems like I could remove the collection type entirely (the generic type checking is going to come from the function type).</p>\n<p>However, we have downstream reasons for needing the collection class - but it looks like there is no way to ensure that the collection type is consistent with the function.</p>\n<p>Let me know if I'm wrong or missing something!</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 401843,
+        "reputation": 107175,
+        "user_id": 768644,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/b13bedc5215730fbce5edff6c130988a?s=256&d=identicon&r=PG",
+        "display_name": "rzwitserloot",
+        "link": "https://stackoverflow.com/users/768644/rzwitserloot"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1763227948,
+      "creation_date": 1763227948,
+      "answer_id": 79820994,
+      "question_id": 79820460,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Mixing <code>Class</code> (as in, a parameter and/or field has the type <code>Class</code>, whatever the generics of that might be) + generics is a very common pattern and in my experience, 99%+ of the time it's wrong. The fundamental issue is that class has a generics param but this is <em>broken</em> - class instances can't <em>actually</em> represent generics. There is <em>no way</em> to obtain an expression of type <code>Class&lt;SomeType&lt;FOO&gt;&gt;</code> where <code>FOO</code> is anything other than <code>?</code>. For example, <code>Class&lt;List&lt;String&gt;&gt;</code> is a fake construct. It doesn't exist. There is only <code>Class&lt;List&gt;</code>. However, in this code, the generics aren't going to work unless that is a <code>Class&lt;List&lt;E&gt;&gt;</code>, and - voila. Broken.</p>\n<h2>There is no general answer</h2>\n<p>The problem is, there is no singular fix. No one thing you can <em>always</em> replace this kind of code with.</p>\n<h2>The <em>likely</em> solution to your problem</h2>\n<p>You need to ask yourself why you think you wanted a parameter of type <code>Class</code>, because, you don't. What's the <em>underlying</em> reason? You had problem X, and you needed a solution, and you thought 'I know! I'll make a parameter of type <code>Class</code>, that will solve X!' - that was a logical, but likely incorrect, idea. What's X?</p>\n<p>Some examples:</p>\n<ul>\n<li><p>X is: &quot;I need to make instances of a type&quot;. Your thought was: &quot;I know! an instance of java.lang.Class has a nifty <code>newInstance</code> method, I can use that, grand!&quot;. That was wrong. The correct thought was: &quot;I know! The parameter will be a <code>Supplier&lt;C&gt;</code>, and callers will e.g. write <code>List::new</code> instead of <code>List.class</code>&quot;.</p>\n</li>\n<li><p>X is: &quot;I want reified generics&quot;. That whole question is just wrong. Java does not have it, don't try to hack it. We need to even further up the thought process stack. Why do you think you wnat reified generics?</p>\n</li>\n<li><p>X is: &quot;I just want a way for the caller to specify the types they want first, so that the lambda automatically has the right types&quot;. That is also a weird thought. Java already has a type coercion mechanism for lambdas. Don't reinvent the wheel. Just use java's system, which is <code>receiverOrType.&lt;CoercedGenericsGoHere&gt;methodName(lambdaAndOtherArgs);</code>. Often you don't need do that at all. Indeed, in this example case.. you dont!</p>\n</li>\n</ul>\n<p>I'm hoping it's the first one or the third one, because those are easy fixes.</p>\n<h1>Thus, you end up with...</h1>\n<pre><code>import module java.base;\n\nclass AnotherTestClass {\n    public static class MyObj{\n        private final String arg1;\n        \n        public MyObj(String arg1) {\n            this.arg1 = arg1;\n        }\n        \n        public String getArg1() { return arg1; }\n    }\n\n    public static class MyFunctionHolder&lt;T, R&gt; {\n        Function&lt;T, R&gt; f;\n\n        public MyFunctionHolder(Function&lt;T, R&gt; f) {\n            this.f = f;\n        }\n    }\n    \n// Literally your class doesn't do _anything_ with those types.\n// Sometimes, the answer to 'X is annoying me' is 'just delete it then'.\n// How convenient! Just get rid of your 2 `Class` parameters!\n    public static &lt;C extends Collection&lt;E&gt;, E, R&gt; MyFunctionHolder&lt;C, R&gt; forCollectionOfType(Function&lt;C, R&gt; function) {\n        return new MyFunctionHolder&lt;C, R&gt;(function);\n    }\n\n// But if you oversimplified and you do need em:\n    public static &lt;C extends Collection&lt;E&gt;, E, R&gt; MyFunctionHolder&lt;C, R&gt; forCollectionOfType2(Supplier&lt;C&gt; collectionFactory, Function&lt;C, R&gt; function) {\n        C collection = collectionFactory.get();\n        E element = collection.iterator().next();\n        // generics works fine here - no warnings on the above line!\n        return new MyFunctionHolder&lt;C, R&gt;(function);\n    }\n\n    void main(String[] args) {\n      testMultiLevelStreams();\n    }\n\n    public void testMultiLevelStreams() {\n        List&lt;MyObj&gt; list = Arrays.asList(new MyObj(&quot;one&quot;), new MyObj(&quot;two&quot;));\n        \n        MyFunctionHolder&lt;List&lt;MyObj&gt;, List&lt;String&gt;&gt; fh =\n          AnotherTestClass.forCollectionOfType2(\n            ArrayList::new, \n            l -&gt; l.stream()\n              .map(o -&gt; o.getArg1())\n              .toList()\n          );\n        \n        // in fact, that first version just works:\n        MyFunctionHolder&lt;List&lt;MyObj&gt;, List&lt;String&gt;&gt; fh2 =\n          AnotherTestClass.forCollectionOfType(\n            l -&gt; l.stream()\n              .map(o -&gt; o.getArg1())\n              .toList()\n          );\n\n        List&lt;String&gt; rslt = fh.f.apply(list);\n        List&lt;String&gt; rslt2 = fh2.f.apply(list);\n    }\n}\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 6651855,
+        "reputation": 291985,
+        "user_id": 5133585,
+        "user_type": "registered",
+        "accept_rate": 96,
+        "profile_image": "https://i.sstatic.net/dfqcw.png?s=256",
+        "display_name": "Sweeper",
+        "link": "https://stackoverflow.com/users/5133585/sweeper"
+      },
+      "is_accepted": true,
+      "score": 3,
+      "last_activity_date": 1763195824,
+      "last_edit_date": 1763195824,
+      "creation_date": 1763168753,
+      "answer_id": 79820535,
+      "question_id": 79820460,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>The compiler must infer the type parameter <code>E</code> to be <code>Object</code>. <code>E</code> cannot be inferred as <code>MyObj</code> because then <code>List.class</code> cannot be passed to a parameter expecting a <code>Class&lt;? extends List&lt;MyObj&gt;&gt;</code>.</p>\n<p>The simplest workaround is to just cast <code>List.class</code> to the correct type before passing it</p>\n<pre><code>(Class&lt;List&lt;MyObj&gt;&gt;)(Object)List.class\n</code></pre>\n<p>Of course, this means you would be writing <code>List</code> and <code>MyObj</code> two times each.</p>\n<hr>\n<p>If you need both <code>Class</code> objects for later and don't like repeating yourself, one way I can think of is taking a &quot;type token&quot; object, such as <a href=\"https://guava.dev/releases/19.0/api/docs/com/google/common/reflect/TypeToken.html\" rel=\"nofollow noreferrer\"><code>com.google.common.reflect.TypeToken</code></a>.</p>\n<pre><code>// The 'E' type parameter isn't actually necessary anymore\npublic static &lt;C extends Collection&lt;E&gt;, E, R&gt; MyFunctionHolder&lt;C, R&gt; forCollectionOfType(\n        TypeToken&lt;C&gt; collectionType,\n        Function&lt;C, R&gt; function\n){\n    // you can get the two Class objects this way\n    Class&lt;? super C&gt; collectionClass = collectionType.getRawType();\n    Class&lt;?&gt; elementClass = collectionType.resolveType(Collection.class.getTypeParameters()[0]).getRawType();\n    System.out.println(collectionClass);\n    System.out.println(elementClass);\n\n    return new MyFunctionHolder&lt;&gt;(function);\n}\n</code></pre>\n<p>Caller:</p>\n<pre><code>MyFunctionHolder&lt;List&lt;MyObj&gt;, List&lt;String&gt;&gt; fh = forCollectionOfType(\n        // the type in &lt;...&gt; can be inferred from the type of 'fn'!\n        new TypeToken&lt;&gt;() {},\n        l -&gt; l.stream()\n                .map(o -&gt; o.getArg1())\n                .toList()\n);\n</code></pre>\n<p>A notable difference between taking a <code>TypeToken</code> vs <code>Class</code> is that you have moved some compile time checks to runtime. For example, you are not allowed to pass in a <em>type variable</em> in either case,</p>\n<pre><code>public static &lt;T extends Collection&lt;MyObj&gt;&gt; void someMethod() {\n    forCollectionOfType(\n            new TypeToken&lt;T&gt;() {}, // you cannot do this\n            l -&gt; l.stream()\n                    .map(o -&gt; o.getArg1())\n                    .toList()\n    );\n}\n</code></pre>\n<p>While <code>T.class</code> will produce a compile time error, <code>new TypeToken&lt;T&gt;() {}</code> would throw at runtime.</p>\n<hr>\n<p>If you don't want to use external libraries, you can write something like <code>TypeToken</code> yourself if you only have a limited number of cases to handle. For example,</p>\n<pre><code>public static abstract class CollectionTypeToken&lt;C extends Collection&lt;E&gt;, E&gt; {\n    private final Class&lt;?&gt; collectionClass;\n    private final Class&lt;?&gt; elementClass;\n\n    public CollectionTypeToken() {\n        var superType = (ParameterizedType)getClass().getGenericSuperclass();\n        collectionClass = switch(superType.getActualTypeArguments()[0]) {\n            case Class&lt;?&gt; x -&gt; x;\n            case ParameterizedType x -&gt; (Class&lt;?&gt;)x.getRawType();\n            default -&gt; throw new UnsupportedOperationException();\n        };\n        elementClass = switch(superType.getActualTypeArguments()[1]) {\n            case Class&lt;?&gt; x -&gt; x;\n            case ParameterizedType x -&gt; (Class&lt;?&gt;)x.getRawType();\n            default -&gt; throw new UnsupportedOperationException();\n        };\n    }\n\n    public Class&lt;?&gt; getCollectionClass() {\n        return collectionClass;\n    }\n\n    public Class&lt;?&gt; getElementClass() {\n        return elementClass;\n    }\n}\n</code></pre>\n<p>This implementation only handles cases where <code>C</code> and <code>E</code> are parameterised types or simple classes. It does not handle the case where they are wildcards or generic arrays. A more proper implementation would involve traversing the <code>Type</code> tree. See the implementation of Guava's <code>TypeToken</code> for other cases.</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79820994": [
+      {
+        "owner": {
+          "account_id": 401843,
+          "reputation": 107175,
+          "user_id": 768644,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/b13bedc5215730fbce5edff6c130988a?s=256&d=identicon&r=PG",
+          "display_name": "rzwitserloot",
+          "link": "https://stackoverflow.com/users/768644/rzwitserloot"
+        },
+        "reply_to_user": {
+          "account_id": 6508,
+          "reputation": 16597,
+          "user_id": 10973,
+          "user_type": "registered",
+          "accept_rate": 94,
+          "profile_image": "https://www.gravatar.com/avatar/6d8b216e6afd93a0bf480d3cb9fe9707?s=256&d=identicon&r=PG",
+          "display_name": "Kevin Day",
+          "link": "https://stackoverflow.com/users/10973/kevin-day"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1763344780,
+        "post_id": 79820994,
+        "comment_id": 140857367,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 6508,
+          "reputation": 16597,
+          "user_id": 10973,
+          "user_type": "registered",
+          "accept_rate": 94,
+          "profile_image": "https://www.gravatar.com/avatar/6d8b216e6afd93a0bf480d3cb9fe9707?s=256&d=identicon&r=PG",
+          "display_name": "Kevin Day",
+          "link": "https://stackoverflow.com/users/10973/kevin-day"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1763342649,
+        "post_id": 79820994,
+        "comment_id": 140857344,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "79820535": [
+      {
+        "owner": {
+          "account_id": 6508,
+          "reputation": 16597,
+          "user_id": 10973,
+          "user_type": "registered",
+          "accept_rate": 94,
+          "profile_image": "https://www.gravatar.com/avatar/6d8b216e6afd93a0bf480d3cb9fe9707?s=256&d=identicon&r=PG",
+          "display_name": "Kevin Day",
+          "link": "https://stackoverflow.com/users/10973/kevin-day"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1763343302,
+        "post_id": 79820535,
+        "comment_id": 140857356,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 6508,
+          "reputation": 16597,
+          "user_id": 10973,
+          "user_type": "registered",
+          "accept_rate": 94,
+          "profile_image": "https://www.gravatar.com/avatar/6d8b216e6afd93a0bf480d3cb9fe9707?s=256&d=identicon&r=PG",
+          "display_name": "Kevin Day",
+          "link": "https://stackoverflow.com/users/10973/kevin-day"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1763342457,
+        "post_id": 79820535,
+        "comment_id": 140857341,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 6651855,
+          "reputation": 291985,
+          "user_id": 5133585,
+          "user_type": "registered",
+          "accept_rate": 96,
+          "profile_image": "https://i.sstatic.net/dfqcw.png?s=256",
+          "display_name": "Sweeper",
+          "link": "https://stackoverflow.com/users/5133585/sweeper"
+        },
+        "reply_to_user": {
+          "account_id": 401843,
+          "reputation": 107175,
+          "user_id": 768644,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/b13bedc5215730fbce5edff6c130988a?s=256&d=identicon&r=PG",
+          "display_name": "rzwitserloot",
+          "link": "https://stackoverflow.com/users/768644/rzwitserloot"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1763250179,
+        "post_id": 79820535,
+        "comment_id": 140856202,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 401843,
+          "reputation": 107175,
+          "user_id": 768644,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/b13bedc5215730fbce5edff6c130988a?s=256&d=identicon&r=PG",
+          "display_name": "rzwitserloot",
+          "link": "https://stackoverflow.com/users/768644/rzwitserloot"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1763228052,
+        "post_id": 79820535,
+        "comment_id": 140855892,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

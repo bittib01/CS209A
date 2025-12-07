@@ -1,0 +1,78 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "database-design",
+      "architecture",
+      "domain-driven-design",
+      "data-modeling"
+    ],
+    "owner": {
+      "account_id": 2427794,
+      "reputation": 605,
+      "user_id": 2119381,
+      "user_type": "registered",
+      "accept_rate": 70,
+      "profile_image": "https://www.gravatar.com/avatar/21f0c1f83257b09700ed8c8592651e9e?s=256&d=identicon&r=PG",
+      "display_name": "MABC",
+      "link": "https://stackoverflow.com/users/2119381/mabc"
+    },
+    "is_answered": false,
+    "view_count": 124,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1762718477,
+    "creation_date": 1762646162,
+    "question_id": 79814519,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79814519/how-to-model-and-persist-entities-whose-state-changes-over-time",
+    "title": "How to model and persist entities whose state changes over time",
+    "body": "<p>I’m designing a domain model where some entities evolve over time, and I need to keep a historical record of their state that can be retrieved later.</p>\n<p>A simplified example:</p>\n<p>A <strong>Credit Line</strong> represents a long-term financing contract.</p>\n<p>Each Credit Line has related entities such as <strong>Financial Entities</strong> that participate in the credit line.</p>\n<p>The state of a Credit Line at a given date is represented by a <strong>Statement</strong>, which includes its conditions, participating entities, and their contributions (all of that can change over time).</p>\n<p>Statements are periodically uploaded from files, and the application must allow users to view the Credit Line state as of any date.</p>\n<p>I can’t use SQL temporal tables because the statement date comes from the uploaded file, not from the database change time.</p>\n<p>I’m unsure how to best model and persist these time-dependent entities. Possible approaches:</p>\n<p><strong>Option A — Keep only the Snapshots</strong></p>\n<p>Persist only `CreditLineSnapshot` (Statements).</p>\n<p>Each snapshot contains all attributes of a Credit Line at a given date. No data is repeated.</p>\n<p>Disadvantages:</p>\n<p>- No persistent `CreditLine` entity: must group snapshots by ID to get the list of credit lines for example.</p>\n<p>- All relationship with other entities are duplicated in every snapshot, like the owner of a credit line, even if it does not change over time.</p>\n<p><strong>Option B — Persist Entities and Snapshots</strong></p>\n<p>Persist both CreditLine and its Statement (which contains a CreditLineSnapshot).</p>\n<p>Disadvantages:</p>\n<p>- Attributes and data duplication: current state exists in both the entity and its last statement (as all statements should be saved)</p>\n<p><strong>Option C — Persist Entities with stable attributes + Snapshots with variable data</strong></p>\n<p>Persist `CreditLine` with only stable attributes (e.g. Id), and store all variable data in its `Statements`.</p>\n<p>Credit Line contains all methods but just ID attribute and its statements. It delegates in the proper statement to get the rest of the data and make all the calculus.</p>\n<p>This is my favorite option.</p>\n<p>What’s the best modeling strategy or common practice for this kind of domains, where entities have evolving state over time but must also keep historical versions?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 2427794,
+        "reputation": 605,
+        "user_id": 2119381,
+        "user_type": "registered",
+        "accept_rate": 70,
+        "profile_image": "https://www.gravatar.com/avatar/21f0c1f83257b09700ed8c8592651e9e?s=256&d=identicon&r=PG",
+        "display_name": "MABC",
+        "link": "https://stackoverflow.com/users/2119381/mabc"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1762718477,
+      "creation_date": 1762718477,
+      "answer_id": 79814995,
+      "question_id": 79814519,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Thanks! A follow-up question:</p>\n<p>If the CreditLine (or Financing) entity only holds stable attributes like the ID, would it also contain a list of its Snapshots?</p>\n<p>Should getters and all domain logic (like calculations) stay in the CreditLine class and delegate to the latest snapshot, or live directly in the Snapshot and the Credit Line class just have methods to add and retrieve a snapshot?</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 26331655,
+        "reputation": 1,
+        "user_id": 19992052,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/oSuiw.jpg?s=256",
+        "display_name": "Hinnisiemsen",
+        "link": "https://stackoverflow.com/users/19992052/hinnisiemsen"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1762706439,
+      "creation_date": 1762706439,
+      "answer_id": 79814907,
+      "question_id": 79814519,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>When designing a domain model for something like a Credit Line that changes over time, a solid approach is to keep a core <em><strong>CreditLine</strong></em> entity with just stable info (like its ID) and store all changing details (conditions, financial entities, contributions) in dated snapshots or Statements. This avoids duplicating static info and keeps complete history, letting you query the state at any date by picking the right snapshot. This matches your Option C and keeps the model clean and easy to maintain.</p>\n<p>Another approach is Event Sourcing, where you store every change as an immutable event and rebuild the Credit Line’s state by replaying those events. This offers a detailed audit trail and no data duplication but adds complexity in querying and implementation.</p>\n<p>For your case, Option C is usually simpler and practical unless you need fine-grained change tracking that Event Sourcing provides. Both are established patterns for managing evolving, versioned domain data.</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79814995": [],
+    "79814907": []
+  }
+}

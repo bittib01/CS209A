@@ -1,0 +1,182 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "sql",
+      "datetime",
+      "date",
+      "jdbc"
+    ],
+    "owner": {
+      "account_id": 24717,
+      "reputation": 276494,
+      "user_id": 63051,
+      "user_type": "registered",
+      "accept_rate": 95,
+      "profile_image": "https://www.gravatar.com/avatar/b4b87a82355f286bb410cc1854389226?s=256&d=identicon&r=PG",
+      "display_name": "flybywire",
+      "link": "https://stackoverflow.com/users/63051/flybywire"
+    },
+    "is_answered": true,
+    "view_count": 316534,
+    "accepted_answer_id": 2306051,
+    "answer_count": 7,
+    "score": 564,
+    "last_activity_date": 1726790012,
+    "creation_date": 1266758200,
+    "last_edit_date": 1291744607,
+    "question_id": 2305973,
+    "content_license": "CC BY-SA 2.5",
+    "link": "https://stackoverflow.com/questions/2305973/java-util-date-vs-java-sql-date",
+    "title": "java.util.Date vs java.sql.Date",
+    "body": "<p><code>java.util.Date</code> vs <code>java.sql.Date</code>: when to use which and why?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 322981,
+        "reputation": 346871,
+        "user_id": 642706,
+        "user_type": "registered",
+        "accept_rate": 58,
+        "profile_image": "https://i.sstatic.net/ZWEI3.jpg?s=256",
+        "display_name": "Basil Bourque",
+        "link": "https://stackoverflow.com/users/642706/basil-bourque"
+      },
+      "is_accepted": false,
+      "score": 29,
+      "last_activity_date": 1726790012,
+      "last_edit_date": 1726790012,
+      "creation_date": 1586822910,
+      "answer_id": 61198758,
+      "question_id": 2305973,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<h1>tl;dr</h1>\n<p>Use neither. Both replaced by *java.timet.</p>\n<div class=\"s-table-container\"><table class=\"s-table\">\n<thead>\n<tr>\n<th style=\"text-align: right;\">Legacy class</th>\n<th style=\"text-align: left;\">Replacement in <em>java.time</em></th>\n<th>Represents</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td style=\"text-align: right;\"><s><code>java.util.Date</code></s></td>\n<td style=\"text-align: left;\"><a href=\"https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html\" rel=\"nofollow noreferrer\"><code>java.time.Instant</code></a></td>\n<td>A moment,<br />a point on the timeline,<br />as seen in UTC.</td>\n</tr>\n<tr>\n<td style=\"text-align: right;\"><s><code>java.sql.Date</code></s></td>\n<td style=\"text-align: left;\"><a href=\"https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/LocalDate.html\" rel=\"nofollow noreferrer\"><code>java.time.LocalDate</code></a></td>\n<td>A date only,<br />without time-of-day,<br />without time zone or offset.</td>\n</tr>\n</tbody>\n</table></div>\n<h1>Neither</h1>\n<blockquote>\n<p>java.util.Date vs java.sql.Date: when to use which and why?</p>\n</blockquote>\n<p>Both of these classes are terrible, flawed in design and in implementation. Avoid like the <a href=\"https://en.m.wikipedia.org/wiki/Plague_(disease)\" rel=\"nofollow noreferrer\"><strike>Plague</strike></a> <a href=\"https://en.m.wikipedia.org/wiki/Severe_acute_respiratory_syndrome_coronavirus_2\" rel=\"nofollow noreferrer\">Coronavirus</a>.</p>\n<p>Instead use <em>java.time</em> classes, defined in in JSR 310. These classes are an industry-leading framework for working with date-time handling. These supplant entirely the bloody awful legacy classes such as <code>Date</code>, <code>Calendar</code>, <code>SimpleDateFormat</code>, and such.</p>\n<h2><strike><code>java.util.Date</code></strike></h2>\n<p>The first, <code>java.util.Date</code> is meant to represent a moment in UTC, meaning an offset from UTC of zero hours-minutes-seconds.</p>\n<h3><code>java.time.Instant</code></h3>\n<p>Now replaced by <a href=\"https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/Instant.html\" rel=\"nofollow noreferrer\"><code>java.time.Instant</code></a>.</p>\n<pre><code>Instant instant = Instant.now() ;  // Capture the current moment as seen in UTC.\n</code></pre>\n<h3><code>java.time.OffsetDateTime</code></h3>\n<p><code>Instant</code> is the basic building-block class of <em>java.time</em>. For more flexibility, use <a href=\"https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/OffsetDateTime.html\" rel=\"nofollow noreferrer\"><code>OffsetDateTime</code></a> set to <a href=\"https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/ZoneOffset.html#UTC\" rel=\"nofollow noreferrer\"><code>ZoneOffset.UTC</code></a> for the same purpose: representing a moment in UTC.</p>\n<pre><code>OffsetDateTime odt = OffsetDateTime.now( ZoneOffset.UTC ) ;\n</code></pre>\n<p>You can send this object to a database by using <a href=\"https://docs.oracle.com/en/java/javase/11/docs/api/java.sql/java/sql/PreparedStatement.html#setObject(int,java.lang.Object)\" rel=\"nofollow noreferrer\"><code>PreparedStatement::setObject</code></a> with <a href=\"https://en.wikipedia.org/wiki/Java_Database_Connectivity\" rel=\"nofollow noreferrer\">JDBC</a> 4.2 or later.</p>\n<pre><code>myPreparedStatement.setObject( … , odt ) ;\n</code></pre>\n<p>Retrieve.</p>\n<pre><code>OffsetDateTime odt = myResultSet.getObject( … , OffsetDateTime.class ) ;\n</code></pre>\n<h2><strike><code>java.sql.Date</code></strike></h2>\n<p>The <code>java.sql.Date</code> class is also terrible and obsolete.</p>\n<p>This class is meant to represent a date only, without a time-of-day and without a time zone. Unfortunately, in a terrible hack of a design, this class inherits from <code>java.util.Date</code> which represents a moment (a date with time-of-day in UTC). So this class is merely pretending to be date-only, while actually carrying a time-of-day and implicit offset of UTC. This causes so much confusion. Never use this class.</p>\n<h3><code>java.time.LocalDate</code></h3>\n<p>Instead, use <a href=\"https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/LocalDate.html\" rel=\"nofollow noreferrer\"><code>java.time.LocalDate</code></a> to track just a date (year, month, day-of-month) without any time-of-day nor any time zone or offset.</p>\n<pre><code>ZoneId z = ZoneId.of( &quot;Africa/Tunis&quot; ) ;\nLocalDate ld = LocalDate.now( z ) ;    // Capture the current date as seen in the wall-clock time used by the people of a particular region (a time zone).\n</code></pre>\n<p>Send to the database.</p>\n<pre><code>myPreparedStatement.setObject( … , ld ) ;\n</code></pre>\n<p>Retrieve.</p>\n<pre><code>LocalDate ld = myResultSet.getObject( … , LocalDate.class ) ;\n</code></pre>\n<hr />\n<p><a href=\"https://i.sstatic.net/UmyHG.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/UmyHG.png\" alt=\"Table of date-time types in Java (both legacy and modern) and in standard SQL\" /></a></p>\n<hr />\n<h1>About <em>java.time</em></h1>\n<p>The <a href=\"https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/package-summary.html\" rel=\"nofollow noreferrer\"><em>java.time</em></a> framework is built into Java 8 and later. These classes supplant the troublesome old <a href=\"https://en.wikipedia.org/wiki/Legacy_system\" rel=\"nofollow noreferrer\">legacy</a> date-time classes such as <a href=\"https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Date.html\" rel=\"nofollow noreferrer\"><code>java.util.Date</code></a>, <a href=\"https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Calendar.html\" rel=\"nofollow noreferrer\"><code>Calendar</code></a>, &amp; <a href=\"https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/text/SimpleDateFormat.html\" rel=\"nofollow noreferrer\"><code>SimpleDateFormat</code></a>.</p>\n<p>To learn more, see the <a href=\"http://docs.oracle.com/javase/tutorial/datetime/TOC.html\" rel=\"nofollow noreferrer\"><em>Oracle Tutorial</em></a>. And search Stack Overflow for many examples and explanations. Specification is <a href=\"https://jcp.org/en/jsr/detail?id=310\" rel=\"nofollow noreferrer\">JSR 310</a>.</p>\n<p>The <a href=\"http://www.joda.org/joda-time/\" rel=\"nofollow noreferrer\"><em>Joda-Time</em></a> project, now in <a href=\"https://en.wikipedia.org/wiki/Maintenance_mode\" rel=\"nofollow noreferrer\">maintenance mode</a>, advises migration to the <a href=\"https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/time/package-summary.html\" rel=\"nofollow noreferrer\">java.time</a> classes.</p>\n<p>You may exchange <em>java.time</em> objects directly with your database. Use a <a href=\"https://en.wikipedia.org/wiki/JDBC_driver\" rel=\"nofollow noreferrer\">JDBC driver</a> compliant with <a href=\"http://openjdk.java.net/jeps/170\" rel=\"nofollow noreferrer\">JDBC 4.2</a> or later. No need for strings, no need for <code>java.sql.*</code> classes.</p>\n<p>Where to obtain the java.time classes?</p>\n<ul>\n<li><a href=\"https://en.wikipedia.org/wiki/Java_version_history#Java_SE_8\" rel=\"nofollow noreferrer\"><strong>Java SE 8</strong></a>, <a href=\"https://en.wikipedia.org/wiki/Java_version_history#Java_SE_9\" rel=\"nofollow noreferrer\"><strong>Java SE 9</strong></a>, <a href=\"https://en.wikipedia.org/wiki/Java_version_history#Java_SE_10\" rel=\"nofollow noreferrer\"><strong>Java SE 10</strong></a>, <a href=\"https://en.wikipedia.org/wiki/Java_version_history#Java_SE_11\" rel=\"nofollow noreferrer\"><strong>Java SE 11</strong></a>, and later  - Part of the standard Java API with a bundled implementation.</li>\n<li>Java 9 adds some minor features and fixes.</li>\n<li><a href=\"https://en.wikipedia.org/wiki/Java_version_history#Java_SE_6\" rel=\"nofollow noreferrer\"><strong>Java SE 6</strong></a> and <a href=\"https://en.wikipedia.org/wiki/Java_version_history#Java_SE_7\" rel=\"nofollow noreferrer\"><strong>Java SE 7</strong></a></li>\n<li>Most of the <em>java.time</em> functionality is back-ported to Java 6 &amp; 7 in <a href=\"http://www.threeten.org/threetenbp/\" rel=\"nofollow noreferrer\"><em><strong>ThreeTen-Backport</strong></em></a>.</li>\n<li><a href=\"https://en.wikipedia.org/wiki/Android_(operating_system)\" rel=\"nofollow noreferrer\"><strong>Android</strong></a></li>\n<li>Later versions of Android bundle implementations of the <em>java.time</em> classes.</li>\n<li>For earlier Android (&lt;26), the <a href=\"https://github.com/JakeWharton/ThreeTenABP\" rel=\"nofollow noreferrer\"><em><strong>ThreeTenABP</strong></em></a> project adapts <a href=\"http://www.threeten.org/threetenbp/\" rel=\"nofollow noreferrer\"><em><strong>ThreeTen-Backport</strong></em></a> (mentioned above). See <a href=\"http://stackoverflow.com/q/38922754/642706\"><em>How to use ThreeTenABP…</em></a>.</li>\n</ul>\n<p><a href=\"https://i.sstatic.net/ImlbG.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/ImlbG.png\" alt=\"Table of which java.time library to use with which version of Java or Android\" /></a></p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "61198758": [
+      {
+        "owner": {
+          "account_id": 4916508,
+          "reputation": 698,
+          "user_id": 3960315,
+          "user_type": "registered",
+          "accept_rate": 100,
+          "profile_image": "https://i.sstatic.net/woG37.jpg?s=256",
+          "display_name": "Arash",
+          "link": "https://stackoverflow.com/users/3960315/arash"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1643614826,
+        "post_id": 61198758,
+        "comment_id": 125377699,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 322981,
+          "reputation": 346871,
+          "user_id": 642706,
+          "user_type": "registered",
+          "accept_rate": 58,
+          "profile_image": "https://i.sstatic.net/ZWEI3.jpg?s=256",
+          "display_name": "Basil Bourque",
+          "link": "https://stackoverflow.com/users/642706/basil-bourque"
+        },
+        "reply_to_user": {
+          "account_id": 4916508,
+          "reputation": 698,
+          "user_id": 3960315,
+          "user_type": "registered",
+          "accept_rate": 100,
+          "profile_image": "https://i.sstatic.net/woG37.jpg?s=256",
+          "display_name": "Arash",
+          "link": "https://stackoverflow.com/users/3960315/arash"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1643571466,
+        "post_id": 61198758,
+        "comment_id": 125370241,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 322981,
+          "reputation": 346871,
+          "user_id": 642706,
+          "user_type": "registered",
+          "accept_rate": 58,
+          "profile_image": "https://i.sstatic.net/ZWEI3.jpg?s=256",
+          "display_name": "Basil Bourque",
+          "link": "https://stackoverflow.com/users/642706/basil-bourque"
+        },
+        "reply_to_user": {
+          "account_id": 4916508,
+          "reputation": 698,
+          "user_id": 3960315,
+          "user_type": "registered",
+          "accept_rate": 100,
+          "profile_image": "https://i.sstatic.net/woG37.jpg?s=256",
+          "display_name": "Arash",
+          "link": "https://stackoverflow.com/users/3960315/arash"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1643562874,
+        "post_id": 61198758,
+        "comment_id": 125368075,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 322981,
+          "reputation": 346871,
+          "user_id": 642706,
+          "user_type": "registered",
+          "accept_rate": 58,
+          "profile_image": "https://i.sstatic.net/ZWEI3.jpg?s=256",
+          "display_name": "Basil Bourque",
+          "link": "https://stackoverflow.com/users/642706/basil-bourque"
+        },
+        "reply_to_user": {
+          "account_id": 4916508,
+          "reputation": 698,
+          "user_id": 3960315,
+          "user_type": "registered",
+          "accept_rate": 100,
+          "profile_image": "https://i.sstatic.net/woG37.jpg?s=256",
+          "display_name": "Arash",
+          "link": "https://stackoverflow.com/users/3960315/arash"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1643562316,
+        "post_id": 61198758,
+        "comment_id": 125367944,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 4916508,
+          "reputation": 698,
+          "user_id": 3960315,
+          "user_type": "registered",
+          "accept_rate": 100,
+          "profile_image": "https://i.sstatic.net/woG37.jpg?s=256",
+          "display_name": "Arash",
+          "link": "https://stackoverflow.com/users/3960315/arash"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1643539594,
+        "post_id": 61198758,
+        "comment_id": 125362546,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

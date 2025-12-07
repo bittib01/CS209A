@@ -1,0 +1,56 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "cookies",
+      "websocket"
+    ],
+    "owner": {
+      "account_id": 20156786,
+      "reputation": 11,
+      "user_id": 14782778,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/32732419cd4e989e65b084db46c20bd4?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Eltaj",
+      "link": "https://stackoverflow.com/users/14782778/eltaj"
+    },
+    "is_answered": true,
+    "view_count": 167,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1763699308,
+    "creation_date": 1763619111,
+    "question_id": 79825154,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79825154/how-to-authenticate-websocket-connection-when-access-token-is-stored-in-httponly",
+    "title": "How to authenticate WebSocket connection when access_token is stored in HttpOnly cookies? (Spring Cloud Gateway + STOMP)",
+    "body": "<p>I’m building a WebSocket-based microservice architecture using <strong>Spring Cloud Gateway</strong> and <strong>STOMP WebSockets</strong>.<br />\nUsers log in through the frontend, and the backend sets:</p>\n<ul>\n<li><p><code>access_token</code> (HttpOnly, Secure, SameSite)</p>\n</li>\n<li><p><code>refresh_token</code> (HttpOnly)</p>\n</li>\n</ul>\n<p>The frontend <strong>cannot read</strong> these cookies (as expected).<br />\nEverything works fine for normal HTTP requests — the HttpOnly cookies are automatically sent with each request to the gateway.</p>\n<p>🚨 <strong>Problem</strong></p>\n<p>When I try to connect to the WebSocket endpoint:</p>\n<pre><code>const client = new Client({\n    webSocketFactory: () =&gt; new WebSocket('ws://localhost:8090/ws-chat'),\n    connectHeaders: {\n        Cookie: `access_token=${TOKEN}` // &lt;-- this is impossible in real browser\n    }\n});\n</code></pre>\n<p>Cookie is always <strong>null</strong> on the backend gateway:</p>\n<pre><code>@Override\npublic GatewayFilter apply(Config config) {\n    return (exchange, chain) -&gt; {\n        System.out.println(exchange.getRequest().getCookies());\n        // Result: {}\n    };\n}\n</code></pre>\n<p>Because the frontend <strong>cannot access HttpOnly cookies</strong>, I cannot attach the access token to the WebSocket handshake request.</p>\n<p>So inside my gateway filter this fails:<br />\nString accessToken = request.getCookies().getFirst(&quot;access_token&quot;).getValue();</p>\n<p>// access_token is null =&gt; NullPointerException</p>\n<h2>❓ Question</h2>\n<p><strong>How do real apps like WhatsApp, Telegram, etc. handle WebSocket authentication when the token is stored in HttpOnly cookies and the frontend cannot read it?</strong></p>\n<p>Specifically:</p>\n<ol>\n<li><p>How can I securely authenticate WebSocket connections <strong>through the gateway</strong>?</p>\n</li>\n<li><p>How can I pass authentication data during <code>CONNECT</code> handshake when browser JS cannot read cookies?</p>\n</li>\n<li><p>Is there a pattern (e.g., temporary WS token, session handshake, etc.) that I should implement?</p>\n</li>\n</ol>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 9463193,
+        "reputation": 1089,
+        "user_id": 7036397,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/HAF5h.png?s=256",
+        "display_name": "Orkhan Huseynli",
+        "link": "https://stackoverflow.com/users/7036397/orkhan-huseynli"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1763699308,
+      "last_edit_date": 1763699308,
+      "creation_date": 1763635954,
+      "answer_id": 79825416,
+      "question_id": 79825154,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<h3>SameSite cookies</h3>\n<p>As you already stated Cookies should be sent with each HTTP request and you don't need to access that <code>HttpOnly</code> cookie from the frontend. You should be able to access the <code>Cookie</code> header on the backend. This already answers your 2nd question. You don't need to do anything with JavaScript.</p>\n<p>Since you have also set <code>SameSite</code> attribute on the cookie, it will be sent with the HTTP request <strong>if</strong> your client and the server are the same <a href=\"https://developer.mozilla.org/en-US/docs/Glossary/Site\" rel=\"nofollow noreferrer\">site</a>.</p>\n<p>You can refer to the link to learn what a &quot;site&quot; means but TLDR is:</p>\n<blockquote>\n<p>According to this definition, <code>support.mozilla.org</code> and <code>developer.mozilla.org</code> are part of the same site, because <code>mozilla.org</code> is a registrable domain.</p>\n</blockquote>\n<h3>One more gotcha</h3>\n<p>Another case is, the WebSocket protocol starts as an HTTP request. The simple flow is:</p>\n<ol>\n<li><p>Client sends HTTP request to backend with <code>Connection: upgrade</code> , <code>Upgrade: websocket</code> and couple of other headers. This means server needs to switch to WebSocket protocol.</p>\n</li>\n<li><p>If server can upgrade to WebSocket protocol, then will response with <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/101\" rel=\"nofollow noreferrer\">HTTP 101</a> with couple of other necessary headers.</p>\n</li>\n</ol>\n<p>In this case after the switch is happened I don't know if you will have access to HTTP headers. This means authentication needs to be done when <strong>the very first HTTP request</strong> is sent to the server (namely during WebSocket handshake). After switching protocols the client and server will use WebSocket protocol only.</p>\n<p>Check if <code>GatewayFilter</code> is doing its filter on the first HTTP request. I am not a SpringBoot guy, so I don't know the details about the lifecycle of the request. Your custom<code>GatewayFilter</code> might happen in a lot of different places througout request lifecycle.</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79825416": []
+  }
+}

@@ -1,0 +1,173 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "private",
+      "public",
+      "protected",
+      "access-modifiers"
+    ],
+    "owner": {
+      "account_id": 483,
+      "reputation": 38997,
+      "user_id": 625,
+      "user_type": "registered",
+      "accept_rate": 100,
+      "profile_image": "https://www.gravatar.com/avatar/8f2a8ae3a27197376573647811f96901?s=256&d=identicon&r=PG",
+      "display_name": "intrepion",
+      "link": "https://stackoverflow.com/users/625/intrepion"
+    },
+    "is_answered": true,
+    "view_count": 2727577,
+    "protected_date": 1364437131,
+    "accepted_answer_id": 215505,
+    "answer_count": 33,
+    "score": 3734,
+    "last_activity_date": 1758881046,
+    "creation_date": 1224359592,
+    "last_edit_date": 1536677689,
+    "question_id": 215497,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/215497/what-is-the-difference-between-public-protected-package-private-and-private-in",
+    "title": "What is the difference between public, protected, package-private and private in Java?",
+    "body": "<p>In Java, are there clear rules on when to use each of access modifiers, namely the default (package private), <code>public</code>, <code>protected</code> and <code>private</code>, while making <code>class</code> and <code>interface</code> and dealing with inheritance?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 435987,
+        "reputation": 1536,
+        "user_id": 822870,
+        "user_type": "registered",
+        "accept_rate": 33,
+        "profile_image": "https://www.gravatar.com/avatar/199bae89f505ebcbc26a8a013b0325e7?s=256&d=identicon&r=PG",
+        "display_name": "David Balažic",
+        "link": "https://stackoverflow.com/users/822870/david-bala%c5%beic"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1758881046,
+      "last_edit_date": 1758881046,
+      "creation_date": 1758284897,
+      "answer_id": 79769497,
+      "question_id": 215497,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>(this is theoretically a comment on <a href=\"https://stackoverflow.com/a/215505/\">this answer</a> but I write it here due to space restrictions, see <a href=\"https://stackoverflow.com/questions/215497/what-is-the-difference-between-public-protected-package-private-and-private-in#comment140747189_215505\">my comment there</a>)</p>\n<p>The mentioned answer (and many others that are more or less writing the same) is vague or incomplete regarding the <strong>private</strong> modifier. It simply says, <strong>private</strong> means &quot;accessible by the same class&quot;.</p>\n<p>Here is an example proving that wrong (or incomplete -- see the parts marked with AAA! All lines that give a compile error are commented out and marked with the word &quot;error&quot; at the end of line):</p>\n<pre><code>class SuperClass {\n    void superDefaultMethod() {}\n    private void superPrivateMethod() {}\n    protected void superProtectedMethod() {}\n    public void superPublicMethod() {}\n    private int superVar;\n}\n\n\nclass MyClass extends SuperClass\n{\n\n    void thisDefaultMethod(){}\n    private void thisPrivateMethod(){}\n    protected void thisProtectedMethod(){}\n    public void thisPublicMethod(){}\n    private int thisVar;\n\n    public MyClass()\n    {\n        // access superclass methods\n        superDefaultMethod(); // OK\n        // privateMethod() ; error\n        superProtectedMethod(); // OK\n        superPublicMethod(); // OK\n        // and member variables\n        // System.out.println(superVar); error\n\n        // access own methods\n        thisDefaultMethod();\n        thisPrivateMethod();\n        thisProtectedMethod();\n        thisPublicMethod();\n        // and member variables\n        System.out.println(thisVar);\n    }\n\n    public void accessTest(MyClass other)\n    {\n        // access superclass methods but in another object of same class\n        other.superDefaultMethod(); // OK\n        // other.privateMethod() ; error!\n        other.superProtectedMethod(); // OK\n        other.superPublicMethod(); // OK\n        // System.out.println(other.superVar); error\n\n        // access this classes methods but in another object of same class\n        other.thisDefaultMethod(); // OK\n        // other.thisprivateMethod() ; error! Even if it is the same class! AAA!\n        other.thisProtectedMethod(); // OK\n        other.thisPublicMethod(); // OK\n\n        System.out.println(other.thisVar); // this on the other hand is allowed AAA!\n    }\n\n// and a case when access to private member is allowed even if it is in different class\n    static class InnerOne\n    {\n        private int value;\n        private void method() {}\n    }\n\n    static class InnerTwo extends MyClass\n    {\n        int getOne(InnerOne other)\n        {\n            other.method();\n            return other.value;\n        }\n    }\n</code></pre>\n<p>The second case marked where a private field is accessible even if it is in another class is described in <a href=\"https://stackoverflow.com/a/676973/822870\">this answer</a> on a related question.</p>\n<p>Also <a href=\"https://stackoverflow.com/a/13938807/822870\">this answer</a> here partly addresses the issue (see the direct or reference access).</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 7800,
+        "reputation": 85133,
+        "user_id": 13673,
+        "user_type": "registered",
+        "accept_rate": 100,
+        "profile_image": "https://www.gravatar.com/avatar/167099d07f9f55d6ed7e66d911eab025?s=256&d=identicon&r=PG",
+        "display_name": "David Segonds",
+        "link": "https://stackoverflow.com/users/13673/david-segonds"
+      },
+      "is_accepted": true,
+      "score": 6444,
+      "last_activity_date": 1757792039,
+      "last_edit_date": 1757792039,
+      "creation_date": 1224359870,
+      "answer_id": 215505,
+      "question_id": 215497,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p><a href=\"http://docs.oracle.com/javase/tutorial/java/javaOO/accesscontrol.html\" rel=\"noreferrer\">The official tutorial</a> may be of some use to you.</p>\n<div class=\"s-table-container\"><table class=\"s-table\">\n<thead>\n<tr>\n<th></th>\n<th style=\"text-align: center;\">Class</th>\n<th style=\"text-align: center;\">Package</th>\n<th style=\"text-align: center;\">Subclass<br/>(same pkg)</th>\n<th style=\"text-align: center;\">Subclass<br/>(diff pkg)</th>\n<th style=\"text-align: center;\">World</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>public</code></td>\n<td style=\"text-align: center;\">✅</td>\n<td style=\"text-align: center;\">✅</td>\n<td style=\"text-align: center;\">✅</td>\n<td style=\"text-align: center;\">✅</td>\n<td style=\"text-align: center;\">✅</td>\n</tr>\n<tr>\n<td><code>protected</code></td>\n<td style=\"text-align: center;\">✅</td>\n<td style=\"text-align: center;\">✅</td>\n<td style=\"text-align: center;\">✅</td>\n<td style=\"text-align: center;\">✅</td>\n<td style=\"text-align: center;\">❌</td>\n</tr>\n<tr>\n<td><em>no modifier</em></td>\n<td style=\"text-align: center;\">✅</td>\n<td style=\"text-align: center;\">✅</td>\n<td style=\"text-align: center;\">✅</td>\n<td style=\"text-align: center;\">❌</td>\n<td style=\"text-align: center;\">❌</td>\n</tr>\n<tr>\n<td><code>private</code></td>\n<td style=\"text-align: center;\">✅</td>\n<td style=\"text-align: center;\">❌</td>\n<td style=\"text-align: center;\">❌</td>\n<td style=\"text-align: center;\">❌</td>\n<td style=\"text-align: center;\">❌</td>\n</tr>\n</tbody>\n</table></div>\n<p>✅: accessible<br/>\n❌: not accessible</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79769497": [],
+    "215505": [
+      {
+        "owner": {
+          "account_id": 2294271,
+          "reputation": 2013,
+          "user_id": 2016165,
+          "user_type": "registered",
+          "accept_rate": 45,
+          "profile_image": "https://www.gravatar.com/avatar/903c50cd9f03c52d8743d518020ae072?s=256&d=identicon&r=PG",
+          "display_name": "Neph",
+          "link": "https://stackoverflow.com/users/2016165/neph"
+        },
+        "reply_to_user": {
+          "account_id": 8412094,
+          "reputation": 146,
+          "user_id": 6313636,
+          "user_type": "registered",
+          "profile_image": "https://graph.facebook.com/10204704961784396/picture?type=large",
+          "display_name": "wolfenblut",
+          "link": "https://stackoverflow.com/users/6313636/wolfenblut"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1762344883,
+        "post_id": 215505,
+        "comment_id": 140837709,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 435987,
+          "reputation": 1536,
+          "user_id": 822870,
+          "user_type": "registered",
+          "accept_rate": 33,
+          "profile_image": "https://www.gravatar.com/avatar/199bae89f505ebcbc26a8a013b0325e7?s=256&d=identicon&r=PG",
+          "display_name": "David Balažic",
+          "link": "https://stackoverflow.com/users/822870/david-bala%c5%beic"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1758284916,
+        "post_id": 215505,
+        "comment_id": 140747189,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 260780,
+          "reputation": 16533,
+          "user_id": 544557,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/ad1df76ef4fab96ec67b2afa080b3a0c?s=256&d=identicon&r=PG",
+          "display_name": "Jim Balter",
+          "link": "https://stackoverflow.com/users/544557/jim-balter"
+        },
+        "reply_to_user": {
+          "account_id": 8412094,
+          "reputation": 146,
+          "user_id": 6313636,
+          "user_type": "registered",
+          "profile_image": "https://graph.facebook.com/10204704961784396/picture?type=large",
+          "display_name": "wolfenblut",
+          "link": "https://stackoverflow.com/users/6313636/wolfenblut"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1700250615,
+        "post_id": 215505,
+        "comment_id": 136635714,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 260780,
+          "reputation": 16533,
+          "user_id": 544557,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/ad1df76ef4fab96ec67b2afa080b3a0c?s=256&d=identicon&r=PG",
+          "display_name": "Jim Balter",
+          "link": "https://stackoverflow.com/users/544557/jim-balter"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1700250512,
+        "post_id": 215505,
+        "comment_id": 136635703,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

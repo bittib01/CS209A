@@ -1,0 +1,59 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "json",
+      "generics",
+      "gson"
+    ],
+    "owner": {
+      "account_id": 335418,
+      "reputation": 8038,
+      "user_id": 662493,
+      "user_type": "registered",
+      "accept_rate": 100,
+      "profile_image": "https://www.gravatar.com/avatar/569d92d91c1ffaaad0902ebb999b1dcc?s=256&d=identicon&r=PG",
+      "display_name": "jellyfish",
+      "link": "https://stackoverflow.com/users/662493/jellyfish"
+    },
+    "is_answered": true,
+    "view_count": 456740,
+    "protected_date": 1493900615,
+    "accepted_answer_id": 5554296,
+    "answer_count": 16,
+    "score": 544,
+    "last_activity_date": 1749721348,
+    "creation_date": 1302016653,
+    "last_edit_date": 1749721348,
+    "question_id": 5554217,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/5554217/deserialize-a-listt-object-with-gson",
+    "title": "Deserialize a List&lt;T&gt; object with Gson",
+    "body": "<p>I want to transfer a list object via Google Gson, but I don't know how to deserialize generic types. What I tried after looking at <a href=\"https://stackoverflow.com/a/2496528\">this answer</a>:</p>\n<pre><code>MyClass mc = new Gson().fromJson(result, new List&lt;MyClass&gt;() {}.getClass());\n</code></pre>\n<p>But then I get an error in Eclipse:</p>\n<blockquote>\n<p>&quot;The type new <code>List&lt;MyClass&gt;() {}</code> must implement the inherited abstract method...&quot;</p>\n</blockquote>\n<p>And if I use a quick fix I get over 20 method stubs. I am sure there is an easier solution. Now I have this:</p>\n<pre><code>Type listType = new TypeToken&lt;List&lt;MyClass&gt;&gt;() {}.getType();\n\nMyClass mc = new Gson().fromJson(result, listType);\n</code></pre>\n<p>I get the following exception at the <code>fromJson</code> line:</p>\n<pre><code>java.lang.NullPointerException\nat org.apache.harmony.luni.lang.reflect.ListOfTypes.length(ListOfTypes.java:47)\nat org.apache.harmony.luni.lang.reflect.ImplForType.toString(ImplForType.java:83)\nat java.lang.StringBuilder.append(StringBuilder.java:203)\nat com.google.gson.JsonDeserializerExceptionWrapper.deserialize(JsonDeserializerExceptionWrapper.java:56)\nat com.google.gson.JsonDeserializationVisitor.invokeCustomDeserializer(JsonDeserializationVisitor.java:88)\nat com.google.gson.JsonDeserializationVisitor.visitUsingCustomHandler(JsonDeserializationVisitor.java:76)\nat com.google.gson.ObjectNavigator.accept(ObjectNavigator.java:106)\nat com.google.gson.JsonDeserializationContextDefault.fromJsonArray(JsonDeserializationContextDefault.java:64)\nat com.google.gson.JsonDeserializationContextDefault.deserialize(JsonDeserializationContextDefault.java:49)\nat com.google.gson.Gson.fromJson(Gson.java:568)\nat com.google.gson.Gson.fromJson(Gson.java:515)\nat com.google.gson.Gson.fromJson(Gson.java:484)\nat com.google.gson.Gson.fromJson(Gson.java:434)\n</code></pre>\n<p>I catch <code>JsonParseExceptions</code> and <code>result</code> is not null. I checked <code>listType</code> with the debugger and got:</p>\n<pre><code>- list Type\n   - args = ListOfTypes\n       - list = null\n       - resolvedTypes = Type[ 1 ]\n   - loader = PathClassLoader\n   - ownerType0 = null\n   - ownerTypeRes = null\n   - rawType = Class (java.util.ArrayList)\n   - rawTypeName = &quot;java.util.ArrayList&quot;\n</code></pre>\n<p>So it seems the <code>getClass</code> invocation didn't work. The <a href=\"http://sites.google.com/site/gson/gson-user-guide#TOC-Serializing-and-Deserializing-Gener\" rel=\"nofollow noreferrer\">Gson User Guide</a> mentions a runtime exception that should happen during parsing a generic type to JSON. I did it wrong (not shown above) just as in the example, but didn't get that exception. So I changed the serialization as the user guide suggested. Didn't help though.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 3948522,
+        "reputation": 2698,
+        "user_id": 3260008,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/jti6J.jpg?s=256",
+        "display_name": "Amos",
+        "link": "https://stackoverflow.com/users/3260008/amos"
+      },
+      "is_accepted": false,
+      "score": -1,
+      "last_activity_date": 1726476439,
+      "creation_date": 1726476439,
+      "answer_id": 78989434,
+      "question_id": 5554217,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Kotlin and extension version of @Linh's answer</p>\n<pre><code>fun &lt;T&gt; Gson.listFromJson(json: String, clazz: Class&lt;T&gt;): List&lt;T&gt; {\n    val typeOfT: Type = TypeToken.getParameterized(MutableList::class.java, clazz).type\n    return fromJson(json, typeOfT)\n}\n</code></pre>\n<p>Usage</p>\n<pre><code>val list: List&lt;YourClass&gt; = Gson().listFromJson(it, YouClass::class.java)\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "78989434": []
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "multithreading",
+      "java-native-interface"
+    ],
+    "owner": {
+      "account_id": 15608654,
+      "reputation": 6010,
+      "user_id": 11260716,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/33dabc4adff9ac0e0a75f04c49aabf17?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Daniel Junglas",
+      "link": "https://stackoverflow.com/users/11260716/daniel-junglas"
+    },
+    "is_answered": false,
+    "view_count": 130,
+    "answer_count": 0,
+    "score": 3,
+    "last_activity_date": 1764419701,
+    "creation_date": 1764245741,
+    "last_edit_date": 1764419701,
+    "question_id": 79831694,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79831694/memory-leak-in-jni-with-attachcurrentthread-and-detachcurrentthread",
+    "title": "Memory leak in JNI with AttachCurrentThread() and DetachCurrentThread()",
+    "body": "<p>I have a Java application that calls a native function. That native function contains a loop, and in each iteration it launches 10 threads and waits for them to complete. Each thread performs a number of random memory allocations that are then freed again on the same thread. After each iteration, I track memory reports from <code>/proc/PID/status</code> (VmRSS) and fields from <code>/proc/$PID/statm</code>.</p>\n<p>If I do not call <code>AttachCurrentThread()</code> in the threads, memory consumption stays flat, as expected. However, if I do call <code>AttachCurrentThread()</code> at the beginning of each thread and <code>DetachCurrentThread()</code> at the end, it appears there is a memory leak: the numbers reported for VmRSS and the &quot;resident&quot; column in <code>/proc/$PID/statm</code> keep increasing.</p>\n<p>Do I need to do anything to properly detach the thread from the JVM? Is the JVM retaining memory for some reason? My actual application is much larger than the example code provided here and eventually runs out of memory, apparently due to the leak observed in this test.</p>\n<p>My JVM is:</p>\n<pre><code>$ java -version\nopenjdk version &quot;21.0.9&quot; 2025-10-21\nOpenJDK Runtime Environment (build 21.0.9+10-Ubuntu-124.04)\nOpenJDK 64-Bit Server VM (build 21.0.9+10-Ubuntu-124.04, mixed mode, sharing)\n</code></pre>\n<p>Using the code below, I ran:</p>\n<pre><code>make run\nmake run ARGS=--no-attach\n</code></pre>\n<p>to produce this report:\n<a href=\"https://i.sstatic.net/GPXy0HwQ.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/GPXy0HwQ.png\" alt=\"resident\" /></a></p>\n<hr />\n<p><strong>Java code:</strong></p>\n<pre><code>public final class Leak {\n  static { System.loadLibrary(&quot;library&quot;); }\n  public static native void randomAllocations(boolean attach);\n\n  public static void main(String[] args) {\n    boolean attach = true;\n    for (String arg : args) {\n      if (arg.equals(&quot;--no-attach&quot;))\n        attach = false;\n      else\n        throw new RuntimeException(&quot;Unknown argument &quot; + arg);\n    }\n    randomAllocations(attach);\n  }\n}\n</code></pre>\n<hr />\n<p><strong>Native code:</strong></p>\n<pre><code>#include &lt;stdio.h&gt;\n#include &lt;unistd.h&gt;\n#include &lt;string.h&gt;\n#include &lt;stdlib.h&gt;\n#include &lt;pthread.h&gt;\n#include &lt;jni.h&gt;\n\n#define threads  10    /* Number of threads to use. */\n#define count    10000 /* Number of memory allocations in each thread. */\n#define repeats  60    /* Number of repetitions of main loop. */\nstatic JavaVM *jvm = NULL; /* Java virtual machine (set in native function). */\n\n/* Dump statistics read from /proc to CSV file. */\nstatic void\ndumpStats(FILE *out)\n{\n  long long const pid = getpid();\n  char filename[64];\n  char line[256];\n  char *endptr;\n  FILE *f;\n  long VmRSS, VmHWM;\n  long size, resident, shared, text, lib, data, dt;\n\n  snprintf(filename, sizeof(filename), &quot;/proc/%lld/status&quot;, pid);\n  if ( (f = fopen(filename, &quot;r&quot;)) == NULL ) {\n    perror(&quot;fopen&quot;);\n    abort();\n  }\n  while (fgets(line, sizeof(line), f)) {\n    endptr = NULL;\n    if ( strncmp(line, &quot;VmRSS:&quot;, 6) == 0 )\n      VmRSS = strtol(line + 6, &amp;endptr, 0);\n    else if ( strncmp(line, &quot;VmHWM:&quot;, 6) == 0 )\n      VmHWM = strtol(line + 6, &amp;endptr, 0);\n    if ( endptr &amp;&amp; (endptr[0] != ' ' || endptr[1] != 'k' || endptr[2] != 'B') ) {\n      perror(&quot;strtol&quot;);\n      abort();\n    }\n  }\n  fclose(f);\n\n  snprintf(filename, sizeof(filename), &quot;/proc/%lld/statm&quot;, pid);\n  if ( (f = fopen(filename, &quot;r&quot;)) == NULL ) {\n    perror(&quot;fopen&quot;);\n    abort();\n  }\n  if ( !fgets(line, sizeof(line), f) ) {\n    perror(&quot;fgets&quot;);\n    abort();\n  }\n  if ( sscanf(line, &quot;%ld %ld %ld %ld %ld %ld %ld&quot;, &amp;size, &amp;resident,\n              &amp;shared, &amp;text, &amp;lib, &amp;data, &amp;dt) != 7 )\n  {\n    perror(&quot;sscanf&quot;);\n    abort();\n  }\n  fclose(f);\n\n  fprintf(out, &quot;%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld\\n&quot;,\n          VmHWM, VmRSS, size, resident, shared, text, lib, data, dt);\n  fflush(out);\n}\n/* Per thread data. */\ntypedef struct {\n  unsigned int seed;   /* Random seed for this thread. */\n  jboolean     attach; /* Whether thread should attach to JVM. */\n  pthread_t    thread; /* Thread handle. */\n} ThreadData;\n\nstatic int sizes[1024]; /* Random sizes for memory blocks to allocate. */\n\nstatic void *thread(void *data) {\n  ThreadData const *d = data;\n  JNIEnv *javaenv = NULL;\n  jint r;\n  int ret;\n\n  if ( d-&gt;attach &amp;&amp;\n       (ret = (*jvm)-&gt;AttachCurrentThread(jvm, (void **)&amp;javaenv, NULL)) )\n  {\n    fprintf(stderr, &quot;#### ATTACH FAILED: %d\\n&quot;, ret);\n    abort();\n  }\n\n  { /* Simulate some random memory allocations. */\n    void **pointers = NULL;\n    pointers = malloc(sizeof(*pointers) * count);\n    if ( !pointers ) {\n      fprintf(stderr, &quot;#### MALLOC failed\\n&quot;);\n      abort();\n    }\n    for (jint i = 0; i &lt; count; ++i) {\n      size_t bytes = (d-&gt;seed + i) % (sizeof(sizes) / sizeof(sizes[0]));\n      pointers[i] = malloc(bytes);\n    }\n    for (jint i = 0; i &lt; count; ++i) {\n      free(pointers[i]);\n    }\n    free(pointers);\n  }\n\n  if ( d-&gt;attach &amp;&amp;\n       (ret = (*jvm)-&gt;DetachCurrentThread(jvm)) != 0 )\n  {\n    fprintf(stderr, &quot;#### DETACH FAILED: %d\\n&quot;, ret);\n    abort();\n  }\n\n  return NULL;\n}\n\nJNIEXPORT void JNICALL Java_Leak_randomAllocations(JNIEnv *javaenv, jclass clazz, jboolean attach) {\n  int ret;\n  int jret = 0;\n  FILE *f;\n  char filename[256];\n  unsigned u;\n\n  (void)javaenv;\n  (void)clazz;\n\n  snprintf(filename, sizeof(filename), &quot;stats_%s_%lld.csv&quot;,\n           attach ? &quot;attach&quot; : &quot;no_attach&quot;,\n           (long long)getpid());\n  if ( (f = fopen(filename, &quot;w&quot;)) == NULL ) {\n    perror(&quot;fopen&quot;);\n    abort();\n  }\n  fprintf(f, &quot;VmHWM,VmRSS,size,resident,shared,text,lib,data,dt\\n&quot;);\n  dumpStats(f);\n\n  ret = (*javaenv)-&gt;GetJavaVM(javaenv, &amp;jvm);\n  if ( ret ) {\n    fprintf(stderr, &quot;#### FAILED TO GET JVM: %d\\n&quot;, ret);\n    abort();\n  }\n\n  srand(0);\n  for (u = 0; u &lt; sizeof(sizes) / sizeof(sizes[0]); ++u)\n    sizes[u] = rand() % (1024 * 1024 * 4);\n\n  for (jint r = 0; r &lt; repeats; ++r) {\n    ThreadData *data = malloc(threads * sizeof(*data));\n    jint t = 0;\n\n    if ( !data ) {\n      fprintf(stderr, &quot;#### BASIC ALLOCATION FAILED: %d\\n&quot;, ret);\n      abort();\n    }\n    for (t = 0; t &lt; threads; ++t) {\n      data[t].seed = t;\n      data[t].attach = attach;\n      if ( pthread_create(&amp;data[t].thread, NULL, thread, &amp;data[t]) ) {\n        fprintf(stderr, &quot;#### THREAD CREATE FAILED\\n&quot;);\n        abort();\n      }\n    }\n    for (t = 0; t &lt; threads; ++t) {\n      pthread_join(data[t].thread, NULL);\n    }\n    free(data);\n    dumpStats(f);\n  }\n\n  fclose(f);\n}\n</code></pre>\n<hr />\n<p><strong>Makefile:</strong></p>\n<pre><code>.PHONY: all clean run\n\nall: liblibrary.so Leak.class\n\nclean:\n    rm -f liblibrary.so Leak.class\n\nrun: liblibrary.so Leak.class\n    java -cp . -Djava.library.path=. Leak $(ARGS)\n\nliblibrary.so: library.c\n    $(CC) -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/linux -shared -fPIC -o $@ $&lt;\n\nLeak.class: Leak.java\n    javac Leak.java\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 50585,
+        "reputation": 43459,
+        "user_id": 150978,
+        "user_type": "registered",
+        "accept_rate": 78,
+        "profile_image": "https://www.gravatar.com/avatar/feadc214792e2581c3c750140e3eb2c7?s=256&d=identicon&r=PG",
+        "display_name": "Robert",
+        "link": "https://stackoverflow.com/users/150978/robert"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1764281401,
+      "post_id": 79831694,
+      "comment_id": 140876707,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 6095312,
+        "reputation": 35076,
+        "user_id": 4756299,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/6fe43a9d31f2308c4e64a62cf0c310d1?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Andrew Henle",
+        "link": "https://stackoverflow.com/users/4756299/andrew-henle"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1764251170,
+      "post_id": 79831694,
+      "comment_id": 140876209,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {}
+}

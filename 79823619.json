@@ -1,0 +1,289 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "java.util.concurrent",
+      "concurrenthashmap"
+    ],
+    "owner": {
+      "account_id": 85548,
+      "reputation": 7926,
+      "user_id": 238421,
+      "user_type": "registered",
+      "accept_rate": 100,
+      "profile_image": "https://www.gravatar.com/avatar/364633fd122d04290ae7257642b45800?s=256&d=identicon&r=PG",
+      "display_name": "Danilo Piazzalunga",
+      "link": "https://stackoverflow.com/users/238421/danilo-piazzalunga"
+    },
+    "is_answered": true,
+    "view_count": 83,
+    "accepted_answer_id": 79823643,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1763485763,
+    "creation_date": 1763484846,
+    "question_id": 79823619,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79823619/concurrentmap-atomically-check-if-a-value-if-present-and-then-mutate-it-with-a",
+    "title": "ConcurrentMap: atomically check if a value if present, and then mutate it with a consumer",
+    "body": "<p>Given a Java <a href=\"https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/ConcurrentMap.html\" rel=\"nofollow noreferrer\"><code>ConcurrentMap</code></a>, I would like to atomically:</p>\n<ul>\n<li>Check if an entry is contained in the map</li>\n<li>If it is present, run an action (I'm thinkng of a <a href=\"https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/function/BiConsumer.html\" rel=\"nofollow noreferrer\"><code>BiConsumer</code></a> taking the key and its value)</li>\n<li>Otherwise, run another action (a <a href=\"https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/function/Consumer.html\" rel=\"nofollow noreferrer\"><code>Consumer</code></a> which accepts the missing key)</li>\n</ul>\n<p>How could I use existing <code>ConcurrentMap</code> API to perform the following actions in a thread-safe way?</p>\n<pre><code>if (map.containsKey(key)) {\n    V value = map.get(key);\n    ifPresentAction.accept(key, value);\n} else {\n    ifAbsentAction.accept(key);\n}\n</code></pre>\n<p>where <code>map</code> is of type <code>ConcurrentMap&lt;K, V&gt;</code>, <code>key</code> is of type <code>K</code>, and <code>ifPresentAction</code> and <code>ifAbsentAction</code> are respectively a <code>BiConsumer&lt;K, V&gt;</code> and a <code>Consumer&lt;K&gt;</code>.</p>\n<hr />\n<p><strong>Additional Information</strong></p>\n<p>I thought of invoking <a href=\"https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Optional.html#ifPresentOrElse(java.util.function.Consumer,java.lang.Runnable)\" rel=\"nofollow noreferrer\"><code>Optional.ifPresentOrElse</code></a> (with the correct types), but I am not sure if it would be thread-safe.</p>\n<pre><code>Optional.ofNullable(map.get(key))\n        .ifPresentOrElse(ifPresentAction, ifAbsentAction);\n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 1211967,
+        "reputation": 9964,
+        "user_id": 1180351,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/pKB8y.png?s=256",
+        "display_name": "Rob Spoor",
+        "link": "https://stackoverflow.com/users/1180351/rob-spoor"
+      },
+      "is_accepted": true,
+      "score": 3,
+      "last_activity_date": 1763485763,
+      "creation_date": 1763485763,
+      "answer_id": 79823643,
+      "question_id": 79823619,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Assuming that your map won't contain any <code>null</code> values, you can (mis)use <a href=\"https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Map.html#compute(K,java.util.function.BiFunction)\" rel=\"nofollow noreferrer\">Map.compute</a>:</p>\n<pre class=\"lang-java prettyprint-override\"><code>map.compute(key, (k, v) -&gt; {\n    if (v != null) {\n        ifPresentAction.accept(key, v);\n    } else {\n        ifAbsentAction.accept(key);\n    }\n    return v;\n});\n</code></pre>\n<p>If the actions can be run outside of the locking then you can use <code>Optional</code> instead:</p>\n<pre class=\"lang-java prettyprint-override\"><code>Optional.ofNullable(map.get(key)).ifPresentOrElse(\n        v -&gt; ifPresentAction.accept(key, v),\n        () -&gt; ifAbsentAction.accept(key));\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 85548,
+        "reputation": 7926,
+        "user_id": 238421,
+        "user_type": "registered",
+        "accept_rate": 100,
+        "profile_image": "https://www.gravatar.com/avatar/364633fd122d04290ae7257642b45800?s=256&d=identicon&r=PG",
+        "display_name": "Danilo Piazzalunga",
+        "link": "https://stackoverflow.com/users/238421/danilo-piazzalunga"
+      },
+      "reply_to_user": {
+        "account_id": 213468,
+        "reputation": 110279,
+        "user_id": 466862,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/d873f397779db38cd510d9ee5416fd43?s=256&d=identicon&r=PG",
+        "display_name": "Mark Rotteveel",
+        "link": "https://stackoverflow.com/users/466862/mark-rotteveel"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1763741615,
+      "post_id": 79823619,
+      "comment_id": 140866557,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 213468,
+        "reputation": 110279,
+        "user_id": 466862,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/d873f397779db38cd510d9ee5416fd43?s=256&d=identicon&r=PG",
+        "display_name": "Mark Rotteveel",
+        "link": "https://stackoverflow.com/users/466862/mark-rotteveel"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1763558121,
+      "post_id": 79823619,
+      "comment_id": 140862287,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 85548,
+        "reputation": 7926,
+        "user_id": 238421,
+        "user_type": "registered",
+        "accept_rate": 100,
+        "profile_image": "https://www.gravatar.com/avatar/364633fd122d04290ae7257642b45800?s=256&d=identicon&r=PG",
+        "display_name": "Danilo Piazzalunga",
+        "link": "https://stackoverflow.com/users/238421/danilo-piazzalunga"
+      },
+      "reply_to_user": {
+        "account_id": 1211967,
+        "reputation": 9964,
+        "user_id": 1180351,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/pKB8y.png?s=256",
+        "display_name": "Rob Spoor",
+        "link": "https://stackoverflow.com/users/1180351/rob-spoor"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1763486474,
+      "post_id": 79823619,
+      "comment_id": 140860781,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 85548,
+        "reputation": 7926,
+        "user_id": 238421,
+        "user_type": "registered",
+        "accept_rate": 100,
+        "profile_image": "https://www.gravatar.com/avatar/364633fd122d04290ae7257642b45800?s=256&d=identicon&r=PG",
+        "display_name": "Danilo Piazzalunga",
+        "link": "https://stackoverflow.com/users/238421/danilo-piazzalunga"
+      },
+      "reply_to_user": {
+        "account_id": 2792262,
+        "reputation": 190757,
+        "user_id": 2402272,
+        "user_type": "registered",
+        "accept_rate": 85,
+        "profile_image": "https://www.gravatar.com/avatar/1182b1d5518a596d4e8cfe0567a65c4d?s=256&d=identicon&r=PG",
+        "display_name": "John Bollinger",
+        "link": "https://stackoverflow.com/users/2402272/john-bollinger"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1763486336,
+      "post_id": 79823619,
+      "comment_id": 140860778,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 2792262,
+        "reputation": 190757,
+        "user_id": 2402272,
+        "user_type": "registered",
+        "accept_rate": 85,
+        "profile_image": "https://www.gravatar.com/avatar/1182b1d5518a596d4e8cfe0567a65c4d?s=256&d=identicon&r=PG",
+        "display_name": "John Bollinger",
+        "link": "https://stackoverflow.com/users/2402272/john-bollinger"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1763485995,
+      "post_id": 79823619,
+      "comment_id": 140860771,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 1211967,
+        "reputation": 9964,
+        "user_id": 1180351,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/pKB8y.png?s=256",
+        "display_name": "Rob Spoor",
+        "link": "https://stackoverflow.com/users/1180351/rob-spoor"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1763485925,
+      "post_id": 79823619,
+      "comment_id": 140860769,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 2792262,
+        "reputation": 190757,
+        "user_id": 2402272,
+        "user_type": "registered",
+        "accept_rate": 85,
+        "profile_image": "https://www.gravatar.com/avatar/1182b1d5518a596d4e8cfe0567a65c4d?s=256&d=identicon&r=PG",
+        "display_name": "John Bollinger",
+        "link": "https://stackoverflow.com/users/2402272/john-bollinger"
+      },
+      "edited": false,
+      "score": 2,
+      "creation_date": 1763485911,
+      "post_id": 79823619,
+      "comment_id": 140860767,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79823643": [
+      {
+        "owner": {
+          "account_id": 85548,
+          "reputation": 7926,
+          "user_id": 238421,
+          "user_type": "registered",
+          "accept_rate": 100,
+          "profile_image": "https://www.gravatar.com/avatar/364633fd122d04290ae7257642b45800?s=256&d=identicon&r=PG",
+          "display_name": "Danilo Piazzalunga",
+          "link": "https://stackoverflow.com/users/238421/danilo-piazzalunga"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1763486946,
+        "post_id": 79823643,
+        "comment_id": 140860793,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 85548,
+          "reputation": 7926,
+          "user_id": 238421,
+          "user_type": "registered",
+          "accept_rate": 100,
+          "profile_image": "https://www.gravatar.com/avatar/364633fd122d04290ae7257642b45800?s=256&d=identicon&r=PG",
+          "display_name": "Danilo Piazzalunga",
+          "link": "https://stackoverflow.com/users/238421/danilo-piazzalunga"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1763486880,
+        "post_id": 79823643,
+        "comment_id": 140860792,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1211967,
+          "reputation": 9964,
+          "user_id": 1180351,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/pKB8y.png?s=256",
+          "display_name": "Rob Spoor",
+          "link": "https://stackoverflow.com/users/1180351/rob-spoor"
+        },
+        "reply_to_user": {
+          "account_id": 19435569,
+          "reputation": 2968,
+          "user_id": 21105992,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/kKQkV.png?s=256",
+          "display_name": "teapot418",
+          "link": "https://stackoverflow.com/users/21105992/teapot418"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1763486117,
+        "post_id": 79823643,
+        "comment_id": 140860774,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 19435569,
+          "reputation": 2968,
+          "user_id": 21105992,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/kKQkV.png?s=256",
+          "display_name": "teapot418",
+          "link": "https://stackoverflow.com/users/21105992/teapot418"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1763485902,
+        "post_id": 79823643,
+        "comment_id": 140860766,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

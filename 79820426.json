@@ -1,0 +1,107 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "amazon-dynamodb"
+    ],
+    "owner": {
+      "account_id": 926419,
+      "reputation": 421,
+      "user_id": 957136,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/531fb75e7f195cde6e6bfda81c680ec3?s=256&d=identicon&r=PG",
+      "display_name": "dlipofsky",
+      "link": "https://stackoverflow.com/users/957136/dlipofsky"
+    },
+    "is_answered": false,
+    "view_count": 65,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1763413008,
+    "creation_date": 1763152195,
+    "last_edit_date": 1763412085,
+    "question_id": 79820426,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79820426/invalid-updateexpression-trying-to-upgrade-dynamodb-sdk-from-v1-to-v2",
+    "title": "Invalid UpdateExpression trying to upgrade DynamoDB SDK from v1 to v2",
+    "body": "<p>I'm trying to upgrade my DynamoDB client from SDK 1 to SDK 2 (full versions at bottom), and I'm running into a strange issue. Server is unchanged (literally hitting the same tables).</p>\n<p>We're trying to use the same UpdateExpression for both insert and update.\nIn version 1.11.954 it works for both, but\nin version 2.38.2 it only works for update.</p>\n<p>on insert I get the rather unhelpful</p>\n<pre><code>software.amazon.awssdk.services.dynamodb.model.DynamoDbException: The document path provided in the update expression is invalid for update (Service: DynamoDb, Status Code: 400, Request ID: ...) (SDK Attempt Count: 1)\n</code></pre>\n<p>and it would seem it's not truly invalid, because it works for update, and it works in 1.x for both insert and update.</p>\n<p>The request looks like</p>\n<pre><code>updateExpression:\nset #key1 = :val1,\n#key2 = if_not_exists(#key2, :zero) + :one,\n#data.#totalScore = :data_totalScore,\n#data.#highScore = :data_highScore,\n#data.#fastestTime = :data_fastestTime,\n#key3 = :val3,\n#key4 = :val4,\n#key5 = :val5,\n#key6 = :val6,\n#key7 = :val7\n\nnameMap: {\n#key1=timestamp,\n#key2=totalWrites,\n#data=data,\n#totalScore=totalScore,\n#highScore=highScore,\n#fastestTime=fastestTime,\n#key3=experienceId,\n#key4=guestIdType,\n#key5=guestId,\n#key6=history,\n#key7=expiry\n}\nvalueMap: {\n:zero=AttributeValue(N=0),\n:one=AttributeValue(N=1),\n:val1=AttributeValue(S=2025-11-14T20:01:53.221535Z),\n:data_totalScore=AttributeValue(N=444),\n:data_highScore=AttributeValue(N=441),\n:data_fastestTime=AttributeValue(N=44),\n:val3=AttributeValue(S=dan.test.temp),\n:val4=AttributeValue(S=swid),\n:val5=AttributeValue(S={TEST-SWID-LOCAL3}),\n:val6=AttributeValue(L=[]),\n:val7=AttributeValue(N=1791921713)\n}\n</code></pre>\n<p>Note that <code>data</code> is a map, and we are not trying to do anything to create the map. This seems to work in v1 but not v2.\nIf we try to create the map by addding\n<code>#data = if_not_exists(#data, :mapKey1)</code> with <code>:mapKey1=AttributeValue(M={})</code>\nfor a total expression like</p>\n<pre><code>set #key1 = :val1, #key2 = if_not_exists(#key2, :zero) + :one, #data = if_not_exists(#data, :mapKey1), #data.#totalScore = :data_totalScore, #data.#highScore = :data_highScore, #data.#fastestTime = :data_fastestTime, #key3 = :val3, #key4 = :val4, #key5 = :val5, #key6 = :val6, #key7 = :val7\n</code></pre>\n<p>we get</p>\n<pre><code>DynamoDbException: Invalid UpdateExpression: Two document paths overlap with each other; must remove or rewrite one of these paths; path one: [data], path two: [data, highScore]\n</code></pre>\n<p>which kind of makes sense, except that now it doesn't work either way</p>\n<p>Full versions:\nOLD: com.amazonaws:aws-java-sdk-dynamodb:1.11.954\n<code>com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec</code></p>\n<p>NEW: software.amazon.awssdk:dynamodb:2.38.2 UpdateItemRequest\n<code>software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest</code></p>\n<p><strong>Update:</strong><br />\nReproducing on the command-line, this works for update but fails for insert</p>\n<pre><code>aws dynamodb update-item \\\n--region us-east-1 --table-name myTable \\\n--key '{&quot;expid&quot;:{&quot;S&quot;:&quot;dan.test.temp&quot;},&quot;id&quot;:{&quot;S&quot;:&quot;TEST0|swid&quot;}}' \\\n--update-expression 'set #key1 = :val1, #key2 = if_not_exists(#key2, :zero) + :one, #data.#totalScore = :data_totalScore, #data.#fastestTime = :data_fastestTime, #data.#highScore = :data_highScore, #key3 = :val3, #key4 = :val4, #key5 = :val5, #key7 = :val7' \\\n--expression-attribute-values '{&quot;:zero&quot;:{&quot;N&quot;:&quot;0&quot;},&quot;:one&quot;:{&quot;N&quot;:&quot;1&quot;},&quot;:val1&quot;: {&quot;S&quot;:&quot;2025-11-17T02:22:22&quot;},&quot;:data_totalScore&quot;:{&quot;N&quot;:&quot;444&quot;},&quot;:data_fastestTime&quot;:{&quot;N&quot;:&quot;44&quot;},&quot;:data_highScore&quot;:{&quot;N&quot;:&quot;442&quot;},&quot;:val3&quot;: {&quot;S&quot;:&quot;dan.test.temp&quot;},&quot;:val4&quot;: {&quot;S&quot;:&quot;swid&quot;},&quot;:val5&quot;: {&quot;S&quot;:&quot;TEST0&quot;},&quot;:val7&quot;:{&quot;N&quot;:&quot;1791929176&quot;}}' \\\n--expression-attribute-names '{&quot;#key1&quot;:&quot;timestamp&quot;,&quot;#key2&quot;:&quot;totalWrites&quot;,&quot;#data&quot;:&quot;data&quot;,&quot;#totalScore&quot;:&quot;totalScore&quot;,&quot;#fastestTime&quot;:&quot;fastestTime&quot;,&quot;#highScore&quot;:&quot;highScore&quot;,&quot;#key3&quot;:&quot;experienceId&quot;,&quot;#key4&quot;:&quot;guestIdType&quot;,&quot;#key5&quot;:&quot;guestId&quot;,&quot;#key7&quot;:&quot;expiry&quot;}'\n\nAn error occurred (ValidationException) when calling the UpdateItem operation: The document path provided in the update expression is invalid for update\n</code></pre>\n<p>I can do an insert this way if I only try to create an empty map</p>\n<pre><code>aws dynamodb update-item \\\n--region us-east-1 --table-name myTable \\\n--key '{&quot;expid&quot;:{&quot;S&quot;:&quot;dan.test.temp&quot;},&quot;id&quot;:{&quot;S&quot;:&quot;TEST1|swid&quot;}}' \\\n--update-expression 'set #key1 = :val1, #key2 = if_not_exists(#key2, :zero) + :one, #data = if_not_exists(#data, :emptyMap), #key3 = :val3, #key4 = :val4, #key5 = :val5, #key7 = :val7' \\\n--expression-attribute-values '{&quot;:zero&quot;:{&quot;N&quot;:&quot;0&quot;},&quot;:one&quot;:{&quot;N&quot;:&quot;1&quot;},&quot;:val1&quot;: {&quot;S&quot;:&quot;2025-11-17T04:44:44.444Z&quot;},&quot;:emptyMap&quot;:{&quot;M&quot;:{}},&quot;:val3&quot;: {&quot;S&quot;:&quot;dan.test.temp&quot;},&quot;:val4&quot;: {&quot;S&quot;:&quot;swid&quot;},&quot;:val5&quot;: {&quot;S&quot;:&quot;TEST1&quot;},&quot;:val7&quot;:{&quot;N&quot;:&quot;1799990001&quot;}}' \\\n--expression-attribute-names '{&quot;#key1&quot;:&quot;timestamp&quot;,&quot;#key2&quot;:&quot;totalWrites&quot;,&quot;#data&quot;:&quot;data&quot;,&quot;#key3&quot;:&quot;experienceId&quot;,&quot;#key4&quot;:&quot;guestIdType&quot;,&quot;#key5&quot;:&quot;guestId&quot;,&quot;#key7&quot;:&quot;expiry&quot;}'\n</code></pre>\n<p>but trying to do both gives</p>\n<pre><code>aws dynamodb update-item \\\n--region us-east-1 --table-name myTable \\\n--key '{&quot;expid&quot;:{&quot;S&quot;:&quot;dan.test.temp&quot;},&quot;id&quot;:{&quot;S&quot;:&quot;TEST2|swid&quot;}}' \\\n--update-expression 'set #key1 = :val1, #key2 = if_not_exists(#key2, :zero) + :one, #data = if_not_exists(#data, :emptyMap), #data.#totalScore = :data_totalScore, #data.#fastestTime = :data_fastestTime, #data.#highScore = :data_highScore, #key3 = :val3, #key4 = :val4, #key5 = :val5, #key7 = :val7' \\\n--expression-attribute-values '{&quot;:zero&quot;:{&quot;N&quot;:&quot;0&quot;},&quot;:one&quot;:{&quot;N&quot;:&quot;1&quot;},&quot;:val1&quot;: {&quot;S&quot;:&quot;2025-11-17T04:44:44.444Z&quot;},&quot;:emptyMap&quot;:{&quot;M&quot;:{}},&quot;:data_totalScore&quot;:{&quot;N&quot;:&quot;444&quot;},&quot;:data_fastestTime&quot;:{&quot;N&quot;:&quot;44&quot;},&quot;:data_highScore&quot;:{&quot;N&quot;:&quot;441&quot;},&quot;:val3&quot;: {&quot;S&quot;:&quot;dan.test.temp&quot;},&quot;:val4&quot;: {&quot;S&quot;:&quot;swid&quot;},&quot;:val5&quot;: {&quot;S&quot;:&quot;TEST2&quot;},&quot;:val7&quot;:{&quot;N&quot;:&quot;1799990001&quot;}}' \\\n--expression-attribute-names '{&quot;#key1&quot;:&quot;timestamp&quot;,&quot;#key2&quot;:&quot;totalWrites&quot;,&quot;#data&quot;:&quot;data&quot;,&quot;#totalScore&quot;:&quot;totalScore&quot;,&quot;#fastestTime&quot;:&quot;fastestTime&quot;,&quot;#highScore&quot;:&quot;highScore&quot;,&quot;#key3&quot;:&quot;experienceId&quot;,&quot;#key4&quot;:&quot;guestIdType&quot;,&quot;#key5&quot;:&quot;guestId&quot;,&quot;#key7&quot;:&quot;expiry&quot;}'\n\nAn error occurred (ValidationException) when calling the UpdateItem operation: Invalid UpdateExpression: Two document paths overlap with each other; must remove or rewrite one of these paths; path one: [data], path two: [experienceId]\n</code></pre>\n<p>the exact text of this error is a bit confusing. In previous tests I saw <code>path one: [data], path two: [data, highScore]</code> which makes a little more sense because those at least do overlap.</p>\n<p><strong>Update 2:</strong><br />\nDigging into the old code I actually found a separate call to <code>updateItem</code> that didn't get ported by the dev that did the initial port. Mystery solved! (I guess)</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 926419,
+        "reputation": 421,
+        "user_id": 957136,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/531fb75e7f195cde6e6bfda81c680ec3?s=256&d=identicon&r=PG",
+        "display_name": "dlipofsky",
+        "link": "https://stackoverflow.com/users/957136/dlipofsky"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1763413008,
+      "creation_date": 1763413008,
+      "answer_id": 79822768,
+      "question_id": 79820426,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>The real answer is what we were trying to do does not work, and I did not understand the code.</p>\n<p>A different developer did the port from SDK 1 to 2, and I assumed the port was a straight forward port, but it turns out they tried to combine the map creation and setting the map values into a single step, and it was never tested. It was handed off to me, and I am a DynamoDB novice.</p>\n<p>Reviewing the old SDK 1 code I found it actually did one call to <code>Table.updateItem(...)</code> create the map, and another to populate it.</p>\n<p>I believe you can do it in a single step by putting the map with all its values into a single <code>AttributeValue</code>, but in our case there is a lot of complexities, and it would mean 2 code paths to do the same logic, so I opted to just go back to making multiple <code>updateItem</code> calls.</p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 926419,
+        "reputation": 421,
+        "user_id": 957136,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/531fb75e7f195cde6e6bfda81c680ec3?s=256&d=identicon&r=PG",
+        "display_name": "dlipofsky",
+        "link": "https://stackoverflow.com/users/957136/dlipofsky"
+      },
+      "reply_to_user": {
+        "account_id": 21851467,
+        "reputation": 974,
+        "user_id": 16143492,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/PMrGU.png?s=256",
+        "display_name": "nineninesevenfour",
+        "link": "https://stackoverflow.com/users/16143492/nineninesevenfour"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1763391433,
+      "post_id": 79820426,
+      "comment_id": 140858429,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 926419,
+        "reputation": 421,
+        "user_id": 957136,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/531fb75e7f195cde6e6bfda81c680ec3?s=256&d=identicon&r=PG",
+        "display_name": "dlipofsky",
+        "link": "https://stackoverflow.com/users/957136/dlipofsky"
+      },
+      "reply_to_user": {
+        "account_id": 21851467,
+        "reputation": 974,
+        "user_id": 16143492,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/PMrGU.png?s=256",
+        "display_name": "nineninesevenfour",
+        "link": "https://stackoverflow.com/users/16143492/nineninesevenfour"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1763389270,
+      "post_id": 79820426,
+      "comment_id": 140858367,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79822768": []
+  }
+}

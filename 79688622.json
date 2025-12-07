@@ -1,0 +1,173 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jpa",
+      "java-stream"
+    ],
+    "owner": {
+      "account_id": 1073482,
+      "reputation": 12761,
+      "user_id": 1072187,
+      "user_type": "registered",
+      "accept_rate": 36,
+      "profile_image": "https://www.gravatar.com/avatar/6a15142de5577986384774484ff25fe6?s=256&d=identicon&r=PG",
+      "display_name": "John Little",
+      "link": "https://stackoverflow.com/users/1072187/john-little"
+    },
+    "is_answered": true,
+    "view_count": 195,
+    "answer_count": 2,
+    "score": -3,
+    "last_activity_date": 1764364563,
+    "creation_date": 1751535502,
+    "last_edit_date": 1764364563,
+    "question_id": 79688622,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79688622/how-to-use-streams-to-process-chunks-in-jpa-stream-of-records",
+    "title": "How to use streams to process chunks in JPA stream of records",
+    "body": "<p>In Spring Boot 2.7, streaming results back from a database query and processing them in batches using JDBC is very easy:</p>\n<pre class=\"lang-java prettyprint-override\"><code>   try (PreparedStatement ps = conn.prepareStatement(MY_SQL)) {\n            ps.setFetchSize(100);\n              ResultSet rs = ps.executeQuery();\n         do {\n            List&lt;MyEntity&gt; chunk = new ArrayList&lt;&gt;();\n            while (rs.next() &amp;&amp; (rowsReadInThisBatch &lt; myBatchSize)) {\n                    MyEntity entity = new MyEntity();\n                    myEntity.setSomeCol(rs.getLong(&quot;some_col&quot;);\n                    myEntity.setSomeCol2(rs.getLong(&quot;some_col2&quot;);\n                    chunk.add(entity)\n                    rowsReadInThisBatch++;\n                }\n            // lost more code.\n            process(chunk);\n            writeBackToDB(cunk);\n            // lots more code\n        } while (rowsReadInThisBatch == myBatchSize);\n</code></pre>\n<p>The database table has &gt; 1 million rows, so we can't just read them all into a single 1 million row object as our production microservice servers only have 1 GB RAM. In the above example, we only ever have myBatchSize records in RAM, and we only need to do total/myBatchSize batch inserts to the database (not one insert for every record which would result in 1 million round trips to DB).</p>\n<p>To do this with streams in JPA, there is no equivalent of <code>rs.next()</code>. Instead you have to use lambdas and Java streams stuff.</p>\n<p>There is ForEach:</p>\n<pre class=\"lang-java prettyprint-override\"><code>    try(Stream&lt;MyEntity&gt; myStream = postRepository.streamByCreatedOnSince(yesterday)) {   \n        myStream.forEach(\n             ....\n        );\n    }\n</code></pre>\n<p>However, forEach is extremely limited because you can't use non-final variables to count how many have been processed etc.</p>\n<p>How do I convert my plain old <code>do</code> loops and while loops into Java's streams/lambda stuff in order to read in chunks and process chunks, and not process each one by one with no chunking? Ideally not using inline lambda code which is hard to test separately (and hard to understand for non-Java streams experts)?</p>\n<p>The crux is Java streams don't have the concept of a counter or chunking.</p>\n<p>This article: <a href=\"https://www.baeldung.com/java-stream-batch-processing\" rel=\"nofollow noreferrer\">https://www.baeldung.com/java-stream-batch-processing</a> has some very esoteric solutions requiring additional libraries which we want to avoid. Also, it's not clear if their solutions read the entire stream into memory then break it into chunks or batches, something we want to avoid due to the very large data set.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 14010051,
+        "reputation": 250,
+        "user_id": 10118965,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/61afd55894624ae8f6e4189b68db1f30?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "davidalayachew",
+        "link": "https://stackoverflow.com/users/10118965/davidalayachew"
+      },
+      "is_accepted": false,
+      "score": 2,
+      "last_activity_date": 1751868645,
+      "creation_date": 1751868645,
+      "answer_id": 79692376,
+      "question_id": 79688622,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<blockquote>\n<p>The crux is java streams don't have the concept of [...] chunking.</p>\n</blockquote>\n<p>Sure they do. It's called Stream <a href=\"https://openjdk.org/jeps/485\" rel=\"nofollow noreferrer\">Gatherers</a>.</p>\n<p>Specifically, you are looking for the window functions. Consider the following example.</p>\n<pre><code>final List&lt;Character&gt; list = \n    List\n        .of\n        (\n            'a','b','c',\n            'd','e','f',\n            'g','h','i',\n            'j','k','l',\n            'm','n','o',\n            'p','q','r',\n            's','t','u',\n            'v','w','x',\n            'y','z'\n        )\n        ;\nlist\n    .stream()\n    .map(String::valueOf)\n    .gather(Gatherers.windowFixed(5))\n    .forEach(System.out::println)\n    ;\n\n//output\n//[a, b, c, d, e]\n//[f, g, h, i, j]\n//[k, l, m, n, o]\n//[p, q, r, s, t]\n//[u, v, w, x, y]\n//[z]\n</code></pre>\n<p>Here is the documentation -- <a href=\"https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherers.html#windowFixed(int)\" rel=\"nofollow noreferrer\">Gatherers.windowFixed(int batchSize)</a></p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 1601399,
+        "reputation": 638,
+        "user_id": 1482356,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/d6160b6e40d230fa92c6da8072b2f7e5?s=256&d=identicon&r=PG",
+        "display_name": "Peter Adrian",
+        "link": "https://stackoverflow.com/users/1482356/peter-adrian"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1751580687,
+      "creation_date": 1751580687,
+      "answer_id": 79689501,
+      "question_id": 79688622,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>You can use streams, you just have to batch it:</p>\n<p>I have this method:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public static &lt;T&gt; Stream&lt;List&lt;T&gt;&gt; batchStream(Stream&lt;T&gt; stream, int batchSize) {\n    Iterator&lt;T&gt; iterator = stream.iterator();\n\n    return StreamSupport.stream(new Spliterators.AbstractSpliterator&lt;&gt;(Long.MAX_VALUE, 0) {\n        @Override\n        public boolean tryAdvance(Consumer&lt;? super List&lt;T&gt;&gt; action) {\n            List&lt;T&gt; batch = new ArrayList&lt;&gt;(batchSize);\n            int count = 0;\n            while (count &lt; batchSize &amp;&amp; iterator.hasNext()) {\n                batch.add(iterator.next());\n                count++;\n            }\n            if (batch.isEmpty()) {\n                return false;\n            }\n            action.accept(batch);\n            return true;\n        }\n    }, false);\n}\n</code></pre>\n<p>Now, you could do something like this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>try(Stream&lt;MyEntity&gt; myStream = postRepository.streamByCreatedOnSince(yesterday)) {   \n    batchStream(myStream, 100)\n        .map(this::process)\n        .forEach(postRepository::save);\n}\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79692376": [],
+    "79689501": [
+      {
+        "owner": {
+          "account_id": 3211603,
+          "reputation": 300971,
+          "user_id": 2711488,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/t2hoD.jpg?s=256",
+          "display_name": "Holger",
+          "link": "https://stackoverflow.com/users/2711488/holger"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1752572845,
+        "post_id": 79689501,
+        "comment_id": 140590456,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1601399,
+          "reputation": 638,
+          "user_id": 1482356,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/d6160b6e40d230fa92c6da8072b2f7e5?s=256&d=identicon&r=PG",
+          "display_name": "Peter Adrian",
+          "link": "https://stackoverflow.com/users/1482356/peter-adrian"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1751880918,
+        "post_id": 79689501,
+        "comment_id": 140570171,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 14010051,
+          "reputation": 250,
+          "user_id": 10118965,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/61afd55894624ae8f6e4189b68db1f30?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "davidalayachew",
+          "link": "https://stackoverflow.com/users/10118965/davidalayachew"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1751867505,
+        "post_id": 79689501,
+        "comment_id": 140569690,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1601399,
+          "reputation": 638,
+          "user_id": 1482356,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/d6160b6e40d230fa92c6da8072b2f7e5?s=256&d=identicon&r=PG",
+          "display_name": "Peter Adrian",
+          "link": "https://stackoverflow.com/users/1482356/peter-adrian"
+        },
+        "reply_to_user": {
+          "account_id": 1073482,
+          "reputation": 12761,
+          "user_id": 1072187,
+          "user_type": "registered",
+          "accept_rate": 36,
+          "profile_image": "https://www.gravatar.com/avatar/6a15142de5577986384774484ff25fe6?s=256&d=identicon&r=PG",
+          "display_name": "John Little",
+          "link": "https://stackoverflow.com/users/1072187/john-little"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1751654003,
+        "post_id": 79689501,
+        "comment_id": 140565775,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1073482,
+          "reputation": 12761,
+          "user_id": 1072187,
+          "user_type": "registered",
+          "accept_rate": 36,
+          "profile_image": "https://www.gravatar.com/avatar/6a15142de5577986384774484ff25fe6?s=256&d=identicon&r=PG",
+          "display_name": "John Little",
+          "link": "https://stackoverflow.com/users/1072187/john-little"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1751641029,
+        "post_id": 79689501,
+        "comment_id": 140565332,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "mocking",
+      "mockito",
+      "spring-data-redis"
+    ],
+    "owner": {
+      "account_id": 31962108,
+      "reputation": 19,
+      "user_id": 24771318,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/218dec0058d8c0e4d6b705de42b90c52?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "JZARGO",
+      "link": "https://stackoverflow.com/users/24771318/jzargo"
+    },
+    "is_answered": true,
+    "view_count": 91,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1763991223,
+    "creation_date": 1763880874,
+    "last_edit_date": 1763982177,
+    "question_id": 79827728,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79827728/mockito-argumentmatchers-anyclass-for-varargs-parameter-does-not-match",
+    "title": "Mockito ArgumentMatchers.any(Class) for varargs parameter does not match",
+    "body": "<p>I have test method using mockito 5</p>\n<pre><code>    @Test\n    public void test_increaseUserScore_Successful() throws CannotCreateCachedUserException {\n        when(cachedUserRepository\n                .existsById(anyLong())\n        ).thenReturn(true);\n\n        when(leaderboardInfoRepository\n                .findById(anyString())\n        ).thenReturn(Optional.of(testLeaderboardInfo));\n\n        when(cachedUserRepository\n                .findById(anyLong())\n        ).thenReturn(Optional.of(userCached));\n\n        when(stringRedisTemplate\n                        .execute(\n                                eq(mutableLeaderboardScript), //RedisScript\n                                anyList(), // List with Keys\n                                any(Object.class) // Object args... which does not match \n                        )\n        ).thenReturn(&quot;success&quot;);\n\n        leaderboardService.increaseUserScore(userScoreEvent);\n\n        verify(stringRedisTemplate, times(1))\n                .execute(eq(mutableLeaderboardScript), anyList(), any(Object.class));\n    }\n</code></pre>\n<p>Here is the problem stringRedisTemplate of execute has signature(RedisScript script, List keys, Object args...)  i cannot match args... to any(Object.class).</p>\n<p>I either take exception PotentialStubbingProblem:</p>\n<pre><code>org.mockito.exceptions.misusing.PotentialStubbingProblem: \nStrict stubbing argument mismatch. Please check:\n - this invocation of 'execute' method:\n    stringRedisTemplate.execute(\n    mutableLeaderboardScript,\n    [user_cached:11:dailyAttempts, user_cached:11:totalAttempts, leaderboard:lb-123:mutable, user_cached:11, global-leaderboard-stream, local-leaderboard-stream],\n    &quot;11&quot;,\n    &quot;10.0&quot;,\n    &quot;5&quot;,\n    &quot;2&quot;,\n    &quot;[ZZ]&quot;,\n    &quot;20&quot;,\n    &quot;lb-123&quot;,\n    &quot;ZZ&quot;\n);\n- has following stubbing(s) with different arguments:\n    1. stringRedisTemplate.execute(null, [], null);\n</code></pre>\n<p>or null, which depends on lenient annotation, the same result will be given if i replace any() on  ArgumentMatchers.&lt;Object'&gt;'any(), any(Object[].class) and (Object[]) any()</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 39208,
+        "reputation": 269347,
+        "user_id": 112968,
+        "user_type": "registered",
+        "accept_rate": 68,
+        "profile_image": "https://i.sstatic.net/zHTaT.png?s=256",
+        "display_name": "knittl",
+        "link": "https://stackoverflow.com/users/112968/knittl"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1763991223,
+      "creation_date": 1763991223,
+      "answer_id": 79828697,
+      "question_id": 79827728,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>It always helps to write a MRE (<em>minimal</em>, reproducible example). It also makes it easier for people trying to help you, because they can simply copy-past your code and adapt as needed. Let's do that for your code:</p>\n<ol>\n<li>Get rid of all the repositories that are not required to show the problem</li>\n<li>Remove arguments that are unrelated to the problem</li>\n<li>Implement a super simple implementation of your service</li>\n</ol>\n<p>That leaves you with 2 interfaces and 1 implementation:</p>\n<pre><code>interface LeaderboardService {\n    void increaseUserScore();\n}\n    \ninterface StringRedisTemplate {\n    String execute(List&lt;String&gt; keys, Object... args);\n}\n\nclass LeaderboardServiceImpl implements LeaderboardService {\n    private final StringRedisTemplate stringRedisTemplate;\n\n    LeaderboardServiceImpl(final StringRedisTemplate stringRedisTemplate) {\n        this.stringRedisTemplate = stringRedisTemplate;\n    }\n\n    @Override\n    public void increaseUserScore() {\n        final String result = stringRedisTemplate.execute(\n                List.of(&quot;some key&quot;),\n                &quot;arg1&quot;, &quot;arg2&quot; // varargs call\n        );\n        if (!Objects.equal(result, &quot;success&quot;)) {\n            throw new RuntimeException(&quot;Unexpected result&quot;);\n        }\n    }\n}\n</code></pre>\n<p>And then write the test. You will note that you can in fact match varargs calls with <code>any(Object[].class)</code> (because <code>Object args...</code> is basically syntactic sugar for <code>Object[] args</code>). At least it does with Mockito 5.16.1.\nIf you need to match an exact number of arguments, pass as many matchers as required.</p>\n<p>Here's the test that passes, using both styles of matchers:</p>\n<pre><code>@Mock\nStringRedisTemplate stringRedisTemplate;\n\n@Test\nvoid test_increaseUserScore_Successful() {\n    final LeaderboardService leaderboardService = new LeaderboardServiceImpl(stringRedisTemplate);\n\n    when(stringRedisTemplate\n            .execute(\n                    anyList(), // List with Keys\n                    any(Object[].class) // Object args... which is syntactic suga for Object[] args\n            )\n    ).thenReturn(&quot;success&quot;);\n\n    leaderboardService.increaseUserScore();\n\n    // match varags with explicit array matcher:\n    verify(stringRedisTemplate).execute(anyList(), any(Object[].class));\n\n    // match varags with exact number of arguments:\n    verify(stringRedisTemplate).execute(anyList(), any(Object.class), any(Object.class));\n}\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79828697": []
+  }
+}

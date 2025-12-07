@@ -1,0 +1,77 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "json",
+      "jolt"
+    ],
+    "owner": {
+      "account_id": 4042713,
+      "reputation": 777,
+      "user_id": 3325009,
+      "user_type": "registered",
+      "accept_rate": 78,
+      "profile_image": "https://i.sstatic.net/vj1w6.jpg?s=256",
+      "display_name": "GuRAm",
+      "link": "https://stackoverflow.com/users/3325009/guram"
+    },
+    "is_answered": true,
+    "view_count": 88,
+    "answer_count": 2,
+    "score": 4,
+    "last_activity_date": 1763130870,
+    "creation_date": 1762265643,
+    "last_edit_date": 1763130870,
+    "question_id": 79809014,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79809014/json-jolt-transform",
+    "title": "JSON Jolt Transform",
+    "body": "<p>I want to parse some data from JSON using Jolt Spec.\nI have JSON data:</p>\n<pre class=\"lang-json prettyprint-override\"><code>[\n  {\n    &quot;ID&quot;: &quot;828&quot;,\n    &quot;CASE_ID&quot;: &quot;33487784&quot;,\n    &quot;PIN&quot;: &quot;43001005357&quot;,\n    &quot;INP_DATE&quot;: &quot;1762200000000&quot;\n  },\n  {\n    &quot;ID&quot;: &quot;829&quot;,\n    &quot;CASE_ID&quot;: &quot;33457761&quot;,\n    &quot;PIN&quot;: &quot;59001024356&quot;,\n    &quot;INP_DATE&quot;: &quot;1762200000000&quot;\n  }\n]\n</code></pre>\n<p>Jolt Spec:</p>\n<pre class=\"lang-json prettyprint-override\"><code>[\n  {\n    &quot;operation&quot;: &quot;shift&quot;,\n    &quot;spec&quot;: {\n      &quot;*&quot;: {\n        &quot;PIN&quot;: &quot;keys[&amp;1]&quot;\n      }\n    }\n  },\n  {\n    &quot;operation&quot;: &quot;modify-overwrite-beta&quot;,\n    &quot;spec&quot;: {\n      &quot;PINS&quot;: &quot;=join(',', @(1,keys))&quot;\n    }\n  },\n  {\n    &quot;operation&quot;: &quot;remove&quot;,\n    &quot;spec&quot;: {\n      &quot;keys&quot;: &quot;&quot;\n    }\n  }\n]\n</code></pre>\n<p>and now have result:</p>\n<pre class=\"lang-json prettyprint-override\"><code>{\n  &quot;PINS&quot; : &quot;43001005357,59001024356&quot;\n}\n</code></pre>\n<p>But I want this:</p>\n<pre class=\"lang-json prettyprint-override\"><code>{\n  &quot;PINS&quot; : &quot;'43001005357','59001024356'&quot;\n}\n</code></pre>\n<p>I used <a href=\"https://jolt-demo.appspot.com/\" rel=\"nofollow noreferrer\">https://jolt-demo.appspot.com/</a> web-site for compile.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 24809739,
+        "reputation": 1155,
+        "user_id": 18691321,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/20GuR.jpg?s=256",
+        "display_name": "ninadepina",
+        "link": "https://stackoverflow.com/users/18691321/ninadepina"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1763130798,
+      "last_edit_date": 1763130798,
+      "creation_date": 1762266614,
+      "answer_id": 79809028,
+      "question_id": 79809014,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>I believe that the behaviour you want can't be done purely in Jolt on <a href=\"https://jolt-demo.appspot.com/#inception\" rel=\"nofollow noreferrer\">jolt-demo</a> because it doesn't support quoting elements inside <code>join</code> or <code>modify-overwrite-beta</code> the way you want. You need to do the quoting in code after Jolt transformation.</p>\n<p>The closest you'll get to your desired output (besides the result you already have) would be an array:</p>\n<pre class=\"lang-json prettyprint-override\"><code>[\n  {\n    &quot;operation&quot;: &quot;shift&quot;,\n    &quot;spec&quot;: {\n      &quot;*&quot;: {\n        &quot;PIN&quot;: &quot;PINS[]&quot; \n      }\n    }\n  }\n]\n</code></pre>\n<pre class=\"lang-json prettyprint-override\"><code>{\n  &quot;PINS&quot;: [\n    &quot;43001005357&quot;,\n    &quot;59001024356&quot;\n  ]\n}\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 13009011,
+        "reputation": 1281,
+        "user_id": 9402689,
+        "user_type": "registered",
+        "profile_image": "https://graph.facebook.com/10155248276785868/picture?type=large",
+        "display_name": "Raymond Choi",
+        "link": "https://stackoverflow.com/users/9402689/raymond-choi"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1762440090,
+      "creation_date": 1762440090,
+      "answer_id": 79811413,
+      "question_id": 79809014,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>If Jolt can't do the transformation, you may try other JSON libraries such as <em>Josson</em>.</p>\n<p><a href=\"https://github.com/octomix/josson\" rel=\"nofollow noreferrer\">https://github.com/octomix/josson</a></p>\n<pre class=\"lang-java prettyprint-override\"><code>    Josson cases = Josson.fromJsonString(&quot;&quot;&quot;\n        [\n          {\n            &quot;ID&quot;: &quot;828&quot;,\n            &quot;CASE_ID&quot;: &quot;33487784&quot;,\n            &quot;PIN&quot;: &quot;43001005357&quot;,\n            &quot;INP_DATE&quot;: &quot;1762200000000&quot;\n          },\n          {\n            &quot;ID&quot;: &quot;829&quot;,\n            &quot;CASE_ID&quot;: &quot;33457761&quot;,\n            &quot;PIN&quot;: &quot;59001024356&quot;,\n            &quot;INP_DATE&quot;: &quot;1762200000000&quot;\n          }\n        ]\n        &quot;&quot;&quot;);\n    JsonNode pins = cases.getNode(&quot;q(PIN).join(',').map(PINS:?)&quot;);\n    System.out.println(pins.toPrettyString());\n</code></pre>\n<p><strong>Output</strong></p>\n<pre class=\"lang-json prettyprint-override\"><code>    {\n      &quot;PINS&quot; : &quot;'43001005357','59001024356'&quot;\n    }\n</code></pre>\n<p><strong>Query Expression Explanation</strong></p>\n<ul>\n<li><p><code>q(PIN)</code> - extract value from field <code>PIN</code> and add single quotes to each value</p>\n</li>\n<li><p><code>join(',')</code> - join the array values with separator <code>,</code> to become a string</p>\n</li>\n<li><p><code>map(PINS:?)</code> - build an object with field name <code>PINS</code> with the current node <code>?</code> as the value</p>\n</li>\n</ul>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79809028": [],
+    "79811413": []
+  }
+}

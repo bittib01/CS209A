@@ -1,0 +1,139 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "c",
+      "linux"
+    ],
+    "owner": {
+      "account_id": 34003713,
+      "reputation": 878,
+      "user_id": 26336155,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/6140466b657ecce7a6b63dc790ba85a8?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Stas Badzi",
+      "link": "https://stackoverflow.com/users/26336155/stas-badzi"
+    },
+    "is_answered": true,
+    "view_count": 143,
+    "closed_date": 1764716766,
+    "answer_count": 1,
+    "score": 3,
+    "last_activity_date": 1764431579,
+    "creation_date": 1764420604,
+    "question_id": 79833256,
+    "link": "https://stackoverflow.com/questions/79833256/is-it-possible-to-load-a-function-symbol-from-an-executable",
+    "closed_reason": "Duplicate",
+    "title": "Is it possible to load a function symbol from an executable",
+    "body": "<p>I have 2 files:</p>\n<p><code>foo.c</code>:</p>\n<pre><code>#include &lt;stdio.h&gt;\nint Main(int a) {\n    printf(&quot;A%dB&quot;,a);\n}\nint main() {\n    return Main(1);\n}\n</code></pre>\n<p><code>bar.c</code>:</p>\n<pre><code>extern int Main(int);\nint main() {\n   return Main(2);\n}\n</code></pre>\n<p>If I compile <code>foo.c</code> into an executable (<code>gcc -fPIC foo.c -o foo.out</code>) and run it, it correcty prints <code>A1B</code>.</p>\n<p>Same for compiling <code>foo.c</code> into a shared object file (<code>gcc -shared -fPIC foo.c -o libfoo.so</code>) and <code>bar.c</code> into an executable that loads <code>libfoo.so</code> (<code>gcc bar.c -L. -lfoo -o bar.out</code>) and run it, it correctly prints <code>A2B</code>.</p>\n<p>But if I try to (1) link <code>bar.out</code> with <code>foo.out</code> or (2) execute <code>libfoo.so</code> it (1) doesn't link (<code>/usr/bin/ld: cannot use executable file './libfoo .so' as input to a link</code>) or (2) crashes on startup with <code>Segmentation fault (core dumped)</code></p>\n<p>Is there a way to create a file that can be executed and is a valid shared object file at the same file, and if not, are there other ways to load the <code>a.out</code> executable (maybe some kind of a <code>dlopen</code> hack) from <code>b.out</code>  to run a function from <code>a.out</code></p>\n<p>I am also interested if there is a way to load the executable using java's <code>System.loadLibrary(&quot;native&quot;)</code>  (if possible, only changing the c side and not the java side)</p>\n<p>FYI, I want to do this, so I can have an android executable that can be run from something like termux while also being able to be loaded from <code>Android.jar</code> to run as a standalone GUI app</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 1839599,
+        "reputation": 233610,
+        "user_id": 1687119,
+        "user_type": "registered",
+        "accept_rate": 75,
+        "profile_image": "https://www.gravatar.com/avatar/f9c3036c1979d65847da3bdc271bb5b9?s=256&d=identicon&r=PG",
+        "display_name": "dbush",
+        "link": "https://stackoverflow.com/users/1687119/dbush"
+      },
+      "is_accepted": false,
+      "score": 3,
+      "last_activity_date": 1764431579,
+      "last_edit_date": 1764431579,
+      "creation_date": 1764426860,
+      "answer_id": 79833314,
+      "question_id": 79833256,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>To allow foo.out to be used as both an executable and as a library, you first need to compile it with <code>-FPIE and -pie</code> to allow it to be read via <code>dlopen</code> as well as <code>-rdynamic</code> to export the symbols it contains:</p>\n<pre class=\"lang-none prettyprint-override\"><code>gcc -fPIE -pie -rdynamic foo.c -o foo.out\n</code></pre>\n<p>Then update bar.c to use <code>dlopen</code> and <code>dlsym</code>:</p>\n<pre class=\"lang-c prettyprint-override\"><code>#include &lt;stdio.h&gt;\n#include &lt;dlfcn.h&gt;\n\nint main() {\n    void *lib = dlopen(&quot;./foo.out&quot;,RTLD_LAZY);\n    if (!lib) {\n        printf(&quot;dlopen failed: %s\\n&quot;, dlerror());\n        return 1;\n    }\n\n    int (*Main)(int) = dlsym(lib,&quot;Main&quot;);\n    if (!Main) {\n        printf(&quot;dlsym failed: %s\\n&quot;, dlerror());\n        return 1;\n    }\n\n    return Main(2);\n}\n</code></pre>\n<p>And link with libdl:</p>\n<pre class=\"lang-bash prettyprint-override\"><code>gcc bar.c  -o bar.out -ldl\n</code></pre>\n<p>Then you'll get the expected results:</p>\n<pre class=\"lang-bash prettyprint-override\"><code>[dbush@db-centos7 ~]$ ./bar.out\nA2B[dbush@db-centos7 ~]$ \n</code></pre>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79833314": [
+      {
+        "owner": {
+          "account_id": 406349,
+          "reputation": 122085,
+          "user_id": 775806,
+          "user_type": "registered",
+          "accept_rate": 96,
+          "profile_image": "https://i.sstatic.net/JeTnSU2C.jpg?s=256",
+          "display_name": "n. m. could be an AI",
+          "link": "https://stackoverflow.com/users/775806/n-m-could-be-an-ai"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1764429923,
+        "post_id": 79833314,
+        "comment_id": 140879076,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 34003713,
+          "reputation": 878,
+          "user_id": 26336155,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/6140466b657ecce7a6b63dc790ba85a8?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Stas Badzi",
+          "link": "https://stackoverflow.com/users/26336155/stas-badzi"
+        },
+        "reply_to_user": {
+          "account_id": 406349,
+          "reputation": 122085,
+          "user_id": 775806,
+          "user_type": "registered",
+          "accept_rate": 96,
+          "profile_image": "https://i.sstatic.net/JeTnSU2C.jpg?s=256",
+          "display_name": "n. m. could be an AI",
+          "link": "https://stackoverflow.com/users/775806/n-m-could-be-an-ai"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1764429425,
+        "post_id": 79833314,
+        "comment_id": 140879063,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 34003713,
+          "reputation": 878,
+          "user_id": 26336155,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/6140466b657ecce7a6b63dc790ba85a8?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Stas Badzi",
+          "link": "https://stackoverflow.com/users/26336155/stas-badzi"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1764429255,
+        "post_id": 79833314,
+        "comment_id": 140879059,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 406349,
+          "reputation": 122085,
+          "user_id": 775806,
+          "user_type": "registered",
+          "accept_rate": 96,
+          "profile_image": "https://i.sstatic.net/JeTnSU2C.jpg?s=256",
+          "display_name": "n. m. could be an AI",
+          "link": "https://stackoverflow.com/users/775806/n-m-could-be-an-ai"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1764428933,
+        "post_id": 79833314,
+        "comment_id": 140879054,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

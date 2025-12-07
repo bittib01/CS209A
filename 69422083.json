@@ -1,0 +1,248 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "junit"
+    ],
+    "owner": {
+      "account_id": 19552430,
+      "reputation": 51,
+      "user_id": 14307685,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/7kIvc.jpg?s=256",
+      "display_name": "EEngvall",
+      "link": "https://stackoverflow.com/users/14307685/eengvall"
+    },
+    "is_answered": true,
+    "view_count": 24287,
+    "answer_count": 4,
+    "score": 5,
+    "last_activity_date": 1764319355,
+    "creation_date": 1633235340,
+    "question_id": 69422083,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/69422083/junit-tests-pass-individually-but-fail-when-run-together",
+    "title": "Junit Tests pass individually but fail when run together",
+    "body": "<p>I'm currently working on an assignment for school and I'm struggling with the testing portion.  For some reason the unit tests run fine when run individually but not when run together.  I know this has something to do with me sharing the object between them when I shouldn't be based on my prior searches, but I can not for the life of me figure out what needs to be changed to remedy this problem.  The code is below for both the AppointmentService class as well as the AppointmentServiceTest class.  Any help would be greatly appreciated as I've been stuck on this for some time now and know it's probably something that someone else will see immediately.</p>\n<p>The AppointmentServiceTest class</p>\n<pre><code>\nimport static org.junit.jupiter.api.Assertions.*;\n\nimport java.text.ParseException;\n\nimport org.junit.jupiter.api.AfterEach;\nimport org.junit.jupiter.api.BeforeAll;\nimport org.junit.jupiter.api.BeforeEach;\nimport org.junit.jupiter.api.Test;\n\nimport main.Appointment;\nimport main.AppointmentService;\n\nclass AppointmentServiceTest {\n\n    private static AppointmentService appointmentService;\n    \n    @BeforeAll\n    static void setUp() {\n        appointmentService = AppointmentService.getService();\n    }\n    \n    @Test\n    void testAddAppointmentSuccess() throws ParseException {\n        Appointment appointment = new Appointment(&quot;123456&quot;, &quot;2022-10-01&quot;, &quot;Appointment Description String&quot;);\n        assertTrue(appointmentService.addAppointment(appointment));\n        \n        Appointment cachedAppointment = appointmentService.getAppointment(appointment.getAppointmentId());\n        \n        assertTrue(cachedAppointment != null);\n        assertTrue(cachedAppointment.getAppointmentId().equals(&quot;123456&quot;));\n        assertTrue(cachedAppointment.getAppointmentDate().equals(&quot;2022-10-01&quot;));\n        assertTrue(cachedAppointment.getAppointmentDescription().equals(&quot;Appointment Description String&quot;)); \n    }\n    \n    @Test\n    void testAddMultipleAppointmentsSuccess() throws ParseException {\n        Appointment appointment1 = new Appointment(&quot;123456&quot;, &quot;2022-10-01&quot;, &quot;Appointment Description String&quot;);\n        Appointment appointment2 = new Appointment(&quot;1234567&quot;, &quot;2022-10-02&quot;, &quot;Appointment Description String2&quot;);\n        \n        assertTrue(appointmentService.addAppointment(appointment1));\n        Appointment cachedAppointment1 = appointmentService.getAppointment(appointment1.getAppointmentId());\n        \n        assertTrue(cachedAppointment1 != null);\n        assertTrue(cachedAppointment1.getAppointmentId().equals(&quot;123456&quot;));\n        assertTrue(cachedAppointment1.getAppointmentDate().equals(&quot;2022-10-01&quot;));\n        assertTrue(cachedAppointment1.getAppointmentDescription().equals(&quot;Appointment Description String&quot;));    \n        \n        assertTrue(appointmentService.addAppointment(appointment2));\n        Appointment cachedAppointment2 = appointmentService.getAppointment(appointment1.getAppointmentId());\n        \n        assertTrue(cachedAppointment2 != null);\n        assertTrue(cachedAppointment2.getAppointmentId().equals(&quot;1234567&quot;));\n        assertTrue(cachedAppointment2.getAppointmentDate().equals(&quot;2022-10-02&quot;));\n        assertTrue(cachedAppointment2.getAppointmentDescription().equals(&quot;Appointment Description String2&quot;));\n        \n    }\n    \n    @Test\n    void testAddAppoitnmentDuplicateIdFail() throws ParseException {\n        Appointment appointment1 = new Appointment(&quot;123456&quot;, &quot;2022-10-01&quot;, &quot;Appointment Description String&quot;);\n        Appointment appointment2 = new Appointment(&quot;123456&quot;, &quot;2022-10-01&quot;, &quot;Appointment Description String&quot;);\n\n\n        assertTrue(appointmentService.addAppointment(appointment1));\n        assertFalse(appointmentService.addAppointment(appointment2));\n    }\n    \n    @Test\n    void testGetAppointmentAndUpdateSuccess() throws ParseException {\n        Appointment appointment = new Appointment(&quot;123456&quot;, &quot;2022-10-01&quot;, &quot;Appointment Description String&quot;);\n        assertTrue(appointmentService.addAppointment(appointment));\n        \n        Appointment updatedAppointment = appointmentService.getAppointment(appointment.getAppointmentId());\n        updatedAppointment.setAppointmentDate(&quot;2022-10-02&quot;);\n        updatedAppointment.setAppointmentDescription(&quot;New Description&quot;);\n        \n        updatedAppointment = appointmentService.getAppointment(updatedAppointment.getAppointmentId());\n        \n        assertTrue(updatedAppointment.getAppointmentDescription().equals(&quot;New Description&quot;));\n        assertTrue(updatedAppointment.getAppointmentDate().equals(&quot;2022-10-02&quot;));\n    }\n    \n    @Test\n    void testGetAppointmentAndDeleteSuccess() throws ParseException {\n        Appointment appointment = new Appointment(&quot;123456&quot;, &quot;2022-10-01&quot;, &quot;Appointment Description String&quot;);\n        \n        assertTrue(appointmentService.addAppointment(appointment));\n        \n        appointment = appointmentService.getAppointment(appointment.getAppointmentId());\n        assertTrue(appointment != null);\n        \n        assertTrue(appointmentService.deleteAppointment(appointment.getAppointmentId()));\n        assertTrue(appointmentService.getAppointment(appointment.getAppointmentId()) == null);\n    }\n    \n    @Test\n    void testDeleteInvalidAppointmentFail() {\n        String invalidAppointmentIdString = &quot;123&quot;;\n        \n        assertFalse(appointmentService.deleteAppointment(invalidAppointmentIdString));\n    }\n</code></pre>\n<p>And the AppointmentService Class</p>\n<pre><code>\nimport java.util.HashMap;\nimport java.util.Map;\n\npublic class AppointmentService {\n\n    private static AppointmentService reference = new AppointmentService();\n    private final Map&lt;String, Appointment&gt; appointmentList;\n    \n    AppointmentService() {\n        this.appointmentList = new HashMap&lt;String, Appointment&gt;();\n    }\n    \n    public static AppointmentService getService() {\n        return reference;\n    }\n    \n    public boolean addAppointment(Appointment appointment) {\n        boolean isSuccess = false;\n        \n        if(!appointmentList.containsKey(appointment.getAppointmentId())) {\n            appointmentList.put(appointment.getAppointmentId(), appointment);\n            isSuccess = true;\n        }\n        return isSuccess;\n    }\n    \n    public boolean deleteAppointment(String appointmentId) {\n        return appointmentList.remove(appointmentId) != null;\n    }\n    \n    public Appointment getAppointment(String appointmentId) {\n        return appointmentList.get(appointmentId);\n    }\n    \n}\n\n\n \n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 11890894,
+        "reputation": 163,
+        "user_id": 8701784,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/2d2167574eb1939f57d3de13de702b4c?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Yakim",
+        "link": "https://stackoverflow.com/users/8701784/yakim"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1764319355,
+      "last_edit_date": 1764319355,
+      "creation_date": 1633239045,
+      "answer_id": 69422316,
+      "question_id": 69422083,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Remove static in here</p>\n<pre><code>private static AppointmentService appointmentService;\n</code></pre>\n<p>And for <code>setUp</code> method too. Also change <code>@BeforeAll</code> to <code>@BeforeEach</code> it will make create new <code>appointmentService</code> for each test to isolate test cases.</p>\n<p>Also, if there is no reason to have reference as static then it's better to refactor (get rid of static reference). Self-made singleton is kind of anti-pattern.\nNow when code calls <code>getReference</code> it always returns the same instance, that's why it does not work while running all tests.</p>\n<p>See also <a href=\"https://docs.oracle.com/javase/tutorial/java/javaOO/classvars.html\" rel=\"nofollow noreferrer\">https://docs.oracle.com/javase/tutorial/java/javaOO/classvars.html</a>\nI hope it helps</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 2691023,
+        "reputation": 17967,
+        "user_id": 2324388,
+        "user_type": "registered",
+        "accept_rate": 41,
+        "profile_image": "https://i.sstatic.net/RdjjJ.jpg?s=256",
+        "display_name": "Marian Kl&#252;hspies",
+        "link": "https://stackoverflow.com/users/2324388/marian-kl%c3%bchspies"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1704383443,
+      "creation_date": 1704383443,
+      "answer_id": 77759536,
+      "question_id": 69422083,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Although it is unrelated to your exact issue, I've faced the same side effects and found the cause.</p>\n<p>A part of the code is <strong>comparing two Calendar objects with equals</strong> that causes the JUnit test to fail when all class tests are running, and it succeeds when running in isolation.</p>\n<p>It also works when I'm using</p>\n<blockquote>\n<p>@TestMethodOrder(MethodOrderer.MethodName.class)</p>\n</blockquote>\n<p>And put the failing test method on position 1 in the class.</p>\n<p><strong>As it is a legacy project, and we are stuck with Calendar for now, I'm at least converting it to LocalDate in this case to do the comparison without side effects.</strong></p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 12632991,
+        "reputation": 21,
+        "user_id": 9183605,
+        "user_type": "registered",
+        "profile_image": "https://lh5.googleusercontent.com/-1qQYQD6E_Oo/AAAAAAAAAAI/AAAAAAAAAA0/q6A3mR6mh4U/s256-rj/photo.jpg",
+        "display_name": "Th3Arock",
+        "link": "https://stackoverflow.com/users/9183605/th3arock"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1686656022,
+      "creation_date": 1686656022,
+      "answer_id": 76464505,
+      "question_id": 69422083,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Use @beforeEach instead @beforeAll</p>\n<pre><code>@BeforeAll\n    static void setUp() {\n        appointmentService = AppointmentService.getService();\n    }\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 6645863,
+        "reputation": 717,
+        "user_id": 5129997,
+        "user_type": "registered",
+        "accept_rate": 75,
+        "profile_image": "https://www.gravatar.com/avatar/44fc02fa3619f94b9c6dafed7b72d063?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "THe_strOX",
+        "link": "https://stackoverflow.com/users/5129997/the-strox"
+      },
+      "is_accepted": false,
+      "score": 4,
+      "last_activity_date": 1633235623,
+      "creation_date": 1633235623,
+      "answer_id": 69422096,
+      "question_id": 69422083,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>You are using same <code>appointmentService</code> instance for your 2 test and adding the appointment with same id (&quot;123456&quot;) in your 2 test. So, when tests are ran together, you next test will always fail as you are assuming that the id &quot;123456&quot; is not present in second test, but it is.</p>\n<p>You should create a new <code>appointmentService</code> for each test as unit test = test in isolation, especially when your testing instance has some states.</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "69422316": [
+      {
+        "owner": {
+          "account_id": 19552430,
+          "reputation": 51,
+          "user_id": 14307685,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/7kIvc.jpg?s=256",
+          "display_name": "EEngvall",
+          "link": "https://stackoverflow.com/users/14307685/eengvall"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1633281332,
+        "post_id": 69422316,
+        "comment_id": 122712576,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 11890894,
+          "reputation": 163,
+          "user_id": 8701784,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/2d2167574eb1939f57d3de13de702b4c?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "Yakim",
+          "link": "https://stackoverflow.com/users/8701784/yakim"
+        },
+        "reply_to_user": {
+          "account_id": 19552430,
+          "reputation": 51,
+          "user_id": 14307685,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/7kIvc.jpg?s=256",
+          "display_name": "EEngvall",
+          "link": "https://stackoverflow.com/users/14307685/eengvall"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1633260622,
+        "post_id": 69422316,
+        "comment_id": 122707513,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 19552430,
+          "reputation": 51,
+          "user_id": 14307685,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/7kIvc.jpg?s=256",
+          "display_name": "EEngvall",
+          "link": "https://stackoverflow.com/users/14307685/eengvall"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1633244292,
+        "post_id": 69422316,
+        "comment_id": 122704298,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "77759536": [],
+    "76464505": [],
+    "69422096": [
+      {
+        "owner": {
+          "account_id": 19552430,
+          "reputation": 51,
+          "user_id": 14307685,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/7kIvc.jpg?s=256",
+          "display_name": "EEngvall",
+          "link": "https://stackoverflow.com/users/14307685/eengvall"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1633281422,
+        "post_id": 69422096,
+        "comment_id": 122712595,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 6645863,
+          "reputation": 717,
+          "user_id": 5129997,
+          "user_type": "registered",
+          "accept_rate": 75,
+          "profile_image": "https://www.gravatar.com/avatar/44fc02fa3619f94b9c6dafed7b72d063?s=256&d=identicon&r=PG&f=y&so-version=2",
+          "display_name": "THe_strOX",
+          "link": "https://stackoverflow.com/users/5129997/the-strox"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1633270879,
+        "post_id": 69422096,
+        "comment_id": 122709791,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 19552430,
+          "reputation": 51,
+          "user_id": 14307685,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/7kIvc.jpg?s=256",
+          "display_name": "EEngvall",
+          "link": "https://stackoverflow.com/users/14307685/eengvall"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1633236335,
+        "post_id": 69422096,
+        "comment_id": 122703335,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 6520,
+          "reputation": 11634,
+          "user_id": 11002,
+          "user_type": "registered",
+          "accept_rate": 75,
+          "profile_image": "https://www.gravatar.com/avatar/e442a53d36f9351aee11b5ecb8369691?s=256&d=identicon&r=PG",
+          "display_name": "tgdavies",
+          "link": "https://stackoverflow.com/users/11002/tgdavies"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1633235838,
+        "post_id": 69422096,
+        "comment_id": 122703259,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

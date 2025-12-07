@@ -1,0 +1,166 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "methods",
+      "formatting"
+    ],
+    "owner": {
+      "account_id": 44828736,
+      "reputation": 1,
+      "user_id": 31957122,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/59d44815278583ba65a2cb99a14ce92e?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Fatko",
+      "link": "https://stackoverflow.com/users/31957122/fatko"
+    },
+    "is_answered": true,
+    "view_count": 102,
+    "closed_date": 1764927331,
+    "answer_count": 1,
+    "score": -7,
+    "last_activity_date": 1764414624,
+    "creation_date": 1764266863,
+    "last_edit_date": 1764414624,
+    "question_id": 79831997,
+    "link": "https://stackoverflow.com/questions/79831997/formatting-the-first-symbol-of-a-string-to-be-upper-case-a-private-method-or-f",
+    "closed_reason": "Opinion-based",
+    "title": "Formatting the first symbol of a string to be upper case - a private method or formatting on the go?",
+    "body": "<p>In a class that has a bunch of functions, should I be making a separate private method specifically for formatting or should I just be formatting in every function that requires a string to be formatted?</p>\n<p>Method for formatting:</p>\n<pre class=\"lang-java prettyprint-override\"><code>private String formatItemName(String item) {\n    item = item.toLowerCase();                     // make all letters lowercase\n    return item.substring(0, 1).toUpperCase()      // capitalize first letter\n            + item.substring(1);                   // add the rest\n}\n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 162699,
+        "reputation": 141035,
+        "user_id": 3788176,
+        "user_type": "registered",
+        "accept_rate": 54,
+        "profile_image": "https://www.gravatar.com/avatar/44c841338e1646af9a977f1fa0e23948?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Andy Turner",
+        "link": "https://stackoverflow.com/users/3788176/andy-turner"
+      },
+      "is_accepted": false,
+      "score": 3,
+      "last_activity_date": 1764335544,
+      "last_edit_date": 1764335544,
+      "creation_date": 1764335074,
+      "answer_id": 79832569,
+      "question_id": 79831997,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>I would absolutely expect that to be in a separate method.</p>\n<p>That's not a trivial bit of code - remember that every bit of code you write has the potential for a mistake in it - perhaps you forget to call the <code>.toLowerCase()</code>, perhaps you get your indexes wrong etc etc.</p>\n<p>It's much more reliable to define a method with the logic, then you can refer to it by just a name. Of course, you can still get that name wrong - but the compiler will help you to know it's wrong (unless the wrong name <em>also</em> happens to be a symbol in scope).</p>\n<hr />\n<p>Also, a method makes it much easier to deal with the fact you realize missing requirements of the logic:</p>\n<ul>\n<li>How should it deal with an empty string?</li>\n<li>How should it deal with the case where the first codepoint isn't a single character</li>\n<li>What locale should the upper/lower casing be done in?</li>\n</ul>\n<p>All of these things require you to write extra code at the place where you need to make the transformation; and it will quickly become unwieldy both to write it in those places, and to update all of the places where it's currently &quot;wrong&quot;.</p>\n<hr />\n<p>While &quot;avoiding mistakes&quot; and &quot;handling changing requirements&quot; are strong enough reasons by themselves, I think that there's a stronger reason: defining and invoking the method <em>gives you a stronger sense of the semantics of what you're doing</em>.</p>\n<p>By this, I mean that your code is non-obvious in what it's doing. Sure, it's uppercasing the first letter, lowercasing the rest; but that's not telling you anything about <em>why</em> you want to do that.</p>\n<p>As an example, we use <code>Math.PI</code> to represent the mathematical constant π in our code. There's nothing better in any way vs using a double literal with the same exact value, functionally; but it's just easier to deal with code that says <code>2 * Math.PI * r</code> than <code>2 * 3.1415926535897932384626433832795028841971693993751058209749445923078164062 * r</code> (<a href=\"https://stackoverflow.com/questions/507819/pi-and-accuracy-of-a-floating-point-number\">source</a>) - I don't have to look at it and think &quot;oh, that double is equal to π&quot;; or &quot;are all of those decimal places representable in double precision?&quot;; or &quot;is that value right?&quot;. I can understand the code through the abstract concept of π that I have known since school.</p>\n<p>Similarly, if you have a method called <code>formatItemName</code>, you can (reasonably) assume that the purpose of the method is for 1) formatting; 2) the name; 3) of an item. This might sound so obvious that it doesn't need to be stated; but that's the whole point: the code becomes so obvious that you hardly need to think about it.</p>\n<p>It also tells you several things:</p>\n<ul>\n<li>That the thing that you pass into it should be <em>something related to an item</em> (whatever &quot;item&quot; is)</li>\n<li>That the place that you are using the value is something related to the name of an item.</li>\n</ul>\n<p>These can be really valuable pieces of information when you are coming to look at a piece of code: it makes you think things like:</p>\n<ul>\n<li>&quot;oh, this code is about <em>items</em>. I wonder (or I know) what an <em>item</em> is&quot;</li>\n<li>&quot;this table is meant to show ID and item name; but it's putting in the item name then the ID&quot;</li>\n<li>&quot;huh, that's odd, you're passing in your dog's name as the argument, but a dog isn't an item&quot;</li>\n</ul>\n<p>etc etc. It's a semantic abstraction of the concepts your code is dealing with, that makes it much easier to work with.</p>\n<p>Because of the value of this semantic abstraction, you don't have to wait for you to need code more than once to write a method: even needing it just once can warrant writing a method, if it clarifies the semantics of the place you need to use it.</p>\n<p>And there's a flip side to this as well: if you have the same logic <em>but it's representing two separate semantic concepts</em>, define separate methods. For example, if you wanted to format colour names and dog names in the same way, don't try to smush those together into the same <code>formatThingName</code> or <code>formatColourOrDogName</code> - two separate methods, <code>formatColourName</code> and <code>formatDogName</code>, will be better.</p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 162699,
+        "reputation": 141035,
+        "user_id": 3788176,
+        "user_type": "registered",
+        "accept_rate": 54,
+        "profile_image": "https://www.gravatar.com/avatar/44c841338e1646af9a977f1fa0e23948?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Andy Turner",
+        "link": "https://stackoverflow.com/users/3788176/andy-turner"
+      },
+      "edited": false,
+      "score": 2,
+      "creation_date": 1764327233,
+      "post_id": 79831997,
+      "comment_id": 140877346,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 322981,
+        "reputation": 346871,
+        "user_id": 642706,
+        "user_type": "registered",
+        "accept_rate": 58,
+        "profile_image": "https://i.sstatic.net/ZWEI3.jpg?s=256",
+        "display_name": "Basil Bourque",
+        "link": "https://stackoverflow.com/users/642706/basil-bourque"
+      },
+      "edited": false,
+      "score": 4,
+      "creation_date": 1764297435,
+      "post_id": 79831997,
+      "comment_id": 140876864,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 322981,
+        "reputation": 346871,
+        "user_id": 642706,
+        "user_type": "registered",
+        "accept_rate": 58,
+        "profile_image": "https://i.sstatic.net/ZWEI3.jpg?s=256",
+        "display_name": "Basil Bourque",
+        "link": "https://stackoverflow.com/users/642706/basil-bourque"
+      },
+      "edited": false,
+      "score": 2,
+      "creation_date": 1764297427,
+      "post_id": 79831997,
+      "comment_id": 140876863,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 322981,
+        "reputation": 346871,
+        "user_id": 642706,
+        "user_type": "registered",
+        "accept_rate": 58,
+        "profile_image": "https://i.sstatic.net/ZWEI3.jpg?s=256",
+        "display_name": "Basil Bourque",
+        "link": "https://stackoverflow.com/users/642706/basil-bourque"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1764297378,
+      "post_id": 79831997,
+      "comment_id": 140876861,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 3758602,
+        "reputation": 10378,
+        "user_id": 3124333,
+        "user_type": "registered",
+        "accept_rate": 100,
+        "profile_image": "https://www.gravatar.com/avatar/51c25e0ab30c1059996d914d47ce5b26?s=256&d=identicon&r=PG",
+        "display_name": "SiKing",
+        "link": "https://stackoverflow.com/users/3124333/siking"
+      },
+      "edited": false,
+      "score": 4,
+      "creation_date": 1764282904,
+      "post_id": 79831997,
+      "comment_id": 140876727,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 22124137,
+        "reputation": 4244,
+        "user_id": 16376827,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/1ImPw.png?s=256",
+        "display_name": "g00se",
+        "link": "https://stackoverflow.com/users/16376827/g00se"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1764271049,
+      "post_id": 79831997,
+      "comment_id": 140876582,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79832569": []
+  }
+}

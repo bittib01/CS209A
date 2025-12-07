@@ -1,0 +1,51 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "micrometer-tracing"
+    ],
+    "owner": {
+      "account_id": 6070104,
+      "reputation": 2053,
+      "user_id": 4739210,
+      "user_type": "registered",
+      "accept_rate": 0,
+      "profile_image": "https://graph.facebook.com/100004607761385/picture?type=large",
+      "display_name": "Aymen Kanzari",
+      "link": "https://stackoverflow.com/users/4739210/aymen-kanzari"
+    },
+    "is_answered": false,
+    "view_count": 37,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1763544526,
+    "creation_date": 1763544526,
+    "question_id": 79824268,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79824268/micrometer-tracing-traceid-changes-when-request-passes-through-filter-in-spring",
+    "title": "Micrometer Tracing: TraceId changes when request passes through filter in Spring Boot + Tomcat",
+    "body": "<p>I'm using Spring Boot 3.5.7 with Micrometer Tracing (OpenTelemetry bridge) to add a traceId to my logs. I have a REST endpoint and a custom filter like this:</p>\n<pre><code>@RestController\n@RequestMapping(&quot;/api/auth&quot;)\n@RequiredArgsConstructor\npublic class AuthRestController {\n\n    private final PaymentService paymentService;\n\n    @PostMapping(&quot;/token&quot;)\n    public String generateToken(@RequestBody TokenRequest request) throws Exception {\n        return paymentService.createToken(request);\n    }\n}\n\n\n@Slf4j\n@RequiredArgsConstructor\npublic class RedisJwtAuthenticationFilter extends OncePerRequestFilter {\n\n    private final PaymentSessionService paymentSessionService;\n\n    @Override\n    protected void doFilterInternal(HttpServletRequest request,\n                                    HttpServletResponse response,\n                                    FilterChain filterChain)\n            throws ServletException, IOException {\n\n        String txn = request.getHeader(&quot;X-Transaction-Id&quot;);\n        log.info(&quot;FILTER THREAD = {}&quot;, Thread.currentThread().getName());\n\n        if (StringUtils.isNotBlank(txn)) {\n            if (!paymentSessionService.sessionExists(txn)) {\n                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);\n                return;\n            }\n        }\n\n        filterChain.doFilter(request, response);\n    }\n}\n\npublic boolean sessionExists(final String txn) {\n    log.info(&quot;REDIS THREAD = {}&quot;, Thread.currentThread().getName());\n\n    final String key = ENDA_TXN + txn;\n    try {\n        return Boolean.TRUE.equals(redisTemplate.hasKey(key));\n    } catch (DataAccessException e) {\n        throw new RedisUnavailableException(&quot;Redis is unavailable while checking the session&quot;, e);\n    }\n}\n\n@Bean\n@Order(2)\npublic SecurityFilterChain filterChain(HttpSecurity http,\n                                       ApplicationProperties applicationProperties,\n                                       AesGcmJwtDecoder aesGcmJwtDecoder,\n                                       JwtAuthenticationConverter jwtAuthenticationConverter,\n                                       RedisJwtAuthenticationFilter redisJwtAuthenticationFilter) throws Exception {\n    http\n            .cors(withDefaults())\n            .csrf(AbstractHttpConfigurer::disable)\n            .addFilterAfter(redisJwtAuthenticationFilter, SecurityContextHolderFilter.class)\n            .headers(headers -&gt;\n                    headers\n                            .contentSecurityPolicy(csp -&gt; csp.policyDirectives(applicationProperties.getSecurity().getContentSecurityPolicy()))\n                            .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)\n                            .referrerPolicy(referrer -&gt; referrer.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))\n                            .permissionsPolicyHeader(permissions -&gt;\n                                    permissions.policy(&quot;camera=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), sync-xhr=()&quot;)\n                            )\n            )\n            .authorizeHttpRequests(authz -&gt; authz\n                    .anyRequest().authenticated()\n            )\n            .sessionManagement(mgmt -&gt; mgmt.sessionCreationPolicy(SessionCreationPolicy.STATELESS))\n            .oauth2ResourceServer(oauth2 -&gt; oauth2\n                    .jwt(jwt -&gt; jwt\n                            .decoder(aesGcmJwtDecoder)\n                            .jwtAuthenticationConverter(jwtAuthenticationConverter)\n                    )\n            );\n\n    return http.build();\n}\n</code></pre>\n<p>Logs example:</p>\n<blockquote>\n<p>2025-11-19 09:47:31.611 [traceId: a5dba50bef617c87a]\n[http-nio-9008-exec-3] AuthRestController - Finish execution</p>\n</blockquote>\n<blockquote>\n<p>2025-11-19 09:47:31.629 [traceId: c2aa664e25e67da2]\n[http-nio-9008-exec-4] RedisJwtAuthenticationFilter - FILTER THREAD</p>\n</blockquote>\n<p>As you can see:</p>\n<p>The controller executes on http-nio-9008-exec-3</p>\n<p>The filter executes on http-nio-9008-exec-4</p>\n<p>Because of this thread change, Micrometer generates a new traceId, and I can't track the transaction across logs.</p>\n<p>Notes:</p>\n<p>I'm using Jedis / StringRedisTemplate in the filter (synchronous, blocking)</p>\n<p>I do not use @Async or CompletableFuture</p>\n<p>WebClient calls are .block()ed</p>\n<p>I also have @EnableAspectJAutoProxy(proxyTargetClass = true) but I don't think it causes this</p>\n<p>Question:</p>\n<p>Why does the thread change between the controller and my filter in Tomcat?</p>\n<p>How can I keep the same thread (or propagate the same traceId) across the filter and the controller for correct tracing?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 3192259,
+        "reputation": 126792,
+        "user_id": 2696260,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/qHEzx.png?s=256",
+        "display_name": "M. Deinum",
+        "link": "https://stackoverflow.com/users/2696260/m-deinum"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1763548874,
+      "post_id": 79824268,
+      "comment_id": 140862034,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {}
+}

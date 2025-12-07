@@ -1,0 +1,161 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "performance",
+      "file-io",
+      "stream",
+      "benchmarking"
+    ],
+    "owner": {
+      "account_id": 20205266,
+      "reputation": 19,
+      "user_id": 14819876,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/5498b2fe60e758c7f44020b3d78b4e3e?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "sebkaminski16",
+      "link": "https://stackoverflow.com/users/14819876/sebkaminski16"
+    },
+    "is_answered": true,
+    "view_count": 115,
+    "answer_count": 6,
+    "score": 0,
+    "last_activity_date": 1764853568,
+    "creation_date": 1763796572,
+    "last_edit_date": 1763803889,
+    "question_id": 79827180,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79827180/why-is-filereader-as-efficient-as-bufferedreader-in-reading-1kb-chunks-of-data",
+    "title": "Why is FileReader as efficient as BufferedReader in reading 1KB chunks of data?",
+    "body": "<p>I was trying to read data (chars) from a large text file (~250MB) in 1KB chunks and was very surprised that reading that file using either FileReader or BufferedReader takes exactly the same time, even though the BufferedReader has an internal 8KB character buffer, while FileReader doesn't.</p>\n<p>FileReader code:</p>\n<pre><code>File file = new File(&quot;250mbfile.txt&quot;);\nFileReader fileReader = new FileReader(file);\n\nchar[] charBuffer = new char[1024];\nwhile(fileReader.read(charBuffer, 0, 1024) != -1) {//...};\n</code></pre>\n<p>BufferedReader code:</p>\n<pre><code>File file = new File(&quot;250mbfile.txt&quot;);\nFileReader fileReader = new FileReader(file);\nBufferedReader  bufferedReader = new BufferedReader(fileReader);\n\nchar[] charBuffer = new char[1024];\nwhile(bufferedReader.read(charBuffer, 0, 1024) != -1) {//...};\n</code></pre>\n<p>JMH benchmark:</p>\n<pre><code>Benchmark                           Mode  Cnt     Score     Error  Units\nBenchmark.bufferedReaderCHARBUFFER  avgt    5  3878.794 ± 145.105  ms/op\nBenchmark.fileReaderCHARBUFFER      avgt    5  3968.835 ± 160.128  ms/op\n</code></pre>\n<p>Why do they both take the same time to complete the task? Since BufferedReader has an 8K character buffer, as I understand, it has to invoke underlaying InputStreamReader's decoding operations once per 8K bytes (it always fills the buffer fully). FileReader has to do the same once per 1K bytes (as specified in the snippets). Therefore, FileReader should be slower as more decoding operations have to be invoked. My only guess would be that the difference in the speeds of repeatedly  decoding 1K blocks of bytes and decoding 8K blocks of bytes is so extremely tiny that it's basically impossible to notice. To support this claim, I've made two additional JMH measurements:</p>\n<p>From the test &quot;CHARBUFFER_1K&quot;:</p>\n<pre><code>File file = new File(&quot;250mbfile.txt&quot;);\nFileReader fileReader = new FileReader(file);\n\nchar[] charBuffer = new char[1024];\nwhile(fileReader.read(charBuffer, 0, 1024) != -1) {//...};\n</code></pre>\n<p>From the test &quot;CHARBUFFER_8K&quot;:</p>\n<pre><code>File file = new File(&quot;250mbfile.txt&quot;);\nFileReader fileReader = new FileReader(file);\nBufferedReader bufferedReader = new BufferedReader(fileReader);\n\nchar[] charBuffer = new char[8192];\nwhile(bufferedReader.read(charBuffer, 0, 8192) != -1) {//...};\n</code></pre>\n<p>JMH:</p>\n<pre><code>Benchmark                  Mode  Cnt     Score     Error  Units\nBenchmark.CHARBUFFER_8K    avgt    5  3778.331 ± 143.736  ms/op\nBenchmark.CHARBUFFER_1K    avgt    5  3778.793 ± 134.118  ms/op\n\n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 5998820,
+        "reputation": 16284,
+        "user_id": 4712734,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/f6e922a2cb7e2da59286f27b162aaca5?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "DuncG",
+        "link": "https://stackoverflow.com/users/4712734/duncg"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1764853568,
+      "last_edit_date": 1764853568,
+      "creation_date": 1764853144,
+      "answer_id": 79837942,
+      "question_id": 79827180,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>You are calling <code>read(char[] cbuf, int off, int len)</code> before any content has been read into the internal buffer, so your test case does not use internal buffer of <code>BufferedReader</code> at all. Follow the source code, and you will see that when the internal buffer has no content, <code>BufferedReader</code> makes a direct call to <code>return in.read(cbuf, off, len)</code>. Thus the <code>FileReader</code> fills the passed <code>char[]</code> without any content being copied via the internal buffer and I would expect roughly similar performance. The code for JDK8 is similar to JDK25 for this call.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 1352170,
+        "reputation": 35259,
+        "user_id": 1291492,
+        "user_type": "registered",
+        "accept_rate": 100,
+        "profile_image": "https://www.gravatar.com/avatar/f914cd02166793195d9d950503f8f739?s=256&d=identicon&r=PG",
+        "display_name": "ControlAltDel",
+        "link": "https://stackoverflow.com/users/1291492/controlaltdel"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1763837737,
+      "creation_date": 1763837737,
+      "answer_id": 79827500,
+      "question_id": 79827180,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>There is a simple answer to your question, and that answer is that buffering the reader is good for doing <em>inefficient</em> reading (like reading line by line) if you just want to load the whole file (or another resource like an HTML page) and you know its length (length is included in HTML header information) you can just create a buffer this size and use inputstream.read(buffer)</p>\n<p>Readers in Java are for reading and converting text thatʼs been saved into a non-utf-8 format into chars and Strings that Java uses (and also for reading images and other binary data in different flavors)</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 401843,
+        "reputation": 107175,
+        "user_id": 768644,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/b13bedc5215730fbce5edff6c130988a?s=256&d=identicon&r=PG",
+        "display_name": "rzwitserloot",
+        "link": "https://stackoverflow.com/users/768644/rzwitserloot"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1763822066,
+      "creation_date": 1763822066,
+      "answer_id": 79827372,
+      "question_id": 79827180,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Now try it with a 1-byte 'buffer' for your <code>FileReader</code>. This should be reposted, as @PeterCordes mentioned. The things OP seems to be unaware of:</p>\n<ul>\n<li><p>The primary slowdown in the chain is the disk system; most disks can only return data in chunks (exactly how large a chunk is depends on the hardware), but various implementations of <code>InputStream</code> will refuse to buffer a chunk because that's not their job. If you call <code>read()</code> (or <code>read(arr)</code> with a very small array, much smaller than 1kb), then the system ends up reading a chunk, and then discards all data in that chunk except the 1 byte actually needed right at that moment. Looping through an 4kb file, on a system that has 8kb chunks, thus means the disk reads 32MB (yes that's an M) in 4000 requests, wheras it could have been done reading 8kb in 1 request. BufferedReader solves that by 'adding' such buffers. If you're already calling <code>read(arr)</code> with a reasonable array size (and 1kb is on the low end, but close enough), then this factor disappears. And this factor is overwhelmingly the thing BufferedReader is <em>for</em>.</p>\n</li>\n<li><p>I'm not even sure if FileReader is one of those implementations that buffers or not. It might itself also buffer.</p>\n</li>\n<li><p>The 'efficiency' gain for allowing the charset encoder to operate on an 8kb chunk instead of an 1kb is irrelevant and immeasurable.</p>\n</li>\n</ul>\n"
+    },
+    {
+      "owner": {
+        "account_id": 2182934,
+        "reputation": 2660,
+        "user_id": 1932011,
+        "user_type": "registered",
+        "accept_rate": 71,
+        "profile_image": "https://www.gravatar.com/avatar/612163480a1ccb4785fd647a003eefbb?s=256&d=identicon&r=PG",
+        "display_name": "JayC667",
+        "link": "https://stackoverflow.com/users/1932011/jayc667"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1763818043,
+      "creation_date": 1763818043,
+      "answer_id": 79827347,
+      "question_id": 79827180,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>It would be really interesting to see the full JMH code.</p>\n<p>Because repeated reading should improve a little bit (OS calls by x8).</p>\n<p>But we don't know whether you put only the reading part in a loop, or the whole &quot;open files, allocate buffers, read&quot; shebang. The secondary will be unable to show any differences, because a) allocating file access and buffers is so much slower than reading, so overshadowing the actual operation you're looking at, and b) The block is small enough (1KB) to be read by the OS in one sweep, also preventing differences in timing.</p>\n<p>But one thing up front: Reading in (sufficiently large) blocks will in fact do the same job as <code>BufferedXXX</code> does.</p>\n<p>On modern systems, the optimal cache size is surprisingly small (Win10: 8KB for reads, 200KB for writes), due to all the other caching and buffering going on, by the OS itself and especially on SSDs.</p>\n<p>So the strengths of <code>BufferedXXX</code> really start to shine when reading single bytes, like on <code>DataInpuStream</code> or <code>ObjectInputStream</code>.</p>\n<p>If you want to get a good estimate of how close you get your app to max possible performance, you'd have to check out the system calls made by your app. Use a tool like procmon (Windows) for example, or write a custom <code>InpuStream</code> wrapper class, that counts singular accesses onto the original <code>InputStream</code> (in your case the FileReader -&gt; InputStreamReader -&gt; FileInputStream).</p>\n<p>Using those analytics, I had an app loading 1 TB data via DataInputStream (basically doing the job of an <code>ObjectInputStream</code> with custom deserialization), and could speed that up by a factor of ~200 just with the use of <code>BufferedXXX</code> and the proper buffer sizes (as above).</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 78868,
+        "reputation": 377220,
+        "user_id": 224132,
+        "user_type": "registered",
+        "accept_rate": 83,
+        "profile_image": "https://i.sstatic.net/N4ivW.png?s=256",
+        "display_name": "Peter Cordes",
+        "link": "https://stackoverflow.com/users/224132/peter-cordes"
+      },
+      "is_accepted": false,
+      "score": 6,
+      "last_activity_date": 1763818018,
+      "creation_date": 1763818018,
+      "answer_id": 79827345,
+      "question_id": 79827180,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>This isn't an opinion-based question.  You should delete it an re-post as a normal question that can be answered properly.</p>\n<p>(Stack Overflow is running a badly-designed experiment which misleads people into asking questions like this as opinion-based, not real questions. <a href=\"https://meta.stackoverflow.com/questions/435293/opinion-based-questions-alpha-experiment-on-stack-overflow\">Opinion-based questions alpha experiment on Stack Overflow</a>. Some of the designers of this thought that debugging questions were the only kind of normal questions previously allowed, or something like that. Many at SO are completely out of touch with the community that actually uses Stack Overflow. Also, they started this experiment without the ability to flip a question from this bad format to normal Q&amp;A.)</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 22124137,
+        "reputation": 4244,
+        "user_id": 16376827,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/1ImPw.png?s=256",
+        "display_name": "g00se",
+        "link": "https://stackoverflow.com/users/16376827/g00se"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1763816365,
+      "creation_date": 1763816365,
+      "answer_id": 79827327,
+      "question_id": 79827180,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p><em>...as I understand, it has to invoke underlaying InputStreamReader's decoding operations once per 8K bytes</em></p>\n<p>No. A decoding operation is applied to each byte, so it has little to do with the size of the buffer. The size of the buffer only affects the frequency of disk reads (assuming file storage). Your <code>FileReader</code> is highly likely to buffer the same amount of data at the OS IO level, which is likely to be why little difference is to be perceived from using <code>BufferedReader</code></p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79837942": [],
+    "79827500": [],
+    "79827372": [],
+    "79827347": [],
+    "79827345": [],
+    "79827327": []
+  }
+}

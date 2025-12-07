@@ -1,0 +1,78 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "events",
+      "apache-flink",
+      "stream-processing"
+    ],
+    "owner": {
+      "account_id": 16501325,
+      "reputation": 1,
+      "user_id": 11922563,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/541aae0042f89392d204991740aaa2d9?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Kvn",
+      "link": "https://stackoverflow.com/users/11922563/kvn"
+    },
+    "is_answered": true,
+    "view_count": 103,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1762624703,
+    "creation_date": 1762516181,
+    "last_edit_date": 1762516245,
+    "question_id": 79812300,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79812300/is-it-safe-to-mutate-emit-and-snapshot-the-same-operator-state-instance-in-apa",
+    "title": "Is it safe to mutate, emit, and snapshot the same operator-state instance in Apache Flink?",
+    "body": "<p>I'm building a single global Topology object in a non-keyed ProcessFunction with parallelism = 1. I keep it as a local mutable object and update it for every input event using <code>topology.apply(GnmiEvent)</code>. After updating the local topology I call <code>out.collect(topology)</code> to emit the current view. I broadcast that output downstream.</p>\n<ol>\n<li>If I call <code>out.collect(topology)</code> and later mutate the same topology instance for subsequent events (via the <code>apply</code> method), can downstream (chained) operators or sinks observe those later mutations for the previously emitted object? I guess it should be okay in this case because I broadcast it directly? But what would happen if I added another operator that doesn't imply a network shuffle? Under which conditions does that happen (chaining vs network boundaries / parallelism)? Do I need to deep-copy the state before emitting?</li>\n<li>Does <code>topologyState.add(topology)</code> in <code>snapshotState()</code> create a safe deep copy for common backends (HashMapStateBackend/Heap vs RocksDB)? Should I defensively copy when snapshotting or when emitting?</li>\n</ol>\n<pre class=\"lang-java prettyprint-override\"><code>public class TopologyProcessFunction\n        extends ProcessFunction&lt;GnmiEvent, Topology&gt;\n        implements CheckpointedFunction {\n\n    private Topology topology;\n    private transient ListState&lt;Topology&gt; topologyState;\n\n    @Override\n    public void initializeState(FunctionInitializationContext context) throws Exception {\n        ListStateDescriptor&lt;Topology&gt; descriptor =\n            new ListStateDescriptor&lt;&gt;(&quot;topology-state&quot;, Topology.class);\n        topologyState = context.getOperatorStateStore().getListState(descriptor);\n        if (context.isRestored()) {\n            topology = getTopologyFromState();\n        }\n    }\n\n    @Override\n    public void processElement(GnmiEvent gnmiEvent,\n                               Context ctx,\n                               Collector&lt;Topology&gt; out) {\n        if (topology == null) {\n            topology = new Topology();\n        }\n        topology.apply(gnmiEvent);\n        out.collect(topology);\n    }\n\n    @Override\n    public void snapshotState(FunctionSnapshotContext context) throws Exception {\n        if (topology != null) {\n            topologyState.clear();\n            topologyState.add(topology);\n        }\n    }\n\n    private Topology getTopologyFromState() throws Exception {\n        Iterator&lt;Topology&gt; it = topologyState.get().iterator();\n        return it.hasNext() ? it.next() : null;\n    }\n}\n</code></pre>\n<p>The only thing I found is this: <a href=\"https://stackoverflow.com/a/66597952/11922563\">https://stackoverflow.com/a/66597952/11922563</a>\nBut as a Flink novice I couldn't quite understand if this actually answers/applies to my question.</p>\n<p>Thank you in advance!</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 82425,
+        "reputation": 9560,
+        "user_id": 231762,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/b5d195db362831baf779f0e4b491c68a?s=256&d=identicon&r=PG",
+        "display_name": "kkrugler",
+        "link": "https://stackoverflow.com/users/231762/kkrugler"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1762624703,
+      "creation_date": 1762624703,
+      "answer_id": 79814361,
+      "question_id": 79812300,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>If the object reuse configuration parameter is false, then you are safe calling <code>.collect()</code>, as Flink will call the <code>serializer.copy()</code> method, which will make a deep copy. If object reuse is enabled, then things get complicated, as seemingly innocuous actions like a branch in your <code>DataStream</code> can implicitly cause objects to be shared across operators. This is why it's disabled by default.</p>\n<p>Separately, when you call <code>topologyState.add(topology)</code>, if the state backend is <code>HashMapStateBackend</code>, then no copy is made. This isn't the case with <code>RocksDB</code>, as state objects are always serialized to bytes.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 268602,
+        "reputation": 76910,
+        "user_id": 557445,
+        "user_type": "registered",
+        "accept_rate": 100,
+        "profile_image": "https://i.sstatic.net/M6iZ3z7p.jpg?s=256",
+        "display_name": "Rion Williams",
+        "link": "https://stackoverflow.com/users/557445/rion-williams"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1762568398,
+      "last_edit_date": 1762568398,
+      "creation_date": 1762532591,
+      "answer_id": 79812566,
+      "question_id": 79812300,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p><strong>tl;dr: It depends on the operations being performed and if object-reuse is enabled. In general Flink will err towards immutability (especially around network-edge operations) but defensively copying can be a valid option to avoid that.</strong></p>\n<p>In general -- when you emit an object from an operator, you can think of the object as being immutable (or a new copy altogether). Any mutable operations that are performed will not affect previously emitted instances, only those <em>after</em> the operation occurred.</p>\n<p>The big caveat here is if you have object reuse enabled (i.e. <code>pipeline.object-reuse: true</code>). As you might imagine this can yield significant performance benefits, but also breaks the promise of immutability so your upstream operations <em>can</em> potentially affect downstream instances.</p>\n<p>As far as your questions are concerned:</p>\n<blockquote>\n<p>If I call out.collect(topology) and later mutate the same topology instance for subsequent events (via the apply method), can downstream (chained) operators or sinks observe those later mutations for the previously emitted object?</p>\n</blockquote>\n<p>Object reuse is disabled by default (unless you use the previously mentioned configuration to change that). When disabled, Flink will defensively handle these emissions on its own, however you can see the changes reflected (depending on the type of operation) downstream if enabled.</p>\n<blockquote>\n<p>But what would happen if I added another operator that doesn't imply a network shuffle? Under which conditions does that happen (chaining vs network boundaries / parallelism)? Do I need to deep-copy the state before emitting?</p>\n</blockquote>\n<p>As mentioned earlier the <em>type</em> of operation can affect this depending on if there's a network edge/serde process:</p>\n<ul>\n<li>Keying, explicit shuffles, rebalancing, changing parallelism, etc. will all perform the serialization chain and result in a separate, distinct new object being omitted (e.g. you won't see the changes reflected)</li>\n<li>Other options (such as map, filter, etc.) will potentially reflect your changes if object-reuse is enabled.</li>\n</ul>\n<blockquote>\n<p>Do I need to deep-copy the state before emitting?</p>\n</blockquote>\n<p>If you want to absolutely ensure that downstream records are immutable and don't reflect the changes, you can consider doing this. By default, Flink will handle this safely when object-reuse is disabled (default) around major operations (e.g., keying, shuffles, rebalances, etc.).</p>\n<blockquote>\n<p>Does topologyState.add(topology) in snapshotState() create a safe deep copy for common backends (HashMapStateBackend/Heap vs RocksDB)? Should I defensively copy when snapshotting or when emitting?</p>\n</blockquote>\n<p>Yes, I believe you are safe in this situation and shouldn't require a defensive copy operation. The only caveat to this would be if you are doing something gnarly like using a separate thread to perform some operation on the object within the operator that could potentially change it.</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79814361": [],
+    "79812566": []
+  }
+}

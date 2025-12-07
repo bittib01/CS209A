@@ -1,0 +1,58 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "jpa",
+      "spring-data-jpa"
+    ],
+    "owner": {
+      "account_id": 23153848,
+      "reputation": 33,
+      "user_id": 19284946,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/ttEG7.jpg?s=256",
+      "display_name": "Rikelo",
+      "link": "https://stackoverflow.com/users/19284946/rikelo"
+    },
+    "is_answered": true,
+    "view_count": 203,
+    "accepted_answer_id": 79812539,
+    "answer_count": 3,
+    "score": 2,
+    "last_activity_date": 1762531641,
+    "creation_date": 1762001683,
+    "last_edit_date": 1762162474,
+    "question_id": 79806535,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79806535/jpa-recursive-hierarchy-read-stackoverflowerror-with-fetchtype-eager-but-lazyi",
+    "title": "JPA recursive hierarchy read - StackOverflowError with FetchType.EAGER but LazyInitializationException with FetchType.LAZY",
+    "body": "<p>I'm working with these entities:</p>\n<p>UserEntity:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Entity\n@Table (name = &quot;users&quot;, uniqueConstraints = @UniqueConstraint(columnNames={&quot;name&quot;}))\npublic class UserEntity {\n\n    @Id\n    @GeneratedValue (strategy = GenerationType.SEQUENCE, generator = &quot;user_id_seq&quot;)\n    private Long id;\n\n    @Column( name = &quot;name&quot;)\n    private String name;\n\n    private int level;\n\n    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = &quot;user&quot;)\n    private Set&lt;BerryInventoryEntity&gt; berryInventory;\n</code></pre>\n<p>BerryInventoryEntity:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Entity\n@Table (name = &quot;berry_inventory&quot;)\npublic class BerryInventoryEntity {\n\n    @Id\n    @GeneratedValue (strategy = GenerationType.SEQUENCE, generator = &quot;inventory_id_seq&quot;)\n    private Long id;\n\n    @ManyToOne (optional = false)\n    @JoinColumn (name = &quot;user_id&quot;)\n    private UserEntity user;\n\n    @ManyToOne (optional = false)\n    @JoinColumn (name = &quot;berry_id&quot;)\n    private BerryEntity berry;\n\n    private int quantity;\n}\n</code></pre>\n<p>I'm testing the repository of BerryInventory and I ran into a problem. I created an instance of BerryInventoryEntity and saved it using the repository:</p>\n<pre class=\"lang-java prettyprint-override\"><code>BerryInventoryEntity berryInventory = BerryInventoryEntity.builder()\n        .berry(berry)\n        .user(user)\n        .quantity(1)\n        .build();\n\nberryInventoryRepository.save(berryInventory);\n</code></pre>\n<p>Then I used this query to retrieve the BerryInventoryEntity I just saved:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Query(&quot;SELECT b FROM BerryInventoryEntity b WHERE b.user = :user&quot;)\nIterable&lt;BerryInventoryEntity&gt; findInventoryOfUser(UserEntity user);\n</code></pre>\n<p>Like this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>Iterable&lt;BerryInventoryEntity&gt; berryInventoryCreated = berryInventoryRepository.findInventoryOfUser(userCreated);\n</code></pre>\n<p>But then U get two different errors depending on the FetchType in the @OneToMany relationship indicated in UserEntity.</p>\n<p>If the FetchType is &quot;LAZY&quot; the UserEntity comes with an instance of BerryInventoryEntity that throws the exception:</p>\n<blockquote>\n<p>Method threw 'org.hibernate.LazyInitializationException' exception. Cannot evaluate com.dpr.berry.domain.entities.UserEntity.toString()</p>\n</blockquote>\n<p>But if I change it to &quot;EAGER&quot; then a StackOverFlowError is thrown because UserEntity contains a list of BerryInventoryEntity that also contains UserEntity and so on.</p>\n<p>Can I retrieve a BerryInventoryEntity that its UserEntity doesn't also come with a BerryInventoryEntity? What is the correct way of fixing this issue?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 23153848,
+        "reputation": 33,
+        "user_id": 19284946,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/ttEG7.jpg?s=256",
+        "display_name": "Rikelo",
+        "link": "https://stackoverflow.com/users/19284946/rikelo"
+      },
+      "is_accepted": true,
+      "score": 1,
+      "last_activity_date": 1762531641,
+      "last_edit_date": 1762531641,
+      "creation_date": 1762531209,
+      "answer_id": 79812539,
+      "question_id": 79806535,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Thank you everyone who helped. This is how I solved it.</p>\n<p><strong>First, &quot;LazyInitializationException&quot;:</strong></p>\n<blockquote>\n<p>Method threw 'org.hibernate.LazyInitializationException' exception. Cannot evaluate com.dpr.berry.domain.entities.UserEntity.toString()</p>\n</blockquote>\n<p>The problem here wasn't leaving the <code>FetchType</code> on the &quot;OneToMany&quot; part of the relationship as &quot;LAZY&quot;, since that's the default anyway.</p>\n<p>What was causing this problem was the Lombok <code>@Data</code> annotation. It wasn't behaving correctly when handling the variables that referenced the related entities.</p>\n<p>The solution to this was writing my own <code>toString</code> for each entity, where i only included the ID + Name. Also, I got rid of the <code>@Data</code> annotations and instead I'm just using the <code>@Getter</code> and <code>@Setter</code> annotations.</p>\n<p><strong>Second, &quot;StackOverflowError&quot;:</strong></p>\n<p>This problem happened when I set the <code>FetchType</code> on the &quot;OneToMany&quot; relationship as &quot;EAGER&quot;.</p>\n<p>The solution to this was leaving it as default, which is &quot;LAZY&quot;, on the two sides of the &quot;OneToMany&quot; relationship. And also, setting it as &quot;LAZY&quot; on the &quot;ManyToOne&quot; part of the relationship, since the default there is &quot;EAGER&quot;:</p>\n<p>UserEntity:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@OneToMany (mappedBy = &quot;user&quot;)\n@OnDelete (action = OnDeleteAction.CASCADE)\nprivate Set&lt;BerryInventoryEntity&gt; berryInventory;\n</code></pre>\n<p>BerryEntity:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@OneToMany (mappedBy = &quot;berry&quot;)\n@OnDelete (action = OnDeleteAction.CASCADE)\nprivate Set&lt;BerryInventoryEntity&gt; berryInventory;\n</code></pre>\n<p>BerryInventoryEntity:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@ManyToOne (optional = false, fetch = FetchType.LAZY)\n@JoinColumn (name = &quot;user_id&quot;)\nprivate UserEntity user;\n\n@ManyToOne (optional = false, fetch = FetchType.LAZY)\n@JoinColumn (name = &quot;berry_id&quot;)\nprivate BerryEntity berry;\n</code></pre>\n<p>Also, i added <code>LEFT JOIN FETCH b.berry</code> to the <code>findInventoryOfUser</code> method on <code>BerryInventoryRepository</code>:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Query (&quot;SELECT b FROM BerryInventoryEntity b LEFT JOIN FETCH b.berry WHERE b.user = :user&quot;)\nIterable&lt;BerryInventoryEntity&gt; findInventoryOfUser(UserEntity user);\n</code></pre>\n<p>So this way I only fetch the data i need.</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79812539": []
+  }
+}

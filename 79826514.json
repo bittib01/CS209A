@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "spring-security"
+    ],
+    "owner": {
+      "account_id": 21427279,
+      "reputation": 71,
+      "user_id": 15784373,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a-/AOh14Gg8qeN5gQMUX-5Ubx79-JicP1oQWicydEIfxz7vBA=k-s256",
+      "display_name": "ivvasch",
+      "link": "https://stackoverflow.com/users/15784373/ivvasch"
+    },
+    "is_answered": false,
+    "view_count": 59,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1763976530,
+    "creation_date": 1763729505,
+    "last_edit_date": 1763976530,
+    "question_id": 79826514,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79826514/spring-security-3-1-4-requestmatchers-with-pathvariable",
+    "title": "Spring Security 3.1.4 requestmatchers with Pathvariable",
+    "body": "<p>I have an unclear situation. I'm using a controller with any endpoints. I have a two methods with Get endpoints /short and /{idOrCode}. Pathvariable is a String type. Endpoint with this pathvariable is have permitAll() configuration at securityFilterChain. According to the documentation these endpoints are different for Authorization. However when I call /short endpoint without authorization I get data from it.\nSpring Security config:</p>\n<pre><code>   @Bean\n    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {\n        http\n                .csrf(AbstractHttpConfigurer::disable)\n                .cors(Customizer.withDefaults())\n                .authorizeHttpRequests(auth -&gt;\n                        auth.requestMatchers(&quot;/api/v1/auth/authenticate&quot;,\n                                        &quot;/actuator/**&quot;,\n                                        &quot;/api/v1/service-point/{idOrCode}&quot;,\n                                        &quot;/api/v1/service-point/parent/{servicePointId}&quot;)\n                                .permitAll()\n                                .requestMatchers(AUTH_WHITELIST)\n                                .permitAll()\n                                .requestMatchers(&quot;/api/v1/auth/change/admindata&quot;).hasRole(RoleEnum.BURNS.name())\n                                .requestMatchers(&quot;/api/v1/auth/register&quot;).hasRole(RoleEnum.ADMIN.name())\n                                .requestMatchers(&quot;/api/v1/auth/change/password&quot;)\n                                .hasAnyRole(RoleEnum.ADMIN.name())\n                                .requestMatchers(HttpMethod.POST).hasRole(RoleEnum.ADMIN.name())\n                                .requestMatchers(HttpMethod.DELETE).hasRole(RoleEnum.ADMIN.name())\n                                .requestMatchers(HttpMethod.PUT).hasRole(RoleEnum.ADMIN.name())\n                                .requestMatchers(HttpMethod.PATCH).hasRole(RoleEnum.ADMIN.name())\n                                .anyRequest()\n                                .authenticated())\n                .sessionManagement(ssmng -&gt; ssmng.sessionCreationPolicy(SessionCreationPolicy.STATELESS))\n                .authenticationProvider(authProvider)\n                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);\n\n        return http.build();\n    }\n</code></pre>\n<p>and the JWTFilter checks for the absence of jwt and sends it further down the chain:</p>\n<pre><code>@Override\n    protected void doFilterInternal(\n            @NonNull HttpServletRequest request,\n            @NonNull HttpServletResponse response,\n            @NonNull FilterChain filterChain\n    ) throws ServletException, IOException {\n\n        final String authHeader = request.getHeader(&quot;Authorization&quot;);\n        final String jwt;\n        final String userName;\n        if (StringUtils.isBlank(authHeader) || !authHeader.startsWith(&quot;Bearer &quot;)) {\n            filterChain.doFilter(request, response);\n            return;\n        }\n...\n    }\n</code></pre>\n<p>The only way out that I found is to add regexp for pathvariable in configuration. BUT WY Standard rule not working?</p>\n<p>Two endpoints in controller:</p>\n<pre><code>    @GetMapping(&quot;/{idOrCode}&quot;)\n    public ResponseEntity&lt;ServicePointDTO&gt; getServicePoint(@PathVariable String servicePointIdOrCode) {\n        LogUtil.info(log, &quot;getServicePoint&quot;, &quot;Get service point by id '%s'.&quot;, servicePointIdOrCode);\n\n        ServicePointDTO servicePointDTO = servicePointsService.getServicePoint(servicePointIdOrCode);\n\n        return ResponseEntity.ok(servicePointDTO);\n    }\n\n @GetMapping(&quot;/short&quot;)\n    public ResponseEntity&lt;List&lt;ServicePointShortDTO&gt;&gt; getAllServicePointsShort() {\n        LogUtil.info(log, &quot;getAllServicePointsShort&quot;, &quot;Get all short service points.&quot;);\n\n        List&lt;ServicePointShortDTO&gt; servicePointsShort = servicePointsService.getServicePointsShort();\n\n        return ResponseEntity.ok(servicePointsShort);\n    }\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

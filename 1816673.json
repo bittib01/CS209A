@@ -1,0 +1,59 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "file-io",
+      "io",
+      "file-exists"
+    ],
+    "owner": {
+      "account_id": 41067,
+      "reputation": 130053,
+      "user_id": 119280,
+      "user_type": "registered",
+      "accept_rate": 73,
+      "profile_image": "https://www.gravatar.com/avatar/47b88555c03aad35b076726767fcfa35?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "DVK",
+      "link": "https://stackoverflow.com/users/119280/dvk"
+    },
+    "is_answered": true,
+    "view_count": 1531344,
+    "protected_date": 1546433871,
+    "accepted_answer_id": 1816676,
+    "answer_count": 19,
+    "score": 1008,
+    "last_activity_date": 1729079253,
+    "creation_date": 1259526759,
+    "last_edit_date": 1729079253,
+    "question_id": 1816673,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/1816673/how-do-i-check-if-a-file-exists-in-java",
+    "title": "How do I check if a file exists in Java?",
+    "body": "<p>How can I check whether a file exists, before opening it for reading in <strong>Java</strong> (the equivalent of <strong>Perl's</strong> <code>-e $filename</code>)?</p>\n<p>The only <a href=\"https://stackoverflow.com/questions/1237235/check-file-exists-java\">similar question on SO</a> deals with writing the file and was thus answered using <code>FileWriter</code> which is obviously not applicable here.</p>\n<p>If possible I'd prefer a real <em>API</em> call returning true/false as opposed to some &quot;Call API to open a file and catch when it throws an exception which you check for 'no file' in the text&quot;, but I can live with the latter.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 2989348,
+        "reputation": 95,
+        "user_id": 12927325,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/nxoBw.jpg?s=256",
+        "display_name": "3rdRockSoftware",
+        "link": "https://stackoverflow.com/users/12927325/3rdrocksoftware"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1725630574,
+      "creation_date": 1725630574,
+      "answer_id": 78957435,
+      "question_id": 1816673,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>I struggled for hours with this because the file is in a directory on a server that doesn't allow access from netbeans. Thus for reasons explained above <em>.isFile()</em>, <em>.exists()</em> etc don't work for me.</p>\n<p>My workaround was this:</p>\n<pre><code>import java.io.BufferedReader;\nimport java.io.FileNotFoundException;\nimport java.io.FileReader;\nimport java.nio.file.Path;\n\npublic class CSVReader\n{\n    private boolean fileExists = false;\n\n    public void readCSVFile(Path path)\n    {\n        try\n        {\n            System.out.println(&quot;reading csv file&quot;);\n            BufferedReader br = new BufferedReader(new fileReader(path.toString()));\n            //netbeans complains that br is never read but doesn't stop anything working\n            setFileExists(true);\n        }\n        catch (FileNotFoundException ex)\n        {\n            System.out.println(&quot;file does not seem to exist. New file will be created&quot;);\n        }\n    }\n}\n</code></pre>\n<p>my csvWriter method then uses the boolean (fileExists) to create a new file and then either write the header as well as the values, or just append the values to the end of the file.</p>\n<p>I am using openCSV and also setting the 'append' flag to true if the file already exists</p>\n<pre><code>import com.opencsv.*;\nimport java.io.File;\nimport java.io.FileWriter;\nimport java.io.IOException;\nimport java.nio.file.Path;\n\npublic class WriteToCSV\n{\npublic void createCSVfile(Path path, boolean fileExists)\n    {\n        FileWriter outputFile = null;\n        CSVWriter w = null;\n        String[] data =\n        {\n            &quot;col1 val&quot;, &quot;col2 value&quot;, &quot;col3 value&quot;, &quot;col4 value&quot;\n        };\n        try\n        {\n            File f = new File(path.toString());\n            if (fileExists)\n            {\n                System.out.println(&quot;file exists&quot;);\n                outputFile = new FileWriter(f, true); //append flag set\n                w = new CSVWriter(outputFile);\n            }\n            else\n            {\n                System.out.println(&quot;file doesn't exist&quot;);\n                outputFile = new FileWriter(f); //append flag not set. Data will be overwritten\n                w = new CSVWriter(outputFile);\n                w.writeNext(COLUMN_HEADERS);\n            }\n            w.writeNext(data);\n            w.close();\n            System.out.println(&quot;file created at &quot; + path);\n        }\n        catch (IOException ex)\n        {\n            System.out.println(&quot;unable to create new file &quot; + path.getFileName() + &quot;. &quot; + ex);\n            System.exit(Thread.currentThread().getStackTrace()[1].getLineNumber());\n        }\n        finally\n        {\n            try\n            {\n                outputFile.close();\n            }\n            catch (IOException ex)\n            {\n                System.out.println(&quot;unable to close csv file &quot; + ex);\n                System.exit(Thread.currentThread().getStackTrace()[1].getLineNumber());\n            }\n        }\n    }\n}\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "78957435": []
+  }
+}

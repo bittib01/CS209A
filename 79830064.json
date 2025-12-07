@@ -1,0 +1,87 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "email",
+      "outlook"
+    ],
+    "owner": {
+      "account_id": 394950,
+      "reputation": 3042,
+      "user_id": 757661,
+      "user_type": "registered",
+      "accept_rate": 80,
+      "profile_image": "https://www.gravatar.com/avatar/22d55e7c13896272c09c997eeba72318?s=256&d=identicon&r=PG",
+      "display_name": "gordon613",
+      "link": "https://stackoverflow.com/users/757661/gordon613"
+    },
+    "is_answered": false,
+    "view_count": 47,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1764094490,
+    "creation_date": 1764094490,
+    "question_id": 79830064,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79830064/how-to-trigger-copy-on-notification",
+    "title": "How to trigger &quot;Copy&quot; on notification",
+    "body": "<p>How do I sent an email in Java so that when Outlook displays it as a notification it will automatically show a &quot;Copy&quot; button like when logging into ChatGPT?</p>\n<p><a href=\"https://i.sstatic.net/UDvy0uLE.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/UDvy0uLE.png\" alt=\"enter image description here\" /></a></p>\n<p>Here is what I have tried. It sends the email nicely, but the notification does not include the &quot;Copy&quot;</p>\n<pre><code>// HTML Template \n    private static final String OTP_EMAIL_TEMPLATE_HTML = \n        &quot;&lt;html&gt;&quot;\n        + &quot;&lt;head&gt;&quot;\n        + &quot;&lt;style&gt;&quot;\n        + &quot;  body { font-family: Arial, sans-serif; line-height: 1.6; color: #374151; }&quot;\n        + &quot;  .container { max-width: 600px; margin: 20px auto; padding: 30px; border: 1px solid #d1d5db; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }&quot;\n        + &quot;  .header { font-size: 24px; font-weight: bold; color: #1f2937; margin-bottom: 25px; border-bottom: 1px solid #e5e7eb; padding-bottom: 15px; }&quot;\n        + &quot;  .otp-box { text-align: center; margin: 30px 0; }&quot;\n        + &quot;  .otp-code { &quot;\n        + &quot;    font-size: 40px; &quot;\n        + &quot;    font-weight: 900; &quot;\n        + &quot;    color: #059669; /* Bright Green */ &quot;\n        + &quot;    letter-spacing: 5px; &quot;\n        + &quot;    display: inline-block; &quot;\n        + &quot;    padding: 18px 30px; &quot;\n        + &quot;    border: 3px dashed #a7f3d0; &quot;\n        + &quot;    border-radius: 10px; &quot;\n        + &quot;    background-color: #f0fdf4; &quot;\n        + &quot;    white-space: nowrap; &quot;\n        + &quot;  }&quot;\n        + &quot;  .warning { color: #b91c1c; font-weight: bold; }&quot;\n        + &quot;  .detail { font-size: 14px; color: #6b7280; margin-top: 15px; border-top: 1px dashed #e5e7eb; padding-top: 15px; }&quot;\n        + &quot;&lt;/style&gt;&quot;\n        + &quot;&lt;/head&gt;&quot;\n        + &quot;&lt;body&gt;&quot;\n        + &quot;&lt;div class='container'&gt;&quot;\n        + &quot;  &lt;div class='header'&gt;One-Time Passcode for %s&lt;/div&gt;&quot; // %1$s: sysName\n        + &quot;  &lt;p&gt;Dear %s,&lt;/p&gt;&quot; // %2$s: firstName\n        + &quot;  &lt;p&gt;You recently requested a login to your %s account. Please use the following **Verification Code** to proceed:&lt;/p&gt;&quot; // %3$s: sysName\n        + &quot;  &lt;div class='otp-box'&gt;&quot;\n        + &quot;    &lt;span class='otp-code'&gt;%s&lt;/span&gt;&quot; // %4$s: code (The actual digits)\n        + &quot;  &lt;/div&gt;&quot;\n        + &quot;  &lt;p class='warning'&gt;This code expires in 5 minutes and should NEVER be shared with anyone.&lt;/p&gt;&quot;\n        + &quot;  &lt;div class='detail'&gt;&quot;\n        + &quot;    &lt;p&gt;Login Attempt Details:&lt;/p&gt;&quot;\n        + &quot;    &lt;p&gt;%s&lt;/p&gt;&quot; // %5$s: formattedUserAgent\n        + &quot;    &lt;p&gt;If this was NOT you, please contact security immediately at: &lt;a href='mailto:%s'&gt;%s&lt;/a&gt;&lt;/p&gt;&quot; // %6$s, %7$s: securityEmail\n        + &quot;  &lt;/div&gt;&quot;\n        + &quot;&lt;/div&gt;&quot;\n        + &quot;&lt;/body&gt;&quot;\n        + &quot;&lt;/html&gt;&quot;;\n\n    //Plain Text Template \n   \n    private static final String PLAIN_TEXT_TEMPLATE =\n        &quot;Dear %s,\\n\\n&quot; + // %1$s: firstName\n        &quot;You recently requested a login to your %s account. Please use the following One-Time Password (OTP) to proceed:\\n\\n&quot; + // %2$s: sysName\n        \n        &quot;********************\\n&quot; +\n        &quot;  VERIFICATION CODE: %s \\n&quot; + // %3$s: code\n        &quot;********************\\n\\n&quot; +\n        &quot;This code expires in 5 minutes and should NEVER be shared with anyone.\\n\\n&quot; +\n        &quot;Login Attempt Details:\\n%s\\n\\n&quot; + // %4$s: formattedUserAgent\n        &quot;If this was NOT you, please contact security immediately at %s\\n\\n&quot; + // %5$s: securityEmail\n        &quot;Thank you,\\n&quot; +\n        &quot;The [Your Service Name] Team&quot;;\n\n\n   \n    public synchronized int sendSecurityCode(\n        String dsName,\n        HttpServletRequest request,\n        SecretClient secretClient) {\n\n        // 1. Generate Code and Get System Properties\n        int code = generate6DigitNum();\n        String sysName = Monitor.getPropertyValue(&quot;SYSTEM_NAME&quot;);\n        String securityEmail = Monitor.getPropertyValue(&quot;SECURITY_EMAIL&quot;);\n\n        // 2. Update Security Code in Database\n        int result = updateSecCode(dsName, code);\n\n        // 3. Send Email only if DB update was successful (result == 1)\n        if (result == 1) {\n            UserAgentFormatter ua = new UserAgentFormatter();\n            String formattedUserAgent = ua.formatUserAgent(request);\n            String codeString = String.valueOf(code);\n\n            // 4. Generate the HTML Content\n            String htmlMessage = String.format(\n                OTP_EMAIL_TEMPLATE_HTML,\n                sysName, // %1$s\n                firstName, // %2$s\n                sysName, // %3$s\n                codeString, // %4$s: The actual 6-digit code\n                formattedUserAgent, // %5$s\n                securityEmail, // %6$s\n                securityEmail // %7$s\n            );\n\n            // 5. Generate the Plain Text Content\n            String plainTextMessage = String.format(\n                PLAIN_TEXT_TEMPLATE,\n                firstName, // %1$s\n                sysName, // %2$s\n                codeString, // %3$s: The actual 6-digit code\n                formattedUserAgent, // %4$s\n                securityEmail // %5$s\n            );\n\n            // 6. Subject Line\n            String subject = String.format(&quot;Your %s Verification Code: %d&quot;, sysName, code);\n\n            // 7. Send the Email \n            \n            DMLUtils.sendEmailHTMLandPlain(\n                email,\n                \n                htmlMessage,\n                plainTextMessage, \n                subject,\n                secretClient\n            );\n           \n            \n           \n           \n        }\n\n        return result;\n    }\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 394950,
+        "reputation": 3042,
+        "user_id": 757661,
+        "user_type": "registered",
+        "accept_rate": 80,
+        "profile_image": "https://www.gravatar.com/avatar/22d55e7c13896272c09c997eeba72318?s=256&d=identicon&r=PG",
+        "display_name": "gordon613",
+        "link": "https://stackoverflow.com/users/757661/gordon613"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1764869572,
+      "post_id": 79830064,
+      "comment_id": 140887754,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 318670,
+        "reputation": 16467,
+        "user_id": 636009,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/IIQJV.jpg?s=256",
+        "display_name": "David Conrad",
+        "link": "https://stackoverflow.com/users/636009/david-conrad"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1764177646,
+      "post_id": 79830064,
+      "comment_id": 140874815,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 131793,
+        "reputation": 67082,
+        "user_id": 332059,
+        "user_type": "registered",
+        "accept_rate": 57,
+        "profile_image": "https://i.sstatic.net/cSNOK.png?s=256",
+        "display_name": "Dmitry Streblechenko",
+        "link": "https://stackoverflow.com/users/332059/dmitry-streblechenko"
+      },
+      "edited": false,
+      "score": 4,
+      "creation_date": 1764099617,
+      "post_id": 79830064,
+      "comment_id": 140872975,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {}
+}

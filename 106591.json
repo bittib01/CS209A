@@ -1,0 +1,332 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "multithreading",
+      "keyword",
+      "volatile"
+    ],
+    "owner": {
+      "account_id": 9137,
+      "reputation": 10552,
+      "user_id": 16759,
+      "user_type": "registered",
+      "accept_rate": 70,
+      "profile_image": "https://www.gravatar.com/avatar/7844d99a6b7373ab85e33531fee3fb50?s=256&d=identicon&r=PG",
+      "display_name": "Richard",
+      "link": "https://stackoverflow.com/users/16759/richard"
+    },
+    "is_answered": true,
+    "view_count": 415090,
+    "protected_date": 1435048402,
+    "accepted_answer_id": 106787,
+    "answer_count": 26,
+    "score": 855,
+    "last_activity_date": 1762961586,
+    "creation_date": 1221871262,
+    "last_edit_date": 1748221402,
+    "question_id": 106591,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/106591/what-is-the-volatile-keyword-useful-for",
+    "title": "What is the volatile keyword useful for?",
+    "body": "<p>I came across the <code>volatile</code> keyword in Java. Not being very familiar with it, I found <a href=\"http://web.archive.org/web/20210221170926/https://www.ibm.com/developerworks/java/library/j-jtp06197/\" rel=\"noreferrer\">this explanation</a>.</p>\n<blockquote>\n<p>Volatile variables are a simpler -- but weaker -- form of synchronization than locking, which in some cases offers better performance or scalability than intrinsic locking. If you follow the conditions for using volatile safely -- that the variable is truly independent of both other variables and its own prior values -- you can sometimes simplify code by using volatile instead of synchronized. However, code using volatile is often more fragile than code using locking. The patterns offered here cover the most common cases where volatile is a sensible alternative to synchronized. Following these patterns -- taking care not to push them beyond their limits -- should help you safely cover the majority of cases where volatile variables are a win.</p>\n</blockquote>\n<p>Given the detail in which that article explains the keyword in question, do you ever use it or could you ever see a case in which you could use this keyword in the correct manner?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 6115775,
+        "reputation": 35191,
+        "user_id": 4770877,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/p5TXj.png?s=256",
+        "display_name": "yoAlex5",
+        "link": "https://stackoverflow.com/users/4770877/yoalex5"
+      },
+      "is_accepted": false,
+      "score": 24,
+      "last_activity_date": 1762961586,
+      "last_edit_date": 1762961586,
+      "creation_date": 1577438473,
+      "answer_id": 59498520,
+      "question_id": 106591,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p><strong>Java Volatile</strong></p>\n<p><code>volatile</code> -&gt; <code>synchronized</code><a href=\"https://stackoverflow.com/a/59500618/4770877\"><sup>[About]</sup></a></p>\n<p><code>volatile</code> says for a programmer that the value always will be up to date. The problem is that the value can be saved on different types of hardware memory. For example it can be CPU registers, CPU cache, RAM... СPU registers and CPU cache belong to CPU and can not share a data unlike of RAM which is on the rescue in multithreading environment.</p>\n<p><a href=\"https://i.sstatic.net/1EPWG.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/1EPWG.png\" alt=\"enter image description here\" /></a></p>\n<p><code>volatile</code> keyword says that a variable will be <strong>read and written</strong> from/to RAM memory <strong>directly</strong>. It has some computation footprint</p>\n<p><code>Java 5</code> extended <code>volatile</code> by supporting <code>happens-before</code><a href=\"https://stackoverflow.com/a/59491099/4770877\"><sup>[About]</sup></a></p>\n<blockquote>\n<p>A write to a volatile field happens-before every subsequent read of that field.</p>\n</blockquote>\n<p><code>volatile</code> keyword <strong>does not cure</strong> a <code>race condition</code><a href=\"https://stackoverflow.com/a/75134842/4770877\"><sup>[About]</sup></a> situation to solve it use <code>synchronized</code> keyword<a href=\"https://stackoverflow.com/a/59500618/4770877\"><sup>[About]</sup></a></p>\n<p>As a result it safety only when:</p>\n<ul>\n<li>only one thread writes</li>\n<li>Several threads write atomically. E.g. set operation</li>\n</ul>\n<p>If you have some compound operation - <code>synchronized</code> on a resque</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 1468909,
+        "reputation": 5133,
+        "user_id": 1380968,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/naWb3.jpg?s=256",
+        "display_name": "Mohan",
+        "link": "https://stackoverflow.com/users/1380968/mohan"
+      },
+      "is_accepted": false,
+      "score": 2,
+      "last_activity_date": 1748221267,
+      "last_edit_date": 1748221267,
+      "creation_date": 1488444177,
+      "answer_id": 42550536,
+      "question_id": 106591,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>There are two different uses of volatile keyword.</p>\n<ol>\n<li>Prevents JVM from reading values from register (assume as cache), and forces its value to be read from memory.</li>\n<li>Reduces the risk of memory in-consistency errors.</li>\n</ol>\n<blockquote>\n<p>Prevents JVM from reading values in register, and forces its\nvalue to be read from memory.</p>\n</blockquote>\n<p>A <em>busy flag</em> is used to prevent a thread from continuing while the device is busy and the flag is not protected by a lock:</p>\n<pre><code>while (busy) {\n    /* do something else */\n}\n</code></pre>\n<p>The testing thread will continue when another thread turns off the <em>busy flag</em>:</p>\n<pre><code>busy = 0;\n</code></pre>\n<p>However, since busy is accessed frequently in the testing thread, the JVM may optimize the test by placing the value of busy in a register, then test the contents of the register without reading the value of busy in memory before every test. The testing thread would never see busy change and the other thread would only change the value of busy in memory, resulting in deadlock. Declaring the <em>busy flag</em> as volatile forces its value to be read before each test.</p>\n<blockquote>\n<p>Reduces the risk of memory consistency errors.</p>\n</blockquote>\n<p>Using volatile variables reduces the risk of <strong>memory consistency errors</strong>, because any write to a volatile variable establishes a\n<em>&quot;happens-before&quot;</em> relationship with subsequent reads of that same variable. This means that changes to a volatile variable are always visible to other threads.</p>\n<p>The technique of reading, writing without memory consistency errors is called <strong>atomic action</strong>.</p>\n<p>An atomic action is one that effectively happens all at once. An atomic action cannot stop in the middle: it either happens completely, or it doesn't happen at all. No side effects of an atomic action are visible until the action is complete.</p>\n<p>Below are actions you can specify that are atomic:</p>\n<ul>\n<li>Reads and writes are atomic for reference variables and for most\nprimitive variables (all types except long and double).</li>\n<li>Reads and writes are atomic for all variables declared <strong>volatile</strong>\n(including long and double variables).</li>\n</ul>\n"
+    },
+    {
+      "owner": {
+        "account_id": 5282761,
+        "reputation": 154,
+        "user_id": 4517590,
+        "user_type": "registered",
+        "profile_image": "https://lh6.googleusercontent.com/-OX0FOz3EZKM/AAAAAAAAAAI/AAAAAAAAABU/E6ICIpJt83A/s256-rj/photo.jpg",
+        "display_name": "Niyaz Ahamad",
+        "link": "https://stackoverflow.com/users/4517590/niyaz-ahamad"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1748221249,
+      "last_edit_date": 1748221249,
+      "creation_date": 1558090818,
+      "answer_id": 56185079,
+      "question_id": 106591,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Volatile variable is basically used for instant update (flush) in main shared cache line once it updated, so that changes reflected to all worker threads immediately.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 13684630,
+        "reputation": 101,
+        "user_id": 9874027,
+        "user_type": "registered",
+        "profile_image": "https://lh5.googleusercontent.com/-4ot9SiRFuQw/AAAAAAAAAAI/AAAAAAAAABM/LlJ8Nea4l-U/s256-rj/photo.jpg",
+        "display_name": "sankar banerjee",
+        "link": "https://stackoverflow.com/users/9874027/sankar-banerjee"
+      },
+      "is_accepted": false,
+      "score": 2,
+      "last_activity_date": 1748217274,
+      "last_edit_date": 1748217274,
+      "creation_date": 1527747823,
+      "answer_id": 50617902,
+      "question_id": 106591,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Volatile does following.</p>\n<ol>\n<li>Read and write of volatile variables by different threads are always from memory, not from thread's own cache or cpu register. So each thread always deals with the latest value.</li>\n<li>When 2 different threads work with same instance or static variables in heap, one may see other's actions as out of order. See jeremy manson's blog on this. But volatile helps here.</li>\n</ol>\n<p>Following fully running code shows how a number of threads can execute in predefined order and print outputs without using synchronized keyword.</p>\n<pre><code>thread 0 prints 0\nthread 1 prints 1\nthread 2 prints 2\nthread 3 prints 3\nthread 0 prints 0\nthread 1 prints 1\nthread 2 prints 2\nthread 3 prints 3\nthread 0 prints 0\nthread 1 prints 1\nthread 2 prints 2\nthread 3 prints 3\n</code></pre>\n<p>To achieve this we may use the following full fledged running code.</p>\n<pre><code>public class Solution {\n    static volatile int counter = 0;\n    static int print = 0;\n    public static void main(String[] args) {\n        // TODO Auto-generated method stub\n        Thread[] ths = new Thread[4];\n        for (int i = 0; i &lt; ths.length; i++) {\n            ths[i] = new Thread(new MyRunnable(i, ths.length));\n            ths[i].start();\n        }\n    }\n    static class MyRunnable implements Runnable {\n        final int thID;\n        final int total;\n        public MyRunnable(int id, int total) {\n            thID = id;\n            this.total = total;\n        }\n        @Override\n        public void run() {\n            // TODO Auto-generated method stub\n            while (true) {\n                if (thID == counter) {\n                    System.out.println(&quot;thread &quot; + thID + &quot; prints &quot; + print);\n                    print++;\n                    if (print == total)\n                        print = 0;\n                    counter++;\n                    if (counter == total)\n                        counter = 0;\n                } else {\n                    try {\n                        Thread.sleep(30);\n                    } catch (InterruptedException e) {\n                        // log it\n                    }\n                }\n            }\n        }\n    }\n}\n</code></pre>\n<p>The following github link has a readme, which gives proper explanation.\n<a href=\"https://github.com/sankar4git/volatile_thread_ordering\" rel=\"nofollow noreferrer\">https://github.com/sankar4git/volatile_thread_ordering</a></p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 3370,
+        "reputation": 7202,
+        "user_id": 4857,
+        "user_type": "registered",
+        "accept_rate": 96,
+        "profile_image": "https://i.sstatic.net/cxMVR.jpg?s=256",
+        "display_name": "Ande Turner",
+        "link": "https://stackoverflow.com/users/4857/ande-turner"
+      },
+      "is_accepted": false,
+      "community_owned_date": 1222014809,
+      "score": 229,
+      "last_activity_date": 1748201688,
+      "last_edit_date": 1748201688,
+      "creation_date": 1221872368,
+      "answer_id": 106641,
+      "question_id": 106591,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p><em>“… the <code>volatile</code> modifier guarantees that any thread that reads a field will see the most recently written value.”</em> <strong>- Josh Bloch</strong><br><br>\nIf you are thinking about using <code>volatile</code>, read up on the package <a href=\"https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/package-summary.html\" rel=\"nofollow noreferrer\"><code>java.util.concurrent</code></a> which deals with atomic behaviour.<br><br>\nThe Wikipedia post on a <a href=\"https://en.wikipedia.org/wiki/Singleton_pattern#Lazy_initialization\" rel=\"nofollow noreferrer\">Singleton Pattern</a> shows volatile in use.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 14206439,
+        "reputation": 51010,
+        "user_id": 10262805,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/zQvN3.jpg?s=256",
+        "display_name": "Yilmaz",
+        "link": "https://stackoverflow.com/users/10262805/yilmaz"
+      },
+      "is_accepted": false,
+      "score": 2,
+      "last_activity_date": 1748127141,
+      "last_edit_date": 1748127141,
+      "creation_date": 1662875231,
+      "answer_id": 73677124,
+      "question_id": 106591,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>If you have a multithread system and these multiple threads work on some shared data, those threads will load data in their own cache. If we do not lock the resource, any change made in one thread is NOT gonna be available in another thread.</p>\n<p><a href=\"https://i.sstatic.net/za62k.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/za62k.png\" alt=\"enter image description here\" /></a></p>\n<p>With a locking mechanism, we add read/write access to the data source. If one thread modifies the data source, that data will be stored in the main memory instead of in its cache and the JVM will also invalidate other cores’ caches. When other threads need this data, they will read it from the main memory. This will increase the latency dramatically.</p>\n<p>To reduce the latency, we declare variables as <code>volatile</code>. It means that whenever the value of the variable is modified in any of the processors, the other threads will be forced to read it. It still has some delays but better than reading from the main memory.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 150501,
+        "reputation": 82031,
+        "user_id": 363751,
+        "user_type": "registered",
+        "accept_rate": 35,
+        "profile_image": "https://www.gravatar.com/avatar/135a97c4150691234931a93f3a27a52f?s=256&d=identicon&r=PG",
+        "display_name": "supercat",
+        "link": "https://stackoverflow.com/users/363751/supercat"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1731263616,
+      "creation_date": 1731263616,
+      "answer_id": 79175488,
+      "question_id": 106591,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>It's been ages since I've used Java, but I recall it applies acquire/release semantics to <code>volatile</code>, an important aspect missing from other answers.  In the absence of <code>volatile</code>, a just-in-time compiler given e.g.</p>\n<pre><code>myThing = new ...whatever...;\nmyThing.someField = 1;\nsomeOtherThing = myThing;\ndo\n{\n  myThing.someField = ...whatever...;\n  ...\n} while (...whatever...);\n</code></pre>\n<p>would be allowed to defer the store to <code>myThing.someField</code> until after the store to <code>someOtherThing</code>, consolidating it with the following store and consequently omitting it.  This would in turn make it possible that another thread which reads <code>someOtherThing.someField</code> might see it as uninitialized.  Making <strong>someOtherThing</strong> <code>volatile</code>, however, would block the reordering of operations on <code>myThing.someField</code> across the store, by ensuring that the store to <code>someOtherThing</code> won't be performed until after any other pending stores are resolved.</p>\n<p>I don't remember in what cases in which reordering of operations across volatile reads and writes is or is not prevented, but acquire/release semantics are extremely important.  The idea behind the names is that code which would have exclusive use of an object (in this example because it's newly created, though code may have exclusive use because of a library's documented usage requirement or for other reasons) performs a volatile store that makes it possible for other code to use that object, &quot;releasing&quot; its exlusivity.  Code which reads the volatile that was just written would then &quot;acquire&quot; the ability to use all parts of that object--not just the ones declared <code>volatile</code>.</p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 322981,
+        "reputation": 346871,
+        "user_id": 642706,
+        "user_type": "registered",
+        "accept_rate": 58,
+        "profile_image": "https://i.sstatic.net/ZWEI3.jpg?s=256",
+        "display_name": "Basil Bourque",
+        "link": "https://stackoverflow.com/users/642706/basil-bourque"
+      },
+      "edited": false,
+      "score": 2,
+      "creation_date": 1731269183,
+      "post_id": 106591,
+      "comment_id": 139614586,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "59498520": [
+      {
+        "owner": {
+          "account_id": 4240592,
+          "reputation": 600,
+          "user_id": 3470601,
+          "user_type": "registered",
+          "accept_rate": 45,
+          "profile_image": "https://i.sstatic.net/xIbra.jpg?s=256",
+          "display_name": "Pedro Louren&#231;o",
+          "link": "https://stackoverflow.com/users/3470601/pedro-louren%c3%a7o"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1709520324,
+        "post_id": 59498520,
+        "comment_id": 137684377,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "42550536": [
+      {
+        "owner": {
+          "account_id": 71739,
+          "reputation": 311873,
+          "user_id": 207421,
+          "user_type": "registered",
+          "accept_rate": 82,
+          "profile_image": "https://www.gravatar.com/avatar/5cfe5f7d64f44be04f147295f5c7b88e?s=256&d=identicon&r=PG",
+          "display_name": "user207421",
+          "link": "https://stackoverflow.com/users/207421/user207421"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1748217245,
+        "post_id": 42550536,
+        "comment_id": 140458004,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "56185079": [],
+    "50617902": [],
+    "106641": [
+      {
+        "owner": {
+          "account_id": 43022,
+          "reputation": 24626,
+          "user_id": 125562,
+          "user_type": "registered",
+          "accept_rate": 64,
+          "profile_image": "https://i.sstatic.net/SdIqA.png?s=256",
+          "display_name": "Basilevs",
+          "link": "https://stackoverflow.com/users/125562/basilevs"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1748225372,
+        "post_id": 106641,
+        "comment_id": 140458160,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1458162,
+          "reputation": 857,
+          "user_id": 1373232,
+          "user_type": "registered",
+          "accept_rate": 53,
+          "profile_image": "https://www.gravatar.com/avatar/e8fd9bc411a40a4e8ccf0041cc2248d6?s=256&d=identicon&r=PG",
+          "display_name": "Nom1fan",
+          "link": "https://stackoverflow.com/users/1373232/nom1fan"
+        },
+        "reply_to_user": {
+          "account_id": 1599384,
+          "reputation": 1944,
+          "user_id": 1480755,
+          "user_type": "registered",
+          "accept_rate": 38,
+          "profile_image": "https://www.gravatar.com/avatar/582960b84b38659e3c88abb6e9918afc?s=256&d=identicon&r=PG",
+          "display_name": "Arumand",
+          "link": "https://stackoverflow.com/users/1480755/arumand"
+        },
+        "edited": false,
+        "score": 3,
+        "creation_date": 1655365431,
+        "post_id": 106641,
+        "comment_id": 128316613,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 1599384,
+          "reputation": 1944,
+          "user_id": 1480755,
+          "user_type": "registered",
+          "accept_rate": 38,
+          "profile_image": "https://www.gravatar.com/avatar/582960b84b38659e3c88abb6e9918afc?s=256&d=identicon&r=PG",
+          "display_name": "Arumand",
+          "link": "https://stackoverflow.com/users/1480755/arumand"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1635284800,
+        "post_id": 106641,
+        "comment_id": 123255498,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "user_type": "does_not_exist",
+          "display_name": "user201891"
+        },
+        "reply_to_user": {
+          "account_id": 3633980,
+          "reputation": 718,
+          "user_id": 3029543,
+          "user_type": "registered",
+          "accept_rate": 80,
+          "profile_image": "https://graph.facebook.com/100004855955180/picture?type=large",
+          "display_name": "ptkato",
+          "link": "https://stackoverflow.com/users/3029543/ptkato"
+        },
+        "edited": false,
+        "score": 8,
+        "creation_date": 1575400105,
+        "post_id": 106641,
+        "comment_id": 104551642,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "73677124": [],
+    "79175488": []
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "serialization",
+      "kryo"
+    ],
+    "owner": {
+      "account_id": 2973024,
+      "reputation": 845,
+      "user_id": 2524707,
+      "user_type": "registered",
+      "accept_rate": 51,
+      "profile_image": "https://www.gravatar.com/avatar/5cfe4269e0f27f5860f9d37438d31c82?s=256&d=identicon&r=PG",
+      "display_name": "raycons",
+      "link": "https://stackoverflow.com/users/2524707/raycons"
+    },
+    "is_answered": false,
+    "view_count": 9906,
+    "answer_count": 2,
+    "score": 5,
+    "last_activity_date": 1764803095,
+    "creation_date": 1477919847,
+    "question_id": 40342996,
+    "content_license": "CC BY-SA 3.0",
+    "link": "https://stackoverflow.com/questions/40342996/kryo-throwing-encountered-unregistered-class-id-44",
+    "title": "Kryo throwing &quot; Encountered unregistered class ID: 44&quot;",
+    "body": "<p>Kyro is throwing me the following message:</p>\n\n<pre><code>  com.esotericsoftware.kryo.KryoException: Encountered unregistered class ID: 44\n        at com.esotericsoftware.kryo.util.DefaultClassResolver.readClass(DefaultClassResolver.java:137)\n        at com.esotericsoftware.kryo.Kryo.readClass(Kryo.java:693)\n        at com.esotericsoftware.kryo.Kryo.readClassAndObject(Kryo.java:804)\n        at main.java.com.bag.client.TestClient.processReadReturn(TestClient.java:246)\n        at main.java.com.bag.client.TestClient.replyReceived(TestClient.java:221)\n        at bftsmart.communication.client.netty.NettyClientServerCommunicationSystemClientSide.channelRead0(NettyClientServerCommunicationSystemClientSide.java:244)\n        at bftsmart.communication.client.netty.NettyClientServerCommunicationSystemClientSide.channelRead0(NettyClientServerCommunicationSystemClientSide.java:65)\n        at io.netty.channel.SimpleChannelInboundHandler.channelRead(SimpleChannelInboundHandler.java:105)\n        at io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:292)\n        at io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:278)\n        at io.netty.handler.codec.ByteToMessageDecoder.fireChannelRead(ByteToMessageDecoder.java:277)\n        at io.netty.handler.codec.ByteToMessageDecoder.channelRead(ByteToMessageDecoder.java:264)\n        at io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:292)\n        at io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:278)\n        at io.netty.channel.DefaultChannelPipeline.fireChannelRead(DefaultChannelPipeline.java:962)\n        at io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read(AbstractNioByteChannel.java:131)\n        at io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:528)\n        at io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:485)\n        at io.netty.channel.nio.NioEventLoop.processSelectedKeys(NioEventLoop.java:399)\n        at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:371)\n        at io.netty.util.concurrent.SingleThreadEventExecutor$2.run(SingleThreadEventExecutor.java:112)\n        at io.netty.util.concurrent.DefaultThreadFactory$DefaultRunnableDecorator.run(DefaultThreadFactory.java:137)\n        at java.lang.Thread.run(Thread.java:745)\n</code></pre>\n\n<p>I serialize with the following snippet:</p>\n\n<pre><code>KryoPool pool = new KryoPool.Builder(factory).softReferences().build();\nKryo kryo = pool.borrow();\nInput input = new Input(bytes);\nArrayList&lt;NodeStorage&gt; nodeStorage = new ArrayList&lt;&gt;();\nArrayList&lt;RelationshipStorage&gt; relationshipStorage = new ArrayList&lt;&gt;();\nkryo.writeClassAndObject(output, nodeStorage);\nkryo.writeClassAndObject(output, relationshipStorage);\n</code></pre>\n\n<p>The factory:</p>\n\n<pre><code> private KryoFactory factory = () -&gt;\n{\n    Kryo kryo = new Kryo();\n    kryo.register(NodeStorage.class, 100);\n    kryo.register(RelationshipStorage.class, 200);\n    // configure kryo instance, customize settings\n    return kryo;\n};\n</code></pre>\n\n<p>Deserialization with the following:</p>\n\n<pre><code>KryoPool pool = new KryoPool.Builder(factory).softReferences().build();\nKryo kryo = pool.borrow();\nArrayList&lt;NodeStorage&gt;         nodeResult         = (ArrayList&lt;NodeStorage&gt;) kryo.readClassAndObject(input);\nArrayList&lt;RelationshipStorage&gt; relationshipResult = (ArrayList&lt;RelationshipStorage&gt;) kryo.readClassAndObject(input);\n</code></pre>\n\n<p>The crash log appears the moment it executes the first arrayList deserialization.</p>\n\n<p>NodeStorage and Relationship storage contain Various Strings, int and maps with more strings.</p>\n\n<p>The full code can be found here:</p>\n\n<p><a href=\"https://github.com/Raycoms/thesis\" rel=\"noreferrer\">https://github.com/Raycoms/thesis</a></p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 47283,
+        "reputation": 723428,
+        "user_id": 139985,
+        "user_type": "registered",
+        "accept_rate": 69,
+        "profile_image": "https://www.gravatar.com/avatar/147c5a9cc1feec049c50da791ac7d144?s=256&d=identicon&r=PG",
+        "display_name": "Stephen C",
+        "link": "https://stackoverflow.com/users/139985/stephen-c"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1720333569,
+      "last_edit_date": 1720333569,
+      "creation_date": 1720333110,
+      "answer_id": 78716577,
+      "question_id": 40342996,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>The <a href=\"https://github.com/EsotericSoftware/kryo/blob/master/README.md#registration\" rel=\"nofollow noreferrer\">Kryo documentation</a> says this:</p>\n<blockquote>\n<p>When Kryo goes to write an instance of an object, first it may need to write something that identifies the object's class. By default, all classes that Kryo will read or write must be registered beforehand. Registration provides an int class ID, the serializer to use for the class, and the object instantiator used to create instances of the class.</p>\n</blockquote>\n<p>....</p>\n<blockquote>\n<p>During deserialization, the registered classes must have the exact same IDs they had during serialization. When registered, a class is assigned the next available, lowest integer ID, which means the order classes are registered is important. The class ID can optionally be specified explicitly to make order unimportant.</p>\n</blockquote>\n<p>From what we can tell, the registrations are incorrect when you are reading a Kryo message.  Either the classes were registered in a different order in the code that wrote and read the message, or you used different explicit IDs, or you left out a registration.  And these <em>could</em> be due to using different versions of your Kryo classes in different components of your system.</p>\n<p>Note that this is occurring during the deserialization of an object.  We can infer that something must have succeeded in serializing the object previously, and a class must have been registered with ID 44 at that time.</p>\n<p>The solution will depend on which of those mistakes you have made.</p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 47283,
+        "reputation": 723428,
+        "user_id": 139985,
+        "user_type": "registered",
+        "accept_rate": 69,
+        "profile_image": "https://www.gravatar.com/avatar/147c5a9cc1feec049c50da791ac7d144?s=256&d=identicon&r=PG",
+        "display_name": "Stephen C",
+        "link": "https://stackoverflow.com/users/139985/stephen-c"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1720333227,
+      "post_id": 40342996,
+      "comment_id": 138784261,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "78716577": []
+  }
+}

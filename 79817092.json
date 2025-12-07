@@ -1,0 +1,94 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "arrays",
+      "sorting"
+    ],
+    "owner": {
+      "account_id": 5333921,
+      "reputation": 51,
+      "user_id": 4253653,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/990a4fe4b562e7f45e1bb9023aa4bd16?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "bauerjlb",
+      "link": "https://stackoverflow.com/users/4253653/bauerjlb"
+    },
+    "is_answered": true,
+    "view_count": 103,
+    "answer_count": 3,
+    "score": 0,
+    "last_activity_date": 1762952103,
+    "creation_date": 1762893243,
+    "question_id": 79817092,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79817092/java-getting-sorted-order-of-objects",
+    "title": "Java : getting sorted order of Objects"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 2182934,
+        "reputation": 2660,
+        "user_id": 1932011,
+        "user_type": "registered",
+        "accept_rate": 71,
+        "profile_image": "https://www.gravatar.com/avatar/612163480a1ccb4785fd647a003eefbb?s=256&d=identicon&r=PG",
+        "display_name": "JayC667",
+        "link": "https://stackoverflow.com/users/1932011/jayc667"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1762952103,
+      "creation_date": 1762952103,
+      "answer_id": 79817760,
+      "question_id": 79817092,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>If large lists might even be remotely a concern:</p>\n<p>Method 1, Wrapping:</p>\n<ul>\n<li>Wrap each Item into a Pair class, like <code>Map.Entry</code> with <code>key</code> and <code>value</code></li>\n<li>You can also write your own Wrapper class/record (Containing the data and the index), with member variables <code>value</code> and <code>originalIndex</code></li>\n<li>And add those to a Collection like <code>ArrayList</code></li>\n<li>Have the comparator NOT target the <code>Entry</code>, but within it the <code>key</code> or <code>value</code> property (or <code>originalIndex</code> if you use a custom wrapper)</li>\n</ul>\n<p>Method 2, Mapping, if you can exclude duplicates in your data:</p>\n<ul>\n<li>Set up a <code>TreeMap&lt;type, Integer&gt;</code> with a type according to your data</li>\n<li>add all items to that TreeMap <code>tm</code>, with <code>tm.put(key, value)</code> the <code>values</code> as a counting insertion index</li>\n<li>when you need to access the data, you can iterate over <code>tm.entrySet()</code>, and each entry contains your value and the original index</li>\n</ul>\n<p>Method 3, Multi-Mapping:</p>\n<ul>\n<li>use a <code>TreeMap&lt;Iterable&lt;type&gt;, Integer&gt;</code>, then basically proceed like with the mapping solution. Best would be a <code>TreeMap&lt;ArrayList&lt;type&gt;, Integer&gt;</code></li>\n<li>use <code>tm.computeIfAbsent()</code> to get/create lists inside that map</li>\n<li>unrolling this (accessing the data) is also easy, you just have to do it in two loops: the outer loop like above, over <code>.entrySet()</code>, the inner one over the list you get inside each <code>EntrySet</code></li>\n</ul>\n"
+    },
+    {
+      "owner": {
+        "account_id": 10843443,
+        "reputation": 916,
+        "user_id": 20882864,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/CCQCy.jpg?s=256",
+        "display_name": "Marce Puente",
+        "link": "https://stackoverflow.com/users/20882864/marce-puente"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1762928163,
+      "creation_date": 1762928163,
+      "answer_id": 79817397,
+      "question_id": 79817092,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>What you are trying to do does not make much sense. To obtain the “positional” value of a given item, you must sort the list. If you do so (by creating a new list), you can use it as a map, obtaining its value with <strong>mySortedList.indexOf( myObject );</strong>.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 8532578,
+        "reputation": 49884,
+        "user_id": 6395627,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/af0f9bfe593f36642a032cd7ea611e7d?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Slaw",
+        "link": "https://stackoverflow.com/users/6395627/slaw"
+      },
+      "is_accepted": false,
+      "score": 2,
+      "last_activity_date": 1762902937,
+      "creation_date": 1762902937,
+      "answer_id": 79817209,
+      "question_id": 79817092,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>I think the easiest solution, just using the standard library, would probably be:</p>\n<pre class=\"lang-java prettyprint-override\"><code>&lt;T extends Comparable&lt;? super T&gt;&gt; int[] getSortedIndices(List&lt;? extends T&gt; list) {\n  return getSortedIndices(list, Comparator.naturalOrder());\n}\n\n&lt;T&gt; int[] getSortedIndices(List&lt;? extends T&gt; list, Comparator&lt;? super T&gt; comparator) {\n  return IntStream.range(0, list.size())\n      .boxed()\n      .sorted(Comparator.comparing(list::get, comparator))\n      .mapToInt(i -&gt; i)\n      .toArray();\n}\n</code></pre>\n<p>That unfortunately boxes then unboxes each index. Also the <code>Stream.sorted</code> operation is stateful, so there might be memory concerns for large lists. If you profile either of those things to be a problem then you can try to implement a solution that sorts an <code>int[]</code> based on the elements of the list. Something like:</p>\n<pre class=\"lang-java prettyprint-override\"><code>&lt;T extends Comparable&lt;? super T&gt;&gt; int[] getSortedIndices(List&lt;? extends T&gt; list) {\n  return getSortedIndices(list, Comparator.naturalOrder());\n}\n\n&lt;T&gt; int[] getSortedIndices(List&lt;? extends T&gt; list, Comparator&lt;? super T&gt; comparator) {\n  int[] indices = new int[list.size()];\n  // Initialize values: indices[i] = i\n  Arrays.setAll(indices, IntUnaryOperator.identity());\n\n  // Sort 'indices' based on elements of 'list'\n  boolean swapped;\n  do {\n    swapped = false;\n    for (int i = 1; i &lt; indices.length; i++) {\n      int j = indices[i - 1];\n      int k = indices[i];\n      if (comparator.compare(list.get(j), list.get(k)) &gt; 0) {\n        indices[i - 1] = k;\n        indices[i] = j;\n        swapped = true;\n      }\n    }\n  } while (swapped);\n\n  return indices;\n}\n</code></pre>\n<p>Note that example uses Bubble Sort which is O(n^2); you will probably want to use a different sorting algorithm. There's likely a library out there that provides a way to sort an <code>int[]</code> with a custom <code>Comparator</code> so you don't have to implement it yourself. Though if you implement it yourself you might be able to find a way to avoid the cost of initializing the indices array (<code>Arrays::setAll</code> in the example).</p>\n<p>Finally, be aware that both examples above expect the <code>List</code> to be random-access in order to perform well. An example of a random-access list implementation is <code>ArrayList</code>. Such implementations should implement the <code>RandomAccess</code> interface. If the list is not random-access (whether it implements <code>RandomAccess</code> or not) then the calls to <code>get</code> will no longer be O(1).</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79817760": [],
+    "79817397": [],
+    "79817209": []
+  }
+}

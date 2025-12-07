@@ -1,0 +1,130 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-webflux",
+      "reactive-programming",
+      "project-reactor"
+    ],
+    "owner": {
+      "account_id": 6721149,
+      "reputation": 1815,
+      "user_id": 5181125,
+      "user_type": "registered",
+      "profile_image": "https://graph.facebook.com/10206709540793790/picture?type=large",
+      "display_name": "Patrick",
+      "link": "https://stackoverflow.com/users/5181125/patrick"
+    },
+    "is_answered": true,
+    "view_count": 78,
+    "accepted_answer_id": 79831348,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1764219715,
+    "creation_date": 1763359678,
+    "last_edit_date": 1763460840,
+    "question_id": 79821945,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79821945/how-to-find-the-root-cause-exception-stacktrace-of-signal-type-cancel",
+    "title": "How to find the root cause / exception stacktrace of signal type CANCEL",
+    "body": "<p>In doFinally have printed the signal type to finally verify that it was a cancellation (CANCEL). However, this is not captured as part of doOnError as technically cancellation is not part of error.</p>\n<p>Root causes I can see why cancellation occurs is because</p>\n<ol>\n<li>Timeouts: If you use .timeout(), cancellation will occur if the timeout elapses.</li>\n<li>Manual disposal: If you call .dispose() or .cancel() on the subscription.</li>\n<li>Application shutdown: If the app or thread is stopped.</li>\n<li>Backpressure: If downstream cancels due to resource limits.</li>\n</ol>\n<p>However, unlike <code>doOnError(Throwable t -&gt; {})</code> - <code>doOnCancel(()-&gt;{})</code> does not provide the stacktrace to find the root cause of which operation caused this cancel.</p>\n<p>This is a complex code where multiple library methods are invoked so its not so direct to trace it via the code. The cancellation is happening only in our production environment and in no other environments. Our primary suspect is the resource and memory limits.</p>\n<p>But is there a way to trace the root cause of the cancel signal - like which method or operation caused this?</p>\n<p>I'm not sure if using <code>Hooks.onOperatorDebug()</code> would be wise.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 6721149,
+        "reputation": 1815,
+        "user_id": 5181125,
+        "user_type": "registered",
+        "profile_image": "https://graph.facebook.com/10206709540793790/picture?type=large",
+        "display_name": "Patrick",
+        "link": "https://stackoverflow.com/users/5181125/patrick"
+      },
+      "is_accepted": true,
+      "score": 1,
+      "last_activity_date": 1764219715,
+      "creation_date": 1764219715,
+      "answer_id": 79831348,
+      "question_id": 79821945,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Found the root cause.</p>\n<p>The operation was being cancelled because the http method in the controller was returning the reactive method's output directly instead of subscribing to it explicitly.</p>\n<p>Controller was like</p>\n<pre><code>PostMapping(&quot;/mymethod&quot;)\npublic Mono&lt;Void&gt; myMethod(InputParams ip) {\nreturn reactorService.method(); // making it sync subscription\n}\n</code></pre>\n<p>This made the http response sync awaiting the reactor response and cancelling it upon http timeout.</p>\n<p>The issue was resolved by invoking the reactor and subscribing to it from the controller and returning a dummy http success response.</p>\n<pre><code>PostMapping(&quot;/mymethod&quot;)\npublic ResponseEntity&lt;MyType&gt; myMethod(InputParams ip) {\nreactorService.method(ip).subscribe(); // executes async\nreturn ResponseEntity.ok(); // or MyResponseBuilder.setInputs(ip).build(); \n}\n</code></pre>\n<p>This way the http response returned early and the reactor executed async - resolving the issue.</p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 6721149,
+        "reputation": 1815,
+        "user_id": 5181125,
+        "user_type": "registered",
+        "profile_image": "https://graph.facebook.com/10206709540793790/picture?type=large",
+        "display_name": "Patrick",
+        "link": "https://stackoverflow.com/users/5181125/patrick"
+      },
+      "reply_to_user": {
+        "account_id": 71739,
+        "reputation": 311873,
+        "user_id": 207421,
+        "user_type": "registered",
+        "accept_rate": 82,
+        "profile_image": "https://www.gravatar.com/avatar/5cfe5f7d64f44be04f147295f5c7b88e?s=256&d=identicon&r=PG",
+        "display_name": "user207421",
+        "link": "https://stackoverflow.com/users/207421/user207421"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1764219960,
+      "post_id": 79821945,
+      "comment_id": 140875480,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 6721149,
+        "reputation": 1815,
+        "user_id": 5181125,
+        "user_type": "registered",
+        "profile_image": "https://graph.facebook.com/10206709540793790/picture?type=large",
+        "display_name": "Patrick",
+        "link": "https://stackoverflow.com/users/5181125/patrick"
+      },
+      "reply_to_user": {
+        "account_id": 71739,
+        "reputation": 311873,
+        "user_id": 207421,
+        "user_type": "registered",
+        "accept_rate": 82,
+        "profile_image": "https://www.gravatar.com/avatar/5cfe5f7d64f44be04f147295f5c7b88e?s=256&d=identicon&r=PG",
+        "display_name": "user207421",
+        "link": "https://stackoverflow.com/users/207421/user207421"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1763375664,
+      "post_id": 79821945,
+      "comment_id": 140857933,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 71739,
+        "reputation": 311873,
+        "user_id": 207421,
+        "user_type": "registered",
+        "accept_rate": 82,
+        "profile_image": "https://www.gravatar.com/avatar/5cfe5f7d64f44be04f147295f5c7b88e?s=256&d=identicon&r=PG",
+        "display_name": "user207421",
+        "link": "https://stackoverflow.com/users/207421/user207421"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1763360425,
+      "post_id": 79821945,
+      "comment_id": 140857536,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79831348": []
+  }
+}

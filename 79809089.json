@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jna"
+    ],
+    "owner": {
+      "account_id": 54150,
+      "reputation": 2071,
+      "user_id": 161995,
+      "user_type": "registered",
+      "accept_rate": 100,
+      "profile_image": "https://www.gravatar.com/avatar/f2f7d62ddeeb7b96c338131837eb1c6a?s=256&d=identicon&r=PG",
+      "display_name": "Erik",
+      "link": "https://stackoverflow.com/users/161995/erik"
+    },
+    "is_answered": true,
+    "view_count": 131,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1762420115,
+    "creation_date": 1762270030,
+    "last_edit_date": 1762420115,
+    "question_id": 79809089,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79809089/how-do-i-create-a-file-through-jna",
+    "title": "How do I create a file through JNA",
+    "body": "<p>In the java 25 move, we're removing some code that uses reflection in a soon-to-be-disallowed way. Instead, we're looking at using JNA. I need to access a file descriptor (the unix kind) and I thought I'd <code>open(&quot;some_path&quot;,O_CREAT|O_RDWR)</code> , do whatever I need to do with the file descriptor and then open the same path with <code>File</code> instead.\nProblem is I get errno 2 (no such file or directory).<br />\nIf I create the file first with through</p>\n<pre><code>var f = new File(&quot;some_path&quot;);\nf.createNewFile();\nint fd = JNALib.open(&quot;some_path&quot;, O_CREAT|O_RDWR);\n</code></pre>\n<p>Then that works perfectly. I do not understand why the first option fails.\nMac OS X, ARM Mac. JNA 5.18.1</p>\n<p>Code:</p>\n<pre><code>    @Test\n    public void testSOOpenFile() throws Exception {\n\n        String tmpFile = &quot;dummy-file.tst&quot;;\n        var relPath  = Paths.get(&quot;&quot;).toAbsolutePath();\n        Path file = Path.of(relPath + &quot;/&quot; + tmpFile);\n        System.out.println(&quot;Creating &quot; + file);\n        int fd = JNALibMinimal.open(file.toString(), O_CREAT | O_RDWR);\n        if (fd &lt; 0 ) {\n            System.out.println(&quot;JNALib failed to open with error code &quot; + JNALib.getLastError());\n        } else {\n            System.out.println(&quot;JNALib successfully opened &quot; + fd);\n        }\n\n    }\n</code></pre>\n<pre><code>public class JNALibMinimal {\n\n    static {\n        Native.register(Platform.C_LIBRARY_NAME);\n    }\n\n    public static native int open(String pathName, int flags);\n    public static native int open(String pathName, int flags, int mode);\n}\n</code></pre>\n<p><strong>UPDATE</strong>\nI (finally) figured out the problem and it was (not uncommon) CBtK (crap behind the keyboard). I've been too long away from c programming. The problem was that linux and Darwin actually has different values for the symbols O_RDWR &amp; O_CREAT. Once I used Darwin values, the file was created ok.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

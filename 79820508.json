@@ -1,0 +1,57 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-mvc",
+      "thymeleaf",
+      "spring-thymeleaf"
+    ],
+    "owner": {
+      "account_id": 27325363,
+      "reputation": 11,
+      "user_id": 20838427,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AEdFTp7xFTL-RoEXvebTHbnap0NQy4mLKXIPUfTC5-l8=k-s256",
+      "display_name": "Tecco Temtsa",
+      "link": "https://stackoverflow.com/users/20838427/tecco-temtsa"
+    },
+    "is_answered": false,
+    "view_count": 82,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1763306608,
+    "creation_date": 1763163995,
+    "last_edit_date": 1763230248,
+    "question_id": 79820508,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79820508/login-infinitely-retrying-with-bad-credentials",
+    "title": "Login infinitely retrying with bad credentials",
+    "body": "<p>I am using Java Spring boot and Thymeleaf. When trying to login with bad credentials, the page freezes for a few minutes, and it says the page isn't working.</p>\n<p>When I activate debug in application.properties, it prints the following text continuously</p>\n<pre><code>2025-11-14T22:15:24.172+01:00 DEBUG 15420 --- [app] [io-8080-exec-10] o.s.s.a.dao.DaoAuthenticationProvider    : Failed to find user 'mike'\n2025-11-14T22:15:24.173+01:00 DEBUG 15420 --- [app] [io-8080-exec-10] o.s.s.authentication.ProviderManager     : Authentication failed with provider DaoAuthenticationProvider since Bad credentials\n</code></pre>\n<p>From this I understand it is continuously trying to login again and again when the credentials are incorrect instead of just showing the error. I don't know why it does this or how to fix it.</p>\n<p>Here is my security config</p>\n<pre class=\"lang-java prettyprint-override\"><code>package com.labo.app.security;\n\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\nimport org.springframework.security.authentication.AuthenticationManager;\nimport org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;\nimport org.springframework.security.config.annotation.web.builders.HttpSecurity;\nimport org.springframework.security.core.userdetails.UserDetailsService;\nimport org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;\nimport org.springframework.security.web.SecurityFilterChain;\nimport org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;\nimport org.springframework.security.web.csrf.CookieCsrfTokenRepository;\n\nimport com.labo.app.service.MyUserDetailService;\n\n@Configuration\npublic class SecurityConfig {\n\n    private final MyUserDetailService myUserDetailService;\n\n    public SecurityConfig(MyUserDetailService myUserDetailService) {\n        this.myUserDetailService = myUserDetailService;\n    }\n    \n    @Bean\n    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {\n        httpSecurity\n            .csrf(csrf -&gt; csrf\n                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())\n                .ignoringRequestMatchers(&quot;/logout&quot;) // Disable CSRF for logout\n            )\n            .authorizeHttpRequests(authorize -&gt; {\n                authorize.requestMatchers(&quot;/css/**&quot;, &quot;/js/**&quot;, &quot;/images/**&quot;).permitAll();\n                authorize.requestMatchers(&quot;/login&quot;, &quot;/error/**&quot;, &quot;/logout&quot;, &quot;/&quot;, &quot;/home&quot;, &quot;/test-db&quot;).permitAll();\n                authorize.requestMatchers(&quot;/admin/**&quot;).hasRole(&quot;ADMIN&quot;);\n                authorize.requestMatchers(&quot;/user/**&quot;).hasRole(&quot;USER&quot;);\n                authorize.anyRequest().authenticated();\n            })\n            .formLogin(formLogin -&gt; formLogin\n                .loginPage(&quot;/login&quot;)\n                .loginProcessingUrl(&quot;/login&quot;)\n                .defaultSuccessUrl(&quot;/&quot;, true) // Make sure this matches your form action\n                .failureUrl(&quot;/login?error&quot;) // This should trigger on failure\n                .permitAll()\n            )\n            .logout(logout -&gt; logout\n                .logoutRequestMatcher(request -&gt; &quot;/logout&quot;.equals(request.getRequestURI()) &amp;&amp; &quot;GET&quot;.equalsIgnoreCase(request.getMethod())) // Allow GET for logout\n                .logoutSuccessUrl(&quot;/login?logout&quot;)\n                .invalidateHttpSession(true)\n                .deleteCookies(&quot;JSESSIONID&quot;)\n                .permitAll()\n            )\n            .exceptionHandling(exceptions -&gt; exceptions\n                    .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint(&quot;/login&quot;))\n            )\n            .sessionManagement(session -&gt; session\n                    .maximumSessions(1)\n                    .expiredUrl(&quot;/login?expired=true&quot;)\n                );\n        \n        return httpSecurity.build();\n    }\n\n    @Bean\n    public UserDetailsService userDetailService() {\n        return myUserDetailService;\n    }\n\n    @Bean\n    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {\n        AuthenticationManagerBuilder authenticationManagerBuilder =\n            http.getSharedObject(AuthenticationManagerBuilder.class);\n        authenticationManagerBuilder\n            .userDetailsService(myUserDetailService)\n            .passwordEncoder(bCryptPasswordEncoder());\n        return authenticationManagerBuilder.build();\n    }\n\n    @Bean\n    public BCryptPasswordEncoder bCryptPasswordEncoder() {\n        return new BCryptPasswordEncoder();\n    }\n}\n</code></pre>\n<p>Here is my controller method</p>\n<pre class=\"lang-java prettyprint-override\"><code>@GetMapping(&quot;/login&quot;)\npublic String loginPage(@RequestParam(value = &quot;error&quot;, required = false) String error,\n                        @RequestParam(value = &quot;logout&quot;, required = false) String logout,\n                        Model model) {\n                            \n    if (error != null) {\n        model.addAttribute(&quot;error&quot;, &quot;Invalid username and password!&quot;);\n    }\n\n    if (logout != null) {\n        model.addAttribute(&quot;message&quot;, &quot;You have been logged out successfully.&quot;);\n    }\n    return &quot;login&quot;;\n}\n</code></pre>\n<p>Here is my login page</p>\n<pre class=\"lang-html prettyprint-override\"><code>&lt;!DOCTYPE html&gt;\n&lt;html xmlns:th=&quot;http://www.thymeleaf.org&quot;&gt;\n&lt;head&gt;\n    &lt;meta charset=&quot;UTF-8&quot;&gt;\n    &lt;title&gt;Login Page&lt;/title&gt;\n\n    &lt;link rel=&quot;stylesheet&quot; th:href=&quot;@{/css/styles.css}&quot;&gt;\n\n&lt;/head&gt;\n&lt;body&gt;\n    &lt;div class=&quot;container&quot;&gt;\n        &lt;nav&gt;\n            &lt;a href=&quot;/&quot;&gt;Home&lt;/a&gt; |\n            &lt;a href=&quot;/login&quot;&gt;Login&lt;/a&gt;\n        &lt;/nav&gt;\n        \n        &lt;h1&gt;Login&lt;/h1&gt;\n\n        &lt;div th:if=&quot;${error}&quot; class=&quot;alert alert-error mb-20&quot;&gt;\n            &lt;strong&gt;Error:&lt;/strong&gt; &lt;span th:text=&quot;${error}&quot;&gt;&lt;/span&gt;\n        &lt;/div&gt;\n        \n        &lt;form th:action=&quot;@{/login}&quot; method=&quot;post&quot;&gt;\n            &lt;div class=&quot;form-group&quot;&gt;\n                &lt;label for=&quot;username&quot;&gt;Username:&lt;/label&gt;\n                &lt;input type=&quot;text&quot; id=&quot;username&quot; name=&quot;username&quot; required&gt;\n            &lt;/div&gt;\n            \n            &lt;div class=&quot;form-group&quot;&gt;\n                &lt;label for=&quot;password&quot;&gt;Password:&lt;/label&gt;\n                &lt;input type=&quot;password&quot; id=&quot;password&quot; name=&quot;password&quot; required&gt;\n            &lt;/div&gt;\n            \n            &lt;button type=&quot;submit&quot;&gt;Login&lt;/button&gt;\n        &lt;/form&gt;\n        \n        &lt;div th:if=&quot;${error}&quot;&gt;\n        &lt;script&gt;\n            alert(&quot;[[${error}]]&quot;); // Thymeleaf inline expression\n        &lt;/script&gt;\n    &lt;/div&gt;\n    &lt;/div&gt;\n&lt;/body&gt;\n&lt;/html&gt;\n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 173785,
+        "reputation": 1046,
+        "user_id": 402723,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/Q8TPb.jpg?s=256",
+        "display_name": "Raul Lapeira Herrero",
+        "link": "https://stackoverflow.com/users/402723/raul-lapeira-herrero"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1763306608,
+      "creation_date": 1763306608,
+      "answer_id": 79821551,
+      "question_id": 79820508,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>If you use login with wildcards that needs to be an allowed path:</p>\n<pre><code>http\n    .authorizeHttpRequests(auth -&gt; auth\n        .requestMatchers(&quot;/login&quot;, &quot;/login/**&quot;).permitAll()\n        .anyRequest().authenticated()\n    )\n    .formLogin(form -&gt; form\n        .loginPage(&quot;/login&quot;)\n        .loginProcessingUrl(&quot;/login&quot;)\n        .defaultSuccessUrl(&quot;/&quot;, true)\n        .failureUrl(&quot;/login?error&quot;)\n        .permitAll()\n    );\n</code></pre>\n<p>In general try not to use the same path for several steps or conditions (like you do in login) unless you are proficient with spring security + thymeleaf</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79821551": []
+  }
+}

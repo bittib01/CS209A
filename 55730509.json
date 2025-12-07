@@ -1,0 +1,90 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "junit5"
+    ],
+    "owner": {
+      "account_id": 15763285,
+      "reputation": 53,
+      "user_id": 11374453,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/JXhUo.jpg?s=256",
+      "display_name": "Denis",
+      "link": "https://stackoverflow.com/users/11374453/denis"
+    },
+    "is_answered": true,
+    "view_count": 2381,
+    "accepted_answer_id": 55745436,
+    "answer_count": 1,
+    "score": 5,
+    "last_activity_date": 1764534361,
+    "creation_date": 1555512855,
+    "last_edit_date": 1555514908,
+    "question_id": 55730509,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/55730509/can-i-run-junit-dynamic-tests-produced-by-testfactory-concurrently",
+    "title": "Can i run Junit dynamic tests produced by @TestFactory concurrently?",
+    "body": "<p>i am using the <a href=\"https://junit.org/junit5/docs/current/user-guide/#launcher-api-discovery\" rel=\"noreferrer\">Discovering Tests</a> feature of Junit and i also have a class that introduces a few <code>@TestFactory</code> methods each of which produces a great amount of dynamic tests. My first thought was \"It would be great to be able to run these concurrently.\", so i added</p>\n\n<pre><code>.configurationParameter(\n               \"junit.jupiter.execution.parallel.enabled\", \"true\"\n           )\n</code></pre>\n\n<p>to my <code>LauncherDiscoveryRequestBuilder</code> and i annotated my test class holding the factories with <code>@Execution(ExecutionMode.CONCURRENT)</code>. So far so good, but i ended up with each <code>@TestFactory</code> method being run on a different thread but all the dynamic tests produced by a single <code>@TestFactory</code> share the same thread (the thread the <code>@TestFactory</code> that produced these tests runs on).</p>\n\n<p>My question is - can i run the dynamic tests produced by a @TestFactory in parallel ? Also tried this </p>\n\n<pre><code>@TestFactory\n@Execution(ExecutionMode.CONCURRENT)\n</code></pre>\n\n<p>but the result was the same.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 165479,
+        "reputation": 31528,
+        "user_id": 388980,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/64310de9c07f30458f9baae33d91ccdc?s=256&d=identicon&r=PG",
+        "display_name": "Sam Brannen",
+        "link": "https://stackoverflow.com/users/388980/sam-brannen"
+      },
+      "is_accepted": true,
+      "score": 9,
+      "last_activity_date": 1555588232,
+      "creation_date": 1555588232,
+      "answer_id": 55745436,
+      "question_id": 55730509,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Yes, you can execute dynamic tests concurrently.</p>\n\n<p>Here's a modified version of the <code>dynamicNodeSingleContainer()</code> test factory from the JUnit 5 User Guide</p>\n\n<pre><code>@TestFactory\n@Execution(ExecutionMode.CONCURRENT)\nDynamicNode dynamicNodeSingleContainer() {\n    return dynamicContainer(\"palindromes\",\n        Stream.of(\"racecar\", \"radar\", \"mom\", \"dad\")\n            .map(text -&gt; dynamicTest(text, () -&gt; {\n                assertTrue(isPalindrome(text));\n                System.err.println(Thread.currentThread().getName());\n            })\n    ));\n}\n</code></pre>\n\n<p>When I execute it, I see the following output which demonstrates that the 4 dynamic tests executed concurrently in different threads.</p>\n\n<pre><code>ForkJoinPool-1-worker-5\nForkJoinPool-1-worker-11\nForkJoinPool-1-worker-7\nForkJoinPool-1-worker-9\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "55745436": [
+      {
+        "owner": {
+          "account_id": 15763285,
+          "reputation": 53,
+          "user_id": 11374453,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/JXhUo.jpg?s=256",
+          "display_name": "Denis",
+          "link": "https://stackoverflow.com/users/11374453/denis"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1555674052,
+        "post_id": 55745436,
+        "comment_id": 98197155,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 15763285,
+          "reputation": 53,
+          "user_id": 11374453,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/JXhUo.jpg?s=256",
+          "display_name": "Denis",
+          "link": "https://stackoverflow.com/users/11374453/denis"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1555588865,
+        "post_id": 55745436,
+        "comment_id": 98167922,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

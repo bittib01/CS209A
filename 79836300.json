@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "amazon-elasticache",
+      "lettuce",
+      "valkey"
+    ],
+    "owner": {
+      "account_id": 505659,
+      "reputation": 179,
+      "user_id": 1648558,
+      "user_type": "registered",
+      "accept_rate": 0,
+      "profile_image": "https://www.gravatar.com/avatar/581b2ccccbdcec340c4d80039ac64383?s=256&d=identicon&r=PG",
+      "display_name": "alex",
+      "link": "https://stackoverflow.com/users/1648558/alex"
+    },
+    "is_answered": false,
+    "view_count": 55,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1764825152,
+    "creation_date": 1764707004,
+    "last_edit_date": 1764713808,
+    "question_id": 79836300,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79836300/java-springboot-talking-to-elasticache-api-calls-fail-during-ecs-tasks-auto-sc",
+    "title": "Java Springboot talking to Elasticache - API calls fail during ecs tasks auto-scaling",
+    "body": "<p>Java Springboot application talks to Aws Elasticache using Lettuce client running on ECS.</p>\n<p>Springboot version 3.4.5\nLettuce version 6.8.1.RELEASE\nElasticache Valkey serverless using IAM authentication</p>\n<p>Observed weird behavior during Load test. When ECS tasks auto-scaling kicks off on high load (cpu &gt;50%) during 500rps,</p>\n<ul>\n<li>API latency spikes</li>\n<li>API calls timeout with 504</li>\n<li>elasticache commands fail with connection timeout, command timeout</li>\n<li>Ecs tasks health check fails and tasks get created/killed continuously in a loop for a while</li>\n</ul>\n<p>It takes ~30mins for the tasks to scale up properly, then everything settles down and APIs behave normally.</p>\n<p>Auto-scale policy triggers when:\nCPU utilization &gt;50%\nMemory utilization &gt;50%</p>\n<p>Elasticache config:\nmaxTotal 15\nmaxIdle 8\nminIdle 3\nconnection timeout 3s\ncommand timeout 2s</p>\n<p>What is going wrong here?\nBelow is the elasticache configuration class. Thanks in advance.</p>\n<pre><code>public class ElastiCacheConfig {\n\n@Bean(destroyMethod = &quot;shutdown&quot;)\npublic ClientResources clientResources() {\n    return DefaultClientResources.builder()\n            .ioThreadPoolSize(8)\n            .computationThreadPoolSize(8)\n            .reconnectDelay(Delay.equalJitter(\n                    Duration.ofMillis(100),\n                    Duration.ofSeconds(30),\n                    1, TimeUnit.MILLISECONDS))\n            .build();\n}\n\n@Bean(destroyMethod = &quot;shutdown&quot;)\npublic RedisClient redisClient(ClientResources clientResources) {\n    RedisURI redisURI = RedisURI.builder()\n            .withHost(host)\n            .withPort(6379)\n            .withSsl(true)\n            .withAuthentication(getCredentials())\n            .withTimeout(Duration.ofMillis(3000))\n            .build();\n\n    RedisClient client = RedisClient.create(clientResources, redisURI);\n    client.setOptions(createClientOptions());\n    return client;\n}\n\n@Bean\npublic CompletionStage&lt;BoundedAsyncPool&lt;StatefulRedisConnection&lt;String, String&gt;&gt;&gt; cacheAsyncConnectionPool(RedisClient redisClient) {\n    RedisURI redisURI = RedisURI.builder()\n            .withHost(host)\n            .withPort(port)\n            .withSsl(true)\n            .withAuthentication(getCredentials())\n            .withTimeout(Duration.ofMillis(3000))\n            .build();\n\n    BoundedPoolConfig poolConfig = BoundedPoolConfig.builder()\n            .maxTotal(15)\n            .maxIdle(8)\n            .minIdle(3)\n            .testOnAcquire(true)\n            .testOnCreate(true)\n            .build();\n\n    return AsyncConnectionPoolSupport.createBoundedObjectPoolAsync(\n            () -&gt; redisClient.connectAsync(StringCodec.UTF8, redisURI),\n            poolConfig);\n}\n\nprivate ClientOptions createClientOptions() {\n    return ClientOptions.builder()\n            .pingBeforeActivateConnection(true)\n            .socketOptions(SocketOptions.builder()\n                    .connectTimeout(Duration.ofMillis(3000))\n                    .keepAlive(true)\n                    .tcpNoDelay(true)\n                    .build())\n            .timeoutOptions(TimeoutOptions.builder()\n                    .fixedTimeout(Duration.ofMillis(2000))\n                    .build())\n            .build();\n}\n\nprivate RedisCredentialsProvider getCredentials() {\n    AWSCredentialsProvider awsCredentialsProvider = new DefaultAWSCredentialsProviderChain();\n    IAMAuthTokenRequest iamAuthTokenRequest = new IAMAuthTokenRequest(user, name, region, true);\n    return new RedisIAMAuthCredentialsProvider(\n            user, iamAuthTokenRequest, awsCredentialsProvider);\n}\n</code></pre>\n<p>}</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

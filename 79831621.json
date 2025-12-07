@@ -1,0 +1,182 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jvm",
+      "volatile"
+    ],
+    "owner": {
+      "account_id": 14761714,
+      "reputation": 17,
+      "user_id": 10660856,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/lqjCz.png?s=256",
+      "display_name": "杨尚山",
+      "link": "https://stackoverflow.com/users/10660856/%e6%9d%a8%e5%b0%9a%e5%b1%b1"
+    },
+    "is_answered": true,
+    "view_count": 109,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1764566519,
+    "creation_date": 1764240269,
+    "last_edit_date": 1764566519,
+    "question_id": 79831621,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79831621/how-does-the-jvm-instruction-getfield-work",
+    "title": "How does the JVM instruction getfield work?",
+    "body": "<p>Thread A performs <code>getfield Stop.flag</code> and the value is <code>false</code>. At a certain point, another thread modifies <code>Stop.flag</code> to <code>true</code>, but Thread A keeps getting <code>false</code> when reading <code>Stop.flag</code>.</p>\n<p>I don’t understand. Under the CPU MESI protocol, even if the latest value is not read from memory, Thread A should still be able to read <code>true</code> from the cache with MESI support. Is it possible that <code>getfield</code> does not read from the CPU cache?</p>\n<pre class=\"lang-java prettyprint-override\"><code>package org.example;\n\nimport java.util.concurrent.TimeUnit;\n\npublic class TestVolatile2 {\n    public static class Stop {\n        boolean flag = false;\n    }\n\n    public static void main(String[] args) {\n        final Stop stop = new Stop();\n        // Thread-A\n        new Thread(&quot;Thread A&quot;) {\n            @Override\n            public void run() {\n                Stop s = stop;\n                while (!s.flag) { // getfield Stop.flag, but always false. even getfield from cpu caches, but msei sync true. why? getfield always false\n                }\n                System.out.println(Thread.currentThread() + &quot; stopped&quot;);\n            }\n        }.start();\n\n        // Thread-main\n        try {\n            TimeUnit.SECONDS.sleep(1);\n            System.out.println(Thread.currentThread() + &quot; after 1 seconds&quot;);\n        } catch (InterruptedException e) {\n            e.printStackTrace();\n        }\n        stop.flag = true;\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 401843,
+        "reputation": 107175,
+        "user_id": 768644,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/b13bedc5215730fbce5edff6c130988a?s=256&d=identicon&r=PG",
+        "display_name": "rzwitserloot",
+        "link": "https://stackoverflow.com/users/768644/rzwitserloot"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1764336203,
+      "last_edit_date": 1764336203,
+      "creation_date": 1764252790,
+      "answer_id": 79831778,
+      "question_id": 79831621,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Java runs on more systems than CPUs that use MESI.</p>\n<p>And yet, the JVM is also fast. This seems like an impossibility; how can java be defined in a way that ignores MESI while still enjoying the benefits?</p>\n<p>The answer is the Java Memory Model. Java has a well defined spec about what you can and cannot expect, which is catered to make it possible for a JVM implementation to run fast (vs. e.g. a spec that says &quot;every field write is instantly and guaranteed visible to every other thread&quot; which would require a compliant JVM impl to stick so many guards and locks around every line that it'd run very slow. This is what python does, and why everybody complains about the 'GIL').</p>\n<p>But that spec is not in terms of MESI, it's not in terms of any CPU architecture. It's a more abstract take on the concept that is designed to be able to be implemented on lots of hardware in a way that should mean java code can run fast.</p>\n<p>The JMM is this model.</p>\n<p>It operates on the notions of 'guarantees'. If something is <em>not</em> guaranteed that that simply means exactly what that word implies: At that point the JVM may do A, or B, and either way is fine. It may do A one day and B the next. And so on. If your code is dependent on A always happening, it is buggy, and in a way that is not testable (because a JVM <em>may</em> always do A; lack of guarantee does not guarantee that it never happens!).</p>\n<p>The JMM is a large chapter, but the core of it is the Happens-Before concept. Certain lines have a HB relationship; the spec details precisely when an HB relationship is formed. If <code>HB(A, B)</code> means &quot;A has a happens-before relationship relative to B&quot;, then the JMM says a JVM must guarantee that you cannot observe any state at point B such that it appears like it is the value that it had before A ran. Note that it's not actually a guarantee that 'B runs after A'; it is a guarantee that you won't be able to tell. Also, the JMM explicit disavows all timing: Nothing in the JMM claims that, for example, a field write always takes the same amount of nanoseconds or some such. In other words, if purely through timing out how long operations take, you can figure out things about a value, that does not count as 'observability'. This fortunately matches what most CPUs use as definiton of 'observable'.</p>\n<p>If no HB is established, <strong>all bets are off</strong> and your code better not depend on any particular observability because if it does it is broken. The ways to establish HB are explicitly listed in the JMM. The highlights:</p>\n<ul>\n<li>Natural HB: Within the confines of a single thread, HB(A, B) exists for all lines in execution order. In other words, <code>int y = 0; y = 5; System.out.println(y);</code> cannot possibly print anything but 5. This one is rather obvious.</li>\n<li>lock HB: The <code>}</code> of <code>synchronized (a) {}</code> is HB relative to the <code>{</code> in another <code>synchronized (a)</code> if the second block runs 'later'. And 'later' <em>is</em> a valid word to use for synchronized. Similar with <code>volatile</code>.</li>\n<li>join HB: the last line in a thread is HB relative to another thread's call to that thread's <code>join</code> method.</li>\n<li>start HB: the line <code>thread.start()</code> is HB relative to the first line in that thread.</li>\n</ul>\n<p>In your example, there's no HB. Hence, a JVM is free to have your code observe the state of the <code>flag</code> variable as it was either before <em>or</em> after. A JVM that reliably returns <code>true</code> is fine. A JVM that reliably returns <code>false</code> is fine. A JVM that flips a coin every time and returns the result of the coin is fine. A JVM that returns <code>true</code> 100% of the time during a million tests, but then returns <code>false</code> on the exact day you're demoing your app to that massive potential customer is.. fine.</p>\n<hr />\n<p>NB: I did oversimplify a few things. For example, a JVM also guarantees that you cannot observe state that never was. In other words, if instead of a boolean, the field starts out as '5' and another thread sets it to 13 without establishing HB, then you can observe 5 or 13, either one. But if <em>that thread</em> starts saying its 13, it can't flip back to 5, and it can't report any other number. This guarantee is explicitly not made for <code>long</code> and <code>double</code>, but in practice no 64-bit JVM impl would give you sheared updates on those. In general this doesn't matter - there are only 2 very simple options. Either [A] you establish HB, or [B] your code is broken in a hard to test way.</p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 6651855,
+        "reputation": 291985,
+        "user_id": 5133585,
+        "user_type": "registered",
+        "accept_rate": 96,
+        "profile_image": "https://i.sstatic.net/dfqcw.png?s=256",
+        "display_name": "Sweeper",
+        "link": "https://stackoverflow.com/users/5133585/sweeper"
+      },
+      "edited": false,
+      "score": 5,
+      "creation_date": 1764243279,
+      "post_id": 79831621,
+      "comment_id": 140876034,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 292208,
+        "reputation": 11569,
+        "user_id": 2245707,
+        "user_type": "registered",
+        "accept_rate": 17,
+        "profile_image": "https://i.sstatic.net/Klcqr.gif?s=256",
+        "display_name": "pveentjer",
+        "link": "https://stackoverflow.com/users/2245707/pveentjer"
+      },
+      "reply_to_user": {
+        "account_id": 30223964,
+        "reputation": 252,
+        "user_id": 23162960,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/2451acfac254a6fc75757ecf89d75f9a?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Jannik S.",
+        "link": "https://stackoverflow.com/users/23162960/jannik-s"
+      },
+      "edited": false,
+      "score": 3,
+      "creation_date": 1764243072,
+      "post_id": 79831621,
+      "comment_id": 140876028,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 30223964,
+        "reputation": 252,
+        "user_id": 23162960,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/2451acfac254a6fc75757ecf89d75f9a?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Jannik S.",
+        "link": "https://stackoverflow.com/users/23162960/jannik-s"
+      },
+      "edited": false,
+      "score": 3,
+      "creation_date": 1764240783,
+      "post_id": 79831621,
+      "comment_id": 140875974,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79831778": [
+      {
+        "owner": {
+          "account_id": 3211603,
+          "reputation": 300971,
+          "user_id": 2711488,
+          "user_type": "registered",
+          "profile_image": "https://i.sstatic.net/t2hoD.jpg?s=256",
+          "display_name": "Holger",
+          "link": "https://stackoverflow.com/users/2711488/holger"
+        },
+        "edited": false,
+        "score": 1,
+        "creation_date": 1764337783,
+        "post_id": 79831778,
+        "comment_id": 140877596,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 401843,
+          "reputation": 107175,
+          "user_id": 768644,
+          "user_type": "registered",
+          "profile_image": "https://www.gravatar.com/avatar/b13bedc5215730fbce5edff6c130988a?s=256&d=identicon&r=PG",
+          "display_name": "rzwitserloot",
+          "link": "https://stackoverflow.com/users/768644/rzwitserloot"
+        },
+        "reply_to_user": {
+          "account_id": 292208,
+          "reputation": 11569,
+          "user_id": 2245707,
+          "user_type": "registered",
+          "accept_rate": 17,
+          "profile_image": "https://i.sstatic.net/Klcqr.gif?s=256",
+          "display_name": "pveentjer",
+          "link": "https://stackoverflow.com/users/2245707/pveentjer"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1764336499,
+        "post_id": 79831778,
+        "comment_id": 140877563,
+        "content_license": "CC BY-SA 4.0"
+      },
+      {
+        "owner": {
+          "account_id": 292208,
+          "reputation": 11569,
+          "user_id": 2245707,
+          "user_type": "registered",
+          "accept_rate": 17,
+          "profile_image": "https://i.sstatic.net/Klcqr.gif?s=256",
+          "display_name": "pveentjer",
+          "link": "https://stackoverflow.com/users/2245707/pveentjer"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1764307406,
+        "post_id": 79831778,
+        "comment_id": 140876935,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ]
+  }
+}

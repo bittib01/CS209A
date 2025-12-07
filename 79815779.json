@@ -1,0 +1,176 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "javafx"
+    ],
+    "owner": {
+      "account_id": 34599290,
+      "reputation": 1188,
+      "user_id": 26656564,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/882f996623517814360ba4bb403102e7?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "SilverCube",
+      "link": "https://stackoverflow.com/users/26656564/silvercube"
+    },
+    "is_answered": true,
+    "view_count": 103,
+    "answer_count": 1,
+    "score": 5,
+    "last_activity_date": 1762963091,
+    "creation_date": 1762787763,
+    "question_id": 79815779,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79815779/tableview-doesnt-stretch-in-vbox-in-javafx",
+    "title": "TableView doesn&#39;t stretch in VBox in JavaFX",
+    "body": "<p>I have two <code>TableView</code> in a <code>VBox</code>. I need the first one to grow and take all available space, while the second one should not expand. This is my current code:</p>\n<pre><code>public class TestFx extends Application {\n\n    @Override\n    public void start(Stage primaryStage) {\n        ObservableList&lt;TestItem&gt; data1 = FXCollections.observableArrayList();\n        ObservableList&lt;TestItem&gt; data2 = FXCollections.observableArrayList();\n\n        for (int i = 1; i &lt;= 30; i++) {\n            data1.add(new TestItem(&quot;Item &quot; + i, &quot;Value &quot; + i));\n        }\n\n        for (int i = 1; i &lt;= 5; i++) {\n            data2.add(new TestItem(&quot;Item &quot; + i, &quot;Value &quot; + i));\n        }\n\n        TableView&lt;TestItem&gt; table1 = createTable(&quot;Type Table (30 rows)&quot;, data1);\n        TableView&lt;TestItem&gt; table2 = createTable(&quot;Base Table (5 rows)&quot;, data2);\n\n        VBox container = new VBox();\n\n        VBox.setVgrow(table1, Priority.ALWAYS);\n        table1.setMaxHeight(Double.MAX_VALUE);\n\n        VBox.setVgrow(table2, Priority.NEVER);\n        table2.setMaxHeight(Region.USE_PREF_SIZE);\n\n        container.getChildren().addAll(table1, table2);\n\n        BorderPane root = new BorderPane();\n        root.setCenter(container);\n\n        Scene scene = new Scene(root, 600, 400);\n        primaryStage.setTitle(&quot;TableView Test&quot;);\n        primaryStage.setScene(scene);\n        primaryStage.show();\n    }\n\n    private TableView&lt;TestItem&gt; createTable(String title, ObservableList&lt;TestItem&gt; data) {\n        TableView&lt;TestItem&gt; table = new TableView&lt;&gt;();\n        table.setItems(data);\n\n        TableColumn&lt;TestItem, String&gt; col1 = new TableColumn&lt;&gt;(title);\n        col1.setCellValueFactory(cellData -&gt; cellData.getValue().nameProperty());\n\n        TableColumn&lt;TestItem, String&gt; col2 = new TableColumn&lt;&gt;(&quot;Value&quot;);\n        col2.setCellValueFactory(cellData -&gt; cellData.getValue().valueProperty());\n\n        table.getColumns().addAll(col1, col2);\n        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);\n\n        return table;\n    }\n\n    public static class TestItem {\n        private final SimpleStringProperty name;\n        private final SimpleStringProperty value;\n\n        public TestItem(String name, String value) {\n            this.name = new SimpleStringProperty(name);\n            this.value = new SimpleStringProperty(value);\n        }\n\n        public String getName() { return name.get(); }\n        public void setName(String name) { this.name.set(name); }\n        public SimpleStringProperty nameProperty() { return name; }\n\n        public String getValue() { return value.get(); }\n        public void setValue(String value) { this.value.set(value); }\n        public SimpleStringProperty valueProperty() { return value; }\n    }\n\n    public static void main(String[] args) {\n        launch(args);\n    }\n}\n</code></pre>\n<p>And this is the result:</p>\n<p><a href=\"https://i.sstatic.net/wjmwhrKY.png\" rel=\"noreferrer\"><img src=\"https://i.sstatic.net/wjmwhrKY.png\" alt=\"enter image description here\" /></a></p>\n<p>As you can see, the second table shows empty rows, so it takes more space than required. How to fix it?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 2518243,
+        "reputation": 210896,
+        "user_id": 2189127,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/e8e6e627b4b90ec816c5c7aa04cbcc26?s=256&d=identicon&r=PG",
+        "display_name": "James_D",
+        "link": "https://stackoverflow.com/users/2189127/james-d"
+      },
+      "is_accepted": false,
+      "score": 4,
+      "last_activity_date": 1762963091,
+      "last_edit_date": 1762963091,
+      "creation_date": 1762804414,
+      "answer_id": 79816022,
+      "question_id": 79815779,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>There is no particularly easy way to do this. The (current) implementation of <code>TableViewSkin</code> just hard-codes the preferred height to 400. Consequently, the approach of limiting the max height of both tables to the preferred height just prevents both tables from growing more than 400 pixels tall. The <code>VBox</code>, even with <code>vGrow</code> set to <code>PRIORITY.NEVER</code> will still try to size the second table to its preferred size, so it will be 400 pixels tall, no matter how many items it contains.</p>\n<p>The API-supported way to do this would be to create a skin subclass for the table which computed its size based on the number of items. Here is a very basic implementation which is intended to serve only as a proof of concept: it is <strong>not intended to be production quality</strong> (or anything close to it).</p>\n<p>The basic idea here is to keep the <code>VirtualFlow</code>'s <code>cellCount</code> set to the required value (the number of items in the table; it's also probably a good idea to impose a maximum which I just hard-code as 10 here), then compute the preferred height of the table by adding up the padding, preferred height of the header, and the preferred height of the <code>VirtualFlow</code>. For some reason, the scrolling ends up being off by one, so I have included a workaround for that in the <code>layoutChildren()</code> method to fix the scroll position. I don't know why this is necessary.</p>\n<pre><code>public static class ResizingTableSkin&lt;T&gt; extends TableViewSkin&lt;T&gt; {\n\n    private static final int MAX_MEASURED_ROWS = 10;\n\n    public ResizingTableSkin(TableView&lt;T&gt; tableView) {\n        super(tableView);\n        tableView.itemsProperty().addListener((Observable _) -&gt; getVirtualFlow().setCellCount(Math.min(tableView.getItems().size(), MAX_MEASURED_ROWS)));\n        getVirtualFlow().setCellCount(Math.min(tableView.getItems().size(), MAX_MEASURED_ROWS));\n    }\n    \n    @Override\n    protected double computePrefHeight(double width, double topInset, double rightInset, double bottomInset, double leftInset) {\n        VirtualFlow&lt;TableRow&lt;T&gt;&gt; virtualFlow = getVirtualFlow();\n        double padding = topInset + bottomInset;\n        double availableWidth = width - leftInset - rightInset;\n        TableHeaderRow header = getTableHeaderRow();\n        return padding + header.prefHeight(availableWidth) + virtualFlow.prefHeight(availableWidth);\n    }\n\n    @Override\n    protected void layoutChildren(double x, double y, double w, double h) {\n        if (getSkinnable().getItems().size() &lt;= MAX_MEASURED_ROWS) {\n            getVirtualFlow().scrollTo(0);\n        }\n        super.layoutChildren(x, y, w, h);\n    }\n\n}\n</code></pre>\n<p>To use this, you should set the minimum height of the table to its preferred height. This will ensure all items (up to 10) are visible. Using a layout that doesn't allow it to grow beyond its preferred size (such as the <code>VBox</code> you have configured in the original post) will keep it at this preferred size.</p>\n<p>The skin classes in JavaFX were originally not part of the public API. Since JavaFX 9 they were promoted to the public API, but the design of these classes is still very much as it was originally, and they are not designed for easy extension. To make this work correctly and robustly you would really need to read through a lot of the <a href=\"https://github.com/openjdk/jfx/tree/master/modules/javafx.controls/src/main/java/javafx/scene/control/skin\" rel=\"nofollow noreferrer\">skin source code</a> to understand how it works, and it would be a bit of a project. How much you want to invest in that depends on how important this layout is to you.</p>\n<p>Here is a complete example, which works on my system. You can use this as a starting point for a more robust solution if you want to go that direction.</p>\n<pre><code>import javafx.application.Application;\nimport javafx.beans.Observable;\nimport javafx.beans.property.SimpleStringProperty;\nimport javafx.collections.FXCollections;\nimport javafx.collections.ObservableList;\nimport javafx.scene.Scene;\nimport javafx.scene.control.TableColumn;\nimport javafx.scene.control.TableRow;\nimport javafx.scene.control.TableView;\nimport javafx.scene.control.skin.TableHeaderRow;\nimport javafx.scene.control.skin.TableViewSkin;\nimport javafx.scene.control.skin.VirtualFlow;\nimport javafx.scene.layout.BorderPane;\nimport javafx.scene.layout.Priority;\nimport javafx.scene.layout.Region;\nimport javafx.scene.layout.VBox;\nimport javafx.stage.Stage;\n\npublic class TestFx extends Application {\n\n    @Override\n    public void start(Stage primaryStage) {\n        ObservableList&lt;TestItem&gt; data1 = FXCollections.observableArrayList();\n        ObservableList&lt;TestItem&gt; data2 = FXCollections.observableArrayList();\n\n        for (int i = 1; i &lt;= 30; i++) {\n            data1.add(new TestItem(&quot;Item &quot; + i, &quot;Value &quot; + i));\n        }\n\n        for (int i = 1; i &lt;= 15; i++) {\n            data2.add(new TestItem(&quot;Item &quot; + i, &quot;Value &quot; + i));\n        }\n\n        TableView&lt;TestItem&gt; table1 = createTable(&quot;Type Table (30 rows)&quot;, data1);\n        TableView&lt;TestItem&gt; table2 = createTable(&quot;Base Table (5 rows)&quot;, data2);\n        table2.setSkin(new ResizingTableSkin&lt;&gt;(table2));\n\n\n        VBox container = new VBox();\n\n        VBox.setVgrow(table1, Priority.ALWAYS);\n        table1.setMaxHeight(Double.MAX_VALUE);\n\n        VBox.setVgrow(table2, Priority.NEVER);\n        table2.setMinHeight(Region.USE_PREF_SIZE);\n\n        container.getChildren().addAll(table1, table2);\n\n\n        BorderPane root = new BorderPane();\n        root.setCenter(container);\n\n        Scene scene = new Scene(root, 600, 400);\n        primaryStage.setTitle(&quot;TableView Test&quot;);\n        primaryStage.setScene(scene);\n        primaryStage.show();\n    }\n\n    private TableView&lt;TestItem&gt; createTable(String title, ObservableList&lt;TestItem&gt; data) {\n        TableView&lt;TestItem&gt; table = new TableView&lt;&gt;();\n        table.setItems(data);\n\n        TableColumn&lt;TestItem, String&gt; col1 = new TableColumn&lt;&gt;(title);\n        col1.setCellValueFactory(cellData -&gt; cellData.getValue().nameProperty());\n\n        TableColumn&lt;TestItem, String&gt; col2 = new TableColumn&lt;&gt;(&quot;Value&quot;);\n        col2.setCellValueFactory(cellData -&gt; cellData.getValue().valueProperty());\n\n        table.getColumns().addAll(col1, col2);\n        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);\n\n        return table;\n    }\n\n    public static class ResizingTableSkin&lt;T&gt; extends TableViewSkin&lt;T&gt; {\n\n        private static final int MAX_MEASURED_ROWS = 10;\n\n        public ResizingTableSkin(TableView&lt;T&gt; tableView) {\n            super(tableView);\n            tableView.itemsProperty().addListener((Observable _) -&gt; getVirtualFlow().setCellCount(Math.min(tableView.getItems().size(), MAX_MEASURED_ROWS)));\n            getVirtualFlow().setCellCount(Math.min(tableView.getItems().size(), MAX_MEASURED_ROWS));\n        }\n\n        @Override\n        protected double computePrefHeight(double width, double topInset, double rightInset, double bottomInset, double leftInset) {\n            VirtualFlow&lt;TableRow&lt;T&gt;&gt; virtualFlow = getVirtualFlow();\n            double padding = topInset + bottomInset;\n            double availableWidth = width - leftInset - rightInset;\n            TableHeaderRow header = getTableHeaderRow();\n            return padding + header.prefHeight(availableWidth) + virtualFlow.prefHeight(availableWidth);\n        }\n\n        @Override\n        protected void layoutChildren(double x, double y, double w, double h) {\n            if (getSkinnable().getItems().size() &lt;= MAX_MEASURED_ROWS) {\n                getVirtualFlow().scrollTo(0);\n            }\n            super.layoutChildren(x, y, w, h);\n        }\n\n    }\n\n    public static class TestItem {\n        private final SimpleStringProperty name;\n        private final SimpleStringProperty value;\n\n        public TestItem(String name, String value) {\n            this.name = new SimpleStringProperty(name);\n            this.value = new SimpleStringProperty(value);\n        }\n\n        public String getName() { return name.get(); }\n        public void setName(String name) { this.name.set(name); }\n        public SimpleStringProperty nameProperty() { return name; }\n\n        public String getValue() { return value.get(); }\n        public void setValue(String value) { this.value.set(value); }\n        public SimpleStringProperty valueProperty() { return value; }\n    }\n\n    public static void main(String[] args) {\n        launch(args);\n    }\n}\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 2819940,
+        "reputation": 14002,
+        "user_id": 2423906,
+        "user_type": "registered",
+        "accept_rate": 100,
+        "profile_image": "https://i.sstatic.net/rkpYv.jpg?s=256",
+        "display_name": "SedJ601",
+        "link": "https://stackoverflow.com/users/2423906/sedj601"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1763048185,
+      "post_id": 79815779,
+      "comment_id": 140852709,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 2518243,
+        "reputation": 210896,
+        "user_id": 2189127,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/e8e6e627b4b90ec816c5c7aa04cbcc26?s=256&d=identicon&r=PG",
+        "display_name": "James_D",
+        "link": "https://stackoverflow.com/users/2189127/james-d"
+      },
+      "reply_to_user": {
+        "account_id": 2053598,
+        "reputation": 44936,
+        "user_id": 1831987,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/38b1c37530189ec4471a43a618e33f67?s=256&d=identicon&r=PG",
+        "display_name": "VGR",
+        "link": "https://stackoverflow.com/users/1831987/vgr"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1762802381,
+      "post_id": 79815779,
+      "comment_id": 140847433,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 2053598,
+        "reputation": 44936,
+        "user_id": 1831987,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/38b1c37530189ec4471a43a618e33f67?s=256&d=identicon&r=PG",
+        "display_name": "VGR",
+        "link": "https://stackoverflow.com/users/1831987/vgr"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1762795741,
+      "post_id": 79815779,
+      "comment_id": 140847326,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 34599290,
+        "reputation": 1188,
+        "user_id": 26656564,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/882f996623517814360ba4bb403102e7?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "SilverCube",
+        "link": "https://stackoverflow.com/users/26656564/silvercube"
+      },
+      "reply_to_user": {
+        "account_id": 2053598,
+        "reputation": 44936,
+        "user_id": 1831987,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/38b1c37530189ec4471a43a618e33f67?s=256&d=identicon&r=PG",
+        "display_name": "VGR",
+        "link": "https://stackoverflow.com/users/1831987/vgr"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1762792692,
+      "post_id": 79815779,
+      "comment_id": 140847228,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 2053598,
+        "reputation": 44936,
+        "user_id": 1831987,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/38b1c37530189ec4471a43a618e33f67?s=256&d=identicon&r=PG",
+        "display_name": "VGR",
+        "link": "https://stackoverflow.com/users/1831987/vgr"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1762792250,
+      "post_id": 79815779,
+      "comment_id": 140847210,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 2518243,
+        "reputation": 210896,
+        "user_id": 2189127,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/e8e6e627b4b90ec816c5c7aa04cbcc26?s=256&d=identicon&r=PG",
+        "display_name": "James_D",
+        "link": "https://stackoverflow.com/users/2189127/james-d"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1762789165,
+      "post_id": 79815779,
+      "comment_id": 140847084,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79816022": []
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "if-statement"
+    ],
+    "owner": {
+      "account_id": 44388250,
+      "reputation": 7,
+      "user_id": 31726668,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/bc9cb52ee70ba7393b20e3b07011ab40?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Bossredman",
+      "link": "https://stackoverflow.com/users/31726668/bossredman"
+    },
+    "is_answered": true,
+    "view_count": 106,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1762337600,
+    "creation_date": 1762322428,
+    "question_id": 79809666,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79809666/if-else-statement-not-processing-in-button-onclicklistener",
+    "title": "If/else statement not processing in Button onClickListener",
+    "body": "<p>Is there an obvious reason why an if-else statement would not be processed in a button's <code>onCLickListener()</code>?</p>\n<p>I have a HomeScreen Widget with a Settings Activity incorporated.\nIn there, there is a button which is supposed to Disable/Enable whether Alarms are cancelled/re-scheduled (via AlarmMananger &amp; Pending Intends).</p>\n<p>Immediately after loading the App to my phone (and for several minutes afterwards), everything works as expected.</p>\n<p>But if after some time I go back and press the button, the initial part of the onCLickListener code is processed (I know as a Toast is displayed), but the rest of the code is not (again I know as TextView updates do not happen &amp; a 2nd Toast is not displayed).\nThe rest of the code includes an If/Else statement.</p>\n<p>The if-else statement relates to the state of a Boolean value which gets toggled/flipped whenever the button is pressed.\nThe Boolean is stored in a SharedPreferences file, which my code reads &amp; updates accordingly.</p>\n<p>A log file is then updated to record the changes.</p>\n<p>Additional info:</p>\n<p>In debugging mode it always executes as expected.</p>\n<p>I also added a log to the if/else branches. When it works as expected  an entry in the log is recorded.</p>\n<p>When it doesn't work as expected, nothing is added to the log</p>\n<pre class=\"lang-java prettyprint-override\"><code>    public void onClick(View v) {\n        mySavedSettings  = mySettingsActivityContext\n            .getApplicationContext()\n            .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);\n        mySavedAlarms = settingAlarmsB4 = mySavedSettings.getBoolean(&quot;AlarmsEnabled&quot;, false);\n\n        String alarmStatus;\n        boolean toggleAlarmsStatus = !mySavedAlarms;\n\n        // Update Sharedprefs file\n        settingAlarmsAfter = toggleAlarmsStatus;\n        SharedPreferences.Editor editor = mySavedSettings.edit();\n        editor.putBoolean(&quot;AlarmsEnabled&quot;,toggleAlarmsStatus);\n        editor.apply();\n\n        Toast.makeText(\n            WidgetSettings.this,\n            &quot;1-Alarm Btn Pressed: &quot; + toggleAlarmsStatus,\n            Toast.LENGTH_SHORT\n        ).show();\n\n        if (toggleAlarmsStatus == true) {\n            // Update text on Button\n            btnToggleWidgetAlarms.setText(&quot;Disable Alarms&quot;);\n\n            .... code to schedule alarm .....\n\n            Toast.makeText(\n                mySettingsActivityContext,\n                &quot;Alarms Enabled&quot;,\n                Toast.LENGTH_SHORT\n            ).show();\n\n            alarmStatus = &quot;[Alarms ON] &quot;;\n        } else {\n            btnToggleWidgetAlarms.setText(&quot;Enable Alarms&quot;);\n            ClockWidget.myAlarmManager.cancelAll();\n            ClockWidget.myAlarmManager2.cancelAll();\n\n            alarmStatus = &quot;[Alarms OFF] &quot;;\n\n            Toast.makeText(\n                mySettingsActivityContext,\n                &quot;All Alarms Cancelled&quot;,\n                Toast.LENGTH_SHORT\n            ).show();\n        }\n\n        // Update TextView on Home Screen Widget\n        refreshRemoteViews(alarmStatus);\n\n        // Update Log file with changes\n        Intent intentCommonSave = new Intent(mySettingsActivityContext, CommonLogFileSave.class);\n        intentCommonSave.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);\n\n        intentCommonSave.putExtra(&quot;intentDataKey&quot;,&quot;Settings&quot;);\n        //intentCommonSave.putExtra(&quot;intentDataKeyAlarmsB4&quot;, settingAlarmsB4);\n        //intentCommonSave.putExtra(&quot;intentDataKeyAlarmsAFTER&quot;, toggleAlarmsStatus);\n        intentCommonSave.putExtra(&quot;intentDataKeyLocnB4&quot;, placesArray[settingLocationPosnB4]);\n        intentCommonSave.putExtra(&quot;intentDZLocAndTimeDiff&quot;, settingDZLocAndTDiffB4);\n        intentCommonSave.putExtra(&quot;intentDataKeySW1B4&quot;, settingSW1B4);\n        intentCommonSave.putExtra(&quot;intentDataKeySW2B4&quot;, settingSW2B4);\n        intentCommonSave.putExtra(&quot;intentDataKeyAlarmsB4&quot;, settingAlarmsB4);\n\n        // Update Log file\n        startActivityForResult(intentCommonSave, 1);\n\n        Toast.makeText(\n            WidgetSettings.this,\n            &quot;2-Alarm Btn Pressed: &quot; + toggleAlarmsStatus,\n            Toast.LENGTH_SHORT\n        ).show();\n    }\n});\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,265 @@
+{
+  "question": {
+    "tags": [
+      "java"
+    ],
+    "owner": {
+      "account_id": 6941576,
+      "reputation": 227,
+      "user_id": 5327712,
+      "user_type": "registered",
+      "accept_rate": 44,
+      "profile_image": "https://www.gravatar.com/avatar/3a73b1e2317271a9c0a462d3656ea477?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Sajal Saxena",
+      "link": "https://stackoverflow.com/users/5327712/sajal-saxena"
+    },
+    "is_answered": true,
+    "view_count": 528,
+    "accepted_answer_id": 40030464,
+    "answer_count": 3,
+    "score": -6,
+    "last_activity_date": 1764557742,
+    "creation_date": 1476329547,
+    "last_edit_date": 1764557742,
+    "question_id": 40011859,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/40011859/second-monday-of-current-year",
+    "title": "Second Monday of Current year",
+    "body": "<p>I need to calculate second monday of current year in one of program.  a method in java which tells what is the date on second monday of current year using Gregorian Calendar. Please suggest.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 322981,
+        "reputation": 346871,
+        "user_id": 642706,
+        "user_type": "registered",
+        "accept_rate": 58,
+        "profile_image": "https://i.sstatic.net/ZWEI3.jpg?s=256",
+        "display_name": "Basil Bourque",
+        "link": "https://stackoverflow.com/users/642706/basil-bourque"
+      },
+      "is_accepted": true,
+      "score": 1,
+      "last_activity_date": 1764464577,
+      "last_edit_date": 1764464577,
+      "creation_date": 1476390815,
+      "answer_id": 40030464,
+      "question_id": 40011859,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<h2>tl;dr</h2>\n<pre><code>java.util.GregorianCalendar.from( \n    LocalDate.now( ZoneId.of( &quot;America/Montreal&quot; ) ) \n             .with( TemporalAdjusters.firstDayOfYear() )\n             .with( TemporalAdjusters.dayOfWeekInMonth( 2 , DayOfWeek.MONDAY ) )\n             .atStartOfDay( ZoneId.of( &quot;America/Montreal&quot; ) )\n)\n</code></pre>\n<h1>Avoid legacy date-time classes</h1>\n<p>The <a href=\"http://docs.oracle.com/javase/8/docs/api/java/util/GregorianCalendar.html\" rel=\"nofollow noreferrer\"><code>GregorianCalendar</code></a> class is now legacy, supplanted by the java.time classes, specifically <a href=\"http://docs.oracle.com/javase/8/docs/api/java/time/ZonedDateTime.html\" rel=\"nofollow noreferrer\"><code>ZonedDateTime</code></a>. Avoid the old legacy date-time classes as they are poorly-designed, confusing, and troublesome.</p>\n<h2><code>LocalDate</code></h2>\n<p>For a date-only value, use <a href=\"http://docs.oracle.com/javase/8/docs/api/java/time/LocalDate.html\" rel=\"nofollow noreferrer\"><code>LocalDate</code></a>. The <a href=\"https://docs.oracle.com/javase/8/docs/api/java/time/LocalDate.html\" rel=\"nofollow noreferrer\"><code>LocalDate</code></a> class represents a date-only value without time-of-day and without time zone.</p>\n<p>A time zone is crucial in determining a date. For any given moment, the date varies around the globe by zone. For example, a few minutes after midnight in <a href=\"https://en.wikipedia.org/wiki/Europe/Paris\" rel=\"nofollow noreferrer\">Paris France</a> is a new day while still “yesterday” in <a href=\"https://en.wikipedia.org/wiki/America/Montreal\" rel=\"nofollow noreferrer\">Montréal Québec</a>.</p>\n<pre><code>ZoneId z = ZoneId.of( &quot;America/Montreal&quot; );\nLocalDate today = LocalDate.now( z );\n</code></pre>\n<h2><code>TemporalAdjuster</code></h2>\n<p>The <a href=\"http://docs.oracle.com/javase/8/docs/api/java/time/temporal/TemporalAdjuster.html\" rel=\"nofollow noreferrer\"><code>TemporalAdjuster</code></a> interface provides for classes to manipulate date-time values. The <a href=\"https://docs.oracle.com/javase/8/docs/api/java/time/temporal/TemporalAdjusters.html\" rel=\"nofollow noreferrer\"><code>TemporalAdjusters</code></a> (note plural 's') class provides several handy implementations.</p>\n<p>We an adjuster to get the first day of the current year, and another to get the second Monday of that month.</p>\n<pre><code>LocalDate firstOfYear = today.with( TemporalAdjusters.firstDayOfYear() );\nLocalDate secondMondayOfYear = firstOfYear.with( TemporalAdjuster.dayOfWeekInMonth( 2 , DayOfWeek.MONDAY ) );\n</code></pre>\n<h2>List of Mondays</h2>\n<p>By the way, you could get a collection of all the Monday dates in the year by filtering a stream of <code>LocalDate</code> objects returned by a call to <a href=\"https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/LocalDate.html#datesUntil(java.time.LocalDate)\" rel=\"nofollow noreferrer\"><code>LocalDate#datesUntil</code></a>.</p>\n<pre class=\"lang-java prettyprint-override\"><code>ZoneId z = ZoneId.of( &quot;Africa/Casablanca&quot; ) ;\nLocalDate today = LocalDate.now( z ) ;\nLocalDate firstOfThisYear = today.with( TemporalAdjusters.firstDayOfYear() );\nLocalDate firstOfNextYear = firstOfThisYear.plusYears( 1 ) ;\nList&lt; LocalDate &gt; mondays = \n    firstOfThisYear\n        .datesUntil( firstOfNextYear )  // Stream &lt; LocalDate &gt;\n        .filter( date -&gt; date.getDayOfWeek().equals( DayOfWeek.MONDAY ) ) \n        .toList() ;\n</code></pre>\n<p>Then access your desired date occurrence by index (annoying zero-based counting, subtracting one from your ordinal).</p>\n<pre><code>LocalDate secondMondayOfYear = mondays.get( 2 - 1 ) ;  // Zero-based index counting rather than one-based ordinal. \n</code></pre>\n<p>See that code <a href=\"https://ideone.com/tmqHFC\" rel=\"nofollow noreferrer\">run at Ideone.com</a>.</p>\n<h2><code>GregorianCalendar</code></h2>\n<p>If you really need to use the legacy class <code>GregorianCalendar</code>, you can convert by calling new methods added to the old classes. I assume you want the time-of-day set to the first moment of the day. That first moment is <em>not</em> always <code>00:00:00</code> so let java.time determine that time-of-day.</p>\n<pre><code>ZonedDateTime zdt = secondMondayOfYear.atStartOfDay( z );\nGregorianCalendar gc = java.util.GregorianCalendar.from( zdt );\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 322981,
+        "reputation": 346871,
+        "user_id": 642706,
+        "user_type": "registered",
+        "accept_rate": 58,
+        "profile_image": "https://i.sstatic.net/ZWEI3.jpg?s=256",
+        "display_name": "Basil Bourque",
+        "link": "https://stackoverflow.com/users/642706/basil-bourque"
+      },
+      "reply_to_user": {
+        "account_id": 101080,
+        "reputation": 70959,
+        "user_id": 272109,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/32170c62eb744820e8afdd023379a95a?s=256&d=identicon&r=PG",
+        "display_name": "David Makogon",
+        "link": "https://stackoverflow.com/users/272109/david-makogon"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1764564081,
+      "post_id": 40011859,
+      "comment_id": 140880779,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 101080,
+        "reputation": 70959,
+        "user_id": 272109,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/32170c62eb744820e8afdd023379a95a?s=256&d=identicon&r=PG",
+        "display_name": "David Makogon",
+        "link": "https://stackoverflow.com/users/272109/david-makogon"
+      },
+      "reply_to_user": {
+        "account_id": 322981,
+        "reputation": 346871,
+        "user_id": 642706,
+        "user_type": "registered",
+        "accept_rate": 58,
+        "profile_image": "https://i.sstatic.net/ZWEI3.jpg?s=256",
+        "display_name": "Basil Bourque",
+        "link": "https://stackoverflow.com/users/642706/basil-bourque"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1764557798,
+      "post_id": 40011859,
+      "comment_id": 140880737,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 322981,
+        "reputation": 346871,
+        "user_id": 642706,
+        "user_type": "registered",
+        "accept_rate": 58,
+        "profile_image": "https://i.sstatic.net/ZWEI3.jpg?s=256",
+        "display_name": "Basil Bourque",
+        "link": "https://stackoverflow.com/users/642706/basil-bourque"
+      },
+      "reply_to_user": {
+        "account_id": 101080,
+        "reputation": 70959,
+        "user_id": 272109,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/32170c62eb744820e8afdd023379a95a?s=256&d=identicon&r=PG",
+        "display_name": "David Makogon",
+        "link": "https://stackoverflow.com/users/272109/david-makogon"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1764463766,
+      "post_id": 40011859,
+      "comment_id": 140879593,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 101080,
+        "reputation": 70959,
+        "user_id": 272109,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/32170c62eb744820e8afdd023379a95a?s=256&d=identicon&r=PG",
+        "display_name": "David Makogon",
+        "link": "https://stackoverflow.com/users/272109/david-makogon"
+      },
+      "reply_to_user": {
+        "account_id": 322981,
+        "reputation": 346871,
+        "user_id": 642706,
+        "user_type": "registered",
+        "accept_rate": 58,
+        "profile_image": "https://i.sstatic.net/ZWEI3.jpg?s=256",
+        "display_name": "Basil Bourque",
+        "link": "https://stackoverflow.com/users/642706/basil-bourque"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1764462193,
+      "post_id": 40011859,
+      "comment_id": 140879572,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 322981,
+        "reputation": 346871,
+        "user_id": 642706,
+        "user_type": "registered",
+        "accept_rate": 58,
+        "profile_image": "https://i.sstatic.net/ZWEI3.jpg?s=256",
+        "display_name": "Basil Bourque",
+        "link": "https://stackoverflow.com/users/642706/basil-bourque"
+      },
+      "reply_to_user": {
+        "account_id": 101080,
+        "reputation": 70959,
+        "user_id": 272109,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/32170c62eb744820e8afdd023379a95a?s=256&d=identicon&r=PG",
+        "display_name": "David Makogon",
+        "link": "https://stackoverflow.com/users/272109/david-makogon"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1764442893,
+      "post_id": 40011859,
+      "comment_id": 140879327,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 101080,
+        "reputation": 70959,
+        "user_id": 272109,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/32170c62eb744820e8afdd023379a95a?s=256&d=identicon&r=PG",
+        "display_name": "David Makogon",
+        "link": "https://stackoverflow.com/users/272109/david-makogon"
+      },
+      "reply_to_user": {
+        "account_id": 322981,
+        "reputation": 346871,
+        "user_id": 642706,
+        "user_type": "registered",
+        "accept_rate": 58,
+        "profile_image": "https://i.sstatic.net/ZWEI3.jpg?s=256",
+        "display_name": "Basil Bourque",
+        "link": "https://stackoverflow.com/users/642706/basil-bourque"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1764386798,
+      "post_id": 40011859,
+      "comment_id": 140878500,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 101080,
+        "reputation": 70959,
+        "user_id": 272109,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/32170c62eb744820e8afdd023379a95a?s=256&d=identicon&r=PG",
+        "display_name": "David Makogon",
+        "link": "https://stackoverflow.com/users/272109/david-makogon"
+      },
+      "reply_to_user": {
+        "account_id": 322981,
+        "reputation": 346871,
+        "user_id": 642706,
+        "user_type": "registered",
+        "accept_rate": 58,
+        "profile_image": "https://i.sstatic.net/ZWEI3.jpg?s=256",
+        "display_name": "Basil Bourque",
+        "link": "https://stackoverflow.com/users/642706/basil-bourque"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1764386251,
+      "post_id": 40011859,
+      "comment_id": 140878497,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 322981,
+        "reputation": 346871,
+        "user_id": 642706,
+        "user_type": "registered",
+        "accept_rate": 58,
+        "profile_image": "https://i.sstatic.net/ZWEI3.jpg?s=256",
+        "display_name": "Basil Bourque",
+        "link": "https://stackoverflow.com/users/642706/basil-bourque"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1764299699,
+      "post_id": 40011859,
+      "comment_id": 140876878,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "40030464": []
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "c#",
+      "go",
+      "domain-driven-design"
+    ],
+    "owner": {
+      "account_id": 14338169,
+      "reputation": 11,
+      "user_id": 10357025,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/BH93yODz.jpg?s=256",
+      "display_name": "Erfan Mirhoseini",
+      "link": "https://stackoverflow.com/users/10357025/erfan-mirhoseini"
+    },
+    "is_answered": false,
+    "view_count": 65,
+    "answer_count": 3,
+    "score": 0,
+    "last_activity_date": 1764863151,
+    "creation_date": 1764602622,
+    "last_edit_date": 1764619783,
+    "question_id": 79835008,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79835008/representing-4-types-of-card-templates-adhering-to-ddd",
+    "title": "Representing 4 types of Card Templates Adhering to DDD",
+    "body": "<p>I have an Entity Called CardTemplate. For physical cards, there will have to be a pattern chosen to physically print the card. And based on the two types of operations that the cards are allowed to do, the templates must also have a range of possible card numbers as a property if the cards are going to be used for banking operations (operation type1) and no range is needed otherwise(operation type 2). So we will have 4 types of cards: physical with operation type 1, physical with operation type 2, virtual with operation type 1, and virtual with operation type 2.</p>\n<p>How can I represent these in code while implementing the rules for each type of card? I first thought of having 4 types, but what if there were another IF (if the card is x then y)? We will then have to have 8 types</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 2889373,
+        "reputation": 640,
+        "user_id": 4336358,
+        "user_type": "registered",
+        "profile_image": "https://lh4.googleusercontent.com/-cJ0axwXJaAg/AAAAAAAAAAI/AAAAAAAAACo/pE8621M3p2w/s256-rj/photo.jpg",
+        "display_name": "Николай Лубышев",
+        "link": "https://stackoverflow.com/users/4336358/%d0%9d%d0%b8%d0%ba%d0%be%d0%bb%d0%b0%d0%b9-%d0%9b%d1%83%d0%b1%d1%8b%d1%88%d0%b5%d0%b2"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1764863151,
+      "creation_date": 1764863151,
+      "answer_id": 79838104,
+      "question_id": 79835008,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>Somthing like that?</p>\n<pre><code>\ntype CardType string\n\nconst (\n    CTypePlastic CardType = &quot;plastic&quot;\n    CTypeVirtual CardType = &quot;virtual&quot;\n)\n\ntype CardUsage string\n\nconst (\n    CUxBanking  CardUsage = &quot;banking&quot;\n    CUxDiscount CardUsage = &quot;discount&quot;\n    CUxLoyality CardUsage = &quot;loyality&quot;\n    // ... any oather card ux\n)\n\ntype CardPrepareFunc func() error\n\ntype CardTemplate struct {\n    cardType    CardType\n    cardUx      []CardUsage\n    cardPrepare []CardPrepareFunc\n}\n\nfunc (ct *CardTemplate) Print() error {\n    for _, pr := range ct.cardPrepare {\n        if err := pr(); err != nil {\n            return err\n        }\n    }\n    if ct.cardType == CTypePlastic {\n        // ct.sendToPrinter()\n    }\n\n    return nil\n}\n\ntype CardOption = func(*CardTemplate) error\n\nfunc WithCardUsage(cu CardUsage, f CardPrepareFunc) CardOption {\n    return func(ct *CardTemplate) error {\n        ct.cardUx = append(ct.cardUx, cu)\n        ct.cardPrepare = append(ct.cardPrepare, f)\n\n        return nil\n    }\n}\n\nfunc NewCardTemplate(opts ...CardOption) *CardTemplate {\n    ct := new(CardTemplate)\n    for _, opt := range opts {\n        opt(ct)\n    }\n\n    return ct\n}\n</code></pre>\n"
+    },
+    {
+      "owner": {
+        "account_id": 14338169,
+        "reputation": 11,
+        "user_id": 10357025,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/BH93yODz.jpg?s=256",
+        "display_name": "Erfan Mirhoseini",
+        "link": "https://stackoverflow.com/users/10357025/erfan-mirhoseini"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1764619945,
+      "creation_date": 1764619945,
+      "answer_id": 79835248,
+      "question_id": 79835008,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>@marce-puente</p>\n<p>I added more detail about the card templates. Could you please take a look at it again?</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 10843443,
+        "reputation": 916,
+        "user_id": 20882864,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/CCQCy.jpg?s=256",
+        "display_name": "Marce Puente",
+        "link": "https://stackoverflow.com/users/20882864/marce-puente"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1764618002,
+      "creation_date": 1764618002,
+      "answer_id": 79835220,
+      "question_id": 79835008,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>I think you should be more specific in your description of the cards, otherwise it's unlikely that anyone will be able to help you.</p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79838104": [],
+    "79835248": [],
+    "79835220": []
+  }
+}

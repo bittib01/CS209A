@@ -1,0 +1,70 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "jpa",
+      "spring-data-jpa",
+      "model"
+    ],
+    "owner": {
+      "account_id": 23956201,
+      "reputation": 7,
+      "user_id": 30033597,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AATXAJzX5GqA2dZMR1W4_FwxT0GldTfxWhTYtuAQL5QtEA=k-s256",
+      "display_name": "Alex",
+      "link": "https://stackoverflow.com/users/30033597/alex"
+    },
+    "is_answered": true,
+    "view_count": 87,
+    "answer_count": 1,
+    "score": -3,
+    "last_activity_date": 1763054034,
+    "creation_date": 1763048684,
+    "question_id": 79819094,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79819094/converting-from-java-model-to-jpa",
+    "title": "Converting from Java model to JPA",
+    "body": "<p>I have implemented a class <code>User</code> that represents a User (so far either a Student or a Teacher). What they have in common is that they both have <code>ID</code>s, and some information about the user (this is stored in a composite class <code>UserInformation</code>). This is what the <code>User</code> class looked before:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public abstract class User {\n    private UUID id;\n    private UserInformation info;\n\n    public User(String surname, String name, String email) {\n        this.info = new UserInformation(surname, name, email);\n        this.id = UUID.randomUUID();\n    }\n\n    public UUID getId() {\n        return this.id;   \n    }\n\n    public UserInformation getInfo() {\n        return this.info;\n    }\n}\n</code></pre>\n<p>I then wanted to delve into H2 in-memory databases in Spring Boot and found out that I can use annotation <code>@Id</code> to represent the primary key of <code>User</code>. I also found that I can use the annotation <code>@GeneratedValue</code>, which would generate id for me.</p>\n<p>I therefore changed my code accordingly:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@MappedSuperclass \npublic abstract class User {\n    @Id \n    @GeneratedValue(strategy = GenerationType.UUID) \n    private UUID id; \n    @Embedded private UserInformation info;\n    \n    public User(String surname, String name, String email) {\n        this.info = new UserInformation(surname, name, email); \n    }\n\n    protected User() {\n    \n    }\n    \n    public UUID getId() {\n        return this.id; \n    }\n    \n    public UserInformation getInfo() {\n        return this.info;\n    }\n}\n</code></pre>\n<p>However, after this change, I can no longer access <code>Id</code> by the simple <code>getId</code> call. I have already built a lot around this <code>getId</code> functionality. Even in some of my custom exceptions, I refer to specific objects based on their Id like for example in this <code>GradeOutOfBoundsException</code>:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class GradeOutOfBoundsException extends Exception {\n\n    GradeOutOfBoundsException(int valueOfGrade, UUID studentId, String assignmentName) { \n        super( &quot;Value:&quot; + valueOfGrade + &quot; out of 0-100 bounds assigned for student with id: &quot; + studentId + &quot; in module &quot; + assignmentName); } \n}\n</code></pre>\n<p>I now have a couple of ideas on how this could be fixed</p>\n<ol>\n<li><p>Keep the explicit initialisation of id by using the UUID.randomUUID(). This would probably work, but I would prefer to use the annotation @GeneratedValue instead.</p>\n</li>\n<li><p>Stop using the id's in the code and use some other identifiers of the objects like the surname of a User.</p>\n</li>\n</ol>\n<p>What is the best practice to fix this issue?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 231721,
+        "reputation": 21335,
+        "user_id": 496099,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/efa7510cf47d7bd79e80486246e7e39e?s=256&d=identicon&r=PG",
+        "display_name": "Chris",
+        "link": "https://stackoverflow.com/users/496099/chris"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1763477438,
+      "post_id": 79819094,
+      "comment_id": 140860500,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 3284439,
+        "reputation": 40394,
+        "user_id": 2764255,
+        "user_type": "registered",
+        "accept_rate": 50,
+        "profile_image": "https://www.gravatar.com/avatar/2c14e217d79c08ca104e6e11d8e1710f?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Nikos Paraskevopoulos",
+        "link": "https://stackoverflow.com/users/2764255/nikos-paraskevopoulos"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1763380516,
+      "post_id": 79819094,
+      "comment_id": 140858060,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {}
+}

@@ -1,0 +1,107 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "string",
+      "algorithm",
+      "hash"
+    ],
+    "owner": {
+      "account_id": 994,
+      "reputation": 9038,
+      "user_id": 1318,
+      "user_type": "registered",
+      "accept_rate": 100,
+      "profile_image": "https://www.gravatar.com/avatar/1606cbc994e3e1906351eb93d4bee64f?s=256&d=identicon&r=PG",
+      "display_name": "jacobko",
+      "link": "https://stackoverflow.com/users/1318/jacobko"
+    },
+    "is_answered": true,
+    "view_count": 195826,
+    "protected_date": 1377610568,
+    "accepted_answer_id": 299748,
+    "answer_count": 13,
+    "score": 602,
+    "last_activity_date": 1754296098,
+    "creation_date": 1227026383,
+    "last_edit_date": 1546521240,
+    "question_id": 299304,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/299304/why-does-javas-hashcode-in-string-use-31-as-a-multiplier",
+    "title": "Why does Java&#39;s hashCode() in String use 31 as a multiplier?",
+    "body": "<p>Per the Java documentation, the <a href=\"http://java.sun.com/javase/6/docs/api/java/lang/String.html#hashCode()\" rel=\"noreferrer\">hash code</a> for a <code>String</code> object is computed as:</p>\n\n<blockquote>\n<pre><code>s[0]*31^(n-1) + s[1]*31^(n-2) + ... + s[n-1]\n</code></pre>\n  \n  <p>using <code>int</code> arithmetic, where <code>s[i]</code> is the\n   <i>i</i>th character of the string, <code>n</code> is the length of\n   the string, and <code>^</code> indicates exponentiation.</p>\n</blockquote>\n\n<p>Why is 31 used as a multiplier?</p>\n\n<p>I understand that the multiplier should be a relatively large prime number. So why not 29, or 37, or even 97?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 66439,
+        "reputation": 24139,
+        "user_id": 194894,
+        "user_type": "registered",
+        "accept_rate": 94,
+        "profile_image": "https://www.gravatar.com/avatar/5e5b6587ba56fcaae86fe5db95248e98?s=256&d=identicon&r=PG",
+        "display_name": "Flow",
+        "link": "https://stackoverflow.com/users/194894/flow"
+      },
+      "is_accepted": false,
+      "score": 19,
+      "last_activity_date": 1754296098,
+      "last_edit_date": 1754296098,
+      "creation_date": 1497302223,
+      "answer_id": 44508855,
+      "question_id": 299304,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>From <a href=\"https://bugs.openjdk.org/browse/JDK-4045622\" rel=\"nofollow noreferrer\">JDK-4045622</a>, where Joshua Bloch describes the reasons why that particular (new) <code>String.hashCode()</code> implementation was chosen</p>\n<blockquote>\n<p>The table below summarizes the performance of the various hash\nfunctions described above, for three data sets:</p>\n<ol>\n<li><p>All of the words and phrases with entries in Merriam-Webster's\n2nd Int'l Unabridged Dictionary (311,141 strings, avg length 10 chars).</p>\n</li>\n<li><p>All of the strings in <code>/bin/*</code>, <code>/usr/bin/*</code>, <code>/usr/lib/*</code>, <code>/usr/ucb/*</code>\nand <code>/usr/openwin/bin/*</code> (66,304 strings, avg length 21 characters).</p>\n</li>\n<li><p>A list of URLs gathered by a web-crawler that ran for several\nhours last night (28,372 strings, avg length 49 characters).</p>\n</li>\n</ol>\n<p>The performance metric shown in the table is the &quot;average chain size&quot;\nover all elements in the hash table (i.e., the expected value of the\nnumber of key compares to look up an element).</p>\n<pre><code>                          Webster's   Code Strings    URLs\n                          ---------   ------------    ----\nCurrent Java Fn.          1.2509      1.2738          13.2560\nP(37)    [Java]           1.2508      1.2481          1.2454\nP(65599) [Aho et al]      1.2490      1.2510          1.2450\nP(31)    [K+R]            1.2500      1.2488          1.2425\nP(33)    [Torek]          1.2500      1.2500          1.2453\nVo's Fn                   1.2487      1.2471          1.2462\nWAIS Fn                   1.2497      1.2519          1.2452\nWeinberger's Fn(MatPak)   6.5169      7.2142          30.6864\nWeinberger's Fn(24)       1.3222      1.2791          1.9732\nWeinberger's Fn(28)       1.2530      1.2506          1.2439\n</code></pre>\n<p>Looking at this table, it's clear that all of the functions except for\nthe current Java function and the two broken versions of Weinberger's\nfunction offer excellent, nearly indistinguishable performance.  I\nstrongly conjecture that this performance is essentially the\n&quot;theoretical ideal&quot;, which is what you'd get if you used a true random\nnumber generator in place of a hash function.</p>\n<p>I'd rule out the WAIS function as its specification contains pages of random numbers, and its performance is no better than any of the\nfar simpler functions.  Any of the remaining six functions seem like\nexcellent choices, but we have to pick one.  I suppose I'd rule out\nVo's variant and Weinberger's function because of their added\ncomplexity, albeit minor.  Of the remaining four, I'd probably select\nP(31), as it's the cheapest to calculate on a RISC machine (because 31\nis the difference of two powers of two).  P(33) is similarly cheap to\ncalculate, but it's performance is marginally worse, and 33 is\ncomposite, which makes me a bit nervous.</p>\n<p>Josh</p>\n</blockquote>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 71739,
+        "reputation": 311873,
+        "user_id": 207421,
+        "user_type": "registered",
+        "accept_rate": 82,
+        "profile_image": "https://www.gravatar.com/avatar/5cfe5f7d64f44be04f147295f5c7b88e?s=256&d=identicon&r=PG",
+        "display_name": "user207421",
+        "link": "https://stackoverflow.com/users/207421/user207421"
+      },
+      "reply_to_user": {
+        "account_id": 1708076,
+        "reputation": 355,
+        "user_id": 1566735,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/0ff0c01dbd47a6f0b14f224b2746f663?s=256&d=identicon&r=PG",
+        "display_name": "Dushyant Sabharwal",
+        "link": "https://stackoverflow.com/users/1566735/dushyant-sabharwal"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1578888770,
+      "post_id": 299304,
+      "comment_id": 105572819,
+      "content_license": "CC BY-SA 4.0"
+    },
+    {
+      "owner": {
+        "account_id": 332245,
+        "reputation": 17179,
+        "user_id": 657427,
+        "user_type": "registered",
+        "accept_rate": 67,
+        "profile_image": "https://www.gravatar.com/avatar/dd071a6a7c97ba637c558c5e71137c7b?s=256&d=identicon&r=PG",
+        "display_name": "Christophe Roussy",
+        "link": "https://stackoverflow.com/users/657427/christophe-roussy"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1570094231,
+      "post_id": 299304,
+      "comment_id": 102808123,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "44508855": []
+  }
+}

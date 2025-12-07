@@ -1,0 +1,82 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "dictionary",
+      "collections",
+      "initialization"
+    ],
+    "owner": {
+      "account_id": 317806,
+      "reputation": 17785,
+      "user_id": 634682,
+      "user_type": "registered",
+      "accept_rate": 85,
+      "profile_image": "https://www.gravatar.com/avatar/3dac2305819692d324865b7039f7f9fe?s=256&d=identicon&r=PG",
+      "display_name": "jens",
+      "link": "https://stackoverflow.com/users/634682/jens"
+    },
+    "is_answered": true,
+    "view_count": 2134060,
+    "accepted_answer_id": 6802502,
+    "answer_count": 23,
+    "score": 1705,
+    "last_activity_date": 1751318801,
+    "creation_date": 1311446433,
+    "last_edit_date": 1522695073,
+    "question_id": 6802483,
+    "content_license": "CC BY-SA 3.0",
+    "link": "https://stackoverflow.com/questions/6802483/how-to-directly-initialize-a-hashmap-in-a-literal-way",
+    "title": "How to directly initialize a HashMap (in a literal way)?",
+    "body": "<p>Is there some way of initializing a Java HashMap like this?:</p>\n\n<pre><code>Map&lt;String,String&gt; test = \n    new HashMap&lt;String, String&gt;{\"test\":\"test\",\"test\":\"test\"};\n</code></pre>\n\n<p>What would be the correct syntax? I have not found anything regarding this. Is this possible? I am looking for the shortest/fastest way to put some \"final/static\" values in a map that never change and are known in advance when creating the Map.</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 322981,
+        "reputation": 346871,
+        "user_id": 642706,
+        "user_type": "registered",
+        "accept_rate": 58,
+        "profile_image": "https://i.sstatic.net/ZWEI3.jpg?s=256",
+        "display_name": "Basil Bourque",
+        "link": "https://stackoverflow.com/users/642706/basil-bourque"
+      },
+      "is_accepted": false,
+      "score": 35,
+      "last_activity_date": 1751318801,
+      "last_edit_date": 1751318801,
+      "creation_date": 1576549148,
+      "answer_id": 59366753,
+      "question_id": 6802483,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<h1>tl;dr</h1>\n<p>Use <code>Map.of…</code> methods in Java 9 and later.</p>\n<pre><code>Map&lt; String , String &gt; animalSounds =\n    Map.of(\n        &quot;dog&quot;  , &quot;bark&quot; ,   // key , value\n        &quot;cat&quot;  , &quot;meow&quot; ,   // key , value\n        &quot;bird&quot; , &quot;chirp&quot;    // key , value\n    )\n;\n</code></pre>\n<h1><code>Map.of</code></h1>\n<p>Java 9 added a series of <a href=\"https://docs.oracle.com/javase/9/docs/api/java/util/Map.html#of--\" rel=\"nofollow noreferrer\"><code>Map.of</code></a> static methods to do just what you want: <strong>Instantiate an immutable <code>Map</code> using literal syntax</strong>.</p>\n<p>The map (a collection of entries) is immutable, so you cannot add or remove entries after instantiating. Also, the key and the value of each entry is immutable, cannot be changed. <a href=\"https://docs.oracle.com/javase/9/docs/api/java/util/Map.html#immutable\" rel=\"nofollow noreferrer\">See the Javadoc</a> for other rules, such as no NULLs allowed, no duplicate keys allowed, and the iteration order of mappings is arbitrary.</p>\n<p>Let's look at these methods, using some sample data for a map of day-of-week to a person who we expect will work on that day.</p>\n<pre><code>Person alice = new Person( &quot;Alice&quot; );\nPerson bob = new Person( &quot;Bob&quot; );\nPerson carol = new Person( &quot;Carol&quot; );\n</code></pre>\n<h2><code>Map.of()</code></h2>\n<p><a href=\"https://docs.oracle.com/javase/9/docs/api/java/util/Map.html#of--\" rel=\"nofollow noreferrer\"><code>Map.of</code></a> creates an empty <code>Map</code>. Unmodifiable, so you cannot add entries. Here is an example of such a map, empty with no entries.</p>\n<pre><code>Map &lt; DayOfWeek, Person &gt; dailyWorkerEmpty = Map.of();\n</code></pre>\n<blockquote>\n<p>dailyWorkerEmpty.toString(): {}</p>\n</blockquote>\n<h2><code>Map.of( … )</code></h2>\n<p><code>Map.of( k , v , k , v , …)</code> are several methods that take 1 to 10 key-value pairs. Here is an example of two entries.</p>\n<pre><code>Map &lt; DayOfWeek, Person &gt; weekendWorker = \n        Map.of( \n            DayOfWeek.SATURDAY , alice ,     // key , value\n            DayOfWeek.SUNDAY , bob           // key , value\n        )\n;\n</code></pre>\n<blockquote>\n<p>weekendWorker.toString(): {SUNDAY=Person{ name='Bob' }, SATURDAY=Person{ name='Alice' }}</p>\n</blockquote>\n<h2><code>Map.ofEntries( … )</code></h2>\n<p><a href=\"https://docs.oracle.com/javase/9/docs/api/java/util/Map.html#ofEntries-java.util.Map.Entry...-\" rel=\"nofollow noreferrer\"><code>Map.ofEntries( Map.Entry , … )</code></a> takes any number of objects implementing the <a href=\"https://docs.oracle.com/javase/9/docs/api/java/util/Map.Entry.html\" rel=\"nofollow noreferrer\"><code>Map.Entry</code></a> interface. Java bundles two classes implementing that interface, one mutable, the other immutable:     <a href=\"https://docs.oracle.com/javase/9/docs/api/java/util/AbstractMap.SimpleEntry.html\" rel=\"nofollow noreferrer\"><code>AbstractMap.SimpleEntry</code></a>, <a href=\"https://docs.oracle.com/javase/9/docs/api/java/util/AbstractMap.SimpleImmutableEntry.html\" rel=\"nofollow noreferrer\"><code>AbstractMap.SimpleImmutableEntry</code></a>. But we need not specify a concrete class. We merely need to call <a href=\"https://docs.oracle.com/javase/9/docs/api/java/util/Map.html#entry-K-V-\" rel=\"nofollow noreferrer\"><code>Map.entry( k , v )</code></a> method, pass our key and our value, and we get back an object of a some class implementing <a href=\"https://docs.oracle.com/javase/9/docs/api/java/util/Map.Entry.html\" rel=\"nofollow noreferrer\"><code>Map.Entry</code></a> interface.</p>\n<pre><code>Map &lt; DayOfWeek, Person &gt; weekdayWorker = Map.ofEntries(\n        Map.entry( DayOfWeek.MONDAY , alice ) ,            // Call to `Map.entry` method returns an object implementing `Map.Entry`. \n        Map.entry( DayOfWeek.TUESDAY , bob ) ,\n        Map.entry( DayOfWeek.WEDNESDAY , bob ) ,\n        Map.entry( DayOfWeek.THURSDAY , carol ) ,\n        Map.entry( DayOfWeek.FRIDAY , carol )\n);\n</code></pre>\n<blockquote>\n<p>weekdayWorker.toString(): {WEDNESDAY=Person{ name='Bob' }, TUESDAY=Person{ name='Bob' }, THURSDAY=Person{ name='Carol' }, FRIDAY=Person{ name='Carol' }, MONDAY=Person{ name='Alice' }}</p>\n</blockquote>\n<h2><code>Map.copyOf</code></h2>\n<p>Java 10 added the method <a href=\"https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Map.html#copyOf(java.util.Map)\" rel=\"nofollow noreferrer\"><code>Map.copyOf</code></a>. Pass an existing map, get back an immutable copy of that map.</p>\n<p>For efficiency, if the passed map is already truly immutable, the <code>copyOf</code> method returns a reference to the original without manufacturing a new map.</p>\n<h2>About <code>Collections.unmodifiableMap</code></h2>\n<p>Tip: Prefer <code>Map.copyOf</code> over <a href=\"https://docs.oracle.com/en/java/javase/20/docs/api/java.base/java/util/Collections.html#unmodifiableMap(java.util.Map)\" rel=\"nofollow noreferrer\"><code>Collections.unmodifiableMap</code></a> if you need/expect a truly immutable map.</p>\n<p>The <code>Collections</code> method produces a <em>view</em> onto the original map, a mere wrapper, not a true copy. The upside: Being a mere view has the benefit of conserving memory. The downside: Modifications to the original show through.</p>\n<p>If the original map gets modified (<code>put</code>, <code>remove</code>, etc.), the supposedly-unmodifiable will actually show the modification. In contrast, the <code>Map.copyOf</code> does indeed produce a true copy of the passed map if not already truly immutable.</p>\n<pre class=\"lang-java prettyprint-override\"><code>record Person( String name ) { }\nPerson alice = new Person ( &quot;Alice&quot; );\nPerson bob = new Person ( &quot;Bob&quot; );\nMap &lt; DayOfWeek, Person &gt; weekendWorkerMutable = HashMap.newHashMap ( 2 );\nweekendWorkerMutable.put ( DayOfWeek.SATURDAY , bob );\nweekendWorkerMutable.put ( DayOfWeek.SUNDAY , bob );\nSystem.out.println ( &quot;weekendWorkerMutable = &quot; + weekendWorkerMutable );\n\nMap &lt; DayOfWeek, Person &gt; weekendWorkerSupposedlyUnmodifiable = Collections.unmodifiableMap ( weekendWorkerMutable );\nSystem.out.println ( &quot;weekendWorkerSupposedlyUnmodifiable = &quot; + weekendWorkerSupposedlyUnmodifiable );\nMap &lt; DayOfWeek, Person &gt; trueCopy = Map.copyOf ( weekendWorkerSupposedlyUnmodifiable );\nSystem.out.println ( &quot;trueCopy = &quot; + trueCopy );\n\nweekendWorkerMutable.put ( DayOfWeek.SATURDAY , alice );  // &lt;--- Modify the original.\n\nSystem.out.println ( &quot; ----- After mutating the original mutable map  ----- &quot; );\nSystem.out.println ( &quot;weekendWorkerSupposedlyUnmodifiable = &quot; + weekendWorkerSupposedlyUnmodifiable );\nSystem.out.println ( &quot;trueCopy = &quot; + trueCopy );\n</code></pre>\n<p>When run:</p>\n<ul>\n<li>We see that the supposedly unmodifiable is indeed modifiable <em>indirectly</em>, by modifying the original map on which the unmodifiable map is a view.</li>\n<li>In contrast, the <code>copyOf</code> method produces a true copy, showing Bob as working the entire weekend even after assigning Alice.</li>\n</ul>\n<pre class=\"lang-none prettyprint-override\"><code>weekendWorkerMutable = {SATURDAY=Person[name=Bob], SUNDAY=Person[name=Bob]}\nweekendWorkerSupposedlyUnmodifiable = {SATURDAY=Person[name=Bob], SUNDAY=Person[name=Bob]}\ntrueCopy = {SUNDAY=Person[name=Bob], SATURDAY=Person[name=Bob]}\n ----- After mutating the original mutable map  ----- \nweekendWorkerSupposedlyUnmodifiable = {SATURDAY=Person[name=Alice], SUNDAY=Person[name=Bob]}\ntrueCopy = {SUNDAY=Person[name=Bob], SATURDAY=Person[name=Bob]}\n</code></pre>\n<h2>Notes</h2>\n<h3>Arbitrary iteration order</h3>\n<p>Notice that the iterator order of maps produced via <code>Map.of</code> are <em>not</em> guaranteed. The entries have an arbitrary order. You may even see a different order between one iterator and another. <strong>Do not write code based on the order seen</strong>, as the documentation warns the order is subject to change.</p>\n<h3>Unspecified implementation class</h3>\n<p>Note that all of these <code>Map.of…</code> methods return a <a href=\"https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/Map.html\" rel=\"nofollow noreferrer\"><code>Map</code></a> of <strong>an unspecified class</strong>. The underlying concrete class may even vary from one version of Java to another. This anonymity enables Java to choose from various implementations, whatever optimally fits your particular data. For example, if your keys come from an <a href=\"https://docs.oracle.com/javase/tutorial/java/javaOO/enum.html\" rel=\"nofollow noreferrer\">enum</a>, Java might use an <a href=\"https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/EnumMap.html\" rel=\"nofollow noreferrer\"><code>EnumMap</code></a> under the covers.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 378189,
+        "reputation": 15076,
+        "user_id": 730759,
+        "user_type": "registered",
+        "accept_rate": 86,
+        "profile_image": "https://www.gravatar.com/avatar/a3955e5dbc91aa654a5c0a5b5d4bdf28?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "gregory561",
+        "link": "https://stackoverflow.com/users/730759/gregory561"
+      },
+      "is_accepted": false,
+      "score": 1172,
+      "last_activity_date": 1740562745,
+      "last_edit_date": 1740562745,
+      "creation_date": 1311446732,
+      "answer_id": 6802512,
+      "question_id": 6802483,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>This is one way.</p>\n<pre><code>Map&lt;String, String&gt; h = new HashMap&lt;String, String&gt;() {{\n    put(&quot;a&quot;,&quot;b&quot;);\n}};\n</code></pre>\n<p>However, you should be careful and make sure that you understand the above code (it creates a new class that inherits from HashMap). Therefore, you should read more here:\n<a href=\"http://www.c2.com/cgi/wiki?DoubleBraceInitialization\" rel=\"nofollow noreferrer\">http://www.c2.com/cgi/wiki?DoubleBraceInitialization</a>\n, or simply use Guava:</p>\n<pre><code>Map&lt;String, Integer&gt; left = ImmutableMap.of(&quot;a&quot;, 1, &quot;b&quot;, 2, &quot;c&quot;, 3);\n</code></pre>\n<p><code>ImmutableMap.of</code> works for up to 5 entries. Otherwise, use the builder: <a href=\"https://github.com/google/guava/blob/master/guava/src/com/google/common/collect/ImmutableMap.java\" rel=\"nofollow noreferrer\">source</a>.</p>\n<pre><code>Map&lt;String, String&gt; map = new ImmutableMap.Builder&lt;String, String&gt;()\n.put(&quot;a&quot;, &quot;a&quot;)\n.put(&quot;b&quot;, &quot;b&quot;)\n.build();\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "59366753": [],
+    "6802512": []
+  }
+}

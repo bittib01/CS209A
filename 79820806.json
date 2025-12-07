@@ -1,0 +1,74 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "swing"
+    ],
+    "owner": {
+      "account_id": 11342171,
+      "reputation": 1654,
+      "user_id": 8315843,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/c355a6bc9f775ba7e74329d02984e52f?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Sybuser",
+      "link": "https://stackoverflow.com/users/8315843/sybuser"
+    },
+    "is_answered": true,
+    "view_count": 301,
+    "accepted_answer_id": 79837243,
+    "answer_count": 1,
+    "score": 16,
+    "last_activity_date": 1764969609,
+    "creation_date": 1763208694,
+    "last_edit_date": 1763295056,
+    "question_id": 79820806,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79820806/how-do-i-avoid-left-padding-in-menu-items-after-upgrading-from-java-21-to-java-2",
+    "title": "How do I avoid left padding in menu items after upgrading from Java 21 to Java 25?",
+    "body": "<p>The problem started appearing after upgrading from Java 21 to 25.</p>\n<p>With Java 21, my menus looked like this :</p>\n<p><a href=\"https://i.sstatic.net/ELU9RyZP.png\" rel=\"noreferrer\"><img src=\"https://i.sstatic.net/ELU9RyZP.png\" alt=\"Java 21\" /></a></p>\n<p>With Java 25, a gutter started appearing :</p>\n<p><a href=\"https://i.sstatic.net/FyAeUGkV.png\" rel=\"noreferrer\"><img src=\"https://i.sstatic.net/FyAeUGkV.png\" alt=\"Java 25\" /></a></p>\n<p>I've created minimal portable example to reproduce :</p>\n<pre class=\"lang-java prettyprint-override\"><code>import java.awt.Color;\nimport java.awt.Graphics2D;\nimport java.awt.event.ActionEvent;\nimport java.awt.event.ActionListener;\nimport java.awt.image.BufferedImage;\n\nimport javax.swing.AbstractAction;\nimport javax.swing.Action;\nimport javax.swing.ButtonGroup;\nimport javax.swing.ImageIcon;\nimport javax.swing.JCheckBoxMenuItem;\nimport javax.swing.JFrame;\nimport javax.swing.JMenu;\nimport javax.swing.JMenuBar;\nimport javax.swing.JMenuItem;\nimport javax.swing.JRadioButtonMenuItem;\nimport javax.swing.SwingUtilities;\nimport javax.swing.UIManager;\nimport javax.swing.WindowConstants;\n\npublic class IconMenuExample {\n\n    public static void main(String[] args) throws Exception {\n\n        // we set the Windows Look And Feel\n        UIManager.setLookAndFeel(&quot;com.sun.java.swing.plaf.windows.WindowsLookAndFeel&quot;);\n\n        SwingUtilities.invokeLater(() -&gt; {\n\n            JFrame frame = new JFrame(&quot;Menu Icon Example&quot;);\n\n            JMenuBar menuBar = new JMenuBar();\n            JMenu fileMenu = new JMenu(&quot;File&quot;);\n\n            // we create sample actions using programmatic sixteen by sixteen ImageIcon instances\n            Action openAction = newAction(\n                    &quot;Open&quot;,\n                    createColorIcon(Color.BLUE),\n                    e -&gt; System.out.println(&quot;Open&quot;)\n            );\n\n            Action saveAction = newAction(\n                    &quot;Save&quot;,\n                    createColorIcon(Color.GREEN),\n                    e -&gt; System.out.println(&quot;Save&quot;)\n            );\n\n            Action exitAction = newAction(\n                    &quot;Exit&quot;,\n                    createColorIcon(Color.RED),\n                    e -&gt; System.exit(0)\n            );\n\n            // we attach the actions to menu items\n            fileMenu.add(new JMenuItem(openAction));\n            fileMenu.add(new JMenuItem(saveAction));\n            fileMenu.addSeparator();\n            fileMenu.add(new JMenuItem(exitAction));\n\n            // we create the second menu with check box menu items\n            JMenu optionsMenu = new JMenu(&quot;Options&quot;);\n\n            JCheckBoxMenuItem checkOne = new JCheckBoxMenuItem(&quot;Enable Feature One&quot;);\n            checkOne.addActionListener(e -&gt; System.out.println(&quot;Feature One toggled: &quot; + checkOne.isSelected()));\n\n            JCheckBoxMenuItem checkTwo = new JCheckBoxMenuItem(&quot;Enable Feature Two&quot;);\n            checkTwo.addActionListener(e -&gt; System.out.println(&quot;Feature Two toggled: &quot; + checkTwo.isSelected()));\n\n            optionsMenu.add(checkOne);\n            optionsMenu.add(checkTwo);\n\n            // we create the third menu with radio button menu items\n            JMenu modeMenu = new JMenu(&quot;Mode&quot;);\n\n            JRadioButtonMenuItem modeA = new JRadioButtonMenuItem(&quot;Mode A&quot;);\n            JRadioButtonMenuItem modeB = new JRadioButtonMenuItem(&quot;Mode B&quot;);\n            JRadioButtonMenuItem modeC = new JRadioButtonMenuItem(&quot;Mode C&quot;);\n\n            ButtonGroup modeGroup = new ButtonGroup();\n            modeGroup.add(modeA);\n            modeGroup.add(modeB);\n            modeGroup.add(modeC);\n\n            modeA.setSelected(true);\n\n            modeA.addActionListener(e -&gt; System.out.println(&quot;Mode A selected&quot;));\n            modeB.addActionListener(e -&gt; System.out.println(&quot;Mode B selected&quot;));\n            modeC.addActionListener(e -&gt; System.out.println(&quot;Mode C selected&quot;));\n\n            modeMenu.add(modeA);\n            modeMenu.add(modeB);\n            modeMenu.add(modeC);\n\n            // we add all menus to the bar\n            menuBar.add(fileMenu);\n            menuBar.add(optionsMenu);\n            menuBar.add(modeMenu);\n\n            frame.setJMenuBar(menuBar);\n\n            frame.setSize(300, 200);\n            frame.setLocationRelativeTo(null);\n            frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);\n            frame.setVisible(true);\n        });\n    }\n\n    public static Action newAction(String name, ImageIcon icon, ActionListener listener) {\n        Action action = new AbstractAction(name) {\n            @Override\n            public void actionPerformed(ActionEvent e) {\n                listener.actionPerformed(e);\n            }\n        };\n        action.putValue(Action.SMALL_ICON, icon);\n        return action;\n    }\n\n    // we create a programmatic sixteen by sixteen ImageIcon filled with the given color\n    private static ImageIcon createColorIcon(Color color) {\n        int size = 16;\n        BufferedImage image = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);\n        Graphics2D g = image.createGraphics();\n        try {\n            g.setColor(color);\n            g.fillRect(0, 0, size, size);\n        } finally {\n            g.dispose();\n        }\n        return new ImageIcon(image);\n    }\n}\n</code></pre>\n<p>It's a reserved space for checkboxes and radio buttons as 2nd and 3rd menu illustrate. However, when there's none, it would make sense not to show that gutter.</p>\n<p><a href=\"https://i.sstatic.net/33CZgLlD.png\" rel=\"noreferrer\"><img src=\"https://i.sstatic.net/33CZgLlD.png\" alt=\"Checkboxes\" /></a>\n<a href=\"https://i.sstatic.net/GGCNOvQE.png\" rel=\"noreferrer\"><img src=\"https://i.sstatic.net/GGCNOvQE.png\" alt=\"Radio buttons\" /></a></p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 11342171,
+        "reputation": 1654,
+        "user_id": 8315843,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/c355a6bc9f775ba7e74329d02984e52f?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Sybuser",
+        "link": "https://stackoverflow.com/users/8315843/sybuser"
+      },
+      "is_accepted": true,
+      "score": 3,
+      "last_activity_date": 1764969609,
+      "last_edit_date": 1764969609,
+      "creation_date": 1764788802,
+      "answer_id": 79837243,
+      "question_id": 79820806,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>It was concluded that it was not a bug and is required behavior to fix another issue:</p>\n<blockquote>\n<p>This change in UI is needed to fix rendering of radiobutton and/or checkmark as done in <a href=\"https://bugs.java.com/bugdatabase/view_bug?bug_id=JDK-8348760\" rel=\"nofollow noreferrer\">JDK-8348760</a>.</p>\n<p>It is also in sync with what windows does if menuitem selection is needed via radiobutton or checkmark as seen in attached screenshot icon-view.png</p>\n</blockquote>\n<p>See  <a href=\"https://bugs.java.com/bugdatabase/view_bug?bug_id=JDK-8370945\" rel=\"nofollow noreferrer\"> JDK-8370945</a></p>\n<p>The bottom line is that this issue will be left with no solution as the other issue is deemed more important.</p>\n<p>Only possibility is to turn to other look and feels such as <a href=\"https://www.formdev.com/flatlaf/\" rel=\"nofollow noreferrer\">Flatlaf</a>.</p>\n"
+    }
+  ],
+  "question_comments": [
+    {
+      "owner": {
+        "account_id": 11342171,
+        "reputation": 1654,
+        "user_id": 8315843,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/c355a6bc9f775ba7e74329d02984e52f?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Sybuser",
+        "link": "https://stackoverflow.com/users/8315843/sybuser"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1763485128,
+      "post_id": 79820806,
+      "comment_id": 140860752,
+      "content_license": "CC BY-SA 4.0"
+    }
+  ],
+  "answer_comments": {
+    "79837243": []
+  }
+}

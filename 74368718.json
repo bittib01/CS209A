@@ -1,0 +1,38 @@
+{
+  "question": {
+    "tags": [
+      "javascript",
+      "java",
+      "cryptography",
+      "sha",
+      "webcrypto-api"
+    ],
+    "owner": {
+      "account_id": 3689554,
+      "reputation": 1832,
+      "user_id": 3072490,
+      "user_type": "registered",
+      "accept_rate": 100,
+      "profile_image": "https://i.sstatic.net/xJ9Qk.jpg?s=256",
+      "display_name": "Chan Yoong Hon",
+      "link": "https://stackoverflow.com/users/3072490/chan-yoong-hon"
+    },
+    "is_answered": true,
+    "view_count": 181,
+    "closed_date": 1668004022,
+    "accepted_answer_id": 74375674,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1764794724,
+    "creation_date": 1667954364,
+    "last_edit_date": 1764794724,
+    "question_id": 74368718,
+    "link": "https://stackoverflow.com/questions/74368718/convert-java-code-to-frontend-javascript-code",
+    "closed_reason": "Not suitable for this site",
+    "title": "Convert Java code to Frontend Javascript code",
+    "body": "<p>I'm having following java code, but I need to convert into javascript using   <code>window.crypto.subtle.importKey</code> But the outcome is seems like different for Java outcome and Javascript outcome.</p>\n<p>The following is my Java code</p>\n<pre><code>import java.security.Key;\nimport java.security.NoSuchAlgorithmException;\nimport java.security.spec.InvalidKeySpecException;\n\nimport javax.crypto.SecretKeyFactory;\nimport javax.crypto.spec.PBEKeySpec;\nimport javax.enterprise.inject.Default;\n\n@Default\npublic class SecurityPasswordEncoder  {\n\n    private SecretKeyFactory factory;\n\n    public SecurityPasswordEncoder() throws NoSuchAlgorithmException {\n        this.factory = SecretKeyFactory.getInstance(&quot;PBKDF2WithHmacSHA1&quot;);\n    }\n\n    public String encode(CharSequence rawPassword) {\n        return null;\n    }\n\n\n    public boolean matches(CharSequence rawPassword, String encodedPassword) {\n        return false;\n    }\n\n    public boolean matches(String rawPassword, String encodedPassword, String salt) throws InvalidKeySpecException {\n        byte[] osalt = hexStringToByteArray(salt);\n        byte[] oValidate = new byte[32];\n        String sValidate;\n\n        PBEKeySpec pbeKeySpec = new PBEKeySpec(rawPassword.toCharArray(), osalt, 10000, 384);\n        Key secretKey = this.factory.generateSecret(pbeKeySpec);\n        System.arraycopy(secretKey.getEncoded(), 0, oValidate, 0, 32);\n        sValidate = byteArrayToHexString(oValidate);\n        return (sValidate.equals(encodedPassword));\n    }\n\n    private byte[] hexStringToByteArray(String s) {\n\n        byte[] b = new byte[s.length() / 2];\n        for (int i = 0; i &lt; b.length; i++) {\n            int index = i * 2;\n            int v = Integer.parseInt(s.substring(index, index + 2), 16);\n            b[i] = (byte) v;\n        }\n        return b;\n    }\n\n    private String byteArrayToHexString(byte[] bytes) {\n        char[] hexChars = new char[bytes.length * 2];\n        for (int j = 0; j &lt; bytes.length; j++) {\n            int v = bytes[j] &amp; 0xFF;\n            hexChars[j * 2] = hexArray[v &gt;&gt;&gt; 4];\n            hexChars[j * 2 + 1] = hexArray[v &amp; 0x0F];\n        }\n        return new String(hexChars);\n    }\n\n    private char[] hexArray = &quot;0123456789ABCDEF&quot;.toCharArray();\n}\n</code></pre>\n<p>The following is my javascript code.</p>\n<pre><code>function deriveAKey(password, salt, iterations, hash) {\n    // First, create a PBKDF2 &quot;key&quot; containing the password\n    window.crypto.subtle.importKey(\n        &quot;raw&quot;,\n        stringToArrayBuffer(password),\n        {&quot;name&quot;: &quot;PBKDF2&quot;},\n        false,\n        [&quot;deriveKey&quot;]).\n    then(function(baseKey){\n        // Derive a key from the password\n        return window.crypto.subtle.deriveKey(\n            {\n                &quot;name&quot;: &quot;PBKDF2&quot;,\n                &quot;salt&quot;: stringToArrayBuffer(salt),\n                &quot;iterations&quot;: iterations,\n                &quot;hash&quot;: hash\n            },\n            baseKey,\n             {name:&quot;HMAC&quot;,&quot;hash&quot;:&quot;SHA-1&quot;}, // Key we want.Can be any AES algorithm (&quot;AES-CTR&quot;, &quot;AES-CBC&quot;, &quot;AES-CMAC&quot;, &quot;AES-GCM&quot;, &quot;AES-CFB&quot;, &quot;AES-KW&quot;, &quot;ECDH&quot;, &quot;DH&quot;, or &quot;HMAC&quot;)\n            true,                               // Extractable\n            [&quot;sign&quot;, &quot;verify&quot;]              // For new key\n            );\n    }).then(function(aesKey) {\n        // Export it so we can display it\n        return window.crypto.subtle.exportKey(&quot;raw&quot;, aesKey);\n    }).then(function(keyBytes) {\n        // Display key in Base64 format\n        var keyS = arrayBufferToString(keyBytes);\n        var keyB64 = btoa (keyS);\n        console.log(keyB64);\n    }).catch(function(err) {\n        alert(&quot;Key derivation failed: &quot; + err.message);\n    });\n}\n\n//Utility functions\n\nfunction stringToArrayBuffer(byteString){\n    var byteArray = new Uint8Array(byteString.length/2);\n    for (let i = 0; i &lt; byteArray.length; i++) {\n        const index = i * 2;\n        byteArray[i]  = parseInt(byteString.substring(index, index + 2), 16);\n    }\n    return byteArray;\n}\n\nfunction  arrayBufferToString(buffer){\n    var byteArray = new Uint8Array(buffer.length * 2);\n    var byteString = '';\n    var hexArray = &quot;0123456789ABCDEF&quot;.split(&quot;&quot;);\n    for (let j = 0; j &lt; buffer.length; j++) {\n        let v = bytes[j] &amp; 0xFF;\n        byteString[j * 2] = hexArray[v &gt;&gt;&gt; 4];\n        byteString[j * 2 + 1] = hexArray[v &amp; 0x0F];\n    }\n    return String.fromCodePoint(byteString);\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

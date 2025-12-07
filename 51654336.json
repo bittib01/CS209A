@@ -1,0 +1,58 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "opencv",
+      "image-processing",
+      "template-matching",
+      "javacpp"
+    ],
+    "owner": {
+      "account_id": 1109371,
+      "reputation": 14678,
+      "user_id": 1100135,
+      "user_type": "registered",
+      "accept_rate": 53,
+      "profile_image": "https://www.gravatar.com/avatar/e7b273722f4261cd61c3256374da73cc?s=256&d=identicon&r=PG",
+      "display_name": "piotrek",
+      "link": "https://stackoverflow.com/users/1100135/piotrek"
+    },
+    "is_answered": true,
+    "view_count": 1672,
+    "accepted_answer_id": 51658843,
+    "answer_count": 2,
+    "score": 1,
+    "last_activity_date": 1764605006,
+    "creation_date": 1533214799,
+    "question_id": 51654336,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/51654336/opencv-minmaxloc-gives-no-min-max-value",
+    "title": "OpenCV: minMaxLoc gives no min / max value",
+    "body": "<p>I'm trying to follow <a href=\"https://docs.opencv.org/3.4.2/de/da9/tutorial_template_matching.html\" rel=\"nofollow noreferrer\">OpenCV tutorial on image template matching</a> using <a href=\"https://github.com/bytedeco/javacpp-presets/tree/master/opencv\" rel=\"nofollow noreferrer\">javacpp-presets</a>.\nI want to throw away matches with too low score but <code>minMaxLoc</code> seems to not return <code>minVal</code> and <code>maxVal</code>.</p>\n\n<pre><code>import org.bytedeco.javacpp.DoublePointer;\nimport org.bytedeco.javacpp.opencv_core.Mat;\nimport org.bytedeco.javacpp.opencv_core.Point;\n\nimport static org.bytedeco.javacpp.opencv_core.CV_32FC1;\nimport static org.bytedeco.javacpp.opencv_core.NORM_MINMAX;\nimport static org.bytedeco.javacpp.opencv_core.minMaxLoc;\nimport static org.bytedeco.javacpp.opencv_core.normalize;\nimport static org.bytedeco.javacpp.opencv_imgcodecs.IMREAD_COLOR;\nimport static org.bytedeco.javacpp.opencv_imgcodecs.imread;\nimport static org.bytedeco.javacpp.opencv_imgproc.TM_CCOEFF_NORMED;\nimport static org.bytedeco.javacpp.opencv_imgproc.matchTemplate;\n\npublic class MatchTemp {\n\n    public static void match(String img, String temp) {\n\n        Mat image = imread(img, IMREAD_COLOR);\n        Mat template = imread(temp, IMREAD_COLOR);\n\n        int resultRows = image.rows() - template.rows() + 1;\n        int resultCols = image.cols() - template.cols() + 1;\n        Mat result = new Mat(resultRows, resultCols, CV_32FC1);\n\n        matchTemplate(image, template, result, TM_CCOEFF_NORMED);\n\n        Mat normalizedResult = new Mat();\n        normalize(result, normalizedResult, 0, 1, NORM_MINMAX, -1, new Mat());\n\n        DoublePointer maxVal = new DoublePointer();\n        DoublePointer minVal = new DoublePointer();\n        Point minLoc = new Point();\n        Point maxLoc = new Point();\n\n        minMaxLoc(normalizedResult, minVal, maxVal, minLoc, maxLoc, null);\n\n        System.out.println(\"min: \"+minLoc.x()+\", \"+minLoc.y());\n        System.out.println(\"max: \"+maxLoc.x()+\", \"+maxLoc.y());\n\n        minVal.get(); // this throws exception\n        maxVal.get(); // this throws exception\n    }\n}\n</code></pre>\n\n<p>The exception is:</p>\n\n<pre><code>Exception in thread \"main\" java.lang.NullPointerException: This pointer address is NULL.\n    at org.bytedeco.javacpp.DoublePointer.get(Native Method)\n    at org.bytedeco.javacpp.DoublePointer.get(DoublePointer.java:101)\n    ...\n</code></pre>\n\n<p>What am i doing wrong? How can i get the score? Do i have to manually check the content of the <code>Mat</code>?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 29058809,
+        "reputation": 13,
+        "user_id": 22259992,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/f27Se96t.webp?s=256",
+        "display_name": "JavaProger24",
+        "link": "https://stackoverflow.com/users/22259992/javaproger24"
+      },
+      "is_accepted": false,
+      "score": 0,
+      "last_activity_date": 1764605006,
+      "creation_date": 1764605006,
+      "answer_id": 79835047,
+      "question_id": 51654336,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>If anyone else comes across this<br />\nHere's the fix</p>\n<blockquote>\n<pre><code>DoublePointer maxVal = new DoublePointer(1);\nDoublePointer minVal = new DoublePointer(1);\n</code></pre>\n<p>All you had to do was set the size in the constructor.</p>\n</blockquote>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79835047": []
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "rest",
+      "authentication",
+      "spring-security"
+    ],
+    "owner": {
+      "account_id": 8280491,
+      "reputation": 259,
+      "user_id": 6225358,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/790f0b89389d85eceabdd8eb57150900?s=256&d=identicon&r=PG",
+      "display_name": "H&#229;vard Bakke",
+      "link": "https://stackoverflow.com/users/6225358/h%c3%a5vard-bakke"
+    },
+    "is_answered": false,
+    "view_count": 39900,
+    "answer_count": 3,
+    "score": 11,
+    "last_activity_date": 1764918105,
+    "creation_date": 1461075745,
+    "last_edit_date": 1526786774,
+    "question_id": 36721212,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/36721212/spring-boot-custom-authentication-provider-with-java-configuration-not-working",
+    "title": "Spring Boot Custom Authentication Provider with Java Configuration not working",
+    "body": "<p>I am trying to setup a REST based web application, where the frontend is using Reactjs and the backend is using Spring Boot. I am also trying to setup a custom authentication provider, and this is where my problems start. When trying to test the login API call, the CustomAuthenticationProvider is never called, and instead the default DaoAuthenticationProvider is used. This causes the login to report \"Bad credentials\".</p>\n\n<p>I have upload a small sample application to github: <a href=\"https://github.com/habakke/spring-boot-auth-demo\" rel=\"noreferrer\">spring-boot-auth-demo</a></p>\n\n<p>To test the login API I use the following curl:</p>\n\n<pre><code>curl -H \"Content-Type: application/json\" -X POST -d '{\"username\":\"admin\",\"password\":\"admin\"}' http://localhost:8080/api/users/login\n</code></pre>\n\n<p>The CustomAuthenticationProvider does a simple username/password check and returns an UsernamePasswordAuthenicationToken object.</p>\n\n<pre><code>package no.bluebit.demo;\n\nimport org.slf4j.Logger;\nimport org.slf4j.LoggerFactory;\nimport org.springframework.security.authentication.AuthenticationProvider;\nimport org.springframework.security.authentication.UsernamePasswordAuthenticationToken;\nimport org.springframework.security.core.Authentication;\nimport org.springframework.security.core.AuthenticationException;\nimport org.springframework.security.core.GrantedAuthority;\nimport org.springframework.security.core.authority.SimpleGrantedAuthority;\nimport org.springframework.stereotype.Component;\n\nimport java.util.ArrayList;\nimport java.util.List;\n\n@Component\npublic class CustomAuthenticationProvider implements AuthenticationProvider {\n\nprivate static final Logger logger =     LoggerFactory.getLogger(CustomAuthenticationProvider.class);\n\npublic CustomAuthenticationProvider() {\n    logger.info(\"*** CustomAuthenticationProvider created\");\n}\n\n@Override\npublic Authentication authenticate(Authentication authentication) throws AuthenticationException {\n\n    if(authentication.getName().equals(\"admin\")  &amp;&amp; authentication.getCredentials().equals(\"admin\")) {\n        List&lt;GrantedAuthority&gt; grantedAuths = new ArrayList&lt;&gt;();\n        grantedAuths.add(new SimpleGrantedAuthority(\"ROLE_USER\"));\n        grantedAuths.add(new SimpleGrantedAuthority(\"ROLE_ADMIN\"));\n        return new UsernamePasswordAuthenticationToken(authentication.getName(), authentication.getCredentials(), grantedAuths);\n    } else {\n        return null;\n    }\n\n}\n\n@Override\npublic boolean supports(Class&lt;?&gt; authentication) {\n    return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);\n}\n\n}\n</code></pre>\n\n<p>The CustomAuthenticationProvider is wired up using the SecurityConfiguration class. When stepping through the code, I can see that the CustomAuthenicationProvider is not in the list of providers used to authenticate the incoming request.</p>\n\n<pre><code>package no.bluebit.demo;\n\nimport org.springframework.beans.factory.annotation.Autowired;\nimport org.springframework.context.annotation.Configuration;\nimport org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;\nimport org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;\nimport org.springframework.security.config.annotation.web.builders.HttpSecurity;\nimport org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;\nimport org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;\n\n@Configuration\n@EnableWebSecurity\n@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)\npublic class SecurityConfiguration extends WebSecurityConfigurerAdapter {\n    @Autowired\n    private CustomAuthenticationProvider customAuthenticationProvider;\n\n    @Override\n    protected void configure(AuthenticationManagerBuilder auth) throws Exception {\n        auth\n            .authenticationProvider(this.customAuthenticationProvider);\n    }\n\n    @Override\n    protected void configure(HttpSecurity http) throws Exception {\n        http\n            .authorizeRequests()\n                .antMatchers(\"/api/users/login\").permitAll()    // Permit access for all to login REST service\n                .antMatchers(\"/\").permitAll()                   // Neccessary to permit access to default document\n            .anyRequest().authenticated().and()                 // All other requests require authentication\n            .httpBasic().and()\n            .logout().and()\n            .csrf().disable();\n    }\n}\n</code></pre>\n\n<p>Why is this not working?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

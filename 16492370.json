@@ -1,0 +1,96 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "postgresql"
+    ],
+    "owner": {
+      "account_id": 2682143,
+      "reputation": 99,
+      "user_id": 2317288,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/73026df6a8a1a30b72accee88132d4fb?s=256&d=identicon&r=PG",
+      "display_name": "user2317288",
+      "link": "https://stackoverflow.com/users/2317288/user2317288"
+    },
+    "is_answered": true,
+    "view_count": 18421,
+    "answer_count": 4,
+    "score": 8,
+    "last_activity_date": 1764947030,
+    "creation_date": 1368230228,
+    "last_edit_date": 1445439049,
+    "question_id": 16492370,
+    "content_license": "CC BY-SA 3.0",
+    "link": "https://stackoverflow.com/questions/16492370/java-enum-and-postgresql-enum",
+    "title": "java enum and postgresql enum",
+    "body": "<pre><code>CREATE TABLE customers\n(\n  first_name character varying(15),\n  second_name character varying(20),\n  login character varying(15) NOT NULL,\n  password character varying(15),\n  email character varying(40),\n  gender gender,\n  register_date date,\n  date_of_birth date,\n  address character varying(40),\n  address_number integer,\n  town character varying(20),\n  CONSTRAINT login PRIMARY KEY (login)\n)\n</code></pre>\n\n<p>I have this table and I created an enum of gender such as:</p>\n\n<pre><code>CREATE TYPE gender AS ENUM ( 'F', 'M',);\n</code></pre>\n\n<p>I am trying to insert into customers data from eclipse java with PreparedStatement\nbut there is an error such as ERROR: column \"gender\" is of type gender but expression is of type character varying\n  Hint: You will need to rewrite or cast the expression.</p>\n\n<p>My Java code looks like: </p>\n\n<pre><code>PreparedStatement pre_state;\n\npublic enum gendertype {\n    F,\n    M;\n}\n\npre_state = conn.prepareStatement(\"INSERT INTO\"\n            + \" customers VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)\");\npre_state.set(6, gendertype.F.toString());\n</code></pre>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 1731171,
+        "reputation": 481,
+        "user_id": 1584754,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/d71c62f853609157db771c0a875a8fc0?s=256&d=identicon&r=PG&f=y&so-version=2",
+        "display_name": "Steven Kuypers",
+        "link": "https://stackoverflow.com/users/1584754/steven-kuypers"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1764947030,
+      "last_edit_date": 1764947030,
+      "creation_date": 1720096105,
+      "answer_id": 78707115,
+      "question_id": 16492370,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>In Postgres you can add a cast to the existing ones (in a database view, see <em>your_database &gt;&gt; Database Objects &gt;&gt; casts</em>).</p>\n<p>Where you have already done something like</p>\n<pre class=\"lang-sql prettyprint-override\"><code>CREATE TYPE my_type AS enum ('SOME', 'OTHER');\n</code></pre>\n<p>you should also do</p>\n<pre><code>CREATE CAST (character varying AS my_type) with inout as assignment;\n</code></pre>\n<p>Under 'casts' (after a refresh), you will find the</p>\n<blockquote>\n<p>varchar as my_type</p>\n</blockquote>\n<p>when you scroll down the long list.</p>\n<p>This should solve the problem without further code adjustments.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 7812692,
+        "reputation": 3255,
+        "user_id": 5908433,
+        "user_type": "registered",
+        "accept_rate": 100,
+        "profile_image": "https://i.sstatic.net/Ras7c.jpg?s=256",
+        "display_name": "Dmitriy Fialkovskiy",
+        "link": "https://stackoverflow.com/users/5908433/dmitriy-fialkovskiy"
+      },
+      "is_accepted": false,
+      "score": 1,
+      "last_activity_date": 1664959411,
+      "last_edit_date": 1664959411,
+      "creation_date": 1664957453,
+      "answer_id": 73957533,
+      "question_id": 16492370,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>In addition to other answers if you use for example <code>createNativeQuery()</code> you should cast value to your <code>enum</code> like <code>cast(? as gender)</code>, something like that:</p>\n<pre><code>Person person = new Person(&quot;Gurbanguly&quot;, &quot;Berdymukhamedov&quot;, Gender.Male)\nSession session = HibernateUtil.getSessionFactory().openSession();\nTransaction transaction = session.beginTransaction();\nsession.createNativeQuery(&quot;INSERT INTO Person (firstname, lastname, gender) VALUES (?,?,cast(? as gender))&quot;)\n            .setParameter(1, person.getFirstName())\n            .setParameter(2, person.getLastName())\n            .setParameter(3, person.getGender().toString())\n            .executeUpdate();\ntransaction.commit();\nsession.close(); // this statement is needed not to produce many sessions\n</code></pre>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "78707115": [
+      {
+        "owner": {
+          "account_id": 1073482,
+          "reputation": 12761,
+          "user_id": 1072187,
+          "user_type": "registered",
+          "accept_rate": 36,
+          "profile_image": "https://www.gravatar.com/avatar/6a15142de5577986384774484ff25fe6?s=256&d=identicon&r=PG",
+          "display_name": "John Little",
+          "link": "https://stackoverflow.com/users/1072187/john-little"
+        },
+        "edited": false,
+        "score": 0,
+        "creation_date": 1736431032,
+        "post_id": 78707115,
+        "comment_id": 139915979,
+        "content_license": "CC BY-SA 4.0"
+      }
+    ],
+    "73957533": []
+  }
+}

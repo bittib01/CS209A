@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "solr",
+      "ddf"
+    ],
+    "owner": {
+      "account_id": 965027,
+      "reputation": 31,
+      "user_id": 988606,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/53cb63d60b9760bb0af8d42647fb0491?s=256&d=identicon&r=PG",
+      "display_name": "webBuilder",
+      "link": "https://stackoverflow.com/users/988606/webbuilder"
+    },
+    "is_answered": false,
+    "view_count": 29,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1764812821,
+    "creation_date": 1764812821,
+    "question_id": 79837459,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79837459/unable-to-ingest-geojson-into-ddf-2-26-45-solr-error-ingest-fails-with-no-det",
+    "title": "Unable to ingest GeoJSON into DDF 2.26.45 (Solr error + ingest fails with no detailed message)",
+    "body": "<p>I'm running DDF 2.26.45 on macOS and configured it to use an external Solr 8.6.1 running locally at:</p>\n<pre><code>http://localhost:8983/solr\n</code></pre>\n<p>DDF detects Solr correctly:</p>\n<pre><code>solr.client = HttpSolrClient\nsolr.http.url = http://localhost:8983/solr\n</code></pre>\n<p>I created a Solr core:</p>\n<pre><code>./solr create -c alerts -s 1 -rf 1\n</code></pre>\n<p>Solr starts correctly.</p>\n<hr />\n<h2>Goal</h2>\n<p>I want to ingest a simple GeoJSON file into the DDF catalog.</p>\n<p>File: /tmp/test-location.geojson</p>\n<pre><code>{\n  &quot;type&quot;: &quot;FeatureCollection&quot;,\n  &quot;features&quot;: [\n    {\n      &quot;type&quot;: &quot;Feature&quot;,\n      &quot;geometry&quot;: {\n        &quot;type&quot;: &quot;Point&quot;,\n        &quot;coordinates&quot;: [-77.0369, 38.9072]\n      },\n      &quot;properties&quot;: {\n        &quot;name&quot;: &quot;Test Location&quot;\n      }\n    }\n  ]\n}\n</code></pre>\n<hr />\n<h2>Command used inside DDF Karaf</h2>\n<pre><code>catalog:ingest -t geojson /tmp/test-location.geojson\n</code></pre>\n<p>Also tried:</p>\n<pre><code>catalog:ingest -t geojson -s catalog /tmp/test-location.geojson\n</code></pre>\n<hr />\n<h2>Result</h2>\n<pre><code>0 file(s) ingested in 0 seconds\n1 file(s) failed to be ingested. See the ingest log for more details.\n</code></pre>\n<p>Enabled debug logging:</p>\n<pre><code>log:set DEBUG org.codice.ddf.commands.catalog.IngestCommand\n</code></pre>\n<hr />\n<h2>ingest_error.log excerpts</h2>\n<pre><code>2025-12-03T13:28:26,449 | INFO  | location.geojson | ingestLogger | f.commands.catalog.IngestCommand 338 | 455 - catalog-core-commands - 2.26.45 | 0 file(s) ingested in 0 seconds [0 records/sec]\n2025-12-03T13:28:26,449 | WARN  | location.geojson | ingestLogger | f.commands.catalog.IngestCommand 351 | 455 - catalog-core-commands - 2.26.45 | 1 file(s) failed to be ingested.\n(repeats every attempt)\n</code></pre>\n<hr />\n<h2>ddf.log Solr error spam</h2>\n<pre><code>Error retrieving system alert.\norg.codice.ddf.persistence.PersistenceException\n\nCaused by: org.apache.solr.client.solrj.impl.HttpSolrClient$RemoteSolrException:\nError from server at http://localhost:8983/solr/alerts:\ncan not sort on multivalued field: id_txt of type: text_general\n</code></pre>\n<hr />\n<h2>Additional details</h2>\n<p>GeoJSON transformers appear in service:list:</p>\n<pre><code>id = catalog.data.metacard.geojson\nid = geojson\ndisplayName = GeoJSON\nshortname = geojson\n</code></pre>\n<p>The ingest command always returns:</p>\n<pre><code>0 ingested, 1 failed\n</code></pre>\n<p>The DDF admin UI shows:</p>\n<pre><code>&quot;Persistent Storage Not Responding. Could Not Retrieve Alerts.&quot;\n</code></pre>\n<p>I only created a single Solr core named &quot;alerts&quot;.\nI'm not sure what cores or configsets DDF requires when using external Solr.</p>\n<hr />\n<h2>Question</h2>\n<p>Exactly what Solr cores and configsets does DDF 2.26.45 require when using external Solr, and how do I configure them so that:</p>\n<ol>\n<li>GeoJSON ingestion works</li>\n<li>The Solr error &quot;cannot sort on multivalued field: id_txt&quot; stops</li>\n<li>The internal alerts/persistence store initializes properly</li>\n</ol>\n<p>If anyone has a working external-Solr setup for DDF 2.26.x, please share the required cores, configsets, and schema.xml examples.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

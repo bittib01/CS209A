@@ -1,0 +1,66 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "ssl",
+      "active-directory",
+      "keystore",
+      "truststore"
+    ],
+    "owner": {
+      "account_id": 309002,
+      "reputation": 897,
+      "user_id": 621219,
+      "user_type": "registered",
+      "accept_rate": 14,
+      "profile_image": "https://www.gravatar.com/avatar/63fc7b6c1f43024d5010b550c5e35564?s=256&d=identicon&r=PG",
+      "display_name": "Mohan",
+      "link": "https://stackoverflow.com/users/621219/mohan"
+    },
+    "is_answered": false,
+    "view_count": 15336,
+    "answer_count": 2,
+    "score": 2,
+    "last_activity_date": 1764522545,
+    "creation_date": 1337152817,
+    "question_id": 10613767,
+    "content_license": "CC BY-SA 3.0",
+    "link": "https://stackoverflow.com/questions/10613767/connect-active-directory-with-the-support-of-ssl-ldaps",
+    "title": "Connect active directory with the support of ssl (ldaps)",
+    "body": "<p>am trying to connect with active directory with the support of ssl.</p>\n\n<p>i tried the steps from following web site.</p>\n\n<p><a href=\"http://confluence.atlassian.com/display/CROWD/Configuring+an+SSL+Certificate+for+Microsoft+Active+Directory\" rel=\"nofollow\">http://confluence.atlassian.com/display/CROWD/Configuring+an+SSL+Certificate+for+Microsoft+Active+Directory</a></p>\n\n<p>when i try to connect active directory from the java code it gives following error.</p>\n\n<pre><code>Exception in thread \"main\" javax.naming.CommunicationException: simple bind fail\ned: 172.16.12.4:636 [Root exception is java.net.SocketException: Connection rese\nt]\n        at com.sun.jndi.ldap.LdapClient.authenticate(Unknown Source)\n        at com.sun.jndi.ldap.LdapCtx.connect(Unknown Source)\n        at com.sun.jndi.ldap.LdapCtx.&lt;init&gt;(Unknown Source)\n        at com.sun.jndi.ldap.LdapCtxFactory.getUsingURL(Unknown Source)\n        at com.sun.jndi.ldap.LdapCtxFactory.getUsingURLs(Unknown Source)\n        at com.sun.jndi.ldap.LdapCtxFactory.getLdapCtxInstance(Unknown Source)\n        at com.sun.jndi.ldap.LdapCtxFactory.getInitialContext(Unknown Source)\n        at javax.naming.spi.NamingManager.getInitialContext(Unknown Source)\n        at javax.naming.InitialContext.getDefaultInitCtx(Unknown Source)\n        at javax.naming.InitialContext.init(Unknown Source)\n        at javax.naming.InitialContext.&lt;init&gt;(Unknown Source)\n        at javax.naming.directory.InitialDirContext.&lt;init&gt;(Unknown Source)\n        at ConnectActiveDirectory.main(ConnectActiveDirectory.java:39)\nCaused by: java.net.SocketException: Connection reset\n        at java.net.SocketInputStream.read(Unknown Source)\n        at com.sun.net.ssl.internal.ssl.InputRecord.readFully(Unknown Source)\n        at com.sun.net.ssl.internal.ssl.InputRecord.read(Unknown Source)\n        at com.sun.net.ssl.internal.ssl.SSLSocketImpl.readRecord(Unknown Source)\n\n        at com.sun.net.ssl.internal.ssl.SSLSocketImpl.waitForClose(Unknown Sourc\ne)\n        at com.sun.net.ssl.internal.ssl.HandshakeOutStream.flush(Unknown Source)\n\n        at com.sun.net.ssl.internal.ssl.Handshaker.kickstart(Unknown Source)\n        at com.sun.net.ssl.internal.ssl.SSLSocketImpl.kickstartHandshake(Unknown\n Source)\n        at com.sun.net.ssl.internal.ssl.SSLSocketImpl.performInitialHandshake(Un\nknown Source)\n        at com.sun.net.ssl.internal.ssl.SSLSocketImpl.writeRecord(Unknown Source\n)\n        at com.sun.net.ssl.internal.ssl.AppOutputStream.write(Unknown Source)\n        at java.io.BufferedOutputStream.flushBuffer(Unknown Source)\n        at java.io.BufferedOutputStream.flush(Unknown Source)\n        at com.sun.jndi.ldap.Connection.writeRequest(Unknown Source)\n        at com.sun.jndi.ldap.Connection.writeRequest(Unknown Source)\n        at com.sun.jndi.ldap.LdapClient.ldapBind(Unknown Source)\n        ... 13 more\n</code></pre>\n\n<p>Code that am using is</p>\n\n<pre><code>import java.util.Hashtable;\nimport javax.naming.*;\nimport javax.naming.directory.*;\n\npublic class ConnectActiveDirectory {\n\n    public static void main(String[] args) throws NamingException {\n        Hashtable env = new Hashtable();\n        env.put(Context.SECURITY_AUTHENTICATION, \"simple\");\n        env.put(Context.SECURITY_PRINCIPAL,\"Administrator@mysite.com\");\n        env.put(Context.SECURITY_CREDENTIALS, \"password\");\n        env.put(Context.INITIAL_CONTEXT_FACTORY,\"com.sun.jndi.ldap.LdapCtxFactory\");\n        env.put(Context.PROVIDER_URL, \"ldaps://172.16.12.4:636/cn=Users,dc=mysite,dc=com\");\n        try{\n            java.io.InputStream in = new java.io.FileInputStream(\"C:\\\\client.crt\");\n            java.security.cert.Certificate c = java.security.cert.CertificateFactory.getInstance(\"X.509\").generateCertificate(in);\n            java.security.KeyStore ks = java.security.KeyStore.getInstance(\"JKS\");\n            ks.load(null);\n            if (!ks.containsAlias(\"alias ldap\")) {\n                ks.setCertificateEntry(\"alias ldap\", c);\n            }\n            java.io.OutputStream out = new java.io.FileOutputStream(\"C:\\\\keystorefile.jks\");\n            char[] kspass = \"changeit\".toCharArray();\n            ks.store(out, kspass);\n            out.close();        \n        }catch(Exception e){\n            e.printStackTrace();\n        }\n        System.setProperty(\"javax.net.ssl.trustStore\", \"C:\\\\keystorefile.jks\");\n        DirContext ctx = new InitialDirContext(env);\n        NamingEnumeration enm = ctx.list(\"\");\n        while (enm.hasMore()) {\n            System.out.println(enm.next());\n        }\n        ctx.close();\n    }\n}\n</code></pre>\n\n<p>does am doing any mistake?</p>\n\n<p>where can i get good tutorial to do ssl connection with active directory ?</p>\n\n<p>does <a href=\"http://confluence.atlassian.com/display/CROWD/Configuring+an+SSL+Certificate+for+Microsoft+Active+Directory\" rel=\"nofollow\">http://confluence.atlassian.com/display/CROWD/Configuring+an+SSL+Certificate+for+Microsoft+Active+Directory</a> site has correct steps to create and connect active directory with ssl?</p>\n\n<p>could any on please help me.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [
+    {
+      "owner": {
+        "user_type": "does_not_exist",
+        "display_name": "user9461715"
+      },
+      "edited": false,
+      "score": 1,
+      "creation_date": 1520628541,
+      "post_id": 10613767,
+      "comment_id": 85409058,
+      "content_license": "CC BY-SA 3.0"
+    },
+    {
+      "owner": {
+        "account_id": 71739,
+        "reputation": 311873,
+        "user_id": 207421,
+        "user_type": "registered",
+        "accept_rate": 82,
+        "profile_image": "https://www.gravatar.com/avatar/5cfe5f7d64f44be04f147295f5c7b88e?s=256&d=identicon&r=PG",
+        "display_name": "user207421",
+        "link": "https://stackoverflow.com/users/207421/user207421"
+      },
+      "edited": false,
+      "score": 0,
+      "creation_date": 1469668172,
+      "post_id": 10613767,
+      "comment_id": 64636295,
+      "content_license": "CC BY-SA 3.0"
+    }
+  ],
+  "answer_comments": {}
+}

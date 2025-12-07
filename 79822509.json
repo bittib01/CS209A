@@ -1,0 +1,79 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "gradle",
+      "micrometer",
+      "java-25"
+    ],
+    "owner": {
+      "account_id": 2717903,
+      "reputation": 296,
+      "user_id": 2344841,
+      "user_type": "registered",
+      "accept_rate": 75,
+      "profile_image": "https://www.gravatar.com/avatar/0648448f4f65e733a809c2ed713a7cc1?s=256&d=identicon&r=PG",
+      "display_name": "jasondlee",
+      "link": "https://stackoverflow.com/users/2344841/jasondlee"
+    },
+    "is_answered": true,
+    "view_count": 101,
+    "accepted_answer_id": 79822676,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1764980250,
+    "creation_date": 1763395082,
+    "last_edit_date": 1763463421,
+    "question_id": 79822509,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79822509/building-and-running-micrometer-with-java-25",
+    "title": "Building and running Micrometer with Java 25",
+    "body": "<p>We're trying to verify that Micrometer runs on JDK 25, but when I try to build it (Mac OS, OpenJDK Runtime Environment Temurin-25.0.1+8), I get</p>\n<pre><code>BUG! exception in phase 'semantic analysis' in source unit '_BuildScript_' Unsupported class file major version 69\n&gt; Unsupported class file major version 69\n</code></pre>\n<p>And then I see <a href=\"https://github.com/micrometer-metrics/micrometer/issues/6852\" rel=\"nofollow noreferrer\">this in the tracker</a>, so I'm clearly missing something. What does JDK 25 support look like for Micrometer?</p>\n"
+  },
+  "answers": [
+    {
+      "owner": {
+        "account_id": 944144,
+        "reputation": 7381,
+        "user_id": 971735,
+        "user_type": "registered",
+        "profile_image": "https://www.gravatar.com/avatar/04b971677fdfecde181c1d086a0158a7?s=256&d=identicon&r=PG",
+        "display_name": "Jonatan Ivanov",
+        "link": "https://stackoverflow.com/users/971735/jonatan-ivanov"
+      },
+      "is_accepted": true,
+      "score": 2,
+      "last_activity_date": 1764980250,
+      "last_edit_date": 1764980250,
+      "creation_date": 1763406549,
+      "answer_id": 79822676,
+      "question_id": 79822509,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p><strong>Update</strong>: we migrated to Gradle 9, you should be able to build Micrometer with Java 25 (our CI already does).</p>\n<p><strong>Old answer</strong>:\nThis is because Micrometer is using Gradle 8.14 (due to a plugin dependency) at the moment which is not Java 25 compatible to <strong>run Gradle</strong>, see <a href=\"https://github.com/gradle/gradle/issues/35111\" rel=\"nofollow noreferrer\">Gradle#35111</a>.</p>\n<p>It seems Gradle 8.14 is not officially Java 25 compatible to <strong>compile</strong> either, see <a href=\"https://docs.gradle.org/current/userguide/compatibility.html\" rel=\"nofollow noreferrer\">Compatibility Matrix</a>.</p>\n<p>But I was able to run <code>./gradlew build</code> successfully (compiling with Java 25):</p>\n<ol>\n<li>Have Java 24 and 25 installed and set Java 24 as &quot;default&quot;\n(check <code>./gradlew --version</code> for &quot;Launcher JVM&quot;)</li>\n<li>Modify the second line of Micrometer's root <code>build.gradle</code>:</li>\n</ol>\n<pre class=\"lang-none prettyprint-override\"><code>ext.javaLanguageVersion = JavaLanguageVersion.of(25)\n</code></pre>\n<ol start=\"3\">\n<li>Run <code>./gradlew build</code></li>\n</ol>\n<p>This should result in Gradle running using Java 24 but it will use Java 25 to compile and run the tests. You can follow the Gradle 9 migration effort here: <a href=\"https://github.com/micrometer-metrics/micrometer/pull/6829\" rel=\"nofollow noreferrer\">Micrometer#6829</a>.</p>\n"
+    },
+    {
+      "owner": {
+        "account_id": 173785,
+        "reputation": 1046,
+        "user_id": 402723,
+        "user_type": "registered",
+        "profile_image": "https://i.sstatic.net/Q8TPb.jpg?s=256",
+        "display_name": "Raul Lapeira Herrero",
+        "link": "https://stackoverflow.com/users/402723/raul-lapeira-herrero"
+      },
+      "is_accepted": false,
+      "score": 2,
+      "last_activity_date": 1763397216,
+      "creation_date": 1763397216,
+      "answer_id": 79822545,
+      "question_id": 79822509,
+      "content_license": "CC BY-SA 4.0",
+      "body": "<p>We found this same issue between a very new gradle version and Java 25, modify the gradle version. There are several issues about this</p>\n<p><a href=\"https://github.com/gradle/gradle/issues/35062\" rel=\"nofollow noreferrer\">https://github.com/gradle/gradle/issues/35062</a></p>\n"
+    }
+  ],
+  "question_comments": [],
+  "answer_comments": {
+    "79822676": [],
+    "79822545": []
+  }
+}
