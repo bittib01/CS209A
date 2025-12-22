@@ -83,7 +83,7 @@ class StackOverflowDataImporter:
             question_data.get("last_edit_date"),
             question_data["last_activity_date"],
             question_data.get("protected_date"),
-            question_data["content_license"],
+            question_data.get("content_license"),
             question_data["link"]
         )
         self.cur.execute(sql, params)
@@ -118,7 +118,7 @@ class StackOverflowDataImporter:
                 answer["creation_date"],
                 answer.get("last_edit_date"),
                 answer["last_activity_date"],
-                answer["content_license"]
+                answer.get("content_license")
             )
             params_list.append(params)
         execute_batch(self.cur, sql, params_list, page_size=100)
@@ -146,7 +146,7 @@ class StackOverflowDataImporter:
                 comment["edited"],
                 comment["score"],
                 comment["creation_date"],
-                comment["content_license"]
+                comment.get("content_license")
             )
             params_list.append(params)
         execute_batch(self.cur, sql, params_list, page_size=100)

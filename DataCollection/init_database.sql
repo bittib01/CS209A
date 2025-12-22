@@ -42,7 +42,7 @@ CREATE TABLE questions (
     last_edit_date BIGINT,
     last_activity_date BIGINT NOT NULL,
     protected_date BIGINT,
-    content_license VARCHAR(50) NOT NULL,
+    content_license VARCHAR(50),
     link VARCHAR(255) NOT NULL,
     -- 外键约束
     CONSTRAINT fk_question_owner FOREIGN KEY (owner_user_id) REFERENCES users(user_id)
@@ -100,7 +100,7 @@ CREATE TABLE answers (
     creation_date BIGINT NOT NULL,
     last_edit_date BIGINT,
     last_activity_date BIGINT NOT NULL,
-    content_license VARCHAR(50) NOT NULL,
+    content_license VARCHAR(50),
     -- 外键约束
     CONSTRAINT fk_answer_question FOREIGN KEY (question_id) REFERENCES questions(question_id) ON DELETE CASCADE,
     CONSTRAINT fk_answer_owner FOREIGN KEY (owner_user_id) REFERENCES users(user_id)
@@ -132,7 +132,7 @@ CREATE TABLE comments (
     edited BOOLEAN NOT NULL,
     score INTEGER NOT NULL,
     creation_date BIGINT NOT NULL,
-    content_license VARCHAR(50) NOT NULL,
+    content_license VARCHAR(50),
     -- 外键约束
     CONSTRAINT fk_comment_owner FOREIGN KEY (owner_user_id) REFERENCES users(user_id),
     CONSTRAINT fk_comment_reply FOREIGN KEY (reply_to_user_id) REFERENCES users(user_id)
