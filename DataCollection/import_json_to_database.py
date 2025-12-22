@@ -72,7 +72,7 @@ class StackOverflowDataImporter:
         params = (
             question_data["question_id"],
             question_data["title"],
-            question_data["body"],
+            question_data.get("body", ""),
             owner_user_id,
             question_data["is_answered"],
             question_data["view_count"],
@@ -112,7 +112,7 @@ class StackOverflowDataImporter:
                 answer["answer_id"],
                 question_id,
                 answer["owner"]["user_id"],
-                answer["body"],
+                answer.get("body", ""),
                 answer["is_accepted"],
                 answer["score"],
                 answer["creation_date"],
