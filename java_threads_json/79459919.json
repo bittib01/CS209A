@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "quarkus",
+      "junit5",
+      "spock",
+      "open-liberty"
+    ],
+    "owner": {
+      "account_id": 20345409,
+      "reputation": 556,
+      "user_id": 14923466,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/865b05399928d13f544e520660c7805d?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Alex_Pap",
+      "link": "https://stackoverflow.com/users/14923466/alex-pap"
+    },
+    "is_answered": false,
+    "view_count": 85,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1740242430,
+    "creation_date": 1740241639,
+    "last_edit_date": 1740242430,
+    "question_id": 79459919,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79459919/can-i-use-quarkustest-to-replace-jerseytest-in-spock-specifications",
+    "title": "Can I Use @QuarkusTest to Replace JerseyTest in Spock Specifications?",
+    "body": "<p>I have many <code>Spock</code> specifications like the next one, that act as &quot;unit tests&quot; for the resource classes of a project. This is an Open Liberty application and now there's a need to migrate it in Quarkus.</p>\n<pre><code>class ExampleResourceSpec extends ResourceSpecification {\n\n    static final String BASE_URL = '/myurl'\n\n    @Shared\n    private ExampleService service\n\n    @Override\n    protected createResource() {\n        service = Mock()\n        new ExampleResource(service)\n    }\n\n    def '200 response for a successful request'() {\n        given: 'a valid request'\n        MyRequest request = fixtures.createMyRequest()\n        def jsonReq = createJsonMyRequest(request)\n\n        when: 'performing the post request'\n        def response = jerseyPost(jsonReq, BASE_URL)\n\n        then: 'the service is called with correct values'\n        1 * photoService.handle({ actualRequest -&gt;\n            actualRequest.field1 == request.field1 &amp;&amp;\n            actualRequest.field2 == request.field2 &amp;&amp;\n            actualRequest.field3 == request.field3 \n        })\n\n        and: 'the resource returns 200 status code'\n        response.status == Response.Status.OK.statusCode\n    }\n\n    private Response jerseyPost(String jsonReq, String url) {\n        jerseyTest\n                .target(url)\n                .request()\n                .post(Entity.json(jsonReq))\n    }\n\n    private createJsonMyRequest(MyRequest request) {\n        def jsonSlurper = new JsonSlurper()\n        def parsedJson = jsonSlurper.parseText(jsonb.toJson(request))\n\n        return new JsonBuilder(parsedJson).toString()\n    }\n}\n\n</code></pre>\n<p>For these tests, JerseyTest was used to spin up a Grizzly Server with the necessary Resource Configuration that can be reflected on the next class:</p>\n<pre><code>abstract class ResourceSpecification extends Specification {\n\n    JerseyTest jerseyTest\n\n    protected abstract createResource();\n\n    def setup() {\n        jerseyTest = new JerseyTest() {\n            @Override\n            protected Application configure() {\n                new ResourceConfig()\n                        .register(createResource())\n                        .register(MyAwesomeExceptionMapper)\n            }\n        }\n        jerseyTest.setUp()\n    }\n\n    def parse(Response response) {\n        jsonb.fromJson(response.readEntity(String), Map.class)\n    }\n\n    def cleanup() {\n        jerseyTest.tearDown()\n    }\n}\n</code></pre>\n<p>However, the migration in Quarkus raises some major challenges since the latter <a href=\"https://github.com/spockframework/spock/issues/1832\" rel=\"nofollow noreferrer\">does not support</a> Spock. Moreover, there's a need to avoid using the <code>JerseyTest</code> dependencies and rely on Quarkus capabilities to keep these tests alive by particularly using the <code>@QuarkusTest</code> annotation that spins up a server. As you may suspect, the tests are many and I am trying to avoid to re-write all of them in <code>JUnit5</code>.</p>\n<p>Things I have tried so far:</p>\n<ol>\n<li>Used <code>RestAssured</code> instead of <code>Jersey</code> for the actual HTTP call along with a <code>GrizzlyHttpServerFactory</code> to spin up a server. That worked perfectly but it still violates the requirement to avoid using external dependencies and relying on Quarkus.</li>\n<li>Removed the <code>GrizzlyHttpServerFactory</code> and added the <code>@QuarkusTest</code> annotation on my <code>ResourceSpecification</code> class, in hope to start the Quarkus Server. However, <code>RestAssured</code> is unable to establish a connection to the server thus resulting in a <code>ConnectionException</code>.</li>\n</ol>\n<p>I suspect that this happens because there <a href=\"https://quarkus.io/guides/cdi-integration\" rel=\"nofollow noreferrer\">is no integration</a> between Spock and ArC which is the CDI container in Quarkus.</p>\n<p>Is it possible to achieve what I want or should I re-write the tests in <code>JUnit5</code>? Also, in case the latter must be done, can I use <code>RestAssured</code> along with <code>Mockito</code> somehow? I know that <code>RestAssured</code> is mostly for integration tests.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

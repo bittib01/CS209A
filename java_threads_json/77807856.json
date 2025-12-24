@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "authentication",
+      "proxy",
+      "confluent-schema-registry"
+    ],
+    "owner": {
+      "account_id": 2644204,
+      "reputation": 53,
+      "user_id": 2287264,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/74a7d282a7d3ad7d46f855effcbf95c6?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Adam Muller",
+      "link": "https://stackoverflow.com/users/2287264/adam-muller"
+    },
+    "is_answered": false,
+    "view_count": 339,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1733169753,
+    "creation_date": 1705075533,
+    "question_id": 77807856,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77807856/confluent-schemaregistry-client-ignoring-system-proxy-settings",
+    "title": "Confluent SchemaRegistry Client ignoring system proxy settings",
+    "body": "<p>trying to connect to Kafka but with Schema Registry behind proxy that requires authentication. I'm aware that Schema Registry Client right now does not support providing proxy credentials (<a href=\"https://github.com/confluentinc/schema-registry/issues/2137\" rel=\"nofollow noreferrer\">https://github.com/confluentinc/schema-registry/issues/2137</a>).</p>\n<p>However I tried to set the proxy settings on system level and reuse them in my Java app, that connects to the Schema Registry and tries to put a simple message.</p>\n<p>Attempt 1:</p>\n<ol>\n<li>set http_proxy, https_proxy, HTTP_PROXY and HTTPS_PROXY system variables (using the http://&lt;proxy_user&gt;:&lt;proxy_pass&gt;@&lt;proxy_host&gt;:&lt;proxy_port&gt; syntax</li>\n<li>verify connectivity via CURL - works!</li>\n<li>run my Java application with system parameter:</li>\n</ol>\n<pre><code>java -Djava.net.useSystemProxies=true -jar ./avro-producer-2.1.0-jar-with-dependencies.jar\n</code></pre>\n<p>result: Error connection refused. Seems like the proxy parameters were ignored completely.</p>\n<pre><code>[2024-01-12 16:56:47,210] (io.confluent.kafka.schemaregistry.client.rest.RestService) - ERROR Failed to send HTTP request to endpoint: https://xyz.cloud/subjects/mycorp.crm.campaign. \nV1-value/versions \njava.net.ConnectException: Connection refused (Connection refused) \n        at java.net.PlainSocketImpl.socketConnect(Native Method) ~[?:1.8.0_352] \n        at java.net.AbstractPlainSocketImpl.doConnect(AbstractPlainSocketImpl.java:350) ~[?:1.8.0_352] \n        at java.net.AbstractPlainSocketImpl.connectToAddress(AbstractPlainSocketImpl.java:206) ~[?:1.8.0_352] \n        at java.net.AbstractPlainSocketImpl.connect(AbstractPlainSocketImpl.java:188) ~[?:1.8.0_352] \n        at java.net.SocksSocketImpl.connect(SocksSocketImpl.java:392) ~[?:1.8.0_352] \n        at java.net.Socket.connect(Socket.java:607) ~[?:1.8.0_352] \n        at sun.security.ssl.SSLSocketImpl.connect(SSLSocketImpl.java:293) ~[?:1.8.0_352] \n        at sun.net.NetworkClient.doConnect(NetworkClient.java:175) ~[?:1.8.0_352] \n        at sun.net.www.http.HttpClient.openServer(HttpClient.java:463) ~[?:1.8.0_352] \n        at sun.net.www.http.HttpClient.openServer(HttpClient.java:558) ~[?:1.8.0_352] \n        at sun.net.www.protocol.https.HttpsClient.&lt;init&gt;(HttpsClient.java:264) ~[?:1.8.0_352] \n        at sun.net.www.protocol.https.HttpsClient.New(HttpsClient.java:367) ~[?:1.8.0_352] \n        at \n</code></pre>\n<p>Attempt 2:</p>\n<ol>\n<li>running my Java application with all proxy parameters in command line:</li>\n</ol>\n<pre><code>    java -Dhttp.proxyHost=myproxy.myorg.com -Dhttp.proxyPort=8080 -Dhttp.proxyUser=myuser_dev -Dhttp.proxyPassword=p3aFxxxx -Dhttps.proxyHost=myproxy.myorg.com -Dhttps.proxyPort=8080 -Dhttps.proxyUser=myuser_dev -Dhttps.proxyPassword=p3aFxxxx -Djdk.http.auth.tunneling.disabledSchemes=&quot;&quot; -Djdk.http.auth.proxying.disabledSchemes=&quot;&quot; -Djdk.https.auth.tunneling.disabledSchemes=&quot;&quot; -Djdk.https.auth.proxying.disabledSchemes=&quot;&quot; -jar ./avro-producer-2.1.0-jar-with-dependencies.jar\n</code></pre>\n<p>result: Error proxy returns authorization required</p>\n<pre><code>    (io.confluent.kafka.schemaregistry.client.rest.RestService) - ERROR Failed to send HTTP request to endpoint: https://xyz.cloud/subjects/mycorp.crm.campaign. \nV1-value/versions \njava.io.IOException: Unable to tunnel through proxy. Proxy returns &quot;HTTP/1.1 407 authenticationrequired&quot; \n        at sun.net.www.protocol.http.HttpURLConnection.doTunneling(HttpURLConnection.java:2154) ~[?:1.8.0_352] \n        at sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.connect(AbstractDelegateHttpsURLConnection.java:195) ~[?:1.8.0_352] \n        at sun.net.www.protocol.http.HttpURLConnection.getOutputStream0(HttpURLConnection.java:1342) ~[?:1.8.0_352] \n        at sun.net.www.protocol.http.HttpURLConnection.getOutputStream(HttpURLConnection.java:1317) ~[?:1.8.0_352] \n        at sun.net.www.protocol.https.HttpsURLConnectionImpl.getOutputStream(HttpsURLConnectionImpl.java:264) ~[?:1.8.0_352] \n        at io.confluent.kafka.schemaregistry.client.rest.RestService.sendHttpRequest(RestService.java:178) [avro-producer-2.1.0-jar-with-dependencies.jar:?] \n</code></pre>\n<p>Java version is OpenJDK 1.8.0_352</p>\n<p>What am I doing wrong?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

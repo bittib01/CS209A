@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jna",
+      "libraw"
+    ],
+    "owner": {
+      "account_id": 39510996,
+      "reputation": 21,
+      "user_id": 29312962,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/e5639268fb65cde6bc7ca85de962bab1?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Marek P",
+      "link": "https://stackoverflow.com/users/29312962/marek-p"
+    },
+    "is_answered": false,
+    "view_count": 66,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1739036318,
+    "creation_date": 1737573489,
+    "last_edit_date": 1739010485,
+    "question_id": 79378974,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79378974/struggling-with-jna-wrappers-for-libraw-image-data-pointers",
+    "title": "Struggling with JNA wrappers for LibRaw image data pointers",
+    "body": "<p>Background: I'm not a professional developer - I used C a few decades ago and Java a few years ago. I'm rusty.</p>\n<p>I'm trying to write JNA wrappers for LibRaw and I'm struggling to get the right JNA 'spells' for accessing the raw image data (other data, e.g., image width/height are no problem).</p>\n<p>The relevant bit of the libraw_types.h file are:</p>\n<pre class=\"lang-c prettyprint-override\"><code>typedef struct\n{\n  ushort (*image)[4];\n  libraw_image_sizes_t sizes;\n\n  /*\n  Other members\n  */\n\n  libraw_rawdata_t rawdata;\n  void *parent_class;\n} libraw_data_t;\n\ntypedef struct\n{\n void *raw_alloc;\n  ushort *raw_image;\n  ushort (*color4_image)[4];\n  ushort (*color3_image)[3];\n\n  /*\n  Other members\n  */\n\n} libraw_rawdata_t;\n</code></pre>\n<p>In C this is typically used as follows:</p>\n<pre class=\"lang-c prettyprint-override\"><code>LibRaw RawProcessor;\n\nret = RawProcessor.open_file(av[i])\nret = RawProcessor.unpack()\n\nval = RawProcessor.imgdata.rawdata.raw_image[0];\n</code></pre>\n<p>From this I assumed that the DLL manages the memory allocation for the image data and populates the structures with pointers to arrays of ushorts.</p>\n<p>My equivalent JNA wrapper looks like this (just a snip since the nested structures are extensive to the tune of &gt;1000 lines!):</p>\n<pre class=\"lang-java prettyprint-override\"><code>public interface LibRaw extends Library {\n\n  public class LibRaw_data extends Structure {\n    public Pointer image; \n    \n    /*\n    Other members\n    */\n\n    public LibRaw_rawdata rawdata; \n  }\n\n  public class LibRaw_rawdata extends Structure {\n    public Pointer raw_alloc; \n    \n    public Pointer raw_image; \n    //public PointerByReference raw_image = new PointerByReference(); \n    \n    /*\n    Other members\n    */\n    \n  }\n  \n  LibRaw INSTANCE = (LibRaw) Native.loadLibrary(dllPath, LibRaw.class);\n   \n  LibRaw_data libraw_init(int flags);\n  int libraw_open_file( LibRaw_data lr, String fname );\n  int libraw_unpack( LibRaw_data lr );\n  void libraw_close( LibRaw_data lr );\n  int libraw_raw2image();\n  int libraw_dcraw_process();\n  void libraw_close( LibRaw_data lr );\n  \n  // ... other functions ...\n  \n}\n</code></pre>\n<p>... and my main code has:</p>\n<pre class=\"lang-java prettyprint-override\"><code>LibRaw.LibRaw_data librawdata = new LibRaw.LibRaw_data();\n\nlibrawdata = LibRaw.INSTANCE.libraw_init(0);\n\nretCode = LibRaw.INSTANCE.libraw_open_file( librawdata, fname );\nretCode = LibRaw.INSTANCE.libraw_unpack( librawdata );\n\nif (librawdata.rawdata.raw_image != null) ...\n</code></pre>\n<p>This all compiles OK and runs with no error, but after the unpack call, I expect raw_image to be something other than null and that I can then do something line raw_image.getByteArray() to get access to the image data.</p>\n<p>But despite everything else appearing OK (other values are valid and reasonable, no errors), raw_image and the other image data pointer are all null.</p>\n<p>I've seen some examples which seem relevant which suggest using PointerByReference, but that has the same end result, no errors and null pointers.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

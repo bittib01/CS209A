@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "minecraft-fabric"
+    ],
+    "owner": {
+      "account_id": 32605861,
+      "reputation": 1,
+      "user_id": 25337394,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/c9190c68a3cfb0ba10344851ab47d152?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "D a n c h",
+      "link": "https://stackoverflow.com/users/25337394/d-a-n-c-h"
+    },
+    "is_answered": false,
+    "view_count": 237,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1729859867,
+    "creation_date": 1717153689,
+    "last_edit_date": 1729859867,
+    "question_id": 78559713,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78559713/problem-with-importing-library-of-minecraft",
+    "title": "problem with importing library of minecraft",
+    "body": "<pre><code>import net.fabricmc.fabric.api.client.command.v1.ClientCommandManager;\nimport net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;\nimport net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;\nimport net.minecraft.client.MinecraftClient;\nimport net.minecraft.client.option.KeyBinding;\nimport net.minecraft.text.LiteralText;\nimport org.lwjgl.glfw.GLFW;\n\npublic class ModInitializer implements ModInitializer {\n\n    private static KeyBinding keyBinding;\n    private static boolean isClickerActive = false;\n    private static int clicksPerMillisecond = 1;\n\n    @Override\n    public void onInitialize() {\n       keyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(\n             &quot;key.autoclickermod.toggle&quot;,\n             GLFW.GLFW_KEY_UNKNOWN,\n             &quot;category.autoclickermod&quot;\n       ));\n\n       ClientCommandManager.DISPATCHER.register(ClientCommandManager.literal(&quot;bind&quot;)\n             .then(ClientCommandManager.argument(&quot;key&quot;, StringArgumentType.word())\n                   .executes(context -&gt; {\n                      String keyName = StringArgumentType.getString(context, &quot;key&quot;);\n                      int keyCode = GLFW.glfwGetKeyScancode(GLFW.glfwGetKeyName(keyName));\n                      keyBinding.setBoundKey(keyCode);\n                      MinecraftClient.getInstance().player.sendMessage(new LiteralText(&quot;Bound clicker toggle to key: &quot; + keyName), false);\n                      return 1;\n                   })));\n\n       ClientCommandManager.DISPATCHER.register(ClientCommandManager.literal(&quot;cpms&quot;)\n             .then(ClientCommandManager.argument(&quot;rate&quot;, IntegerArgumentType.integer(1))\n                   .executes(context -&gt; {\n                      clicksPerMillisecond = IntegerArgumentType.getInteger(context, &quot;rate&quot;);\n                      MinecraftClient.getInstance().player.sendMessage(new LiteralText(&quot;Set clicks per millisecond to: &quot; + clicksPerMillisecond), false);\n                      return 1;\n                   })));\n\n       ClientTickEvents.END_CLIENT_TICK.register(client -&gt; {\n          while (keyBinding.wasPressed()) {\n             isClickerActive = !isClickerActive;\n             client.player.sendMessage(new LiteralText(&quot;Auto-clicker &quot; + (isClickerActive ? &quot;enabled&quot; : &quot;disabled&quot;)), false);\n          }\n          if (isClickerActive) {\n             for (int i = 0; i &lt; clicksPerMillisecond; i++) {\n                client.mouse.click(MouseHelper.ClickType.LEFT);\n             }\n          }\n       });\n    }\n}\n</code></pre>\n<p>I have problem with importing</p>\n<p>net.fabricmc.fabric.api.client.command.v1.ClientCommandManager</p>\n<p>and</p>\n<p>net.minecraft.text.LiteralText</p>\n<p>issues:\nCannot resolve symbol 'v1'\nCannot resolve symbol 'LiteralText'</p>\n<p>im trying to write a clicker for minecraft but I cant solve this problem:\\</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

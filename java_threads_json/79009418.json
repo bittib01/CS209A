@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot"
+    ],
+    "owner": {
+      "account_id": 19253689,
+      "reputation": 52,
+      "user_id": 14071088,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/cOEWi.jpg?s=256",
+      "display_name": "amz",
+      "link": "https://stackoverflow.com/users/14071088/amz"
+    },
+    "is_answered": false,
+    "view_count": 202,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1727360351,
+    "creation_date": 1726917405,
+    "last_edit_date": 1727026781,
+    "question_id": 79009418,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79009418/spring-configurationproperties-and-prototype-scope-behavior",
+    "title": "Spring @ConfigurationProperties and Prototype Scope Behavior",
+    "body": "<p>I'm working with Spring Boot and I have a class annotated with <code>@ConfigurationProperties</code> to bind external configuration properties. By default, when the application starts, Spring creates a singleton instance of this class, and this same instance is returned for each request, which is expected behavior.</p>\n<p>However, when I try to change the scope of this class to prototype by adding <code>@Scope(&quot;prototype&quot;)</code> and changed some property in the application.yml file and resend my request, I noticed that it doesn't create a new instance for each request as I expected. Instead, it still returns the same instance because that changed property is the same as before.</p>\n<pre class=\"lang-java prettyprint-override\"><code>@ConfigurationProperties(prefix = &quot;isoft&quot;)\n@Getter\n@Setter\n@Validated\n@RefreshScope\npublic class DataBaseConfigDTO {\n    //The final keyword is avoided to allow the bean states to change\n    private Map&lt;String, String&gt; datasource;\n    private List&lt;String&gt; maintainers;\n    private String manager;\n\n    //for triming manager\n    public DataBaseConfigDTO(Map&lt;String, String&gt; datasource,\n                             List&lt;String&gt; maintainers,\n                             String manager) {\n        this(datasource, maintainers, manager.trim(), false);\n    }\n\n    private DataBaseConfigDTO(Map&lt;String, String&gt; datasource,\n                              List&lt;String&gt; maintainers,\n                              @Email String manager,\n                              boolean idle) {\n        this.datasource = datasource;\n        this.maintainers = maintainers;\n        this.manager = manager;\n    }\n}\n\n</code></pre>\n<p>application.yml file:</p>\n<pre><code>isoft:\n  datasource:\n    driver-class-name: cards.oracle.jdbc.OracleDriver\n    url: jdbc:oracle:thin:@localhost:1521:testCards\n    username: 'AMz.cards__'\n    password: '123.cards.'\n    hikari:\n      connection-timeout: 10000\n  maintainers:\n    - shahsavariCards\n    - mohammadiCards\n  manager: iot@micro.cards\n\nmanagement:\n  endpoints:\n    web:\n      exposure:\n        include: &quot;*&quot;\n</code></pre>\n<p>Controller:</p>\n<pre><code>@RestController\n@RequestMapping(path = &quot;/api/v1/loans&quot;, produces = {MediaType.APPLICATION_JSON_VALUE})\n@AllArgsConstructor\n@Validated\n    public class LoansController {\n        private final ApplicationContext applicationContext;\nprivate final Environment environment;\n    \n @GetMapping(&quot;/props&quot;)\n    public ResponseEntity&lt;DataBaseConfigDTO&gt; getProps() {\nreturn ResponseEntity.ok((DataBaseConfigDTO) applicationContext.getBean(&quot;isoft-com.isoft.accounts.dto.DataBaseConfigDTO&quot;));\n\n    }\n}\n</code></pre>\n<p>when I change some property in <code>application.yml</code> witch is placed in github repo and I call the <code>/refresh</code> from actuator and then call the <code>/api/v1/loans/props</code> ,it returns the last value of that property and it does not sync with the latest value but when I change my approach and use <code>environment#getProperty</code> it work fine and returns the latest value of that property.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

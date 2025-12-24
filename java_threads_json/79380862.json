@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "javascript",
+      "java",
+      "spring-boot",
+      "websocket",
+      "chat"
+    ],
+    "owner": {
+      "account_id": 32716006,
+      "reputation": 1,
+      "user_id": 25429199,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/21b6c17a04c243ec3248561994e8b8f5?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Niraj Patle",
+      "link": "https://stackoverflow.com/users/25429199/niraj-patle"
+    },
+    "is_answered": false,
+    "view_count": 61,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1738245585,
+    "creation_date": 1737631941,
+    "last_edit_date": 1737636335,
+    "question_id": 79380862,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79380862/getting-org-springframework-messaging-converter-messageconversionexception-in-ch",
+    "title": "getting org.springframework.messaging.converter.MessageConversionException in chat application",
+    "body": "<p>I've made simple real time chat application however when I run the application everything seems fine.\nAfter the typing and sending the message , it is reflecting in the console tab but not reflected in chat application also getting exception as:\norg.springframework.messaging.converter.MessageConversionException:\nI am unable to solve this error. Please help.</p>\n<pre class=\"lang-html prettyprint-override\"><code>&lt;!DOCTYPE html&gt;\n&lt;html xmlns:th=&quot;http://www.thymeleaf.org&quot;&gt;\n&lt;head&gt;\n&lt;meta charset=&quot;UTF-8&quot;&gt;\n&lt;title&gt;Real Time Chat Application&lt;/title&gt;\n&lt;link\n    href=&quot;https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css&quot;\n    rel=&quot;stylesheet&quot;\n    integrity=&quot;sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH&quot;\n    crossorigin=&quot;anonymous&quot;&gt;\n&lt;/head&gt;\n&lt;body&gt;\n    &lt;div class=&quot;container mt-4&quot;&gt;\n        &lt;h1 class=&quot;text-center&quot;&gt;Real-Time Chat Application&lt;/h1&gt;\n        &lt;div id=&quot;chat&quot; class=&quot;border rounded p-3 mb-3&quot;\n            style=&quot;height: 300px; overflow-y: auto;&quot;&gt;&lt;/div&gt;\n\n        &lt;div class=&quot;input-group mb-3&quot;&gt;\n            &lt;input type=&quot;text&quot; id=&quot;senderInput&quot; class=&quot;form-control&quot;\n                placeholder=&quot;Your Name...&quot;&gt;\n        &lt;/div&gt;\n\n        &lt;div class=&quot;input-group mb-3&quot;&gt;\n            &lt;input type=&quot;text&quot; id=&quot;messageInput&quot; class=&quot;form-control&quot;\n                placeholder=&quot;Type Message...&quot;&gt;\n            &lt;div id=&quot;input-group-append&quot;&gt;\n                &lt;button id=&quot;sendMessage&quot; class=&quot;btn btn-primary&quot;&gt;Send&lt;/button&gt;\n            &lt;/div&gt;\n        &lt;/div&gt;\n    &lt;/div&gt;\n&lt;/body&gt;\n&lt;script\n    src=&quot;https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js&quot;&gt;&lt;/script&gt;\n&lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js&quot;&gt;&lt;/script&gt;\n&lt;script&gt;\n    function setConnected(connected) {\n        document.getElementById(&quot;sendMessage&quot;).disabled = !connected;\n    }\n\n    function connect() {\n        let socket = new SockJS('/chat');\n        stompClient = Stomp.over(socket);\n        stompClient.connect({}, function(frame) {\n            setConnected(true);\n            stompClient.subscribe('topic/messages', function(message) {\n                showMessage(JSON.parse(message.body));\n            });\n        });\n    }\n        \n        function showMessage(message){\n            let chat=document.getElementById('chat');\n            let messageElement=document.createElement('div');\n            messageElement.textContent=message.sender+':'+ message.content;\n            messageElement.class=&quot;border-bottom mb-1&quot;;\n            chat.scrollTop=chat.scrollHeight;\n        }\n        \n        function sendMessage(){\n            let sender=document.getElementById('senderInput').value;\n            let content=document.getElementById('messageInput').value;\n            let chatMessage={\n                    sender:sender,\n                    content:content\n            }\n            stompClient.send(&quot;/app/sendMessage&quot;,{},JSON.stringify(chatMessage));\n            document.getElementById('messageInput').value='';\n        }\n        \n        document.getElementById('sendMessage').onclick=sendMessage;\n        window.onload=connect;\n&lt;/script&gt;\n&lt;/html&gt;\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>//Controller class code\npackage com.chat.main.controller;\n\nimport org.springframework.messaging.handler.annotation.MessageMapping;\nimport org.springframework.messaging.handler.annotation.SendTo;\nimport org.springframework.stereotype.Controller;\nimport org.springframework.web.bind.annotation.GetMapping;\nimport com.chat.main.model.ChatMessage;\n\n\n@Controller\npublic class ChatController {\n    @MessageMapping(&quot;/sendMessage&quot;)\n    @SendTo(&quot;/topic/messages&quot;)\n    public ChatMessage sendMessage(ChatMessage message) {\n        return message;\n    }\n    \n    @GetMapping(&quot;/chat&quot;)\n    public String chat() {\n        return &quot;chat&quot;;\n    }\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>//Websocket configuration code\npackage com.chat.main.config;\n\nimport org.springframework.context.annotation.Configuration;\nimport org.springframework.messaging.simp.config.MessageBrokerRegistry;\nimport org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;\nimport org.springframework.web.socket.config.annotation.StompEndpointRegistry;\nimport org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;\n\n@Configuration\n@EnableWebSocketMessageBroker\npublic class WebSocketConfig implements WebSocketMessageBrokerConfigurer{\n\n    @Override\n    public void registerStompEndpoints(StompEndpointRegistry registry) {\n        registry.addEndpoint(&quot;/chat&quot;)\n        .setAllowedOrigins(&quot;http://localhost:8080&quot;)\n        .withSockJS();\n    }\n\n    @Override\n    public void configureMessageBroker(MessageBrokerRegistry registry) {\n        registry.enableSimpleBroker(&quot;/topic&quot;);\n        registry.setApplicationDestinationPrefixes(&quot;/app&quot;);\n    }\n    \n}\n</code></pre>\n<p><a href=\"https://i.sstatic.net/TpsFv1dJ.png\" rel=\"nofollow noreferrer\">Exception</a>\n<a href=\"https://i.sstatic.net/i4D42Dj8.png\" rel=\"nofollow noreferrer\">Chat application</a>\n<a href=\"https://i.sstatic.net/cWFH5vlg.png\" rel=\"nofollow noreferrer\">Controller</a>\n<a href=\"https://i.sstatic.net/UzIro8ED.png\" rel=\"nofollow noreferrer\">Websocket Configuration</a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "netty",
+      "quic"
+    ],
+    "owner": {
+      "account_id": 40327320,
+      "reputation": 1,
+      "user_id": 29724220,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/69da2a2a2dbed825f253fc45b2215422?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "yzyfreef202",
+      "link": "https://stackoverflow.com/users/29724220/yzyfreef202"
+    },
+    "is_answered": false,
+    "view_count": 42,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1740118565,
+    "creation_date": 1740114529,
+    "last_edit_date": 1740118565,
+    "question_id": 79456388,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79456388/netty-incubator-codec-http3server-create-stream-to-client-push-data-fail",
+    "title": "netty-incubator-codec-http3:server create stream to client push data fail",
+    "body": "<p>In my Netty-incubator-codec-http3 application, the server creates a new stream to the client, calls <code>writeAndFlush()</code>, but the client doesn't receive the data.</p>\n<p>Client and server successfully connect and create an initial bidirectional stream. Server-initiated streams, created over the established QuicChannel, are not delivering data to the client, despite the connection remaining active.</p>\n<pre class=\"lang-java prettyprint-override\"><code>\n\n    //server\n\n        ...\n        try {\n            Bootstrap bs = new Bootstrap();\n            Channel channel = ....sync();\n//i want to send data to client test\n            ScheduledExecutorService timerExecutor = new ScheduledThreadPoolExecutor(1);\n\n            timerExecutor.scheduleAtFixedRate(\n                    () -&gt; {\n                        try {\n                            hand();\n                        } catch (InterruptedException e) {\n                            e.printStackTrace();\n                        }\n                    },\n                    5, 5, TimeUnit.SECONDS);\n\n\n        } finally {\n            group.shutdownGracefully();\n        }\n    }\n\n   private static void hand() {\n//QUIC_CHANNEL_LIST :client connect to server success,server save it\n        for (QuicChannel quicChannel : QuicServerExample.QUIC_CHANNEL_LIST) {\n//it is my protobuf\n            TdataProtoBuf.Tdata request = TdataProtoBuf.Tdata.newBuilder()\n                    .setQueryKeyBlob(&quot;server-asd123123f&quot;)\n                    .build();\n            NettyMessage nettyMessage = new NettyMessage(&quot;lty.TdataProtoBuf$Tdata&quot;, request, 0);\n            try {\n\n                // explicitly create a new stream and send data\n                QuicStreamChannel streamChannel = quicChannel.createStream(QuicStreamType.BIDIRECTIONAL,\n                        new ChannelInitializer&lt;QuicStreamChannel&gt;() {\n                            @Override\n                            protected void initChannel(QuicStreamChannel ch) {\n                               // my  Decoder and Encoder\n                                ch.pipeline()\n                                        .addLast(new ProtocolV1Decoder())\n                                        .addLast(new ProtocolV1Encoder());\n                            }\n                        }).sync().getNow();\n\n\n// after executed streamChannel.writeAndFlush .\n//no log output include send success or    send error... \n         streamChannel.writeAndFlush(nettyMessage).addListener(future -&gt; {\n                    if (future.isSuccess()) {\n                        System.out.println(&quot;send success&quot;);\n                    } else {\n                        System.err.println(&quot;send error: &quot; + future.cause());\n                    }\n                });\n\n            } catch (Exception e) {\n                e.printStackTrace();\n            }\n\n        }\n    }\n\n    \n\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

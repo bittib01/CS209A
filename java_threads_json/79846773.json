@@ -1,0 +1,37 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "rest",
+      "clean-architecture"
+    ],
+    "owner": {
+      "account_id": 45004240,
+      "reputation": 1,
+      "user_id": 32049217,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/98594bcdde8bcd66658f70bc9dbed1de?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "SnarkyWombat",
+      "link": "https://stackoverflow.com/users/32049217/snarkywombat"
+    },
+    "is_answered": true,
+    "view_count": 125,
+    "closed_date": 1765671163,
+    "accepted_answer_id": 79846777,
+    "answer_count": 1,
+    "score": -5,
+    "last_activity_date": 1765671164,
+    "creation_date": 1765662445,
+    "last_edit_date": 1765671164,
+    "question_id": 79846773,
+    "link": "https://stackoverflow.com/questions/79846773/where-should-dto-to-entity-id-translation-and-lookup-occur-in-a-multi-layered-sp",
+    "closed_reason": "Opinion-based",
+    "title": "Where should DTO to Entity/ID translation and lookup occur in a multi-layered Spring application?",
+    "body": "<p>I'm building a RESTful API using Spring Boot with a standard layered architecture: <strong>Controller (Resource) -&gt; Facade -&gt; Service -&gt; Repository</strong>.</p>\n<p>I have an incoming Data Transfer Object (ProductRequestDto) which uses codes/natural keys for some relationships (like imageCodes and countryCode). My internal persistence Entity (Product) uses Foreign Key IDs for these same relationships (imageIds and countryId).</p>\n<p>Before the Product entity is passed to the ProductService for persistence, I need to:</p>\n<ol>\n<li><p>Translate/Lookup the natural keys (e.g., countryCode) into foreign key IDs (e.g., countryId). This lookup will likely involve a separate repository/service call (e.g., countryRepository.findByCode(countryCode)).</p>\n</li>\n<li><p>Map the remaining properties from the ProductRequestDto to the Product entity.</p>\n</li>\n</ol>\n<p>In which layer/component should this lookup and translation logic reside?</p>\n<p>Should it be in the Mapper, the Facade, or the Service layer?</p>\n<p>If I had a validation service that needed to check and alert the user that he had conflicting or too many images, where would that belong?</p>\n<p>Thank you!</p>\n<pre><code>\n@Getter\n@Setter\npublic class ProductRequestDto {\n    private Long id;\n    private String code;\n    private String name;\n    private String description;\n    private BigDecimal price;\n    private Set&lt;Long&gt; imageCodes; //Here as codes\n        private String countryCode; //Here as code\n    private Boolean active;\n    private Instant createdAt;\n    private Instant updatedAt;\n}\n\n\n@Getter\n@Setter\npublic class Product {\n    private Long id;\n    private String code;\n    private String name;\n    private String description;\n    private BigDecimal price;\n    private Set&lt;Long&gt; imageIds; //Here as image ids (fk)\n        private Long countryId;  //Here as country Id (fk)\n    private Boolean active;\n    private Instant createdAt;\n    private Instant updatedAt;\n}\n\n\n@RestController\n@RequestMapping(&quot;/api&quot;)\npublic class ProductResource {\n\n    private final ProductFacade productFacade;\n\n    @Autowired\n    public ProductResource(ProductFacade productFacade) {\n        this.productFacade = productFacade;\n    }\n\n    @PostMapping(&quot;/v1/products&quot;)\n    public ProductResponseDto createProduct(@RequestBody CreateProductDto createProductDto){\n        return productFacade.createProduct(createProductDto);\n    }\n\n}\n\n\n@Component\npublic class ProductFacade {\n\n    private final ProductService productService;\n    private final ProductMapper productMapper;\n\n    @Autowired\n    public ProductFacade(ProductService productService, ProductMapper productMapper) {\n        this.productService = productService;\n        this.productMapper = productMapper;\n    }\n\n    public ProductResponseDto createProduct(ProductRequestDto dto) {\n        Product product = productMapper.toProduct(dto);\n        Product createdProduct = productService.createProduct(product);\n        return productMapper.toProductDto(createdProduct);\n    }\n\n}\n\n\n\n@Component\npublic class ProductService {\n\n    private final ProductRepository productRepository;\n\n    @Autowired\n    public ProductService(ProductRepository productRepository) {\n        this.productRepository = productRepository;\n    }\n\n    public Product createProduct(Product product) {\n\n        return productRepository.createProduct(product);\n    }\n\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

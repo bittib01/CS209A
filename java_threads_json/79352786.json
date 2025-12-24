@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jpa",
+      "jakarta-ee",
+      "jsonb-api",
+      "yasson"
+    ],
+    "owner": {
+      "account_id": 207965,
+      "reputation": 4284,
+      "user_id": 458157,
+      "user_type": "registered",
+      "accept_rate": 75,
+      "profile_image": "https://www.gravatar.com/avatar/41e194596f58b1836093c10a42a41647?s=256&d=identicon&r=PG",
+      "display_name": "gouessej",
+      "link": "https://stackoverflow.com/users/458157/gouessej"
+    },
+    "is_answered": false,
+    "view_count": 359,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1738008790,
+    "creation_date": 1736784439,
+    "last_edit_date": 1738008790,
+    "question_id": 79352786,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79352786/jakarta-json-bind-jsonbexception-unable-to-serialize-property-hibernatelazyini",
+    "title": "jakarta.json.bind.JsonbException: Unable to serialize property &#39;hibernateLazyInitializer&#39;",
+    "body": "<p>I try to serialize a lazily (fetch type) populated entity coming from JPA (Jakarta Persistence API, Hibernate implementation) in JSON with JSON-B (Jakarta JSON Binding, Yasson implementation):</p>\n<pre><code>@ManyToOne(fetch = FetchType.LAZY)\nprivate MyJpaEntity o;\n</code></pre>\n<p>I know that the instances of <code>org.hibernate.proxy.LazyInitializer</code> must not be serialized, I used this workaround with Jackson: <code>@JsonIgnoreProperties({&quot;hibernateLazyInitializer&quot;, &quot;handler&quot;})</code>, it produced clean JSON values not containing those fields.</p>\n<p>I tried to obtain the same result with JSON-B by using a custom <code>PropertyVisibilityStrategy</code> but it didn't work, Jakarta JSON was still trying to serialize the Hibernate interceptor. However, it seemed to be the way to go as I wanted to ignore the property.</p>\n<p>At last, I serialized the lazy initializer as <code>null</code>, I got rid of the JsonbException, but the property <code>hibernateLazyInitializer</code> is still in the JSON values:</p>\n<pre><code>public static final class DumbLazyInitializerSerializer implements JsonbSerializer&lt;LazyInitializer&gt; {\n    @Override\n    public void serialize(final LazyInitializer li, final JsonGenerator jg, final SerializationContext sc) {\n        jg.writeNull();\n    }\n}\n\ntry (final Jsonb jsonb = JsonbBuilder.create(new JsonbConfig().withSerializers(new DumbLazyInitializerSerializer()))) {\n    // do your own stuff\n}\n</code></pre>\n<p>Is there a smart way of getting rid of the exception and the unwanted field in the resulting JSON? There's <a href=\"https://github.com/eclipse-ee4j/yasson/issues/376\" rel=\"nofollow noreferrer\">an issue about this problem</a> but it provides no working solution. Changing the fetch type to <code>EAGER</code> isn't an option in my case as it would cause some performance problems.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

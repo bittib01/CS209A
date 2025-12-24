@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "jpa",
+      "spring-data-jpa",
+      "nativequery"
+    ],
+    "owner": {
+      "account_id": 6099776,
+      "reputation": 2219,
+      "user_id": 4759182,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/bbf667ccbf157a60ff9ceb2199239d35?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "rasilvap",
+      "link": "https://stackoverflow.com/users/4759182/rasilvap"
+    },
+    "is_answered": false,
+    "view_count": 59,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1754446401,
+    "creation_date": 1754446401,
+    "question_id": 79726753,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79726753/how-to-map-additional-aliased-columns-from-a-native-query-to-a-jpa-entity-when-t",
+    "title": "How to map additional aliased columns from a native query to a JPA entity when the column does not physically exist?",
+    "body": "<p>I have the following Spring Data JPA repository method using a native query with an aliased column that does not exist physically in the database table:</p>\n<pre><code>@Repository\npublic interface GetDatesByIdRepository extends JpaRepository&lt;GetDatesJpaEntity, Long&gt; {\n    @Query(\n        value = &quot;&quot;&quot;\n            select\n                sch.id,\n                sch.status,\n                sch.patientid,\n                sch.appointmentdate,\n                sch.starttime,\n                sch.duration,\n                sch.departmentid,\n                sch.templatedId,\n                block.id as replacementblockId\n            from\n                Dates sch\n            left join Dates block on sch.id = block.templateappointmentid and sch.id != block.id\n            where\n                sch.id = :dateId\n            &quot;&quot;&quot;,\n        nativeQuery = true)\n    GetDatesJpaEntity findDatesByIdWithReplacement(Long dateId);\n}\n</code></pre>\n<p>And the entity:</p>\n<pre><code>@AllArgsConstructor\n@NoArgsConstructor\n@Entity\npublic class GetDatesJpaEntity {\n    @Id\n    @Column(name = &quot;ID&quot;)\n    public long id;\n\n    @Column(name = &quot;TEMPLATEDID&quot;)\n    public Long templatedId;\n\n    @Column(name = &quot;PATIENTLOCATIONID&quot;)\n    public Long patientLocationId;\n\n    @Column(name = &quot;PATIENTID&quot;)\n    public Long patientId;\n\n    @Column(name = &quot;STATUS&quot;)\n    public String status;\n\n    @Column(name = &quot;APPOINTMENTDATE&quot;)\n    public LocalDateTime appointmentDate;\n\n    @Column(name = &quot;STARTTIME&quot;)\n    public LocalDateTime startTime;\n\n    @Column(name = &quot;DURATION&quot;)\n    public Long duration;\n\n    @Column(name = &quot;DEPARTMENTID&quot;)\n    public Long departmentId;\n}\n</code></pre>\n<p>The problem is that the aliased column replacementblockId does not exist in the table and is not mapped in the entity. I initially tried to add this field to the entity as:</p>\n<pre><code>@Column(name = &quot;REPLACEMENTBLOCKID&quot;)\nprivate long replacementBlockId;\n</code></pre>\n<p>But this causes errors because the column does not physically exist.</p>\n<p>What is the best practice or recommended approach to handle this scenario in Spring Data JPA? I want to avoid major refactoring such as introducing DTOs if possible.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

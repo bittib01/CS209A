@@ -1,0 +1,37 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "audit",
+      "audit-logging"
+    ],
+    "owner": {
+      "account_id": 5619788,
+      "reputation": 1622,
+      "user_id": 4450024,
+      "user_type": "registered",
+      "accept_rate": 99,
+      "profile_image": "https://i.sstatic.net/WMErl.jpg?s=256",
+      "display_name": "Nunyet Cal&#231;ada",
+      "link": "https://stackoverflow.com/users/4450024/nunyet-cal%c3%a7ada"
+    },
+    "is_answered": true,
+    "view_count": 412,
+    "accepted_answer_id": 79364557,
+    "answer_count": 2,
+    "score": 1,
+    "last_activity_date": 1737655428,
+    "creation_date": 1737105209,
+    "last_edit_date": 1737118969,
+    "question_id": 79364218,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79364218/how-to-enable-and-configure-auditing-in-a-spring-boot-application",
+    "title": "How to Enable and Configure Auditing in a Spring Boot Application",
+    "body": "<p>I have this main class:</p>\n<pre><code>@SpringBootApplication\n@EnableScheduling\n@ConfigurationPropertiesScan\n@EnableJpaAuditing(auditorAwareRef = &quot;auditorAwareImpl&quot;)\npublic class PlanetsApplication {\n\n\n    public static void main(String[] args) {\n\n        SpringApplication.run(PlanetsApplication.class, args);\n\n    }\n}\n</code></pre>\n<p>and</p>\n<pre><code>@Component(&quot;auditorAwareImpl&quot;)\npublic class AuditorAwareImpl implements AuditorAware&lt;String&gt; {\n\n    @NotNull\n    @Override\n    public Optional&lt;String&gt; getCurrentAuditor() {\n        return Optional.of(&quot;system&quot;);\n    }\n\n}\n</code></pre>\n<p>and</p>\n<pre><code>@Getter\n@Setter\n@EntityListeners(AuditingEntityListener.class)\n@MappedSuperclass\npublic class BaseEntity {\n\n\n    @CreatedDate\n    @Column(updatable = false)\n    protected LocalDateTime createdAt;\n\n    @CreatedBy\n    @Column(updatable = false)\n    private String createdBy;\n\n    @LastModifiedDate\n    @Column(updatable = false)\n    protected LocalDateTime updatedAt;\n\n    @LastModifiedBy\n    @Column(updatable = false)\n    protected String updatedBy;\n\n\n}\n</code></pre>\n<p>and</p>\n<pre><code>@Entity\n@Table(name = &quot;t_spotify_playlist&quot;, uniqueConstraints =\n@UniqueConstraint(columnNames = {&quot;playlistId&quot;, &quot;sun&quot;, &quot;moon&quot;}))\n@Getter\n@Setter\n@AllArgsConstructor\n@NoArgsConstructor\n@Builder\npublic class SpotifyPlayList extends BaseEntity implements Serializable {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n    private String playlistId;\n    @Column(length = 50)\n    private String sun;\n    @Column(length = 50)\n    private String moon;\n\n\n    // Many-to-Many relationship with SpotifyTrack\n    @ManyToMany(fetch = FetchType.EAGER)\n    @JoinTable(\n            name = &quot;t_playlist_track&quot;, // Join table name\n            joinColumns = @JoinColumn(name = &quot;playlist_id&quot;), // Foreign key for SpotifyPlayListDesc\n            inverseJoinColumns = @JoinColumn(name = &quot;track_id&quot;) // Foreign key for SpotifyTrack\n    )\n    private Set&lt;SpotifyTrack&gt; tracks; // Tracks associated with the playlist\n    \n\n}\n</code></pre>\n<p>I save the entity:</p>\n<pre><code>SpotifyPlayList spotifyPlayList2 = spotifyPlayListService.findAll().stream().findAny().get();\n        spotifyPlayList2.setSun(spotifyPlayList2.getSun().toUpperCase());\n        spotifyPlayListService.save(spotifyPlayList2);\n\n        log.info(&quot;saved {} &quot;, spotifyPlayList2);\n</code></pre>\n<p>but nothing is auditted in the DB</p>\n<p>on the logs:</p>\n<pre><code>Hibernate: \n    update\n        t_spotify_playlist \n    set\n        moon=?,\n        playlist_id=?,\n        sun=? \n    where\n        id=?\n</code></pre>\n<p>also tried</p>\n<pre><code>@Getter\n@Setter\n@EntityListeners(AuditingEntityListener.class)\n@MappedSuperclass\npublic class BaseEntity {\n\n    @CreatedDate\n    @Column\n    protected LocalDateTime createdAt;\n\n    @CreatedBy\n    @Column(updatable = false)\n    private String createdBy;\n\n    @LastModifiedDate\n    protected LocalDateTime updatedAt;\n\n    @LastModifiedBy\n    protected String updatedBy;\n\n}\n</code></pre>\n<p>with the same result</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

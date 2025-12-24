@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "websocket",
+      "spring-graphql"
+    ],
+    "owner": {
+      "account_id": 10133926,
+      "reputation": 428,
+      "user_id": 7486210,
+      "user_type": "registered",
+      "accept_rate": 50,
+      "profile_image": "https://graph.facebook.com/10104771223431893/picture?type=large",
+      "display_name": "Ebad",
+      "link": "https://stackoverflow.com/users/7486210/ebad"
+    },
+    "is_answered": false,
+    "view_count": 263,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1721288039,
+    "creation_date": 1715280550,
+    "last_edit_date": 1721288039,
+    "question_id": 78456426,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78456426/java-spring-boot-graphql-websocket-closes-immediately-after-opening",
+    "title": "Java Spring Boot GraphQL WebSocket closes immediately after opening",
+    "body": "<p>I am trying to set up a WebSocket handler for my Java 21 Spring Boot 3.2 application. It is an MVC application and the WebSocket must handle the sub-protocol <code>graphql-ws</code>.</p>\n<p>I am using Postman to connect to the WebSocket, but when I try to connect, the connection is immediately closed.</p>\n<p>Opened message in Postman:</p>\n<pre><code>Connected to ws://localhost:8080/ws\n\nHandshake Details\nRequest URL: http://localhost:8080/ws\nRequest Method: GET\nStatus Code: 101 \nRequest Headers\nSec-WebSocket-Version: 13\nSec-WebSocket-Key: mzmZ6oZ2ElvK0A7Sz9Fs0g==\nConnection: Upgrade\nUpgrade: websocket\nSec-WebSocket-Protocol: graphql-ws\nSec-WebSocket-Extensions: permessage-deflate; client_max_window_bits\nHost: localhost:8080\n\nResponse Headers\nUpgrade: websocket\nConnection: upgrade\nSec-WebSocket-Accept: WHyBhldM6qYKH+Zu0qZlcrfIujY=\nSec-WebSocket-Protocol: graphql-ws\nSec-WebSocket-Extensions: permessage-deflate;client_max_window_bits=15\nDate: Thu, 09 May 2024 18:13:59 GMT\n</code></pre>\n<p>Closed message in Postman:</p>\n<pre><code>Disconnected from ws://localhost:8080/ws\n12:13:59\n4400 Error: Invalid message\n</code></pre>\n<p>Here is my Config class:</p>\n<pre><code>@Configuration\n@EnableWebSocket\npublic class WebsocketConfig implements WebSocketConfigurer {\n\n    private final MyWebSocketHandler myWebSocketHandler;\n\n    public WebsocketConfig(MyWebSocketHandler myWebSocketHandler) {\n        this.myWebSocketHandler = myWebSocketHandler;\n    }\n\n    @Override\n    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {\n        registry.addHandler(myWebSocketHandler, &quot;/ws&quot;).setAllowedOrigins(&quot;*&quot;);\n    }\n\n}\n</code></pre>\n<p>My Handler class:</p>\n<pre><code>@Controller\npublic class MyWebSocketHandler extends GraphQlWebSocketHandler {\n\n    Logger logger = LoggerFactory.getLogger(MyWebSocketHandler.class);\n\n    public MyWebSocketHandler(@Qualifier(&quot;mappingJackson2HttpMessageConverter&quot;) HttpMessageConverter&lt;?&gt; converter,\n                              WebGraphQlHandler graphQlHandler) {\n        super(graphQlHandler, converter, Duration.ofSeconds(5));\n    }\n\n    @Override\n    public void afterConnectionEstablished(@NonNull WebSocketSession session) {\n        logger.info(&quot;Handle after connection established for session {}&quot;, session.getId());\n        super.afterConnectionEstablished(session);\n    }\n\n    @Override\n    public void handleMessage(@NonNull WebSocketSession session, @NonNull WebSocketMessage&lt;?&gt; message) throws Exception {\n        logger.info(&quot;Handle message for session {}: {}&quot;, session.getId(), message.getPayload());\n        super.handleMessage(session, message);\n    }\n\n    @Override\n    public void handleTransportError(@NonNull WebSocketSession session, @NonNull Throwable exception) {\n        logger.info(&quot;Handle transport error for session {}: {}&quot;,session.getId(), exception.getMessage());\n        super.handleTransportError(session, exception);\n    }\n\n    @Override\n    public void afterConnectionClosed(@NonNull WebSocketSession session, @NonNull CloseStatus closeStatus) {\n        logger.info(&quot;Handle after connection closed for session {}: {}:{}&quot;, session.getId(), closeStatus.getCode(), closeStatus.getReason());\n        super.afterConnectionClosed(session, closeStatus);\n    }\n\n}\n</code></pre>\n<p>I have this set in my application.yaml:</p>\n<pre><code>spring:\n  graphql:\n    websocket:\n      path: /ws\n</code></pre>\n<p>I get these two logs from the Handler class:</p>\n<pre><code>2024-05-09T12:37:59.034Z  INFO  c.m.c.MyWebSocketHandler - Handle after connection established for session 846edb0f-7b5d-b19e-e652-1417884e0d52\n2024-05-09T12:37:59.034Z  INFO  c.m.c.MyWebSocketHandler - Handle after connection closed for session 846edb0f-7b5d-b19e-e652-1417884e0d52: 4400:Invalid message\n</code></pre>\n<p>My dependencies I have:</p>\n<pre><code>    implementation &quot;org.springframework.boot:spring-boot-starter-graphql:3.2.0&quot;\n    implementation &quot;org.springframework.boot:spring-boot-starter-web:3.2.0&quot;\n    implementation &quot;org.springframework.boot:spring-boot-starter-websocket:3.2.0&quot;\n</code></pre>\n<p>In Postman I am trying with both the &quot;Connect&quot; and sending a &quot;connection_init&quot; message:</p>\n<pre><code>{\n    &quot;type&quot;: &quot;connection_init&quot;,\n    &quot;payload&quot;: {\n        &quot;token&quot;: &quot;{{jwt}}&quot;\n    }\n}\n</code></pre>\n<p>I am running the app locally and I have tried the following:</p>\n<pre><code>localhost:8080/ws\nws://localhost:8080/ws\n</code></pre>\n<p>Why is my WebSocket closing immediately? Why is the &quot;message&quot; invalid?</p>\n<p>Also, the application uses MVC (for other APIs), so no WebFlux.</p>\n<p>Thanks</p>\n<p>Edit:\nI have found that the connection works if I remove the <code>Sec-WebSocket-Protocol: graphql-ws</code> from my headers...but I need to support that sub-protocol...</p>\n<p>Without the sub-protocol, I get this error when I try to send my GraphQL Subscription message:</p>\n<pre><code>1011 Server Error: Internal server error while operating.\n</code></pre>\n<p>Here is my Subscription message:</p>\n<pre><code>{\n   &quot;id&quot;: &quot;{myId}&quot;,\n   &quot;type&quot;: &quot;start&quot;,\n   &quot;payload&quot;: {\n      &quot;query&quot;: &quot;{my graphql query}&quot;\n   }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

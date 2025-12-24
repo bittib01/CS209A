@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "postgresql",
+      "testing",
+      "testcontainers"
+    ],
+    "owner": {
+      "account_id": 30615061,
+      "reputation": 31,
+      "user_id": 23468665,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocIE1MtSxoR4iiC8MQxmF_JiBcS045491KVLSaZ_Cx1f=k-s256",
+      "display_name": "vrz-dev",
+      "link": "https://stackoverflow.com/users/23468665/vrz-dev"
+    },
+    "is_answered": false,
+    "view_count": 82,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1748005465,
+    "creation_date": 1748003067,
+    "question_id": 79635496,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79635496/testcontainers-test-isolation-for-all-crud-operations-using-spring",
+    "title": "Testcontainers test isolation for all CRUD operations using Spring",
+    "body": "<p>I'm facing a problem where one of my integration tests affects the other. For example this delete test:</p>\n<pre><code>class DeleteCustomerIntegrationTest extends AbstractConfigurationTest {\n\n   @Test\n   void deleteCustomer_shouldReturnStatusNoContent() throws Exception {\n   mockMvc.perform(delete(&quot;/api/v1/customer/1&quot;)).andExpect(status().isNoContent());\n   }\n\n</code></pre>\n<p>Will affect this <em>get</em> list of customer test:</p>\n<pre><code>  @Test\n  void listCustomers_shouldMatchExpectedResponseObject() throws Exception {\n    String expectedJson = &quot;&quot;&quot; [object goes here] &quot;&quot;&quot;;\n\n\n    mockMvc.perform(get(&quot;/api/v1/customers&quot;).contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk())\n        .andExpect(content().json(expectedJson));\n  }\n\n</code></pre>\n<p>My test configuration class is:</p>\n<pre><code>@AutoConfigureMockMvc\n@SpringBootTest\npublic class AbstractConfigurationTest {\n\n  @Autowired\n  protected MockMvc mockMvc;\n\n  private static final PostgreSQLContainer&lt;?&gt; POSTGRESQL_CONTAINER;\n  private static final Logger LOGGER = LoggerFactory.getLogger(AbstractConfigurationTest.class);\n\n  static {\n    POSTGRESQL_CONTAINER =\n        new PostgreSQLContainer&lt;&gt;(&quot;postgres:15-alpine&quot;).withDatabaseName(&quot;customers&quot;).withUsername(&quot;customers&quot;).withPassword(&quot;customers&quot;)\n            .withCopyFileToContainer(MountableFile.forClasspathResource(&quot;01_init.sql&quot;), &quot;/docker-entrypoint-initdb.d/01_init.sql&quot;)\n            .withCopyFileToContainer(MountableFile.forClasspathResource(&quot;02_data.sql&quot;), &quot;/docker-entrypoint-initdb.d/02_data.sql&quot;)\n            .withLogConsumer(new Slf4jLogConsumer(LOGGER));\n\n    POSTGRESQL_CONTAINER.start();\n  }\n\n  @DynamicPropertySource\n  static void dynamicProperties(DynamicPropertyRegistry registry) {\n    registry.add(&quot;spring.datasource.url&quot;, POSTGRESQL_CONTAINER::getJdbcUrl);\n    registry.add(&quot;spring.datasource.username&quot;, POSTGRESQL_CONTAINER::getUsername);\n    registry.add(&quot;spring.datasource.password&quot;, POSTGRESQL_CONTAINER::getPassword);\n    registry.add(&quot;spring.datasource.driver-class-name&quot;, POSTGRESQL_CONTAINER::getDriverClassName);\n  }\n}\n</code></pre>\n<p>And then in my test classes I just extend this class as shown above. But i haven't found any solution to isolate the tests in an efficient way.</p>\n<p>What i've tried is:</p>\n<ol>\n<li>use @DirtiesContext on class level, which will reset the application context before every test class, which can get expensive</li>\n<li>use the @Transactional annotation that spring provides for reverting back the state of the data, but it doesn't seem to work with Testcontainers.</li>\n</ol>\n<p>I haven't found any mention of this in the documentation either. How are you solving this problem in your projects?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

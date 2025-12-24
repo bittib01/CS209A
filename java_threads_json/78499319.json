@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "vpn",
+      "ikev2"
+    ],
+    "owner": {
+      "account_id": 19528489,
+      "reputation": 1,
+      "user_id": 14288836,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a-/AOh14GhzlYZJ4yYjf0LZU3CUuFwAk95sR9VEpUvO8P2aHg=k-s256",
+      "display_name": "Konky",
+      "link": "https://stackoverflow.com/users/14288836/konky"
+    },
+    "is_answered": false,
+    "view_count": 265,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1729896672,
+    "creation_date": 1716025825,
+    "question_id": 78499319,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78499319/ikev2-mschapv2-android-implementation",
+    "title": "ikev2 mschapv2 android implementation",
+    "body": "<p>i am following documentation and trying to connect IKEv2 but below code always return log &quot;No vpn interface&quot;</p>\n<p><a href=\"https://developer.android.com/reference/android/net/Ikev2VpnProfile.Builder#setAuthUsernamePassword(java.lang.String,%20java.lang.String,%20java.security.cert.X509Certificate)\" rel=\"nofollow noreferrer\">https://developer.android.com/reference/android/net/Ikev2VpnProfile.Builder#setAuthUsernamePassword(java.lang.String,%20java.lang.String,%20java.security.cert.X509Certificate)</a></p>\n<pre><code>package com.mehrab.examplevpn;\n\nimport android.app.PendingIntent;\nimport android.content.Intent;\nimport android.net.VpnService;\nimport android.net.ipsec.ike.SaProposal;\nimport android.net.Ikev2VpnProfile;\nimport android.os.ParcelFileDescriptor;\nimport android.util.Log;\nimport android.widget.Toast;\n\nimport java.net.InetSocketAddress;\nimport java.nio.channels.DatagramChannel;\n\npublic class MyVpnService extends VpnService {\n    private static final String VPN_SERVER_IP = &quot;example.info&quot;;\n    private static final String VPN_USERNAME = &quot;example@gmail.com&quot;;\n    private static final String VPN_PASSWORD = &quot;secret&quot;;\n    private static final String VPN_ROUTE = &quot;0.0.0.0&quot;; // Default route\n\n    private ParcelFileDescriptor vpnInterface;\n\n    @Override\n    public int onStartCommand(Intent intent, int flags, int startId) {\n        Toast.makeText(getApplicationContext(), &quot;NonConn!&quot;, Toast.LENGTH_SHORT).show();\n        Thread thread = new Thread(new Runnable() {\n            @Override\n            public void run() {\n                try {\n                    vpnInterface = establishVPN();\n                    if (vpnInterface != null) {\n                        // Connect to VPN server\n                        InetSocketAddress serverAddress = new InetSocketAddress(VPN_SERVER_IP, 5000);\n                        DatagramChannel tunnel = DatagramChannel.open();\n                        tunnel.connect(serverAddress);\n                        Log.d(&quot;mytag&quot;, &quot;Connected&quot;);\n\n                        // Close resources when done\n                        tunnel.close();\n                    } else {\n                        Log.d(&quot;mytag&quot;, &quot;No vpn interface&quot;);\n                    }\n                } catch (Exception e) {\n                    Log.d(&quot;mytag&quot;, &quot;Try Catch Error&quot;);\n                    e.printStackTrace();\n                }\n            }\n        });\n        thread.start();\n        return START_STICKY;\n    }\n\n    private ParcelFileDescriptor establishVPN() throws Exception {\n        String identity = &quot;yourIdentity&quot;;\n        if (android.os.Build.VERSION.SDK_INT &gt;= android.os.Build.VERSION_CODES.R) {\n            Ikev2VpnProfile profile = new Ikev2VpnProfile.Builder(VPN_SERVER_IP, identity)\n                    .setAuthUsernamePassword(VPN_USERNAME, VPN_PASSWORD, null) // Replace null with the root CA if available\n                    .setBypassable(false)\n                    .setMaxMtu(1400)\n                    .setMetered(false)\n                    .build();\n        }\n\n        VpnService.Builder vpnBuilder = new VpnService.Builder();\n        vpnBuilder.setSession(&quot;MyIKEv2VPN&quot;)\n                .addAddress(&quot;192.168.0.2&quot;, 32) // Virtual IP address\n                .addRoute(VPN_ROUTE, 0) // Default route\n                .setConfigureIntent(PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), PendingIntent.FLAG_IMMUTABLE));\n\n        // Configure the VPN interface using the IKEv2 profile\n        vpnInterface = vpnBuilder.establish();\n\n        return vpnInterface;\n    }\n\n    @Override\n    public void onDestroy() {\n        super.onDestroy();\n        try {\n            if (vpnInterface != null) {\n                vpnInterface.close();\n            }\n        } catch (Exception e) {\n            e.printStackTrace();\n        }\n    }\n}\n\n</code></pre>\n<p>i was trying to connect vpn through IKEv2. but it fails to connect and returns my log &quot;No vpn interface&quot;</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

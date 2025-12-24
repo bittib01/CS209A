@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android"
+    ],
+    "owner": {
+      "account_id": 15123707,
+      "reputation": 147,
+      "user_id": 30532921,
+      "user_type": "registered",
+      "profile_image": "https://lh5.googleusercontent.com/-6EyKrzo2EUU/AAAAAAAAAAI/AAAAAAAAASM/R-HEOF0Wpjk/s256-rj/photo.jpg",
+      "display_name": "So Few Against So Many",
+      "link": "https://stackoverflow.com/users/30532921/so-few-against-so-many"
+    },
+    "is_answered": false,
+    "view_count": 77,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1765519722,
+    "creation_date": 1765518546,
+    "last_edit_date": 1765519722,
+    "question_id": 79844588,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79844588/android-app-not-detecting-bike-activity-changes",
+    "title": "Android app not detecting Bike Activity Changes",
+    "body": "<p>I have this Android App where am trying to detect user activity changes with.  The app has the permission from the user to detect user activity. I have an external and internal broadcast receivers, the external broadcast receiver is supposed to detect when user has started to bike, it then sends an intent with a filter to the app's internal broadcast receiver which is supposed to set the text in the TextView to <code>user has started biking</code>, when the external broadcast receiver detects that the user has stopped biking and is on foot, it fires an intent with a filter that user has stopped biking to the internal receiver which modifies the TextView accordingly. The broadcast does not fire, help me make it fire, here is the logic in the main activity java file.</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Override\npublic void onCreate(@Nullable Bundle savedInstanceState) {\n  if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.Q) {\n    //call method to start requesting activity updates\n    requestBikeActivityUpdates();\n  }\n}\n//method to request activity updates\n@RequiresApi(api = Build.VERSION_CODES.Q)\nprivate void requestBikeActivityUpdates() {\n  ActivityRecognitionClient client = ActivityRecognition.getClient(this);\n  ActivityTransitionRequest request = new ActivityTransitionRequest(\n  Arrays.asList(\n  new ActivityTransition.Builder().setActivityType(DetectedActivity.ON_BICYCLE).setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER).build(), new ActivityTransition.Builder().setActivityType(DetectedActivity.ON_BICYCLE).setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT).build()));\n\n  PendingIntent pendingIntent = PendingIntent.getBroadcast(\n  this, 0, new Intent(&quot;com.google.android.gms.location.ACTIVITY_TRANSITION_RESULT&quot;), PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);\n\n  if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION) != PackageManager.PERMISSION_GRANTED) {\n\n    ActivityCompat.requestPermissions(\n    this, new String[] {\n      Manifest.permission.ACTIVITY_RECOGNITION\n    },\n    909);\n    return;\n  }\n  Task &lt; Void &gt; task = client.requestActivityTransitionUpdates(request, pendingIntent);\n\n  task.addOnSuccessListener(unused - &gt;Toast.makeText(getApplicationContext(), &quot;task succeeded&quot;, Toast.LENGTH_SHORT).show());\n\n  task.addOnFailureListener(e - &gt;Toast.makeText(getApplicationContext(), &quot;task failed&quot;, Toast.LENGTH_SHORT).show());\n}\n</code></pre>\n<p>The external and internal broadcast receivers' implementation are shared below</p>\n<p><strong>External Bike broadcast receiver</strong></p>\n<pre><code>public class BikeActivityReceiver extends BroadcastReceiver {@Override\n  public void onReceive(Context context, Intent intent) {\n\n    // The correct API for activity updates\n    if (ActivityTransitionResult.hasResult(intent)) {\n      ActivityTransitionResult result = ActivityTransitionResult.extractResult(intent);\n\n      assert result != null;\n      for (ActivityTransitionEvent event: result.getTransitionEvents()) {\n        if (event.getActivityType() == DetectedActivity.ON_BICYCLE) {\n\n          if (event.getTransitionType() == ActivityTransition.ACTIVITY_TRANSITION_ENTER) {\n            // User started biking\n            sendUpdate(context, true);\n            Log.d(&quot;Bike&quot;, &quot;ENTER BICYCLE&quot;);\n          }\n\n          if (event.getTransitionType() == ActivityTransition.ACTIVITY_TRANSITION_EXIT) {\n            // User stopped biking\n            sendUpdate(context, false);\n            Log.d(&quot;Bike&quot;, &quot;EXIT BICYCLE&quot;);\n          }\n        }\n      }\n    }\n  }\n  private void sendUpdate(Context ctx, boolean biking) {\n    Intent i = new Intent(&quot;BIKE_ACTIVITY_UPDATE&quot;);\n    i.putExtra(&quot;status&quot;, biking ? &quot;biking&quot;: &quot;not_biking&quot;);\n    LocalBroadcastManager.getInstance(ctx).sendBroadcast(i);\n  }\n}\n</code></pre>\n<p>and then the internal receiver that changes the textview when activity changes have happened</p>\n<pre><code>private final BroadcastReceiver receiver = new BikeActivityReceiver() {@Override\n  public void onReceive(Context context, Intent intent) {\n    String status = intent.getStringExtra(&quot;status&quot;);\n    assert status != null;\n    if (status.equals(&quot;biking&quot;)) {\n      bikeStatusText.setText(R.string.biking);\n    } else {\n      bikeStatusText.setText(R.string.nbiking);\n    }\n  }\n};\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

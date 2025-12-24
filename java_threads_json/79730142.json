@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "edge-to-edge"
+    ],
+    "owner": {
+      "account_id": 27431,
+      "reputation": 42880,
+      "user_id": 72437,
+      "user_type": "registered",
+      "accept_rate": 86,
+      "profile_image": "https://i.sstatic.net/ay0Dg.jpg?s=256",
+      "display_name": "Cheok Yan Cheng",
+      "link": "https://stackoverflow.com/users/72437/cheok-yan-cheng"
+    },
+    "is_answered": false,
+    "view_count": 216,
+    "answer_count": 0,
+    "score": 2,
+    "last_activity_date": 1754678706,
+    "creation_date": 1754678706,
+    "question_id": 79730142,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79730142/api-35-keyboard-no-longer-auto-resizes-view-or-scrolls-to-cursor",
+    "title": "API 35 - Keyboard no longer auto-resizes view or scrolls to cursor",
+    "body": "<p>In Android API &lt; 35, when tapping an <code>EditText</code> inside a <code>ScrollView</code>, the system automatically:</p>\n<ul>\n<li>Kept the cursor visible</li>\n<li>Resized the view</li>\n<li>Showed the keyboard without layout glitches</li>\n</ul>\n<p><strong>Example (pre-API 35 behavior):</strong></p>\n<p><a href=\"https://www.youtube.com/shorts/BI6d3lWQiyE\" rel=\"nofollow noreferrer\">https://www.youtube.com/shorts/BI6d3lWQiyE</a></p>\n<p>After migrating to API 35, this behavior is broken — the view no longer resizes or auto-scrolls to keep the cursor visible.</p>\n<p>It seems we now have to handle it manually.</p>\n<p>Here’s my current approach using <code>WindowInsetsAnimationCompat</code> and manual padding adjustments:</p>\n<pre><code>@Override\npublic void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {\n    super.onViewCreated(view, savedInstanceState);\n    edgeToEdge();\n    setWindowInsetsAnimationCallback();\n}\n\nprivate void setWindowInsetsAnimationCallback() {\n    final Rect initialPadding = new Rect(\n        bottomFrameLayout.getPaddingLeft(),\n        bottomFrameLayout.getPaddingTop(),\n        bottomFrameLayout.getPaddingRight(),\n        bottomFrameLayout.getPaddingBottom()\n    );\n\n    WindowInsetsAnimationCompat.Callback cb = new WindowInsetsAnimationCompat.Callback(\n        WindowInsetsAnimationCompat.Callback.DISPATCH_MODE_STOP) {\n\n        @Override\n        public WindowInsetsCompat onProgress(WindowInsetsCompat insets, List&lt;WindowInsetsAnimationCompat&gt; animations) {\n            int bottom = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom +\n                         insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;\n\n            bottomFrameLayout.setPadding(\n                initialPadding.left,\n                initialPadding.top,\n                initialPadding.right,\n                initialPadding.bottom + bottom\n            );\n\n            return insets;\n        }\n    };\n\n    ViewCompat.setWindowInsetsAnimationCallback(bottomFrameLayout, cb);\n}\n\nprivate void edgeToEdge() {\n    final Rect initialPadding = new Rect(\n        bottomFrameLayout.getPaddingLeft(),\n        bottomFrameLayout.getPaddingTop(),\n        bottomFrameLayout.getPaddingRight(),\n        bottomFrameLayout.getPaddingBottom()\n    );\n\n    ViewCompat.setOnApplyWindowInsetsListener(bottomFrameLayout, (v, insets) -&gt; {\n        Insets theInsets = insets.getInsets(\n            WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout()\n        );\n\n        v.setPadding(\n            initialPadding.left + theInsets.left,\n            initialPadding.top,\n            initialPadding.right + theInsets.right,\n            initialPadding.bottom + theInsets.bottom\n        );\n\n        return insets;\n    });\n}\n</code></pre>\n<p>The issue:</p>\n<ul>\n<li><p>ScrollView doesn’t auto-scroll to keep the cursor visible when the keyboard appears</p>\n</li>\n<li><p>Adjusting padding causes layout jumps/glitches</p>\n</li>\n</ul>\n<p><strong>Video of the issue:</strong></p>\n<p><a href=\"https://youtube.com/shorts/DU3FG2c91Js?feature=share\" rel=\"nofollow noreferrer\">https://youtube.com/shorts/DU3FG2c91Js?feature=share</a></p>\n<hr />\n<p><strong>Question:</strong></p>\n<p>How can I restore the pre-API 35 behavior — automatic resizing and scroll-to-cursor — in a reliable way?</p>\n<p>This is my current layout file : <a href=\"https://gist.github.com/yccheok/973d496914695fc9fd2bf1d2f2fc1548\" rel=\"nofollow noreferrer\">https://gist.github.com/yccheok/973d496914695fc9fd2bf1d2f2fc1548</a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

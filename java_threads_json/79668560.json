@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "annotations",
+      "lombok",
+      "jakarta-validation"
+    ],
+    "owner": {
+      "account_id": 39094728,
+      "reputation": 33,
+      "user_id": 29104645,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/AIhRYv8J.png?s=256",
+      "display_name": "sathwikhbhat",
+      "link": "https://stackoverflow.com/users/29104645/sathwikhbhat"
+    },
+    "is_answered": true,
+    "view_count": 131,
+    "accepted_answer_id": 79668679,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1750237630,
+    "creation_date": 1750141886,
+    "last_edit_date": 1750151180,
+    "question_id": 79668560,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79668560/spring-boot-3-4-6-validation-not-triggering-for-email-and-nonnull-on-mongodb",
+    "title": "Spring Boot 3.4.6 validation not triggering for @Email and @NonNull on MongoDB @Document entity",
+    "body": "<p>I'm building a Spring Boot 3.4.6 application using MongoDB and encountering an issue where <code>@NonNull</code> and <code>@Email</code> annotations are not triggering validation errors/exceptions even though I am using <code>@Valid</code> <code>@RequestBody</code> in the Controller. The only validation that is working is <code>@Indexed (unique = true)</code></p>\n<p><em>(Yess, <code>@NonNull</code> and <code>@Email</code> are 2 completely different annotations...)</em></p>\n<p>I have tried:</p>\n<ul>\n<li>Rebuilding my entire project (<code>mvn clean build</code>)</li>\n<li>Checking for the required dependencies</li>\n<li>Confirmed all annotations are from <code>jakarta.validation.*</code>, not <code>javax.validation.*</code> (for <code>@Email</code> annotation)</li>\n<li>Sending clear invalid inputs using Postman</li>\n</ul>\n<p><strong>Yet, no validation error is triggered, and the user still gets created.</strong></p>\n<p>Here’s my setup:</p>\n<p><strong><code>User.java</code> Entity Class</strong></p>\n<pre><code>package com.sathwikhbhat.journalApp.entity;\n\nimport jakarta.validation.constraints.Email;\nimport lombok.AllArgsConstructor;\nimport lombok.Data;\nimport lombok.NoArgsConstructor;\nimport lombok.NonNull;\nimport org.bson.types.ObjectId;\nimport org.springframework.data.annotation.Id;\nimport org.springframework.data.mongodb.core.index.Indexed;\nimport org.springframework.data.mongodb.core.mapping.DBRef;\nimport org.springframework.data.mongodb.core.mapping.Document;\n\nimport java.util.ArrayList;\nimport java.util.List;\n\n@Data\n@NoArgsConstructor\n@AllArgsConstructor\n@Document(collection = &quot;users&quot;)\npublic class User {\n    @Id\n    private ObjectId id;\n    @Indexed(unique = true)\n    @NonNull\n    private String userName;\n    @NonNull\n    @Indexed(unique = true)\n    @Email\n    private String email;\n    private boolean sentimentAnalysis;\n    @NonNull\n    private String password;\n    @DBRef\n    private List&lt;JournalEntry&gt; journalEntries = new ArrayList&lt;&gt;();\n    private List&lt;String&gt; roles;\n}\n</code></pre>\n<p><strong><code>PublicController.java</code> Controller Class</strong></p>\n<pre><code>package com.sathwikhbhat.journalApp.controller;\n\nimport com.sathwikhbhat.journalApp.entity.User;\nimport com.sathwikhbhat.journalApp.service.UserService;\nimport jakarta.validation.Valid;\nimport lombok.extern.slf4j.Slf4j;\nimport org.springframework.beans.factory.annotation.Autowired;\nimport org.springframework.dao.DuplicateKeyException;\nimport org.springframework.http.HttpStatus;\nimport org.springframework.http.ResponseEntity;\nimport org.springframework.web.bind.annotation.GetMapping;\nimport org.springframework.web.bind.annotation.PostMapping;\nimport org.springframework.web.bind.annotation.RequestBody;\nimport org.springframework.web.bind.annotation.RequestMapping;\nimport org.springframework.web.bind.annotation.RestController;\n\n@Slf4j\n@RestController\n@RequestMapping(&quot;/public&quot;)\npublic class PublicController {\n\n    @Autowired\n    private UserService userService;\n\n    @PostMapping(&quot;createUser&quot;)\n    public ResponseEntity&lt;?&gt; createUser(@Valid @RequestBody User user) {\n        try {\n            userService.saveNewUser(user);\n            log.info(&quot;User created successfully: {}&quot;, user.getUserName());\n            return new ResponseEntity&lt;&gt;(HttpStatus.CREATED);\n        } catch (DuplicateKeyException e) {\n            log.error(e.getMessage());\n            return new ResponseEntity&lt;&gt;(&quot;Username already exists: &quot;, HttpStatus.CONFLICT);\n        } catch (Exception e) {\n            log.error(e.getMessage());\n            return new ResponseEntity&lt;&gt;(&quot;Internal server error: &quot; + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);\n        }\n    }\n}\n</code></pre>\n<p>Any insights or suggestions would be greatly appreciated!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

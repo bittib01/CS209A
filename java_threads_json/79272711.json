@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "hibernate",
+      "multi-tenant"
+    ],
+    "owner": {
+      "account_id": 23752727,
+      "reputation": 25,
+      "user_id": 17769250,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/339e30d6ca298fba2b1dbf097636451a?s=256&d=identicon&r=PG",
+      "display_name": "m4x123",
+      "link": "https://stackoverflow.com/users/17769250/m4x123"
+    },
+    "is_answered": false,
+    "view_count": 217,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1764306618,
+    "creation_date": 1733939471,
+    "question_id": 79272711,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79272711/hibernate-multitenancy-change-tenant-in-session-discriminator-column-approach",
+    "title": "Hibernate Multitenancy: change tenant in session (discriminator column approach)",
+    "body": "<p>I am developing a springboot application which serves data for multiple tenants. To separate data between tenants I am using hibernates integrated multitenancy features for discriminator column-based separation (@TenantId annotation). Therefore, I had to implement the CurrentTenantIdentifierResolver which tells hibernate the current tenant for the request.</p>\n<pre><code>@Component\npublic class CurrentTenantIdentifierResolverImpl implements CurrentTenantIdentifierResolver&lt;String&gt;, HibernatePropertiesCustomizer {\n\n     private static Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());\n     public static final String DEFAULT_TENANT_ID = &quot;notenant&quot;;\n\n     @Override\n     public String resolveCurrentTenantIdentifier() {\n\n        String tenant = TenantContext.getCurrentTenant();\n\n        if (tenant == null) {\n            return DEFAULT_TENANT_ID;\n        }\n\n        return tenant;\n    }\n\n    @Override\n    public void customize(Map&lt;String, Object&gt; hibernateProperties) {\n        hibernateProperties.put(AvailableSettings.MULTI_TENANT_IDENTIFIER_RESOLVER, this);\n    }\n\n    @Override\n    public boolean validateExistingCurrentSessions() {\n        return true;\n    }\n}\n</code></pre>\n<p>Everything works fine however I am facing the following problem:\nFor some methods I want to switch between tenants in the same request. Hibernate stores the tenantId which it got from the CurrentTenantIdentifierResolver in the session it creates at the begin of the request, but after the session is created it is not possible to change the tenantId (or at least I haven’t found a clean way yet). I managed to implement a workaround which simply unbinds the current session and creates a new one, however this imposes the problem that I cannot make methods, which use this &quot;tenant switch&quot;, transactional. Also it seems like a dirty workaround.</p>\n<p>Here is the code for my workaround (&quot;tenant switch&quot;). The TenantContext is simply a ThreadLocal variable in which the tenantId, specified in the request header, is stored. The CurrentTenantIdentifierResolver simply returns the value of this variable when it is called by hibernate.</p>\n<pre><code>@Override\npublic void changeTenant(String tenantId) {\n    unbindSession();\n    TenantContext.setCurrentTenant(tenantId); //ThreadLocal variable which holds the current tenant\n    bindSession();\n}\n\n@Override\npublic void bindSession() {\n    if (!TransactionSynchronizationManager.hasResource(entityManagerFactory)) {\n        EntityManager entityManager = entityManagerFactory.createEntityManager();\n        TransactionSynchronizationManager.bindResource(entityManagerFactory, new EntityManagerHolder(entityManager));\n    }\n}\n\n@Override\npublic void unbindSession() {\n    if (TransactionSynchronizationManager.hasResource(entityManagerFactory)) {\n        EntityManagerHolder emHolder = (EntityManagerHolder) TransactionSynchronizationManager.unbindResource(entityManagerFactory);\n        EntityManagerFactoryUtils.closeEntityManager(emHolder.getEntityManager());\n    }\n}\n</code></pre>\n<p>I already searched a lot through various forums and checked the Hibernate documentation, but I couldn't find a clean way to deal with this problem. Does anyone know what’s the best way to deal with this problem?\nUltimately, I'd like to write code like this:</p>\n<pre><code>@Transactional    // Not possible with current solution\n@Override\npublic void someServiceMethod() {\n   Information info = repository.getInfo()   // Gets some data from tenant which made the request\n   changeTenant(someOtherTenantId)           // Change the tenant without replacing the session\n   Information info2 = repository.getInfo()  // Gets data for someOtherTenantId\n\n   // Perform other calculations etc.\n}\n</code></pre>\n<p>Thanks in advance!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

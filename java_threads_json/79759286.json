@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "java-stream",
+      "java-22"
+    ],
+    "owner": {
+      "account_id": 23646042,
+      "reputation": 1006,
+      "user_id": 18197654,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/dSgqg.png?s=256",
+      "display_name": "xtay2",
+      "link": "https://stackoverflow.com/users/18197654/xtay2"
+    },
+    "is_answered": true,
+    "view_count": 244,
+    "accepted_answer_id": 79759297,
+    "answer_count": 1,
+    "score": 9,
+    "last_activity_date": 1757508726,
+    "creation_date": 1757360820,
+    "last_edit_date": 1757508726,
+    "question_id": 79759286,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79759286/when-to-use-gatherers-fold-over-stream-reduce",
+    "title": "When to use Gatherers.fold over Stream.reduce?",
+    "body": "<h3>Prelude</h3>\n<p>Java 24 introduced <a href=\"https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.html\" rel=\"nofollow noreferrer\">Stream Gatherers</a> as a full-fledged feature.</p>\n<p>These Gatherers allow the user to declare custom intermediate operations on streams; also, the standard library provides a few implementations in <code>java.util.stream.Gatherers</code>.</p>\n<p>There is a static factory method called <code>Gatherers.fold</code>, which creates a Gatherer that performs a sequential, possibly type-altering reduction operation. Its doc comment reads as follows:</p>\n<blockquote>\n<p>Returns a Gatherer that performs an ordered, <i>reduction-like</i>, transformation for scenarios where no combiner-function can be implemented, or for reductions which are intrinsically order-dependent.</p>\n</blockquote>\n<p>As of Java 25, there are also 3 different &quot;native&quot; declarations of the <code>reduce</code>-method on <code>Stream</code>:</p>\n<ul>\n<li><code>Optional&lt;T&gt; reduce(BinaryOperator&lt;T&gt; accumulator)</code></li>\n<li><code>T reduce(T identity, BinaryOperator&lt;T&gt; accumulator);</code></li>\n<li><code>&lt;U&gt; U reduce(U identity, BiFunction&lt;U, ? super T, U&gt; accumulator, BinaryOperator&lt;U&gt; combiner)</code></li>\n</ul>\n<h3>Question</h3>\n<p>When should one use the new <code>fold</code>-Gatherer over the classic <code>reduce</code>-method?</p>\n<h3>Thoughts</h3>\n<p>The JavaDoc comment of <code>fold</code> mentions two scenarios, in which the Gatherer should be used:</p>\n<blockquote>\n<p>Returns a Gatherer that performs an ordered, [...] transformation [...] for reductions which are intrinsically order-dependent.</p>\n</blockquote>\n<p>But reduction on a sequential Stream is already ordered:</p>\n<pre class=\"lang-java prettyprint-override\"><code>void main() {\n    var res = Stream.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)\n            .reduce(0, (a, b) -&gt; {\n                System.out.println(b);\n                return a + b;\n            });\n    System.out.println(res);\n}\n</code></pre>\n<p>Output: 1 2 3 4 5 6 7 8 9 10 55</p>\n<hr />\n<blockquote>\n<p>Returns a Gatherer that performs [a], transformation for scenarios where no combiner-function can be implemented [...]</p>\n</blockquote>\n<p><s>The first and second reduce-Implementation already omit the combiner-function.</s></p>\n<p><sup><i>As the <a href=\"/a/79759297/18197654\">answer of Louis Wasserman</a> correctly mentioned: In the two cases where no explicit combiner method is provided, <code>reduce</code> uses the accumulator as a combiner.</i></sup></p>\n<hr />\n<p>The only use case I can imagine is if you want to perform an ordered reduction on a parallel stream. But when would you do this? Doesn't that defeat the purpose of parallel?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

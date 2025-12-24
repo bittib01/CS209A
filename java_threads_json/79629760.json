@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "javafx",
+      "serialization",
+      "deserialization"
+    ],
+    "owner": {
+      "account_id": 22412187,
+      "reputation": 43,
+      "user_id": 16620767,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/pFx2e.jpg?s=256",
+      "display_name": "Satoshi",
+      "link": "https://stackoverflow.com/users/16620767/satoshi"
+    },
+    "is_answered": false,
+    "view_count": 86,
+    "answer_count": 0,
+    "score": 2,
+    "last_activity_date": 1747713232,
+    "creation_date": 1747713232,
+    "question_id": 79629760,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79629760/javafx-serialization-inheritance-and-generic-types",
+    "title": "JavaFX serialization, inheritance and generic types",
+    "body": "<p>So I have a class that implements a JavaFX ObservableMap which maps Integers to a generic type T, and I want to serialize that, but it happens that this is an abstract class and what I will in fact serialize are the specializations of this class. I understand that I cannot serialize directly a JavaFX object, and because of that I specified the serialization methods.</p>\n<p>This is a minimum version of my code:</p>\n<pre><code>public abstract class DataBaseIncremental&lt;T&gt; {\n    protected transient ObservableMap&lt;Integer, T&gt; elementsMap;\n\n    protected void writeObject(ObjectOutputStream out) throws IOException{\n         out.defaultWriteObject();\n         Map&lt;Integer, T&gt; backupMap= new HashMap&lt;&gt;(elementsMap);\n         out.writeObject(backupMap);\n\n         writeAdditionalData(out);\n    }\n\n    protected void readObject(ObjectInputStream in) throws ClassNotFoundException, IOException{\n         in.defaultReadObject();\n         @SuppressWarnings(&quot;unchecked&quot;) // this bothered me a lot, I ended up putting this label cause I couldn't get rid of it\n         Map&lt;Integer, T&gt; backupMap= (Map&lt;Integer, T&gt;) in.readObject();\n         elementsMap= FXCollections.observableMap(backupMap);\n\n         readAdditionalData(in);\n    }\n\n    protected void writeAdditionalData(ObjectOutputStream out) throws IOException{}\n\n    protected void readAdditionalData(ObjectInputStream in) throws IOException{}\n}\n</code></pre>\n<p>Then, in my sublcasses that extends this class (i. e. <code>public class UserDataBase extends DataBaseIncremental&lt;User&gt; implements Serializable{...}</code>) I simply do nothing in the writeAdditionalData and readAdditionalData methods, cause I just have nothing to do with them now -but probably in the future I will. The problem is that, when I run it and try to serialize and deserialize an object, when it is loaded (deserialized) it happens to not contain anything in the ObservableMap, none of the contents it previously had when I serialized it (all of them are Serializable, I checked), yet it throws no errors. I could just not inherit the serialization methods and define it privately in each of the child classes, and in fact, doing this solves the problem, but that is not the point of inheritance. Then, what could I do if I want to effectively serialize the children objects?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

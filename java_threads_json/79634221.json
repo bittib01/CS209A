@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "xslt",
+      "akka-stream",
+      "alpakka"
+    ],
+    "owner": {
+      "account_id": 9069472,
+      "reputation": 2560,
+      "user_id": 6753238,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/9f7cfd2519b4afdce861f3631552b3fc?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Nikolas",
+      "link": "https://stackoverflow.com/users/6753238/nikolas"
+    },
+    "is_answered": false,
+    "view_count": 57,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1747998564,
+    "creation_date": 1747933262,
+    "question_id": 79634221,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79634221/xml-transformation-in-akka",
+    "title": "XML Transformation in akka",
+    "body": "<p>I am trying to transform an XML inside an Akka <code>Flow</code>, using <code>javax.xml.transform.Transformer</code>:</p>\n<pre><code>Flow&lt;ByteString, ByteString, NotUsed&gt; transformXml(@NonNull final Source&lt;ByteString, ?&gt; xslt) {\n    final Pair&lt;InputStream, Sink&lt;ByteString, NotUsed&gt;&gt; input = Flow\n        .of(ByteString.class)\n        .toMat(StreamConverters.asInputStream(), Keep.right())\n        .preMaterialize(actorSystem);\n    final javax.xml.transform.Source xmlSource = new StreamSource(input.first());\n    final javax.xml.transform.Source xsltSource = new StreamSource(xslt.runWith(StreamConverters.asInputStream(), actorSystem));\n    final Source&lt;ByteString, NotUsed&gt; transformed = Source.lazySource(() -&gt; {\n      final Pair&lt;OutputStream, Source&lt;ByteString, NotUsed&gt;&gt; pair = StreamConverters\n          .asOutputStream(Duration.ofMinutes(5))\n          .preMaterialize(actorSystem);\n      final OutputStream outputStream = pair.first();\n      final Result output = new StreamResult(outputStream);\n      final TransformerFactory transformerFactory = TransformerFactory.newInstance();\n      final Transformer transformer = transformerFactory.newTransformer(xsltSource);\n      final Source&lt;ByteString, NotUsed&gt; transformerStream = pair.second();\n      transformer.transform(xmlSource, output);\n      outputStream.close();\n      return transformerStream;\n    }).mapMaterializedValue(i -&gt; NotUsed.getInstance()).mapError(TransformerException.class, transformerException -&gt; transformerException);\n    return Flow.fromSinkAndSource(input.second(), transformed);\n  }\n</code></pre>\n<p>Running the flow results in an immediate timeout, <code>transformer#transform</code> is apparently starving.</p>\n<pre><code>  @Test\n  void transformFlow() {\n    final String expectedResult = &quot;...&quot;;\n    final Source&lt;ByteString, NotUsed&gt; xmlSource = Source.single(ByteString.fromString(&quot;some valid xml&quot;));\n    final Source&lt;ByteString, NotUsed&gt; xsltSource = Source.single(ByteString.fromString(&quot;some valid xslt&quot;));\n    Assertions.assertEquals(expectedResult,\n        xmlSource\n            .via(transformXml(xsltSource))\n            .runWith(akka.stream.javadsl.Sink.fold(ByteString.emptyByteString(), ByteString::concat), actorSystem)\n            .toCompletableFuture()\n            .join()\n            .utf8String());\n  }\n</code></pre>\n<blockquote>\n<p>javax.xml.transform.TransformerException: javax.xml.transform.TransformerException: com.sun.org.apache.xml.internal.utils.WrappedRuntimeException: Timeout on waiting for new data</p>\n</blockquote>\n<p>Can somebody please tell me what is blocking here, and how I can fix it?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

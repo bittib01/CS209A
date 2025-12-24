@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "azure",
+      "azure-durable-functions"
+    ],
+    "owner": {
+      "account_id": 38170809,
+      "reputation": 1,
+      "user_id": 28634014,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/a0329c22f59160f976ac6bef39929902?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Carlos I&#241;igo",
+      "link": "https://stackoverflow.com/users/28634014/carlos-i%c3%b1igo"
+    },
+    "is_answered": false,
+    "view_count": 141,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1735177149,
+    "creation_date": 1733392043,
+    "last_edit_date": 1735177149,
+    "question_id": 79254113,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79254113/azure-eternal-orchestration",
+    "title": "Azure - Eternal Orchestration",
+    "body": "<p>I'm trying to create an eternal orchestrator, but I can't seem to get it working.</p>\n<p>Here is a snippet of my code.</p>\n<p><strong>HTTP Trigger</strong></p>\n<pre><code>@FunctionName(&quot;MQMessageOrchestrate&quot;)\n    public HttpResponseMessage mqMessageOrchestrate(\n            @HttpTrigger(name = &quot;req&quot;, methods = { HttpMethod.GET,\n                    HttpMethod.POST }, authLevel = AuthorizationLevel.ANONYMOUS) HttpRequestMessage&lt;Optional&lt;String&gt;&gt; request,\n            @DurableClientInput(name = &quot;durableContext&quot;) DurableClientContext durableContext,\n            final ExecutionContext context) {\n\n        context.getLogger().info(&quot;Java HTTP trigger processed a request.&quot;);\n\n        // Initialize durable task client\n        DurableTaskClient client = durableContext.getClient();\n\n        // Start orchestration\n        String instanceId = client.scheduleNewOrchestrationInstance(&quot;TestOrchestrator&quot;);\n\n        // Output instance id\n        context.getLogger().info(&quot;Created new Java orchestration with instance ID = &quot; + instanceId);\n\n        // Return status of orchestration in response\n        return durableContext.createCheckStatusResponse(request, instanceId);\n    }\n</code></pre>\n<p><strong>Orchestrator</strong></p>\n<pre><code>@FunctionName(&quot;TestOrchestrator&quot;)\n    public void testOrchestrator(\n            @DurableOrchestrationTrigger(name = &quot;ctx&quot;) TaskOrchestrationContext ctx, ExecutionContext context) {\n\n        System.out.println(&quot;Processing stuff...&quot;);\n\n        ctx.createTimer(Duration.ofSeconds(5)).await();\n\n        ctx.continueAsNew(null);\n\n    }\n</code></pre>\n<p><strong>Expectation</strong></p>\n<p>I was expecting that the orchestrator would repeat, I have seen similar code that don't produce the same error but I can't seem to figure out what is wrong.</p>\n<pre><code>[2024-12-05T01:54:00.002Z] Created new Java orchestration with instance ID = d14eec3b-aad1-4508-92df-32d883201a40\n[2024-12-05T01:54:00.011Z] Function &quot;MQMessageOrchestrate&quot; (Id: c125b1d3-35d7-428f-a831-1afe7903eeae) invoked by Java Worker\n[2024-12-05T01:54:00.036Z] Executing 'Functions.TestOrchestrator' (Reason='(null)', Id=a087455b-a3ff-4b41-904f-c468d693d7dd)\n[2024-12-05T01:54:00.042Z] Executed 'Functions.MQMessageOrchestrate' (Succeeded, Id=c125b1d3-35d7-428f-a831-1afe7903eeae, Duration=833ms)\n[2024-12-05T01:54:00.064Z] Processing stuff...\n[2024-12-05T01:54:00.078Z] Function &quot;TestOrchestrator&quot; (Id: a087455b-a3ff-4b41-904f-c468d693d7dd) invoked by Java Worker\n[2024-12-05T01:54:00.085Z] Executed 'Functions.TestOrchestrator' (Succeeded, Id=a087455b-a3ff-4b41-904f-c468d693d7dd, Duration=57ms)\n[2024-12-05T01:54:06.686Z] Executing 'Functions.TestOrchestrator' (Reason='(null)', Id=b8aff574-c31f-4e7a-8269-571d303ec402)\n[2024-12-05T01:54:06.693Z] Processing stuff...\n[2024-12-05T01:54:00.078Z] Function &quot;TestOrchestrator&quot; (Id: a087455b-a3ff-4b41-904f-c468d693d7dd) invoked by Java Worker\n[2024-12-05T01:54:00.085Z] Executed 'Functions.TestOrchestrator' (Succeeded, Id=a087455b-a3ff-4b41-904f-c468d693d7dd, Duration=57ms)\n[2024-12-05T01:54:06.686Z] Executing 'Functions.TestOrchestrator' (Reason='(null)', Id=b8aff574-c31f-4e7a-8269-571d303ec402)\n[2024-12-05T01:54:06.693Z] Processing stuff...\n</code></pre>\n<p><strong>Reality</strong></p>\n<p>But this is what happened after the first orchestration. The error says the orchestrator has already completed.</p>\n<pre><code>[2024-12-05T01:54:06.693Z] Processing stuff...\n[2024-12-05T01:54:06.714Z] Executed 'Functions.TestOrchestrator' (Failed, Id=b8aff574-c31f-4e7a-8269-571d303ec402, Duration=27ms)\n[2024-12-05T01:54:06.715Z] System.Private.CoreLib: Exception while executing function: Functions.TestOrchestrator. System.Private.CoreLib: Result: Failure\nException: IllegalStateException: The orchestrator has already completed\nStack: java.lang.IllegalStateException: The orchestrator has already completed\n</code></pre>\n<p><strong>EDIT</strong></p>\n<p>I finally figured it out. It's not as intuitive as you would expect but  here is the updated code. This works as expected but I don't understand why. The timer needs to be executed after <strong>continueAsNew</strong>.</p>\n<p><strong>Orchestrator</strong></p>\n<pre><code>@FunctionName(&quot;TestOrchestrator&quot;)\n    public void testOrchestrator(\n            @DurableOrchestrationTrigger(name = &quot;ctx&quot;) TaskOrchestrationContext ctx, ExecutionContext context) {\n\n        ctx.callActivity(&quot;DoCleanup&quot;, &quot;test&quot;).await();\n\n        // Log orchestration continued\n        context.getLogger().info(&quot;Orchestration restarted as new ...&quot;);\n\n        // Continue as new to restart the orchestration\n        ctx.continueAsNew(null);\n\n        // Pause for a specified duration before the next iteration\n        ctx.createTimer(Duration.ofSeconds(0)).await();\n\n    }\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

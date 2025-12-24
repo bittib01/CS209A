@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-cloud-config",
+      "aws-secrets-manager"
+    ],
+    "owner": {
+      "account_id": 36365530,
+      "reputation": 11,
+      "user_id": 27701974,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/94cb3a1e5be88e51e0de430d6175ba2a?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Rafael Pimenta",
+      "link": "https://stackoverflow.com/users/27701974/rafael-pimenta"
+    },
+    "is_answered": false,
+    "view_count": 958,
+    "answer_count": 2,
+    "score": 1,
+    "last_activity_date": 1741626213,
+    "creation_date": 1737567684,
+    "last_edit_date": 1737568262,
+    "question_id": 79378740,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79378740/spring-boot-unable-to-load-region-error-despite-disabling-secrets-manager-in",
+    "title": "Spring Boot: &#39;Unable to load region&#39; error despite disabling Secrets Manager in local profile",
+    "body": "<p>I just created a empty spring boot application using Maven with the following dependencies:</p>\n<pre><code>&lt;dependencies&gt;\n    &lt;dependency&gt;\n        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n        &lt;artifactId&gt;spring-boot-starter&lt;/artifactId&gt;\n    &lt;/dependency&gt;\n\n    &lt;dependency&gt;\n        &lt;groupId&gt;io.awspring.cloud&lt;/groupId&gt;\n        &lt;artifactId&gt;spring-cloud-aws-starter-secrets-manager&lt;/artifactId&gt;\n    &lt;version&gt;3.1.1&lt;/version&gt;\n    &lt;/dependency&gt;\n\n    &lt;dependency&gt;\n        &lt;groupId&gt;software.amazon.awssdk&lt;/groupId&gt;\n        &lt;artifactId&gt;sts&lt;/artifactId&gt;\n        &lt;version&gt;2.29.34&lt;/version&gt;\n    &lt;/dependency&gt;\n&lt;/dependencies&gt;\n</code></pre>\n<p>I have two resources files:</p>\n<ol>\n<li><p>application.properties:\n<code>spring.application.name=aws-sts</code></p>\n</li>\n<li><p>application-local.properties:\n<code>spring.cloud.aws.secretsmanager.enabled=false</code></p>\n</li>\n</ol>\n<p>I'm starting my app with the following command:\n<code>./mvnw spring-boot:run -Dspring.profiles.active=local</code></p>\n<p>Then, I'm receiving the following error:</p>\n<pre><code>...\nCaused by: org.springframework.beans.BeanInstantiationException: Failed to instantiate [software.amazon.awssdk.auth.credentials.AwsCredentialsProvider]: Factory method 'credentialsProvider' threw exception with message: Unable to load region from any of the providers in the chain software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain@6c37bd27: [software.amazon.awssdk.regions.providers.SystemSettingsRegionProvider@2b9b7f1f: Unable to load region from system settings. Region must be specified either via environment variable (AWS_REGION) or  system property (aws.region)., software.amazon.awssdk.regions.providers.AwsProfileRegionProvider@60723d6a: No region provided in profile: default, software.amazon.awssdk.regions.providers.InstanceProfileRegionProvider@7a24eb3: Unable to contact EC2 metadata service.]\n    at org.springframework.beans.factory.support.SimpleInstantiationStrategy.lambda$instantiate$0(SimpleInstantiationStrategy.java:199) ~[spring-beans-6.2.1.jar:6.2.1]\n\n</code></pre>\n<p>It seems the the STS dependency requires a region (<code>spring.cloud.aws.region.static=${aws.region}</code>), however, following the recommendation in the end of this this <a href=\"https://github.com/spring-cloud/spring-cloud-config/issues/1877#issuecomment-953558794\" rel=\"nofollow noreferrer\">issue</a> from the spring cloud repo we just need to disable the AWS secret manage in the required profile. Which I did.</p>\n<blockquote>\n<p>htpaf on Nov 27, 2024\nFor others searching for solutions to this problem,\nhave a look at awspring/spring-cloud-aws#824 and the fix part awspring/spring-cloud-aws#1009.</p>\n<p>In short the following is possible and may helpful if you want to disable secretsmanager and parameterstore during testing:</p>\n<p>src/main/test/resources/application.properties\nspring.cloud.aws.secretsmanager.enabled=false\nspring.cloud.aws.parameterstore.enabled=false\nThe above assumes src/main/resources/application.yml is used (with multi-document support and profile activation -- though not necessary)</p>\n</blockquote>\n<p>It works if I adds a region in the local profile:\n<code>spring.cloud.aws.region.static=eu-west-1</code></p>\n<p>But, it should not require a region once I'm not using the AWS secrets manage in the local environment.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

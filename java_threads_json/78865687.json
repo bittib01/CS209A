@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "parquet",
+      "avro"
+    ],
+    "owner": {
+      "account_id": 16708431,
+      "reputation": 31,
+      "user_id": 12076312,
+      "user_type": "registered",
+      "profile_image": "https://lh4.googleusercontent.com/-y8sJpQeK54U/AAAAAAAAAAI/AAAAAAAAAAA/ACHi3rfhivJ9dt9A59BsnpZpEEjQYSmoTA/s256-rj/photo.jpg",
+      "display_name": "Akhouri Soumya Prakash",
+      "link": "https://stackoverflow.com/users/12076312/akhouri-soumya-prakash"
+    },
+    "is_answered": false,
+    "view_count": 511,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1728819024,
+    "creation_date": 1723544278,
+    "last_edit_date": 1723599902,
+    "question_id": 78865687,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78865687/how-to-create-a-parquet-file-with-a-field-of-type-timestamp-in-spring-boot-appli",
+    "title": "How to create a parquet file with a field of type timestamp in spring boot application?",
+    "body": "<p>Here is my current scenario.</p>\n<ol>\n<li><p>When some event happens, I record the event details in a aws rds mysql database.\nThe event class has 3 fields.</p>\n<p>private String EVENT;\nprivate Long EVENT_ID;\nprivate LocalDateTime TS;</p>\n</li>\n<li><p>Once a day, I want to fetch all the data from the mysql db and write it in a parquet file, which I will then upload in an aws s3 bucket.</p>\n</li>\n</ol>\n<p>My requirement is this - I need the datatype of the field TS in the parquet file to be Timestamp. All the other approaches I have tried end up saving the timestamp data as either string or long.</p>\n<p>I'm using AvroParquetWriter to write the parquet file and I'm using a JSON string to build the schema.</p>\n<p>This is the json schema string</p>\n<pre><code>    private final String JSON_SCHEMA = &quot;{&quot;\n        + &quot;\\&quot;type\\&quot;: \\&quot;record\\&quot;,&quot;\n        + &quot;\\&quot;name\\&quot;: \\&quot;activity\\&quot;,&quot;\n        + &quot;\\&quot;fields\\&quot;: [&quot;\n        + &quot;{\\&quot;name\\&quot;: \\&quot;EVENT\\&quot;, \\&quot;type\\&quot;: \\&quot;string\\&quot;},&quot;\n        + &quot;{\\&quot;name\\&quot;: \\&quot;EVENT_ID\\&quot;, \\&quot;type\\&quot;: \\&quot;long\\&quot;},&quot;\n        + &quot;{\\&quot;name\\&quot;: \\&quot;TS\\&quot;, \\&quot;type\\&quot;: \\&quot;long\\&quot;, \\&quot;LogicalType\\&quot; : { \\&quot;Name\\&quot;: \\&quot;TIMESTAMP\\&quot;, \\&quot;IsAdjustedToUTC\\&quot;: true, \\&quot;Unit\\&quot;: \\&quot;MICROS\\&quot; }, \\&quot;ConvertedType\\&quot;: \\&quot;TIMESTAMP_MICROS\\&quot;},&quot;\n        + &quot;]&quot;\n        + &quot;}&quot;;\n</code></pre>\n<p>This is how I'm writing in the parquet file</p>\n<pre><code>List&lt;ActivityBean&gt; allData = activityRepository.findAll();Schema schema = new Schema.Parser().parse(JSON_SCHEMA);\n        try(ParquetWriter&lt;GenericRecord&gt; writer = AvroParquetWriter.&lt;GenericRecord&gt;builder(new org.apache.hadoop.fs.Path(FILE_LOCATION+FILE_NAME+count+PARQUET_EXTENSION))\n                .withSchema(schema)\n                .withCompressionCodec(CompressionCodecName.SNAPPY)\n                .withRowGroupSize(ParquetWriter.DEFAULT_BLOCK_SIZE)\n                .withPageSize(ParquetWriter.DEFAULT_PAGE_SIZE)\n                .build()) {\n\n            for(ActivityBean bean: allData) {\n                GenericRecord record = getGenericRecord(bean, schema);\n                writer.write(record);\n            }\n        }\n\nprivate static GenericRecord getGenericRecord(ActivityBean bean, Schema schema) {\n    DateTimeFormatter formatter = DateTimeFormatter.ofPattern(&quot;MMM dd yyyy HH:mm:ss a&quot;).withZone(ZoneId.of(ZoneOffset.UTC.getId()));\n    GenericRecord record = new GenericData.Record(schema);\n    record.put(&quot;EVENT&quot;, bean.getCUSTOMER());\n    record.put(&quot;EVENT_ID&quot;, bean.getACTIVITY());\n    record.put(&quot;TS&quot;, DateTimeUtil.getEpochMicroseconds(bean.getTS()));\n    return record;\n}\n</code></pre>\n<p>I'm not able to figure out what should the type of field be for timestamp in the json schema. I have some sample parquet files which tell me what my parquet file should look like, and with the help of some vs code extensions I can see that the expected ts column data type is\n<code>Timestamp&lt;MICROSECOND&gt;</code>. Using above json I get an int64 data type in the ts field with value like 1723535755205000 which is the correct Epoch time, but the sample parquet files have the data type for ts column as <code>Timestamp&lt;MICROSECOND&gt;</code> with value such as 2024-07-04 08:00:27.418474.</p>\n<p>Apologies for any mistake and if any additional info should be provided, pls let me know.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

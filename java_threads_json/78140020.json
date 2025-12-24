@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "maven",
+      "grpc",
+      "pact"
+    ],
+    "owner": {
+      "account_id": 8734334,
+      "reputation": 19,
+      "user_id": 6533445,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/wiqk5.jpg?s=256",
+      "display_name": "rokzidarn",
+      "link": "https://stackoverflow.com/users/6533445/rokzidarn"
+    },
+    "is_answered": true,
+    "view_count": 233,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1731485275,
+    "creation_date": 1710153829,
+    "question_id": 78140020,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78140020/java-grpc-pact-testing-pactpluginmockservererrorexception",
+    "title": "Java GRPC Pact Testing - PactPluginMockServerErrorException",
+    "body": "<p>Hi guys I am trying to implement PACT in our tests, but I am having some problems. I am using Java 17 with Maven (Quarkus) and GRPC. When I try to run the test, I am getting this exception:</p>\n<p><em><strong>PactPluginMockServerErrorException: Plugin protobuf failed to start a mock server: Failed to start gRPC mock server: Pact file does not contain any Protobuf descriptors</strong></em></p>\n<p>This is my code:</p>\n<pre><code>@ExtendWith(PactConsumerTestExt.class)\n@PactTestFor(providerName = &quot;some-service&quot;, providerType = ProviderType.SYNCH_MESSAGE, pactVersion = PactSpecVersion.V4)\npublic class SomePactTest {\n    \n    @Pact(consumer = &quot;other-service&quot;)\n    V4Pact someTransactions(PactBuilder builder) {\n        return builder\n                .usingPlugin(&quot;protobuf&quot;)\n                .expectsToReceive(&quot;submit request&quot;, &quot;core/interaction/message&quot;)  // tried also synchronous-message\n                .with(Map.of(\n                        &quot;pact:proto&quot;, filePath(&quot;target/schemas/proto/some-transaction.proto&quot;),\n                        &quot;pact:content-type&quot;, &quot;application/protobuf&quot;,  // tried also grpc\n                        &quot;pact:proto-service&quot;, &quot;SomeTransactions/SubmitSomeTransactions&quot;,\n                        &quot;pact:message-type&quot;, &quot;SubmitSomeTransactionsRequest&quot;,\n                        &quot;pact:protobuf-config&quot;, Map.of(  // tried without this\n                                &quot;additionalIncludes&quot;,\n                                List.of(filePath(&quot;../type&quot;))),\n                        &quot;request&quot;, Map.of(\n                                &quot;product&quot;, &quot;PRODUCT_TEST&quot;,\n                                &quot;customer_id&quot;, &quot;1234567890&quot;,\n                                &quot;transactions&quot;, Map.of(\n                                        &quot;type_code&quot;, &quot;SOMETHING&quot;,\n                                        &quot;amount&quot;, &quot;10.0&quot;,\n                                        &quot;metadata&quot;, Map.of(\n                                                &quot;key1&quot;, &quot;value1&quot;,\n                                                &quot;key2&quot;, &quot;value2&quot;\n                                        )\n                                )\n                        ),\n                        &quot;response&quot;, Map.of(\n                                &quot;main&quot;, Map.of(\n                                        &quot;balance&quot;, &quot;100.0&quot;\n                                )\n                        )\n                ))\n                .toPact();\n    }\n    \n    @Test\n    @PactTestFor(pactMethod = &quot;someTransactions&quot;)\n    @MockServerConfig(implementation = MockServerImplementation.Plugin, registryEntry = &quot;protobuf/transport/grpc&quot;)\n    void someTransaction(MockServer mockServer, V4Interaction.SynchronousMessages interaction) throws InvalidProtocolBufferException {\n        ManagedChannel channel = ManagedChannelBuilder.forAddress(&quot;127.0.0.1&quot;, mockServer.getPort()).usePlaintext().build();\n        SomeTransactionsGrpc.SubmitSomeTransactionsBlockingStub stub = newBlockingStub(channel);\n\n        SubmitSomeTransactionsRequest request = SubmitSomeTransactionsRequest.newBuilder()\n                .setProduct(ProductItem.PRODUCT_TEST)\n                .setCustomerId(1234567890L)\n                .addTransactions(TransactionItem.newBuilder()\n                        .setTransactionTypeCode(&quot;SOMETHING&quot;)\n                        .setAmount(&quot;10.0&quot;)\n                        .putAllMetadata(Map.of(\n                                &quot;key1&quot;, &quot;value1&quot;,\n                                &quot;key2&quot;, &quot;value2&quot;\n                        ))\n                        .build())\n                .build();\n\n        SomeTransactionsResponse response = stub.SubmitSomeTransactions(request);\n        assertNotNull(response.getMain());\n    }\n}\n</code></pre>\n<p>Not really sure what it means, but I went through this Slack convo (<a href=\"https://docs.pact.io/slack/protobufs\" rel=\"nofollow noreferrer\">https://docs.pact.io/slack/protobufs</a>), and the proposed solution was to add 'pact:protobuf-config' since the proto file contains types based in another proto file. But without success.</p>\n<p>If anyone could help, I cannot find much resources on this.\nMuch appreciated.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

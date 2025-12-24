@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "groovy",
+      "spock"
+    ],
+    "owner": {
+      "account_id": 20974517,
+      "reputation": 71,
+      "user_id": 15410874,
+      "user_type": "registered",
+      "profile_image": "https://lh5.googleusercontent.com/-ay10wQHuug8/AAAAAAAAAAI/AAAAAAAAAAA/AMZuucm9OW9vOH0lX2XXyglWRBlXMc9IgA/s96-c/s256-rj/photo.jpg",
+      "display_name": "Karol Wolny",
+      "link": "https://stackoverflow.com/users/15410874/karol-wolny"
+    },
+    "is_answered": true,
+    "view_count": 108,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1732458881,
+    "creation_date": 1732271359,
+    "last_edit_date": 1732281621,
+    "question_id": 79214573,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79214573/spock-mock-not-working-test-throws-nullpointerexception",
+    "title": "Spock Mock Not Working, Test Throws NullPointerException",
+    "body": "<p>I have a problem with mocking in the spock, my variabla systemTaskOptional is null, test throwing an error. Here is my code of test, and part of code with biznes logic, where is null throwing.</p>\n<pre class=\"lang-java prettyprint-override\"><code>    def &quot;should get system tasks and check if done - mark as success&quot; () {\n        given:\n            systemTasksRepository.findByUserIdAndDoneFalse(_) &gt;&gt; getSystemTasksAll()\n            userApiService.getById(_) &gt;&gt; UserSnapshot.builder().storeAuthorities(Set.of(StoreAuthoritySnapshot.builder().role(StoreRole.OWNER).build())).companyAuthority(CompanyAuthoritySnapshot.builder().companyId(1L).build()).build()\n            systemTasksRepository.findByUserId(_) &gt;&gt; getSystemTasksAll()\n            systemTasksRepository.findByUserIdAndByTaskCode(_,_) &gt;&gt; Optional.of(SystemTask.builder().build())\n        when:\n            List&lt;SystemTaskSnapshot&gt; snapshots = tasksService.getSystemTasksAndCheck(1L)\n        then:\n            snapshots.size() == 2\n            1 * systemTasksRepository.findByUserIdAndByTaskCode(1L, RepositoryTasksService.SystemTaskTypes.CREATE_STORE)\n            1 * systemTasksRepository.findByUserIdAndByTaskCode(1L, RepositoryTasksService.SystemTaskTypes.CREATE_COMPANY)\n    }\n\n        if (notDoneSystemTasks.contains(SystemTaskTypes.CREATE_COMPANY)) {\n            CompanyAuthoritySnapshot authoritySnapshot = userApiService.getById(userId).getCompanyAuthority();\n            if (Objects.nonNull(authoritySnapshot) &amp;&amp; Objects.nonNull(authoritySnapshot.getCompanyId())) {\n                Optional&lt;SystemTask&gt; systemTaskOptional = systemTasksRepository.findByUserIdAndByTaskCode(userId, SystemTaskTypes.CREATE_COMPANY); &lt;- this is null\n                systemTaskOptional.ifPresent(systemTask -&gt; systemTask.setDone(true));\n            }\n        }\n</code></pre>\n<p>I define service like this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>private TasksMapper tasksMapper = Spy()\nprivate SystemTasksRepository systemTasksRepository = Mock()\nprivate UserApiService userApiService = Mock()\n\n@Subject\nprivate TasksService tasksService = new RepositoryTasksService(tasksMapper, systemTasksRepository, userApiService)\n</code></pre>\n<p>This is stacktrace:</p>\n<pre class=\"lang-none prettyprint-override\"><code>Connected to the target VM, address: '127.0.0.1:51363', transport: 'socket'\nWARNING: An illegal reflective access operation has occurred\nWARNING: Illegal reflective access by org.codehaus.groovy.vmplugin.v7.Java7$1 (file:/Users/developer/.m2/repository/org/codehaus/groovy/groovy/2.5.8/groovy-2.5.8.jar) to constructor java.lang.invoke.MethodHandles$Lookup(java.lang.Class,int)\nWARNING: Please consider reporting this to the maintainers of org.codehaus.groovy.vmplugin.v7.Java7$1\nWARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations\nWARNING: All illegal access operations will be denied in a future release\n\njava.lang.NullPointerException\n    at com.nvt.pupil.tasks.service.service.RepositoryTasksService.checkIfDone(RepositoryTasksService.java:53)\n    at com.nvt.pupil.tasks.service.service.RepositoryTasksService.getSystemTasksAndCheck(RepositoryTasksService.java:38)\n    at com.nvt.pupil.tasks.service.service.RepositoryTasksServiceSpec.should get system tasks and check if done - mark as success(RepositoryTasksServiceSpec.groovy:65)\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

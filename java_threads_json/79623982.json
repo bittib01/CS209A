@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "javascript",
+      "java",
+      "reactjs",
+      "spring-boot"
+    ],
+    "owner": {
+      "account_id": 16323640,
+      "reputation": 61,
+      "user_id": 30073408,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/-nMUaxpvujdE/AAAAAAAAAAI/AAAAAAAAAAA/ACHi3rep07WjeFbpgapchr9kOFJ0GAbB8A/s256-rj/photo.jpg",
+      "display_name": "flyski",
+      "link": "https://stackoverflow.com/users/30073408/flyski"
+    },
+    "is_answered": true,
+    "view_count": 71,
+    "accepted_answer_id": 79624080,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1750401765,
+    "creation_date": 1747333054,
+    "last_edit_date": 1750401745,
+    "question_id": 79623982,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79623982/react-delete-request-not-reaching-spring-boot-api-404-error",
+    "title": "React delete request not reaching spring boot api, 404 error",
+    "body": "<p>My react app successfully gets and posts from/to Spring Boot JPA MySQL db.  But delete fails with 404, meaning it can't find the endpoint.</p>\n<p><strong>MedaverterApplication.java</strong></p>\n<pre><code>@SpringBootApplication\n@ComponentScan(basePackages = { &quot;net.tekknow.medaverter.*&quot; })\n@EntityScan(basePackages = &quot;net.tekknow.medaverter.*&quot;) \npublic class MedaverterApplication {\n\n    public static void main(String[] args) {\n        SpringApplication.run(MedaverterApplication.class, args);\n    }\n\n      @Bean\n      public WebMvcConfigurer corsConfigurer() {\n          return new WebMvcConfigurer() {\n              @Override\n              public void addCorsMappings(CorsRegistry registry) {\n                  registry.addMapping(&quot;/**&quot;)\n                          .allowedOrigins(&quot;http://localhost:3000&quot;) \n                          .allowedMethods(&quot;GET&quot;, &quot;POST&quot;, &quot;PUT&quot;, &quot;DELETE&quot;)\n                          .allowedHeaders(&quot;*&quot;)\n                          .allowCredentials(true);\n              }\n          };\n      }\n}\n</code></pre>\n<p><strong>EventController.java</strong></p>\n<pre><code>package net.tekknow.medaverter.controllers;\n\nimport org.springframework.beans.factory.annotation.Autowired;\nimport org.springframework.web.bind.annotation.*;\nimport org.springframework.http.HttpStatus;\nimport org.springframework.http.MediaType;\nimport org.springframework.http.ResponseEntity;\n\nimport java.util.List;\nimport net.tekknow.medaverter.models.Event;\nimport net.tekknow.medaverter.repository.EventRepo;\n\n@CrossOrigin\n@RestController\npublic class EventController {\n    @Autowired\n    EventRepo eventRepo;\n\n    @GetMapping(&quot;/get-events&quot;)\n    public List&lt;Event&gt; getEvents(int user_id) {\n        List&lt;Event&gt; events = eventRepo.findEventsByUserId(user_id);\n        return events;\n    }\n\n    @PostMapping(path = &quot;/save-event&quot;, consumes = MediaType.APPLICATION_JSON_VALUE)\n    @ResponseStatus(HttpStatus.OK)\n    public ResponseEntity&lt;Event&gt; addEvent(@RequestBody Event event) {\n        return ResponseEntity.ok().body(eventRepo.save(event));\n    }\n\n    @DeleteMapping(&quot;/delete-event/{id}&quot;)\n    public ResponseEntity&lt;String&gt; deleteEvent(@PathVariable Integer id) {\n        try {\n            eventRepo.deleteById(id);\n            return new ResponseEntity&lt;&gt;(&quot;Item deleted successfully&quot;, HttpStatus.OK);\n        } catch (Exception e) {\n            return new ResponseEntity&lt;&gt;(&quot;Error deleting item&quot;, HttpStatus.INTERNAL_SERVER_ERROR);\n        }\n    }\n}\n</code></pre>\n<p>Note that both GET and POST work, but not DELETE</p>\n<p><strong>events.tsx</strong></p>\n<pre><code>const deleteEvent = async (id: GridRowId) =&gt; {\n  const response = await fetch(`/delete-event?id=${id}`, {\n    method: 'DELETE',\n    headers: {\n      'Content-Type': 'application/json' // Or the appropriate content type\n    },\n  })\n    .then((response) =&gt; {\n      if (!response.ok) {\n        throw new Error('Network response was not ok');\n      }\n      return response.json();\n    })\n    .then((data) =&gt; {\n      console.log('Row deleted successfully:', data);\n    })\n    .catch((error) =&gt; {\n      console.error('Error deleting row:', error);\n    });\n}\n</code></pre>\n<p>I also tried:</p>\n<pre><code>  const response = await fetch(`http://localhost:3000/delete-event?id=${id}`, {...\n  const response = await fetch(`http://localhost:8080/delete-event?id=${id}`, {...\n</code></pre>\n<p>How is it that I can get and save data, but not delete?  I thought maybe the browser was blocking due to CORS, but I've got that covered. Can anybody see what I am doing wrong?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

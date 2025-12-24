@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "gradle",
+      "openrewrite"
+    ],
+    "owner": {
+      "account_id": 194541,
+      "reputation": 1509,
+      "user_id": 436948,
+      "user_type": "registered",
+      "accept_rate": 58,
+      "profile_image": "https://www.gravatar.com/avatar/a888cf72da7ff419ba55e82b26cb92b5?s=256&d=identicon&r=PG",
+      "display_name": "Koohoolinn",
+      "link": "https://stackoverflow.com/users/436948/koohoolinn"
+    },
+    "is_answered": true,
+    "view_count": 842,
+    "accepted_answer_id": 79180199,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1731397103,
+    "creation_date": 1727424176,
+    "question_id": 79030424,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79030424/running-an-openrewrite-recipe-with-gradle-never-completes",
+    "title": "Running an OpenRewrite recipe with Gradle never completes",
+    "body": "<p>I'm trying out OpenRewrite and I wanted to test it out with the &quot;Remove unused imports&quot; recipe against our a large multi-module Gradle project.<br />\nI'm opting for the init-script approach so I don't have to edit our <code>build.gradle</code>. I copied the script from the website and named it <code>unused-imports.gradle</code>.<br />\nI added an <code>exclusion</code> section for excluding our generated files:</p>\n<pre><code>initscript {\n    repositories {\n        maven { url &quot;https://plugins.gradle.org/m2&quot; }\n    }\n    dependencies { classpath(&quot;org.openrewrite:plugin:latest.release&quot;) }\n}\nrootProject {\n    plugins.apply(org.openrewrite.gradle.RewritePlugin)\n    dependencies {\n        rewrite(&quot;org.openrewrite:rewrite-java&quot;)\n    }\n    rewrite {\n        activeRecipe(&quot;org.openrewrite.java.RemoveUnusedImports&quot;)\n        exportDatatables = true\n\n        exclusion(\n            &quot;**/generated/**&quot;\n        )\n    }\n    afterEvaluate {\n        if (repositories.isEmpty()) {\n            repositories {\n                mavenCentral()\n            }\n        }\n    }\n}\n</code></pre>\n<p>When I run it with the command <code>wsl ./gradlew --init-script unused-imports.gradle rewriteDryRun</code> it seems to be going alright. I see all our modules en sub-modules being parsed until, after about half an hour I'm seeing this:</p>\n<pre><code>Scanning sources in project :\nUsing active styles [org.openrewrite.java.Checkstyle]\n&lt;============-&gt; 99% EXECUTING [58m 45s]\n&gt; IDLE                                                                                                                                                                             \n&gt; IDLE\n&gt; :rewriteDryRun\n&gt; IDLE\n</code></pre>\n<p>After an hour I terminated the command because there seemed to be no progress.</p>\n<p>What might be wrong?</p>\n<p>Additional info:</p>\n<ol>\n<li>I had to tweak the Gradle properties with these values as at first it ran out of heap space : <code>org.gradle.jvmargs=-Xmx25G -XX:+UnlockDiagnosticVMOptions -XX:GCLockerRetryAllocationCount=100</code>. (taken from another StackOverflow thread)</li>\n<li>I'm also getting a lot of these kinds of errors:</li>\n</ol>\n<pre><code>Cause 80: org.gradle.internal.resolve.ModuleVersionNotFoundException: Could not find some:dependency:.\nRequired by:\n    project :our:module &gt; project :another:module\n</code></pre>\n<p>I tried modifying the <code>repositories</code> section so it mirrors our <code>build.gradle</code> one but it didn't make a difference:</p>\n<pre><code>afterEvaluate {\n        if (repositories.isEmpty()) {\n            repositories {\n                maven {\n                    url = uri('https://our/artifactory/repo')\n                }\n                mavenCentral()\n            }\n        }\n    }\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

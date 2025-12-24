@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "react-native",
+      "android-intent"
+    ],
+    "owner": {
+      "account_id": 23055031,
+      "reputation": 63,
+      "user_id": 17171194,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AATXAJwzUAq_njymsUAdEt3CvdHzsJ6eMAzssj0jJe9R=k-s256",
+      "display_name": "Lucas Acu&#241;a",
+      "link": "https://stackoverflow.com/users/17171194/lucas-acu%c3%b1a"
+    },
+    "is_answered": false,
+    "view_count": 46,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1758236548,
+    "creation_date": 1758207007,
+    "last_edit_date": 1758236548,
+    "question_id": 79768596,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79768596/android-activity-back-stack-issue-with-launchmode-singletask-and-callredirecti",
+    "title": "Android Activity Back Stack issue with launchMode=&quot;singleTask&quot; and CallRedirectionService",
+    "body": "<p>I'm developing a React Native app with an Android-specific feature that detects calls to a specific customer service number. When a user dials *611, the call is intercepted, terminated, and the app launches an <code>OutgoingCallActivity</code>. This activity presents a menu with deep links that, when pressed, navigate to <code>MainActivity</code> (where React Native lives). The React Native <code>Linking</code> component then automatically handles the deep link and navigates to the correct part of the app.</p>\n<p>Here's the relevant code:</p>\n<p><strong>Manifest.xml</strong></p>\n<pre><code>&lt;service\n    android:name=&quot;.OutgoingCallService&quot;\n    android:exported=&quot;true&quot;\n    android:permission=&quot;android.permission.BIND_CALL_REDIRECTION_SERVICE&quot;&gt;\n    &lt;intent-filter&gt;\n        &lt;action android:name=&quot;android.telecom.CallRedirectionService&quot; /&gt;\n    &lt;/intent-filter&gt;\n&lt;/service&gt;\n\n&lt;activity\n    android:name=&quot;.MainActivity&quot;\n    android:label=&quot;@string/app_name&quot;\n    android:configChanges=&quot;keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode&quot;\n    android:launchMode=&quot;singleTask&quot;\n    android:windowSoftInputMode=&quot;adjustResize&quot;\n    android:exported=&quot;true&quot;\n&gt;\n\n&lt;activity\n    android:name=&quot;.OutgoingCallActivity&quot;\n    android:exported=&quot;false&quot;\n    android:theme=&quot;@style/Theme.AppCompat&quot; /&gt;\n</code></pre>\n<p><strong>OutgoingCallService.java</strong></p>\n<pre><code>package com.example.callredirection;\nimport android.content.Intent;\nimport android.net.Uri;\nimport android.telecom.CallRedirectionService;\nimport android.telecom.PhoneAccountHandle;\nimport android.util.Log;\n\nimport androidx.annotation.NonNull;\n\npublic class OutgoingCallService extends CallRedirectionService {\n    @Override\n    public void onPlaceCall(\n            @NonNull Uri handle,\n            @NonNull PhoneAccountHandle initialPhoneAccount,\n            boolean allowInteractiveResponse\n    ) {\n        String phoneNumber = handle.getSchemeSpecificPart();\n        if (phoneNumber.equals(&quot;*611&quot;)) {\n            Intent intent = new Intent(this, OutgoingCallActivity.class);\n            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);\n            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);\n            intent.putExtra(&quot;phoneNumber&quot;, phoneNumber);\n            startActivity(intent);\n            cancelCall();\n            Log.d(&quot;OutgoingCallService&quot;, &quot;The call was cancelled&quot;);\n        }  else {\n            placeCallUnmodified();\n        }\n    }\n}\n</code></pre>\n<p><strong>OutgoingCallActivity.java</strong></p>\n<p>This activity has a <code>sendMessageToApp</code> method that receives the deep link from the user's selected option:</p>\n<pre><code>public void sendMessageToApp(String deeplink) {\n    try {\n        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(deeplink));\n        mContext.startActivity(intent);\n    } catch (Exception e) {\n        Log.e(&quot;ERROR_SEND_MESSAGE&quot;, e.toString());\n    }\n}\n</code></pre>\n<p>Note: <code>sendMessageToApp</code> is a method of a web interface, which is why the context is passed to the constructor and assigned to mContext.</p>\n<p>This entire flow works perfectly in most cases. When the app is closed and I dial *611, the call is intercepted, <code>OutgoingCallActivity</code> appears, and when I select an option, it navigates to the correct deep link in the app. If I press the native Android back button, it returns to the <code>OutgoingCallActivity</code> menu, which is the desired behavior.</p>\n<p>The <strong>problem</strong> occurs when the app is in the background. If the app is in the background and I dial *611, <code>OutgoingCallActivity</code> opens with its menu. When I press an option, it correctly navigates to the associated deep link within the app, but when I press back, it doesn't return to <code>OutgoingCallActivity</code>. Instead, it returns to the <code>Phone</code> app from which the call was made.</p>\n<p>Is there a way to ensure that when the user accesses the app via the *611 call with the app in the background, pressing the back button will return to <code>OutgoingCallActivity</code>?</p>\n<p><strong>What I've Tried</strong></p>\n<ol>\n<li>I've added various flags to the <code>sendMessageToApp()</code> intent, such as:</li>\n</ol>\n<pre><code>intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);\n</code></pre>\n<p>And also:</p>\n<pre><code>Intent.FLAG_ACTIVITY_REORDER_TO_FRONT\n</code></pre>\n<p>However, these don't produce the expected result.</p>\n<ol start=\"2\">\n<li>I also tried to force the back navigation from <code>MainActivity</code> using the <code>onBackPressed</code> method:</li>\n</ol>\n<pre><code>@Override\npublic void onBackPressed() {\n    if (getIntent().getBooleanExtra(&quot;fromOutgoingCall&quot;, false)) {\n        Intent intent = new Intent(this, OutgoingCallActivity.class);\n        startActivity(intent);\n    } else {\n        super.onBackPressed();\n    }\n}\n</code></pre>\n<p>And launching <code>MainActivity</code> from <code>OutgoingCallActivity</code> like this:</p>\n<pre><code>Intent intent = new Intent(mContext, MainActivity.class);\nintent.putExtra(&quot;fromOutgoingCall&quot;, true);\n</code></pre>\n<p>This approach has an unexpected behavior and sometimes closes the app completely.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

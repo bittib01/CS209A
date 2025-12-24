@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "database-design",
+      "architecture",
+      "domain-driven-design",
+      "data-modeling"
+    ],
+    "owner": {
+      "account_id": 2427794,
+      "reputation": 615,
+      "user_id": 2119381,
+      "user_type": "registered",
+      "accept_rate": 70,
+      "profile_image": "https://www.gravatar.com/avatar/21f0c1f83257b09700ed8c8592651e9e?s=256&d=identicon&r=PG",
+      "display_name": "MABC",
+      "link": "https://stackoverflow.com/users/2119381/mabc"
+    },
+    "is_answered": false,
+    "view_count": 129,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1762718477,
+    "creation_date": 1762646162,
+    "question_id": 79814519,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79814519/how-to-model-and-persist-entities-whose-state-changes-over-time",
+    "title": "How to model and persist entities whose state changes over time",
+    "body": "<p>I’m designing a domain model where some entities evolve over time, and I need to keep a historical record of their state that can be retrieved later.</p>\n<p>A simplified example:</p>\n<p>A <strong>Credit Line</strong> represents a long-term financing contract.</p>\n<p>Each Credit Line has related entities such as <strong>Financial Entities</strong> that participate in the credit line.</p>\n<p>The state of a Credit Line at a given date is represented by a <strong>Statement</strong>, which includes its conditions, participating entities, and their contributions (all of that can change over time).</p>\n<p>Statements are periodically uploaded from files, and the application must allow users to view the Credit Line state as of any date.</p>\n<p>I can’t use SQL temporal tables because the statement date comes from the uploaded file, not from the database change time.</p>\n<p>I’m unsure how to best model and persist these time-dependent entities. Possible approaches:</p>\n<p><strong>Option A — Keep only the Snapshots</strong></p>\n<p>Persist only `CreditLineSnapshot` (Statements).</p>\n<p>Each snapshot contains all attributes of a Credit Line at a given date. No data is repeated.</p>\n<p>Disadvantages:</p>\n<p>- No persistent `CreditLine` entity: must group snapshots by ID to get the list of credit lines for example.</p>\n<p>- All relationship with other entities are duplicated in every snapshot, like the owner of a credit line, even if it does not change over time.</p>\n<p><strong>Option B — Persist Entities and Snapshots</strong></p>\n<p>Persist both CreditLine and its Statement (which contains a CreditLineSnapshot).</p>\n<p>Disadvantages:</p>\n<p>- Attributes and data duplication: current state exists in both the entity and its last statement (as all statements should be saved)</p>\n<p><strong>Option C — Persist Entities with stable attributes + Snapshots with variable data</strong></p>\n<p>Persist `CreditLine` with only stable attributes (e.g. Id), and store all variable data in its `Statements`.</p>\n<p>Credit Line contains all methods but just ID attribute and its statements. It delegates in the proper statement to get the rest of the data and make all the calculus.</p>\n<p>This is my favorite option.</p>\n<p>What’s the best modeling strategy or common practice for this kind of domains, where entities have evolving state over time but must also keep historical versions?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "jackson",
+      "jackson-databind"
+    ],
+    "owner": {
+      "account_id": 1011992,
+      "reputation": 1590,
+      "user_id": 1024368,
+      "user_type": "registered",
+      "accept_rate": 74,
+      "profile_image": "https://www.gravatar.com/avatar/5dc2056c7f515fbe04de632f62c4803e?s=256&d=identicon&r=PG",
+      "display_name": "alvinmeimoun",
+      "link": "https://stackoverflow.com/users/1024368/alvinmeimoun"
+    },
+    "is_answered": true,
+    "view_count": 4564,
+    "accepted_answer_id": 78831098,
+    "answer_count": 3,
+    "score": 4,
+    "last_activity_date": 1730496092,
+    "creation_date": 1720191975,
+    "question_id": 78712148,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78712148/jackson-fails-due-fail-on-trailing-tokens-but-feature-is-disabled",
+    "title": "Jackson fails due FAIL_ON_TRAILING_TOKENS but feature is disabled",
+    "body": "<p>I'm trying to migrate my Spring Boot app from 3.0 to 3.3.</p>\n<p>I have some complex JSON sent from the frontend so the ObjectMapper is configured like this</p>\n<pre><code>@Bean\npublic Module dateSerializationModule() {\n    return new SimpleModule(&quot;dateFormat&quot;)\n        .addDeserializer(Date.class, new MultiDateDeserializer()).addSerializer(Date.class, new DateSerializer());\n}\n\n@Bean\n@Primary\npublic ObjectMapper mapper() {\n    return new ObjectMapper()\n        .findAndRegisterModules().registerModule(attributesModule()).registerModule(dateSerializationModule())\n        .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)\n        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)\n        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)\n        .configure(DeserializationFeature.FAIL_ON_TRAILING_TOKENS, false)\n        .configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);\n}\n</code></pre>\n<p>The feature DeserializationFeature.FAIL_ON_TRAILING_TOKENS is disabled by default and i tried to add it here, but i get this exception</p>\n<blockquote>\n<p>org.springframework.http.converter.HttpMessageNotReadableException: JSON parse error: Trailing token (of type FIELD_NAME) found after value (bound as <code>com.fasterxml.jackson.databind.JsonNode</code>): not allowed as per <code>DeserializationFeature.FAIL_ON_TRAILING_TOKENS</code></p>\n<p>Caused by:\ncom.fasterxml.jackson.databind.exc.MismatchedInputException: Trailing\ntoken (of type FIELD_NAME) found after value (bound as\n<code>com.fasterxml.jackson.databind.JsonNode</code>): not allowed as per\n<code>DeserializationFeature.FAIL_ON_TRAILING_TOKENS</code>  at [Source: REDACTED\n(<code>StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION</code> disabled); line: 1,\ncolumn: 11847] (through reference chain:\nmy.dto.MyDTO[&quot;aDateField&quot;])\nat\ncom.fasterxml.jackson.databind.exc.MismatchedInputException.from(MismatchedInputException.java:63)\n~[jackson-databind-2.17.1.jar:2.17.1]     at\ncom.fasterxml.jackson.databind.DeserializationContext.reportTrailingTokens(DeserializationContext.java:1840)\n~[jackson-databind-2.17.1.jar:2.17.1]     at\ncom.fasterxml.jackson.databind.ObjectMapper._verifyNoTrailingTokens(ObjectMapper.java:5013)\n~[jackson-databind-2.17.1.jar:2.17.1]     at\ncom.fasterxml.jackson.databind.ObjectMapper._readValue(ObjectMapper.java:4886)\n~[jackson-databind-2.17.1.jar:2.17.1]     at\ncom.fasterxml.jackson.databind.ObjectMapper.readTree(ObjectMapper.java:3145)\n~[jackson-databind-2.17.1.jar:2.17.1]     at\nmy.app.MultiDateDeserializer.deserialize(MultiDateDeserializer.java:41)\n~[main/:na]   at\nmy.app.MultiDateDeserializer.deserialize(MultiDateDeserializer.java:1)\n~[main/:na]</p>\n</blockquote>\n<p>And this is the MultiDateDeserializer where the exception is thrown</p>\n<pre><code>public class MultiDateDeserializer extends StdDeserializer&lt;Date&gt; {\n    public MultiDateDeserializer() {\n        this(null);\n    }\n\n    public MultiDateDeserializer(Class&lt;?&gt; vc) {\n        super(vc);\n    }\n\n    @Override\n    public Date deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {\n        JsonNode node = jp.getCodec().readTree(jp);  // Exception thrown here\n        // ...\n    }\n}\n</code></pre>\n<p>And the corresponding field on the json</p>\n<pre><code>aDateField: &quot;2022-03-09T00:00:00.000&quot;\n</code></pre>\n<p>I debugged to if my ObjectMapper bean and the ObjectMapper used when the exception is thrown is the same and it's the same object instance.</p>\n<p>I tried to enable the feature (just for test) and debugged the featureFlags variable inside com.fasterxml.jackson.databind.DeserializationContext but when true or false the value is the same.</p>\n<p>I missed something or is it a bug inside jackson 2.17 ? was working with jackson 2.14 with the same input json</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

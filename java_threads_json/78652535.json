@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "javascript",
+      "java",
+      "spring-boot",
+      "spring-security",
+      "oauth-2.0"
+    ],
+    "owner": {
+      "account_id": 33105774,
+      "reputation": 1,
+      "user_id": 25665266,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/588ddaa90b7a832f8911ebc05afd0055?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "wrth1337",
+      "link": "https://stackoverflow.com/users/25665266/wrth1337"
+    },
+    "is_answered": false,
+    "view_count": 118,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1719338688,
+    "creation_date": 1718975269,
+    "last_edit_date": 1718975350,
+    "question_id": 78652535,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78652535/springboot-security-auth-clients-and-machines",
+    "title": "SpringBoot Security Auth - Clients and Machines",
+    "body": "<p>I am currently developing an application using Spring Boot and React. I am using Spring Security with OAuth2. When users visit my React application and request data from my Spring Boot backend, they are prompted to log in. They have the option to log in via GitHub or Google. This setup uses JSESSIONIDs, following the standard documentation.</p>\n<p>Now, I need to allow another application to interact with my API, either by fetching data or sending data via POST requests. For example, I want to enable a simple JavaScript application running with Node.js to access my API.</p>\n<p>I'm having trouble figuring out how to achieve this. Does someone know how to set up authentication and authorization for this scenario?</p>\n<p>Thank you very much for your help! :)</p>\n<p>Here is my securityFilterChain</p>\n<pre><code>@Bean\n    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {\n        return http\n                .csrf(AbstractHttpConfigurer::disable)\n                .cors(cors -&gt; cors.configurationSource(corsConfigurationSource()))\n                .authorizeHttpRequests( auth -&gt; auth.anyRequest().authenticated())\n                .oauth2Login( oauth2 -&gt; oauth2.successHandler(oAuth2LoginSuccessHandler))\n                .oauth2ResourceServer(oauth2ResourceServer -&gt; oauth2ResourceServer.jwt(Customizer.withDefaults()))\n                .build();\n    }\n</code></pre>\n<p>and here my custom LoginSuccessHandler (Note that this is WIP)</p>\n<pre><code>@Override\n    public void onAuthenticationSuccess(final HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws ServletException, IOException {\n        OAuth2AuthenticationToken token = (OAuth2AuthenticationToken) authentication;\n\n        if(&quot;github&quot;.equals(token.getAuthorizedClientRegistrationId())){\n            DefaultOAuth2User principal = (DefaultOAuth2User) authentication.getPrincipal();\n            Map&lt;String, Object&gt; attributes = principal.getAttributes();\n            String email = attributes.getOrDefault(&quot;email&quot;, &quot;&quot;).toString();\n            String name = attributes.getOrDefault(&quot;name&quot;, &quot;&quot;).toString();\n            userService.findByEmail(email)\n                    .ifPresentOrElse(user -&gt; {\n                        DefaultOAuth2User newUser = new DefaultOAuth2User(List.of(new SimpleGrantedAuthority(user.getRole().name()))\n                                , attributes, &quot;id&quot;);\n                        Authentication securityAuth = new OAuth2AuthenticationToken(newUser, List.of(new SimpleGrantedAuthority(user.getRole().name()))\n                                , token.getAuthorizedClientRegistrationId());\n                        SecurityContextHolder.getContext().setAuthentication(securityAuth);\n                    }, () -&gt; {\n                        BMUser userEntity = new BMUser();\n                        userEntity.setRole(BMUserRole.ROLE_USER);\n                        userEntity.setEmail(email);\n                        userEntity.setName(name);\n                        userService.createNewUser(userEntity);\n                        DefaultOAuth2User newUser = new DefaultOAuth2User(List.of(new SimpleGrantedAuthority(userEntity.getRole().name()))\n                                , attributes, &quot;id&quot;);\n                        Authentication securityAuth = new OAuth2AuthenticationToken(newUser, List.of(new SimpleGrantedAuthority(userEntity.getRole().name()))\n                                , token.getAuthorizedClientRegistrationId());\n                        SecurityContextHolder.getContext().setAuthentication(securityAuth);\n                    });\n        }\n\n        this.setAlwaysUseDefaultTargetUrl(true);\n        this.setDefaultTargetUrl(frontendUrl);\n        super.onAuthenticationSuccess(request, response, authentication);\n    }\n</code></pre>\n<p>I've reviewed the official Spring Boot documentation, watched YouTube videos, and read Baeldung guides, but I've only been able to authenticate React users so far.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

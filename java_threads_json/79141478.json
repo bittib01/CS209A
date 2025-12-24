@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "encoding",
+      "file-handling",
+      "aix"
+    ],
+    "owner": {
+      "account_id": 3690507,
+      "reputation": 65,
+      "user_id": 3073180,
+      "user_type": "registered",
+      "accept_rate": 25,
+      "profile_image": "https://www.gravatar.com/avatar/f21b9ef8b6bc317b6a23394f0ea29472?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "user3073180",
+      "link": "https://stackoverflow.com/users/3073180/user3073180"
+    },
+    "is_answered": false,
+    "view_count": 96,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1732451217,
+    "creation_date": 1730297871,
+    "question_id": 79141478,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79141478/aix-5-3-system-returning-for-special-characters-in-filenames",
+    "title": "AIX 5.3 system returning ? for special characters in filenames",
+    "body": "<p>I am trying to get filenames containing special characters on an AIX 5.3 system using a Java program but its replacing the special characters with a question mark. This is in client environment. But when I use the same program in our dev environment, I cant reproduce the issue.</p>\n<p>I tried both vfs2 and jsch libraries but same issue on both of them. This is the sample code I have tried-</p>\n<pre><code>package com.example.ftp;\n\nimport com.jcraft.jsch.*;\nimport java.util.Vector;\n\npublic class Elmer1 {\n    public static void main(String[] args) {\n        String host = &quot;aix&quot;;\n        String username = &quot;user&quot;;\n        int port = 22;\n        String password = &quot;pass&quot;;  // Replace with your password\n        String remoteDirectory = &quot;/disk1/users/usr1&quot;;  // Replace with the remote folder path\n\n        JSch jsch = new JSch();\n        Session session = null;\n\n        try {\n            // Create the session object\n            session = jsch.getSession(username, host, port);\n            session.setPassword(password);  // Set password\n\n            // Create properties for key exchange, ciphers, and host key algorithms\n            java.util.Properties config = new java.util.Properties();\n\n            session.setConfig(config);\n\n            // Disable strict host key checking for testing purposes (optional)\n            session.setConfig(&quot;StrictHostKeyChecking&quot;, &quot;no&quot;);\n\n            // Connect to the session\n            session.connect();\n\n            // Open an SFTP channel\n            ChannelSftp channelSftp = (ChannelSftp) session.openChannel(&quot;sftp&quot;);\n            channelSftp.connect();\n\n            // List files and directories in the remote directory\n            Vector&lt;ChannelSftp.LsEntry&gt; list = channelSftp.ls(remoteDirectory);\n\n            System.out.println(&quot;Contents of &quot; + remoteDirectory + &quot;:&quot;);\n            for (ChannelSftp.LsEntry entry : list) {\n                if (entry.getAttrs().isDir()) {\n                    // It's a directory\n                    System.out.println(&quot;[DIR]  &quot; + entry.getFilename());\n                } else {\n                    // It's a file\n                    System.out.println(&quot;[FILE] &quot; + entry.getFilename());\n                }\n            }\n\n            // Disconnect when done\n            channelSftp.disconnect();\n            session.disconnect();\n\n        } catch (JSchException | SftpException e) {\n            e.printStackTrace();\n        }\n    }\n}\n</code></pre>\n<p>Output in dev environment-</p>\n<pre><code>Contents of /disk1/users/usr1:\n[DIR]  .\n[DIR]  ..\n[FILE] 99-4±±±±0A02-|PART±ASSEMBLY,±SAMPLE±IV-X.model\n</code></pre>\n<p>Not sure what could be causing this issue in the customer environment. Appreciate any pointers/ inputs to try to fix this problem.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

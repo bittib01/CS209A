@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "spring-data-jpa"
+    ],
+    "owner": {
+      "account_id": 26048952,
+      "reputation": 165,
+      "user_id": 19752544,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/e03a77f0fdac7ebbdd2094ccaed27cd9?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "repi",
+      "link": "https://stackoverflow.com/users/19752544/repi"
+    },
+    "is_answered": true,
+    "view_count": 312,
+    "accepted_answer_id": 79459152,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1740476217,
+    "creation_date": 1740137269,
+    "last_edit_date": 1740476217,
+    "question_id": 79457241,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79457241/how-to-use-array-functions-in-jpa-query-without-using-native-query",
+    "title": "How to use array functions in JPA Query without using Native Query?",
+    "body": "<p>I want to use the <code>array_overlaps()</code> function in a JPA query without explicitly resorting to a native query.</p>\n<p>Here is my @Query definition:</p>\n<pre class=\"lang-java prettyprint-override\"><code>  @Query(value = &quot;&quot;&quot;\n                SELECT view FROM FilterView view\n                WHERE (:selectedIds IS NULL\n                        OR array_overlaps(view.ids, (:selectedIds)) IS true)\n                &quot;&quot;&quot;)\n  List&lt;FilterView&gt; findAllByFilter(Collection&lt;Long&gt; selectedIds);\n</code></pre>\n<p>View Entity definition:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Getter\n@Setter\n@Entity\n@AllArgsConstructor\n@NoArgsConstructor\n@Table(name = &quot;filter_view&quot;)\npublic class FilterView {\n\n  @JdbcTypeCode(Types.ARRAY)\n  @Column(name = &quot;ids&quot;)\n  private Collection&lt;Long&gt; ids;\n\n  // other fields\n}\n</code></pre>\n<p>View SQL file:</p>\n<pre class=\"lang-sql prettyprint-override\"><code>DROP VIEW IF EXISTS filter_view;\nCREATE VIEW filter_view AS\nSELECT\n    ARRAY_AGG(DISTINCT p.id) AS ids,\n    -- other columns\n\nFROM my_entity p\n         LEFT JOIN ...\nGROUP BY ...\n</code></pre>\n<p>In this configuration I encounter the following runtime error:</p>\n<pre><code>Caused by: org.postgresql.util.PSQLException: ERROR: operator does not exist: bigint[] &amp;&amp; bytea\n</code></pre>\n<p>The error suggests that the selectedIds parameter is being treated as bytea, even though it is defined as Collection in the method signature, which I don't fully understand why. This leads to a type mismatch.</p>\n<p>This problem <strong>is not</strong> related to <a href=\"https://stackoverflow.com/questions/77881433/org-postgresql-util-psqlexception-error-function-lowerbytea-does-not-exist\">this</a> hibernate issue, removing null check (<code>:selectedIds IS NULL OR</code>) does not resolve the problem. Furthermore, in my test scenario, the input value is always present, so the absence of the null check is not the cause either.</p>\n<p>I've tried using <code>cast()</code> or <code>treat()</code>, but didn't find the way to do it properly. For example <code>cast(:selectedIds as Collection&lt;Long&gt;)</code> gives compilation error.</p>\n<p>I've also tried wrapping the parameter with <code>elements(:selectedIds)</code>, but it leads to compilation error as well:</p>\n<pre><code>Caused by: org.hibernate.query.sqm.produce.function.FunctionArgumentException:\nParameter 1 of function 'array_overlaps()' requires an array type\njava.util.Collection&lt;java.lang.Long&gt;, but argument is of type 'java.lang.Object'\n</code></pre>\n<p>How can I correctly pass a <code>Collection&lt;Long&gt;</code> as an array parameter in JPA so that <code>array_overlaps()</code> works without using a native query? Is there an alternative way to represent arrays in JPA that avoids the bytea conversion issue?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

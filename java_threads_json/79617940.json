@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "log4j2"
+    ],
+    "owner": {
+      "account_id": 4385645,
+      "reputation": 48,
+      "user_id": 3575916,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/emrZ5.png?s=256",
+      "display_name": "Mark",
+      "link": "https://stackoverflow.com/users/3575916/mark"
+    },
+    "is_answered": true,
+    "view_count": 86,
+    "accepted_answer_id": 79639980,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1748330359,
+    "creation_date": 1747056550,
+    "last_edit_date": 1747078808,
+    "question_id": 79617940,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79617940/setting-log-level-programmatically-works-on-one-computer-not-on-another",
+    "title": "Setting log level programmatically works on one computer, not on another",
+    "body": "<p>My goal is to programmatically set the log4j2 log level. It's working in my IDE, but once the program is built into a JAR and deployed on another machine the procedure has no effect. What can be the problem?</p>\n<p>This is the code:</p>\n<pre class=\"lang-java prettyprint-override\"><code>LoggerContext ctx = (LoggerContext)LogManager.getContext(false);\nConfiguration config = ctx.getConfiguration();\nLoggerConfig rootLoggerConfig = config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME);\nLevel level = Level.ERROR;\nrootLoggerConfig.setLevel(level);\n\n// show all available loggers and set them to the new level:\nMap&lt;String, LoggerConfig&gt; loggers = config.getLoggers();\nSystem.out.println(&quot;\\nConfigured loggers:&quot;);\nfor (Map.Entry&lt;String, LoggerConfig&gt; entry : loggers.entrySet())\n{\n  System.out.println(&quot;Logger: &quot; + entry.getKey() + &quot; Level: &quot; + entry.getValue().getLevel());\n  LoggerConfig loggerConfig = config.getLoggerConfig(entry.getKey());\n  loggerConfig.setLevel(level);\n}\n\nSystem.out.println(&quot;\\nLog4j2 configuration file location: &quot; +\n    ((org.apache.logging.log4j.core.LoggerContext)LogManager.getContext(false))\n        .getConfiguration().getConfigurationSource().getLocation());\n\nctx.updateLoggers();\n_log.fatal(&quot;LogLevel changed to &quot; + newLogLevel);\n_log.fatal(&quot;Current logger is &quot; + _log.getName() + &quot; with level &quot; + _log.getLevel());\n_log.info(&quot;You shouldn't see this&quot;);\n</code></pre>\n<p>The output on my IDE machine is like this:</p>\n<pre class=\"lang-none prettyprint-override\"><code>Configured loggers:\nLogger:  Level: ERROR\nLogger: com.newhighs Level: INFO\n\nLog4j2 configuration file location: /home/mark/tremendous/Bison/trunk/target/classes/log4j2.properties\n2025-05-12 15:07:35.815 FATAL [main] Bison - LogLevel changed to ERROR\n2025-05-12 15:07:35.816 FATAL [main] Bison - Current logger is com.newhighs.bison.Bison with level ERROR\n</code></pre>\n<p>While on the other it is like this:</p>\n<pre class=\"lang-none prettyprint-override\"><code>Configured loggers:\nLogger:  Level: ERROR\nLogger: com.newhighs Level: INFO\n\nLog4j2 configuration file location: jar:file:/home/mark/bison/jar/bison-1.0.8794-SNAPSHOT-jar-with-dependencies.jar!/log4j2.properties\n2025-05-12 15:08:32.844 FATAL Bison - LogLevel changed to ERROR\n2025-05-12 15:08:32.844 FATAL Bison - Current logger is com.newhighs.bison.Bison with level INFO\n2025-05-12 15:08:32.844 INFO  Bison - You shouldn't see this\n</code></pre>\n<p>The log4j2.properties files are identical, it's just that one is on the regular filesystem, the other in the JAR. Why is the log level still INFO on the second machine?</p>\n<p>(For completeness, here's the contents of log4j2.properties)</p>\n<pre class=\"lang-ini prettyprint-override\"><code># Log4j2.properties of Bison\nstatus = warn\n\nappender.console.type = Console\nappender.console.name = LogToConsole\nappender.console.layout.type = PatternLayout\nappender.console.layout.pattern = %d{yyyy-MM-dd HH:mm:ss.SSS} %-5p [%t] %c{1} - %msg%n\n\n# Rotate log file\nappender.rolling.type = RollingFile\nappender.rolling.name = LogToRollingFile\nappender.rolling.fileName = logs/bison.log\nappender.rolling.filePattern = logs/$${date:yyyy-MM}/app-%d{MM-dd-yyyy}-%i.log.gz\nappender.rolling.layout.type = PatternLayout\nappender.rolling.layout.pattern = %d %p %C{1.} [%t] %m%n\nappender.rolling.policies.type = Policies\nappender.rolling.policies.time.type = TimeBasedTriggeringPolicy\nappender.rolling.policies.size.type = SizeBasedTriggeringPolicy\nappender.rolling.policies.size.size=10MB\nappender.rolling.strategy.type = DefaultRolloverStrategy\nappender.rolling.strategy.max = 10\n\n# Log to console and rolling file\nlogger.app.name = com.newhighs\n# put this on debug for debug level\nlogger.app.level = INFO\nlogger.app.additivity = false\nlogger.app.appenderRef.rolling.ref = LogToRollingFile\nlogger.app.appenderRef.console.ref = LogToConsole\n\nrootLogger.level = INFO\nrootLogger.appenderRef.stdout.ref = LogToConsole\n</code></pre>\n<p>And also for completeness: I checked using the JAR on the IDE machine. Same result as on the other machine. For some reason it doesn't work as expected when running from the JAR.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring"
+    ],
+    "owner": {
+      "account_id": 6876655,
+      "reputation": 1711,
+      "user_id": 5284890,
+      "user_type": "registered",
+      "accept_rate": 57,
+      "profile_image": "https://www.gravatar.com/avatar/29eba1495323dbf53959560fde5f2c35?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Eager",
+      "link": "https://stackoverflow.com/users/5284890/eager"
+    },
+    "is_answered": false,
+    "view_count": 79,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1754508841,
+    "creation_date": 1754500436,
+    "last_edit_date": 1754508841,
+    "question_id": 79727629,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79727629/spring-framework-webapplicationcontext-property-missing-upon-conditionalonpro",
+    "title": "Spring Framework, WebApplicationContext, Property missing upon @ConditionalOnProperty validation",
+    "body": "<p>I want to use the <code>@ConditionalOnProperty</code> to register beans based on the property presence:</p>\n<pre><code>@ConditionalOnProperty(name = &quot;aws.secrets-manager.sm.enable&quot;, havingValue = &quot;true&quot;)\n@EnableConfigurationProperties(AwsSecretsManagerProperties.class)\npublic class AwsSecretsManagerConfig {\n}\n\n@Configuration\n@Import(AwsSecretsManagerConfig.class)\npublic class MyPortalAwsSecretsManagerConfig {\n\n}\n</code></pre>\n<p>As for now, the bean is not registered regardless of the property value. When debugging the behaviour, I noticed that the <code>my-web.properties</code> property source is added to  <code>WebApplicationContext</code>'s property sources after <code>AwsSecretsManagerConfig</code> bean creation attempt.</p>\n<p>The <code>WebApplicationContext</code> is configured in the <code>web.xml</code> file:</p>\n<pre><code>&lt;listener&gt;\n        &lt;listener-class&gt;org.springframework.web.context.ContextLoaderListener&lt;/listener-class&gt;\n&lt;/listener&gt;\n&lt;context-param&gt;\n    &lt;param-name&gt;contextConfigLocation&lt;/param-name&gt;\n    &lt;param-value&gt;/WEB-INF/root-mvc.xml&lt;/param-value&gt;\n&lt;/context-param&gt;\n</code></pre>\n<p>The <code>root-mvc.xml</code> file contains the properties bean declaration:</p>\n<pre><code>&lt;context:property-placeholder properties-ref=&quot;appProperties&quot; /&gt;\n\n&lt;beans profile=&quot;local,integration-test&quot;&gt;\n    &lt;util:properties id=&quot;appProperties&quot; location=&quot;/WEB-INF/my-web.properties&quot; /&gt;\n&lt;/beans&gt;\n</code></pre>\n<p>My current guess is that this happens because <code>@ConditionalOnProperty</code> is a part of Spring Boot Autoconfigure, which might affect the beans' loading order. The annotation-based configurations are loaded before the XML.</p>\n<p>Appreciate, if somebody could provide more details of what exactly happens under the hood and how to solve the issue?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

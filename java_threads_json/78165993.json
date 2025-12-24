@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "wildfly",
+      "java-17",
+      "jboss-eap-7",
+      "wildfly-23"
+    ],
+    "owner": {
+      "account_id": 22892387,
+      "reputation": 71,
+      "user_id": 17032341,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AATXAJz4-KaRWyMWRKMQwuQQqaByom0y0rl3wq2AABHI=k-s256",
+      "display_name": "rik",
+      "link": "https://stackoverflow.com/users/17032341/rik"
+    },
+    "is_answered": true,
+    "view_count": 1765,
+    "accepted_answer_id": 78191517,
+    "answer_count": 2,
+    "score": 2,
+    "last_activity_date": 1725207770,
+    "creation_date": 1710496169,
+    "last_edit_date": 1725207770,
+    "question_id": 78165993,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78165993/replace-com-sun-jndi-dns-dnscontextfactory-wildfly23-jdk17",
+    "title": "Replace com.sun.jndi.dns.DnsContextFactory Wildfly23 JDK17",
+    "body": "<p>Our application server is Jboss 7.4 (Wildfly 23) and when I switched from JDK11 to JDK17 I got the runtime exception:\nCaused by: java.lang.IllegalAccessException: class org.jboss.as.naming.InitialContext cannot access class com.sun.jndi.dns.DnsContextFactory (in module jdk.naming.dns) because module jdk.naming.dns does not export com.sun.jndi.dns to unnamed module @500cd973</p>\n<p>Why we use DnsContextFactory is because we want to do a search (from Java) for ldap domains in the SRV records, code in app:</p>\n<pre><code>Hashtable&lt;String, String&gt; env = new Hashtable&lt;&gt;();\nenv.put(Context.INITIAL_CONTEXT_FACTORY, &quot;com.sun.jndi.dns.DnsContextFactory&quot;); // replace?\nenv.put(&quot;java.naming.provider.url&quot;, &quot;dns:&quot;);\nDirContext ctx = new InitialDirContext(env); // throws exception\nAttributes attributes = ctx.getAttributes(&quot;_ldap._tcp.mydomain.com&quot;, new String[]{&quot;SRV&quot;}); \nAttribute a = attributes.get(&quot;SRV&quot;);\nfor (int i = 0; i &lt; a.size(); i++) {\n   .\n   .\n   .\n}\n</code></pre>\n<p>I can resolve this by adding VM argument during start-up:\nJAVA_OPTS=&quot;$JAVA_OPTS --add-exports=jdk.naming.dns/com.sun.jndi.dns=ALL-UNNAMED&quot;\nbut I rather not, my understanding is that add-export will fail in the fututer (JDK21?) and I am lokking for a better long term solution.</p>\n<p>Edit:\nIf I start my Jboss 7.4 with JDK11 it all works fine, but if I start it with JDK17 the module is now “hidden” and unavailable. Is there another way to search the SRV-records than using DnsContextFactory from com.sun?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

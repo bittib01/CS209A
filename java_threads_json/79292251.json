@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "validation",
+      "fixtures",
+      "spring-boot-test"
+    ],
+    "owner": {
+      "account_id": 27743642,
+      "reputation": 63,
+      "user_id": 21179562,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AEdFTp7rDy4zEYmz8_3nLcQYXfCxVX3WNkgoEjqE-EMv=k-s256",
+      "display_name": "NONAME",
+      "link": "https://stackoverflow.com/users/21179562/noname"
+    },
+    "is_answered": true,
+    "view_count": 54,
+    "accepted_answer_id": 79309302,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1735210948,
+    "creation_date": 1734549438,
+    "question_id": 79292251,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79292251/how-to-handle-custom-validators-with-fixturemonkey-and-jakartavalidationplugin",
+    "title": "How to handle custom validators with FixtureMonkey and JakartaValidationPlugin?",
+    "body": "<p>I’m trying to write some tests using <strong>FixtureMonkey</strong>, and I’ve encountered an issue. My DTOs have custom validators, and I’m using <code>JakartaValidationPlugin</code> with <strong>FixtureMonkey</strong>.</p>\n<p><strong>Here’s a simplified version of my test setup:</strong></p>\n<pre><code>@SpringBootTest\n@DisplayName(&quot;User Service Tests&quot;)\nclass UserServiceTest {\n\n    private static final FixtureMonkey fixtureMonkey = FixtureMonkey.builder()\n            .objectIntrospector(FieldReflectionArbitraryIntrospector.INSTANCE)\n            .plugin(new JakartaValidationPlugin())\n            .defaultNotNull(true)\n            .build();\n\n    private static ResponseUserDto expectedResponseDto;\n    private static RequestUserDto expectedRequestDto;\n\n    @BeforeAll\n    static void setUp() {\n        expectedResponseDto = fixtureMonkey.giveMeOne(ResponseUserDto.class);\n        expectedRequestDto = fixtureMonkey.giveMeOne(RequestUserDto.class);\n    }\n}\n\n</code></pre>\n<p>The issue arises because some of my validators depend on a repository for validation logic. For example, I have a custom <code>UniqueEmailValidator</code> like this:</p>\n<pre><code>@Component\npublic class UniqueEmailValidator implements ConstraintValidator&lt;UniqueEmail, String&gt; {\n\n    private final UserRepository userRepository;\n\n    @Autowired\n    public UniqueEmailValidator(final UserRepository userRepository) {\n        this.userRepository = userRepository;\n    }\n\n    @Override\n    public boolean isValid(final String email, final ConstraintValidatorContext context) {\n        if (email == null) {\n            return true;\n        }\n        return !userRepository.existsByEmail(email);\n    }\n}\n\n</code></pre>\n<p><strong>When I run the tests, I get the following error:</strong></p>\n<pre><code>HV000064: Unable to instantiate ConstraintValidator: my.awesome.package.validation.UniqueEmailValidator.\njakarta.validation.ValidationException: HV000064: Unable to instantiate ConstraintValidator: my.awesome.package.validation.UniqueEmailValidator.\n    at org.hibernate.validator.internal.util.privilegedactions.NewInstance.run(NewInstance.java:44)\n\nmy.awesome.package.validation.UniqueEmailValidator.&lt;init&gt;()\njava.lang.NoSuchMethodException: my.awesome.package.validation.UniqueEmailValidator.&lt;init&gt;()\n\n</code></pre>\n<p><strong>What I’ve Learned So Far</strong></p>\n<p>I understand that this error occurs because <strong>FixtureMonkey</strong> invokes <strong>Jakarta Validation</strong> when generating the DTOs, and the validator’s constructor requires a <code>UserRepository</code> (via @Autowired), which isn’t initialized in this context.</p>\n<p><strong>My Goal</strong></p>\n<p>I’d like to disable or bypass specific validations (e.g., UniqueEmailValidator) when generating data with <strong>FixtureMonkey</strong>. I’m looking for the best way to achieve this while keeping the rest of the validation logic intact.</p>\n<p>What’s the recommended approach to handle this situation? Should I configure <strong>FixtureMonkey</strong>, mock the validator, or is there another solution?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

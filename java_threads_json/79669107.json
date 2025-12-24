@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "rust",
+      "interop",
+      "ncurses",
+      "java-ffm"
+    ],
+    "owner": {
+      "account_id": 37849865,
+      "reputation": 117,
+      "user_id": 28460288,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/IMpM9BWk.jpg?s=256",
+      "display_name": "Radon",
+      "link": "https://stackoverflow.com/users/28460288/radon"
+    },
+    "is_answered": true,
+    "view_count": 236,
+    "accepted_answer_id": 79684310,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1751264200,
+    "creation_date": 1750164598,
+    "last_edit_date": 1750345811,
+    "question_id": 79669107,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79669107/non-blocking-ncurses-getch-in-java-ffm",
+    "title": "Non-Blocking ncurses getch() in Java FFM",
+    "body": "<p>I have a Rust function named <code>init</code> that calls the following ncurses functions (in the following order): <code>initscr()</code>, <code>cbreak()</code>, <code>keypad(stdscr, TRUE)</code>, <code>getch()</code> followed by <code>endwin()</code>.</p>\n<p>The <code>init</code> function looks something like this:</p>\n<pre><code>#[unsafe(no_mangle)]\npub extern &quot;C&quot; fn init() {\n    unsafe {\n        _init();\n    }\n}\n</code></pre>\n<p>Where <code>_init</code> is an ffi function declared as so:</p>\n<pre><code>#[link(...)]\nunsafe extern &quot;C&quot; {\n    pub fn _init();\n}\n</code></pre>\n<p>This function is implemented in C as such:</p>\n<pre><code>void _init() {\n    initscr();\n    cbreak();\n    keypad(stdscr, TRUE);\n    getch();\n    endwin();\n}\n</code></pre>\n<p>This rust library is compiled as a dynamic C library (.so)</p>\n<p>My Java code looks like this:</p>\n<pre><code>public class Init {\n  public void init() throws RuntimeException {\n    Linker linker = Linker.nativeLinker();\n\n    try(Arena arena = Arena.ofConfined()) {\n      SymbolLookup lookup = SymbolLookup.libraryLookup(Path.of(...), arena);\n\n      Optional&lt;MemorySegment&gt; optionalInitAddress = lookup.find(&quot;init&quot;);\n\n      if(optionalInitAddress.isPresent()) {\n        MemorySegment initAddr = optionalInitAddress.get();\n        FunctionDescriptor initDesc = FunctionDescriptor.ofVoid();\n        MethodHandle init = linker.downcallHandle(initAddr, initDesc);\n\n        init.invoke();\n      } else {\n        throw new NoSuchElementException();\n      }\n    } catch(Throwable e) {\n      throw new RuntimeException(e);\n    }\n  }\n}\n</code></pre>\n<p>When I call this function from Java using the FFM API, my terminal just flickers and the program ends without waiting for <code>getch()</code>.</p>\n<p>On further inspection, the <code>getch</code> and <code>cbreak</code> functions are giving an error code of -1 (only when executed from Java), and the other functions are giving an error code of 0.</p>\n<p>I'm not sure why Java is exhibiting this weird behaviour.</p>\n<p>I am compiling and running this Java program via gradle.</p>\n<p>Some insight on this would be helpful.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

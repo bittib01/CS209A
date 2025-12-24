@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "asynchronous",
+      "micrometer",
+      "micrometer-tracing"
+    ],
+    "owner": {
+      "account_id": 5477283,
+      "reputation": 5005,
+      "user_id": 4354956,
+      "user_type": "registered",
+      "accept_rate": 38,
+      "profile_image": "https://lh3.googleusercontent.com/-dGnI8MKmUL4/AAAAAAAAAAI/AAAAAAAAABE/s48lzQAiCKk/s256-rj/photo.jpg",
+      "display_name": "Joseph K. Strauss",
+      "link": "https://stackoverflow.com/users/4354956/joseph-k-strauss"
+    },
+    "is_answered": true,
+    "view_count": 614,
+    "answer_count": 2,
+    "score": 2,
+    "last_activity_date": 1761997886,
+    "creation_date": 1711997695,
+    "last_edit_date": 1761997886,
+    "question_id": 78257248,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78257248/configuring-micrometer-to-automatically-create-new-span-on-async",
+    "title": "Configuring Micrometer to Automatically Create New Span on Async",
+    "body": "<p>I am trying to get Spring Boot 3.2 to work with trace/span ids in a similar fashion to the way Spring Cloud Sleuth works in Spring Boot 2.</p>\n<p>I have come up with the following configuration class:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Configuration\nclass MicrometerConfig implements AsyncConfigurer {\n    public static Executor executor() {\n        return ContextExecutorService.wrap(ForkJoinPool.commonPool(), contextSnapshotFactory::captureAll);\n    }\n\n    private static final ContextSnapshotFactory contextSnapshotFactory = ContextSnapshotFactory.builder()\n        .build();\n\n    @Override\n    public Executor getAsyncExecutor() {\n        return ContextExecutorService.wrap(Executors.newCachedThreadPool(), contextSnapshotFactory::captureAll);\n    }\n}\n</code></pre>\n<p>This is working for <code>@Async</code> methods, but does not create new spans for new threads. I tried putting a <code>@NewSpan</code> annotation on my <code>@Async</code> method, but this causes my method to not run asynchronously anymore.</p>\n<p>I also tried putting a manual new span in form my async executor</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Override\npublic Executor getAsyncExecutor() {\n    Span span = tracer.nextSpan();\n    span.start();\n    try (Tracer.SpanInScope ignored = tracer.withSpan(span)) {\n        log.info(&quot;NEWSPAN&quot;);\n        return ContextExecutorService.wrap(Executors.newCachedThreadPool(), contextSnapshotFactory::captureAll);\n    }\n}\n</code></pre>\n<p>While the <code>log.info(&quot;NEWSPAN&quot;)</code> does produce a new span in the log, the actual method is still producing the outside span id. What am I missing?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "jpa",
+      "spring-data-jpa"
+    ],
+    "owner": {
+      "account_id": 5665843,
+      "reputation": 2044,
+      "user_id": 4482052,
+      "user_type": "registered",
+      "accept_rate": 19,
+      "profile_image": "https://i.sstatic.net/758FyFeK.png?s=256",
+      "display_name": "Suresh Kumar",
+      "link": "https://stackoverflow.com/users/4482052/suresh-kumar"
+    },
+    "is_answered": false,
+    "view_count": 42,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1742379871,
+    "creation_date": 1742370649,
+    "last_edit_date": 1742379871,
+    "question_id": 79519474,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79519474/how-to-cascade-soft-delete-a-user-from-organization-to-related-workspaces-and-pr",
+    "title": "How to Cascade Soft Delete a User from Organization to Related Workspaces and Projects in Spring Boot?",
+    "body": "<p>In my Spring Boot application, I have the following entities with Many-to-Many relationships:</p>\n<p><strong>User</strong>: Can belong to multiple organizations, workspaces, and projects.</p>\n<p><strong>Organization</strong>: Contains a list of users and workspaces.</p>\n<p><strong>Workspace</strong>: Contains a list of users and projects.</p>\n<p><strong>Project</strong>: Contains a list of users.</p>\n<p>When a user is soft-deleted (marked as inactive) from an organization, I want to ensure that the user is also removed from all related workspaces and projects within that organization. How can I implement this cascading soft delete behavior in Spring Boot?</p>\n<p>Here is a simplified version of my entity structure:</p>\n<pre><code>@Entity\npublic class User {\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n\n    private boolean active = true;\n\n    @ManyToMany(mappedBy = &quot;users&quot;)\n    private Set&lt;Organization&gt; organizations = new HashSet&lt;&gt;();\n\n    @ManyToMany(mappedBy = &quot;users&quot;)\n    private Set&lt;Workspace&gt; workspaces = new HashSet&lt;&gt;();\n\n    @ManyToMany(mappedBy = &quot;users&quot;)\n    private Set&lt;Project&gt; projects = new HashSet&lt;&gt;();\n\n    // Getters and Setters\n}\n\n@Entity\npublic class Organization {\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n\n    @ManyToMany\n    @JoinTable(\n        name = &quot;organization_users&quot;,\n        joinColumns = @JoinColumn(name = &quot;organization_id&quot;),\n        inverseJoinColumns = @JoinColumn(name = &quot;user_id&quot;)\n    )\n    private Set&lt;User&gt; users = new HashSet&lt;&gt;();\n\n    @OneToMany(mappedBy = &quot;organization&quot;)\n    private Set&lt;Workspace&gt; workspaces = new HashSet&lt;&gt;();\n\n    // Getters and Setters\n}\n\n@Entity\npublic class Workspace {\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n\n    @ManyToMany\n    @JoinTable(\n        name = &quot;workspace_users&quot;,\n        joinColumns = @JoinColumn(name = &quot;workspace_id&quot;),\n        inverseJoinColumns = @JoinColumn(name = &quot;user_id&quot;)\n    )\n    private Set&lt;User&gt; users = new HashSet&lt;&gt;();\n\n    @ManyToOne\n    @JoinColumn(name = &quot;organization_id&quot;)\n    private Organization organization;\n\n    @OneToMany(mappedBy = &quot;workspace&quot;)\n    private Set&lt;Project&gt; projects = new HashSet&lt;&gt;();\n\n    // Getters and Setters\n}\n\n@Entity\npublic class Project {\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n\n    @ManyToMany\n    @JoinTable(\n        name = &quot;project_users&quot;,\n        joinColumns = @JoinColumn(name = &quot;project_id&quot;),\n        inverseJoinColumns = @JoinColumn(name = &quot;user_id&quot;)\n    )\n    private Set&lt;User&gt; users = new HashSet&lt;&gt;();\n\n    @ManyToOne\n    @JoinColumn(name = &quot;workspace_id&quot;)\n    private Workspace workspace;\n\n    // Getters and Setters\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

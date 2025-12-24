@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot"
+    ],
+    "owner": {
+      "account_id": 26018975,
+      "reputation": 603,
+      "user_id": 19726929,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a-/AFdZucrYJQp1BPoroFwwcDzA0gsxTi78w0WUm0AgkHd7=k-s256",
+      "display_name": "Ahmar",
+      "link": "https://stackoverflow.com/users/19726929/ahmar"
+    },
+    "is_answered": false,
+    "view_count": 112,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1747724414,
+    "creation_date": 1747660368,
+    "last_edit_date": 1747724414,
+    "question_id": 79628819,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79628819/how-to-apply-a-dynamic-chunk-size-from-itemreader-in-spring-batch-without-restar",
+    "title": "How to apply a dynamic chunk size from ItemReader in Spring Batch without restarting the step?",
+    "body": "<p>I'm building a Spring Batch job using Spring Boot 3.3 to process a large dataset of customer transactions (e.g., ~10M records). The dataset has varying density (e.g., some customers have thousands of transactions, others have few), and I want to adjust the chunk size dynamically at runtime to optimize performance.</p>\n<p>I've tried to create a custom <code>ItemReader</code> that calculates a dynamic chunk size based on the data it reads (simplified here for brevity).</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Component\npublic class DynamicChunkItemReader implements ItemReader&lt;Transaction&gt; {\n    private final ItemReader&lt;Transaction&gt; delegate;\n    private volatile int chunkSize = 1000; // Initial chunk size\n    private final Map&lt;String, Long&gt; keyCounts = new ConcurrentHashMap&lt;&gt;();\n\n    public DynamicChunkItemReader(ItemReader&lt;Transaction&gt; delegate) {\n        this.delegate = delegate;\n    }\n\n    @Override\n    public Transaction read() throws Exception {\n        Transaction item = delegate.read();\n        if (item != null) {\n            // Track data skew (e.g., transactions per customer)\n            String customerId = item.getCustomerId();\n            keyCounts.merge(customerId, 1L, Long::sum);\n\n            // Simplified skew calculation\n            double variance = calculateVariance(keyCounts);\n            chunkSize = calculateChunkSize(variance);\n        }\n        return item;\n    }\n\n    private double calculateVariance(Map&lt;String, Long&gt; counts) {\n        double mean = counts.values().stream().mapToLong(Long::longValue).average().orElse(0);\n        return counts.values().stream()\n                .mapToDouble(count -&gt; Math.pow(count - mean, 2))\n                .average()\n                .orElse(0);\n    }\n\n    private int calculateChunkSize(double variance) {\n        if (variance &gt; 1000) return Math.max(100, chunkSize / 2); // Smaller for dense data\n        if (variance &lt; 100) return Math.min(5000, chunkSize * 2); // Larger for sparse data\n        return chunkSize;\n    }\n\n    public int getChunkSize() {\n        return chunkSize;\n    }\n}\n</code></pre>\n<p>Step configuration:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Bean\npublic Step dynamicChunkStep(DynamicChunkItemReader reader, ItemWriter&lt;Transaction&gt; writer, PlatformTransactionManager txManager) {\n    return stepBuilderFactory.get(&quot;dynamicChunkStep&quot;)\n            .&lt;Transaction, Transaction&gt;chunk(reader.getChunkSize()) // Issue: Static value\n            .reader(reader)\n            .writer(writer)\n            .transactionManager(txManager)\n            .build();\n}\n</code></pre>\n<p>The problem is that <code>reader.getChunkSize()</code> is called once during step configuration, and subsequent changes to chunkSize in the reader are ignored. I need the step to use the updated <code>chunkSize</code> value for each chunk during execution.</p>\n<p>How can I configure a Spring Batch step to apply a dynamic chunk size from <code>ItemReader.getChunkSize()</code> at runtime without restarting the step?</p>\n<p>Is there a way to customize Spring Batch’s <code>ChunkProvider</code> or <code>TaskletStep</code> to use a dynamic chunk size while preserving transaction integrity?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "jackson",
+      "openapi",
+      "springdoc"
+    ],
+    "owner": {
+      "account_id": 4360446,
+      "reputation": 1990,
+      "user_id": 3557714,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/dca1b60d2a69bc389eac206a844b448d?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Ben R.",
+      "link": "https://stackoverflow.com/users/3557714/ben-r"
+    },
+    "is_answered": true,
+    "view_count": 289,
+    "accepted_answer_id": 79629890,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1747726225,
+    "creation_date": 1747665200,
+    "question_id": 79628957,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79628957/how-to-include-springdoc-schemas-for-a-request-body-field-that-uses-jackson-poly",
+    "title": "How to include Springdoc schemas for a request body field that uses Jackson polymorphism of an interface",
+    "body": "<p>To start with, here are the relevant dependencies in my build.gradle:</p>\n<pre><code>    implementation(&quot;org.springframework.boot:spring-boot-starter-web:2.7.18&quot;)\n    implementation(&quot;org.springdoc:springdoc-openapi-ui:1.8.0&quot;) {\n        exclude(group = &quot;org.slf4j&quot;, module = &quot;slf4j-api&quot;)\n    }\n    implementation(&quot;org.springdoc:springdoc-openapi-webmvc-core:1.8.0&quot;) {\n        exclude(group = &quot;org.slf4j&quot;, module = &quot;slf4j-api&quot;)\n    }\n</code></pre>\n<p>(slf4j-api is excluded from Springdoc because it conflicts with the slf4j version used by spring-boot-starter-web, leading to no logging output)</p>\n<p>What I'm trying to achieve:</p>\n<p>a POST endpoint to create a Foo resource. <code>CreateFooRequest</code> is an abstract superclass, with two subclasses, <code>CreateFooARequest</code> and <code>CreateFooBRequest</code>. <code>CreateFooRequest</code> is annotated with Jackson's <code>@JsonSubTypes</code>, referencing the two subclasses.</p>\n<p>This works just fine: in the OpenAPI specification generated from the Spring REST controller, I can see all these types as components, and my <code>CreateFooController</code> correctly indicates that the OpenAPI operation accepts <code>oneOf: [FooA, FooB]</code>.</p>\n<p>However, on any <code>CreateFooRequest</code> there are two fields which are themselves polymorphic.</p>\n<p>The first field, <code>config</code>, is of type <code>Config</code>, with subtypes <code>None</code>, <code>One</code> and <code>Many</code>.</p>\n<p>The second field is a <code>List&lt;Animal&gt;</code>, the subtypes of <code>Animal</code> currently include <code>Cat</code> and <code>Dog</code>.</p>\n<p>The request class therefore looks something like this:</p>\n<pre><code>    @Schema\n    private Config config = new None();\n\n    @Schema\n    private List&lt;Animal&gt; animals = new ArrayList&lt;&gt;();\n</code></pre>\n<p>and both of <code>Config</code> and <code>Animal</code> look something like:</p>\n<pre><code>@JsonTypeInfo(\n        use = JsonTypeInfo.Id.NAME,\n        include = JsonTypeInfo.As.PROPERTY,\n        property = &quot;type&quot;)\n@JsonSubTypes({\n        @JsonSubTypes.Type(name = &quot;none&quot;, value = None.class),\n        @JsonSubTypes.Type(name = &quot;many&quot;, value = Many.class),\n        @JsonSubTypes.Type(name = &quot;one&quot;, value = One.class),\n})\n@Schema(\n        subTypes = {\n                None.class,\n                Many.class,\n                One.class,\n        },\n        discriminatorProperty = &quot;type&quot;,\n        discriminatorMapping = {\n                @DiscriminatorMapping(value = &quot;none&quot;, schema = None.class),\n                @DiscriminatorMapping(value = &quot;many&quot;, schema = Many.class),\n                @DiscriminatorMapping(value = &quot;one&quot;, schema = One.class),\n        })\npublic interface Config {\n}\n</code></pre>\n<p>Springdoc is able to detect the JSON schema types of these fields. For instance, <code>createFooRequest.animals</code> is correctly described as</p>\n<pre><code>        animals:\n          type: array\n          description: Some animals in the foo\n          items:\n            oneOf:\n            - $ref: '#/components/schemas/Cat'\n            - $ref: '#/components/schemas/Dog'\n</code></pre>\n<p>However, those schemas (<code>#/components/schemas/Cat</code> and <code>#/components/schemas/Dog</code>, Animal, Config and all its subtypes) are simply missing from the OpenAPI spec, making it an invalid spec. Annotating those types with <code>@Schema</code> doesn't help.</p>\n<p>Fields whose types are specific to one of those types are also excluded: for instance, if Dog is the only place where an <code>enum Wibble {...</code> is used, then <code>Wibble</code> will also be missing from the spec.</p>\n<p>What do I need to do to get these schemas included? I would prefer not to have to explicitly include them myself using a <code>GlobalOpenApiCustomizer</code>. This is because there could foreseeably be future subtypes of <code>Animal</code> and I want them to be automatically included, rather than requiring that all future <code>Animal</code> subtype developers must remember to add the new types if they want the spec to stay valid.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

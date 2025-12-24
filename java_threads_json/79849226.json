@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jasper-reports",
+      "jfreechart"
+    ],
+    "owner": {
+      "account_id": 15839158,
+      "reputation": 153,
+      "user_id": 11428165,
+      "user_type": "registered",
+      "profile_image": "https://lh5.googleusercontent.com/--ojqGmQa7VM/AAAAAAAAAAI/AAAAAAAAAKM/Dnoiu0G4-Io/s256-rj/photo.jpg",
+      "display_name": "Malkom",
+      "link": "https://stackoverflow.com/users/11428165/malkom"
+    },
+    "is_answered": false,
+    "view_count": 44,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1765963807,
+    "creation_date": 1765962429,
+    "question_id": 79849226,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79849226/jasper-reports-issue-on-3d-chart",
+    "title": "Jasper Reports - Issue on 3D chart",
+    "body": "<p>I have to create a 3D barchart with Jasper on a percentage data. There are 2 series of data: A and 100-A. The idea is to have a graph of this type:<br />\n<img src=\"https://i.sstatic.net/0bfLkcKC.png\" alt=\"Chart with 2 dataset in percentage\" title=\"Chart with 2 dataset in percentage\" /></p>\n<p>My issue is when  A is equal to 100 and so 100 - A = 0.</p>\n<p>The result is like this :</p>\n<p><img src=\"https://i.sstatic.net/e8HLKH4v.png\" alt=\"Chart with 1st dataset to 100%\" title=\"Chart with 1st dataset to 100%\" /></p>\n<p>The top is already in blue !!</p>\n<p>I understood that it was a known concern of Jasper.</p>\n<p>So I decide to customise my chart and &quot;delete&quot; the 2nd dataset (100 - A) if is equal to 0.</p>\n<p>I write this class :</p>\n<pre><code>public class InputPowerChartCustomizer implements JRChartCustomizer {\n\n  private static final Color USED_RED = new Color(0xFF5555);\n  private static final Color UNUSED_BLUE = new Color(0x5555FF);\n\n  @Override\n  public void customize(JFreeChart chart, JRChart jasperChart) {\n\n    CategoryPlot plot = chart.getCategoryPlot();\n    CategoryDataset dataset = plot.getDataset();\n\n    LegendItemCollection legendItems = plot.getLegendItems();\n    plot.setFixedLegendItems(legendItems);\n\n    if (!(plot.getRenderer() instanceof StackedBarRenderer3D)) {\n      return;\n    }\n\n    StackedBarRenderer3D renderer =\n            (StackedBarRenderer3D) plot.getRenderer();\n\n    // Série 0 = Used\n    // Série 1 = Unused\n    renderer.setSeriesPaint(0, USED_RED);\n    renderer.setSeriesPaint(1, UNUSED_BLUE);\n\n    renderer.setItemMargin(0.0);\n    renderer.setDrawBarOutline(false);\n\n    int columnCount = dataset.getColumnCount();\n\n    for (int col = 0; col &lt; columnCount; col++) {\n\n      Number used = dataset.getValue(0, col);\n\n      // Si Used == 100%, on ne dessine pas Unused\n      if (used != null &amp;&amp; used.doubleValue() &gt;= 99.999) {\n        renderer.setSeriesVisible(1, Boolean.FALSE);\n      }\n    }\n  }\n}\n</code></pre>\n<p>But I still have the problem.</p>\n<p>Any idea to fix this ?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

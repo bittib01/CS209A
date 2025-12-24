@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "mockito"
+    ],
+    "owner": {
+      "account_id": 30827820,
+      "reputation": 11,
+      "user_id": 23649862,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/4f4329f407e886d6c7b0d119c5201bb2?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Rohan Sabale",
+      "link": "https://stackoverflow.com/users/23649862/rohan-sabale"
+    },
+    "is_answered": false,
+    "view_count": 106,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1749978098,
+    "creation_date": 1749974354,
+    "last_edit_date": 1749978098,
+    "question_id": 79666398,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79666398/unable-to-mock-internal-method-calling-third-party-api",
+    "title": "Unable to mock internal method calling third-party API",
+    "body": "<p>I have a REST API built with Spring boot, which internally calls a third-party API via a method inside one of my component class. For integration testing, I want to mock this internal method so that it returns a dummy response instead of making the actual external API call.</p>\n<p>I have tried mocking the method using Mockito.when.thenReturn but during execution, the actual method still gets called instead of returning the mocked response.</p>\n<p>Code Snippet:\nServiceHandler Class:</p>\n<pre><code>@Service\npublic class TokenGeneration {\n    private static final Logger LOGGER = LoggerFactory.getLogger(TokenGenerationService.class);\n    @Autowired\n    ServiceHandler service;\n\n    public AccessToken_VO tokengnerate(AuhtmanReq authman) {\n        AccessToken_VO acc = new AccessToken_VO();\n        LOGGER.info(&quot;Printing the Testing Message: &quot;+ service.cmsResponse());       \n        return acc;\n    }}\n</code></pre>\n<p>Component: ServiceHandler.class</p>\n<pre><code>@Component\npublic class ServiceHandler {\n    \n    private final Logger LOGGER = LoggerFactory.getLogger(ServiceHandler.class);\n    public String cmsResponse()\n    {\n        StringEntity jsonEntity = new StringEntity(&quot;Hello&quot;, ContentType.create(&quot;application/json&quot;));\n        return send(jsonEntity,&quot;Service&quot;,&quot;url&quot;,&quot;reqmsgid&quot;);\n    }\n    \n    public String send(StringEntity jsonEntity,String service,String url, String req) {\n        LOGGER.info(&quot;URL to be called :::&quot;);\n        return &quot;TryAgain&quot;;  \n    }}\n</code></pre>\n<p>TestMock.java class</p>\n<pre><code>@SpringBootTest\n@AutoConfigureMockMvc\npublic class TestMock {\n    \n    @MockBean\n    private ServiceHandler service;\n    \n    @Test\n    public void testMockedMethod() {\n        Mockito.when(service.cmsResponse()).thenReturn(&quot;testResult&quot;);\n    }}\n\n</code></pre>\n<p>TestConfig.java class</p>\n<pre><code>@TestConfiguration\n@Profile(&quot;test&quot;)\n@RunWith(SpringRunner.class)\n@AutoConfigureMockMvc\n@SpringBootTest\npublic class TestConfig {\n    \n    @Bean\n    public ServiceHandler service() {\n        return Mockito.mock(ServiceHandler.class);\n    }\n    \n}\n</code></pre>\n<p>Test Class for controller</p>\n<pre><code>@RunWith(SpringRunner.class)\n@SpringBootTest\n@AutoConfigureMockMvc(addFilters = false) \nclass ApplicationTests {\n    \n    private final Logger LOGGER = LoggerFactory.getLogger(ApplicationTests.class);\n    \n    @Autowired\n    private MockMvc mockmvc;\n    \n    @Autowired\n    private ObjectMapper objectMapper;\n\n    @Test\n    void contextLoads() throws JsonProcessingException, Exception {\n        AuhtmanReq auth = new AuhtmanReq();\n        \n        ResultActions perform = mockmvc.perform(post(&quot;/api/test/&quot;)\n                .contentType(MediaType.APPLICATION_JSON)\n                .content(objectMapper.writeValueAsString(auth)));           \n    }\n}\n</code></pre>\n<p>What might I be missing? Is there a better approach to mock this kind of internal third-party call in Spring Boot tests?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

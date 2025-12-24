@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "repository-pattern",
+      "clean-architecture"
+    ],
+    "owner": {
+      "account_id": 31804610,
+      "reputation": 57,
+      "user_id": 24618785,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/414a17d6d06bd61bcc6c9fd76715fff0?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "user24618785",
+      "link": "https://stackoverflow.com/users/24618785/user24618785"
+    },
+    "is_answered": false,
+    "view_count": 68,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1747483091,
+    "creation_date": 1747346511,
+    "last_edit_date": 1747483091,
+    "question_id": 79624232,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79624232/how-to-prevent-instantiating-repository-instead-usecase",
+    "title": "How to prevent instantiating Repository instead UseCase",
+    "body": "<p>I am studying Clean Arch with Java. My project structure is like:</p>\n<pre><code> project\n    |\n    |--domain\n    |   |--entity\n    |   |   |--Student.java\n    |   |--repository    \n    |       |--StudentRepo.java (interface)\n    |\n    |--adapter\n    |   |--StudentRepoImpl.java\n    |\n    |--usecase\n    |   |--StudentUseCase.java\n    |\n    |--Main.java\n</code></pre>\n<p>domain/entity/Student.java</p>\n<pre><code>package domain.entity;\n\npublic class Student {\n    private final String id;\n    private final String name;\n\n    public Student(String id, String name) {\n        this.id = id;\n        this.name = name;\n    }\n\n    public String getId() { return id; }\n    public String getName() { return name; }\n}\n</code></pre>\n<p>domain/repository/StudentRepo.java</p>\n<pre><code>package domain.repository;\n\nimport domain.entity.Student;\nimport java.util.Optional;\n\npublic interface StudentRepo {\n    void save(Student student);\n    Optional&lt;Student&gt; findById(String id);\n}\n</code></pre>\n<p>adapter/StudentRepoImpl.java</p>\n<pre><code>package adapter;\n\nimport domain.entity.Student;\nimport domain.repository.StudentRepo;\n\nimport java.util.HashMap;\nimport java.util.Map;\nimport java.util.Optional;\n\npublic class StudentRepoImpl implements StudentRepo {\n        \n    @Override\n    public void save(Student student) {\n        //code to persist into relational DB\n    }\n\n    @Override\n    public Optional&lt;Student&gt; findById(String id) {\n        //code to return student from DB\n    }\n}\n</code></pre>\n<p>usecase/StudentUseCase.java</p>\n<pre><code>package usecase;\n\nimport domain.entity.Student;\nimport domain.repository.StudentRepo;\n\nimport java.util.Optional;\n\npublic class StudentUseCase {\n    private final StudentRepo repo;\n\n    public StudentUseCase(StudentRepo repo) {\n        this.repo = repo;\n    }\n\n    public void registerStudent(String id, String name) {\n        repo.save(new Student(id, name));\n    }\n\n    public Optional&lt;Student&gt; getStudent(String id) {\n        return repo.findById(id);\n    }\n}\n</code></pre>\n<p>Main.java</p>\n<pre><code>import adapter.StudentRepoImpl;\nimport usecase.StudentUseCase;\nimport domain.entity.Student;\n\npublic class Main {\n    public static void main(String[] args) {\n        StudentRepo studentRepo = new StudentRepoImpl();\n        StudentUseCase useCase = new StudentUseCase(studentRepo);\n\n        useCase.registerStudent(&quot;001&quot;, &quot;Alice&quot;);\n        useCase.registerStudent(&quot;002&quot;, &quot;Bob&quot;);\n\n        useCase.getStudent(&quot;001&quot;).ifPresent(student -&gt;\n            System.out.println(&quot;Found: &quot; + student.getName())\n        );\n    }\n}\n</code></pre>\n<p>According my code, the developer could persist data into the DB using studentRepo instead of useCase. How can I avoid this? I want the flow be: main-&gt;usecase-&gt;repo-&gt;DB\nI considered keeping the StudentRepoImpl class package-private and introducing a UseCaseFactory within the same package (adapter). However, I'm uncertain whether this structure aligns conceptually with Clean Architecture principles.<br />\nThanks in advance.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

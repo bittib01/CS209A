@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "spring-kafka"
+    ],
+    "owner": {
+      "account_id": 1955703,
+      "reputation": 4154,
+      "user_id": 1758740,
+      "user_type": "registered",
+      "accept_rate": 76,
+      "profile_image": "https://i.sstatic.net/ks7E1.jpg?s=256",
+      "display_name": "Iker Aguayo",
+      "link": "https://stackoverflow.com/users/1758740/iker-aguayo"
+    },
+    "is_answered": true,
+    "view_count": 636,
+    "accepted_answer_id": 78139909,
+    "answer_count": 3,
+    "score": 1,
+    "last_activity_date": 1727983426,
+    "creation_date": 1709823795,
+    "last_edit_date": 1709890873,
+    "question_id": 78122348,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78122348/failing-to-handle-deserialization-exceptions-in-batch-listener",
+    "title": "Failing to handle deserialization exceptions in batch listener",
+    "body": "<p>I am migrating Spring boot from version 2 to version 3.</p>\n<p>In my former implementation, I was based on <a href=\"https://docs.spring.io/spring-kafka/docs/2.8.4/reference/html/#error-handling-deserializer\" rel=\"nofollow noreferrer\">v2.8.4 documentation</a> and all was working fine.</p>\n<p>Currently, ListenerUtils.byteArrayToDeserializationException is removed and I have to use SerializationUtils.byteArrayToDeserializationException.</p>\n<p>For this, I am basing on <a href=\"https://docs.spring.io/spring-kafka/docs/current/reference/kafka/serdes.html#error-handling-deserializer\" rel=\"nofollow noreferrer\">v3.1.x documentation</a>, but I have problems.</p>\n<p>The example given in the documentation, precisely this part, does not compile:</p>\n<pre><code>DeserializationException deserEx = SerializationUtils.byteArrayToDeserializationException(this.logger,\n                    headers.get(i).get(SerializationUtils.VALUE_DESERIALIZER_EXCEPTION_HEADER));\n</code></pre>\n<p>Theoretically what is passed is a byte[], but the method only admits a Header. So we would need a cast for that. With ListenerUtils I was casting it to byte[]. But now, I cast to Header or RecordHeader, I get the following error -&gt; Foreign deserialization exception header ignored; possible attack? Something like the following:</p>\n<pre><code>DeserializationException exception = SerializationUtils.byteArrayToDeserializationException(\n            new LogAccessor(IndexingService.class),\n            new RecordHeader(SerializationUtils.KEY_DESERIALIZER_EXCEPTION_HEADER,\n                (byte[]) headersOfNullItem.get(SerializationUtils.VALUE_DESERIALIZER_EXCEPTION_HEADER)));\n</code></pre>\n<p>I have tried to create a DeserializationExceptionHeader, but it is package-protected.</p>\n<p>Am I missing something? How can I avoid that problem so the errors in deserialization are handled?</p>\n<p><strong>Edit (as Artem Bilan mentioned):</strong></p>\n<p>Instead of</p>\n<pre><code>@Header(KafkaHeaders.BATCH_CONVERTED_HEADERS) List&lt;Map&lt;String, Object&gt;&gt; headers\n</code></pre>\n<p>I use</p>\n<pre><code>@Header(KafkaHeaders.BATCH_CONVERTED_HEADERS) Headers headers\n</code></pre>\n<p>And I test it as:</p>\n<pre><code>    private byte[] header(DeserializationException deserEx)\n        {\n            ByteArrayOutputStream baos = new ByteArrayOutputStream();\n            try\n            {\n                new ObjectOutputStream(baos).writeObject(deserEx);\n            }\n            catch (IOException e)\n            {\n                throw new UncheckedIOException(e);\n            }\n            return baos.toByteArray();\n            }\n       }\n    \n@Test\n...\n    Headers headers = new RecordHeaders();\n    myObjects.forEach(myObject -&gt; headers.add(&quot;traceparent&quot;, &quot;00-f569e0cc279ef4a0-5d47674154157a2d-01&quot;.getBytes(StandardCharsets.UTF_8)));\n    myObjects.add(null);\n    DeserializationException deserializationException = new DeserializationException(&quot;aDeserializationException&quot;, null, false, null);\n    Header header = new RecordHeader(SerializationUtils.KEY_DESERIALIZER_EXCEPTION_HEADER, header(deserializationException));\n    headers.add(header);\n    \nclassUnderTest.myMethod(myObjects, headers)\n...\n</code></pre>\n<p>But I still get the same error.</p>\n<p>And also, when I run the application, I get this error:</p>\n<pre><code>org.springframework.core.convert.ConverterNotFoundException: No converter found capable of converting from type [java.util.HashMap&lt;?, ?&gt;] to type [@org.springframework.messaging.handler.annotation.Header org.apache.kafka.common.header.Headers]\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

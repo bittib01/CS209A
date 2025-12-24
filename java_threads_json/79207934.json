@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-kafka",
+      "spring-kafka",
+      "confluent-schema-registry",
+      "jaas"
+    ],
+    "owner": {
+      "account_id": 29855838,
+      "reputation": 1,
+      "user_id": 22880688,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocKa329EDMX3tKGCXi8WDQ_qfbPt8O8HnTL7bIetRv4T=k-s256",
+      "display_name": "Khazim NDIAYE",
+      "link": "https://stackoverflow.com/users/22880688/khazim-ndiaye"
+    },
+    "is_answered": false,
+    "view_count": 511,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1732940064,
+    "creation_date": 1732116976,
+    "last_edit_date": 1732940064,
+    "question_id": 79207934,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79207934/how-to-fix-could-not-find-a-kafkaclient-entry-in-the-jaas-configuration",
+    "title": "How to fix: Could not find a &#39;KafkaClient&#39; entry in the JAAS configuration?",
+    "body": "<p>This is the exception I got when I try to send message in my topic on confluent cloud</p>\n<pre><code>Caused by: org.apache.kafka.common.KafkaException: Failed to create new NetworkClient\n    at org.apache.kafka.clients.ClientUtils.createNetworkClient(ClientUtils.java:252)\n    at org.apache.kafka.clients.ClientUtils.createNetworkClient(ClientUtils.java:162)\n    at org.apache.kafka.clients.producer.KafkaProducer.newSender(KafkaProducer.java:523)\n    at org.apache.kafka.clients.producer.KafkaProducer.&lt;init&gt;(KafkaProducer.java:462)\n    ... 177 common frames omitted\nCaused by: java.lang.IllegalArgumentException: Could not find a 'KafkaClient' entry in the JAAS configuration. System property 'java.security.auth.login.config' is not set\n    at org.apache.kafka.common.security.JaasContext.defaultContext(JaasContext.java:150)\n    at org.apache.kafka.common.security.JaasContext.load(JaasContext.java:103)\n    at org.apache.kafka.common.security.JaasContext.loadClientContext(JaasContext.java:87)\n    at org.apache.kafka.common.network.ChannelBuilders.create(ChannelBuilders.java:167)\n    at org.apache.kafka.common.network.ChannelBuilders.clientChannelBuilder(ChannelBuilders.java:81)\n    at org.apache.kafka.clients.ClientUtils.createChannelBuilder(ClientUtils.java:119)\n    at org.apache.kafka.clients.ClientUtils.createNetworkClient(ClientUtils.java:223)\n    ... 180 common frames omitted\n</code></pre>\n<p>The problem is that I think I've set up the security normally but I always get this exception when I send a message.</p>\n<p>This is how I make my configuration to connect to confluent cloud</p>\n<pre class=\"lang-yaml prettyprint-override\"><code>spring:\n  kafka:\n    bootstrap-servers: ${address-server}\n    producer:\n      key-serializer: org.apache.kafka.common.serialization.StringSerializer\n      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer\n      \n    properties:\n      specific.avro.reader: true\n      auto.register.schemas: false\n      basic.auth.credentials.source: USER_INFO\n      basic.auth.user.info: ${api-key}:${api-key-secret}\n      schema:\n        registry:\n          url: ${address-schema-registry}\n      sasl:\n        jaas:\n          config: org.apache.kafka.common.security.plain.PlainLoginModule required username='api-client-id' password='api-client-secret';\n        mechanism: PLAIN\n      security:\n        protocol: SASL_SSL\n      ssl:\n        endpoint:\n          identification:\n            algorithm: https\n</code></pre>\n<p>all variables are correct. but when I try to send messag in the topic I got the error</p>\n<p>In my configuration class I have these methods for handling my producer</p>\n<pre class=\"lang-java prettyprint-override\"><code>  @Bean\n    public ProducerFactory&lt;String, SpecificRecordBase&gt; producerFactory() {\n        return new DefaultKafkaProducerFactory&lt;&gt;(producerConfig());\n    }\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code> @Bean\n    public Map&lt;String, Object&gt; producerConfig() {\n        Map&lt;String, Object&gt; configProps = new HashMap&lt;&gt;();\n        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);\n        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);\n        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, io.confluent.kafka.serializers.KafkaAvroSerializer.class);\n        configProps.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, kafkaSecurityProtocol);\n        configProps.put(&quot;schema.registry.url&quot;, schemaRegistryUrl);\n        return configProps;\n    }\n</code></pre>\n<p>The KafkaTemplate</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Bean\n    public KafkaTemplate&lt;String, SpecificRecordBase&gt; kafkaTemplate(CustomProducerListener&lt;String, SpecificRecordBase&gt; listener) {\n        KafkaTemplate&lt;String, SpecificRecordBase&gt; kafkaTemplate = new KafkaTemplate&lt;&gt;(producerFactory());\n        kafkaTemplate.setProducerListener(listener);\n        return kafkaTemplate;\n    }\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

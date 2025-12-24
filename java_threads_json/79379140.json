@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "database",
+      "mongodb",
+      "spring-boot",
+      "mongotemplate"
+    ],
+    "owner": {
+      "account_id": 14485713,
+      "reputation": 83,
+      "user_id": 10463727,
+      "user_type": "registered",
+      "profile_image": "https://graph.facebook.com/2148336618512516/picture?type=large",
+      "display_name": "Bryan Saltos",
+      "link": "https://stackoverflow.com/users/10463727/bryan-saltos"
+    },
+    "is_answered": false,
+    "view_count": 124,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1737673854,
+    "creation_date": 1737577841,
+    "last_edit_date": 1737642022,
+    "question_id": 79379140,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79379140/no-converter-found-capable-of-converting-from-type-java-util-date-to-type-jav",
+    "title": "No converter found capable of converting from type [java.util.Date] to type [java.time.ZonedDateTime]",
+    "body": "<p>I have the following MongoCfg Class</p>\n<pre><code>@Configuration\npublic class MongoCfg {\n\n    @Bean\n    public MongoCustomConversions customConversions() {\n        return new MongoCustomConversions(Arrays.asList(\n                new DateToZonedDateTimeConverter(),\n                new ZonedDateTimeToDateConverter(),\n                new BigDecimalDecimal128Converter(),\n                new Decimal128BigDecimalConverter()\n        ));\n    }\n\n    static class DateToZonedDateTimeConverter implements Converter&lt;Date, ZonedDateTime&gt; {\n\n        @Override\n        public ZonedDateTime convert(Date source) {\n            return source == null ? null : ofInstant(source.toInstant(), systemDefault());\n        }\n    }\n\n    static class ZonedDateTimeToDateConverter implements Converter&lt;ZonedDateTime, Date&gt; {\n\n        @Override\n        public Date convert(ZonedDateTime source) {\n            return source == null ? null : Date.from(source.toInstant());\n        }\n    }\n\n\n    @WritingConverter\n    static class BigDecimalDecimal128Converter implements Converter&lt;BigDecimal, Decimal128&gt; {\n\n        @Override\n        public Decimal128 convert(@NonNull BigDecimal source) {\n            return new Decimal128(source);\n        }\n    }\n\n    @ReadingConverter\n    static class Decimal128BigDecimalConverter implements Converter&lt;Decimal128, BigDecimal&gt; {\n\n        @Override\n        public BigDecimal convert(@NonNull Decimal128 source) {\n            return source.bigDecimalValue();\n        }\n\n    }\n\n\n    @Primary\n    @Bean(name = &quot;alertDBProperties&quot;)\n    @ConfigurationProperties(prefix = &quot;spring.mongodb.alert&quot;)\n    public MongoProperties getAlertProps() throws Exception {\n        return new MongoProperties();\n    }\n\n    @Bean(name = &quot;scanDBProperties&quot;)\n    @ConfigurationProperties(prefix = &quot;spring.mongodb.scan&quot;)\n    public MongoProperties getScanProps() throws Exception {\n        return new MongoProperties();\n    }\n\n    @Primary\n    @Bean(name = &quot;alertMongoTemplate&quot;)\n    public MongoTemplate alertMongoTemplate() throws Exception {\n        return new MongoTemplate(alertMongoDatabaseFactory(getAlertProps()));\n    }\n\n    @Bean(name =&quot;scanMongoTemplate&quot;)\n    public MongoTemplate scanMongoTemplate() throws Exception {\n        return new MongoTemplate(scanMongoDatabaseFactory(getScanProps()));\n    }\n\n    @Primary\n    @Bean\n    public MongoDatabaseFactory alertMongoDatabaseFactory(MongoProperties mongo) throws Exception {\n        return new SimpleMongoClientDatabaseFactory(\n                mongo.getUri()\n        );\n    }\n\n    @Bean\n    public MongoDatabaseFactory scanMongoDatabaseFactory(MongoProperties mongo) throws Exception {\n        return new SimpleMongoClientDatabaseFactory(\n                mongo.getUri()\n        );\n    }\n}\n</code></pre>\n<p>As you can see i handle 2 database connections, the problem is when i try to retrieve data i get this error:</p>\n<p><strong>No converter found capable of converting from type [java.util.Date] to type [java.time.ZonedDateTime]</strong></p>\n<p>I don't understand why this happens, i already declare <strong>DateToZonedDateTimeConverter</strong> and <strong>ZonedDateTimeToDateConverter</strong></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

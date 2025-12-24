@@ -1,0 +1,31 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring"
+    ],
+    "owner": {
+      "account_id": 44633750,
+      "reputation": 21,
+      "user_id": 31854781,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/0a314e26345ffe4e155790f27db5fe39?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Mo Ye",
+      "link": "https://stackoverflow.com/users/31854781/mo-ye"
+    },
+    "is_answered": false,
+    "view_count": 65,
+    "answer_count": 0,
+    "score": 2,
+    "last_activity_date": 1762841650,
+    "creation_date": 1762841650,
+    "question_id": 79816288,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79816288/logging-the-streaming-responses-from-spring-ai-does-not-capture-the-actual-conte",
+    "title": "Logging the streaming responses from Spring AI does not capture the actual content",
+    "body": "<p>I'm trying to log Spring AI conversations in JSON format, similar to how SimpleLoggerAdvisor does it. However, when I set a breakpoint in this method using IntelliJ IDEA, I noticed that the frontend is still receiving output. This leads me to suspect that the response being sent to the frontend and the code where I set the breakpoint are running on different threads—especially since I've aggregated the streaming response.</p>\n<pre><code>@Override\npublic Flux&lt;ChatClientResponse&gt; adviseStream(ChatClientRequest chatClientRequest, StreamAdvisorChain streamAdvisorChain) {\n\n    String conversationId = getConversationId(chatClientRequest.context(), ChatMemory.DEFAULT_CONVERSATION_ID);\n    String prompt = chatClientRequest.prompt().getContents();\n    Instant start = Instant.now();\n\n    logger.atInfo()\n            .addKeyValue(&quot;event&quot;, &quot;ai_stream_session&quot;)\n            .addKeyValue(&quot;conversationId&quot;, conversationId)\n            .addKeyValue(&quot;prompt&quot;, prompt)\n            .log(&quot;AI stream request logged&quot;);\n    Flux&lt;ChatClientResponse&gt; chatClientResponses = streamAdvisorChain\n            .nextStream(chatClientRequest)\n            ;\n\n    return new ChatClientMessageAggregator()\n            .aggregateChatClientResponse(chatClientResponses, resp -&gt; logResponse(conversationId, resp, start));\n}\n    private void logResponse(String conversationId, ChatClientResponse response, Instant startTime) {\n        try {\n            ChatResponse chatResponse = response.chatResponse();\n            String responseText = chatResponse.getResult().getOutput().getText();\n            Instant endTime = Instant.now();\n            long durationMs = Duration.between(startTime, endTime).toMillis();\n\n            LoggingEventBuilder logBuilder = logger.atInfo()\n                    .addKeyValue(&quot;response&quot;, responseText)\n                    .addKeyValue(&quot;durationMs&quot;, durationMs);\n\n            if (chatResponse != null &amp;&amp; chatResponse.getMetadata() != null) {\n                ChatResponseMetadata meta = chatResponse.getMetadata();\n                Usage usage = meta.getUsage();\n\n                logBuilder\n                        .addKeyValue(&quot;model&quot;, meta.getModel())\n                        .addKeyValue(&quot;promptTokens&quot;, usage != null ? usage.getPromptTokens() : 0)\n                        .addKeyValue(&quot;completionTokens&quot;, usage != null ? usage.getCompletionTokens() : 0)\n                        .addKeyValue(&quot;totalTokens&quot;, usage != null ? usage.getTotalTokens() : 0);\n            }\n            logBuilder.log(&quot;AI response logged&quot;);\n        } catch (Exception e) {\n            logger.atError()\n                    .addKeyValue(&quot;conversationId&quot;, conversationId)\n                    .addKeyValue(&quot;error&quot;, e.getMessage())\n                    .setCause(e)\n                    .log(&quot;Failed to log AI response&quot;);\n        }\n    }\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

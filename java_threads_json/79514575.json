@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "list",
+      "generics",
+      "collections",
+      "java-stream"
+    ],
+    "owner": {
+      "account_id": 10634391,
+      "reputation": 35,
+      "user_id": 7831526,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/02089977a8a17690d6bdeb7ff5bfdb76?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Mattias Gradin",
+      "link": "https://stackoverflow.com/users/7831526/mattias-gradin"
+    },
+    "is_answered": true,
+    "view_count": 92,
+    "accepted_answer_id": 79514842,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1742394164,
+    "creation_date": 1742214498,
+    "last_edit_date": 1742393572,
+    "question_id": 79514575,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79514575/jwkset-gives-cannot-resolve-constructor-jwksetlistrsakey-stream-collect",
+    "title": "JwkSet gives Cannot resolve constructor &#39;JWKSet(List&lt;RSAKey&gt;)&#39; - Stream.collect(Collectors.toList()) vs Stream.toList()",
+    "body": "<p>In our code, we use <code>JWKset</code> from the <code>nimbus-jose-jwt</code> library in a method that creates a map that we use for stuff. As you can see in the return, we use a stream that calls map on a list of <code>RSAkey</code>, and then we create a <code>List</code> from that, which is used to create a <code>JWKSet</code>. We use <code>collect(Collections.toList())</code> and that works, but when I tried to change this to use <code>toList()</code> which our SonarQube suggested we should, it does not work.</p>\n<p>The compiler error is:</p>\n<blockquote>\n<p>Cannot resolve constructor 'JWKSet(List)</p>\n</blockquote>\n<p>I also get the suggestion to 'cast argument to JWK'. But <code>RSAKey</code> is a class that extends the abstract class <code>JWK</code> if you look at the documentation <a href=\"https://github.com/felx/nimbus-jose-jwt/blob/master/src/main/java/com/nimbusds/jose/jwk/RSAKey.java\" rel=\"nofollow noreferrer\">https://github.com/felx/nimbus-jose-jwt/blob/master/src/main/java/com/nimbusds/jose/jwk/RSAKey.java</a></p>\n<p>I do not see how the two method calls, which create the same type of output, do not work the same here.</p>\n<pre><code>final List&lt;RSAKey&gt; keys = Collections.singletonList(identityToRSAKey(certificate));\n    \n// Evidence the methold calls create the same type of output\nList&lt;RSAKey&gt; list = keys.stream().map(RSAKey::toPublicJWK).toList();\nList&lt;RSAKey&gt; collect = keys.stream().map(RSAKey::toPublicJWK).collect(Collectors.toList());\n\n//This works\nJWKSet mySet = new JWKSet(keys\n        .stream()\n        .map(RSAKey::toPublicJWK)\n        .collect(Collectors.toList()));\n\n//This does not work\nJWKSet mySet2 = new JWKSet(keys\n        .stream()\n        .map(RSAKey::toPublicJWK)\n        .toList() );\n\n// Where we actually use the code\nreturn new JWKSet(keys\n    .stream()\n    .map(RSAKey::toPublicJWK)\n    .collect(Collectors.toList() ))\n    .toPublicJWKSet()\n.toJSONObject();\n</code></pre>\n<p>Constructor in <code>JWKSet</code> that we try to invoke</p>\n<pre><code>public JWKSet(List&lt;JWK&gt; keys) {\n    this(keys, Collections.emptyMap());\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

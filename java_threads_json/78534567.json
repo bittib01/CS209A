@@ -1,0 +1,37 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "apache-kafka",
+      "spring-kafka",
+      "kafka-consumer-api"
+    ],
+    "owner": {
+      "account_id": 24987,
+      "reputation": 31139,
+      "user_id": 63898,
+      "user_type": "registered",
+      "accept_rate": 64,
+      "profile_image": "https://www.gravatar.com/avatar/88464b7b200398866f216092f01747ed?s=256&d=identicon&r=PG",
+      "display_name": "user63898",
+      "link": "https://stackoverflow.com/users/63898/user63898"
+    },
+    "is_answered": true,
+    "view_count": 150,
+    "accepted_answer_id": 78535324,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1720327341,
+    "creation_date": 1716708426,
+    "last_edit_date": 1720327341,
+    "question_id": 78534567,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78534567/kafkahandler-in-the-consumer-doesnt-consume-the-topic-message-as-an-object-cla",
+    "title": "@KafkaHandler in the consumer doesn&#39;t consume the topic message as an object class, only as a string",
+    "body": "<p>I have a simple Java Spring Boot app that is supposed to consume the topic messages from Kafka as an object class, but it only gets called as a string. only the handleDefault is called.. why ?</p>\n<pre><code>@Component\n@KafkaListener(topics=&quot;product-created-events-topic&quot;, groupId = &quot;product-created-events&quot;)\npublic class ProductCreatedEventHandler {\n    private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());\n    @KafkaHandler(isDefault = true)\n    public void handle(ProductCreatedEvent productCreatedEvent){\n        LOGGER.info(&quot;get msg from kafka:&quot;+productCreatedEvent.title());\n\n    }\n    @KafkaHandler(isDefault = true)\n    public void handleDefault(String message) {\n        LOGGER.warn(&quot;Received unknown message type from Kafka: &quot; + message);\n    }\n}\n</code></pre>\n<p>I like it to be consumed as the ProductCreatedEvent object not as string.</p>\n<p>This is the class:</p>\n<pre><code>package com.test.ws.core;\n\nimport java.math.BigDecimal;\n\npublic class ProductCreatedEvent {\n    private String productId;\n    private String title;\n    private BigDecimal price;\n    private Integer quantity;\n\n    public ProductCreatedEvent(String productId, String title, BigDecimal price, Integer quantity) {\n        this.productId = productId;\n        this.title = title;\n        this.price = price;\n        this.quantity = quantity;\n    }\n\n    public String productId() {\n        return this.productId;\n    }\n\n    public ProductCreatedEvent setProductId(String productId) {\n        this.productId = productId;\n        return this;\n    }\n\n    public String title() {\n        return this.title;\n    }\n\n    public ProductCreatedEvent setTitle(String title) {\n        this.title = title;\n        return this;\n    }\n\n    public BigDecimal price() {\n        return this.price;\n    }\n\n    public ProductCreatedEvent setPrice(BigDecimal price) {\n        this.price = price;\n        return this;\n    }\n\n    public Integer quantity() {\n        return this.quantity;\n    }\n\n    public ProductCreatedEvent setQuantity(Integer quantity) {\n        this.quantity = quantity;\n        return this;\n    }\n}\n</code></pre>\n<p>and the bootstrap class:</p>\n<pre><code>@SpringBootApplication\npublic class ConsumersApplication {\n\n    public static void main(String[] args) {\n        SpringApplication.run(ConsumersApplication.class, args);\n    }\n\n}\n</code></pre>\n<p>The configuration of the Spring Boot app:</p>\n<pre><code>spring.application.name=consumers\n\nserver.port=8083\n\nspring.kafka.consumer.bootstrap-servers=localhost:9092\nspring.kafka.consumer.key-serializer=org.apache.kafka.common.serialization.StringSerializer\nspring.kafka.consumer.value-serializer=org.springframework.kafka.support.serializer.JsonSerializer\nspring.kafka.consumer.group-id=product-created-events\nspring.kafka.consumer.properties.spring.json.trusted.packages=*\nspring.kafka.consumer.auto-offset-reset=earliest\nspring.kafka.consumer.enable-auto-commit=false\n</code></pre>\n<p>This is the topic:</p>\n<pre><code>~/kafka/kafka_2.13-3.7.0/bin$ ./kafka-console-consumer.sh --topic product-created-events-topic --from-beginning --bootstrap-server localhost:9092 --property print.key=true --property print.value=true\nea59cd46-b205-4769-84d7-69cf37b3ba79    {&quot;productId&quot;:&quot;ea59cd46-b205-4769-84d7-69cf37b3ba79&quot;,&quot;title&quot;:&quot;iphone1&quot;,&quot;price&quot;:222,&quot;quantity&quot;:19}\nea59cd46-b205-4769-84d7-69cf37b3ba79    {&quot;productId&quot;:&quot;ea59cd46-b205-4769-84d7-69cf37b3ba79&quot;,&quot;title&quot;:&quot;iphone1&quot;,&quot;price&quot;:222,&quot;quantity&quot;:19}\nb1f9dc43-58b4-44e5-9184-afe9159cd757    {&quot;productId&quot;:&quot;b1f9dc43-58b4-44e5-9184-afe9159cd757&quot;,&quot;title&quot;:&quot;iphone2&quot;,&quot;price&quot;:212,&quot;quantity&quot;:19}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

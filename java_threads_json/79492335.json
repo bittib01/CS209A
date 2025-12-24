@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "reactor-netty"
+    ],
+    "owner": {
+      "account_id": 40734413,
+      "reputation": 1,
+      "user_id": 29927960,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/3819bc5ee806ba9fa21cb80355d506c6?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "ThinkDifferent",
+      "link": "https://stackoverflow.com/users/29927960/thinkdifferent"
+    },
+    "is_answered": true,
+    "view_count": 294,
+    "accepted_answer_id": 79519994,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1742382262,
+    "creation_date": 1741350766,
+    "question_id": 79492335,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79492335/spring-boot-3-4-and-http-3-netty-controller",
+    "title": "Spring boot 3.4 and http/3 (netty) controller",
+    "body": "<p>I am trying to repeat this <a href=\"https://spring.io/blog/2024/11/26/http3-in-reactor-2024\" rel=\"nofollow noreferrer\">guide</a></p>\n<p>It's my customizer</p>\n<pre><code>@Component\nclass Http3NettyWebServerCustomizer implements WebServerFactoryCustomizer&lt;NettyReactiveWebServerFactory&gt; {\n\n    @Override\n    public void customize(NettyReactiveWebServerFactory factory) {\n        factory.addServerCustomizers(server -&gt; {\n            SslBundle sslBundle = factory.getSslBundles().getBundle(&quot;http3&quot;);\n            Http3SslContextSpec sslContextSpec =\n                    Http3SslContextSpec.forServer(sslBundle.getManagers().getKeyManagerFactory(), sslBundle.getKey().getPassword());\n\n            return server\n                    // Configure HTTP/3 protocol\n                    .protocol(HttpProtocol.HTTP3)\n                    // Configure HTTP/3 SslContext\n                    .secure(spec -&gt; spec.sslContext(sslContextSpec))\n                    .http3Settings(spec -&gt; spec.idleTimeout(Duration.ofSeconds(5))\n                            .maxData(10_000_000)\n                            .maxStreamDataBidirectionalRemote(1_000_000)\n                            .maxStreamsBidirectional(100));\n        });\n    }\n\n}\n</code></pre>\n<p>It's my controller:</p>\n<pre><code>@RestController\npublic class HelloController {\n\n    @GetMapping(&quot;/hello&quot;)\n    String hello() {\n        return &quot;Hello HTTP/3!&quot;;\n    }\n\n}\n</code></pre>\n<p>It's my application properties:</p>\n<pre><code>spring.application.name=http3app\nserver.port=888\nspring.ssl.bundle.jks.http3.key.alias=http3\nspring.ssl.bundle.jks.http3.keystore.location=classpath:keystore.p12\nspring.ssl.bundle.jks.http3.keystore.password=changeit\nspring.ssl.bundle.jks.http3.keystore.type=PKCS12\n</code></pre>\n<p>For generate a keystore i used:</p>\n<pre><code>keytool -genkeypair -alias http3 -keyalg RSA -keysize 4096 \\\n  -validity 3650 -dname &quot;CN=localhost&quot; -keypass changeit -keystore keystore.p12 \\\n  -storeType PKCS12 -storepass changeit\n</code></pre>\n<p>when I try to open a page &quot;localhost:888/hello&quot; in the browser, i get an error:\nERR_CONNECTION_REFUSED</p>\n<p>browser: chrome v128</p>\n<p>What am I doing wrong?\nPlease, help</p>\n<p>I think there is a problem with the certificate. If i switch to http 1, everything works. Can you tell me how to generate and put the certificate correctly?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

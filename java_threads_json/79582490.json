@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "logging",
+      "mockito",
+      "aop",
+      "mockk-verify"
+    ],
+    "owner": {
+      "account_id": 15069196,
+      "reputation": 782,
+      "user_id": 10875311,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/TLHjd.jpg?s=256",
+      "display_name": "Akash Jain",
+      "link": "https://stackoverflow.com/users/10875311/akash-jain"
+    },
+    "is_answered": true,
+    "view_count": 99,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1746708602,
+    "creation_date": 1745072450,
+    "last_edit_date": 1746708602,
+    "question_id": 79582490,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79582490/verify-with-mockito-to-verify-log-thrwoing-error",
+    "title": "verify with mockito to verify log thrwoing error",
+    "body": "<p>I have a very simple aop class</p>\n<pre class=\"lang-java prettyprint-override\"><code>// imports\n\n@Component\n@Aspect\n@Slf4j\nclass aopClass {\n    pubic void log(Joinpoint jp) {\n        log.info(&quot;hi {} and {}&quot;, jp.getsignature(), jp.getSourceLocation());\n    }\n}\n\n</code></pre>\n<p>Now this works, so i tried creating a test class for this.</p>\n<pre class=\"lang-java prettyprint-override\"><code>//imports\n\n@ExtendWith(MockitoExtension.class)\n@TestInstance(TestInstance.Lifecycle.PER_CLASS)\nclass MyTest {\n    @InjectMocks\n    aopClass aopClass1= new aopClass();\n\n    JoinPoint joinPoint;\n\n    private static final org.slf4j.Logger log = mock(org.slf4j.LoggerFactory.getLogger(MyTest.class).getClass());\n\n    @BeforeAll\n    void setup(){\n        joinPoint = mock(JoinPoint.class);\n        when(joinPoint.getSignature()).thenReturn(null);\n    }\n\n    @Test\n    void log() {\n        aopClass1.log(joinPoint);\n\n        verify(joinPoint, times(1)).getSignature();\n        verify(joinPoint, times(1)).getSourceLocation();\n        verify(log, times(1)).info(anyString()); // always throws error here?\n    }\n}\n</code></pre>\n<p>so when i run it  it keep's throwing me the error (error at bottom) saying there are no invocation for the log call, which is weird cause i can actually see the log in the console so it must be being called.</p>\n<p>I have tried using <code>@Mock</code> annotation and using <code>verify(log,times(1)).info(anyString(),any(),any());</code> but still no luck.</p>\n<p>the other 2 verify's are being called and that's working fine, only the log one throws the error.</p>\n<p>any help to resolve this?</p>\n<p>error:</p>\n<pre><code>Wanted but not invoked:\nlog.info(&lt;any string&gt;);\n-&gt; at ch.qos.logback.classic.Logger.info(Logger.java:584)\nActually, there were zero interactions with this mock.\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

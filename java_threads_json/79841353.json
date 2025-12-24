@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "ffmpeg",
+      "processbuilder"
+    ],
+    "owner": {
+      "account_id": 36339639,
+      "reputation": 1,
+      "user_id": 27687389,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/43cf1b01b751ec1dbab35b3e1ec86cc6?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "H&#252;seyin &#199;ataloğlu",
+      "link": "https://stackoverflow.com/users/27687389/h%c3%bcseyin-%c3%87atalo%c4%9flu"
+    },
+    "is_answered": false,
+    "view_count": 106,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1766189034,
+    "creation_date": 1765228783,
+    "last_edit_date": 1766189034,
+    "question_id": 79841353,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79841353/process-does-not-terminate-in-spring-environment-and-spring-boot-application-is",
+    "title": "Process does not terminate in Spring environment and Spring Boot application is not responding",
+    "body": "<p>My endpoint which gets audio and image bytes as request parts:</p>\n<pre><code>@PostMapping(value = &quot;/videos&quot;,consumes = MediaType.MULTIPART_FORM_DATA_VALUE,produces = &quot;video/mp4&quot;)\npublic ResponseEntity&lt;?&gt; getVideo(\n    @RequestPart MultipartFile audio,\n    @RequestPart MultipartFile image\n) throws IOException {\n    return ResponseEntity.status(HttpStatus.OK)\n            .contentType(MediaType.valueOf(&quot;video/mp4&quot;))\n            .header(HttpHeaders.CONTENT_DISPOSITION,\n                    &quot;attachment; filename=\\&quot;news.mp4\\&quot;&quot;)\n            .body(newsService.generateVideo(audio.getBytes(),image.getBytes()));\n}\n</code></pre>\n<p>There is a <code>processVideo</code> method call inside the <code>generateVideo</code> method. In <code>processVideo</code> I created a <code>Processbuilder</code> object and pass a command that will run an FFmpeg CLI application. But the Postman doesn't even respond. It just says &quot;sending request&quot;.</p>\n<pre><code>public static byte[] processVideo(byte[] audioByte, byte[] imageByte) {\n    try {\n        File tempImage = File.createTempFile(&quot;news_image&quot;, &quot;.png&quot;);\n        File tempAudio = File.createTempFile(&quot;news_audio&quot;, &quot;.mp3&quot;);\n        File tempVideo = File.createTempFile(&quot;news_video&quot;, &quot;.mp4&quot;);\n\n        Files.write(tempImage.toPath(), imageByte);\n        Files.write(tempAudio.toPath(), audioByte);\n\n        ProcessBuilder pb = new ProcessBuilder(\n                &quot;ffmpeg&quot;,\n                &quot;-y&quot;,\n                &quot;-loop&quot;, &quot;1&quot;,\n                &quot;-i&quot;, tempImage.getAbsolutePath(),\n                &quot;-i&quot;, tempAudio.getAbsolutePath(),\n                &quot;-c:v&quot;, &quot;libx264&quot;,\n                &quot;-tune&quot;, &quot;stillimage&quot;,\n                &quot;-c:a&quot;, &quot;aac&quot;,\n                &quot;-b:a&quot;, &quot;192k&quot;,\n                &quot;-pix_fmt&quot;, &quot;yuv420p&quot;,\n                &quot;-shortest&quot;,\n                tempVideo.getAbsolutePath()\n        );\n\n        pb.redirectErrorStream(true); // stderr + stdout getting together\n        Process process = pb.start();\n\n        try (BufferedReader reader = new BufferedReader(\n                new InputStreamReader(process.getInputStream()))) {\n\n            String line;\n            while ((line = reader.readLine()) != null) {\n                System.out.println(&quot;[FFMPEG] &quot; + line);\n            }\n        }\n\n        int exitCode = process.waitFor();\n        System.out.println(&quot;FFmpeg finished with code: &quot; + exitCode);\n\n        byte[] videoBytes = Files.readAllBytes(tempVideo.toPath());\n\n        tempImage.delete();\n        tempAudio.delete();\n        tempVideo.delete();\n\n        return videoBytes;\n\n    } catch (Exception ex) {\n        ex.printStackTrace();\n        throw new RuntimeException(&quot;Video creation failed&quot;, ex);\n    }\n}\n</code></pre>\n<p>What am I doing wrong?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

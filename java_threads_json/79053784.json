@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "antlr4"
+    ],
+    "owner": {
+      "account_id": 1460602,
+      "reputation": 354,
+      "user_id": 1375043,
+      "user_type": "registered",
+      "accept_rate": 33,
+      "profile_image": "https://www.gravatar.com/avatar/0360faf884477a4f4629c597c3569239?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Ra&#250;l Garc&#237;a",
+      "link": "https://stackoverflow.com/users/1375043/ra%c3%bal-garc%c3%ada"
+    },
+    "is_answered": true,
+    "view_count": 81,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1733579658,
+    "creation_date": 1728036370,
+    "question_id": 79053784,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79053784/how-to-delegate-between-antlr4-visitors-in-two-separate-grammars",
+    "title": "How to delegate between ANTLR4 Visitors in two separate grammars?",
+    "body": "<p>I'm working on an ANTLR4 project where I have two separate grammars:</p>\n<p>Transformation.g4: Contains rules to transform objects into strings with operations like toString, lowercase, and uppercase.</p>\n<pre><code>grammar Transformation;\n\ntransformation\n    : toStringExpr\n    | lowercaseExpr\n    | uppercaseExpr\n    | nestedTransformation\n    ;\n\ntoStringExpr\n    : 'toString' '(' object ')'\n    ;\nlowercaseExpr\n    : 'lowercase' '(' transformation ')'\n    ;\n\nuppercaseExpr\n    : 'uppercase' '(' transformation ')'\n    ;\n\nnestedTransformation\n    : '(' transformation ')'\n    ;\n\nobject\n    : IDENTIFIER\n    ;\n\nIDENTIFIER\n    : [a-zA-Z_][a-zA-Z_0-9]*\n    ;\n\nWS\n    : [ \\t\\n\\r]+ -&gt; skip ;\n</code></pre>\n<p>Predicate.g4: Contains rules for predicates, which compare transformations. For example: predicate: transformation == transformation;.</p>\n<pre><code>grammar Predicate;\n\n\nimport Transformation;\n\npredicate\n    : transformation EQUALS transformation\n    ;\n\nEQUALS\n    : '==' ;\n\nWS\n    : [ \\t\\n\\r]+ -&gt; skip ;\n</code></pre>\n<p>I want to compile these grammars into Java and implement visitors for both. <code>PredicateVisitorImpl</code> needs to rely on <code>TransformationVisitorImpl</code> to evaluate <code>transformations</code>, but I want to keep the grammars separate.</p>\n<p>I tried to do it like this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class PredicateVisitorImpl extends PredicateBaseVisitor&lt;Boolean&gt; {\n    private final TransformationVisitor transformationVisitor = new TransformationVisitor();\n\n    @Override\n    public Boolean visitTransformationComparison(PredicateParser.TransformationComparisonContext ctx) {\n        String left = transformationVisitor.visit(ctx.transformation(0));\n        String right = transformationVisitor.visit(ctx.transformation(1));\n        \n        return left.equals(right);\n    }\n}\n</code></pre>\n<p>However both calls to <code>transformationVisitor.visit</code> return null because <code>ctx.transformation</code> refers to the <code>Predicate</code> context, not <code>Transformation</code></p>\n<p>Are there clean ways to achieve this? I would like to keep the grammars separate.\nI’ve considered re-parsing the transformation string inside <code>PredicateVisitorImpl</code> using <code>TransformationParser</code>, but this seems inefficient.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

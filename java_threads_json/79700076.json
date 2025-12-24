@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "serialization",
+      "javac"
+    ],
+    "owner": {
+      "account_id": 184786,
+      "reputation": 22284,
+      "user_id": 421049,
+      "user_type": "registered",
+      "accept_rate": 50,
+      "profile_image": "https://www.gravatar.com/avatar/4b9b843fe8e233b2f70e0f2a8e7db4e8?s=256&d=identicon&r=PG",
+      "display_name": "Garret Wilson",
+      "link": "https://stackoverflow.com/users/421049/garret-wilson"
+    },
+    "is_answered": true,
+    "view_count": 150,
+    "accepted_answer_id": 79706365,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1752873529,
+    "creation_date": 1752421984,
+    "last_edit_date": 1752850173,
+    "question_id": 79700076,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79700076/javac-21-xlint-not-showing-warnings-for-missing-serial-version-id-on-an-anonymou",
+    "title": "javac 21 Xlint not showing warnings for missing serial version ID on an anonymous class unlike Eclipse",
+    "body": "<p>I have a Maven parent POM that configures the <a href=\"https://maven.apache.org/plugins/maven-compiler-plugin/\" rel=\"nofollow noreferrer\">Maven Compiler Plugin</a> like this:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;plugin&gt;\n  &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;\n  &lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;\n  &lt;version&gt;3.14.0&lt;/version&gt;\n  &lt;configuration&gt;\n    &lt;showDeprecation&gt;true&lt;/showDeprecation&gt;\n    &lt;showWarnings&gt;true&lt;/showWarnings&gt;\n    &lt;compilerArgs&gt;\n      &lt;arg&gt;-Xlint:all&lt;/arg&gt;\n    &lt;/compilerArgs&gt;\n  &lt;/configuration&gt;\n&lt;/plugin&gt;\n</code></pre>\n<p>The project uses Java 21. According to the <a href=\"https://docs.oracle.com/en/java/javase/21/docs/specs/man/javac.html\" rel=\"nofollow noreferrer\">Java 21 javac docs</a>, <code>-Xlint:all</code> &quot;Enables all warnings.&quot; One of those warnings is:</p>\n<blockquote>\n<p><code>serial</code>: Warns about the serializable classes that do not provide a serial version ID. Also warns about access to non-public members from a serializable element.</p>\n</blockquote>\n<p>In the project I create an anonymous subclass without providing a <code>serialVersionUID</code>. (Specifically I create a Jackson deserializer instance <code>new FromStringDeserializer&lt;FooBar&gt;(FooBar.class) { … }</code>, although the specific class and library are not relevant to this issue.) Eclipse EE 2025-06 duly shows a warning in the IDE:</p>\n<blockquote>\n<p>The serializable class  does not declare a static final serialVersionUID field of type long</p>\n</blockquote>\n<p>However building the project using Maven 3.9.10 with <code>mvn clean compile</code> on Windows 10 with Java 24 does not show any warning.</p>\n<p>Here is a small POM to reproduce the issue:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;\n&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&gt;\n    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;\n    &lt;groupId&gt;com.example&lt;/groupId&gt;\n    &lt;artifactId&gt;serialversionid-check&lt;/artifactId&gt;\n    &lt;version&gt;1.0.0-SNAPSHOT&lt;/version&gt;\n    &lt;name&gt;serialversionid Check&lt;/name&gt;\n\n    &lt;properties&gt;\n        &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;\n        &lt;maven.compiler.release&gt;21&lt;/maven.compiler.release&gt;\n    &lt;/properties&gt;\n\n    &lt;build&gt;\n        &lt;plugins&gt;\n            &lt;plugin&gt;\n                &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;\n                &lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;\n                &lt;version&gt;3.14.0&lt;/version&gt;\n                &lt;configuration&gt;\n                    &lt;showDeprecation&gt;true&lt;/showDeprecation&gt;\n                    &lt;showWarnings&gt;true&lt;/showWarnings&gt;\n                    &lt;compilerArgs&gt;\n                        &lt;arg&gt;-Xlint:all&lt;/arg&gt;\n                    &lt;/compilerArgs&gt;\n                &lt;/configuration&gt;\n            &lt;/plugin&gt;\n        &lt;/plugins&gt;\n    &lt;/build&gt;\n&lt;/project&gt;\n</code></pre>\n<p>Here is the source file <code>src/main/java/com/example/Test.java</code> to reproduce the issue:</p>\n<pre class=\"lang-java prettyprint-override\"><code>package com.example;\n\npublic class Test {\n  void test() {\n    new Number() {\n      public double doubleValue() {return 0.0;}\n      public float floatValue() {return 0.0f;}\n      public int intValue() {return 0;}\n      public long longValue() {return 0L;}\n    };\n  }\n}\n</code></pre>\n<p>Granted I'm not a big fan of this warning; and I am fully aware that this is a legacy approach to Java serialization and that use of this antiquated subsystem for actual serialization should be avoided. Nevertheless I would like some consistency across environments, and I'm puzzled as to why <code>javac</code> is not showing the warnings its documentation indicates it should.</p>\n<p>Why does javac 21 not produce warnings for missing serial version ID, even though the Maven Compiler Plugin is passing it the <code>-Xlint:all</code> configuration?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "tomcat",
+      "firebird",
+      "jaybird"
+    ],
+    "owner": {
+      "account_id": 8112987,
+      "reputation": 144,
+      "user_id": 6112421,
+      "user_type": "registered",
+      "accept_rate": 43,
+      "profile_image": "https://www.gravatar.com/avatar/c1c02f1edf23b3754ea639efc12f4833?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Jacky",
+      "link": "https://stackoverflow.com/users/6112421/jacky"
+    },
+    "is_answered": true,
+    "view_count": 81,
+    "accepted_answer_id": 78851681,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1763728730,
+    "creation_date": 1723186402,
+    "last_edit_date": 1723188767,
+    "question_id": 78851508,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78851508/how-to-define-remote-process-for-tomcat-connection-in-firebird",
+    "title": "How to define &quot;Remote process&quot; for Tomcat connection in Firebird",
+    "body": "<p>I am writing a web service project with Eclipse, connecting to Firebird database using Tomcat 8 server. Problem is in IBExpert tool, connections from Tomcat show null value in &quot;Remote Process&quot; column, so I don't know which connection comes from Tomcat.</p>\n<p><a href=\"https://i.sstatic.net/tCTa0zwy.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/tCTa0zwy.png\" alt=\"enter image description here\" /></a></p>\n<p>Is there anyway to naming the connections of Tomcat in there? Maybe show path of Tomcat exe file or simply give it a text?</p>\n<p>Here the code I use to create connection with HirakiCP library.</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class DBConnection {\n    private static final int READ_ONLY = 0;\n    private static final int READ_WRITE = 1;\n    private static final int CREATE_NEW = 2;\n\n    private static HikariConfig config;\n    private static HikariDataSource datasource;\n\n    public static DataSource getDataSource(String dbIP, String dbName,\n            String dbUsername, String dbPassword) {\n        if (datasource == null) {\n            config = new HikariConfig();\n\n            config.setDriverClassName(Constants.DB_DRIVER);\n            config.setJdbcUrl(Constants.DB_URL + dbIP + &quot;/&quot; + dbName\n                    + &quot;?dialect=3&amp;lc_ctype=UNICODE_FSS&quot;);\n            config.setUsername(dbUsername);\n            config.setPassword(Utility.dbDecrypt(dbPassword));\n\n            config.addDataSourceProperty(&quot;cachePrepStmts&quot;, &quot;true&quot;);\n            config.addDataSourceProperty(&quot;prepStmtCacheSize&quot;, &quot;250&quot;);\n            config.addDataSourceProperty(&quot;prepStmtCacheSqlLimit&quot;, &quot;2048&quot;);\n            config.setMaximumPoolSize(5);\n            config.setMinimumIdle(2);\n            config.setConnectionTimeout(TimeUnit.SECONDS.toMillis(30));\n            config.setLeakDetectionThreshold(TimeUnit.SECONDS.toMillis(10));\n\n            datasource = new HikariDataSource(config);\n        }\n        return datasource;\n    }\n\n    /*\n     * Method to create DB connection\n     * \n     * @param dbIP\n     * \n     * @param dbName\n     * \n     * @param dbUsername\n     * \n     * @param dbPassword\n     * \n     * @return connection\n     */\n\n    @SuppressWarnings(&quot;finally&quot;)\n    public static Connection createConnection(String dbIP, String dbName,\n            String dbUsername, String dbPassword, int conType) {\n        Connection con = null;\n\n        if (datasource == null) {\n\n            // Create new datasource\n            datasource = (HikariDataSource) getDataSource(dbIP, dbName,\n                    dbUsername, dbPassword);\n        }\n\n        try {\n\n            // Use existing datasource\n            con = datasource.getConnection();\n\n            if (conType == READ_ONLY) {\n                con.setReadOnly(true);\n            } else {\n                con.setReadOnly(false);\n            }\n        } finally {\n            return con;\n        }\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

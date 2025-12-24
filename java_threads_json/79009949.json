@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-cloud-stream"
+    ],
+    "owner": {
+      "account_id": 195985,
+      "reputation": 1161,
+      "user_id": 439203,
+      "user_type": "registered",
+      "accept_rate": 64,
+      "profile_image": "https://www.gravatar.com/avatar/4898f586c4aa3db61a72fabf36d42836?s=256&d=identicon&r=PG",
+      "display_name": "mike27",
+      "link": "https://stackoverflow.com/users/439203/mike27"
+    },
+    "is_answered": false,
+    "view_count": 106,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1727074523,
+    "creation_date": 1726933613,
+    "last_edit_date": 1727025419,
+    "question_id": 79009949,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79009949/poller-to-send-messages-out-to-kafka-binding",
+    "title": "Poller to send messages out to kafka binding",
+    "body": "<p>The code below using spring cloud stream kafka works fine but everything has to be in this one method.</p>\n<pre><code>@SpringBootApplication\npublic class DemoApplication {\n\n    public static void main(String[] args) {\n        SpringApplication.run(DemoApplication.class, &quot;--spring.cloud.stream.bindings.outbound-out-0.destination=out-topic&quot;);\n    }\n    @Bean\n    Supplier&lt;String&gt; outbound() {\n        return () -&gt; {\n            return LocalTime.now().toString();\n        };\n    }\n}\n</code></pre>\n<p>How can I write an IntegrationFlow to do the same thing and use the outbound binder and allow me to add transformers, etc? The code below throws error: MessageDispatchingException: Dispatcher has no subscribers\nApplication class:</p>\n<pre><code>import org.springframework.boot.SpringApplication;\nimport org.springframework.boot.autoconfigure.SpringBootApplication;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.integration.dsl.IntegrationFlow;\nimport org.springframework.integration.dsl.Pollers;\nimport java.time.LocalTime;\n\n@SpringBootApplication\npublic class DemoApplication {\n\n    public static void main(String[] args) {\n        SpringApplication.run(DemoApplication.class, &quot;--spring.cloud.stream.bindings.outbound-out-0.destination=out-topic&quot;);\n    }\n    @Bean\n    IntegrationFlow myFlow() {\n        return IntegrationFlow.fromSupplier(this::myPoller, p -&gt; p.poller(Pollers.fixedDelay(5000)))\n                .transform(m -&gt; {\n                    System.out.println(&quot;my transformer&quot;);\n                    return m;\n                })\n                .channel(&quot;outbound&quot;)\n                .get();\n    }\n\n    String myPoller() {\n            return LocalTime.now() + &quot; value&quot;;\n    }\n}\n</code></pre>\n<p>Gradle config:\nbuild.gradle:</p>\n<pre><code>plugins {\n    id 'java'\n    id 'org.springframework.boot' version '3.2.9'\n    id 'io.spring.dependency-management' version '1.1.6'\n}\n\ngroup = 'com.example'\nversion = '0.0.1-SNAPSHOT'\n\njava {\n    toolchain {\n        languageVersion = JavaLanguageVersion.of(21)\n    }\n}\n\nrepositories {\n    mavenCentral()\n}\n\next {\n    set('springCloudVersion', &quot;2023.0.3&quot;)\n}\n\ndependencies {\n    implementation 'org.springframework.cloud:spring-cloud-stream'\n    implementation 'org.springframework.cloud:spring-cloud-stream-binder-kafka'\n    implementation 'org.springframework.kafka:spring-kafka'\n    testImplementation 'org.springframework.boot:spring-boot-starter-test'\n    testImplementation 'org.springframework.cloud:spring-cloud-stream-test-binder'\n    testImplementation 'org.springframework.kafka:spring-kafka-test'\n    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'\n}\n\ndependencyManagement {\n    imports {\n        mavenBom &quot;org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}&quot;\n    }\n}\n\ntasks.named('test') {\n    useJUnitPlatform()\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

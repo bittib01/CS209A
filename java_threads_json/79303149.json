@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "micronaut",
+      "micronaut-client",
+      "micronaut-rest"
+    ],
+    "owner": {
+      "account_id": 1189122,
+      "reputation": 17456,
+      "user_id": 1162409,
+      "user_type": "registered",
+      "accept_rate": 40,
+      "profile_image": "https://i.sstatic.net/YSzYR.jpg?s=256",
+      "display_name": "San Jaisy",
+      "link": "https://stackoverflow.com/users/1162409/san-jaisy"
+    },
+    "is_answered": false,
+    "view_count": 147,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1735419183,
+    "creation_date": 1734958526,
+    "last_edit_date": 1735097295,
+    "question_id": 79303149,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79303149/400-bad-request-with-complex-pojo-object-in-micronaut-http-get-method",
+    "title": "400 bad request with complex POJO object in Micronaut HTTP get method",
+    "body": "<pre><code>@Serdeable\npublic record FilterSortRequest(@JsonProperty(&quot;filters&quot;)List&lt;FilterOption&gt; filters, @JsonProperty(&quot;sorts&quot;)Map&lt;String, SortOperators&gt; sorts) {\n}\n</code></pre>\n<p><strong>Micronaut Controller</strong></p>\n<pre><code>@Controller(&quot;/tag&quot;)\n@Version(&quot;1&quot;)\n@Tag(name = &quot;Tag&quot;)\npublic class TagController implements IHttpAction&lt;TagRequest, TagResponse&gt; {\n   \n    public TagController(IServiceAction&lt;FilterSortRequest, TagRequest, TagResponse&gt; iServiceAction) {\n        this.iServiceAction = iServiceAction;\n    }\n\n    @Override\n    public HttpResponse&lt;?&gt; find(@QueryValue FilterSortRequest searchCriteria) {\n        var result = this.iServiceAction.find(searchCriteria);\n        return Result.match(()-&gt; HttpResponse.ok(result.value), ()-&gt;HttpResponse.notFound(result.exception.getMessage()));\n    }\n}\n</code></pre>\n<p><strong>Http client</strong></p>\n<pre><code>@Validated\n@ExecuteOn(TaskExecutors.BLOCKING)\npublic interface IHttpAction&lt;C, T, R&gt; {\n\n    @Get(value = &quot;/{?searchCriteria*}&quot;)\n    HttpResponse&lt;?&gt; find(@QueryValue FilterSortRequest searchCriteria);\n\n\n    @Get(uri = &quot;/{id}&quot;)\n    HttpResponse&lt;?&gt; get(@PathVariable(name = &quot;id&quot;) @Nonnull UUID id);\n\n\n    @Post\n    HttpResponse&lt;?&gt; post(@Body T request);\n\n\n    @Put(uri = &quot;/{id}&quot;)\n    HttpResponse&lt;?&gt; put(@PathVariable(name = &quot;id&quot;) @NotNull UUID id, @Body T request);\n\n    @Delete(uri = &quot;/{id}&quot;)\n    HttpResponse&lt;?&gt; delete(@PathVariable(name = &quot;id&quot;) @NotNull UUID id);\n}\n</code></pre>\n<p>Register the Binder as</p>\n<pre><code>@Singleton\npublic class FilterSortRequestBinder implements TypedRequestArgumentBinder&lt;FilterSortRequest&gt; {\n\n    private final ObjectMapper objectMapper;\n\n    public FilterSortRequestBinder(ObjectMapper objectMapper) {\n        this.objectMapper = objectMapper;\n    }\n\n    @Override\n    public Argument&lt;FilterSortRequest&gt; argumentType() {\n        return Argument.of(FilterSortRequest.class);\n    }\n\n    @Override\n    public BindingResult&lt;FilterSortRequest&gt; bind(ArgumentConversionContext&lt;FilterSortRequest&gt; context, HttpRequest&lt;?&gt; source) {\n        try {\n            // Extract the 'filters' parameter\n            String filtersParam = source.getParameters().get(&quot;filters&quot;);\n            // Extract the 'sorts' parameter\n            String sortsParam = source.getParameters().get(&quot;sorts&quot;);\n\n            // Deserialize filters and sorts\n            List&lt;FilterOption&gt; filters = filtersParam != null\n                    ? objectMapper.readValue(filtersParam, Argument.listOf(FilterOption.class))\n                    : Collections.emptyList();\n\n            Map&lt;String, SortOperators&gt; sorts = sortsParam != null\n                    ? objectMapper.readValue(sortsParam, Argument.mapOf(String.class, SortOperators.class))\n                    : Collections.emptyMap();\n\n            // Create the FilterSortRequest object\n            FilterSortRequest filterSortRequest = new FilterSortRequest(filters, sorts);\n            return () -&gt; Optional.of(filterSortRequest);\n        } catch (Exception e) {\n            e.printStackTrace();\n            return BindingResult.EMPTY;\n        }\n    }\n}\n</code></pre>\n<p>The execution never hits the bind method.</p>\n<p><strong>Sending the request as</strong></p>\n<pre><code>http://localhost:8080/tag?filters=[{&quot;field&quot;:&quot;string&quot;,&quot;operator&quot;:&quot;EQUAL&quot;,&quot;values&quot;:{&quot;additionalProp1&quot;:&quot;string&quot;,&quot;additionalProp2&quot;:&quot;string&quot;,&quot;additionalProp3&quot;:&quot;string&quot;}}]&amp;sorts={&quot;additionalProp1&quot;:&quot;ASC&quot;,&quot;additionalProp2&quot;:&quot;ASC&quot;,&quot;additionalProp3&quot;:&quot;ASC&quot;}\n</code></pre>\n<p><strong>400 bad request</strong></p>\n<pre><code>{\n  &quot;_links&quot;: {\n    &quot;self&quot;: [\n      {\n        &quot;href&quot;: &quot;/tag?filters=%5B%7B%22field%22%3A%22string%22%2C%22operator%22%3A%22EQUAL%22%2C%22values%22%3A%7B%22additionalProp1%22%3A%22string%22%2C%22additionalProp2%22%3A%22string%22%2C%22additionalProp3%22%3A%22string%22%7D%7D%5D&amp;sorts=%7B%22additionalProp1%22%3A%22ASC%22%2C%22additionalProp2%22%3A%22ASC%22%2C%22additionalProp3%22%3A%22ASC%22%7D&quot;,\n        &quot;templated&quot;: false\n      }\n    ]\n  },\n  &quot;_embedded&quot;: {\n    &quot;errors&quot;: [\n      {\n        &quot;message&quot;: &quot;Failed to convert argument [searchCriteria] for value [null] due to: Unexpected token VALUE_STRING, expected START_OBJECT \\n at [Source: UNKNOWN; byte offset: #UNKNOWN]&quot;,\n        &quot;path&quot;: &quot;/searchCriteria&quot;\n      }\n    ]\n  },\n  &quot;message&quot;: &quot;Bad Request&quot;\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

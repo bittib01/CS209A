@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "android-layout",
+      "button",
+      "custom-ui"
+    ],
+    "owner": {
+      "account_id": 24915193,
+      "reputation": 3,
+      "user_id": 18784244,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/99e27972cfe13f212fd93661057f782b?s=256&d=identicon&r=PG",
+      "display_name": "TEILabs",
+      "link": "https://stackoverflow.com/users/18784244/teilabs"
+    },
+    "is_answered": false,
+    "view_count": 50,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1763914177,
+    "creation_date": 1743708681,
+    "question_id": 79553833,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79553833/how-to-create-custom-button-class-in-android-that-wouldn-not-change-visual",
+    "title": "How to create custom button class in android that wouldn not change visual?",
+    "body": "<p>Before that, I used the standard android buttons, but I needed to make a custom button and I wrote such a class.</p>\n<pre><code>public class MyButton extends androidx.appcompat.widget.AppCompatButton {\n    private boolean showIfNotAccessibleByRole;\n\n    private final AccessUrlUtils accessUrlUtils = new AccessUrlUtils();\n    ToastCreator toastCreator = new ToastCreator();\n\n    public MyButton(Context context) {\n        super(context);\n        init(null, 0);\n    }\n\n    public MyButton(Context context, AttributeSet attrs) {\n        super(context, attrs);\n        init(attrs, 0);\n    }\n\n    public MyButton(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {\n        super(context, attrs, defStyleAttr);\n        init(attrs, defStyleAttr);\n    }\n\n\n    private void init(AttributeSet attrs, int defStyle) {\n        // Load attributes\n        final TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.MyButton, defStyle, 0);\n\n        showIfNotAccessibleByRole = a.getBoolean(R.styleable.MyButton_showIfNotAccessibleByRole, true);\n\n        a.recycle();\n    }\n\n    @Override\n    protected void onDraw(Canvas canvas) {\n        super.onDraw(canvas);\n        if (!showIfNotAccessibleByRole) {\n            if (!accessUrlUtils.checkRoleBasedAccessByView(this)) {\n                setVisibility(GONE);\n            }\n        }\n    }\n\n    @Override\n    public void setOnClickListener(@Nullable OnClickListener l) {\n        OnClickListener onClickListener = new OnClickListener() {\n            @Override\n            public void onClick(View v) {\n                if (accessUrlUtils.checkRoleBasedAccessByView(v)) {\n                    if (accessUrlUtils.checkSubscriptionBasedAccessByView(v)) {\n                        if (l != null) {\n                            l.onClick(v);\n                        }\n                    }\n                    else {\n                        SubscriptionDialog subscriptionDialog = new SubscriptionDialog(getContext());\n                        subscriptionDialog.show();\n                    }\n                }\n                else {\n                    toastCreator.createToast(getContext(), (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE), getResources().getStringArray(R.array.errors)[17], getActivity());\n                }\n            }\n        };\n        super.setOnClickListener(onClickListener);\n    }\n\n    @Override\n    public void setOnLongClickListener(@Nullable OnLongClickListener l) {\n        OnLongClickListener onLongClickListener = new OnLongClickListener() {\n            @Override\n            public boolean onLongClick(View v) {\n                if (accessUrlUtils.checkRoleBasedAccessByView(v, ClickType.LONG)) {\n                    if (accessUrlUtils.checkSubscriptionBasedAccessByView(v, ClickType.LONG)) {\n                        if (l != null) {\n                            return l.onLongClick(v);\n                        }\n                    }\n                    else {\n                        SubscriptionDialog subscriptionDialog = new SubscriptionDialog(getContext());\n                        subscriptionDialog.show();\n                    }\n                }\n                else {\n                    toastCreator.createToast(getContext(), (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE), getResources().getStringArray(R.array.errors)[17], getActivity());\n                }\n                return false;\n            }\n        };\n        super.setOnLongClickListener(onLongClickListener);\n    }\n\n    private Activity getActivity() {\n        Context context = getContext();\n        while (context instanceof ContextWrapper) {\n            if (context instanceof Activity) {\n                return (Activity)context;\n            }\n            context = ((ContextWrapper)context).getBaseContext();\n        }\n        return null;\n    }\n}\n</code></pre>\n<p>However, when using this class, the styles that I wrote for the buttons are not applied, and the buttons look like standard buttons in android. How can I fix this without destroing my class?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

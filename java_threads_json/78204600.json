@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-mvc",
+      "session",
+      "tomcat",
+      "redis"
+    ],
+    "owner": {
+      "account_id": 13532622,
+      "reputation": 625,
+      "user_id": 9762633,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/-XdUIqdMkCWA/AAAAAAAAAAI/AAAAAAAAAAA/4252rscbv5M/s256-rj/photo.jpg",
+      "display_name": "Abhishek Singh",
+      "link": "https://stackoverflow.com/users/9762633/abhishek-singh"
+    },
+    "is_answered": false,
+    "view_count": 392,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1723783409,
+    "creation_date": 1711091888,
+    "last_edit_date": 1713360333,
+    "question_id": 78204600,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78204600/integrating-redis-for-session-management-in-spring-mvc-application",
+    "title": "Integrating Redis for Session Management in Spring MVC Application?",
+    "body": "<p>I have a Spring MVC application currently deployed on Tomcat 9, and I'm looking to enhance its session management by integrating Redis. The application currently uses Spring Session with Tomcat's default session management, but we want to switch to Redis for better scalability and persistence.</p>\n<p>Here's an overview of our current setup and the changes we're aiming to implement:</p>\n<p><strong>Current Setup:</strong></p>\n<pre><code>&lt;!-- Dependencies for Spring Session with Redis --&gt;\n&lt;dependency&gt;\n    &lt;groupId&gt;org.springframework.session&lt;/groupId&gt;\n    &lt;artifactId&gt;spring-session-core&lt;/artifactId&gt;\n    &lt;version&gt;2.7.4&lt;/version&gt;\n&lt;/dependency&gt;\n&lt;dependency&gt;\n    &lt;groupId&gt;org.springframework.session&lt;/groupId&gt;\n    &lt;artifactId&gt;spring-session-data-redis&lt;/artifactId&gt;\n    &lt;version&gt;2.7.4&lt;/version&gt;\n&lt;/dependency&gt;\n&lt;dependency&gt;\n    &lt;groupId&gt;io.lettuce&lt;/groupId&gt;\n    &lt;artifactId&gt;lettuce-core&lt;/artifactId&gt;\n    &lt;version&gt;6.3.1.RELEASE&lt;/version&gt;\n&lt;/dependency&gt;\n</code></pre>\n<p><strong>Objective:</strong></p>\n<p>Implement Redis-based session management in the Spring MVC application.\nEnsure scalability and persistence of session data using Redis.\nWhat I've Done So Far:</p>\n<p>Added necessary dependencies for Spring Session with Redis (using Lettuce as the Redis client).\nConfigured Spring Session to use Redis for session management.</p>\n<p><strong>Problem Encountered:</strong></p>\n<p>While I've made progress in configuring Redis for session management, I'm encountering issues with setting up the session ID resolver and configuring the Redis connection properly. When I check redis data using redis-cli I can session being created. I'm unsure if my current configuration is correct or if there are additional steps I need to take to ensure everything works smoothly.</p>\n<p><strong>Code Snippet:</strong></p>\n<pre><code>@PropertySource(value = &quot;file:${APP_CONFIG}/redis.properties&quot;, ignoreResourceNotFound = false)\n@EnableRedisHttpSession(redisNamespace = &quot;spring:session:demo&quot;, cleanupCron = &quot;0 */5 * * * ?&quot;, flushMode = FlushMode.IMMEDIATE, saveMode = SaveMode.ALWAYS)\n@Order(Ordered.HIGHEST_PRECEDENCE)\npublic class SessionConfig extends AbstractHttpSessionApplicationInitializer {\n\n    @Value(&quot;${redis.port}&quot;)\n    private Integer redisPort;\n\n    @Value(&quot;${redis.host}&quot;)\n    private String redisHost;\n\n    @Value(&quot;${redis.pass}&quot;)\n    private String redisPassword;\n\n    private static final Logger log = LoggerFactory.getLogger(SessionConfig.class);\n\n    @Bean\n    @Primary\n    public LettuceConnectionFactory redisConnectionFactory() {\n        log.error(&quot;Creating LettuceConnectionFactory with Redis host: {} and port: {}&quot;, redisHost, redisPort);\n        final RedisStandaloneConfiguration redisStandaloneConfig = new RedisStandaloneConfiguration();\n        redisStandaloneConfig.setHostName(redisHost);\n        redisStandaloneConfig.setPort(redisPort);\n        redisStandaloneConfig.setPassword(redisPassword);\n        final LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory(redisStandaloneConfig);\n        // lettuceConnectionFactory.setValidateConnection(true);\n        lettuceConnectionFactory.setEagerInitialization(true);\n        lettuceConnectionFactory.afterPropertiesSet();\n        return lettuceConnectionFactory;\n    }\n\n    @Bean\n    @Order(Ordered.HIGHEST_PRECEDENCE)\n    public HttpSessionIdResolver httpSessionIdResolver() {\n        CookieHttpSessionIdResolver resolver = new CookieHttpSessionIdResolver();\n        DefaultCookieSerializer cookieSerializer = new DefaultCookieSerializer();\n        cookieSerializer.setCookieName(&quot;JSESSIONID&quot;); //\n        cookieSerializer.setCookiePath(&quot;/&quot;);\n        cookieSerializer.setDomainNamePattern(&quot;^.+?\\\\.(\\\\w+\\\\.[a-z]+)$&quot;);\n        cookieSerializer.setUseBase64Encoding(true);\n        resolver.setCookieSerializer(cookieSerializer);\n        return resolver;\n    }\n}\n</code></pre>\n<p><strong>Observations:</strong></p>\n<p>Multiple JSESSIONID Values: Upon loading the login page in the browser, I notice two JSESSIONID values being generated. One appears to be created by Redis, while the other seems to be associated with Tomcat's session management mechanism.</p>\n<p>Consistency in Redis Session ID: Upon successful authentication, I've verified that the session ID retrieved from Redis matches the one stored in the database.</p>\n<p>Inconsistent Session Retrieval: In certain sections of my code, when attempting to access the session using RequestContextHolder, I'm obtaining the Tomcat session ID (JSESSIONID value), rather than the one managed by Redis.</p>\n<p>In below code, I get the Redis-generated session ID:</p>\n<pre><code>    @Override\n    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {\n        HttpSession session = request.getSession(true);\n//other codes\n    }\n</code></pre>\n<p>While in below, I get the Tomcat session JSESSIONID:</p>\n<pre><code>ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();\nHttpSession session = requestAttributes.getRequest().getSession();\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

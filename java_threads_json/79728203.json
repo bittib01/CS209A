@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "libreoffice",
+      "libreoffice-calc",
+      "uno"
+    ],
+    "owner": {
+      "account_id": 28023755,
+      "reputation": 3,
+      "user_id": 21404131,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AGNmyxYtkOwUiGOV4vsK2Wm_-A3W0OFCodDwRAy7Cq1x=k-s256",
+      "display_name": "Gregor Lang",
+      "link": "https://stackoverflow.com/users/21404131/gregor-lang"
+    },
+    "is_answered": false,
+    "view_count": 74,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1754907111,
+    "creation_date": 1754551722,
+    "last_edit_date": 1754907111,
+    "question_id": 79728203,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79728203/how-do-i-set-visibility-of-sheet-row-or-column",
+    "title": "How do I set visibility of sheet, row or column?",
+    "body": "<p>Setting visibility of sheets, rows or columns does not work using <code>XPropertySet::setPropertyValue()</code>. It does not throw an exception or anything, it just does not change the property value.\nI am not sure if this is intended, I couldn't find anything about it in their documentation.</p>\n<p>I use a very similar code for Draw/Impress-type documents and it works perfectly fine.</p>\n<p>The intention is to preprocess the file and then convert it to pdf via jodconverter.</p>\n<p>My current code:</p>\n<pre><code>private void processCalc(@NonNull XComponent document) throws Exception {\n    foreachSheet(document, sheet -&gt; {\n        setProperty(sheet, &quot;IsVisible&quot;, true);\n\n        final var cursor = sheet.createCursor();\n\n        final var usedAreaCursor = Lo.qi(XUsedAreaCursor.class, cursor);\n        usedAreaCursor.gotoStartOfUsedArea(false);\n        usedAreaCursor.gotoEndOfUsedArea(true);\n\n        final var columnRowRange = Lo.qi(XColumnRowRange.class, usedAreaCursor);\n        setVisible(columnRowRange.getRows());\n        setVisible(columnRowRange.getColumns());\n    });\n}\n\nprivate static void setVisible(XInterface x) throws IndexOutOfBoundsException, WrappedTargetException, PropertyVetoException, UnknownPropertyException {\n    final var indexAccess = Lo.qi(XIndexAccess.class, x);\n    for (int i = 0; i &lt; indexAccess.getCount(); i++) {\n        final var byIndex = indexAccess.getByIndex(i);\n        final var range = Lo.qi(XCellRange.class, byIndex);\n        setProperty(range, &quot;IsVisible&quot;, true);\n    }\n}\n\npublic static void setProperty(XInterface object, String name, boolean value) throws PropertyVetoException, WrappedTargetException, UnknownPropertyException {\n    final var propertySet = Lo.qi(XPropertySet.class, object);\n    propertySet.setPropertyValue(name, value);\n}\n\npublic static void foreachSheet(XComponent document, FailableConsumer&lt;XSpreadsheet, Exception&gt; consumer) throws Exception {\n    final var spreadsheetDocument = Lo.qiOptional(XSpreadsheetDocument.class, document);\n    if (spreadsheetDocument.isEmpty()) {\n        throw new IllegalArgumentException(&quot;Provided document was not of type CALC!&quot;);\n    }\n\n    foreachSheet(spreadsheetDocument.get(), consumer);\n}\n\npublic static void foreachSheet(XSpreadsheetDocument spreadsheetDocument, FailableConsumer&lt;XSpreadsheet, Exception&gt; consumer) throws Exception {\n    final var sheets = spreadsheetDocument.getSheets();\n    final var indexedSheets = Lo.qi(XIndexAccess.class, sheets);\n\n    final var count = indexedSheets.getCount();\n    for (var i = 0; i &lt; count; i++) {\n        final var sheet = Lo.qi(XSpreadsheet.class, indexedSheets.getByIndex(i));\n\n        consumer.accept(sheet);\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

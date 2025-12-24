@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "swing",
+      "drag-and-drop",
+      "jpanel",
+      "jmenubar"
+    ],
+    "owner": {
+      "account_id": 29417493,
+      "reputation": 23,
+      "user_id": 24335043,
+      "user_type": "registered",
+      "profile_image": "https://graph.facebook.com/9992054067502360/picture?type=large",
+      "display_name": "Noah Gaston",
+      "link": "https://stackoverflow.com/users/24335043/noah-gaston"
+    },
+    "is_answered": true,
+    "view_count": 77,
+    "accepted_answer_id": 79086579,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1731862195,
+    "creation_date": 1728876578,
+    "last_edit_date": 1728915129,
+    "question_id": 79084624,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79084624/image-icon-location-resetting-on-menu-bar-click",
+    "title": "Image Icon location resetting on menu bar click",
+    "body": "<p>I am trying to drag and drop image icons on the screen but whenever I click the menu bar after moving one it resets to where it was originally. I think that it has something to do with the screen object in the Menu class not updating to reflect the changes from the Window class. Can someone please help?</p>\n<pre><code>import java.awt.BasicStroke;\nimport java.awt.Dimension;\nimport java.awt.Graphics2D;\nimport java.awt.Point;\nimport java.awt.event.ActionEvent;\nimport java.awt.event.ActionListener;\nimport java.awt.event.MouseAdapter;\nimport java.awt.event.MouseEvent;\nimport java.awt.image.BufferedImage;\n\nimport javax.swing.ImageIcon;\nimport javax.swing.JFrame;\nimport javax.swing.JLabel;\nimport javax.swing.JMenu;\nimport javax.swing.JMenuBar;\nimport javax.swing.JMenuItem;\nimport javax.swing.JPanel;\nimport javax.swing.SwingUtilities;\n\n\npublic class Tester {\n    public Tester()\n    {\n        SwingUtilities.invokeLater(new Runnable() {\n\n            @Override\n            public void run() {\n                // TODO Auto-generated method stub\n                Window win = new Window();\n                win.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);\n            }\n        });\n    }\n    public class Window extends JFrame\n    {\n        private Menu menu;\n        public Window()\n        {\n            setDefaultLookAndFeelDecorated(true);\n            menu = new Menu(this);\n            JMenuBar menuBar = menu.getMenuBar();\n            setJMenuBar(menuBar);\n            add(menu.screen);\n            pack();\n            setLocationRelativeTo(null);\n            setVisible(true);\n        }\n    }\n    public class MouseHandler extends MouseAdapter{\n\n        private Point offset;\n        public MouseHandler()\n        {\n            \n        }\n        \n        @Override\n        public void mousePressed(MouseEvent e) {\n            offset = e.getPoint();\n        }\n\n        @Override\n        public void mouseDragged(MouseEvent e) {\n            int x = e.getPoint().x - offset.x;\n            int y = e.getPoint().y - offset.y;\n            JLabel component = (JLabel) e.getComponent();\n            Point location = component.getLocation();\n            location.x += x;\n            location.y += y;\n            component.setLocation(location);\n        }\n        \n       \n    }\n    public class Screen extends JPanel\n    {\n        private MouseHandler m;\n        public Screen()\n        {\n            setPreferredSize(new Dimension(700, 500));\n            m = new MouseHandler();\n        }\n        public void addObject()\n        {\n            BufferedImage move = new BufferedImage(20, 20, BufferedImage.TYPE_INT_RGB);\n            Graphics2D x = move.createGraphics();\n            x.setStroke(new BasicStroke(1));\n            x.drawRect(0, 0, 20, 20);\n            JFrame f = new JFrame();\n            f.pack();\n            f.paint(x);\n            JLabel lab = new JLabel(new ImageIcon(move));\n            lab.addMouseListener(m);\n            lab.addMouseMotionListener(m);\n            add(lab);\n        }\n    }\n    public class Menu extends JPanel implements ActionListener\n    {\n        private Window window;\n        private JMenuBar menuBar;\n        private JMenu menu;\n        private JMenuItem menuItem;\n        public Screen screen = new Screen();\n        public Menu(Window window)\n        {\n            this.window = window;\n            menuBar = new JMenuBar();\n            menu = new JMenu(&quot;1&quot;);\n            menuItem = new JMenuItem(&quot;2&quot;); \n            menuBar.add(menu);\n            menu.add(menuItem);\n            menuItem.addActionListener(this);\n        }\n        @Override\n        public void actionPerformed(ActionEvent e) {\n            // TODO Auto-generated method stub\n            screen.addObject();\n            screen.revalidate();\n            screen.repaint();\n        }\n        public JMenuBar getMenuBar()\n        {\n            return this.menuBar;\n        }\n        \n    }\n}\n</code></pre>\n<p>Sorry for the lack of details, I am trying to get this posted before I go to my job. Some of the variables might be redundant because I was trying different things and didn't bother removing them.</p>\n<p>I tried changing it so that it would revalidate and redraw but that only got rid of another problem that I was having.</p>\n<p>Edit: I have made a simpler version for an MRE. I believe it might have to do with the layout as if I call the revalidate method at all it does the same thing with the object.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

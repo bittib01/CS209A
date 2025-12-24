@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "service",
+      "architecture",
+      "dao",
+      "dbconnectionfactory"
+    ],
+    "owner": {
+      "account_id": 31804610,
+      "reputation": 57,
+      "user_id": 24618785,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/414a17d6d06bd61bcc6c9fd76715fff0?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "user24618785",
+      "link": "https://stackoverflow.com/users/24618785/user24618785"
+    },
+    "is_answered": true,
+    "view_count": 249,
+    "accepted_answer_id": 78379794,
+    "answer_count": 2,
+    "score": 2,
+    "last_activity_date": 1718445222,
+    "creation_date": 1713904830,
+    "last_edit_date": 1713907491,
+    "question_id": 78374886,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78374886/layers-of-a-simple-java-program-to-persist-data-into-mysql-using-jdbc-connecti",
+    "title": "Layers of a simple Java program to persist data into MySQL using JDBC - ConnectionFactory, DAO, Service",
+    "body": "<p>For educational purposes, I'm developing a simple desktop/console Java program to persist data into MySQL database using JDBC. I'd like to know if the following architecure/layers are ok (despite the computational/maintenance cost, interpretability etc):</p>\n<p><strong>Class Product</strong></p>\n<pre><code>public class Product {\n    private int id;\n    private String name;\n    \n   //getters and setters and constructors\n}\n</code></pre>\n<p><strong>ConnectionFactory:</strong></p>\n<pre><code>public abstract class ConnectionFactory {\n     private static Connection conn  = null;\n\n\n    public  static Connection getConnection() throws SQLException{\n        if (conn == null)\n               conn = DriverManager.getConnection(&quot;jdbc:mysql://localhost/database_name&quot;,&quot;user&quot;,&quot;password&quot;);\n\n        return conn;\n    }\n}\n\n</code></pre>\n<p><strong>Interface DAO</strong></p>\n<pre><code>public interface DAO &lt;T&gt;{\n     void  save(T type);\n     List&lt;T&gt; findAll();\n\n}\n</code></pre>\n<p><strong>Interface ProductDAO</strong></p>\n<pre><code>public class ProductDAO implements DAO&lt;Product&gt;{\n    @Override\n    public void save(Product p) {\n        String sql = &quot;INSERT INTO product values (?,?)&quot;;\n\n        try(Connection con = ConnectionFactory.getConnection();\n            PreparedStatement stmt = con.prepareStatement(sql)) {\n            stmt.setInt(1, p.getId());\n            stmt.setString(2, p.getName());\n            stmt.executeUpdate();\n        } catch (SQLException e) {\n            e.printStackTrace();\n        }\n    }\n\n\n    @Override\n    public List&lt;Product&gt; buscarTodos() {\n        String sql = &quot;SELECT * FROM product&quot;;\n        List&lt;Product&gt; listProd =new ArrayList&lt;&gt;();\n        try(Connection con = ConnectionFactory.criaConexao();\n            PreparedStatement stmt = con.prepareStatement(sql))  {\n            ResultSet rs = stmt.executeQuery();\n            while (rs.next()) {\n                Product p = new Product(rs.getInt(&quot;id&quot;), rs.getString(&quot;name&quot;));\n                listProd.add(p);\n            }\n        } catch (SQLException e) {\n            e.printStackTrace();\n        }\n        return listProd;\n    }\n}\n</code></pre>\n<p><strong>Interface ProductService:</strong></p>\n<pre><code>public interface Service &lt;T&gt;{\n    void  save(T type);\n    List&lt;T&gt; findAll();\n}\n</code></pre>\n<p><strong>Class ProductService:</strong></p>\n<pre><code>public class ProductService implements Service&lt;Product&gt;{\n    ProductDAO productDAO ;\n\n    public ProductService() {\n        productDAO= new ProductDAO();\n    }\n\n    @Override\n    public void save(Product p) {\n        productDAO.save(p);\n    }\n\n    @Override\n    public List&lt;Product&gt; findAll() {\n        return productDAO.findAll();\n    }\n}\n\n</code></pre>\n<p><strong>Class Main</strong></p>\n<pre><code>public class Main {\n    public static void main(String[] args) {\n        Product p1 = new Product(1,&quot;Product A&quot;);\n        ProductService productService = new ProductService();\n        productService.save(p1);\n    }\n}\n</code></pre>\n<p>I'd be grateful for comments and suggestions.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

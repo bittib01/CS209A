@@ -1,0 +1,37 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "multithreading",
+      "kotlin",
+      "forkjoinpool",
+      "work-stealing"
+    ],
+    "owner": {
+      "account_id": 3163862,
+      "reputation": 36864,
+      "user_id": 2674303,
+      "user_type": "registered",
+      "accept_rate": 62,
+      "profile_image": "https://www.gravatar.com/avatar/411d782b77899035a96abb71b64e062a?s=256&d=identicon&r=PG",
+      "display_name": "gstackoverflow",
+      "link": "https://stackoverflow.com/users/2674303/gstackoverflow"
+    },
+    "is_answered": true,
+    "view_count": 258,
+    "accepted_answer_id": 79394446,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1742214001,
+    "creation_date": 1738062852,
+    "last_edit_date": 1738063848,
+    "question_id": 79393590,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79393590/how-to-use-forkjoinpool-executors-newworkstealingpool-to-achieve-better-per",
+    "title": "How to use `ForkJoinPool/`Executors.newWorkStealingPool()` to achieve better performance?",
+    "body": "<p>I've faced an issue in my applicaiton and artificial example will look like this:</p>\n<pre><code>fun main(args: Array&lt;String&gt;) {\n    val start = System.currentTimeMillis()\n    Internal().doWork()\n    println(&quot;Duration is ${(System.currentTimeMillis() - start)/1000} sec&quot;)\n}\n\nclass Internal {\n\n    fun doWork() {\n\n        val pool = ThreadPoolExecutor(\n        3, Integer.MAX_VALUE,\n        60L, TimeUnit.SECONDS,\n        ArrayBlockingQueue(1000),\n    )\n\n        val future = CompletableFuture.supplyAsync(\n            {\n                // 1 subtask\n                val future1 = CompletableFuture.supplyAsync(\n                    {\n                        (1..10).map {\n                            CompletableFuture.supplyAsync(SingleExternalCall(), pool)\n                        }.sumOf { it.join() }\n                    },\n                    pool,\n                )\n                // 2 subtask\n                val future2 = CompletableFuture.supplyAsync(\n                    {\n                        (1..5).map {\n                            CompletableFuture.supplyAsync(SingleExternalCall(), pool)\n                        }.sumOf { it.join() }\n                    },\n                    pool,\n                )\n                // aggregate\n                future1.join() + future2.join()\n            },\n            pool,\n        )\n        println(future.join())\n    }\n\n    class SingleExternalCall : Supplier&lt;Int&gt; {\n\n        override fun get(): Int {\n            Thread.sleep(5000)\n            return counter.incrementAndGet().toInt()\n        }\n    }\n\n    companion object {\n\n        private val counter = AtomicLong()\n    }\n}\n</code></pre>\n<p>If you try to run it - application will hang.\nThe root cause is now clear for me. Initially 3 threads will be created</p>\n<ul>\n<li>First thread will wait for first subtask termination  <code>.sumOf { it.join() }</code></li>\n<li>Second threadwill wait for second subtask termination .<code>sumOf { it.join() }</code></li>\n<li>Third thread will wait for aggregation <code>future1.join() + future2.join()</code></li>\n</ul>\n<p>All other tasks will be queued but because task queue is quite long(much longer than amount of taks in my examples) so new threads won't be created. So applicaiton has no resources to make useful work.</p>\n<p>If we provide at least 4 threads as a core pool size - all work will be done</p>\n<p>Let's think about solutions:</p>\n<ol>\n<li>We can give more threads. But how many ? In one moment we will be limiited by amount of thread</li>\n<li>We can try to use <code>Executors.newCachedThreadPool()</code>. It will create a new thread every time we need an additional thread(if there is no free thread inside)</li>\n<li>We can try to use <code>Executors.newWorkStealingPool()</code></li>\n</ol>\n<p>Conceptually looks like <code>ForkJoinPool</code>(which is used inside <code>newWorkStealingPool</code> ) is a best one because we have dependency between tasks.\nBut I've reas some articles about ForkJoinPool and see that there some specific API with explicit <code>fork</code>/<code>join</code> and looks like it will require to rewrite the whole application(I would like to avoid it if it is possible)</p>\n<p>So I want to know:</p>\n<ol>\n<li>Is it a good idea to use <code>ForkJoinPool</code>/<code>Executors.newWorkStealingPool()</code> in my example ?</li>\n<li>If yes - what API is the best one ?</li>\n</ol>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

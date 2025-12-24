@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "androidx",
+      "uwb"
+    ],
+    "owner": {
+      "account_id": 28871813,
+      "reputation": 1,
+      "user_id": 22113194,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AAcHTte9zv0hb_9E9rYcsfy83WCZ6azSibz8tyoS2Yyw=k-s256",
+      "display_name": "Himang",
+      "link": "https://stackoverflow.com/users/22113194/himang"
+    },
+    "is_answered": false,
+    "view_count": 34,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1755859499,
+    "creation_date": 1755859499,
+    "question_id": 79743302,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79743302/uwb-ranging-does-not-start-with-multiple-peers-using-multicast-mode-in-androidx",
+    "title": "UWB ranging does not start with multiple peers using multicast mode in androidx.core.uwb",
+    "body": "<p>I am working on an Android UWB application using <code>androidx.core.uwb</code>.<br />\nWhen I add <strong>multiple peers</strong> to the device list and use <strong>multicast mode</strong>, ranging does not start at all.<br />\nWith a <strong>single peer</strong>, ranging works fine and I receive results as expected. I am testing on S24 Ultra (Android 15).</p>\n<h4>Code Snippet</h4>\n<ol>\n<li>Build RangingParameters with multiple peers:</li>\n</ol>\n<pre class=\"lang-java prettyprint-override\"><code>\nList&lt;UwbDevice&gt; devices = new ArrayList&lt;&gt;();\ndevices.add(new UwbDevice(new UwbAddress(Utils.hexStringToByteArray(&quot;2222&quot;))));\ndevices.add(new UwbDevice(new UwbAddress(Utils.hexStringToByteArray(&quot;3333&quot;))));\n\nRangingParameters params = new RangingParameters(\n    RangingParameters.CONFIG_MULTICAST_DS_TWR,\n    sessionID,\n    0,\n    sessionKeyInfo,\n    null,\n    new UwbComplexChannel(9, 10),\n    devices,\n    RangingParameters.RANGING_UPDATE_RATE_AUTOMATIC\n);\n</code></pre>\n<ol start=\"2\">\n<li>Start ranging session:</li>\n</ol>\n<pre class=\"lang-java prettyprint-override\"><code>Flowable&lt;RangingResult&gt; rangingResultFlowable =\n    UwbClientSessionScopeRx.rangingResultsFlowable(controleeSessionScope, params);\n\ndisposable = rangingResultFlowable.subscribeWith(new DisposableSubscriber&lt;RangingResult&gt;() {\n    @Override\n    public void onNext(RangingResult rangingResult) {\n        if (rangingResult instanceof RangingResult.RangingResultPosition) {\n            RangingResult.RangingResultPosition pos = (RangingResult.RangingResultPosition) rangingResult;\n            if (pos.getPosition().getDistance() != null) {\n                float distance = pos.getPosition().getDistance().getValue();\n                Log.d(&quot;UWB&quot;, &quot;Distance: &quot; + distance);\n            }\n            if (pos.getPosition().getAzimuth() != null) {\n                float azimuth = pos.getPosition().getAzimuth().getValue();\n                Log.d(&quot;UWB&quot;, &quot;Azimuth: &quot; + azimuth);\n            }\n            if (pos.getPosition().getElevation() != null) {\n                float elevation = pos.getPosition().getElevation().getValue();\n                Log.d(&quot;UWB&quot;, &quot;Elevation: &quot; + elevation);\n            }\n        }\n        request(1);\n    }\n\n    @Override\n    public void onError(Throwable t) {\n        Log.e(&quot;UWB&quot;, &quot;Error: &quot; + t.getMessage());\n    }\n\n    @Override\n    public void onComplete() {\n        Log.i(&quot;UWB&quot;, &quot;Ranging session completed&quot;);\n    }\n});\n</code></pre>\n<hr />\n<h4>What I have tried</h4>\n<ul>\n<li>Using a single peer → <strong>works fine</strong> (I get ranging results).</li>\n<li>Adding multiple peers with multicast mode → <strong>ranging does not start</strong>.</li>\n</ul>\n<hr />\n<h3>Questions.</h3>\n<ol>\n<li>Does Android UWB <strong>support multiple peers in multicast mode</strong> right now?</li>\n<li>If yes, what changes are needed to make ranging start with multiple peers?</li>\n<li>If no, is this a limitation in the current <code>androidx.core.uwb</code> API?</li>\n</ol>\n<hr />\n<h4>Logs</h4>\n<p>2025-08-22 14:35:03.829  6414-6495  Glide_UwbRangingService com.example.rtlsapp                  I  Connected successfully!\n2025-08-22 14:35:03.832  6414-6495  Glide_UwbRangingService com.example.rtlsapp                  D  Initiating Device as controlee..\n2025-08-22 14:35:03.879  6414-6495  Glide_UwbRangingService com.example.rtlsapp                  I  Local Address: D758\n2025-08-22 14:35:04.221  6414-6501  Glide_UwbRangingService com.example.rtlsapp                  I  Message published: {&quot;currentMac&quot;:&quot;D758&quot;}\n2025-08-22 14:35:08.688  6414-6490  Glide_UwbRangingService com.example.rtlsapp                  I  2222 : Starting Session...\n2025-08-22 14:35:08.690  6414-6490  Glide_UwbRangingService com.example.rtlsapp                  D  2222 : Configure controlee flowable\n2025-08-22 14:35:08.738  6414-6490  Glide_UwbRangingService com.example.rtlsapp                  D  2222 : UWB Disposable started</p>\n<p>Any guidance would be appreciated</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "kotlin",
+      "testing",
+      "jvm",
+      "jmh"
+    ],
+    "owner": {
+      "account_id": 4623673,
+      "reputation": 7577,
+      "user_id": 4161471,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/087044167d22fba7e2a7864732e21ff0?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "aSemy",
+      "link": "https://stackoverflow.com/users/4161471/asemy"
+    },
+    "is_answered": true,
+    "view_count": 161,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1724639736,
+    "creation_date": 1722753023,
+    "last_edit_date": 1723280667,
+    "question_id": 78830413,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78830413/run-jmh-in-dry-run-mode",
+    "title": "Run JMH in dry-run mode",
+    "body": "<p>I am working on fixing a bug in <a href=\"https://github.com/Kotlin/kotlinx-benchmark/\" rel=\"nofollow noreferrer\">kotlinx.benchmark</a>, which wraps JMH. Development is made much slower because the tests actually run the benchmarks, which for what I'm doing, is not important. I just need to verify that JMH loads the options and correctly selects the benchmarks, but I do not actually need JMH to run and produce benchmarks.</p>\n<p>What would be ideal is a way of forcing JMH to run in a dry-run mode, where it loads all benchmarks, but doesn't actually run them. For each benchmark it could return a fake result, or even a '0ms' result. Is something like this possible?</p>\n<h5>Running JMH</h5>\n<p>Here's how kotlinx.benchmark runs JMH at the moment.</p>\n<p>kotlinx.benchmark invokes JMH via the <a href=\"https://github.com/openjdk/jmh/blob/1.37/jmh-core/src/main/java/org/openjdk/jmh/runner/Runner.java\" rel=\"nofollow noreferrer\"><code>org.openjdk.jmh.runner.Runner</code></a> class in <a href=\"https://github.com/Kotlin/kotlinx-benchmark/blob/v0.4.11/runtime/jvmMain/src/kotlinx/benchmark/jvm/JvmBenchmarkRunner.kt\" rel=\"nofollow noreferrer\">JvmBenchmarkRunner.kt</a>.</p>\n<p><code>JvmBenchmarkRunner</code> is perhaps more complicated than it seems, but at its core, it's just building JMH Options and then running them, like this:</p>\n<pre class=\"lang-kotlin prettyprint-override\"><code>import org.openjdk.jmh.annotations.Mode\nimport org.openjdk.jmh.results.format.ResultFormatType\nimport org.openjdk.jmh.runner.Runner\nimport org.openjdk.jmh.runner.options.OptionsBuilder\n\nfun main() {\n  val options = OptionsBuilder()\n    .warmupForks(3)\n    .forks(2)\n    .mode(Mode.Throughput)\n    .resultFormat(ResultFormatType.TEXT)\n    // (more options)\n    .build()\n  \n  val runner = Runner(options)\n  runner.run()\n}\n</code></pre>\n<p>I'm coding in Kotlin/JVM, but the situation is also applicable if using JMH in Java.</p>\n<h4>Potential solutions</h4>\n<ul>\n<li>Maybe there's a way of injecting a class that will override an existing JMH class, so that the tests never get launched?</li>\n<li>How does JMH test itself? Is there an internal 'integration test mode' where benchmark execution is disabled? Maybe there's an system property that will disable execution of the actual the tests?</li>\n</ul>\n<p>While it is possible to override the timings to be very low, e.g. 1ms, so that the test runs (almost) instantly, this is not desired as it prevents testing that the correct parameters are passed to JMH.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

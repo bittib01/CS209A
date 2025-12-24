@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "open-telemetry",
+      "open-telemetry-collector",
+      "open-telemetry-java"
+    ],
+    "owner": {
+      "account_id": 1835033,
+      "reputation": 5788,
+      "user_id": 1665592,
+      "user_type": "registered",
+      "accept_rate": 77,
+      "profile_image": "https://i.sstatic.net/hgWUV.jpg?s=256",
+      "display_name": "Swapnil Kotwal",
+      "link": "https://stackoverflow.com/users/1665592/swapnil-kotwal"
+    },
+    "is_answered": true,
+    "view_count": 160,
+    "accepted_answer_id": 78984275,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1726827972,
+    "creation_date": 1721395177,
+    "question_id": 78769590,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78769590/opentelemetry-only-emit-traces-when-service-restarted",
+    "title": "OpenTelemetry Only Emit traces when service restarted",
+    "body": "<p>Below is my Otel implementation to instantiate the OpenTelemetry SDKs for Metrics &amp; Traces. I found that <code>Metrics</code> are getting emitted whenever application requests are getting served but <code>Traces</code> are only emitted when this application is restarted.</p>\n<p>Any suggestions what I'm missing here?</p>\n<pre><code>SpanExporter exporter = OtlpGrpcSpanExporter.builder()\n                    .setEndpoint(otlEndPoint)\n                    .build();\n\n            SdkTracerProviderBuilder tracerProviderBuilder = SdkTracerProvider.builder()\n                    .addSpanProcessor(BatchSpanProcessor.builder(exporter).build())\n                    .setSampler(Sampler.alwaysOn());\n\n            SdkTracerProvider tracerProvider = tracerProviderBuilder\n                    .setResource(resource)\n                    .build();\n\n            ContextPropagators propagators = ContextPropagators.create(TextMapPropagator.composite(\n                    W3CTraceContextPropagator.getInstance(),\n                    W3CBaggagePropagator.getInstance()\n            ));\n\n            openTelemetry = OpenTelemetrySdk.builder().setMeterProvider(SdkMeterProvider.builder().setResource(resource)\n                            .registerMetricReader(PeriodicMetricReader.builder(otlpGrpcMetricsExporter)\n                                    .setInterval(Duration.ofMillis(1000)).build()).build())\n                    .setTracerProvider(tracerProvider)\n                    .setPropagators(propagators)\n                    .buildAndRegisterGlobal();\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

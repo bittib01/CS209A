@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "c++",
+      "exception",
+      "error-handling",
+      "jvm"
+    ],
+    "owner": {
+      "account_id": 16339479,
+      "reputation": 79,
+      "user_id": 11800706,
+      "user_type": "registered",
+      "profile_image": "https://lh4.googleusercontent.com/-zFNwwZPtjuU/AAAAAAAAAAI/AAAAAAAAAAA/ACHi3rfWbrYSsOxVKPgH0KS3Xwrmf00zsQ/s256-rj/photo.jpg",
+      "display_name": "Elijah",
+      "link": "https://stackoverflow.com/users/11800706/elijah"
+    },
+    "is_answered": true,
+    "view_count": 152,
+    "answer_count": 1,
+    "score": 5,
+    "last_activity_date": 1766415187,
+    "creation_date": 1766339719,
+    "last_edit_date": 1766342486,
+    "question_id": 79852375,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79852375/how-to-catch-java-exceptions-using-a-c-launcher",
+    "title": "how to catch Java exceptions using a C++ launcher?",
+    "body": "<p>I am writing a client application using Java Swing. I am quite confused about how a launcher can capture JVM crash information when the JVM crashes.</p>\n<p>The <code>hs_err_pid[PID].log</code> file is not generated. I believe my C++ launcher is exiting normally.</p>\n<p><strong>Project structure</strong></p>\n<p><a href=\"https://i.sstatic.net/cbE7cqgY.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/cbE7cqgY.png\" alt=\"file structure\" /></a></p>\n<p><strong>Simple C++ launcher code</strong></p>\n<pre><code>#include &lt;jni.h&gt;\n#include &lt;windows.h&gt;\n#include &lt;string&gt;\n#include &lt;vector&gt;\n\ntypedef jint(JNICALL* PfnCreateJavaVM)(JavaVM**, void**, void*);\n\nint APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {\n    \n    // 1. get run path\n    wchar_t exePath[MAX_PATH];\n    GetModuleFileNameW(NULL, exePath, MAX_PATH);\n    std::wstring strPath(exePath);\n    size_t lastSlash = strPath.find_last_of(L&quot;\\\\/&quot;);\n    std::wstring appDir = strPath.substr(0, lastSlash);\n\n\n    // myapp (target,Project Directory)\n    // \n    //      -&gt; runtime (jdk env)\n    //      -&gt; myapp.jar (core jar program)\n    //      -&gt; main.cpp(launcher exe)\n\n\n    // path append\n    std::wstring jvmDllPath = appDir + L&quot;\\\\runtime\\\\bin\\\\server\\\\jvm.dll&quot;;\n    std::wstring jarPath = appDir + L&quot;\\\\myapp.jar&quot;;\n\n    // 2. load jvm  dLL\n    HMODULE hJvmDll = LoadLibraryW(jvmDllPath.c_str());\n    if (!hJvmDll) {\n        MessageBoxW(NULL, (L&quot;not found jvm dll: &quot; + jvmDllPath).c_str(), L&quot;error&quot;, MB_OK | MB_ICONERROR);\n        return 1;\n    }\n\n    PfnCreateJavaVM createVM = (PfnCreateJavaVM)GetProcAddress(hJvmDll, &quot;JNI_CreateJavaVM&quot;);\n\n    // 3. handler classpath utf-8\n    int size_needed = WideCharToMultiByte(CP_UTF8, 0, jarPath.c_str(), -1, NULL, 0, NULL, NULL);\n    std::string utf8JarPath(size_needed, 0);\n    WideCharToMultiByte(CP_UTF8, 0, jarPath.c_str(), -1, &amp;utf8JarPath[0], size_needed, NULL, NULL);\n    std::string cpOption = &quot;-Djava.class.path=&quot; + utf8JarPath;\n\n    // 4. jvm params\n    JavaVMInitArgs vmArgs;\n    std::vector&lt;JavaVMOption&gt; options;\n\n    options.push_back({ (char*)cpOption.c_str(), NULL });\n    options.push_back({ (char*)&quot;--enable-native-access=ALL-UNNAMED&quot;, NULL });\n    options.push_back({ (char*)&quot;-Dsun.java2d.uiScale=1&quot;, NULL });\n\n\n    vmArgs.version = JNI_VERSION_24;\n    vmArgs.nOptions = (jint)options.size();\n    vmArgs.options = options.data();\n    vmArgs.ignoreUnrecognized = JNI_FALSE;\n\n    // 5. start jvm and run\n    JavaVM* jvm;\n    JNIEnv* env;\n    if (createVM(&amp;jvm, (void**)&amp;env, &amp;vmArgs) &gt;= 0) {\n        jclass mainClass = env-&gt;FindClass(&quot;com/example/code/Application&quot;);\n        if (mainClass) {\n            jmethodID mainMethod = env-&gt;GetStaticMethodID(mainClass, &quot;main&quot;, &quot;([Ljava/lang/String;)V&quot;);\n            if (mainMethod) {\n                // call main method\n                jobjectArray args = env-&gt;NewObjectArray(0, env-&gt;FindClass(&quot;java/lang/String&quot;), NULL);\n                env-&gt;CallStaticVoidMethod(mainClass, mainMethod, args);\n                 //I can’t capture the exception because I believe the JVM has already crashed and exited.\n                if (env-&gt;ExceptionOccurred()) {\n                   env-&gt;ExceptionDescribe();  \n                   env-&gt;ExceptionClear(); \n                   MessageBoxW(NULL, L&quot;JVM crashed！&quot;, L&quot;error&quot;, MB_OK | MB_ICONERROR);\n               }\n            }\n        }\n        else {\n            MessageBoxW(NULL, L&quot;not find main !!!&quot;, L&quot;error&quot;, MB_OK | MB_ICONERROR);\n        }\n        jvm-&gt;DestroyJavaVM();\n    }\n\n    FreeLibrary(hJvmDll);\n    return 0;\n}\n</code></pre>\n<p>I just simulated an exception here:</p>\n<p><a href=\"https://i.sstatic.net/bmesgr5U.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/bmesgr5U.png\" alt=\"exception simulation\" /></a></p>\n<p><strong>Exception handling code</strong></p>\n<pre><code> if (env-&gt;ExceptionOccurred()) {\n     env-&gt;ExceptionDescribe();  \n     env-&gt;ExceptionClear(); \n     MessageBoxW(NULL, L&quot;JVM crashed！&quot;, L&quot;error&quot;, MB_OK | MB_ICONERROR);\n }\n</code></pre>\n<p>I still can't capture the exception information. I believe the JVM has crashed and exited, and the exception is thrown asynchronously in a separate thread.</p>\n<p>How can I capture JVM crash exit information using a C++ launcher?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

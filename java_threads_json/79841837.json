@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "unit-testing"
+    ],
+    "owner": {
+      "account_id": 3697676,
+      "reputation": 31,
+      "user_id": 3078515,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/63276c8fd92626e08bf051f66606dcf6?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "user3078515",
+      "link": "https://stackoverflow.com/users/3078515/user3078515"
+    },
+    "is_answered": false,
+    "view_count": 119,
+    "answer_count": 0,
+    "score": 2,
+    "last_activity_date": 1765282628,
+    "creation_date": 1765277943,
+    "last_edit_date": 1765282628,
+    "question_id": 79841837,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79841837/spring-boot-4-and-restclient-mocking",
+    "title": "Spring boot 4 and RestClient Mocking",
+    "body": "<p>I am in the process of migrating one of our application to Spring Boot 4.0.0. One of the changes I tried to incorporate is using the <code>RestClient</code>.</p>\n<p>Code-wise all the changes are fine and everything is working correctly. What seems to fail is the testing part.</p>\n<p>In our test we use <code>MockRestServiceServer</code> to mock <code>RestTemplate</code> calls.</p>\n<p>I see that <code>MockRestServiceServer</code> has a method:</p>\n<pre><code>MockRestServiceServer.bindTo(RestClient.Builder restClientBuilder)\n</code></pre>\n<p>In my code I have created a bean of <code>RestClient.Builder</code></p>\n<pre class=\"lang-java prettyprint-override\"><code>@Bean(&quot;rsgatewayClientBuilder&quot;)\npublic RestClient.Builder rsgwRestClientBuilder(RSGWConfiguration rsgwConfiguration, HttpClient httpClient) {}\n</code></pre>\n<p>This bean is autowired into the class that makes the respective calls, and I create a <code>RestClient</code> in there:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public RsGwService(\n         @Qualifier(&quot;rsgatewayClientBuilder&quot;) RestClient.Builder rsgatewayClientBuilder,\n         @Value(&quot;${mtxaps.common.mtx.rsgateway.url}&quot;) @NotEmpty String url\n) {\n    this.restClient = rsgatewayClientBuilder.build();\n}\n</code></pre>\n<p>So in my tests I try to set up the <code>MockRestServiceServer</code> by autowiring the <code>RestClient.Builder</code> created above:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Autowired\n@Qualifier(&quot;rsgatewayClientBuilder)\nprivate RestClient.Builder restClientBuilder;\n\nMockRestServiceServer.bindTo(restClientBuilder)\n</code></pre>\n<p>The behavior I see is that the mocking is not happening and it tries to call the real server.</p>\n<p>Note: my test class has the following annotations:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@SpringBootTest(classes = MtxapsBalancesApplication.class)\n@WebAppConfiguration\n@ActiveProfiles(Profiles.TEST)\n</code></pre>\n<p>One thing I noticed that makes the mocking work is the following:</p>\n<pre class=\"lang-java prettyprint-override\"><code>MtxResponse response = rsgatewayClientBuilder.build()\n        .put()\n        .uri(urlTemplate, params)\n        .body(request)\n        .retrieve()\n        .body(MtxResponse.class);\n</code></pre>\n<p>So instead of creating a client in the constructor like :</p>\n<pre class=\"lang-java prettyprint-override\"><code>this.restClient = rsgatewayClientBuilder.build();\n</code></pre>\n<p>and using this client for all calls, the mocking works <strong>only if I create a new client every time</strong> from the builder.</p>\n<p>Also, because I need to start the whole application context, I have to use the <code>@SpringBootTest</code> annotation. I can't use <code>@RestClientTest</code> because of the already-existing <code>@BootstrapWith</code>.</p>\n<p>The workaround I found was to use <code>MockWebServer</code>, but this will require quite some time since I would need to change a lot of mock calls (around 200).</p>\n<p>Has anyone experienced this? Any help would be greatly appreciated.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

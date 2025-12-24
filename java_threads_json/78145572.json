@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "rest",
+      "multipart"
+    ],
+    "owner": {
+      "account_id": 13838923,
+      "reputation": 337,
+      "user_id": 9989781,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/700c93aa9bbd584a1d4d03f994db882e?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Mirza Prangon",
+      "link": "https://stackoverflow.com/users/9989781/mirza-prangon"
+    },
+    "is_answered": true,
+    "view_count": 5522,
+    "answer_count": 1,
+    "score": 5,
+    "last_activity_date": 1723908142,
+    "creation_date": 1710231666,
+    "last_edit_date": 1710232522,
+    "question_id": 78145572,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78145572/springboot-3-upload-large-file-efficiently-and-performantly",
+    "title": "SpringBoot 3 Upload large file efficiently and performantly",
+    "body": "<p>I am using spring boot 3, java 21 for a rest api.</p>\n<p>One of the API will handle file upload. Files can be pretty big, 2~3GB. Reading the <a href=\"https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/multipart/MultipartFile.html\" rel=\"noreferrer\">spring documentation</a>, I read that the <code>MultipartFile</code> request will always either save the data to memory or save it as a temporary file. Either way does not work. If possible I want a way to directly stream the <code>MultipartFile</code> data as it is being uploaded. I have read some SO posts, some of them is using Apache commons fileupload stream. Those posts are pretty old.</p>\n<p>I will share two rest controller methods.</p>\n<pre class=\"lang-java prettyprint-override\"><code>@PostMapping(&quot;/{fileId}/content&quot;)\n@PreAuthorize(&quot;hasAuthority('SCOPE_write:files')&quot;)\npublic ResponseEntity&lt;String&gt; postFileFileId(@PathVariable Long fileId,\n        @RequestParam(&quot;file&quot;) MultipartFile multipartFile) {\n    Optional&lt;FileResourceEntity&gt; fileResourceEntityOptional = fileRepository.findByFileIdAndIsTrashFalse(fileId);\n    if (!fileResourceEntityOptional.isPresent()) {\n        return ResponseEntity.notFound().build();\n    }\n    try {\n        FileResourceEntity fileResourceEntity = fileResourceEntityOptional.get();\n        createFoldersAndSaveUploadFile(fileResourceEntity, multipartFile);\n        fileRepository.save(fileResourceEntity);\n        return ResponseEntity.noContent().build();\n    } catch (Exception ex) {\n        return ResponseEntity.badRequest().body(UPLOAD_FAILED_MESSAGE);\n    }\n}\n\n@PostMapping(consumes = { &quot;multipart/form-data&quot; })\n@PreAuthorize(&quot;hasAnyAuthority('SCOPE_write:files')&quot;)\npublic ResponseEntity&lt;String&gt; postFile(\n        @RequestPart(&quot;filedetail&quot;) FileResourceDetail fileResource,\n        @RequestPart(&quot;content&quot;) MultipartFile multipartFile,\n        UriComponentsBuilder ubc) {\n\n    FileResourceEntity savedFile = new FileResourceEntity();\n    try {\n        FileResourceEntity fileData = fileResourceDTOService.convertToEntity(fileResource);\n        savedFile = fileRepository.save(fileData);\n\n        if (!multipartFile.isEmpty()) {\n            createFoldersAndSaveUploadFile(savedFile, multipartFile);\n        }\n\n        URI locationOfNewFile = ubc\n                .path(&quot;/api/v4/files/{fileId}&quot;)\n                .buildAndExpand(savedFile.getFileId())\n                .toUri();\n        return ResponseEntity.created(locationOfNewFile).build();\n    } catch (Exception ex) {\n        fileRepository.deleteById(savedFile.getFileId());\n        return ResponseEntity.badRequest()\n                .body(UPLOAD_FAILED_MESSAGE);\n    }\n}\n\n\nprivate void createFoldersAndSaveUploadFile(FileResourceEntity fileResourceEntity, MultipartFile multipartFile)\n        throws IOException {\n    String createDate = fileResourceEntity.getCreatedAt().format(DATE_FORMATTER);\n    createFolders(Path.of(rootDataFolder, createDate));\n    Files.copy(multipartFile.getInputStream(), getFilePath(fileResourceEntity));\n}\n\n</code></pre>\n<p>We are running the application as pod in Kubernetes. Files are saved to a PV, which is actually mounted FSX. Right now, after client finishes upload, server takes a long time to save the multipart file to actual file server, then returns response.</p>\n<p>Is there any way to directly save/stream uploads to file using Spring Boot?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

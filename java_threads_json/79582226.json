@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "annotations",
+      "reflections"
+    ],
+    "owner": {
+      "account_id": 41490246,
+      "reputation": 3,
+      "user_id": 30314180,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/7b8cca613f193308c8fa1382827a31b1?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Standing_Ash",
+      "link": "https://stackoverflow.com/users/30314180/standing-ash"
+    },
+    "is_answered": true,
+    "view_count": 115,
+    "accepted_answer_id": 79582458,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1745078512,
+    "creation_date": 1745055139,
+    "last_edit_date": 1745078512,
+    "question_id": 79582226,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79582226/java-reflections-and-meta-annotation-scanning",
+    "title": "Java Reflections and Meta Annotation Scanning",
+    "body": "<p>I am working on a somewhat like spring DI framework, and I faced an issue scanning all classes annotated with a certain annotation.</p>\n<p>Here are the annotations:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Retention(RetentionPolicy.RUNTIME)\n@Target(ElementType.TYPE)\npublic @interface Component {}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>@Retention(RetentionPolicy.RUNTIME)\n@Target(ElementType.TYPE)\n@Component\npublic @interface View {}\n</code></pre>\n<p><code>@View</code> itself is annotated with <code>@Component</code> so that <code>ComponentScanner</code> can also scan <code>@View</code>.</p>\n<p>And Here is the <code>ComponentScanner</code>:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class ComponentScanner {\n\n    public static Set&lt;Class&lt;?&gt;&gt; scan(String basePackage) {\n        Reflections reflections = new Reflections(basePackage);\n        return reflections.getTypesAnnotatedWith(Component.class)\n                .stream().filter(component -&gt; !component.isAnnotation())\n                .collect(Collectors.toSet());\n    }\n}\n</code></pre>\n<p><code>ComponentScanner.scan()</code> is called when the <code>ApplicationContext</code> is initialized:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class ApplicationContext {\n\n    private final BeanContainer beanContainer = new BeanContainer();\n\n    public ApplicationContext(String basePackage) {\n\n        // scan components and inject dependencies\n        Set&lt;Class&lt;?&gt;&gt; components = ComponentScanner.scan(basePackage);\n        beanContainer.registerComponents(components);\n        for (Class&lt;?&gt; componentClass : components)\n            System.out.println(&quot;ComponentScanner found: &quot;+componentClass.getName());\n    }\n\n    public &lt;T&gt; T getBean(Class&lt;T&gt; tClass) {\n        return beanContainer.getBean(tClass);\n    }\n}\n</code></pre>\n<p>The issue is that this <code>ComponentScanner.scan()</code> works fine for test codes but not when in actual use...</p>\n<p>Use case:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class App {\n\n    public static void run(Class&lt;?&gt; mainClass, String[] args) {\n        final String BASE_PACKAGE = mainClass.getPackageName();\n        ApplicationContext context = new ApplicationContext(BASE_PACKAGE);\n        // other setting codes...\n    }\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>package com.example.test;\n\npublic class Main {\n    public static void main(String[] args) {\n        App.run(Main.class, args);\n    }\n}\n\n@Component\npublic class MyComponent {}\n\n@View\npublic class MyView {}\n</code></pre>\n<p>If I run the main method, <code>App.run()</code> is called and it initializes <code>ApplicationContext</code> so that all <strong>Components</strong> are automatically scanned. But when I checked the log, <code>MyComponent</code> was scanned but not <code>MyView</code>...</p>\n<pre class=\"lang-bash prettyprint-override\"><code>ComponentScanner found: com.example.test.MyComponent\n</code></pre>\n<p>This is my test code:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class WebTest {\n\n    static final String BASE_PACKAGE = &quot;com.johndoe.myproject&quot;;\n    static final String TEMPLATE_ROOT = &quot;src/test/resources/templates&quot;;\n    static ApplicationContext context = new ApplicationContext(BASE_PACKAGE);\n\n    @Test\n    public void testView() throws IOException {\n        TestView view = context.getBean(TestView.class);\n        Assertions.assertNotNull(view);\n        Assertions.assertEquals(&quot;hello&quot;, view.hello());\n\n    }\n}\n</code></pre>\n<p>This test actually <strong>passed</strong>. So, I believe this indicates that <code>ComponentScanner.scan()</code> actually <strong>scanned</strong> the View below:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@View\npublic class TestView {\n    public String hello() {\n        return &quot;hello&quot;;\n    }\n}\n</code></pre>\n<p><code>TestView</code> is under the same package with <code>WebTest</code>.</p>\n<p>I tried all the steps Open AIs told me to do and they all failed. So my question is; <strong>why does my test code work but not the actual code?</strong></p>\n<p>I am really sorry for the load of code blocks but I really wanted to explain the full situation. I tried my best to simplify the code so that you can only see the essentials😭</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

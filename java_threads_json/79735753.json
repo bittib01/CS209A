@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "oracle-database",
+      "jdbc",
+      "oracle-cloud-infrastructure"
+    ],
+    "owner": {
+      "account_id": 9051102,
+      "reputation": 146,
+      "user_id": 6741224,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/O9Qbh9u1.jpg?s=256",
+      "display_name": "Uday Kumar",
+      "link": "https://stackoverflow.com/users/6741224/uday-kumar"
+    },
+    "is_answered": false,
+    "view_count": 121,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1755206875,
+    "creation_date": 1755194404,
+    "last_edit_date": 1755196595,
+    "question_id": 79735753,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79735753/failed-to-connect-oracle-autonomous-database-without-a-wallet-tls-using-java-c",
+    "title": "Failed to connect Oracle Autonomous Database Without a Wallet (TLS) using Java code",
+    "body": "<p>connection to Oracle Autonomous database without wallet (TLS) is failing with the below exception:</p>\n<pre><code>java.sql.SQLException: Listener refused the connection with the following error:\nORA-12529, TNS:connect request rejected based on current filtering rules\n  (CONNECTION_ID=gV+PGK8dSju4vIuTNE4bYg==)\n    at oracle.jdbc.driver.T4CConnection.handleLogonNetException(T4CConnection.java:892)\n    at oracle.jdbc.driver.T4CConnection.logon(T4CConnection.java:697)\n    at oracle.jdbc.driver.PhysicalConnection.connect(PhysicalConnection.java:1041)\n    at oracle.jdbc.driver.T4CDriverExtension.getConnection(T4CDriverExtension.java:89)\n    at oracle.jdbc.driver.OracleDriver.connect(OracleDriver.java:732)\n    at oracle.jdbc.datasource.impl.OracleDataSource.getPhysicalConnection(OracleDataSource.java:681)\n    at oracle.jdbc.datasource.impl.OracleDataSource.getConnection(OracleDataSource.java:372)\n    at oracle.jdbc.datasource.impl.OracleDataSource.getConnectionInternal(OracleDataSource.java:2135)\n    at oracle.jdbc.datasource.impl.OracleDataSource.getConnection(OracleDataSource.java:345)\n    at oracle.jdbc.datasource.impl.OracleDataSource.getConnection(OracleDataSource.java:306)\n    at\n</code></pre>\n<p>I am trying to make connection using scoped IAM database token from OCI using instance principal authentication. Using spring boot application and JDK 17 and Oracle Autonomous Database 23ai.</p>\n<p>Attempting to establish a secure wallet-less connection to Oracle ADW\nusing IAM token-based authentication and a generated RSA key pair.</p>\n<p>The codes are as below:</p>\n<p>The method 'createWalletlessConnection' performs the following steps:</p>\n<ol>\n<li>Generates a temporary RSA key pair</li>\n<li>Converts the public key to PEM format and retrieves an IAM token using it.</li>\n<li>Creates a JWT access token signed by the private key.</li>\n<li>Builds the JDBC URL for the ADW instance.</li>\n<li>Initializes OracleDatasource with token authentication and returns a connection.</li>\n</ol>\n<pre><code>private Connection createWalletlessConnection(DIAssistantConnection connDetails) throws Exception {\n        KeyPair keyPair = generateRsaKeyPair();\n        String publicKeyPem = convertPublicKeyToPem(keyPair.getPublic());\n        String accessToken = fetchScopedIamDbToken(publicKeyPem);\n\n        AccessToken jdbcAccessToken = AccessToken.createJsonWebToken(accessToken.toCharArray(), keyPair.getPrivate());\n        String jdbcUrl = buildJdbcUrl(connDetails.getAdwConnectionString());\n\n        OracleDataSource ods = new OracleDataSource();\n        ods.setURL(jdbcUrl);\n\n        Properties props = new Properties();\n        props.put(OracleConnection.CONNECTION_PROPERTY_TOKEN_AUTHENTICATION, &quot;OCI_TOKEN&quot;);\n        ods.setConnectionProperties(props);\n        ods.setTokenSupplier(() -&gt; jdbcAccessToken);\n\n        return ods.getConnection();\n    }\n\n private KeyPair generateRsaKeyPair() throws NoSuchAlgorithmException {\n        KeyPairGenerator generator = KeyPairGenerator.getInstance(&quot;RSA&quot;);\n        generator.initialize(4096);\n        return generator.generateKeyPair();\n    }\n\nprivate String convertPublicKeyToPem(PublicKey publicKey) {\n        String base64Key = Base64.getEncoder().encodeToString(publicKey.getEncoded());\n        StringBuilder pem = new StringBuilder(&quot;-----BEGIN PUBLIC KEY-----\\n&quot;);\n        for (int i = 0; i &lt; base64Key.length(); i += 64) {\n            pem.append(base64Key, i, Math.min(i + 64, base64Key.length())).append(&quot;\\n&quot;);\n        }\n        pem.append(&quot;-----END PUBLIC KEY-----&quot;);\n        return pem.toString();\n    } \n   \nprivate String fetchScopedIamDbToken(String publicKeyPem) throws Exception {\n        InstancePrincipalsAuthenticationDetailsProvider provider = InstancePrincipalsAuthenticationDetailsProvider.builder().build();\n        try (DataplaneClient client = DataplaneClient.builder().build(provider)) {\n            GenerateScopedAccessTokenDetails details = GenerateScopedAccessTokenDetails.builder()\n                    .scope(&quot;urn:oracle:db::id::*&quot;) // in the future if needed add as a parameter like urn:oracle:db::id::&lt;param&gt;\n                    .publicKey(publicKeyPem)\n                    .build();\n\n            GenerateScopedAccessTokenRequest request = GenerateScopedAccessTokenRequest.builder()\n                    .generateScopedAccessTokenDetails(details)\n                    .build();\n\n            return client.generateScopedAccessToken(request).getSecurityToken().getToken();\n        }\n    }\n\n private String buildJdbcUrl(String connectionString) {\n        String[] parts = connectionString.split(&quot;/&quot;);\n        if (parts.length != 2) {\n            throw new IllegalArgumentException(&quot;Invalid connection string format.&quot;);\n        }\n\n        String[] hostPort = parts[0].trim().split(&quot;:&quot;);\n        String host = hostPort[0].trim();\n        String port = (hostPort.length &gt; 1) ? hostPort[1].trim() : &quot;1521&quot;;\n        String serviceName = parts[1].trim();\n\n        return String.format(\n                &quot;jdbc:oracle:thin:@(description=(retry_count=20)(retry_delay=3)&quot;\n                        + &quot;(address=(protocol=tcps)(host=%s)(port=%s))&quot;\n                        + &quot;(connect_data=(service_name=%s))&quot;\n                        + &quot;(security=(ssl_server_dn_match=no)))&quot;,\n                host, port, serviceName\n        );\n    }\n\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

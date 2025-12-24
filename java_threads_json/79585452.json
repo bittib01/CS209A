@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "junit",
+      "mockito"
+    ],
+    "owner": {
+      "account_id": 4332654,
+      "reputation": 3,
+      "user_id": 3537710,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/9c9ec668fc08d8f318477299e117b1c1?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "kickd16",
+      "link": "https://stackoverflow.com/users/3537710/kickd16"
+    },
+    "is_answered": true,
+    "view_count": 57,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1745309919,
+    "creation_date": 1745276600,
+    "last_edit_date": 1745309919,
+    "question_id": 79585452,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79585452/calling-a-method-on-the-object-returned-by-crudrepository-save-method",
+    "title": "Calling a method on the object returned by CrudRepository save() method",
+    "body": "<p>I am trying to write a JUnit test for a relatively basic class that is responsible for persisting an object with a Spring Data CrudRepository, then extracting the generated ID from the object and using that ID as the input for some more logic. I have mocked my repository class and am using the standard when().thenReturn() to get the &quot;saved&quot; entity, but whenever I try to call the method to get the ID of the saved entity I get a NullPointerException telling me that the saved entity is null.</p>\n<p>Here is the code I am trying to test:</p>\n<pre><code>@Service\npublic class OrderSchedulingService {\n    private final OrderEventHistoryRepository orderEventHistoryRepository;\n    private final ObjectMapper objectMapper = new ObjectMapper();\n    private final CommonUtils commonUtils;\n\n    public Integer processOrderScheduling(ConsumerRecord&lt;String, String&gt; consumerRecord) throws JsonProcessingException, NullPointerException {\n        myMessage myMessage = objectMapper.readValue(consumerRecord.value(), MyMessage.class);\n\n        Payload payload = myMessage.getPayload();\n        String[] orderItemIds = payload.getOrderItemIds();\n\n        for (String orderItemIdStr : orderItemIds) {\n            Long orderItemId = Long.parseLong(orderItemIdStr);\n            OrderEvent event = commonUtils.getOrderEvent(myMessage, orderItemId, OrderEventCode.ORDER_SCHEDULED);\n            Long eventId = orderEventHistoryRepository.save(event).getEventId();\n            \n            //do some other stuff with eventId\n        }\n    }\n}\n</code></pre>\n<p>Here is my test class:</p>\n<pre><code>public class OrderSchedulingServiceTests {\n\n    @Mock\n    private OrderEventHistoryRepository orderEventHistoryRepository;\n\n    @Mock\n    CommonUtils commonUtils;\n\n    @Mock\n    private ObjectMapper objectMapper;\n\n    @InjectMocks\n    private OrderSchedulingService orderSchedulingService;\n\n    @BeforeEach\n    void setUp() {\n        MockitoAnnotations.openMocks(this);\n    }\n\n    @Test\n    public void processOrderSchedulingSuccessTest() throws Exception {\n        \n        ConsumerRecord&lt;String, String&gt; consumerRecord = mock(ConsumerRecord.class);\n        String messageValue = &quot;{\\&quot;action\\&quot;:\\&quot;SCHEDULE_ORDER\\&quot;, \\&quot;payload\\&quot;:{\\&quot;orderId\\&quot;:\\&quot;12345\\&quot;, \\&quot;orderItemIds\\&quot;: [\\&quot;1\\&quot;, \\&quot;2\\&quot;, \\&quot;3\\&quot;]}}&quot;;\n        MyMessage myMessage = mock(MyMessage.class);\n        OrderEvent orderEvent = mock(OrderEvent.class);\n        Long orderItemId = 1L;\n        Long eventId = 67890L;\n\n        when(consumerRecord.value()).thenReturn(messageValue);\n        when(objectMapper.readValue(consumerRecord.value(), myMessage.class)).thenReturn(myMessage);\n\n        when(commonUtils.getOrderEvent(omsMessage, orderItemId, OrderEventCode.ORDER_SCHEDULED)).thenReturn(orderEvent);\n        \n        when(any(OrderEvent.class).getEventId()).thenReturn(eventId);\n        when(orderEventHistoryRepository.save(any(OrderEvent.class))).thenReturn(orderEvent);\n        \n        // This line gives me a NullPointerException\n        when(orderEventHistoryRepository.save(orderEvent).getEventId()).thenReturn(eventId);\n        \n        //more test code here\n        \n        assertDoesNotThrow(() -&gt; orderSchedulingService.processOrderScheduling(consumerRecord));\n        verify(orderEventHistoryRepository, times(1)).save(any(OrderEvent.class));\n        //other assertions\n    }\n    \n    //Other Tests\n}\n</code></pre>\n<p>What is the correct mechanism to get have the getEventId() call succeed here? Specifically this line:\n<code>when(orderEventHistoryRepository.save(orderEvent).getEventId()).thenReturn(eventId);</code></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "scala",
+      "hibernate"
+    ],
+    "owner": {
+      "account_id": 3929886,
+      "reputation": 321,
+      "user_id": 3608272,
+      "user_type": "registered",
+      "accept_rate": 80,
+      "profile_image": "https://www.gravatar.com/avatar/4e48d47d76c431d160b41a1590459096?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "lorilan",
+      "link": "https://stackoverflow.com/users/3608272/lorilan"
+    },
+    "is_answered": false,
+    "view_count": 156,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1759642073,
+    "creation_date": 1758025012,
+    "last_edit_date": 1758711276,
+    "question_id": 79766221,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79766221/with-hibernate-7-how-to-map-a-java-duration-to-a-postgres-interval-in-a-typed-q",
+    "title": "With hibernate 7, how to map a java duration to a postgres interval in a typed query?",
+    "body": "<p>I'm migrating from hibernate 5 to 7. I use the lib <code>io.hypersistence::hypersistence-utils-hibernate-70:3.10.1</code> (previously <code>com.vladmihalcea::hibernate-types-52:2.19.1</code> )</p>\n<p>I mapped java.io.duration to postgres interval in my class using the following annotation:</p>\n<h3>hibernate 5:</h3>\n<pre><code>import com.vladmihalcea.hibernate.type.interval.PostgreSQLIntervalType;\nimport org.hibernate.annotations.TypeDef;\n@Entity\n@TypeDef(\n        typeClass = PostgreSQLIntervalType.class,\n        defaultForType = Duration.class\n)\npublic class FooConfiguration {\n\n  @Column(columnDefinition = &quot;interval&quot;)\n  private Duration periodBeforeNextTrigger;\n\n}\n\n</code></pre>\n<p>Then, I have the following method (written in scala) :</p>\n<pre><code>import com.vladmihalcea.hibernate.`type`.interval.PostgreSQLIntervalType\nimport org.hibernate.jpa.TypedParameterValue\n\nimport java.time.Duration\nimport java.util.Date\n\ndef fooInitialTrigger(\n    defaultPeriodBeforeInitialTrigger: Duration,\n    beforeTs: Date,\n  ): F[List[Foo]] =\n    T.transactionally { em =&gt;\n      F.delay {\n\n        em.createQuery(selectJoinFoo +\n         s&quot;&quot;&quot;and f.lastTriggerTs is null\n             |and f.creationTs + ${caseNull(&quot;periodBeforeInitialTrigger&quot;, &quot;defaultPeriod&quot;)} &lt;= :beforeTs\n             |order by f.creationTs desc&quot;&quot;&quot;.stripMargin,\n          classOf[Foo]\n        ) .setParameter(\n            &quot;defaultPeriod&quot;,\n            new TypedParameterValue(PostgreSQLIntervalType.INSTANCE, periodBeforeTrigger)\n          )\n          .setParameter(&quot;beforeTs&quot;, beforeTs)\n          .getResultList\n          .asScala\n          .toList\n      }\n    }\n\nprivate def caseNull(fieldName: String, defaultVarName: String): String =\n        s&quot;&quot;&quot;(case when conf is null then :$defaultVarName\n           |when conf.$fieldName is null then :$defaultVarName\n           |else conf.$fieldName\n           |end) &quot;&quot;&quot;.stripMargin\n</code></pre>\n<h2>hibernate 7</h2>\n<p>Migrating the entity is straightforward :</p>\n<pre><code>import io.hypersistence.utils.hibernate.type.interval.PostgreSQLIntervalType;\nimport org.hibernate.annotations.Type;\n@Entity\npublic class FooConfiguration {\n\n  @Column(columnDefinition = &quot;interval&quot;)\n  @Type(PostgreSQLIntervalType.class)\n  private Duration periodBeforeNextTrigger;\n\n}\n</code></pre>\n<p>but I cannot find how to migrate the <code>fooInitialTrigger</code> method.\n<code>new TypedParameterValue(PostgreSQLIntervalType.INSTANCE, periodBeforeTrigger)</code> does not compile as PostgreSQLIntervalType is not a BindableType</p>\n<p>I tried <code>.setParameter(&quot;defaultPeriod&quot;,periodBeforeTrigger)</code> with (obviously ?) no success.</p>\n<p>I tried to implement the following BindableType :</p>\n<pre><code>object DurationSqmBindableType extends SqmBindableType[Duration] {\n  override def getExpressibleJavaType: JavaType[Duration] =\n    new UserTypeJavaTypeWrapper(PostgreSQLIntervalType.INSTANCE)\n\n  override def getSqmType: SqmDomainType[Duration] =\n    new CustomType(PostgreSQLIntervalType.INSTANCE, new TypeConfiguration)\n\n  override def getPersistenceType: Type.PersistenceType = PersistenceType.BASIC\n\n  override def getJavaType: Class[Duration] = classOf[Duration]\n}\n</code></pre>\n<p>to use in <code>new TypedParameterValue(DurationSqmBindableType, periodBeforeTrigger)</code> but then I have the following error:</p>\n<p><code>org.hibernate.query.sqm.sql.ConversionException: Could not determine ValueMapping for SqmParameter: SqmNamedParameter(defaultPeriod)</code></p>\n<p>Do I miss some configuration ? Am I on the wrong track ?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

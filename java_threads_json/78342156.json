@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "maven",
+      "aws-sdk"
+    ],
+    "owner": {
+      "account_id": 27870931,
+      "reputation": 439,
+      "user_id": 21281465,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/c5b774c70d5689e33279bd025dbd44d7?s=256&d=identicon&r=PG",
+      "display_name": "Aswin Shaji",
+      "link": "https://stackoverflow.com/users/21281465/aswin-shaji"
+    },
+    "is_answered": false,
+    "view_count": 444,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1715765210,
+    "creation_date": 1713367809,
+    "last_edit_date": 1713369282,
+    "question_id": 78342156,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78342156/org-springframework-beans-factory-unsatisfieddependencyexception-error-creating",
+    "title": "org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name &#39;s3Controller&#39;: Unsatisfied dependency expressed",
+    "body": "<p>I was working on the AWS SDK v2 spring boot project on Java 17 using Maven and I tried to run the file but it gives me an error by saying &quot;org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 's3Controller': Unsatisfied dependency expressed through field 's3Service': Error creating bean with name 's3Service' defined in file [/Users/aswinshaji/Documents/workspace-spring-tool-suite-4-4.22.0.RELEASE/webflux-demo/target/classes/com/example/demo/services/S3Service.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 's3Config': Injection of autowired dependencies failed&quot;. &quot;Error creating bean with name 's3Service' defined in file&quot;. &quot;Error creating bean with name 's3Config': Injection of autowired dependencies failed&quot;. I tried everything as possible as I could but I was not able to solve the problem. Can anyone help me fix this issue? Thanks</p>\n<pre><code>package com.example.demo.controller;\n\nimport java.util.List;\n\nimport org.springframework.beans.factory.annotation.Autowired;\nimport org.springframework.http.HttpStatus;\nimport org.springframework.http.ResponseEntity;\nimport org.springframework.web.bind.annotation.GetMapping;\nimport org.springframework.web.bind.annotation.RequestMapping;\nimport org.springframework.web.bind.annotation.RestController;\n\nimport com.example.demo.services.S3Service;\n\n@RestController\n@RequestMapping(&quot;/file&quot;)\npublic class S3Controller {\n    \n    @Autowired\n    private S3Service s3Service;\n    @GetMapping(&quot;/listAllObjects&quot;)\n    public ResponseEntity&lt;List&lt;String&gt;&gt; viewObjects() {\n        return new ResponseEntity&lt;&gt;(s3Service.listObjects(),HttpStatus.OK);\n    }\n}\n</code></pre>\n<p>S3Controller</p>\n<pre><code>package com.example.demo.entities;\n\nimport org.springframework.beans.factory.annotation.Value;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\n\nimport software.amazon.awssdk.auth.credentials.AwsBasicCredentials;\nimport software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;\nimport software.amazon.awssdk.regions.Region;\nimport software.amazon.awssdk.services.s3.S3Client;\n\n@Configuration\npublic class S3Config {\n    @Value(&quot;${region}&quot;)\n    private String region;\n\n    @Value(&quot;${accesskey}&quot;)\n    private String accessKey;\n\n    @Value(&quot;${secretKey}&quot;)\n    private String secretKey;\n\n    @Bean\n    public S3Client s3Client() {\n        AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);\n        return S3Client.builder()\n                .credentialsProvider(StaticCredentialsProvider.create(credentials))\n                .region(Region.of(region))\n                .build();\n    }\n}\n\n</code></pre>\n<p>S3Config</p>\n<pre><code>package com.example.demo.services;\n\nimport java.util.List;\nimport java.util.stream.Collectors;\n\nimport org.springframework.beans.factory.annotation.Value;\nimport org.springframework.stereotype.Service;\n\nimport software.amazon.awssdk.services.s3.S3Client;\nimport software.amazon.awssdk.services.s3.model.ListObjectsResponse;\nimport software.amazon.awssdk.services.s3.model.S3Object;\n\n@Service\npublic class S3Service {\n    private final S3Client s3Client;\n    private final String bucketName;\n\n    public S3Service(S3Client s3Client, @Value(&quot;${bucketName}&quot;) String bucketName) {\n        this.s3Client = s3Client;\n        this.bucketName = bucketName;\n    }\n\n    public List&lt;String&gt; listObjects() {\n        ListObjectsResponse response = s3Client.listObjects(builder -&gt; builder.bucket(bucketName));\n        return response.contents().stream().map(S3Object::key).collect(Collectors.toList());\n    }\n}\n</code></pre>\n<p>S3Service</p>\n<pre><code>spring.application.name=webflux-demo\naws.region=${region}\naws.accessKey=${accessKey}\naws.secretKey=${secretKey}\naws.bucketName=${bucketName}\nspring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration\n</code></pre>\n<p>application.properties</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

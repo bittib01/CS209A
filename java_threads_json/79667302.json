@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "hibernate",
+      "insert"
+    ],
+    "owner": {
+      "account_id": 83131,
+      "reputation": 9085,
+      "user_id": 233286,
+      "user_type": "registered",
+      "accept_rate": 73,
+      "profile_image": "https://i.sstatic.net/0ivuN.jpg?s=256",
+      "display_name": "ilhan",
+      "link": "https://stackoverflow.com/users/233286/ilhan"
+    },
+    "is_answered": true,
+    "view_count": 85,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1750079103,
+    "creation_date": 1750063915,
+    "last_edit_date": 1750079103,
+    "question_id": 79667302,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79667302/inserting-records-to-two-related-tables-at-the-same-time-with-hibernate",
+    "title": "Inserting records to two related tables at the same time with Hibernate",
+    "body": "<p>I was unable to insert data into two related tables at the same time. For example I wanted to insert 5 records into the <code>pictures</code> table and 1 record to the <code>listings</code> table at the same time.</p>\n<p>I have the sub-entity:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Entity\n@Getter\n@Setter\n@Table(name = &quot;pictures&quot;)\npublic class PictureEntity {\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Integer id;\n\n    @Column(columnDefinition = &quot;VARCHAR(1000)&quot;, nullable = false)\n    private String url;\n\n    @ManyToOne(targetEntity = ListingEntity.class)\n    @JoinColumn(name = &quot;listing_id&quot;, updatable = false, insertable = false, nullable = false)\n    private ListingEntity listing;\n}\n</code></pre>\n<p>The main entity:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Entity\n@Getter\n@Setter\n@Table(name = &quot;listings&quot;)\npublic class ListingEntity {\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Integer id;\n\n    @Column(name = &quot;update_date_time&quot;, nullable = true)\n    @Temporal(TemporalType.TIMESTAMP)\n    private Instant updateDateTime;\n\n    @OneToMany(mappedBy = &quot;listing&quot;, cascade = CascadeType.REMOVE)\n    private List&lt;PictureEntity&gt; pictures;\n}\n</code></pre>\n<p>When I try this</p>\n<pre class=\"lang-java prettyprint-override\"><code>pictures.forEach(picture -&gt; {\n    PictureEntity pictureEntity = new PictureEntity();\n    pictureEntity.setUrl(picture);\n    pictureEntities.add(pictureEntity);\n});\nlistingEntity.setPictures(pictureEntities);\n</code></pre>\n<p>and then <code>listingRepository.save(listingEntity);</code> no data is saved into the <code>pictures</code> table.</p>\n<p>If I change <code>insertable</code> into <code>true</code> then I get the following error:</p>\n<blockquote>\n<p>Column 'listing_id' is duplicated in mapping for entity 'com.example.listings.entity.PictureEntity' (use '@Column(insertable=false, updatable=false)' when mapping multiple properties to the same column</p>\n</blockquote>\n<p>What I am doing wrong?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

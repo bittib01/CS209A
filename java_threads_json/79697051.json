@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "ibm-mq"
+    ],
+    "owner": {
+      "account_id": 7816784,
+      "reputation": 99,
+      "user_id": 5911228,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/92c5b1b1551a67b8fbf7bd29d32e4e63?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "cdprete",
+      "link": "https://stackoverflow.com/users/5911228/cdprete"
+    },
+    "is_answered": true,
+    "view_count": 77,
+    "accepted_answer_id": 79697116,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1752153178,
+    "creation_date": 1752150221,
+    "question_id": 79697051,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79697051/send-pcfmessage-with-jms",
+    "title": "Send PCFMessage with JMS",
+    "body": "<p>I'm trying to write an application to query the statistics of the IBM MQ queues in Spring Boot.</p>\n<p>To do so, I'm using</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;dependency&gt;\n    &lt;groupId&gt;com.ibm.mq&lt;/groupId&gt;\n    &lt;artifactId&gt;mq-jms-spring-boot-starter&lt;/artifactId&gt;\n    &lt;version&gt;3.5.3&lt;/version&gt;\n&lt;/dependency&gt;\n</code></pre>\n<p>and, by following this documentation <a href=\"https://www.ibm.com/docs/en/ibm-mq/9.4.x?topic=package-using-mq-classes-jms\" rel=\"nofollow noreferrer\">https://www.ibm.com/docs/en/ibm-mq/9.4.x?topic=package-using-mq-classes-jms</a>, I wrote the following demo code</p>\n<pre class=\"lang-java prettyprint-override\"><code>Queue inputQueue = jmsTemplate.execute(session -&gt; {\n    var queue = session.createQueue(&quot;SYSTEM.ADMIN.COMMAND.QUEUE&quot;);\n    ((MQQueue) queue).setIntProperty(WMQConstants.WMQ_MESSAGE_BODY, WMQConstants.WMQ_MESSAGE_BODY_MQ);\n    ((MQQueue) queue).setMQMDWriteEnabled(true);\n\n    return queue;\n});\ntry {\n    BytesMessage msg = (BytesMessage) jmsTemplate.sendAndReceive(inputQueue, ActuatorExtConfig::build);\n\n    var bytes = new byte[(int) msg.getBodyLength()];\n    var bais = new ByteArrayInputStream(bytes);\n    var dis = new DataInputStream(bais);\n    var out = new PCFMessage(dis);\n    out.getParameterValue(CMQCFC.MQCACF_Q_NAMES);\n    System.out.println(out);\n} catch (Exception ex) {\n    ex.printStackTrace();\n}\n\nprivate static Message build(Session session) {\n    PCFMessage request = new PCFMessage(CMQCFC.MQCMD_INQUIRE_Q_NAMES);\n    request.addParameter(CMQC.MQCA_Q_NAME, &quot;*&quot;);\n\n    var baos = new ByteArrayOutputStream();\n    try (baos; var das = new DataOutputStream(baos)) {\n        request.write(das);\n        baos.flush();\n    } catch (IOException e) {\n        throw new RuntimeException(e);\n    }\n\n    try {\n        var m = session.createBytesMessage();\n        m.setJMSPriority(-1);\n        m.setJMSDeliveryMode(DeliveryMode.NON_PERSISTENT);\n        m.writeBytes(baos.toByteArray());\n        m.setIntProperty(WMQConstants.JMS_IBM_MQMD_MSGTYPE, 1);\n        m.setIntProperty(WMQConstants.JMS_IBM_MQMD_FEEDBACK, 0);\n        m.setIntProperty(WMQConstants.JMS_IBM_MQMD_PERSISTENCE, CMQC.MQPER_NOT_PERSISTENT);\n        m.setIntProperty(WMQConstants.JMS_IBM_MQMD_EXPIRY, 300);\n        m.setIntProperty(WMQConstants.JMS_IBM_MQMD_REPORT, CMQC.MQRO_PASS_CORREL_ID);\n        m.setIntProperty(WMQConstants.JMS_IBM_MQMD_ENCODING, CMQC.MQENC_NATIVE);\n        m.setIntProperty(WMQConstants.JMS_IBM_MQMD_CODEDCHARSETID, 1208);\n        m.setIntProperty(WMQConstants.JMS_IBM_MQMD_PRIORITY, -1);\n        m.setStringProperty(WMQConstants.JMS_IBM_MQMD_FORMAT, CMQC.MQFMT_ADMIN);\n\n        return m;\n    } catch (Exception ex) {\n        throw new RuntimeException(ex);\n    }\n}\n</code></pre>\n<p>but the response I get back is basically empty</p>\n<pre><code>PCFMessage: \nMQCFH (com.ibm.mq.headers.internal.store.ByteStore [encoding: 0x00000111, ccsid: 0, size: 36] @56757931)\n    MQLONG Type: 0 (0x00000000)\n    MQLONG StrucLength: 0 (0x00000000)\n    MQLONG Version: 0 (0x00000000)\n    MQLONG Command: 0 (0x00000000)\n    MQLONG MsgSeqNumber: 0 (0x00000000)\n    MQLONG Control: 0 (0x00000000)\n    MQLONG CompCode: 0 (0x00000000)\n    MQLONG Reason: 0 (0x00000000)\n    MQLONG ParameterCount: 0 (0x00000000)\n</code></pre>\n<p>while the same query, executed with the <code>PCFMessageAgent</code> like below</p>\n<pre class=\"lang-java prettyprint-override\"><code>System.setProperty(&quot;java.library.path&quot;, &quot;/opt/mqm/java/lib64&quot;);\nSystem.setProperty(&quot;javax.net.ssl.trustStore&quot;, props.getJks().getTrustStore());\nSystem.setProperty(&quot;com.ibm.mq.cfg.useIBMCipherMappings&quot;, Boolean.FALSE.toString());\n\nMQEnvironment.hostname = &quot;my-host&quot;;\nMQEnvironment.port = 15003;\nMQEnvironment.channel = props.getChannel();\nMQEnvironment.sslCipherSuite = props.getSslCipherSpec();\nMQEnvironment.userID = props.getUser();\nMQEnvironment.password = props.getPassword();\ntry {\n    var queueManager = new MQQueueManager(props.getQueueManager());\n\n    PCFMessageAgent agent = new PCFMessageAgent(queueManager);\n    PCFMessage request = new PCFMessage(CMQCFC.MQCMD_INQUIRE_Q_NAMES);\n    request.addParameter(CMQC.MQCA_Q_NAME, &quot;*&quot;);\n\n    PCFMessage[] responses = agent.send(request);\n    System.out.println(responses[0]);\n    queueManager.close();\n} catch (Exception e) {\n    e.printStackTrace();\n}\n</code></pre>\n<p>returns the correct response (the list of the available queues in this case).</p>\n<p>What am I missing so that it could work also with JMS?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

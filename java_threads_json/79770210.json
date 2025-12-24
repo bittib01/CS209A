@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "eclipse",
+      "maven"
+    ],
+    "owner": {
+      "account_id": 8405686,
+      "reputation": 971,
+      "user_id": 6309242,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/2c7cd82cb8a632436980a18b9dbc5822?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Dave The Dane",
+      "link": "https://stackoverflow.com/users/6309242/dave-the-dane"
+    },
+    "is_answered": true,
+    "view_count": 160,
+    "accepted_answer_id": 79770446,
+    "answer_count": 1,
+    "score": 5,
+    "last_activity_date": 1758393457,
+    "creation_date": 1758360756,
+    "last_edit_date": 1758385117,
+    "question_id": 79770210,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79770210/eclipse-build-structure-in-target-classes-differs-from-that-of-exported-jar",
+    "title": "Eclipse Build structure in &quot;target/classes&quot; differs from that of exported Jar",
+    "body": "<p>I have an Eclipse project created with <strong>&quot;new/Maven Project/Create a simple project&quot;.</strong></p>\n<p>Here's the project structure:<br>\n<a href=\"https://i.sstatic.net/AJAH20m8.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/AJAH20m8.png\" alt=\"enter image description here\" /></a></p>\n<p>When running a.b.Test.class in the IDE, the project is built into &quot;target/classes&quot;.<br>\nThe structure thereof differs from that of the exported Jar.</p>\n<p>In particular, in the Jar the resources are exported into the &quot;resources&quot; subdirectory.<br>\nWhen running in Eclipse, no subdirectory is used.</p>\n<p>That results in discrepancies when trying to load Resources.</p>\n<p><strong>Here's the structure of the &quot;target/classes&quot; directory in the project:</strong><br>\n<a href=\"https://i.sstatic.net/V0lZLnut.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/V0lZLnut.png\" alt=\"enter image description here\" /></a></p>\n<p><strong>Here's the structure of the resources in the exported Jar:</strong><br>\n<a href=\"https://i.sstatic.net/vTfb5bio.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/vTfb5bio.png\" alt=\"enter image description here\" /></a></p>\n<p><strong>When run in the IDE, resolution is as follows:</strong><br></p>\n<pre><code>Method        Result URL                                                       String (from a.b.Test)\n------------- ------------------------------------------------------------------------------------------\nClassLoader   file:/C:/...project/target/classes/a/b/res_01.txt             &lt;-  a/b/res_01.txt\nClass         file:/C:/...project/target/classes/a/b/res_01.txt             &lt;- /a/b/res_01.txt\nClassLoader   file:/C:/...project/target/classes/a/b/Test.class             &lt;-  a/b/Test.class\nClass         file:/C:/...project/target/classes/a/b/Test.class             &lt;- /a/b/Test.class\nClass         file:/C:/...project/target/classes/a/b/Test.class             &lt;-      Test.class\n</code></pre>\n<p><strong>When run from the Jar, it looks like this:</strong><br></p>\n<pre><code>Method        Result URL                                                       String (from a.b.Test)\n------------- ------------------------------------------------------------------------------------------\nClassLoader   jar:file:/C:/...project/project.jar!/resources/a/b/res_01.txt &lt;-  resources/a/b/res_01.txt\nClass         jar:file:/C:/...project/project.jar!/resources/a/b/res_01.txt &lt;- /resources/a/b/res_01.txt\nClassLoader   jar:file:/C:/...project/project.jar!/a/b/Test.class           &lt;-  a/b/Test.class\nClass         jar:file:/C:/...project/project.jar!/a/b/Test.class           &lt;- /a/b/Test.class\nClass         jar:file:/C:/...project/project.jar!/a/b/Test.class           &lt;-      Test.class\n</code></pre>\n<p>Can anyone explain this differing behaviour for resources?</p>\n<p>Surely it's a mistake somewhere? But where? Eclipse? Maven?</p>\n<p>Is there some trick to avoid this anomaly?</p>\n<p><strong>Here's some code, if anyone wants to try it out:</strong><br></p>\n<pre><code>package a.b;\n\nimport java.io.IOException;\nimport java.net.URL;\nimport java.util.stream.Stream;\n\npublic class Test {\n\n    public  static void main(final String[] args) {\n\n        Stream.of(\n                &quot;a/b/res_01.txt&quot;,\n                &quot;a/b/Test.class&quot;,\n                &quot;Test.class&quot;\n                )\n        .forEach(trailing -&gt; {\n            Stream    .of(\n                    &quot; resources/&quot;,\n                    &quot;/resources/&quot;,\n                    &quot;           &quot;,\n                    &quot;          /&quot; \n                    )\n            .forEach(prefix -&gt; {\n\n                final var resNameFull = prefix + trailing;\n                final var resName     = resNameFull.strip();\n\n                try {\n                    ;                           Test.class.getClassLoader().getResources(resName).asIterator().forEachRemaining(url -&gt; {\n                        \n                        print(&quot;ClassLoader.: &quot;, url,                                               resNameFull);\n                    });\n                } catch (final IOException e) {\n                    System.out.println(&quot;ERROR.......: &quot; + e.getMessage());\n                }\n                ;       print(&quot;Class.......: &quot;, Test.class                 .getResource (resName), resNameFull);\n            });\n        });\n    }\n\n    private static void print(final String text, final URL url, final String resNameFull) {\n\n        if (url != null) {\n            System.out.println(text + url.toString() + &quot; &lt;- &quot; + resNameFull);\n        }\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

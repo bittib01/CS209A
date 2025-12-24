@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "qr-code",
+      "zxing"
+    ],
+    "owner": {
+      "account_id": 22930382,
+      "reputation": 1,
+      "user_id": 17064792,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AATXAJz23LvC31vQuLsFWOgIHUHarJ0k4_oFN2-JAdU7=k-s256",
+      "display_name": "Mister BlueBanana",
+      "link": "https://stackoverflow.com/users/17064792/mister-bluebanana"
+    },
+    "is_answered": false,
+    "view_count": 573,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1722623459,
+    "creation_date": 1703601308,
+    "last_edit_date": 1722623459,
+    "question_id": 77717757,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77717757/how-to-share-qr-generated-image-in-android-studio-java",
+    "title": "How to share QR generated image in Android Studio Java",
+    "body": "<p>I'm trying to share my QR generated image but when I try it, the QR code image is not appearing on the selected share method:</p>\n<p><img src=\"https://i.sstatic.net/Tabftm.jpg\" alt=\"Output\" />.</p>\n<p>I'm trying to create a function where, when a user registers, it will generate a QR code and pop it up using a dialog box. Then, when the user clicks the <kbd>Okay</kbd> button on the dialog box, it should share the QR code via the selected method of the user.</p>\n<p>I tried following a tutorial on <a href=\"https://www.youtube.com/watch?v=eSi28xqGjbE\" rel=\"nofollow noreferrer\">YouTube by Android Tutorials</a>. The share function is working, but it doesn't show the generated QR code in the selected method for sharing the image.</p>\n<pre class=\"lang-java prettyprint-override\"><code>public void showQR() {\n        Dialog dialog = new Dialog(this);\n        dialog.setContentView(R.layout.cutome_dialog_layout);\n        if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.LOLLIPOP) {\n            dialog.getWindow().setBackgroundDrawable(getDrawable(R.drawable.custom_dialog_background));\n        }\n        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);\n        dialog.setCancelable(false); //Optional\n        dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation; //Setting the animations to dialog\n\n        Button Okay = dialog.findViewById(R.id.btn_okay);\n        Button Cancel = dialog.findViewById(R.id.btn_cancel);\n        ImageView qr_image = dialog.findViewById(R.id.qrcode);\n\n        MultiFormatWriter multiFormatWriter = new MultiFormatWriter();\n\n        try {\n            BitMatrix bitMatrix = multiFormatWriter.encode(studentNumber.getText().toString()+ &quot; ,&quot; +fullName.getText().toString(), BarcodeFormat.QR_CODE, 300, 300);\n\n            BarcodeEncoder barcodeEncoder = new BarcodeEncoder();\n            Bitmap bitmap = barcodeEncoder.createBitmap(bitMatrix);\n\n            qr_image.setImageBitmap(bitmap);\n\n        }\n        catch (WriterException e) {\n            throw new RuntimeException(e);\n        }\n\n\n        Okay.setOnClickListener(new View.OnClickListener() {\n            @Override\n            public void onClick(View v) {\n\n                try {\n                    BitmapDrawable bitmapDrawable = (BitmapDrawable) qr_image.getDrawable();\n                    Bitmap bitmap = bitmapDrawable.getBitmap();\n                    shareImageAndText(bitmap);\n                } catch (Exception e) {\n                    Toast.makeText(RegisterStudent.this, &quot;share image problem&quot;, Toast.LENGTH_SHORT).show();\n                }\n                dialog.dismiss();\n            }\n        });\n\n        Cancel.setOnClickListener(new View.OnClickListener() {\n            @Override\n            public void onClick(View v) {\n\n                Toast.makeText(RegisterStudent.this, &quot;Cancel&quot;, Toast.LENGTH_SHORT).show();\n                dialog.dismiss();\n            }\n        });\n\n        dialog.show();\n    }\n\n    private void shareImageAndText(Bitmap bitmap) {\n        Uri uri = getImageToShare(bitmap);\n\n        Intent intent = new Intent(Intent.ACTION_SEND);\n        intent.putExtra(Intent.EXTRA_STREAM, uri);\n        intent.putExtra(Intent.EXTRA_TEXT, &quot;Please dont share your QR Code to anyone&quot;);\n        intent.putExtra(Intent.EXTRA_SUBJECT, &quot;QR Code&quot;);\n        intent.setType(&quot;images/*&quot;);\n        startActivity(Intent.createChooser(intent, &quot;Share via&quot;));\n    }\n\n    private Uri getImageToShare(Bitmap bitmap) {\n        File folder = new File(getCacheDir(), &quot;images&quot;);\n        Uri uri = null;\n        try {\n        folder.mkdirs();\n        File file = new File(folder, &quot;image.jpg&quot;);\n        FileOutputStream fileOutputStream = new FileOutputStream(file);\n\n        bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fileOutputStream);\n        fileOutputStream.flush();\n        fileOutputStream.close();\n\n        uri = FileProvider.getUriForFile(this, &quot;com.example.myapplication&quot;, file);\n\n        } catch (Exception e) {\n            e.printStackTrace();\n        }\n        return uri;\n    }\n</code></pre>\n<p>How can I share my QR-generated code?</p>\n<p><img src=\"https://i.sstatic.net/ZH6e1m.jpg\" alt=\"Expected output\" />.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

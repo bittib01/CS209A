@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "digital-signature",
+      "x509certificate",
+      "bouncycastle",
+      "ocsp"
+    ],
+    "owner": {
+      "account_id": 15875674,
+      "reputation": 362,
+      "user_id": 11454979,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/d5b6f032c1b90a640524a953428517ce?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Oliver",
+      "link": "https://stackoverflow.com/users/11454979/oliver"
+    },
+    "is_answered": false,
+    "view_count": 154,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1746717160,
+    "creation_date": 1742231451,
+    "last_edit_date": 1742282675,
+    "question_id": 79515300,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79515300/does-ocsp-responder-certificate-require-digitalsignature-key-usage",
+    "title": "Does OCSP Responder Certificate require digitalSignature key usage?",
+    "body": "<p>I want to verify X.509 Certificates (if they were revoked) using the OCSP Protocol and Java/Kotlin.</p>\n<p>As this is a non trivial task I use Java Security together with the Bouncy Castle Crypto lib.</p>\n<p>When I run the validation a error is thrown indicating that the certificate which comes back as response from the OCSP Responder is not valid. The problem seems to be that the value for DigitalSignature keyUsage within the certificate is set to false but true is expected.</p>\n<p>I try to find evidence of this is a requirement according to RFC. But I did Not found anything about this.</p>\n<p>Can you help me with this? Is this implementation correct / the OCSP Response invalid?</p>\n<p>More Resources:\nX.509 Certificate / Key Usage: <a href=\"https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.3\" rel=\"nofollow noreferrer\">https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.1.3</a>\nOCSP: <a href=\"https://datatracker.ietf.org/doc/html/rfc6960#section-2.1\" rel=\"nofollow noreferrer\">https://datatracker.ietf.org/doc/html/rfc6960#section-2.1</a>\nBouncy Castle: <a href=\"https://www.bouncycastle.org\" rel=\"nofollow noreferrer\">https://www.bouncycastle.org</a></p>\n<p>Kotlin Source code:</p>\n<pre><code>/* validate a given cert against the OCSP Responder */\nfun checkOCSPStatus(cert: X509Certificate) {\n    // 1. load the java keystore that contains all issuer certs \n    val keystoreFile= File(&quot;&lt;Filepath to keystore file&gt;&quot;)\n    val keystorePassword = &quot;&lt;secret&gt;&quot;\n    val keystore = KeyStore.getInstance(&quot;JKS&quot;)\n    FileInputStream(keystoreFile).use { fis -&gt;\n      keystore.load(fis, keystorePassword.toCharArray())\n    }\n\n    // 2. configure to use OCSP check\n    Security.setProperty(&quot;ocsp.enable&quot;, &quot;true&quot;)\n    Security.setProperty(&quot;ocsp.responderURL&quot;, &quot;&lt;OCSP Responder URL&gt;&quot;)\n    val pkixParams = PKIXParameters(keystore)\n    pkixParams.isRevocationEnabled = true\n\n    // 3. validate the cert\n    val cf = CertificateFactory.getInstance(&quot;X.509&quot;)\n    val certPath = cf.generateCertPath(listOf(cert))\n    val validator = CertPathValidator.getInstance(&quot;PKIX&quot;)\n    validator.validate(certPath, pkixParams) // this line throws java.security.InvalidKeyException: Wrong key usage\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

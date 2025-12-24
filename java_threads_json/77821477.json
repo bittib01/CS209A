@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-data",
+      "spring-data-jdbc"
+    ],
+    "owner": {
+      "account_id": 2253575,
+      "reputation": 188,
+      "user_id": 1985285,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/4d8a11fc5490ed22cd37833690b5d093?s=256&d=identicon&r=PG",
+      "display_name": "Malte",
+      "link": "https://stackoverflow.com/users/1985285/malte"
+    },
+    "is_answered": true,
+    "view_count": 668,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1709735357,
+    "creation_date": 1705340541,
+    "question_id": 77821477,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77821477/spring-data-jdbc-read-optimization",
+    "title": "Spring Data JDBC read optimization",
+    "body": "<p>I am just starting out with Spring Data JDBC. In my test project I now have a request that is very slow in the result, because a lot of queries are sent to the database.</p>\n<p>Here is an extract to illustrate the principle of my problem. There will be several thousand data records in the real database.</p>\n<p>There is a model with articles and prices in a 1:n relation. This results in this example data model:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Table(&quot;articles&quot;)\npublic class ArticleModel {\n\n    @Id\n    @Column(&quot;id&quot;)\n    private Integer id;\n\n    @Column(&quot;name&quot;)\n    private String name;\n\n    @Column(&quot;size&quot;)\n    private String size;\n\n    @MappedCollection(idColumn = &quot;article_id&quot;, keyColumn = &quot;id&quot;)\n    private Set&lt;ArticlePriceModel&gt; prices;\n   //getter setter\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>@Table(&quot;article_prices&quot;)\npublic class ArticlePriceModel {\n    @Id\n    @Column(&quot;id&quot;)\n    private Integer id;\n\n    @Column(&quot;type_id&quot;)\n    private String priceType;\n\n    @Column(&quot;price&quot;)\n    private BigDecimal price;\n\n    @Column(&quot;article_id&quot;)\n    AggregateReference&lt;ArticleModel, Integer&gt; articleReference;\n    //getter setter\n\n</code></pre>\n<p>I use this repository for queries:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public interface ArticleRepository extends CrudRepository&lt;ArticleModel, Integer&gt; {\n\n    @Query(&quot;SELECT * FROM articles WHERE name LIKE :name&quot;)\n    List&lt;ArticleModel&gt; findByName(String name);\n\n    @Query(value =  &quot;&quot;&quot;\n            SELECT a.*, ap.* FROM articles a\n                INNER JOIN article_prices ap ON a.id = ap.article_id\n                WHERE type_id LIKE 'retail' AND name LIKE :name\n            &quot;&quot;&quot;\n            , rowMapperClass = SinglePriceRowMapper.class)\n    List&lt;ArticleModel&gt; findByNameWithRetailPrice(String name);\n}\n</code></pre>\n<p>This means that with <code>findByName</code>, a further SELECT is executed for each result row (==ArticleModel) to determine the prices. However, the data could also be collected all together directly using a JOIN. In the current implementation it is very slow for a large resultset.\nHere is the first question: Is there a way for Spring Data JDBC to create the data structure directly from a join with just one select command?</p>\n<p>The special feature of my second select <code>findByNameWithRetailPrice</code> is that you can create the structure completely with one line in the resulset.\nIs there a way to do this automatically?</p>\n<p>As I haven't found anything for this so far, I have created my own implementation with the RowMapper.</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class SinglePriceRowMapper implements RowMapper&lt;ArticleModel&gt; {\n\n    @Override\n    public ArticleModel mapRow(ResultSet rs, int rowNum) throws SQLException {\n        ArticleModel result = new ArticleModel();\n\n        result.setId(rs.getInt(&quot;id&quot;));\n        result.setName(rs.getString(&quot;name&quot;));\n        result.setSize(rs.getString(&quot;size&quot;));\n\n        ArticlePriceModel price = new ArticlePriceModel();\n        price.setId(rs.getInt(findIndex(rs, &quot;article_prices&quot;, &quot;id&quot;)));\n        price.setPrice(rs.getBigDecimal(&quot;price&quot;));\n        price.setPriceType(rs.getString(&quot;type_id&quot;));\n\n        result.setPrices(Set.of(price));\n\n        return result;\n    }\n</code></pre>\n<p>However, my problem is that I have to write a lot of code that also contains the column names hard-coded in the source code. The <code>@Column</code> annotations of the models are not accessed. Is there any way to simplify this so that you don't have to build the RowMapper 100% yourself? It would be practical if you could use a basic RowMapper here and onlIt would be practical if you could use a basic RowMapper here and then implement your own additional mappings. RowMapper is an interface and I haven't seen any implementations that you could simply overwrite.</p>\n<p>I have created a small test project which can be found here: <a href=\"https://github.com/Malte-Neu/spring-data-jdbc-test\" rel=\"nofollow noreferrer\">https://github.com/Malte-Neu/spring-data-jdbc-test</a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

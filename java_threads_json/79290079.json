@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "log4j2"
+    ],
+    "owner": {
+      "account_id": 8028904,
+      "reputation": 334,
+      "user_id": 6054737,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/fbc36506488e1ec0e232fad23ea0439f?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Rahul verma",
+      "link": "https://stackoverflow.com/users/6054737/rahul-verma"
+    },
+    "is_answered": false,
+    "view_count": 131,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1737507399,
+    "creation_date": 1734500231,
+    "last_edit_date": 1737507399,
+    "question_id": 79290079,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79290079/dynamicthresholdfilter-not-applying-to-specific-package-in-log4j2",
+    "title": "DynamicThresholdFilter not applying to specific package in Log4j2",
+    "body": "<p>I am trying to apply a <code>DynamicThresholdFilter</code> in Log4j2 to filter logs for a specific package (<code>com.example.orange</code>). My goal is to enable DEBUG/TRACE logs dynamically for this package only, based on a custom <code>MDC</code> key (requestLogLevel).</p>\n<p>Here's the configuration I am using for the specific package logger:</p>\n<pre class=\"lang-ini prettyprint-override\"><code># Appenders\nappender.console.type=Console\nappender.console.name=Console\nappender.console.target=SYSTEM_OUT\nappender.console.follow=true\nappender.console.layout.type=PatternLayout\nappender.console.layout.pattern=${LOG_PATTERN}\n\nlogger.app.name=com.example.orange\nlogger.app.level=warn\nlogger.app.additivity=false\nlogger.app.appenderRef.console.ref=Console\n\n# Dynamic threshold filter: supposed to apply DEBUG for only the com.example.orange package\nlogger.app.filter.type=DynamicThresholdFilter\nlogger.app.filter.key=requestLogLevel\nlogger.app.filter.defaultThreshold=WARN\nlogger.app.filter.onMatch=ACCEPT\nlogger.app.filter.onMismatch=DENY\nlogger.app.filter.keyValuePair.type=KeyValuePair\nlogger.app.filter.keyValuePair.key=TRACE\nlogger.app.filter.keyValuePair.value=TRACE\nlogger.app.filter.keyValuePair[1].type=KeyValuePair\nlogger.app.filter.keyValuePair[1].key=DEBUG\nlogger.app.filter.keyValuePair[1].value=DEBUG\n</code></pre>\n<p>However, this configuration does not enable DEBUG logs for com.example.orange when I set the requestLogLevel to DEBUG or TRACE in the MDC. The logs still adhere to the default threshold WARN.</p>\n<p>If I move the <code>DynamicThresholdFilter</code> to a global filter, like this:</p>\n<pre class=\"lang-ini prettyprint-override\"><code># Appenders\nappender.console.type=Console\nappender.console.name=Console\nappender.console.target=SYSTEM_OUT\nappender.console.follow=true\nappender.console.layout.type=PatternLayout\nappender.console.layout.pattern=${LOG_PATTERN}\n\nfilter.console.type=DynamicThresholdFilter\nfilter.console.key=requestLogLevel\nfilter.console.defaultThreshold=WARN\nfilter.console.onMatch=ACCEPT\nfilter.console.onMismatch=DENY\nfilter.console.keyValuePair.type=KeyValuePair\nfilter.console.keyValuePair.key=TRACE\nfilter.console.keyValuePair.value=TRACE\nfilter.console.keyValuePair[1].type=KeyValuePair\nfilter.console.keyValuePair[1].key=DEBUG\nfilter.console.keyValuePair[1].value=DEBUG\n</code></pre>\n<p>It works, but it applies the filter globally to all packages, enabling DEBUG/TRACE logs for all packages(example spring, micrometer classes used in the code flow) in my application flow, which is not the intended behavior.</p>\n<p>Troubleshooting I tried so far:</p>\n<ol>\n<li>Verified that the <code>requestLogLevel</code> MDC key is set correctly.</li>\n<li>Ensured that <code>logger.app.additivity</code> is set to false to avoid inheriting configurations from the root logger.</li>\n<li>Confirmed that the global <code>DynamicThresholdFilter</code> works as expected but applies globally to all packages.</li>\n</ol>\n<p>How can I configure the <code>DynamicThresholdFilter</code> to apply only to the specific package (com.example.orange), without affecting other loggers? Is there a way to scope the filter or override the behavior?</p>\n<p>EDIT :\nupon further investigation i found that the filter does register itself, but since the Logger.java class directly gets the filter from config (which means filter at the global level). we did not provide any filter to this which returns null.\n<a href=\"https://i.sstatic.net/JpCaaPI2.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/JpCaaPI2.png\" alt=\"enter image description here\" /></a></p>\n<p>the filter is present in the loggerConfig :\n<a href=\"https://i.sstatic.net/BHOwcYrz.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/BHOwcYrz.png\" alt=\"enter image description here\" /></a>\nIs there any configuration I can use to apply the filter from loggerConfig and that too for a specific package?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

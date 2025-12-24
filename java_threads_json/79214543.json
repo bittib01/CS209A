@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-webflux"
+    ],
+    "owner": {
+      "account_id": 2796529,
+      "reputation": 2177,
+      "user_id": 2405663,
+      "user_type": "registered",
+      "accept_rate": 48,
+      "profile_image": "https://www.gravatar.com/avatar/ded7b79bc778bdbd87e808c0e9664796?s=256&d=identicon&r=PG",
+      "display_name": "bircastri",
+      "link": "https://stackoverflow.com/users/2405663/bircastri"
+    },
+    "is_answered": true,
+    "view_count": 65,
+    "accepted_answer_id": 79214773,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1732275569,
+    "creation_date": 1732270893,
+    "question_id": 79214543,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79214543/how-to-use-monoobject-to-get-value-in-webflux-project",
+    "title": "How to use Mono&lt;Object&gt; to get value in webflux project",
+    "body": "<p>I m building a Java SpringBoot project with webflux.\nThis is the method:</p>\n<pre><code>public Mono&lt;ServerResponse&gt; downloadAttachment(final ServerRequest request) {\n        String fileName = &quot;prova_B400.png&quot;;\n        final var idPercorso = request.queryParam(&quot;idPercorso&quot;)\n                .map(Integer::parseInt).orElse(null);\n        //mi serve la tripletta\n        //1 tipo di storage\n        //2 percorso allegati\n        //3 nome file\n        Mono&lt;MapFile&gt;mapFile= silverMountainService(super.parseUserInfo(request).block()).getMapFile(idPercorso);\n\n        return Mono.zip(parseUserInfo(request), request.bodyToMono(ObjectNode.class))\n                .flatMap(t -&gt; {\n                    //var dto = t.getT2();\n                    return silverMountainService(t.getT1()).downloadMappaPercorso(\n                                    StorageType.parse(mapFile.block().storageType),\n                                    mapFile.block().omniaClass,\n                                    fileName\n                            )\n                            .flatMap(fileResult -&gt; ServerResponse.ok()\n                                    .headers(h -&gt; h.setContentDisposition(\n                                            Optional.ofNullable(fileName)\n                                                    .filter(StringUtils::isNotBlank)\n                                                    .map(filename -&gt; ContentDisposition.attachment().filename(filename).build())\n                                                    .orElseGet(() -&gt; ContentDisposition.inline().build() )\n                                    ))\n                                    .contentType(MediaType.APPLICATION_OCTET_STREAM)\n                                    .body(BodyInserters.fromValue(fileResult.getContent()))\n                            );\n                })\n                .onErrorResume(CustomHttpException.class, assEx -&gt; {\n                    log.error(&quot;Error({}): {}&quot;, assEx.getErrorId(), assEx.getMessage());\n                    return ServerResponse.status(assEx.getHttpStatus()).bodyValue(String.format(&quot;ErrorID: %s&quot;, assEx.getErrorId()));\n                })\n                .onErrorResume(Exception.class, ex -&gt; {\n                    var errId = UUID.randomUUID().toString();\n                    log.error(String.format(&quot;Error(%s) %s&quot;, errId, ex.getMessage()), ex);\n                    return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue(String.format(&quot;ErrorID: %s&quot;, errId));\n                });\n    }\n</code></pre>\n<p>With this method, I need to get mapFile object thant contains three field to use in &quot;silverMountainService.downloadMappaPercorso&quot;.</p>\n<p>To compile the project I must use mapFile.block(), but if I try to call this method I receive the following error:</p>\n<pre><code>lock()/blockFirst()/blockLast() are blocking, which is not supported in thread reactor-http-nio-6 \n</code></pre>\n<p>How can I change my code?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

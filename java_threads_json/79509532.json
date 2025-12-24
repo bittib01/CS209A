@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hazelcast",
+      "hazelcast-jet"
+    ],
+    "owner": {
+      "account_id": 4224410,
+      "reputation": 670,
+      "user_id": 3458271,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/ae99176062b6413ec2269bc952f47f66?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "user3458271",
+      "link": "https://stackoverflow.com/users/3458271/user3458271"
+    },
+    "is_answered": false,
+    "view_count": 51,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1745162310,
+    "creation_date": 1741966460,
+    "last_edit_date": 1745162310,
+    "question_id": 79509532,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79509532/join-large-data-in-hazelcast-jet",
+    "title": "Join large data in Hazelcast Jet",
+    "body": "<p>I am working on Hazelcast jet application and I trying to join two Sources using Left, Right or Inner Join with large data but I am stuck at below.</p>\n<p>Here is my code:</p>\n<pre><code>BatchStage&lt;Map&lt;String,Object&gt;&gt; batch1= pipeline.readFrom(companyListBatchSource);\nBatchStage&lt;Map&lt;String,Object&gt;&gt; batch2= pipeline.readFrom(employeeListBatchSource);\n\n//Getting group by key\n BatchStageWithKey&lt;Map&lt;String,Object&gt;, Object&gt; jdbcGroupByKey = batch1.groupingKey(a -&gt; a.getSource1().get(col1));\n BatchStageWithKey&lt;Map&lt;String,Object&gt;, Object&gt; fileGroupByKey = batch2.groupingKey(b -&gt; b.getSource1().get(col2));\n\nBatchStage&lt;Entry&lt;Object, Tuple2&lt;List&lt;Map&lt;String,Object&gt;&gt;, List&lt;Map&lt;String,Object&gt;&gt;&gt;&gt;&gt; d = jdbcGroupByKey.aggregate2(AggregateOperations.toList(),fileGroupByKey,AggregateOperations.toList());\n BatchStage&lt;List&lt;Object&gt;&gt; jdbcBatchStageData = d.filter(h -&gt; {\n                    return !h.getValue().f0().isEmpty() &amp;&amp; !h.getValue().f1().isEmpty();\n                }).map(e -&gt; {\n                    try {\n                        List&lt;Object&gt; list = new ArrayList&lt;Object&gt;();\n                        e.getValue().f0().forEach(z -&gt;  {\n                            if (e.getValue().f1().size() &gt; 0) {\n                                e.getValue().f1().forEach(z1 -&gt;  {\n                                    List&lt;Object&gt; a = new ArrayList&lt;Object&gt;();\n                                    a.addAll((List&lt;Object&gt;)z);\n                                    a.addAll((List&lt;Object&gt;)z1);\n                                    list.add(a);\n                                });\n                            }\n                        });\n                        return list;\n                    } catch (Exception e1) {\n                        return null;\n                    }\n                });\n</code></pre>\n<p>This work fine but if there is large data than it gets out pf memory because of this line:</p>\n<pre><code>BatchStage&lt;Entry&lt;Object, Tuple2&lt;List&lt;Map&lt;String,Object&gt;&gt;, List&lt;Map&lt;String,Object&gt;&gt;&gt;&gt;&gt; d = jdbcGroupByKey.aggregate2(AggregateOperations.toList(),fileGroupByKey,AggregateOperations.toList());\n</code></pre>\n<p>So what I need that somehow I write this into file and read that file in streaming so it won't affect memory, yes it will be slow but won't go out of memory.</p>\n<p>What can I try next?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

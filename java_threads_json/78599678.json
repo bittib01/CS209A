@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "postgresql",
+      "spring-boot",
+      "file-upload",
+      "casting"
+    ],
+    "owner": {
+      "account_id": 32809155,
+      "reputation": 1,
+      "user_id": 25496822,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/a29b664b44edac7c571130ca6ac26574?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "starfire",
+      "link": "https://stackoverflow.com/users/25496822/starfire"
+    },
+    "is_answered": false,
+    "view_count": 724,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1720723449,
+    "creation_date": 1717965257,
+    "last_edit_date": 1718011660,
+    "question_id": 78599678,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78599678/error-while-uploading-image-column-bytes-is-of-type-bytea-but-expression-is-o",
+    "title": "Error while uploading image: column &quot;bytes&quot; is of type bytea but expression is of type bigint",
+    "body": "<p>I try to upload an image with Java 17/Spring Boot 3.2.4/PostgreSQL. I tried everything, every tutorial and this is the output:</p>\n<pre class=\"lang-none prettyprint-override\"><code>2024-06-09T23:20:44.470+03:00  WARN 5036 --- [nio-8080-exec-4] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Error: 0, SQLState: 42804\n2024-06-09T23:20:44.470+03:00 ERROR 5036 --- [nio-8080-exec-4] o.h.engine.jdbc.spi.SqlExceptionHelper   : ERROR: column &quot;bytes&quot; is of type bytea but expression is of type bigint\n  Hint: You will need to rewrite or cast the expression.\n  Position: 56\n2024-06-09T23:20:44.479+03:00 ERROR 5036 --- [nio-8080-exec-4] o.a.c.c.C.[.[.[/].[dispatcherServlet]    : Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception [Request processing failed: org.springframework.dao.InvalidDataAccessResourceUsageException: could not execute statement [ERROR: column &quot;bytes&quot; is of type bytea but expression is of type bigint\n  Hint: You will need to rewrite or cast the expression.\n  Position: 56] [insert into image (bytes,name,time_added,type) values (?,?,?,?)]; SQL [insert into image (bytes,name,time_added,type) values (?,?,?,?)]] with root cause\n\norg.postgresql.util.PSQLException: ERROR: column &quot;bytes&quot; is of type bytea but expression is of type bigint\n  Hint: You will need to rewrite or cast the expression.\n</code></pre>\n<p>This is my Image entity:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Entity\n@Getter\n@Setter\n@Builder\n@EqualsAndHashCode\n@NoArgsConstructor\n@AllArgsConstructor\npublic class Image {\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n\n    private String name;\n\n    private String type;\n\n    @Lob\n    @Column(name = &quot;bytes&quot;, columnDefinition = &quot;bytea&quot;)\n    private byte[] data;\n\n    @OneToOne(mappedBy = &quot;image&quot;)\n    private Baby baby;\n\n    private LocalDateTime timeAdded;\n}\n</code></pre>\n<p>Controller:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@PostMapping(path = &quot;/{babyId}&quot;)\npublic ResponseEntity&lt;Boolean&gt; saveBaby(@PathVariable Long babyId ,@RequestParam(&quot;image&quot;) MultipartFile image, @RequestHeader(&quot;Authorization&quot;) String token) throws IOException {\n    return imageService.saveImages(babyId, image, token);\n}\n</code></pre>\n<p>Service:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Service\n@AllArgsConstructor\npublic class ImageService {\n    private static final Logger LOGGER = LoggerFactory.getLogger(ImageService.class);\n\n    private ImageRepository imageRepository;\n    private BabyService babyService;\n\n    @Transactional\n    public ResponseEntity&lt;Boolean&gt; saveImages(Long babyId, MultipartFile files, String token) throws IOException {\n        Optional&lt;Baby&gt; babyOptional = babyService.findBabyById(babyId);\n\n        if (babyOptional.isEmpty()) {\n            return ResponseEntity.ok().body(false);\n        }\n\n        imageRepository.save(Image.builder()\n                .name(&quot;image-&quot; + babyOptional.get().getId())\n                .type(files.getContentType())\n                .data(files.getInputStream().readAllBytes())\n                .baby(babyOptional.get())\n                .timeAdded(LocalDateTime.now())\n                .build());\n\n        return ResponseEntity.ok().body(true);\n    }\n}\n</code></pre>\n<p>I have tried to put <code>LONGBLOB </code>as <code>columnDefinition</code>, tried to compress image and save it, tried to cast from bytea to bigint manually in repository. Nothing seems to work and I keep getting this error with casting.</p>\n<p>I also tried <code>@Type(type=&quot;org.hibernate.type.BinaryType&quot;)</code>, but when I import <code>Type</code>, it cannot find <code>type=</code>.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

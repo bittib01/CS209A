@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "jms",
+      "ibm-mq",
+      "spring-jms"
+    ],
+    "owner": {
+      "account_id": 10363173,
+      "reputation": 345,
+      "user_id": 8694640,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/-J8LHM7PBTAI/AAAAAAAAAAI/AAAAAAAABp0/TCJaxN6kGvs/s256-rj/photo.jpg",
+      "display_name": "dope",
+      "link": "https://stackoverflow.com/users/8694640/dope"
+    },
+    "is_answered": false,
+    "view_count": 158,
+    "answer_count": 0,
+    "score": 3,
+    "last_activity_date": 1740378889,
+    "creation_date": 1739530836,
+    "last_edit_date": 1740378889,
+    "question_id": 79439146,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79439146/jmstemplate-does-not-honour-the-receivetimeout-value",
+    "title": "JmsTemplate does not honour the receiveTimeout value",
+    "body": "<p>I'm using spring-based application to connect to an IBM MQ server for sending and receiving jms messages. I've set the timeout using the setReceivedTimeout function of the Jmstemplate and I expect some JmsException to be thrown once the configured timeout is breached but the application keeps waiting until the response is received in the response queue. I've tried ranges from 100 milliseconds to 10000 milliseconds but it does not honour my configured timeout, the end-time calculation in below code is always larger than the configured receiveTimeout value. I'm following the <a href=\"https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/jms/core/JmsTemplate.html\" rel=\"nofollow noreferrer\">spring doc</a> to set the timeout value :-</p>\n<pre><code>public void setReceiveTimeout(long receiveTimeout)\n</code></pre>\n<blockquote>\n<p>Set the timeout to use for receive calls (in milliseconds). The default is\nJmsDestinationAccessor.RECEIVE_TIMEOUT_INDEFINITE_WAIT, which\nindicates a blocking receive without timeout.</p>\n</blockquote>\n<p>I've also enabled tracing for mq client using the below code and confirm that the value is correctly set (when set to 500 millisecond):-</p>\n<pre><code>        System.setProperty(&quot;com.ibm.msg.client.commonservices.trace.status&quot;,&quot;ON&quot;);\n</code></pre>\n<p><strong>mqjavaclient_4909.tc :</strong></p>\n<pre><code>00000002 @c1d1ad5 c.i.m.c.j.wmq.internal.WMQGMO(MQGMO)----+----+-d  getWaitInterval() getter [500(0x1f4)]\n</code></pre>\n<p><strong>IBM MQ client version :</strong></p>\n<pre><code>  &lt;dependency&gt;\n  &lt;groupId&gt;com.ibm.mq&lt;/groupId&gt;\n  &lt;artifactId&gt;mq-jms-spring-boot-starter&lt;/artifactId&gt;\n  &lt;version&gt;3.2.4&lt;/version&gt;\n  &lt;/dependency&gt;\n</code></pre>\n<p><strong>Jmstemplate Bean definition :</strong></p>\n<pre><code>@Bean\npublic JmsTemplate jmsTemplate() throws JMSException {\n    var mqQueueConnectionFactory = mqQueueConnectionFactory();\n    var userCredentialsConnectionFactoryAdapter =\n            getUserCredentialsConnectionFactoryAdapter(mqQueueConnectionFactory);\n    var jmsTemplate = new JmsTemplate(userCredentialsConnectionFactoryAdapter);\n    jmsTemplate.setReceiveTimeout(Long.parseLong(receiveTimeout));\n    return jmsTemplate;\n}\n</code></pre>\n<p><strong>Usage :</strong></p>\n<pre><code>  System.out.println(start);\n        var message = (TextMessage) jmsTemplate.sendAndReceive(destinationMq, session -&gt; {\n            TextMessage textMessage = session.createTextMessage(mqRequest.request());\n            textMessage.setJMSCorrelationID(mqRequest.correlationId());\n            textMessage.setJMSReplyTo(getMQ(mqRequest.replyToQueue()));\n            return textMessage;\n        });\n        System.out.println(System.currentTimeMillis() - start);\n</code></pre>\n<p><strong>Update 1 :</strong>\nI was unable to find a solution so I encapsulated the sendAndReceive call in a Future task using Executor Service. Then I used the Future blocking get(timeout, unit) function with the desired timeout value and it worked as desired. Updated Code :</p>\n<pre><code> Future&lt;TextMessage&gt; responseFuture =\n                mqExecutorService.submit(() -&gt; (TextMessage) jmsTemplate.sendAndReceive(destinationMq, session -&gt; {\n                    TextMessage textMessage = session.createTextMessage(mqRequest.request());\n                    textMessage.setJMSCorrelationID(mqRequest.correlationId());\n                    textMessage.setJMSReplyTo(getMQ(mqRequest.replyToQueue()));\n                    return textMessage;\n                }));\n\n        try {\n            TextMessage message = responseFuture.get(Long.parseLong(responseTimeout), TimeUnit.MILLISECONDS);\n        } catch (Exception ex) {\n            responseFuture.cancel(true);\n        }\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

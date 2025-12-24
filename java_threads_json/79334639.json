@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "3d",
+      "libgdx",
+      "game-development",
+      "blender"
+    ],
+    "owner": {
+      "account_id": 38641037,
+      "reputation": 49,
+      "user_id": 28878181,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/658e010fb2fb891a8c85da2ee98cbb11?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Jes&#250;s Fern&#225;ndez",
+      "link": "https://stackoverflow.com/users/28878181/jes%c3%bas-fern%c3%a1ndez"
+    },
+    "is_answered": false,
+    "view_count": 55,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1737856972,
+    "creation_date": 1736208916,
+    "question_id": 79334639,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79334639/glitched-blender-model-on-libgdx-game",
+    "title": "Glitched Blender model on Libgdx game",
+    "body": "<p>so its my first time in the world of 3D development in libgdx\n<br> so my first step is loading my initial 3D model, which is a car\n<br> this is what my car should like: <a href=\"https://sketchfab.com/3d-models/subaru-impreza-90ac9739c6b74a64bcddd10a6f5d029d\" rel=\"nofollow noreferrer\">https://sketchfab.com/3d-models/subaru-impreza-90ac9739c6b74a64bcddd10a6f5d029d</a>\n<br> but instead it looks like this: <a href=\"https://go.screenpal.com/watch/cTVicInewRW\" rel=\"nofollow noreferrer\">https://go.screenpal.com/watch/cTVicInewRW</a> (video showing better how glitched is)\n<br> so this is my code:\n<br></p>\n<pre><code>package io.github.rally3d;\n\nimport com.badlogic.gdx.ApplicationAdapter;\nimport com.badlogic.gdx.Gdx;\nimport com.badlogic.gdx.graphics.Color;\nimport com.badlogic.gdx.graphics.Cubemap;\nimport com.badlogic.gdx.graphics.GL20;\nimport com.badlogic.gdx.graphics.PerspectiveCamera;\nimport com.badlogic.gdx.graphics.Texture;\nimport com.badlogic.gdx.graphics.g3d.utils.FirstPersonCameraController;\nimport com.badlogic.gdx.math.MathUtils;\nimport com.badlogic.gdx.math.Vector3;\n\nimport net.mgsx.gltf.loaders.gltf.GLTFLoader;\nimport net.mgsx.gltf.scene3d.attributes.PBRCubemapAttribute;\nimport net.mgsx.gltf.scene3d.attributes.PBRTextureAttribute;\nimport net.mgsx.gltf.scene3d.lights.DirectionalLightEx;\nimport net.mgsx.gltf.scene3d.scene.Scene;\nimport net.mgsx.gltf.scene3d.scene.SceneAsset;\nimport net.mgsx.gltf.scene3d.scene.SceneManager;\nimport net.mgsx.gltf.scene3d.scene.SceneSkybox;\nimport net.mgsx.gltf.scene3d.utils.IBLBuilder;\n\npublic class Main extends ApplicationAdapter\n{\n    private SceneManager sceneManager;\n    private SceneAsset sceneAsset;\n    private Scene scene;\n    private PerspectiveCamera camera;\n    private Cubemap diffuseCubemap;\n    private Cubemap environmentCubemap;\n    private Cubemap specularCubemap;\n    private Texture brdfLUT;\n    private float time;\n    private SceneSkybox skybox;\n    private DirectionalLightEx light;\n    private FirstPersonCameraController cameraController;\n    \n    @Override\n    public void create() {\n                \n        // create scene\n        sceneAsset = new GLTFLoader().load(Gdx.files.internal(&quot;untitled.gltf&quot;));\n        scene = new Scene(sceneAsset.scene);\n        sceneManager = new SceneManager();\n        sceneManager.addScene(scene);\n        \n        // setup camera (The BoomBox model is very small so you may need to adapt camera settings for your scene)\n        camera = new PerspectiveCamera(60f, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());\n        float d = .02f;\n        camera.near = d / 1000f;\n        camera.far = 2000;\n        sceneManager.setCamera(camera);\n        \n        cameraController = new FirstPersonCameraController(camera);\n        Gdx.input.setInputProcessor(cameraController);\n        \n        // setup light\n        light = new DirectionalLightEx();\n        light.direction.set(1, -3, 1).nor();\n        light.color.set(Color.WHITE);\n        sceneManager.environment.add(light);\n        \n        // setup quick IBL (image based lighting)\n//      IBLBuilder iblBuilder = IBLBuilder.createOutdoor(light);\n//      environmentCubemap = iblBuilder.buildEnvMap(1024);\n//      diffuseCubemap = iblBuilder.buildIrradianceMap(256);\n//      specularCubemap = iblBuilder.buildRadianceMap(10);\n//      iblBuilder.dispose();\n        \n        // This texture is provided by the library, no need to have it in your assets.\n        brdfLUT = new Texture(Gdx.files.classpath(&quot;net/mgsx/gltf/shaders/brdfLUT.png&quot;));\n        \n        sceneManager.setAmbientLight(0f);\n//      sceneManager.environment.set(new PBRTextureAttribute(PBRTextureAttribute.BRDFLUTTexture, brdfLUT));\n//      sceneManager.environment.set(PBRCubemapAttribute.createSpecularEnv(specularCubemap));\n//      sceneManager.environment.set(PBRCubemapAttribute.createDiffuseEnv(diffuseCubemap));\n        \n        // setup skybox\n//      skybox = new SceneSkybox(environmentCubemap);\n//      sceneManager.setSkyBox(skybox);\n    }\n    \n    @Override\n    public void resize(int width, int height) {\n        sceneManager.updateViewport(width, height);\n    }\n    \n    @Override\n    public void render() {\n        float deltaTime = Gdx.graphics.getDeltaTime();\n        time += deltaTime;\n        \n        cameraController.update();\n        scene.modelInstance.transform.rotate(Vector3.Y, 10 * deltaTime)     \n        // render\n        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);\n        sceneManager.update(deltaTime);\n        sceneManager.render();\n    }\n    \n    @Override\n    public void dispose() {\n        sceneManager.dispose();\n        sceneAsset.dispose();\n        environmentCubemap.dispose();\n        diffuseCubemap.dispose();\n        specularCubemap.dispose();\n        brdfLUT.dispose();\n        skybox.dispose();\n    }\n}\n</code></pre>\n<p>Any response will be received ! thanks!!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

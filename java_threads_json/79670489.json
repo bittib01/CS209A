@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "postgresql",
+      "jooq",
+      "multiset"
+    ],
+    "owner": {
+      "account_id": 7545358,
+      "reputation": 41,
+      "user_id": 10094594,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/wtLGY.png?s=256",
+      "display_name": "padisah",
+      "link": "https://stackoverflow.com/users/10094594/padisah"
+    },
+    "is_answered": false,
+    "view_count": 32,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1750250475,
+    "creation_date": 1750243812,
+    "last_edit_date": 1750250475,
+    "question_id": 79670489,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79670489/workaround-for-jooq-multiset-query-with-custom-type-and-datatypeexception",
+    "title": "Workaround for jooq multiset query with custom type and DataTypeException",
+    "body": "<p>The project uses PostgreSQl, and a complex type.\nDDL is like:</p>\n<pre><code>CREATE TYPE attached_file AS (\n    id int8,\n    file_name varchar(255),\n    file_size int8,\n    bucket bucket_type);\n</code></pre>\n<ol>\n<li>There is a complex expression, that involves a table with the custom type</li>\n<li>There is a big query, that uses the complex expression inside a multiset() call</li>\n</ol>\n<p>In some cases I get a DataTypeException, that states like\n1234 (BigDecimal) cannot be converted to Bucket.class</p>\n<p>org.jooq.impl.JSONReader\nLine 312</p>\n<pre><code>                if (value instanceof List)\n                    l = patchRecord(ctx, multiset, actualRow, (List&lt;Object&gt;) value);\n                else if (value instanceof Map)\n                    l = patchRecord(ctx, multiset, actualRow, new ArrayList&lt;&gt;(((Map&lt;?, ?&gt;) value).values()));\n                else\n                    throw new IllegalStateException();\n</code></pre>\n<p>By debugging, the contents of actualRow parameter and value has an order mismatch.\nValue is a map, actually a LinkedHashMap, and is not in the same order as the fields expected in actualRow parameter, the patchRecord call returns a List of Objects in the wrong order, and tries to convert the file_size field's value to Bucket (which is an enum).</p>\n<p>This looks like a bug in jooq, hard to reproduce, or create a testcase that exactly reproduces it.\nLooking the code, I think the patchRecord call should respect the map, and pair fields to map items by key, instead of calling the values() on the map.</p>\n<p>At first, I am looking for a workaround to this issue.</p>\n<p>I am trying to swap to another multiset emulation mode, or switch to multiset_agg. (didn't worked)</p>\n<pre><code>row(\n  LOAD_BOOKING_INFO.fkBookedBy(),\n  LOAD_BOOKING_INFO.fkBookedBy().portalUser(),\n  LOAD_BOOKING_INFO.fkBookedBy().disposalFacilityAccessCode(),\n  LOAD_BOOKING_INFO.fkBookedBy().disposalFacilityContact(),\n  LOAD_BOOKING_INFO.fkBookedBy().companyAccessCode().company()\n).convertFrom(mapping(AuthLoginDto::new))\n</code></pre>\n<p>replaced to</p>\n<pre><code>row(\n     AUTH_LOGIN.asTable(),\n     AUTH_LOGIN.portalUser(),\n     AUTH_LOGIN.disposalFacilityAccessCode(),\n     AUTH_LOGIN.disposalFacilityContact(),\n     COMPANY_ACCESS_CODE.company()\n).convertFrom(mapping(AuthLoginDto::new)).as(BOOKED_BY)\n\n</code></pre>\n<p>the complex type is a field for company table, so it is still has an implicit join reference, only the way there has been changed</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

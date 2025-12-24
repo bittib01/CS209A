@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "cryptography",
+      "google-play",
+      "keystore"
+    ],
+    "owner": {
+      "account_id": 44976840,
+      "reputation": 21,
+      "user_id": 32034397,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/bbda5c8e8e871c5896f79fec070b5198?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "user32034397",
+      "link": "https://stackoverflow.com/users/32034397/user32034397"
+    },
+    "is_answered": true,
+    "view_count": 106,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1765694805,
+    "creation_date": 1765432542,
+    "question_id": 79843637,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79843637/pepk-jar-fails-with-javax-crypto-badpaddingexception-preventing-play-app-sig",
+    "title": "`pepk.jar` fails with `javax.crypto.BadPaddingException` preventing Play App Signing enrollment for existing app",
+    "body": "<p>Title: pepk.jar fails with javax.crypto.BadPaddingException preventing Play App Signing enrollment for existing app</p>\n<p>Problem Statement:</p>\n<p>We are trying to enroll an existing Android app (com.clsreview.clsreview) in Google Play App Signing. We possess our original, valid private key and its password, and can successfully sign app bundles (.aab) using Gradle. However, Google's official pepk.jar tool consistently fails to encrypt our private key, returning a javax.crypto.BadPaddingException. This is completely blocking our ability to enroll in App Signing and thus to update our application on the Play Store.</p>\n<p>Context:</p>\n<ul>\n<li>App Package: com.clsreview.clsreview (existing, published app)</li>\n<li>Key Type: 2048-bit RSA key within a JKS/PKCS12 keystore.</li>\n<li>Key Status: Not lost, password is known and verified working with keytool, openssl, and Android Gradle plugin.</li>\n</ul>\n<p>Detailed Steps Taken &amp; Troubleshooting:</p>\n<ol>\n<li>Attempted with Original JKS Keystore:\n<ul>\n<li>Result: pepk.jar v1.0 failed with &quot;Password verification failed&quot; (misleading).</li>\n</ul>\n</li>\n<li>Created Clean PKCS12 Keystore via OpenSSL:\n<ul>\n<li>We successfully extracted private_key.pem and certificate.pem using OpenSSL from our original keystore, confirming key validity and password.</li>\n<li>We then created a pristine new_keystore.p12 using OpenSSL from these PEM files.</li>\n</ul>\n</li>\n<li>Attempted with Clean new_keystore.p12 and Latest pepk.jar:\n<ul>\n<li>We downloaded the latest pepk.jar from the Google Play Console's App Signing page.</li>\n<li>The exact command we executed was:</li>\n</ul>\n</li>\n</ol>\n<pre><code>         java -jar pepk.jar \\\n              --keystore=new_keystore.p12 \\\n              --alias=key0 \\\n              --output=pepk-output.txt \\\n              --include-cert \\\n              --rsa-aes-encryption \\\n              --encryption-key-path=encryption_public_key.pem \\\n              --keystore-pass=pass:YOUR_PASSWORD \\\n              --key-pass=pass:YOUR_PASSWORD\n</code></pre>\n<ul>\n<li>Consistent Failure: This command still fails with the BadPaddingException.</li>\n<li>This is the full error trace received:</li>\n</ul>\n<pre><code>Error: Unable to export or encrypt the private key\njava.io.IOException: keystore password was incorrect\n                  at java.base/sun.security.pkcs12.PKCS12KeyStore.engineLoad(PKCS12KeyStore.java:2092)\n                  at java.base/sun.security.util.KeyStoreDelegator.engineLoad(KeyStoreDelegator.java:243)\n                  at java.base/java.security.KeyStore.load(KeyStore.java:1479)\n                  at\n  com.google.wireless.android.vending.developer.signing.tools.extern.export.KeystoreHelper.loadKeystore(KeystoreHelper.j\n  ava:53)\n                  at\n  com.google.wireless.android.vending.developer.signing.tools.extern.export.KeystoreHelper.getKeystore(KeystoreHelper.ja\n  va:39)\n                  at\n  com.google.wireless.android.vending.developer.signing.tools.extern.export.ExportEncryptedPrivateKeyTool.run(ExportEncr\n  yptedPrivateKeyTool.java:207)\n                  at\n  com.google.wireless.android.vending.developer.signing.tools.extern.export.ExportEncryptedPrivateKeyTool.main(ExportEnc\n  ryptedPrivateKeyTool.java:165)\n          Caused by: java.security.UnrecoverableKeyException: failed to decrypt safe contents entry:\n  javax.crypto.BadPaddingException: Given final block not properly padded. Such issues can arise if a bad key is used\n  during decryption.\n                  ... 7 more\n</code></pre>\n<ol start=\"4\">\n<li>Java Environment Testing:\n<ul>\n<li>We tested the command using both OpenJDK 17 (our primary environment) and OpenJDK 11 (a common LTS version). The exact same BadPaddingException persists across both JDKs.</li>\n</ul>\n</li>\n<li>Attempted Manual Python Implementation:\n<ul>\n<li>We attempted to write Python scripts to replicate pepk.jar's functionality, but these failed due to cryptographic complexity.</li>\n</ul>\n</li>\n</ol>\n<p>Questions for the Community:</p>\n<ol>\n<li>Has anyone successfully overcome this specific javax.crypto.BadPaddingException when using pepk.jar with a demonstrably valid key? If so, what was the solution?</li>\n<li>Are there known specific incompatibilities between pepk.jar (even the latest versions) and PKCS12 files generated by certain OpenSSL versions or specific key formats (e.g., 2048-bit RSA keys from older origins)?</li>\n<li>Given that we have the raw private_key.pem and encryption_public_key.pem files, is there a reliable, documented method or an existing tool (other than pepk.jar) that can correctly generate the encrypted .pepk file required for Play App Signing enrollment?</li>\n<li>Are there any alternative methods for enrolling an existing app in Play App Signing when the official pepk.jar tool is demonstrably failing due to a bug?</li>\n</ol>\n<p>We are completely blocked from updating our app and are seeking any insights or workarounds the community might offer.</p>\n<p>Thank you for your time and expertise.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

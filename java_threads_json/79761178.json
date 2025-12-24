@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hibernate",
+      "mapstruct"
+    ],
+    "owner": {
+      "account_id": 2448724,
+      "reputation": 39,
+      "user_id": 2135483,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/7e37c3da985184aa80f43ef51ff0fd49?s=256&d=identicon&r=PG",
+      "display_name": "pingo_bingo",
+      "link": "https://stackoverflow.com/users/2135483/pingo-bingo"
+    },
+    "is_answered": false,
+    "view_count": 60,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1757559332,
+    "creation_date": 1757528897,
+    "last_edit_date": 1757559332,
+    "question_id": 79761178,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79761178/hibernate-child-collection-unique-constraint-exception",
+    "title": "Hibernate Child Collection unique constraint exception",
+    "body": "<p>I have Employee entity with pk emp_id. Employee has child collection as EmployeeLeaves (table emp_leaves). It has id, emp_id, leave_date, comment field.</p>\n<p>I have @OneToMany(cascade = CascadeType.ALL, mappedBy = &quot;employee&quot;, orphanRemoval = true) on collection of employeeLeaves.</p>\n<p>I also have unique constraint applied in DB on emp_leaves for emp_id and leave_date.</p>\n<p>When i save the Employee, i do following</p>\n<ol>\n<li>Clear the collection.</li>\n<li>Add new EmployeeLeave created from EmployeeLeaveDto using mapstruct (with null id)</li>\n<li>Save the Employee</li>\n</ol>\n<p>Hibernate is doing the insert first and since the row exists in DB it throws unique constraint exception.</p>\n<pre><code>public interface EmployeeMapper {\n        \n    static class EmployeeContext {\n        Map&lt;Integer, EmployeeLeave&gt; leaveMap;\n    }   \n    \n    @ObjectFactory\n    default EmployeeLeave createLeave(LeaveDto leaveDto, @Context EmployeeContext context) {\n        return Objects.requireNonNullElseGet(context.leaveMap.get(leaveDto.getId()), EmployeeLeave::new);\n    }\n    \n    void map(EmpployeeDto empDto, @MappingTarget Employee emp, @Context EmployeeContext context);\n    \n    default Employee mapDtoToEntity(EmployeeDto empDto, Employee emp) {     \n        EmployeeContext context = new EmployeeContext();                \n        context.leaveMap = emp.employeeLeaves().stream().collect(Collectors.toMap(EmployeeLeave::getId, Function.identity()));      \n        map(empDto, emp, context);\n        emp.getEmployeeLeaves().foreach(l -&gt; l.setEmployee(emp));//assign parent\n        return emp;\n    }\n}\n</code></pre>\n<p>I call mapDtoToEntity with managed entity. It adds any newly created leaves or already existing leaves. I then calls merge on entity manager.</p>\n<p>If employee has leave on 1 May 2025 persisted in DB. Now when in UI this leave date is changed to 2 May 2025 and new leave row of 1 May 2025 is added. When employee is saved, hibeernate will first try to insert the leave without id i.e. 1 May 2025. But there already exist a row in DB and it throws exception</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

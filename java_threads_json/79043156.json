@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "xml",
+      "xml-signature",
+      "xml-encryption"
+    ],
+    "owner": {
+      "account_id": 30556730,
+      "reputation": 36,
+      "user_id": 23420699,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocKPK3tvfw4N3-eS2e5itvCI5BouC2IGWwC5nhwlKx10=k-s256",
+      "display_name": "Govind Singh",
+      "link": "https://stackoverflow.com/users/23420699/govind-singh"
+    },
+    "is_answered": true,
+    "view_count": 61,
+    "closed_date": 1731436248,
+    "accepted_answer_id": 79180035,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1731393752,
+    "creation_date": 1727785712,
+    "last_edit_date": 1727786844,
+    "question_id": 79043156,
+    "link": "https://stackoverflow.com/questions/79043156/named-certificate-not-found-api-response-xml-signing-and-encryption",
+    "closed_reason": "Not suitable for this site",
+    "title": "Named certificate &#39;&#39; not found API response XML signing and encryption",
+    "body": "<p>I am working on an integration which requires signing and encryption of the xml payload before passing it into the request content.</p>\n<p>I am using java to sign and encrypt the xml document and this is what I get</p>\n<pre><code>&lt;xenc:EncryptedData xmlns:xenc=&quot;http://www.w3.org/2001/04/xmlenc#&quot; Type=&quot;http://www.w3.org/2001/04/xmlenc#Element&quot;&gt;\n    &lt;xenc:EncryptionMethod Algorithm=&quot;http://www.w3.org/2001/04/xmlenc#tripledes-cbc&quot;/&gt;\n    &lt;ds:KeyInfo xmlns:ds=&quot;http://www.w3.org/2000/09/xmldsig#&quot;&gt;\n        &lt;xenc:EncryptedKey&gt;\n            &lt;xenc:EncryptionMethod Algorithm=&quot;http://www.w3.org/2001/04/xmlenc#rsa-1_5&quot;/&gt;\n            &lt;xenc:CipherData&gt;\n                &lt;xenc:CipherValue&gt;I1ik...&lt;/xenc:CipherValue&gt;\n            &lt;/xenc:CipherData&gt;\n        &lt;/xenc:EncryptedKey&gt;\n    &lt;/ds:KeyInfo&gt;\n    &lt;xenc:CipherData&gt;\n        &lt;xenc:CipherValue&gt;tTYZZ.....Vtl1WwQ==&lt;/xenc:CipherValue&gt;\n    &lt;/xenc:CipherData&gt;\n&lt;/xenc:EncryptedData&gt;\n</code></pre>\n<p>Using the above payload the response is 401 Status code and the below xml</p>\n<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;\n&lt;xenc:EncryptedData Type=&quot;http://www.w3.org/2001/04/xmlenc#Element&quot; xmlns:xenc=&quot;http://www.w3.org/2001/04/xmlenc#&quot;&gt;\n    &lt;xenc:EncryptionMethod Algorithm=&quot;http://www.w3.org/2001/04/xmlenc#tripledes-cbc&quot;/&gt;\n    &lt;dsig:KeyInfo xmlns:dsig=&quot;http://www.w3.org/2000/09/xmldsig#&quot;&gt;\n        &lt;xenc:EncryptedKey Recipient=&quot;name:&quot;&gt;\n            &lt;xenc:EncryptionMethod Algorithm=&quot;http://www.w3.org/2001/04/xmlenc#rsa-1_5&quot;/&gt;\n            &lt;dsig:KeyInfo&gt;\n                &lt;dsig:KeyName/&gt;\n            &lt;/dsig:KeyInfo&gt;\n            &lt;xenc:CipherData&gt;\n                &lt;xenc:CipherValue&gt;*Named certificate '' not found*&lt;/xenc:CipherValue&gt;\n            &lt;/xenc:CipherData&gt;\n        &lt;/xenc:EncryptedKey&gt;\n    &lt;/dsig:KeyInfo&gt;\n    &lt;xenc:CipherData&gt;\n        &lt;xenc:CipherValue&gt;*Named certificate '' not found*&lt;/xenc:CipherValue&gt;\n    &lt;/xenc:CipherData&gt;\n&lt;/xenc:EncryptedData&gt;\n</code></pre>\n<p>Which certificate exactly is this named certificate and how do I add this detail to my encrypted payload</p>\n<pre><code>// Sign the XML\n        org.apache.xml.security.Init.init();\n        ElementProxy.setDefaultPrefix(Constants.SignatureSpecNS, &quot;ds&quot;);\n        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();\n        dbf.setNamespaceAware(true);\n        Element root = xmlDoc.getDocumentElement();\n        XMLSignature sig = new XMLSignature(xmlDoc, &quot;file:&quot;, XMLSignature.ALGO_ID_SIGNATURE_RSA);\n        root.appendChild(sig.getElement());\n        Transforms transforms = new Transforms(xmlDoc);\n        transforms.addTransform(Transforms.TRANSFORM_ENVELOPED_SIGNATURE);\n        transforms.addTransform(Transforms.TRANSFORM_C14N_OMIT_COMMENTS);\n        sig.addDocument(&quot;&quot;, transforms, Constants.ALGO_ID_DIGEST_SHA1);\n        \n        KeyInfo info = sig.getKeyInfo();\n        X509Data x509data = new X509Data(xmlDoc);\n        x509data.add(new XMLX509IssuerSerial(xmlDoc,signCert));\n        x509data.add(new XMLX509Certificate(xmlDoc, signCert));\n        info.add(x509data);\n        \n        sig.sign(privateSignKey);\n        \n        // Encrypt the XML\n        String jceAlgorithmName = &quot;DESede&quot;;\n        KeyGenerator keyGenerator = KeyGenerator.getInstance(jceAlgorithmName);\n        Key symmetricKey = keyGenerator.generateKey();\n        String algorithmURI = XMLCipher.RSA_v1dot5;\n        XMLCipher keyCipher = XMLCipher.getInstance(algorithmURI);\n        keyCipher.init(XMLCipher.WRAP_MODE, publicEncryptKey);\n        EncryptedKey  encryptedKey = keyCipher.encryptKey(xmlDoc, symmetricKey);\n        Element rootElement = xmlDoc.getDocumentElement();\n        algorithmURI = XMLCipher.TRIPLEDES;\n        XMLCipher xmlCipher = XMLCipher.getInstance(algorithmURI);\n        xmlCipher.init(XMLCipher.ENCRYPT_MODE, symmetricKey);\n        EncryptedData encryptedData = xmlCipher.getEncryptedData();\n        KeyInfo keyInfo = new KeyInfo(xmlDoc);\n        keyInfo.add(encryptedKey);\n        encryptedData.setKeyInfo(keyInfo);\n        xmlCipher.doFinal(xmlDoc, rootElement, false);\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

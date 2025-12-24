@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "unit-testing",
+      "junit",
+      "junit5"
+    ],
+    "owner": {
+      "account_id": 29975603,
+      "reputation": 23,
+      "user_id": 22971907,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/YFiy1Fvx.png?s=256",
+      "display_name": "genuinebookworm",
+      "link": "https://stackoverflow.com/users/22971907/genuinebookworm"
+    },
+    "is_answered": true,
+    "view_count": 64,
+    "accepted_answer_id": 79117670,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1729683048,
+    "creation_date": 1729681886,
+    "last_edit_date": 1729683048,
+    "question_id": 79117662,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79117662/testing-validation-method-of-object-that-uses-builder-pattern-only-without-any-s",
+    "title": "Testing validation method of object that uses builder pattern only without any setters",
+    "body": "<p>I have domain aggregate <code>Employee</code> which uses builder pattern to set its fields during object construction. It has various lifecycle methods that mutate the state but no direct setters. It also has a validate() method which checks some conditions on the fields set by the builder and therefore can fail (throw exception) for multiple reasons.</p>\n<p>The aggregate is somewhat like below:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class Employee {\n\n  private String field1;\n  private String field2:\n\n  //say 10 fields\n\n  public static Builder builder() {\n    return new Builder();\n  }\n\n  public static class Builder {\n    // builder fields and methods\n  }\n\n  //public lifecycle methods\n\n  public void validate() {\n    if (field1 == null) {\n       //throw custom exception\n    }\n    if (field2 == null) {\n       //throw custom exception\n    }\n    // More condition checks on fields (not all are null checks)\n  } \n}\n</code></pre>\n<p>Now my test class is organized as below:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class EmployeeTest {\n     \n    @Test\n    public void givenNewEmployee_IfField1IsMissing_thenThrowsException() {\n      \n      //Setup\n      Employee testEmployee = Employee.builder()\n                               .field2(nonNullValue)\n                               //other fields\n                               .build();\n\n \n      Assertions.assertThrows(CustomException.class, testEmployee::validate);\n    }\n\n     @Test\n    public void givenNewEmployee_IfField2IsMissing_thenThrowsException() {\n      \n      //Setup\n      Employee testEmployee = Employee.builder()\n                               .field1(nonNullValue)\n                               //other fields\n                               .build();\n\n      //Test\n      Assertions.assertThrows(CustomException.class, testEmployee::validate);\n    }\n \n}\n</code></pre>\n<p>In the above, for each test case I have to build the whole Employee test object <code>testEmployee</code> except one field in the <code>build()</code> method. This makes my test cases clumsy and take many lines of code.</p>\n<p>My question is:</p>\n<p>Is there a way I can use to setup the <code>testEmployee</code> object once and then set the individual fields to null in each of the test cases so that my tests are concise and doesn't require building the entire <code>testEmployee</code>?</p>\n<p>I am aware of <code>@BeforeAll</code> and <code>@BeforeEach</code> annotations for setting up tests. But since my <code>Employee</code> class does not provide any setter I have no way to setup a one valid <code>testEmployee</code> in <code>@BeforeEach</code> and then set the individual fields to null in each of the test cases. So I need alternatives if available.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

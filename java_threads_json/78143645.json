@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hibernate",
+      "orm",
+      "hibernate-envers",
+      "spring-data-envers"
+    ],
+    "owner": {
+      "account_id": 27250316,
+      "reputation": 35,
+      "user_id": 23465589,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocL-F_y3R0SC8IYX6az7LrJt_CtYWIG9coQ_Btkeb7wL=k-s256",
+      "display_name": "Tom M",
+      "link": "https://stackoverflow.com/users/23465589/tom-m"
+    },
+    "is_answered": false,
+    "view_count": 600,
+    "answer_count": 0,
+    "score": 2,
+    "last_activity_date": 1731089231,
+    "creation_date": 1710194839,
+    "question_id": 78143645,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78143645/mappedsuperclass-with-audited-working-yet-causing-an-error",
+    "title": "@MappedSuperClass with @Audited working yet causing an error",
+    "body": "<p>I've found that there are a number of entity classes that use the same primary key id type.</p>\n<p>For example,</p>\n<pre><code>    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n\n    //...\n\n    public Long getId() {\n        return id;\n    }\n\n    public void setId(Long id) {\n        this.id = id;\n    }\n</code></pre>\n<p>Adhering to the principle of DRY (Do not repeat yourself) I thought it would make sense to turn this into a generic abstract parent class for all subclasses to use (and to some extent it does).</p>\n<pre><code>@MappedSuperclass\npublic abstract class LongIdEntity {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n\n    public LongIdEntity() {}\n\n    public LongIdEntity(Long id) { \n        this.id = id;\n    }\n\n    public Long getId() {\n        return id;\n    }\n\n    public void setId(Long id) {\n        this.id = id;\n    }\n}\n</code></pre>\n<p>My issue arrises when I attempt to use this abstract parent class with a subclass that is also annotated with @org.hibernate.envers.Audited.</p>\n<p>For some reason, Hibernate throws the following error when any subclass is mapped with @org.hibernate.envers.Audited and extends LongIdEntity.</p>\n<pre><code>ERROR 63328 --- [persistence] [           main] o.h.metamodel.internal.MetadataContext   : HHH015007: Illegal argument on static metamodel field injection : org.hibernate.envers.DefaultRevisionEntity_#class_; expected type :  org.hibernate.metamodel.model.domain.internal.EntityTypeImpl; encountered type : jakarta.persistence.metamodel.MappedSuperclassType\n</code></pre>\n<p>Now the I've tried a number of things but before delving into any attempts I'd like to note that even with the error, Hibernate still constructs the tables as originally intended (that is the subclass gets its own unique id column that is audited and the resulting syntax of the code is significantly reduced since we only need to declare the Long id once in the entire application and can reuse it as necessary).</p>\n<p>As for the attempts I tried,</p>\n<ol>\n<li><p>Annotating both the parent and subclass with @Audited - which threw the same error</p>\n</li>\n<li><p>Annotating the subclass only with @Audited - which is the setting I am currently using resulting in functional hibernate despite the error message.</p>\n</li>\n<li><p>Annotating just the super class which doesn't do anything (this is intentional) as the parent classes fields get inherited into the subclasses as if they were their own columns, resulting in the parent class not having their own table and by extension not being audited. In addition the error goes away which is sort of bizarre considering the error states that hibernate expected an entity type and got a mappedsuperclass type and both of these annotations are being applied to the same parent class simultaneously.</p>\n</li>\n</ol>\n<p>I'm fine leaving it as is but I worry about these kinds of things because even though it is technically working now, this may result in some unintended consequences/bugs in the future.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

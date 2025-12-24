@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "multipartform-data",
+      "spring-cloud-feign",
+      "multipartfile"
+    ],
+    "owner": {
+      "account_id": 12348065,
+      "reputation": 147,
+      "user_id": 10524769,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/2e39c9a3f8ec39d2e23fdbd85ced7980?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "gcpdev",
+      "link": "https://stackoverflow.com/users/10524769/gcpdev"
+    },
+    "is_answered": false,
+    "view_count": 327,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1738449872,
+    "creation_date": 1735618848,
+    "last_edit_date": 1735655551,
+    "question_id": 79319163,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79319163/feign-codec-encodeexception-error-converting-request-body",
+    "title": "feign.codec.EncodeException: Error converting request body",
+    "body": "<p>Tried to upload a file via Rest request using MultiPartFile. Getting the request in the controller in App A, which calls service, which then calls FeignClient to invoke different REST endpoint in App B.</p>\n<p>Controller class</p>\n<pre class=\"lang-java prettyprint-override\"><code>@RestController(&quot;strategy&quot;)\n@Validated\npublic class StrategyController {\n  private final StrategyService strategyService;\n\n  public StrategyController(StrategyService strategyService) {\n    this.strategyService = strategyService;\n  }\n\n  @RequestMapping(path = ASSORT_STRAT_UPLOAD_REQUEST, method = RequestMethod.POST)\n  public ResponseEntity&lt;String&gt; upload(MultipartFile file) {\n    return ResponseEntity.ok(strategyService.upload(file));\n  }\n</code></pre>\n<p>Service class</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Service\npublic class StrategyServiceImpl implements StrategyService {\n  private final strategyServiceRestClient strategyServiceRestClient;\n\n  public StrategyServiceImpl(strategyServiceRestClient strategyServiceRestClient) {\n    this.strategyServiceRestClient = strategyServiceRestClient;\n  }\n\n  @Override\n  public String upload(MultipartFile file) {\n    return strategyServiceRestClient.uploadRequest(file);\n  }\n}\n</code></pre>\n<p>Feign Client</p>\n<pre class=\"lang-java prettyprint-override\"><code>@FeignClient(value = &quot;strategy&quot;, url = &quot;${strategy-service-url}&quot;, configuration = StrategyServiceFeignConfig.class)\npublic interface StrategyServiceRestClient {\n  @RequestMapping(method = RequestMethod.POST, value = KimsBffConstants.ASSORT_STRAT_UPLOAD_REQUEST)\n  @HandleFeignException(HandleFeignClientException.class)\n  String uploadRequest(@RequestPart MultipartFile file);\n}\n</code></pre>\n<p>Seeing the following exception when it calls <code>strategyServiceRestClient.uploadRequest(file);</code></p>\n<p>Caused by:</p>\n<pre class=\"lang-none prettyprint-override\"><code>java.io.FileNotFoundException: MultipartFile resource [file] cannot be resolved to URL \n    at org.springframework.core.io.AbstractResource.getURL(AbstractResource.java:113)\n    at org.springframework.core.io.AbstractResource.getURI(AbstractResource.java:123)\n    at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n    at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)\n    at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)\n    at java.base/java.lang.reflect.Method.invoke(Method.java:569)\n    at com.fasterxml.jackson.databind.ser.BeanPropertyWriter.serializeAsField(BeanPropertyWriter.java:689)\n    at com.fasterxml.jackson.databind.ser.std.BeanSerializerBase.serializeFields(BeanSerializerBase.java:774)\n    at com.fasterxml.jackson.databind.ser.BeanSerializer.serialize(BeanSerializer.java:178)\n    at com.fasterxml.jackson.databind.ser.BeanPropertyWriter.serializeAsField(BeanPropertyWriter.java:728)\n    at com.fasterxml.jackson.databind.ser.std.BeanSerializerBase.serializeFields(BeanSerializerBase.java:774)\n    at com.fasterxml.jackson.databind.ser.BeanSerializer.serialize(BeanSerializer.java:178)\n    at com.fasterxml.jackson.databind.ser.std.MapSerializer.serializeOptionalFields(MapSerializer.java:869)\n    at com.fasterxml.jackson.databind.ser.std.MapSerializer.serializeWithoutTypeInfo(MapSerializer.java:760)\n    at com.fasterxml.jackson.databind.ser.std.MapSerializer.serialize(MapSerializer.java:720)\n    at com.fasterxml.jackson.databind.ser.std.MapSerializer.serialize(MapSerializer.java:35)\n    at com.fasterxml.jackson.databind.ser.DefaultSerializerProvider._serialize(DefaultSerializerProvider.java:480)\n    at com.fasterxml.jackson.databind.ser.DefaultSerializerProvider.serializeValue(DefaultSerializerProvider.java:400)\n    at com.fasterxml.jackson.databind.ObjectWriter$Prefetch.serialize(ObjectWriter.java:1514)\n    at com.fasterxml.jackson.databind.ObjectWriter.writeValue(ObjectWriter.java:1007)\n    at org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter.writeInternal(AbstractJackson2HttpMessageConverter.java:456)\n    at org.springframework.http.converter.AbstractGenericHttpMessageConverter.write(AbstractGenericHttpMessageConverter.java:104)\n    at org.springframework.cloud.openfeign.support.SpringEncoder.checkAndWrite(SpringEncoder.java:217)\n    at org.springframework.cloud.openfeign.support.SpringEncoder.encodeWithMessageConverter(SpringEncoder.java:146)\n</code></pre>\n<p>This is the request/response from postman\n<a href=\"https://i.sstatic.net/ofQVxYA4.jpg\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/ofQVxYA4.jpg\" alt=\"enter image description here\" /></a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

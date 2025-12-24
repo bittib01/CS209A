@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "linux",
+      "kotlin",
+      "filesystems"
+    ],
+    "owner": {
+      "account_id": 116140,
+      "reputation": 4227,
+      "user_id": 304674,
+      "user_type": "registered",
+      "accept_rate": 97,
+      "profile_image": "https://www.gravatar.com/avatar/b87152c4f0f695bc98280b32e8350a99?s=256&d=identicon&r=PG",
+      "display_name": "seadowg",
+      "link": "https://stackoverflow.com/users/304674/seadowg"
+    },
+    "is_answered": false,
+    "view_count": 345,
+    "answer_count": 1,
+    "score": 6,
+    "last_activity_date": 1750153073,
+    "creation_date": 1749201307,
+    "last_edit_date": 1750062316,
+    "question_id": 79655689,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79655689/how-to-ensure-file-system-is-updated-when-modifying-files-on-a-usb-drive",
+    "title": "How to ensure file system is updated when modifying files on a USB drive",
+    "body": "<p>I've been working on an Android app that moves files on and off a connected USB drive. For moving, the basic code I'm using is:</p>\n<pre class=\"lang-kotlin prettyprint-override\"><code>file.copyRecursively(File(target, file.name), overwrite = true)\nfile.deleteRecursively()\n</code></pre>\n<p>An interesting quirk of the device I'm targeting is that it does not show the standard notification for a drive being connected which has the &quot;Eject&quot; button. I show a progress state in the UI while the files are moved (with the above code) to signal that the disk shouldn't be pulled out, but if I eject quickly after, I often end up with 0B files on the USB drive (for files being moved from the local disk to the drive). I've managed to fix this (as far as I can tell), by writing a modified version of <code>copyRecursively</code> that uses <code>fsync</code> after the copy (after hunting around and finding <a href=\"https://android-developers.googleblog.com/2010/12/saving-data-safely.html\" rel=\"nofollow noreferrer\">this post</a>):</p>\n<pre class=\"lang-kotlin prettyprint-override\"><code>this.inputStream().use { input -&gt;\n    target.outputStream().use { output -&gt;\n        input.copyTo(output, bufferSize)\n        output.flush()\n        output.fd.sync()\n   }\n}\n</code></pre>\n<p>Now the UI progress state is shown long enough that if the USB drive is pulled out immediately after the app stops showing it, the files are intact on the drive.</p>\n<p>However, after moving from testing with a FAT32 to an ExFAT USB drive, I've noticed that I regularly run into a related problem: files moved from the USB drive to the local disk are not deleted on from the USB drive. My assumption is that this will be down to a difference in how deletes are &quot;committed&quot; in ExFAT (as opposed to FAT32). To solve this I've tried:</p>\n<ul>\n<li>to <code>fsync</code> the deleted file (via a <code>FileDescriptor</code>) after deletion</li>\n<li>switching to using Java's <code>Files.move</code></li>\n<li>using <code>FileChannel#force</code> on the parent directory of the deleted file</li>\n</ul>\n<p>I've confirmed that <code>deleteRecursively</code> works as expected if I wait for ~30s before pulling the drive out or if I eject through settings (accessible by starting an<code>ACTION_MEMORY_CARD_SETTINGS</code> Intent).</p>\n<p>Is there a way using Java/Kotlin I'm missing to ensure that the disk is up to date so I can display the progress UI for the appropriate time or to force the drive's file system to update? Would this require diving into native code? Is this something only the OS's &quot;eject&quot; process (which is not available to apps on Android) can handle?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

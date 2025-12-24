@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "spring-cloud-aws"
+    ],
+    "owner": {
+      "account_id": 4387361,
+      "reputation": 464,
+      "user_id": 3577053,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/794d404d577935358d185787fd56812a?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "user07",
+      "link": "https://stackoverflow.com/users/3577053/user07"
+    },
+    "is_answered": false,
+    "view_count": 896,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1731495448,
+    "creation_date": 1706374842,
+    "question_id": 77892035,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77892035/spring-sqstemplate-manual-acknowledgement-how-to",
+    "title": "Spring SqsTemplate Manual Acknowledgement: How To?",
+    "body": "<p>I'm using Spring Boot 3.2.2 and Spring Cloud AWS 3.1.0 and I need to get a message from AWS SQS queue and to manually acknowledge it after successfully processing the message. I can read the message but couldn't figure out how to manually send an ack.</p>\n<p>I created a custom SqsTemplate with manual acknowledgement mode:</p>\n<pre><code>@Configuration\npublic class AwsServicesConfig {\n\n \n  @Bean\n  public SqsTemplate customSqsTemplate(SqsAsyncClient sqsAsyncClient) {\n    return SqsTemplate.builder()\n        .sqsAsyncClient(sqsAsyncClient)\n        .configure(options -&gt; options\n            // NOTE: manual ACK mode\n            .acknowledgementMode(TemplateAcknowledgementMode.MANUAL)\n        ).build();\n  }\n}\n</code></pre>\n<p>The logic in the <code>@Component</code> is something like this:</p>\n<pre><code>  public List&lt;String&gt; processMessages() {\n    var processedMessages = new ArrayList&lt;String&gt;();\n\n    var messages = customSqsTemplate.receiveMany(from -&gt; from.queue(&quot;my-queue&quot;)\n        .maxNumberOfMessages(10),\n        String.class\n    );\n\n    while (!messages.isEmpty()) {\n      messages.forEach(message -&gt; {\n         \n            doProcess(message);\n            processedMessages.add(message);\n\n           // HERE I want to send an ack to the source queue\n\n       });\n\n      messages = sqsTemplate.receiveMany(from -&gt; \n          from.queue(mcSendProperties.getSqs().getDlqUrl())\n              .maxNumberOfMessages(MAX_NUMBER_OF_MESSAGES),\n          String.class\n     );\n    }\n    return processedMessages;\n  }\n</code></pre>\n<p>I don't find any method on SqsTemplate object to send an ack. I checked the tests in GitHub repo of the project, but it only tells that the ack shall not be sent automatically:\n<a href=\"https://github.com/awspring/spring-cloud-aws/blob/main/spring-cloud-aws-sqs/src/test/java/io/awspring/cloud/sqs/operations/SqsTemplateTests.java#L770\" rel=\"nofollow noreferrer\">https://github.com/awspring/spring-cloud-aws/blob/main/spring-cloud-aws-sqs/src/test/java/io/awspring/cloud/sqs/operations/SqsTemplateTests.java#L770</a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

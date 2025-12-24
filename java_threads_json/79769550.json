@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-integration"
+    ],
+    "owner": {
+      "account_id": 17750,
+      "reputation": 27260,
+      "user_id": 40064,
+      "user_type": "registered",
+      "accept_rate": 69,
+      "profile_image": "https://www.gravatar.com/avatar/6f118f710d3077f91c0c0d722f7be0a3?s=256&d=identicon&r=PG",
+      "display_name": "Wim Deblauwe",
+      "link": "https://stackoverflow.com/users/40064/wim-deblauwe"
+    },
+    "is_answered": true,
+    "view_count": 67,
+    "answer_count": 1,
+    "score": 3,
+    "last_activity_date": 1758367176,
+    "creation_date": 1758287535,
+    "last_edit_date": 1758367176,
+    "question_id": 79769550,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79769550/how-to-read-or-publish-concurrently-with-partitition-key",
+    "title": "How to read or publish concurrently with partitition key",
+    "body": "<p>I am using Spring Integration to implement the Transactional Outbox Pattern. I have code like this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Bean\nIntegrationFlow eventFlow(\n    JdbcChannelMessageStore jdbcChannelMessageStore,\n    ExternalEventPublisher externalEventPublisher,\n    @Qualifier(&quot;transactionManager&quot;) TransactionManager transactionManager) {\n  return IntegrationFlow.from(eventInput())\n      .channel(eventOutput(jdbcChannelMessageStore))\n      .handle(\n          message -&gt; {\n            ExternalEvent externalEvent = (ExternalEvent) message.getPayload();\n            externalEventPublisher.publishEvent(externalEvent);\n          },\n          e -&gt;\n              e.poller(\n                  Pollers.fixedDelay(Duration.ofSeconds(1))\n                      .transactional(transactionManager)))\n      .get();\n}\n</code></pre>\n<p>This works great, if the <code>externalEventPublisher</code> works, the message is removed from the database. If the <code>externalEventPublisher</code> fails the message remains and is retried later.</p>\n<p>However, this is single threaded. So if the <code>externalEventPublisher</code> needs 200ms to publish, I can't publish faster than 5 messages per second.</p>\n<p>I would like to make this concurrent, which I can do by changing the poller to this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>Pollers.fixedDelay(Duration.ofSeconds(1))\n        .maxMessagesPerPoll(20)\n        .taskExecutor(taskExecutor())\n        .transactional(transactionManager)\n</code></pre>\n<p>With this <code>taskExecutor</code> defined:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Bean\nTaskExecutor taskExecutor() {\n  ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();\n  executor.setCorePoolSize(5);\n  executor.setMaxPoolSize(20);\n  executor.setQueueCapacity(100);\n  executor.setThreadNamePrefix(&quot;event-publisher-&quot;);\n  executor.initialize();\n  return executor;\n}\n</code></pre>\n<p>However, now I lose the ordering of the messages.</p>\n<p>What would be the recommended way (given my <code>ExternalEvent</code> class has some kind of partition key I can use) to ensure the messages for the same partition key end up on the same thread so they will be published in sequence? Of course, the transaction cannot be broken, so if the <code>externalEventPublisher</code> fails, the message should remain in the database table.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

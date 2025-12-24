@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hibernate",
+      "jpa",
+      "hql",
+      "dialect"
+    ],
+    "owner": {
+      "account_id": 3248402,
+      "reputation": 2017,
+      "user_id": 2739334,
+      "user_type": "registered",
+      "accept_rate": 64,
+      "profile_image": "https://www.gravatar.com/avatar/c95d3a58330a7e5bdbb8b61d80bc3f9e?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Pwnstar",
+      "link": "https://stackoverflow.com/users/2739334/pwnstar"
+    },
+    "is_answered": true,
+    "view_count": 1388,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1746476671,
+    "creation_date": 1712592879,
+    "last_edit_date": 1713345946,
+    "question_id": 78293875,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78293875/hibernate-6-casts-query-parameters",
+    "title": "Hibernate 6 casts query parameters",
+    "body": "<p>Hi there got the following repository:</p>\n<pre><code>@Repository\npublic interface FooRepository extends JpaRepository&lt;Foo, Long&gt;, JpaSpecificationExecutor&lt;Foo&gt; {\n\n  @Query(\n  &quot;&quot;&quot;\n      SELECT o FROM Foo o \n      JOIN Fee e on o.feeId = e.id \n      JOIN Fii i on e.fiiId = i.id \n      WHERE i.id = :fiiId \n      AND o.id IN (\n        SELECT u.id \n        FROM Fuu u  \n        JOIN Foo o2 on u.fooId = o2.id \n        WHERE u.something LIKE CONCAT('%', :param1, '_', :param2, '%')\n      )&quot;&quot;&quot;)\n  List&lt;OptionRule&gt; findByFiiIdAndFuuLikeSomeComputed(\n     Long fiiId, String param1, char param2);\n}\n</code></pre>\n<p>Notes:</p>\n<p><code>u.something</code> is a column defined like:</p>\n<pre><code>@Nullable\n@Column(name = &quot;SOMETHING&quot;, length = 25000)\nprivate String something;\n</code></pre>\n<p><strong>Prior to Hibernate 6:</strong></p>\n<pre><code>select foo0_.ID                 as id1_18_,\n       ...\nfrom FOO foo0_\n         inner join FEE fee1_ on (foo0_.FEE_ID = fee1_.ID)\n         inner join FII fii2_ on (fee1_.FII_ID = fii2_.ID)\nwhere fii2_.ID = ?\nand (foo0_.ID in (select foo4_.ID\n       from FUU fuu3_\n                inner join FOO foo4_\n                           on (fuu3_.FOO_ID = fuu4_.ID)\n       where foo3.SOMETHING like '%' || ? || '_' || ? || '%'))\n</code></pre>\n<p><strong>After I upgraded to Hibernate 6:</strong></p>\n<ol>\n<li><code>&quot;Could not convert 'java.lang.Character' to 'java.lang.String' using 'org.hibernate.type.descriptor.java.StringJavaType' to wrap&quot;</code> which I fixed by replacing: <code>char</code> with <code>String</code>.</li>\n<li>The query now includes <code>cast</code> which is not supported by the DB2 z/OS.</li>\n</ol>\n<p>Query:</p>\n<pre><code>select fo1_0.ID,\n       ...\nfrom FOO fo1_0\n     join FEE fe1_0 on fo1_0.FEE_ID = fe1_0.ID\n     join FII fi1_0 on fe1_0.FII_ID = fi1_0.ID\nwhere fi1_0.ID = ?\nand fo1_0.ID in (\n    select \n      fo2_0.ID\n    from FUU fu1_0\n      join FOO fo2_0 on fu1_0.FOO_ID = fo2_0.ID\n    where fu1_0.SOMETHING like cast('%' || cast(? as varchar(25000)) || '_' || cast(? as varchar(25000)) || '%' as varchar(32672)))\n</code></pre>\n<p>How can I remove the <code>cast(? as ...)</code> when using <code>org.hibernate.dialect.DB2zDialect</code>. My DB2 z/OS 12.xxx does not seem to support it.</p>\n<p>I tried to find appropriate functions in <code>SqlAstTranslator</code> or <code>SqlAstWalker</code> and overwrote them, but it does not seem the generated query comes from here.</p>\n<p><strong>EDIT:</strong></p>\n<p>This is currently the Dialect I came up working so far, but the cast problem remains:</p>\n<p>LegacyDb2Dialect.java</p>\n<pre><code>import org.hibernate.dialect.DB2zDialect;\nimport org.hibernate.dialect.pagination.LegacyDB2LimitHandler;\nimport org.hibernate.dialect.pagination.LimitHandler;\nimport org.hibernate.engine.spi.SessionFactoryImplementor;\nimport org.hibernate.sql.ast.SqlAstTranslator;\nimport org.hibernate.sql.ast.SqlAstTranslatorFactory;\nimport org.hibernate.sql.ast.spi.StandardSqlAstTranslatorFactory;\nimport org.hibernate.sql.ast.tree.Statement;\nimport org.hibernate.sql.exec.spi.JdbcOperation;\nimport org.hibernate.tool.schema.extract.spi.SequenceInformationExtractor;\n\npublic class LegacyDb2Dialect extends DB2zDialect {\n  \n  @Override\n  public LimitHandler getLimitHandler() {\n    return LegacyDB2LimitHandler.INSTANCE;\n  }\n\n  @Override\n  public SqlAstTranslatorFactory getSqlAstTranslatorFactory() {\n    return new StandardSqlAstTranslatorFactory() {\n      @Override\n      protected &lt;T extends JdbcOperation&gt; SqlAstTranslator&lt;T&gt; buildTranslator(\n          SessionFactoryImplementor sessionFactory, Statement statement) {\n        return new LegacyDb2SqlAstTranslator&lt;&gt;(sessionFactory, statement, getVersion());\n      }\n    };\n  }\n}\n</code></pre>\n<p>LegacyDb2SqlAstTranslator.java</p>\n<pre><code>import org.hibernate.dialect.DB2zSqlAstTranslator;\nimport org.hibernate.dialect.DatabaseVersion;\nimport org.hibernate.engine.spi.SessionFactoryImplementor;\nimport org.hibernate.sql.ast.tree.Statement;\nimport org.hibernate.sql.exec.spi.JdbcOperation;\n\npublic class LegacyDb2SqlAstTranslator&lt;T extends JdbcOperation&gt; extends DB2zSqlAstTranslator&lt;T&gt; {\n\n  public LegacyDb2SqlAstTranslator(\n      SessionFactoryImplementor sessionFactory, Statement statement, DatabaseVersion version) {\n    super(sessionFactory, statement, version);\n  }\n\n  @Override\n  protected boolean supportsOffsetClause() {\n    return false;\n  }\n}\n</code></pre>\n<p><strong>EDIT:</strong></p>\n<p>I found out the casts are also done when using Specification/CriteriaBuilder and column types like bigint.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

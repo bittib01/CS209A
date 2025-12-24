@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hibernate"
+    ],
+    "owner": {
+      "account_id": 18719253,
+      "reputation": 89,
+      "user_id": 13647541,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/a91835baa535d0bef79b06c3f39b4d8b?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Ankit Bhardwaj",
+      "link": "https://stackoverflow.com/users/13647541/ankit-bhardwaj"
+    },
+    "is_answered": false,
+    "view_count": 46,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1740053596,
+    "creation_date": 1740052927,
+    "last_edit_date": 1740053596,
+    "question_id": 79454434,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79454434/why-saveorupdate-and-update-is-not-working-in-detached-state",
+    "title": "Why saveOrUpdate() and update() is not working in detached state",
+    "body": "<p>I don't know why saveOrUpdate()/update() is not working as expected in detached state.\nExpected Behaviour is this:</p>\n<ol>\n<li>Fetch Existing Entity: The entity is fetched from the database and is in the persistent state.</li>\n<li>Detach Entity: The entity is detached from the session, making it a detached entity.</li>\n<li>Modify Entity: The detached entity is modified.</li>\n<li>saveOrUpdate/update: The saveOrUpdate/update method is called to bring the detached entity back to the persistent state and update the existing record in the database.</li>\n<li>Commit Transaction: The transaction is committed, and Hibernate will generate the necessary SQL UPDATE statement to synchronize the changes with the database.</li>\n</ol>\n<p>In DB data before starting the program is:</p>\n<pre><code>alien_age alien_id alien_name\n455       384      Anny\n</code></pre>\n<p>App.java:</p>\n<pre><code>package com.ankit.hibn8;\nimport java.util.List;\nimport java.util.Random;\nimport org.hibernate.Session;\nimport org.hibernate.SessionFactory;\nimport org.hibernate.Transaction;\nimport org.hibernate.cfg.Configuration;\nimport org.hibernate.query.Query;\nimport org.hibernate.query.Query;\nimport com.ankit.hibn8.AlienDO;\npublic class App {\n    @SuppressWarnings(&quot;deprecation&quot;)\n    public static void main(String[] args) {\n\n        Configuration config = new Configuration().configure().addAnnotatedClass(com.ankit.hibn8.AlienDO.class);\n\n        SessionFactory sessFactory = config.buildSessionFactory();\n\n        Session session = sessFactory.openSession();\n\n        Transaction t = session.beginTransaction();\ntry {\n    AlienDO existingAlien = session.get(AlienDO.class, 384);\n\n    if (existingAlien != null) {\n        session.evict(existingAlien);\n        \n        existingAlien.setAlienAge(455);\n        existingAlien.setAlienName(&quot;Annkit&quot;);\n\n        System.out.println(&quot;Before saveOrUpdate: &quot; + existingAlien);\n\n        session.saveOrUpdate(existingAlien); // Should update the existing record\n\n        System.out.println(&quot;After saveOrUpdate: &quot; + existingAlien);\n\n        transaction.commit();\n    } else {\n        System.out.println(&quot;Alien with ID 384 does not exist.&quot;);\n        transaction.rollback();\n    }\n} catch (Exception e) {\n    transaction.rollback();\n    e.printStackTrace();\n} finally {\n    session.close();\n}\n</code></pre>\n<p>When I run this program it is not updating the record.\nDB is having same data before running this.</p>\n<pre><code>alien_age alien_id alien_name\n455       384      Anny\n</code></pre>\n<p>And Logs prints:</p>\n<pre><code>Hibernate: select a1_0.alien_id, a1_0.alien_age, a1_0.alien_name from alien_table as a1_0 where a1_0.alien_id=?\nBefore saveOrUpdate: AlienDO [alienId=384, alienName=Annkit, alienAge=455]\nHibernate: select a1_0.alien_id, a1_0.alien_age, a1_0.alien_name from alien_table as a1_0 where a1_0.alien_id=?\nAfter saveOrUpdate: AlienDO [alienId=384, alienName=Annkit, alienAge=455]\nTex Commit.\n</code></pre>\n<p>If I replace the saveOrUpdate() with update(). Then logs are printing as:</p>\n<pre><code>Hibernate: select a1_0.alien_id, a1_0.alien_age, a1_0.alien_name from alien_table as a1_0 where a1_0.alien_id=?\nBefore Update: AlienDO [alienId=384, alienName=Annkit, alienAge=455]\nAfter Update: AlienDO [alienId=384, alienName=Annkit, alienAge=455]\nTex Commit.\n</code></pre>\n<p>In both the cases update is not happening. Pardon me if this question is silly ;-)</p>\n<p>I am referring this article: <a href=\"https://nikhilsukhani.medium.com/hibernate-lifecycle-states-in-hibernate-transient-persistent-detached-removed-40ba2f689b07\" rel=\"nofollow noreferrer\">https://nikhilsukhani.medium.com/hibernate-lifecycle-states-in-hibernate-transient-persistent-detached-removed-40ba2f689b07</a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

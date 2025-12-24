@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "linux",
+      "swing",
+      "javafx"
+    ],
+    "owner": {
+      "account_id": 2819099,
+      "reputation": 984,
+      "user_id": 2423283,
+      "user_type": "registered",
+      "accept_rate": 86,
+      "profile_image": "https://www.gravatar.com/avatar/75057ee1361d4d3d169413ed4d8e88f5?s=256&d=identicon&r=PG",
+      "display_name": "NateW",
+      "link": "https://stackoverflow.com/users/2423283/natew"
+    },
+    "is_answered": true,
+    "view_count": 60,
+    "accepted_answer_id": 79585210,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1745264375,
+    "creation_date": 1744983453,
+    "question_id": 79581147,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79581147/displaying-a-javafx-popup-on-a-swing-app-in-cross-platform-manner",
+    "title": "Displaying a JavaFX Popup on a Swing app in cross-platform manner",
+    "body": "<p>Before all of the commenters start saying &quot;Just don't mix Swing and JavaFX&quot;, yeah I know, I know. It has caused us a lot of problems over the years but my team has a ton of swing code and we really don't have budget to re-write it all in JavaFX. We're trying to gradually transition portions of our code to JavaFX over time.</p>\n<p>Years ago I wrote a nice JavaFX utility that I use in several different applications that shows a little popup warnings in the bottom right corner of an application. It has a lot of cool features, which are pretty JavaFX dependent.</p>\n<p>I also wrote some code that allowed our team to use these warnings in Swing applications. It does this by making an invisible JavaFX stage to own the popups (since popups can't display without an owner window).</p>\n<p>I've been happy with the code for years, but only recently tried running it on Linux for the first time. It turns out that on Linux, my invisible stage is not invisible and I can't find any way to make it go away. I guess it's not the end of the world if there's a little empty stage, but it's pretty annoying and I'd like to get rid of it. I've tested on Ubuntu with both LXDE and Gnome.</p>\n<p>The full code for my warning popups is more than I'd like to post here, but here's a minimum reproducible example of displaying a JavaFX popup in a Swing app. It works fine in Windows, but in Linux, the dummy stage is visible and has its own icon in the task bar.</p>\n<pre class=\"lang-java prettyprint-override\"><code>import java.awt.Dimension;\nimport java.lang.reflect.InvocationTargetException;\n\nimport javax.swing.JButton;\nimport javax.swing.JFrame;\nimport javax.swing.JPanel;\nimport javax.swing.SwingUtilities;\n\nimport javafx.application.Platform;\nimport javafx.embed.swing.JFXPanel;\nimport javafx.scene.Scene;\nimport javafx.scene.control.Label;\nimport javafx.scene.layout.Pane;\nimport javafx.stage.Popup;\nimport javafx.stage.Stage;\nimport javafx.stage.StageStyle;\n\npublic class FxOnSwingProblemDemo extends JFrame {\n\n    private Stage dummyStage;\n    \n    public FxOnSwingProblemDemo() {\n        \n        initializeFxToolkit();\n        \n        JButton button = new JButton(&quot;Show popup&quot;);\n        \n        button.addActionListener(e -&gt; \n            Platform.runLater(() -&gt; {\n                Popup popup = new Popup();\n                popup.getContent().add(new Label(&quot;Hey look, a popup!&quot;));\n                popup.show(getDummyStage());\n            })\n        );\n        \n        JPanel root = new JPanel();\n        root.add(button);\n        \n        this.add(root);\n        this.setPreferredSize(new Dimension(500, 500));\n        this.pack();\n        //Note exit on close is important here to kill the FX Platform thread\n        this.setDefaultCloseOperation(EXIT_ON_CLOSE);\n        this.setVisible(true);\n    }\n    \n    private void initializeFxToolkit() {\n        Platform.setImplicitExit(false);\n        try {\n            SwingUtilities.invokeAndWait(JFXPanel::new);\n        } catch (InvocationTargetException e) {\n            e.printStackTrace();\n        } catch (InterruptedException e) {\n            Thread.currentThread().interrupt();\n        }\n    }\n    \n    private Stage getDummyStage() {\n        if(dummyStage == null) {\n\n          //Utility prevents icon from showing up on windows task bar\n          dummyStage = new Stage(StageStyle.UTILITY);\n          dummyStage.setScene(new Scene(new Pane()));\n          //Note, setting the width and height to very small numbers (so far tested with 0.1, 1, and 2)\n          //will result in GTK warnings that can't be suppressed printing to stderr on at least\n          //some linux environments. So we'll set it to a larger size. It really doesn't matter\n          //what size we pick as long as it is large enough to avoid the GTK warnings.\n          dummyStage.setWidth(100);\n          dummyStage.setHeight(100);\n          //Make it invisible\n          dummyStage.setOpacity(0.0);\n          //Don't allow closing\n          dummyStage.setOnCloseRequest(e -&gt; e.consume());\n          dummyStage.show();\n        }\n        \n        return dummyStage;\n    }\n\n    public static void main(String[] args) {\n        new FxOnSwingProblemDemo();\n    }\n}\n\n</code></pre>\n<p>I tried everything I can think of to make the window invisible, but haven't found a way yet. I also tried seeing if there's a way I can display a Popup without a real window by making my own subclass of Window that doesn't really display anything, but I haven't gotten very far since a lot Window's methods are final. Open to any ideas. If I have to just write a swing version of the warnings, then I guess I will, but I'd like to avoid it if I can.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

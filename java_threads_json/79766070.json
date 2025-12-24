@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "java-module"
+    ],
+    "owner": {
+      "account_id": 5175809,
+      "reputation": 1196,
+      "user_id": 4142984,
+      "user_type": "registered",
+      "accept_rate": 83,
+      "profile_image": "https://www.gravatar.com/avatar/a6305f943ab99c2928fdc8c2acfae9cd?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Gyro Gearloose",
+      "link": "https://stackoverflow.com/users/4142984/gyro-gearloose"
+    },
+    "is_answered": true,
+    "view_count": 247,
+    "accepted_answer_id": 79766618,
+    "answer_count": 2,
+    "score": 3,
+    "last_activity_date": 1758130608,
+    "creation_date": 1758015968,
+    "last_edit_date": 1758130608,
+    "question_id": 79766070,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79766070/java-using-nested-modules",
+    "title": "Java, using nested modules",
+    "body": "<p>Question looks easy, and probably has an easy solution, but I didn't find one.</p>\n<p>Given module A that needs module B, which in turn needs module C.</p>\n<p>Module A should not need to know about module C. I well guess this is one major point about using modules.</p>\n<p>How to do that? (I have found <em>many oversimplified</em> examples for declaring A to require B,  but B never required anything else.)</p>\n<hr />\n<p>The question is general, but in my example case, I have a project &quot;Tracker&quot; (corresponding to module A) and a project &quot;Poppy&quot; (corresponding to module B) which in turn depends on modules from javafx.</p>\n<p>&quot;Poppy&quot; pops up a popup, and when on its own, works fine. &quot;Tracker&quot; has no use of javafx, except indirectly via &quot;Poppy&quot;, but Poppy might be changed to use Swing instead of javafx, or other graphics libraries.</p>\n<p><code>module-info</code> are</p>\n<pre><code>module Tracker {\n    requires transitive Poppy;\n    opens tracker to pop;\n}\n</code></pre>\n<p>and</p>\n<pre><code>module Poppy {\n    requires transitive javafx.graphics;\n    requires transitive javafx.controls;\n    requires transitive javafx.base;\n\n    opens pop to javafx.graphics, javafx.fxml;\n\n    exports pop;\n    \n}\n</code></pre>\n<p>Where <code>pop</code> is the package name for the main class <code>pop.Poppy</code>.</p>\n<p>Tracker calls <code>Poppy.popup()</code></p>\n<p>with</p>\n<pre><code>public static void popup() {\n    Scene scene;\n    Stage st = new Stage();\n    VBox r2 = createRoot(null);\n    scene = new Scene(r2);\n    st.setScene(scene);\n    st.show();\n}\n</code></pre>\n<p>The call (developing with eclipse) result in <code>java.lang.module.FindException: Module javafx.controls not found, required by Poppy</code>.</p>\n<p>Other tries resulted in complaints about other javafx.<em>thingy</em> not found.</p>\n<hr />\n<p>Eclipse does not show me any (compile) errors. Just to double-check, in <code>Poppy</code> I changed the method name <code>popup()</code> to <code>xpopup()</code> and got the expected error for <code>Tracker</code> that there is no <code>Poppy.popup()</code>.</p>\n<p>So <code>Tracker</code> is aware of <code>Poppy</code> (but not of javafx, or anything <code>Poppy</code> cares to depend on, and rightfully should not be).</p>\n<hr />\n<p>Meanwhile, I suspected the imports as a possible cause, and moved them to a different class in a different package that is not exported, now the pop package is clean of any direct references to javafx but calls a static method of a different class in a different package.</p>\n<p>No success.</p>\n<p>Has <em>anyone out there</em> ever done that before, nesting three modules A, B and C such that A doesn't need to have to declare all the stuff needed by B, C and whatever C and its dependencies might be using?</p>\n<hr />\n<p>What am I missing?</p>\n<hr />\n<p>The answers were guessing right, it is a XYProblem, or, as I like to put it: I tried to fix the healthy leg instead of the broken one.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

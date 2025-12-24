@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "concurrency",
+      "deadlock",
+      "forkjoinpool",
+      "recursivetask"
+    ],
+    "owner": {
+      "account_id": 11193622,
+      "reputation": 75,
+      "user_id": 8213093,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/e638e2a85ee54fa0ad149e284186eba0?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Piotr Walkusz",
+      "link": "https://stackoverflow.com/users/8213093/piotr-walkusz"
+    },
+    "is_answered": true,
+    "view_count": 140,
+    "answer_count": 1,
+    "score": 3,
+    "last_activity_date": 1765665768,
+    "creation_date": 1764456544,
+    "question_id": 79833584,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79833584/forkjoinpool-and-recursivetask-lead-to-deadlock-when-join-is-called-in-a-differe",
+    "title": "ForkJoinPool and RecursiveTask lead to deadlock when join is called in a different thread than fork",
+    "body": "<p>The program below never ends:</p>\n<pre><code>void main() {\n    try (Fibonacci fibonacci = new Fibonacci()) {\n        IO.println(fibonacci.calculate(9));\n    }\n}\n\npublic static class Fibonacci implements AutoCloseable {\n\n    private final ConcurrentHashMap&lt;Integer, FibonacciTask&gt; cache;\n    private final ForkJoinPool pool;\n\n    public Fibonacci() {\n        cache = new ConcurrentHashMap&lt;&gt;();\n        pool = new ForkJoinPool(2);\n    }\n\n    public long calculate(int n) {\n        return pool.invoke(new FibonacciTask(n));\n    }\n\n    private class FibonacciTask extends RecursiveTask&lt;Long&gt; {\n\n        private final int n;\n\n        private FibonacciTask(int n) {\n            this.n = n;\n        }\n\n        @Override\n        protected Long compute() {\n            IO.println(&quot;[%d] Start&quot;.formatted(n));\n            if (n &lt; 3) {\n                IO.println(&quot;[%d] End&quot;.formatted(n));\n                return 1L;\n            }\n\n            FibonacciTask previousValue = cache.putIfAbsent(n, this);\n            if (previousValue != null) {\n                IO.println(&quot;[%d] Wait&quot;.formatted(n));\n                long cachedValue = previousValue.join(); // &lt;-- PROBLEMATIC LINE\n                IO.println(&quot;[%d] Got value&quot;.formatted(n));\n\n                return cachedValue;\n            }\n\n            FibonacciTask a = new FibonacciTask(n - 2);\n            FibonacciTask b = new FibonacciTask(n - 1);\n            a.fork();\n            b.fork();\n\n            long value = a.join() + b.join();\n\n            IO.println(&quot;[%d] End&quot;.formatted(n));\n\n            return value;\n        }\n    }\n\n    @Override\n    public void close() {\n        if (pool != null) {\n            pool.close();\n        }\n    }\n}\n</code></pre>\n<p>Here is example log:</p>\n<pre><code>[9] Start\n[7] Start\n[8] Start\n[5] Start\n[6] Start\n[3] Start\n[4] Start\n[2] Start\n[1] Start\n[2] End\n[1] End\n[3] Start\n[2] Start\n[3] Wait\n[2] End\n[3] End\n[4] Start\n[3] Got value\n[4] Wait\n[4] End\n[7] Start\n[5] Start\n[7] Wait\n[5] Wait\n[6] Start\n[6] Wait\n</code></pre>\n<p>The problematic line is here:</p>\n<pre><code>long cachedValue = previousValue.join(); // &lt;-- PROBLEMATIC LINE\n</code></pre>\n<p>In my logs you can see:</p>\n<pre><code>...\n[4] Start\n...\n[4] Wait\n[4] End\n...\n</code></pre>\n<p>but there is no <code>[4] Got value</code>. It means that <code>FibonacciTask(4)</code> was calculated but this line:</p>\n<pre><code>long cachedValue = previousValue.join(); // &lt;-- PROBLEMATIC LINE\n</code></pre>\n<p>is still waiting.</p>\n<p>If I change line:</p>\n<pre><code>pool = new ForkJoinPool(2);\n</code></pre>\n<p>to:</p>\n<pre><code>pool = new ForkJoinPool(1);\n</code></pre>\n<p>the deadlock disappears.</p>\n<p>My only clue is that I shouldn't call <code>join</code> in different thread than <code>fork</code>, but I didn't see in the documentation that this is forbidden.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

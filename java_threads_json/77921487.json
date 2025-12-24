@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "minio",
+      "minio-client"
+    ],
+    "owner": {
+      "account_id": 2567887,
+      "reputation": 839,
+      "user_id": 2227449,
+      "user_type": "registered",
+      "accept_rate": 55,
+      "profile_image": "https://www.gravatar.com/avatar/5f86dcbcf32d448f2794504242d49506?s=256&d=identicon&r=PG",
+      "display_name": "AshKan",
+      "link": "https://stackoverflow.com/users/2227449/ashkan"
+    },
+    "is_answered": false,
+    "view_count": 2863,
+    "answer_count": 2,
+    "score": 2,
+    "last_activity_date": 1718940734,
+    "creation_date": 1706801801,
+    "question_id": 77921487,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77921487/minio-generate-download-url-with-desired-file-name",
+    "title": "Minio: Generate download url with desired file name",
+    "body": "<p>I'm using <code>minio</code> <a href=\"https://github.com/minio/minio-java\" rel=\"nofollow noreferrer\">java client</a> for storing files in minio that are uploaded by users.</p>\n<p>I want to store each file with a UUID as objectName and also store the original fileName as user-metadata.\nWhen generating the download url for that file, I want to instruct minio to change the downloading fileName to the original fileName. This ensures that when users download the file, they receive it with the same name they used when uploading it.</p>\n<pre><code>import org.springframework.web.multipart.MultipartFile;\n\npublic String uploadInMinio(MultipartFile file, String bucketName) {\n    String objectName = UUID.randomUUID().toString();\n\n    Map&lt;String, String&gt; userMetaData = new HashMap&lt;&gt;();\n    if (file.getOriginalFilename() != null)\n        userMetaData.put(&quot;file-name&quot;, file.getOriginalFilename());\n\n    minioClient.putObject(PutObjectArgs.builder()\n        .bucket(bucketName)\n        .object(objectName)\n        .contentType(file.getContentType())\n        .userMetadata(userMetaData)\n        .stream(file.getInputStream(), file.getInputStream().available(), -1)\n        .build());\n\n    StatObjectResponse statObj = minioClient.statObject(StatObjectArgs.builder()\n        .bucket(bucketName)\n        .object(objectName)\n        .build());\n\n    String fileName = statObj.userMetadata().get(&quot;file-name&quot;);\n    String contentDisposition = URLEncoder.encode(&quot;attachment; filename=\\&quot;%s\\&quot;&quot;.formatted(fileName), StandardCharsets.UTF_8);\n\n    return minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()\n        .bucket(bucketName)\n        .object(objectName)\n        .extraQueryParams(Map.of(&quot;response-content-disposition&quot;, contentDisposition))\n        .expiry(1, TimeUnit.HOURS)\n        .method(Method.GET)\n        .build());\n}\n</code></pre>\n<p>As you see, I've used <code>response-content-disposition</code> query param in invoking <code>getPresignedObjectUrl</code>.</p>\n<p>When using the generated url in browser, the file with <code>objectName.fileExtension</code> will be downloaded not <code>fileName.fileExtension</code>.</p>\n<p>For example for the file with <code>sample.png</code> name, the generated url is:</p>\n<pre><code>http://127.0.0.1:9000/test/a58c95f9-b4c2-4a80-8040-e2af191ccf84?response-content-disposition=attachment%253B%2Bfilename%253D%2522sample.png%2522&amp;X-Amz-Algorithm=AWS4-HMAC-SHA256&amp;X-Amz-Credential=minioadmin%2F20240201%2Fus-east-1%2Fs3%2Faws4_request&amp;X-Amz-Date=20240201T152135Z&amp;X-Amz-Expires=10000&amp;X-Amz-SignedHeaders=host&amp;X-Amz-Signature=dca0ad196ca74c395198702952c7a038f54321cad212e85be92ca1600b7e6e17\n</code></pre>\n<p>By entering the url in browser, the downloading file name is <code>a58c95f9-b4c2-4a80-8040-e2af191ccf84.png</code> instead of <code>sample.png</code>. Is there any solution or other way to do this?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

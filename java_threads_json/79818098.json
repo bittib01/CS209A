@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-flink",
+      "flink-streaming",
+      "amazon-emr",
+      "flink-checkpoint"
+    ],
+    "owner": {
+      "account_id": 15862641,
+      "reputation": 1514,
+      "user_id": 11994158,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/-9m6ElB_KVGY/AAAAAAAAAAI/AAAAAAAAAAc/gceWZ0TdWkw/s256-rj/photo.jpg",
+      "display_name": "Strange",
+      "link": "https://stackoverflow.com/users/11994158/strange"
+    },
+    "is_answered": false,
+    "view_count": 159,
+    "answer_count": 1,
+    "score": -3,
+    "last_activity_date": 1763459908,
+    "creation_date": 1762971242,
+    "last_edit_date": 1763459908,
+    "question_id": 79818098,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79818098/flink-job-manager-direct-buffer-memory-gets-exhausted-when-checkpointing-enabled",
+    "title": "Flink Job Manager Direct Buffer Memory gets exhausted when checkpointing enabled",
+    "body": "<p>Issue:</p>\n<ul>\n<li><p>Flink application throws Thread 'jobmanager-io-thread-25' produced an uncaught exception. java.lang.OutOfMemoryError: Direct buffer memory and terminates after running for 2-3 days.</p>\n</li>\n<li><p>No matter how much direct buffer memory is increased it gets exhausted over time (it just stays longer but eventually terminates), tried max of 16GB till now.</p>\n</li>\n<li><p>When checkpointing is disabled, buffer memory doesn't grows and application works well.</p>\n</li>\n<li><p>Tried all sorts of optimizations or tuning suggested in documentation such as incrementalCheckpointing, stateChangelog, directBuffer increase etc.. but none worked.</p>\n</li>\n</ul>\n<p>Stack Trace:</p>\n<pre><code>2025-11-09 17:06:56,442 ERROR org.apache.flink.util.FatalExitExceptionHandler              [] - FATAL: Thread 'jobmanager-io-thread-25' produced an uncaught exception. Stopping the process...\njava.lang.OutOfMemoryError: Direct buffer memory\n    at java.base/java.nio.Bits.reserveMemory(Bits.java:175)\n    at java.base/java.nio.DirectByteBuffer.&lt;init&gt;(DirectByteBuffer.java:118)\n    at java.base/java.nio.ByteBuffer.allocateDirect(ByteBuffer.java:317)\n    at java.base/sun.nio.ch.Util.getTemporaryDirectBuffer(Util.java:242)\n    at java.base/sun.nio.ch.IOUtil.write(IOUtil.java:71)\n    at java.base/sun.nio.ch.FileChannelImpl.write(FileChannelImpl.java:280)\n    at java.base/java.nio.channels.Channels.writeFullyImpl(Channels.java:74)\n    at java.base/java.nio.channels.Channels.writeFully(Channels.java:97)\n    at java.base/java.nio.channels.Channels$1.write(Channels.java:172)\n    at org.apache.flink.core.fs.OffsetAwareOutputStream.write(OffsetAwareOutputStream.java:48)\n    at org.apache.flink.core.fs.RefCountedFileWithStream.write(RefCountedFileWithStream.java:54)\n    at org.apache.flink.core.fs.RefCountedBufferingFileStream.write(RefCountedBufferingFileStream.java:88)\n    at org.apache.flink.fs.s3.common.writer.S3RecoverableFsDataOutputStream.write(S3RecoverableFsDataOutputStream.java:112)\n    at org.apache.flink.runtime.state.filesystem.FsCheckpointMetadataOutputStream.write(FsCheckpointMetadataOutputStream.java:78)\n    at java.base/java.io.DataOutputStream.write(DataOutputStream.java:107)\n    at java.base/java.io.FilterOutputStream.write(FilterOutputStream.java:108)\n    at org.apache.flink.runtime.checkpoint.metadata.MetadataV2V3SerializerBase.serializeStreamStateHandle(MetadataV2V3SerializerBase.java:758)\n    at org.apache.flink.runtime.checkpoint.metadata.MetadataV3Serializer.serializeStreamStateHandle(MetadataV3Serializer.java:264)\n    at org.apache.flink.runtime.checkpoint.metadata.MetadataV3Serializer.serializeOperatorState(MetadataV3Serializer.java:109)\n    at org.apache.flink.runtime.checkpoint.metadata.MetadataV2V3SerializerBase.serializeMetadata(MetadataV2V3SerializerBase.java:165)\n    at org.apache.flink.runtime.checkpoint.metadata.MetadataV3Serializer.serialize(MetadataV3Serializer.java:83)\n    at org.apache.flink.runtime.checkpoint.metadata.MetadataV4Serializer.serialize(MetadataV4Serializer.java:56)\n    at org.apache.flink.runtime.checkpoint.Checkpoints.storeCheckpointMetadata(Checkpoints.java:101)\n    at org.apache.flink.runtime.checkpoint.Checkpoints.storeCheckpointMetadata(Checkpoints.java:88)\n    at org.apache.flink.runtime.checkpoint.Checkpoints.storeCheckpointMetadata(Checkpoints.java:83)\n    at org.apache.flink.runtime.checkpoint.PendingCheckpoint.finalizeCheckpoint(PendingCheckpoint.java:339)\n    at org.apache.flink.runtime.checkpoint.CheckpointCoordinator.finalizeCheckpoint(CheckpointCoordinator.java:1624)\n    at org.apache.flink.runtime.checkpoint.CheckpointCoordinator.completePendingCheckpoint(CheckpointCoordinator.java:1518)\n    at org.apache.flink.runtime.checkpoint.CheckpointCoordinator.receiveAcknowledgeMessage(CheckpointCoordinator.java:1410)\n    at org.apache.flink.runtime.scheduler.ExecutionGraphHandler.lambda$acknowledgeCheckpoint$2(ExecutionGraphHandler.java:109)\n    at org.apache.flink.runtime.scheduler.ExecutionGraphHandler.lambda$processCheckpointCoordinatorMessage$4(ExecutionGraphHandler.java:139)\n</code></pre>\n<p>Checkpointing Config:\n<a href=\"https://i.sstatic.net/0kvmaaVC.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/0kvmaaVC.png\" alt=\"Checkpoint Config\" /></a></p>\n<p>Application Structure (High Level):</p>\n<ul>\n<li>Application is setup on Flink on AWS EMR. Using Flink 1.20, on EMR 7.10.0</li>\n<li>Has 2 S3 Filesources reads parquet files, both unbounded, continuous monitoring with discoveryInterval of 1min, new files get added every min in new paths yyyy/mm/dd/mi/files</li>\n<li>process and create objects from both streams</li>\n<li>Join them using keyed-coprocess function, with TTL of 30mins</li>\n<li>Perform some map, filter operations on joined stream</li>\n<li>Sink result stream to S3 again as parquet files.</li>\n</ul>\n<p>Help:</p>\n<ul>\n<li>Please help me understand why would checkpointing consume such large buffers gradually? Even then why aren't they getting released?</li>\n<li>What exactly is getting stored in this buffer memory by checkpoint co-ordinator?</li>\n<li>How can i handle this issue or apply tuning so that this wouldn't occur?</li>\n<li>What can be my next steps of action to try out and resolve this ?</li>\n</ul>\n<p>Direct Memory vs Checkpoint Size :\n<a href=\"https://i.sstatic.net/2fg7jmoM.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/2fg7jmoM.png\" alt=\"Direct Memory vs Checkpoint Size\" /></a></p>\n<p>Native Memory Leak - Stack Trace :\n<a href=\"https://i.sstatic.net/zV068Z5n.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/zV068Z5n.png\" alt=\"Native Memory Leak - Stack Trace\" /></a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

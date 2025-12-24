@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "tomcat",
+      "catalina"
+    ],
+    "owner": {
+      "account_id": 11221837,
+      "reputation": 2388,
+      "user_id": 8232755,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/0dcf8dcbe0d3d9935bec93d5b380cc45?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Thoomas",
+      "link": "https://stackoverflow.com/users/8232755/thoomas"
+    },
+    "is_answered": false,
+    "view_count": 590,
+    "answer_count": 1,
+    "score": 3,
+    "last_activity_date": 1744759013,
+    "creation_date": 1741161259,
+    "last_edit_date": 1744724961,
+    "question_id": 79485769,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79485769/spring-boot-tomcat-10-1-webdavservlet-is-readonly",
+    "title": "Spring boot - Tomcat 10.1 - WebdavServlet is readonly",
+    "body": "<p>I'm exposing a <code>WebdavServlet</code> in my Spring app, which is configured like this :</p>\n<pre class=\"lang-java prettyprint-override\"><code>  @Bean\n  public ServletRegistrationBean&lt;MyWebdavServlet&gt; servletWebdav() {\n    final var servletRegistrationBean = new ServletRegistrationBean&lt;&gt;(\n        new MyWebdavServlet(), &quot;/webdav/*&quot;\n    );\n    servletRegistrationBean.setLoadOnStartup(0);\n    servletRegistrationBean.addInitParameter(&quot;listings&quot;, &quot;true&quot;);\n    servletRegistrationBean.addInitParameter(&quot;readonly&quot;, &quot;false&quot;);\n    return servletRegistrationBean;\n  }\n\n  @Bean\n  public WebServerFactoryCustomizer&lt;ConfigurableWebServerFactory&gt; webServerFactoryCustomizer() {\n    return factory -&gt; {\n      if (factory instanceof TomcatServletWebServerFactory tomcat) {\n        documentRoot.mkdirs();\n        tomcat.setDocumentRoot(documentRoot);\n      } else {\n        throw new RuntimeException(&quot;Unsupported webserver : &quot; + factory);\n      }\n    };\n  }\n</code></pre>\n<p><code>MyWebdavServlet</code> is just an extension of <code>org.apache.catalina.servlets.WebdavServlet</code> because we do some actions in the <code>doHead</code> and <code>doPut</code> methods (after calling <code>super.doXXX</code>).</p>\n<p>Before <code>Spring boot 3.4.3</code> and the latest Tomcat release, it was working fine.</p>\n<p>Now, since <a href=\"https://github.com/apache/tomcat/commit/0e845f1c4845793c826c34cd792b45bb3c4b6d50\" rel=\"nofollow noreferrer\">this change</a> in Tomcat (and maybe <a href=\"https://github.com/spring-projects/spring-boot/commit/9704afbe2a9981f4043c0fcf8b2048c64af0a7ac\" rel=\"nofollow noreferrer\">this one in Spring</a>), I can't write anything with Webdav because the ressources are considered readonly.</p>\n<p>Even if I override the <code>isReadonly</code> (and always returning <code>false</code>) method in my <code>MyWebdavServlet</code> , it doesn't work because the <code>DirResourceSet</code> is set to readonly.</p>\n<p>So, when the servlet is in the <code>doPut</code> method, this statement (from <code>DefaultServlet#doPut</code>, called by <code>WebdavServlet#doPut</code>) fails :</p>\n<pre><code>            if (this.resources.write(path, resourceInputStream, true)) {\n</code></pre>\n<p>And I'm getting a 409 error code.</p>\n<p>I don't find any way to configure this resource to set it to non-readonly.</p>\n<hr />\n<p><strong>EDIT</strong> :\nAs of today, the only thing I've found to disable the readonly mode on the resources is to do this (which is not clean) :</p>\n<pre><code>public class MyWebdavServlet extends WebdavServlet {\n  @Override\n  protected boolean isReadOnly() {\n    return false;\n  }\n\n  @Override\n  public void init() throws ServletException {\n    super.init();\n    removeReadOnlyOnMainResource();\n  }\n\n  private void removeReadOnlyOnMainResource() {\n    try {\n      var mainField = StandardRoot.class.getDeclaredField(&quot;main&quot;);\n      mainField.setAccessible(true);\n\n      var mainObject = mainField.get(super.resources);\n      var setReadOnlyMethod = mainObject.getClass().getMethod(&quot;setReadOnly&quot;, boolean.class);\n      setReadOnlyMethod.setAccessible(true);\n\n      setReadOnlyMethod.invoke(mainObject, false);\n    } catch (NoSuchFieldException | IllegalAccessException\n             | NoSuchMethodException | InvocationTargetException exception) {\n        // handle exception\n    }\n  }\n\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

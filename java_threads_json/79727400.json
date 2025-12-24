@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "mocking",
+      "mockito"
+    ],
+    "owner": {
+      "account_id": 29986732,
+      "reputation": 23,
+      "user_id": 22980440,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocJRT5o_vnd0NiNQGT8AEgcHuaKKCCxp7WRGAd3Od55zN5w=k-s256",
+      "display_name": "Greg Hazzard",
+      "link": "https://stackoverflow.com/users/22980440/greg-hazzard"
+    },
+    "is_answered": true,
+    "view_count": 87,
+    "accepted_answer_id": 79727688,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1754503562,
+    "creation_date": 1754489365,
+    "last_edit_date": 1754490041,
+    "question_id": 79727400,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79727400/test-case-throwing-npe-when-calling-mocked-method",
+    "title": "Test case throwing NPE when calling mocked method",
+    "body": "<p>I am trying to write a Mockito test class to cover some db interaction.  The test case I am writing is supposed to return a stub response when the database call is invoked, but it's throwing an NPE trying to actually build a database connection.</p>\n<p>Here is the method I am trying to test:</p>\n<pre><code>public class AdultDayCenterDBHandler extends DBTemplate implements AppConstants {\n    Logger logger = LogManager.getLogger(AdultDayCenterDBHandler.class);    \n    public List&lt;FacilityEntity&gt; retrieveAllAdultDayCenterFacilities(FacilitySearchCriteriaInf adcSearchCriteria) throws AdultDayCenterException\n        {\n            //Retrieve all the adult day care facilities.\n            logger.info(&quot;[retrieveAllAdultDayCenterFacilities]:[START]&quot;);\n            String sqlQuery = prepareQuery((FacilitySearchCriteriaInf)adcSearchCriteria);\n            \n            SearchQuery searchQuery = new SearchQuery();\n            searchQuery.setSqlQuery(sqlQuery);\n            List&lt;FacilityEntity&gt; adcList;\n            try {\n                if(null != logger) logger.debug(&quot;Sending Executing SQL query : &quot; + searchQuery.getSqlQuery());\n                adcList = (List&lt;FacilityEntity&gt;) callDB((SearchQuery)searchQuery);\n            } catch (DBException e) {\n                throw new AdultDayCenterException(&quot;Error ocurred in AdultDayCenterDBHandler while calling DB&quot;,e);\n            }\n            \n            logger.info(&quot;[retrieveAllAdultDayCenterFacilities]:[END]&quot;);\n            return adcList;\n            \n        }\n</code></pre>\n<p>And here is the test case:</p>\n<pre><code>@ExtendWith(MockitoExtension.class)\npublic class AdultDayCenterDBHandlerTest {\n    \n    @Mock\n    private DBTemplate dbTemplate;\n    @Mock\n    private DBUtil dbUtil;\n    \n    @InjectMocks\n    private AdultDayCenterDBHandler dbHandler;\n    \n    @BeforeEach\n    public void setUp() {\n        assertNotNull(dbUtil);\n        assertNotNull(dbTemplate);\n    }\n    \n    @Test\n    public void testRetrieveAllAdultDayCenterFacilities() throws Exception {\n        //Setup\n        \n        List&lt;FacilityEntity&gt; facilityList = generateStubData();\n        List&lt;FacilityEntity&gt; responseFromTest = null;\n        ADCSearchCriteria adcSearchCriteria = generateSearchCriteria();\n        \n        Mockito.when(dbTemplate.callDB(any(SearchQuery.class))).thenReturn(facilityList);\n        \n        //Get Result Set\n        responseFromTest = dbHandler.retrieveAllAdultDayCenterFacilities(adcSearchCriteria);\n        \n        //Assertions\n        assertNotNull(responseFromTest);\n        assertEquals(responseFromTest.get(0).getFacilityName(),facilityList.get(0).getFacilityName());\n    }\n\n    private List&lt;FacilityEntity&gt; generateStubData() {\n        List&lt;FacilityEntity&gt; response = new ArrayList&lt;FacilityEntity&gt;();\n        \n        FacilityEntity entity = new FacilityEntity();\n        entity.setFacilityName(&quot;Test Facility 1&quot;);\n        entity.setLicenseId(123456);\n        entity.setLocationAddressStreetNumber(&quot;1234&quot;);\n        entity.setLocationAddressLine1(&quot;Main Street&quot;);\n        entity.setLocationAddressCity(&quot;Mechanicsville&quot;);\n        entity.setLocationAddressStateName(&quot;VA&quot;);\n        entity.setLocationAddressZipCode(&quot;23116&quot;);\n        entity.setLocationCountyFips(&quot;51085&quot;);\n        entity.setLocationCountyDesc(&quot;Hanover&quot;);\n        entity.setAdministratorFirstName(&quot;Jane&quot;);\n        entity.setAdministratorSurname(&quot;Doe&quot;);\n        entity.setAdministratorTitle(&quot;Administrator&quot;);\n        entity.setBusinessPhoneNumber(&quot;804-301-2011&quot;);\n        entity.setClientCode(&quot;2101&quot;);\n        \n        response.add(entity);\n        \n        return response;\n    }\n    \n    private ADCSearchCriteria generateSearchCriteria() {\n        ADCSearchCriteria criteria = new ADCSearchCriteria();\n        \n        criteria.setFacilityName(&quot;Test Facility 1&quot;);\n        criteria.setProgramCode(PROGRAM_CODES.ADC_F);\n        \n        return criteria;\n    }\n}\n</code></pre>\n<p>My guess is I need to mock an additional object, but I'm not sure why this line:</p>\n<pre><code>Mockito.when(dbTemplate.callDB(any(SearchQuery.class))).thenReturn(facilityList);\n\n//Get Result Set\nresponseFromTest = dbHandler.retrieveAllAdultDayCenterFacilities(adcSearchCriteria);\n</code></pre>\n<p>isn't returning the mock object I defined.  It's throwing an NPE trying to instantiate DBUtil.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

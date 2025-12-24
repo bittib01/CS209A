@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-modulith"
+    ],
+    "owner": {
+      "account_id": 8420805,
+      "reputation": 1146,
+      "user_id": 6319675,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/5002f1826339876d30a4d649d8845cb8?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "JPG",
+      "link": "https://stackoverflow.com/users/6319675/jpg"
+    },
+    "is_answered": true,
+    "view_count": 1729,
+    "answer_count": 1,
+    "score": 4,
+    "last_activity_date": 1755593917,
+    "creation_date": 1728581469,
+    "last_edit_date": 1728638767,
+    "question_id": 79075563,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79075563/why-is-a-spring-modulith-applicationmodulelistener-not-triggered-when-an-event",
+    "title": "Why is a Spring Modulith @ApplicationModuleListener not triggered when an event it listens to is published?",
+    "body": "<p>I'm trying to build a dummy POC, but I am missing something, that I can't figure out. The issue is that the method annotated with <code>@ApplicationModuleListener</code> is not triggered.</p>\n<p>Here is my code:</p>\n<pre class=\"lang-java prettyprint-override\"><code>package com.example.demo;\n\nimport jakarta.servlet.FilterChain;\nimport jakarta.servlet.ServletException;\nimport jakarta.servlet.http.HttpServletRequest;\nimport jakarta.servlet.http.HttpServletResponse;\nimport lombok.NonNull;\nimport lombok.RequiredArgsConstructor;\nimport org.springframework.boot.SpringApplication;\nimport org.springframework.boot.autoconfigure.SpringBootApplication;\nimport org.springframework.context.ApplicationEventPublisher;\nimport org.springframework.scheduling.annotation.EnableAsync;\nimport org.springframework.stereotype.Component;\nimport org.springframework.stereotype.Service;\nimport org.springframework.web.bind.annotation.GetMapping;\nimport org.springframework.web.bind.annotation.RestController;\nimport org.springframework.web.filter.OncePerRequestFilter;\n\nimport java.io.IOException;\n\n@SpringBootApplication\n@EnableAsync\npublic class DemoApplication {\n\n    public static void main(String[] args) {\n        SpringApplication.run(DemoApplication.class, args);\n    }\n}\n\n@RestController\nclass MyController {\n\n    @GetMapping\n    String home() {\n        return &quot;Hello&quot;;\n    }\n}\n\n@Component\n@RequiredArgsConstructor\nclass CustomFilter extends OncePerRequestFilter {\n\n    private @NonNull final ApplicationEventPublisher applicationEventPublisher;\n\n    @Override\n    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {\n        this.applicationEventPublisher.publishEvent(new MyApplicationEvent(&quot;HTTP_REQUEST&quot; , request.getRequestURI()));\n        filterChain.doFilter(request, response);\n    }\n}\n\n@Service\nclass MyApplicationModuleListener {\n\n    @org.springframework.modulith.events.ApplicationModuleListener\n    void on(MyApplicationEvent event) {\n        System.out.println(event.message());\n    }\n}\n\nrecord MyApplicationEvent(String type, String message) {}\n</code></pre>\n<p>Here are my Maven dependencies:</p>\n<pre><code>&lt;parent&gt;\n    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n    &lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;\n    &lt;version&gt;3.3.4&lt;/version&gt;\n&lt;/parent&gt;\n\n…\n\n&lt;dependency&gt;\n    &lt;groupId&gt;org.springframework.modulith&lt;/groupId&gt;\n    &lt;artifactId&gt;spring-modulith-starter-core&lt;/artifactId&gt;\n&lt;/dependency&gt;\n\n&lt;dependency&gt;\n    &lt;groupId&gt;org.springframework.modulith&lt;/groupId&gt;\n    &lt;artifactId&gt;spring-modulith-starter-jdbc&lt;/artifactId&gt;\n&lt;/dependency&gt;\n\n&lt;dependency&gt;\n    &lt;groupId&gt;org.postgresql&lt;/groupId&gt;\n    &lt;artifactId&gt;postgresql&lt;/artifactId&gt;\n    &lt;scope&gt;runtime&lt;/scope&gt;\n&lt;/dependency&gt;\n…\n</code></pre>\n<p>The weird thing is that the listener works when I said to replay events on the start-up, setting <code>spring.modulith.republish-outstanding-events-on-restart=false</code>.</p>\n<p>Here is how the completion time of the event is <code>null</code>:</p>\n<p><a href=\"https://i.sstatic.net/1ruxeP3L.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/1ruxeP3L.png\" alt=\"enter image description here\" /></a></p>\n<p>I pushed the code here <a href=\"https://github.com/jgarbora/poc-spring-modulith-events\" rel=\"nofollow noreferrer\">https://github.com/jgarbora/poc-spring-modulith-events</a>.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

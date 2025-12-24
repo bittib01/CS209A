@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "wsdl",
+      "soapui"
+    ],
+    "owner": {
+      "account_id": 435987,
+      "reputation": 1537,
+      "user_id": 822870,
+      "user_type": "registered",
+      "accept_rate": 33,
+      "profile_image": "https://www.gravatar.com/avatar/199bae89f505ebcbc26a8a013b0325e7?s=256&d=identicon&r=PG",
+      "display_name": "David Balažic",
+      "link": "https://stackoverflow.com/users/822870/david-bala%c5%beic"
+    },
+    "is_answered": true,
+    "view_count": 166,
+    "closed_date": 1759971511,
+    "accepted_answer_id": 79541470,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1760377196,
+    "creation_date": 1722256120,
+    "last_edit_date": 1743166399,
+    "question_id": 78807077,
+    "link": "https://stackoverflow.com/questions/78807077/missing-operation-operationname-in-wsdl-definition",
+    "closed_reason": "Not suitable for this site",
+    "title": "Missing operation [operationName] in wsdl definition",
+    "body": "<p>I have a SoapUI project (named projectX) with a test case. When the testcase is run from the GUI, it works.</p>\n<p>When run with SoapUI-5.6.0\\bin\\testrunner.bat it works.</p>\n<p>When run from a Java program that uses the class\ncom.eviware.soapui.tools.SoapUITestCaseRunner method run()\nthen it works when run by itself, but if run as a series of 4 SoapUI projects, it fails with &quot;Missing operation [operationXyz] in wsdl definition&quot;.</p>\n<p>I currently use soap jar version 5.1.0. Using 5.1.3 does not help. I will try never versions in the future. (it is not simple as it is an old legacy project using an old version of Java, where the new soapui jars do not run)</p>\n<p>Any idea why is this happening?</p>\n<p>The Java code is basically:</p>\n<pre><code>SoapUI.getSettings().setBoolean(SSLSettings.CLIENT_AUTHENTICATION, true);\nSoapUI.getSettings().setString(SSLSettings.KEYSTORE, &quot;src/test/resources/xxxxxx.p12&quot;);\nSoapUI.getSettings().setString(SSLSettings.KEYSTORE_PASSWORD, &quot;12345678&quot;);\nSoapUI.saveSettings();\n\nSoapUITestCaseRunner runner = new SoapUITestCaseRunner();\nrunner.setProjectFile(&quot;src/test/resources/project_1.xml&quot;);\nrunner.setProjectProperties(new String[] { &quot;foo=&quot;+foo, &quot;bar=&quot;+bar});\nrunner.setOutputFolder(&quot;target/soapui/project_1&quot;);\nrunner.setJUnitReport(true);\nrunner.setExportAll(true);\nrunner.setPrintReport(true);\nrunner.run();\n\n// then repeat the exact same for project_2, i.e. just a different argument to setProjectFile()\n</code></pre>\n<p>A web search for this error finds just a couple of hits, with no resolution.</p>\n<p>Running those test suites with soapui-maven-plugin version 5.1.3 works the same:</p>\n<ul>\n<li>if projectX is run alone, it works</li>\n<li>if projectX is run after running project 1, it works</li>\n<li>if projectX is run after project 2, it fails (project 2 testcase is OK, projectX fails)</li>\n<li>if first projectX is run and then project 2, both work</li>\n</ul>\n<p>It seems project 2 (but not project 1) leaves something behind that causes projectX to fail. Whatever it is, it lives only for the duration of the test. If the test is restarted with only projectX, then it works.</p>\n<p>Later I discovered that the cause is that SoapUI somehow caches WSDL per their (WSDL) URL and those projects had the same WSDL URL (but different actual WSDL content).</p>\n<p>The problem occurs also in SoapUI 5.6.0 and 5.8.0 GUI: if a project is opened or tests from it executed, their WSDL gets &quot;loaded&quot; and later used even for other projects that have a different WSDL stored.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

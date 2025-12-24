@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "mocking",
+      "junit5",
+      "aws-sdk-java-2.0",
+      "hoverfly"
+    ],
+    "owner": {
+      "account_id": 14245839,
+      "reputation": 55,
+      "user_id": 10290941,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/a7c252b78cd50d33be275cdb1a57079e?s=256&d=identicon&r=PG",
+      "display_name": "Flumenque",
+      "link": "https://stackoverflow.com/users/10290941/flumenque"
+    },
+    "is_answered": true,
+    "view_count": 92,
+    "accepted_answer_id": 78905191,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1724404965,
+    "creation_date": 1724356503,
+    "question_id": 78903310,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78903310/how-to-use-the-aws-crt-http-client-with-hoverfly",
+    "title": "How to use the AWS CRT HTTP Client with Hoverfly?",
+    "body": "<p>I would like to implement the AwsCrtHttpClient and intercept the HTTP requests in the unit tests with Hoverfly, but Hoverfly is not intercepting the requests. The client is initialized like: <code>private static final SdkHttpClient httpClient = AwsCrtHttpClient.builder().build();</code>. While there are options to modify the proxy settings (which I have tried), Hoverfly is still not intercepting the requests.</p>\n<p>I have also tried:</p>\n<pre class=\"lang-java prettyprint-override\"><code>private static final SdkHttpClient httpClient = AwsCrtHttpClient.builder()\n        .proxyConfiguration(ProxyConfiguration.builder()\n                .host(&quot;localhost&quot;)\n                .port(8500)\n                .build())\n        .build();\n</code></pre>\n<p>and</p>\n<pre class=\"lang-java prettyprint-override\"><code>private static final SdkHttpClient httpClient = AwsCrtHttpClient.builder()\n        .proxyConfiguration(ProxyConfiguration.builder()\n                .host(System.getProperty(&quot;http.proxyHost&quot;))\n                .port(Integer.parseInt(System.getProperty(&quot;http.proxyPort&quot;)))\n                .build())\n        .build();\n</code></pre>\n<p>and</p>\n<pre class=\"lang-java prettyprint-override\"><code>private static final SdkHttpClient httpClient = AwsCrtHttpClient.builder()\n        .proxyConfiguration(ProxyConfiguration.builder()\n                .useSystemPropertyValues(true)\n                .build())\n        .build();\n</code></pre>\n<p>Hoverfly does not intercept the requests with any of these configurations. According to the AWS documentation (<a href=\"https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/http-config-proxy-support.html#http-config-proxy-support-external\" rel=\"nofollow noreferrer\">here</a>), the proxy settings seem unnecessary to manually configure as</p>\n<blockquote>\n<p>the SDK looks for external settings to configure a default proxy configuration.</p>\n</blockquote>\n<p>Also, the Hoverfly configuration should be correct, as I am migrating from the default Java HTTP client to use the AWS CRT HTTP client, and the requests were previously intercepted. For reference, I am using the <code>@ExtendWith(HoverflyExtension.class)</code> annotation with my test class and simulating the endpoint with <code>hoverfly.simulate(dsl(service(uri).anyMethod().willReturn(success().body(&quot;success&quot;))))</code>. I am using hoverfly-java-junit5 with Java 11. I can still see the Hoverfly logs initializing properly. Here are some logs related to the initialization:</p>\n<pre><code>[Thread-1] INFO hoverfly - Default proxy port has been overwritten port=50022\n[Thread-1] INFO hoverfly - Default admin port has been overwritten port=50023\n[Thread-1] INFO hoverfly - Using memory backend \n[Thread-1] INFO hoverfly - Proxy prepared... Destination=. Mode=simulate ProxyPort=50022\n[Thread-1] INFO hoverfly - current proxy configuration destination=. mode=simulate port=50022\n[Thread-1] INFO hoverfly - serving proxy \n[Thread-1] INFO hoverfly - Admin interface is starting... AdminPort=50023\n[main] INFO io.specto.hoverfly.junit.core.Hoverfly - A local Hoverfly with version v1.8.0 is ready\n[Thread-1] INFO hoverfly - Mode has been changed mode=simulate\n[main] INFO io.specto.hoverfly.junit.core.ProxyConfigurer - Setting proxy host to localhost\n[main] INFO io.specto.hoverfly.junit.core.ProxyConfigurer - Setting proxy proxyPort to 50022\n[main] INFO io.specto.hoverfly.junit.core.Hoverfly - Importing simulation data to Hoverfly\n</code></pre>\n<p>Finally, the HTTP call is being made properly (i.e., I obtain the response from the non-simulated endpoint over the public internet) with the following logic:</p>\n<pre class=\"lang-java prettyprint-override\"><code>SdkHttpRequest.Builder sdkHttpRequestBuilder = SdkHttpRequest.builder().uri(new URI(uri)).method(method);\n// Conditionally append headers with sdkHttpRequestBuilder.appendHeader(headerName, headerValue);\n// ...\nSdkHttpRequest sdkHttpRequest = sdkHttpRequestBuilder\n        .appendHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType())\n        .build();\nHttpExecuteResponse response = httpClient.prepareRequest(HttpExecuteRequest.builder().request(sdkHttpRequest).build()).call();\n</code></pre>\n<p>Why would Hoverfly work with the old logic using the default HTTP client, but not the AWS CRT HTTP Client? The previous HTTP requests were made like:</p>\n<pre class=\"lang-java prettyprint-override\"><code>private static final HttpClient httpClient = HttpClient.newHttpClient();\n// Prepare request\n// ...\nHttpResponse&lt;String&gt; httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());\n</code></pre>\n<p>I am looking for a some low-level setting on this AWS CRT HTTP client or Hoverfly that I can modify to ensure the requests are intercepted by Hoverfly.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

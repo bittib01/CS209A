@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "google-maps",
+      "bluetooth"
+    ],
+    "owner": {
+      "account_id": 33717959,
+      "reputation": 1,
+      "user_id": 32068673,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/be84e65751d4c39ff674b0028119a172?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "ALEX P",
+      "link": "https://stackoverflow.com/users/32068673/alex-p"
+    },
+    "is_answered": false,
+    "view_count": 52,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1766059940,
+    "creation_date": 1765991420,
+    "question_id": 79849673,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79849673/how-to-connect-2-devices-to-the-same-android-device",
+    "title": "How to connect 2 devices to the same android device",
+    "body": "<p>I'm developing an Android application that uses <strong>Google Maps</strong> and <strong>Bluetooth</strong> to track data from an Arduino Nano with an HC-06 module.</p>\n<p>Currently, I can connect to one HC-06 device and process its data like coordinates and angle. Now, I want to <strong>connect to two HC-06 modules at the same time</strong>, each from a separate Arduino Nano, and process data from each independently.</p>\n<p>For example:</p>\n<ul>\n<li><p>Device 1 → sends <strong>Latitude and Longitude</strong></p>\n</li>\n<li><p>Device 2 → sends <strong>Angle</strong></p>\n</li>\n</ul>\n<p>Here is my current code for connecting to a single HC-06 and processing data:</p>\n<pre><code>private void connectToHC06() {\n    BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();\n    if (bluetoothAdapter == null) {\n        Toast.makeText(this, &quot;Bluetooth not supported&quot;, Toast.LENGTH_LONG).show();\n        finish();\n        return;\n    }\n\n    if (!bluetoothAdapter.isEnabled()) {\n        Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);\n        startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);\n        return;\n    }\n\n    Set&lt;BluetoothDevice&gt; bonded = bluetoothAdapter.getBondedDevices();\n    BluetoothDevice connectedDevice = null;\n    for (BluetoothDevice d : bonded) {\n        if (&quot;HC-06_BT&quot;.equals(d.getName())) {\n            connectedDevice = d;\n            break;\n        }\n    }\n\n    if (connectedDevice == null) {\n        Toast.makeText(this, &quot;HC-06 not found&quot;, Toast.LENGTH_SHORT).show();\n        return;\n    }\n\n    try {\n        bluetoothSocket = connectedDevice.createRfcommSocketToServiceRecord(HC06_UUID);\n        bluetoothSocket.connect();\n        inputStream = bluetoothSocket.getInputStream();\n        Toast.makeText(this, &quot;Connected to HC-06&quot;, Toast.LENGTH_SHORT).show();\n        startListening();\n    } catch (IOException e) {\n        Log.e(TAG, &quot;Connection error&quot;, e);\n        Toast.makeText(this, &quot;Connection error&quot;, Toast.LENGTH_SHORT).show();\n    }\n}\n</code></pre>\n<pre><code>private void startListening() {\n    if (inputStream == null) return;\n\n    new Thread(() -&gt; {\n        byte[] buffer = new byte[1024];\n        int bytes;\n        StringBuilder messageBuffer = new StringBuilder();\n\n        while (!Thread.currentThread().isInterrupted()) {\n            try {\n                bytes = inputStream.read(buffer);\n                if (bytes &lt;= 0) continue;\n                messageBuffer.append(new String(buffer, 0, bytes));\n\n                int endIndex;\n                while ((endIndex = messageBuffer.indexOf(&quot;;&quot;)) != -1) {\n                    String completeMessage = messageBuffer.substring(0, endIndex).trim();\n                    messageBuffer.delete(0, endIndex + 1);\n\n                    parseLocationData(completeMessage);\n                }\n            } catch (IOException e) {\n                Log.e(TAG, &quot;Stream read error&quot;, e);\n                break;\n            }\n        }\n    }).start();\n}\n</code></pre>\n<p><strong>My question:</strong></p>\n<ul>\n<li><p>How can I modify this code to <strong>connect to two HC-06 devices at the same time</strong>?</p>\n</li>\n<li><p>I want one thread to read data from the first device (Latitude &amp; Longitude) and another thread to read from the second device (Angle).</p>\n</li>\n<li><p>How should I structure the threads and input streams to avoid conflicts and process the data correctly?</p>\n</li>\n</ul>\n<p>Any code examples or suggestions are appreciated!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

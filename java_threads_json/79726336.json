@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-webflux",
+      "netty",
+      "project-reactor",
+      "http-proxy"
+    ],
+    "owner": {
+      "account_id": 8500862,
+      "reputation": 3479,
+      "user_id": 8737144,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/021d2177a88d69ab38574422f6c52373?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "1Z10",
+      "link": "https://stackoverflow.com/users/8737144/1z10"
+    },
+    "is_answered": false,
+    "view_count": 109,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1754843021,
+    "creation_date": 1754408062,
+    "last_edit_date": 1754843021,
+    "question_id": 79726336,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79726336/how-to-configure-http-forward-proxy-instead-of-connect-tunnel",
+    "title": "How to configure HTTP forward proxy (instead of CONNECT tunnel)?",
+    "body": "<p>I'm trying to configure an HTTP proxy (without CONNECT tunnelling support) for my Spring WebFlux WebClients (based on Netty HttpClient) but without success (403 HTTP status code).</p>\n<p>As explained in the documentation:</p>\n<ul>\n<li><a href=\"https://projectreactor.io/docs/netty/snapshot/reference/http-client.html#_proxy_support\" rel=\"nofollow noreferrer\">https://projectreactor.io/docs/netty/snapshot/reference/http-client.html#_proxy_support</a></li>\n<li><a href=\"https://docs.spring.io/projectreactor/reactor-netty/docs/current/reference/html/#_proxy_support\" rel=\"nofollow noreferrer\">https://docs.spring.io/projectreactor/reactor-netty/docs/current/reference/html/#_proxy_support</a></li>\n<li><a href=\"https://github.com/netty/netty/issues/10475\" rel=\"nofollow noreferrer\">https://github.com/netty/netty/issues/10475</a></li>\n</ul>\n<blockquote>\n<p><strong>Netty’s HTTP proxy support always uses CONNECT method in order to establish a tunnel to the specified proxy</strong> regardless of the scheme that is used http or https. (More information: Netty enforce HTTP proxy to support HTTP CONNECT method). <strong>Some proxies might not support CONNECT method</strong> when the scheme is http or might need to be configured in order to support this way of communication. Sometimes this might be the reason for not being able to connect to the proxy. Consider checking the proxy documentation whether it supports or needs an additional configuration in order to support CONNECT method.</p>\n</blockquote>\n<p>I'm using Spring Boot WebFlux 3.5.4 and this is my configuration:</p>\n<pre><code>import io.netty.resolver.DefaultAddressResolverGroup;\nimport lombok.Data;\nimport org.springframework.boot.context.properties.ConfigurationProperties;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\nimport org.springframework.context.annotation.Primary;\nimport reactor.netty.http.client.HttpClient;\nimport reactor.netty.transport.ProxyProvider;\n\n@Data\n@Configuration\n@ConfigurationProperties(prefix = &quot;proxy&quot;)\npublic class ProxyConfiguration {\n    private boolean enabled = false;\n    private HttpProxy http = new HttpProxy();\n\n    @Data\n    public static class HttpProxy {\n        private String host = &quot;localhost&quot;;\n        private Integer port = 8080;\n        private String noProxy = &quot;localhost|127.0.0.1&quot;;\n\n        private HttpProxyAuthentication authentication = new HttpProxyAuthentication();\n\n        @Data\n        public static class HttpProxyAuthentication {\n            private boolean enabled = false;\n            private String username;\n            private String password;\n        }\n    }\n\n    @Bean\n    @Primary\n    public HttpClient httpClient() {\n        HttpClient httpClient = HttpClient.create().resolver(DefaultAddressResolverGroup.INSTANCE).followRedirect(true);\n\n        if (this.isEnabled()) {\n            httpClient = httpClient.proxy(proxy -&gt; {\n                ProxyProvider.Builder builder = proxy.type(ProxyProvider.Proxy.HTTP)\n                        .host(this.getHttp().getHost())\n                        .port(this.getHttp().getPort())\n                        .nonProxyHosts(this.getHttp().getNoProxy());\n\n                // Add authentication if enabled\n                if (this.getHttp().getAuthentication().isEnabled() &amp;&amp;\n                        this.getHttp().getAuthentication().getUsername() != null &amp;&amp;\n                        this.getHttp().getAuthentication().getPassword() != null) {\n                    builder.username(this.getHttp().getAuthentication().getUsername())\n                            .password(ignored -&gt; this.getHttp().getAuthentication().getPassword());\n                }\n            });\n        } else {\n            httpClient = httpClient.proxyWithSystemProperties();\n        }\n\n        return httpClient;\n    }\n}\n</code></pre>\n<hr />\n<pre><code>@Bean\npublic WebClient eebClient(HttpClient httpClient) {\n    return WebClient.builder()\n            .baseUrl(BASE_URL)\n            .clientConnector(new ReactorClientHttpConnector(httpClient))\n            .build();\n}\n</code></pre>\n<p>What options do I have to bypass this Netty HttpClient limitation and use HTTP proxy without CONNECT tunnelling support? Switching from Netty to Jetty HttpClient or other alternatives is also OK, as long as they are supported by the Spring WebClient interface.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

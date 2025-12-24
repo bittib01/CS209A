@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "graphql",
+      "jackson"
+    ],
+    "owner": {
+      "account_id": 22864773,
+      "reputation": 12,
+      "user_id": 18092500,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/5c474fa63a209712a6407929859b76eb?s=256&d=identicon&r=PG",
+      "display_name": "murrag",
+      "link": "https://stackoverflow.com/users/18092500/murrag"
+    },
+    "is_answered": false,
+    "view_count": 103,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1765910403,
+    "creation_date": 1765906740,
+    "last_edit_date": 1765908362,
+    "question_id": 79848773,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79848773/springboot-v4-graphql-not-making-use-of-custom-jsonmapper",
+    "title": "Springboot v4 GraphQL not making use of custom JsonMapper",
+    "body": "<p>I have been working on upgrading SpringBoot microservices from v3.5.7 to v4.0.0. Included in this upgrade is a Jackson upgrade from v2 to v3. The service in question is making a GraphQL request to another microservice which returns a few fields, the only ones currently of note are two fields that are boolean type.</p>\n<p>The error message we are seeing is <code>tools.jackson.databind.exc.MismatchedInputException: Cannot map `null` into type `boolean` (set DeserializationConfig.DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES to 'false' to allow)</code></p>\n<p>Prior to the upgrade we would not encounter any errors when requests were made and responses did not include those two boolean values due to Jackson's previous default value for FAIL_ON_NULL_FOR_PRIMITIVES being set to false which has now updated to true. This gives the impression of a simple fix of customizing a JsonMapper and disabling this feature, however this does not seem to work, specifically for GraphQL requests as we are able to update FIX_FIELD_NAME_UPPER_CASE_PREFIX to its previous value and everything is working as expected with it.</p>\n<p>Specifics regarding the code</p>\n<p>We have @EnableWebMvc annotation on a WebConfig class which implements WebMvcConfigurer</p>\n<p>We are using an autowired WebClient to make the request</p>\n<p>We use spring-boot-starter-graphql dependency</p>\n<p>Our custom JsonMapper is created and set as below</p>\n<pre>\n\n    @Override\n        public void configureMessageConverters(HttpMessageConverters.ServerBuilder builder){\n            JsonMapper mapper = JsonMapper.builder()\n                                                .disable(MapperFeature.FIX_FIELD_NAME_UPPER_CASE_PREFIX)\n                                                .configure(DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES, false)\n                                                .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false)\n                                                .disable(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES, DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES)\n                                                .build();\n    \n            builder.withJsonConverter(new JacksonJsonHttpMessageConverter(mapper));\n    \n            WebMvcConfigurer.super.configureMessageConverters(builder);\n        }\n\n</pre>\n<p>We have tried with and without the WebMvcConfigurer.super.configureMessageConverters(builder) line, neither method worked</p>\n<p>We have tried with just .disable, just .configure, and both, none worked</p>\n<p>We have tried creating the same JsonMapper in a Bean method and returning it, both with and without the Primary annotation, neither worked</p>\n<p>We tried creating an ObjectMapper and setting its values the same way despite its deprecation, it did not work</p>\n<p>We tried setting the same config through our application.properties, it did not work</p>\n<p>I would like to stress again that we do have confirmation our custom JsonMapper is instantiated and used properly elsewhere in our application, it is just in relation to GraphQL requests that it is not being used. I have checked the Spring Boot changelogs, the Jackson changelogs, the migration guides for each, and a handful of other documentation sources, none of which have any solutions that work</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

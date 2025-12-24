@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "unit-testing",
+      "mockito"
+    ],
+    "owner": {
+      "account_id": 25254519,
+      "reputation": 848,
+      "user_id": 19086479,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/P7feT.jpg?s=256",
+      "display_name": "Mohamed amine ben hassen",
+      "link": "https://stackoverflow.com/users/19086479/mohamed-amine-ben-hassen"
+    },
+    "is_answered": true,
+    "view_count": 150,
+    "accepted_answer_id": 77940045,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1720793925,
+    "creation_date": 1706877701,
+    "last_edit_date": 1720793925,
+    "question_id": 77927056,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77927056/testing-with-mockito-in-springboot",
+    "title": "Testing with mockito in Springboot",
+    "body": "<p>I am working on unit tests to map an object to an another :\nthis is my test class.\nThe issue is a NPE caused by the first line in GeneratEvent where its supposed to get a randomId(it works if its hardcoded) the wierd thing is you can see that the idGenerator works fine while testing outside that class</p>\n<pre><code>public class MessageTest {\n    \n    @InjectMocks\n    private IdGeneratorConfig idGenerator;\n\n    @Mock\n    private IKafkaService kafkaService;\n\n   \n    @Mock\n    private IKafkaService kafkaService;\n\n    @ExtendWith(MockitoExtension.class)\n    @InjectMocks\n    private IngestedEventGenerator ingestedEventGenerator;\n\n    @Before\n    public void setUp() {\n        MockitoAnnotations.openMocks(this);\n    }\n\n    @Test\n    public void testGenerateAndSendEventIngestion() {\n\n        Message message = new Message();\n        message.setMsgId(12356486);\n        message.setCustomId(&quot;custom1&quot;);\n        message.setRecipientEmail(&quot;exemple@example.com&quot;);\n        message.setMetadata(&quot;metadatamail&quot;);\n\n        long expectedEventId =idGenerator.newIdGenerator().ranId() ;\n        System.out.println(expectedEventId); // works fine !!!\n\n        MessageEvent messageEvent = (MessageEvent) messageEventGenerator.generateEvent(message);  // null pointer exception(Id null !!?)\n        messageEvent.setEventId(expectedEventId);  \n\n        assert messageEvent != null;\n        assertEquals(12360055, messageEvent.getMsgId());\n        assertEquals(&quot;custom1&quot;, messageEvent.getCustomId());\n        assertEquals(&quot;exemple@example.com&quot;,         messageEvent.getRecipient());\n        assertEquals(&quot;metadatamail&quot;, messageEvent.getMetadata());\n\n        messageEventGenerator.sendEvent(messageEvent);\n\n        verify(kafkaService, times(1)).sendEvent(messageEvent, &quot;Eve&quot;);\n    }\n</code></pre>\n<p>and this is the class that iam testing : i am mapping a message to an event (MesssageEvent extend Event)</p>\n<pre><code>public class MessageEventGenerator implements IEventGenerator {\n\n    @Autowired\n    private IdGeneratorConfig idGenerator;\n    @Autowired\n    private IKafkaService kafkaService;\n\n\n    @Override\n    public void sendEvent(Event event) {\n\n        kafkaService.sendEvent(event,&quot;newEvent&quot;);\n    }\n\n    @Override\n    public Event generateEvent(Message message) {\n\n        long Id =idGenerator.newIdGenerator().ranId() ; // null pointer exception\n        MessageEvent messageEvent = new MessageEvent();\n        messageEvent.setMsgId(message.getMsgId());\n        messageEvent.setCustomId(message.getCustomId());\n        messageEvent.setEventId(SnowId);\n        messageEvent.setMetadata(message.getMetadata());\n\n        return  messageEvent;\n\n    }\n\n        @Configuration\npublic class IdGeneratorConfig {\n\n\n    @Bean\n    @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)\n    public IdGenerator idGenerator() {\n        return new IdGenerator();\n    }\n}\n\n\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

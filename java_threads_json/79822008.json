@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "hibernate",
+      "spring-data-jpa"
+    ],
+    "owner": {
+      "account_id": 35162975,
+      "reputation": 11,
+      "user_id": 27022397,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/ef313eb896893e0f49c0c5f6a9e7f16d?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "RaviSai1819",
+      "link": "https://stackoverflow.com/users/27022397/ravisai1819"
+    },
+    "is_answered": false,
+    "view_count": 71,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1763377245,
+    "creation_date": 1763365825,
+    "last_edit_date": 1763377245,
+    "question_id": 79822008,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79822008/spring-boot-2-7-x-jpa-manytoone-join-returns-empty-list-on-get-but-works-on-po",
+    "title": "Spring Boot 2.7.x JPA @ManyToOne join returns empty list on GET, but works on POST",
+    "body": "<p>In a Spring Boot 2.7.x application with Hibernate/JPA, there are two tables:</p>\n<p><em>tickets</em></p>\n<blockquote>\n<p>complaint_id (PK, VARCHAR(255))</p>\n</blockquote>\n<p><em>attachment</em></p>\n<blockquote>\n<p>complaint_id (FK, VARCHAR(255))</p>\n</blockquote>\n<blockquote>\n<p>other fields: id, file_name, file_type, data</p>\n</blockquote>\n<p>The schema looks correct: both columns are VARCHAR(255), and the foreign key fk_attachment_complaint exists.</p>\n<pre class=\"lang-sql prettyprint-override\"><code>SELECT a.id, a.file_name, a.complaint_id, t.complaint_id\nFROM attachment a\nJOIN tickets t ON a.complaint_id = t.complaint_id\nWHERE t.complaint_id = 'IND-2025-0001';\n</code></pre>\n<p>This returns rows as expected.</p>\n<p><strong>Entities</strong>:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Entity\n@AllArgsConstructor\n@NoArgsConstructor\n@Data\n@Table(name = &quot;TICKETS&quot;)\npublic class Tickets {\n    @Id\n    @GeneratedValue(generator = &quot;complaint-id-generator&quot;)\n    @GenericGenerator(name = &quot;complaint-id-generator&quot;, strategy = &quot;com.example.ticket.utils.ComplaintIdGenerator&quot;)\n    @Column(name = &quot;complaint_id&quot;)\n    private String complaintId;\n    // other fields...\n}\n\n@Entity\n@AllArgsConstructor\n@NoArgsConstructor\n@Data\n@Table(name = &quot;ATTACHMENT&quot;)\npublic class Attachment {\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n\n    private String fileName;\n    private String fileType;\n    private byte[] data;\n\n    @ManyToOne(fetch = FetchType.EAGER)\n    @JoinColumn(name = &quot;complaint_id&quot;, referencedColumnName = &quot;complaint_id&quot;, nullable = false)\n    private Tickets ticket;\n}\n</code></pre>\n<p><strong>Repository:</strong></p>\n<pre class=\"lang-java prettyprint-override\"><code>@Query(&quot;SELECT a FROM Attachment a WHERE a.ticket.complaintId = :complaintId&quot;)\nList&lt;Attachment&gt; findByComplaintId(@Param(&quot;complaintId&quot;) String complaintId);\n</code></pre>\n<p><strong>Controller methods:</strong></p>\n<pre class=\"lang-java prettyprint-override\"><code>@PostMapping(&quot;/attachments/{complaintId}&quot;)\n    public ResponseEntity&lt;List&lt;AttachmentDTO&gt;&gt; handleAttachment(\n            @PathVariable String complaintId,\n            @RequestParam(value = &quot;file&quot;, required = false) MultipartFile file) {\n\n        if (file == null || file.isEmpty()) {\n            // No file uploaded — just return all attachments\n            List&lt;AttachmentDTO&gt; attachments = attachmentService.getAttachmentsByComplaintId(complaintId);\n            return ResponseEntity.ok(attachments);\n        }\n\n        // File uploaded — save it, then return updated list\n        attachmentService.uploadImage(complaintId, file);\n        List&lt;AttachmentDTO&gt; updatedAttachments = attachmentService.getAttachmentsByComplaintId(complaintId);\n        return ResponseEntity.ok(updatedAttachments);\n    }\n\n@GetMapping(&quot;/attachments/{complaintId}&quot;)\n    public ResponseEntity&lt;List&lt;AttachmentDTO&gt;&gt; getAttachments(@PathVariable String complaintId) {\n        List&lt;AttachmentDTO&gt; attachments = attachmentService.getAttachmentsByComplaintId(complaintId);\n        return ResponseEntity.ok(attachments);\n    }\n\n</code></pre>\n<p><strong>Problem</strong>:\n<em>When I call this repository method from a GET endpoint, Hibernate generates the correct SQL:</em></p>\n<pre class=\"lang-sql prettyprint-override\"><code>select a.id, a.file_name, a.file_type, a.complaint_id\nfrom attachment a\nleft outer join tickets t on a.complaint_id = t.complaint_id\nwhere t.complaint_id = ?\n</code></pre>\n<p>...but the result is always [] (empty list). Even though the DB has matching rows and the manual SQL join returns data.</p>\n<p>Strangely, When the same repository method is invoked within a POST endpoint (after uploading a file), it executes successfully and returns the full list of attachments.</p>\n<p><strong>Question:</strong></p>\n<p>Why does the repository method return an empty list on GET, but works correctly on POST in Spring Boot 2.7.x?</p>\n<p>What aspect of transaction handling, session management, entity mapping, or JPA behavior might explain the difference between endpoints?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

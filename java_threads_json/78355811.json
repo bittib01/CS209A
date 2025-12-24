@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "zpl"
+    ],
+    "owner": {
+      "account_id": 24679353,
+      "reputation": 13,
+      "user_id": 18573312,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AATXAJzXdz6aZAjtJyknjFxR1IK4tOSpFvUhBsSv60dq=k-s256",
+      "display_name": "Ives Jundi",
+      "link": "https://stackoverflow.com/users/18573312/ives-jundi"
+    },
+    "is_answered": true,
+    "view_count": 144,
+    "accepted_answer_id": 78411651,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1714527189,
+    "creation_date": 1713554639,
+    "question_id": 78355811,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78355811/zpl-api-not-generating-multiple-labels",
+    "title": "ZPL API not generating multiple labels",
+    "body": "<p>I am trying to generate multiple labels by adding only one ZPL code with multiple labels on it, but when I input the ZPL code, it generates only the first one. Help me please</p>\n<pre><code>        try (Scanner scanner = new Scanner(System.in)) {\n            System.out.println(&quot;Enter ZPL (type 'exit' to finish):&quot;);\n            String zpl = scanner.nextLine();\n            int labelIndex = 0; // Start with label index 0\n\n            while (!zpl.equalsIgnoreCase(&quot;exit&quot;)) {\n                // Adjust print density (8dpmm), label width (4 inches), label height (6 inches), and label index as necessary\n                URI uri = URI.create(&quot;https://api.labelary.com/v1/printers/8dpmm/labels/3.93701x5.90551/&quot; + labelIndex + &quot;/&quot;);\n                HttpRequest request = HttpRequest.newBuilder(uri)\n                        .header(&quot;Accept&quot;, &quot;application/pdf&quot;) // omit this line to get PNG images back\n                        .POST(HttpRequest.BodyPublishers.ofString(zpl))\n                        .build();\n                HttpClient client = HttpClient.newHttpClient();\n                HttpResponse&lt;byte[]&gt; response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());\n                byte[] body = response.body();\n\n                if (response.statusCode() == 200) {\n                    File file = new File(&quot;label_&quot; + labelIndex + &quot;.pdf&quot;); // Change file name for PNG images\n                    Files.write(file.toPath(), body);\n                    System.out.println(&quot;Label_&quot; + labelIndex + &quot; created successfully.&quot;);\n                } else {\n                    String errorMessage = new String(body, StandardCharsets.UTF_8);\n                    System.out.println(&quot;Failed to create label: &quot; + errorMessage);\n                }\n\n                // Read the next ZPL input\n                System.out.println(&quot;Enter next ZPL (type 'exit' to finish):&quot;);\n                zpl = scanner.nextLine();\n                labelIndex++; // Increment label index for the next label\n            }\n        } catch (IOException | InterruptedException e) {\n            throw new RuntimeException(e);\n        }\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

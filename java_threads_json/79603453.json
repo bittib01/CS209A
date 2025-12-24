@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "generics",
+      "contravariance"
+    ],
+    "owner": {
+      "account_id": 321640,
+      "reputation": 30391,
+      "user_id": 640584,
+      "user_type": "registered",
+      "accept_rate": 88,
+      "profile_image": "https://www.gravatar.com/avatar/22c2a81ffc7aeed2599f9aaa8d95a69d?s=256&d=identicon&r=PG",
+      "display_name": "Tyilo",
+      "link": "https://stackoverflow.com/users/640584/tyilo"
+    },
+    "is_answered": true,
+    "view_count": 157,
+    "answer_count": 2,
+    "score": 5,
+    "last_activity_date": 1747655008,
+    "creation_date": 1746191518,
+    "question_id": 79603453,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79603453/return-type-contravariance-in-java",
+    "title": "Return-type contravariance in Java",
+    "body": "<p>I have a generic map type where the keys have type <code>K</code> and the values have type <code>V</code>. I would like to provide a method <code>Optional&lt;? super V&gt; get(K key)</code>, however it doesn't seem to work as expected.</p>\n<p>The following code show the problem:</p>\n<pre class=\"lang-java prettyprint-override\"><code>import java.util.Map;\nimport java.util.Optional;\n\npublic record MyMap&lt;K, V&gt;(Map&lt;K, V&gt; inner) {\n  public Optional&lt;V&gt; getInvariant(K key) {\n    return Optional.ofNullable(inner.get(key));\n  }\n\n  public Optional&lt;? super V&gt; getContravariant(K key) {\n    return getInvariant(key).map(p -&gt; p);\n  }\n\n  // Invalid syntax:\n  /*\n  public &lt;R super K&gt; Optional&lt;R&gt; getContravariant2(K key) {\n    return get(key).map(p -&gt; p);\n  }\n   */\n}\n\nrecord MapUser(MyMap&lt;String, String&gt; map) {\n  public Optional&lt;Object&gt; getFoo() {\n    return map.getInvariant(&quot;foo&quot;).map(p -&gt; p);\n  }\n\n  public Optional&lt;Object&gt; getFoo2() {\n    return map.getContravariant(&quot;foo&quot;).map(p -&gt; p);\n  }\n\n  // Doesn't compile\n  /*\n  public Optional&lt;Object&gt; getFoo3() {\n    return map.getContravariant(&quot;foo&quot;);\n  }\n  */\n}\n</code></pre>\n<p>Uncommenting <code>getFoo3</code> results in the following error:</p>\n<pre><code>MyMap.java:32: error: incompatible types: Optional&lt;CAP#1&gt; cannot be converted to Optional&lt;Object&gt;\n    return map.getContravariant(&quot;foo&quot;);\n                               ^\n  where CAP#1 is a fresh type-variable:\n    CAP#1 extends Object super: String from capture of ? super String\n1 error\n</code></pre>\n<p>Of course I can just make the users of <code>MyMap</code> use <code>getContravariant(...).map(p -&gt; p)</code>, but I would like to avoid having the users of the map having to do this widening <code>Optional::map</code> call.</p>\n<p>Is it possible to achieve this?</p>\n<p>If not, why not?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

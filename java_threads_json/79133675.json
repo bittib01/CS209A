@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-kafka",
+      "docker-compose",
+      "jaas",
+      "kraft"
+    ],
+    "owner": {
+      "account_id": 2613865,
+      "reputation": 11,
+      "user_id": 2263401,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/e82467cef26b3ba25250942fb5f42236?s=256&d=identicon&r=PG",
+      "display_name": "Casper T",
+      "link": "https://stackoverflow.com/users/2263401/casper-t"
+    },
+    "is_answered": true,
+    "view_count": 597,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1757950813,
+    "creation_date": 1730123234,
+    "last_edit_date": 1730170619,
+    "question_id": 79133675,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79133675/kafka-authentication-with-scram-512-and-kraft-mode-doesnt-work",
+    "title": "Kafka authentication with scram 512 and KRAFT mode doesn&#39;t work",
+    "body": "<p>Kafka authentication with scram 512 and KRAFT mode doesn't work. My docker compose looks like this.</p>\n<pre><code>services:\n  kafka-1:\n    image: confluentinc/cp-kafka:7.7.1\n    ports:\n      - '9092:9092'\n    environment:\n      CLUSTER_ID: apCvyf6zusVSAvyqGAh7AZ\n      KAFKA_NODE_ID: 1\n      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:SASL_PLAINTEXT,CLIENT:SASL_PLAINTEXT,BROKER:SASL_PLAINTEXT'\n      KAFKA_ADVERTISED_LISTENERS: 'CLIENT://kafka-1:29092,BROKER://localhost:9092'\n      KAFKA_PROCESS_ROLES: 'broker,controller'\n      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka-1:9093'\n      KAFKA_LISTENERS: 'CLIENT://0.0.0.0:29092,CONTROLLER://0.0.0.0:9093,BROKER://0.0.0.0:9092'\n      KAFKA_INTER_BROKER_LISTENER_NAME: BROKER\n      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER\n      KAFKA_SASL_MECHANISM_CONTROLLER_PROTOCOL: SCRAM-SHA-512\n      KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: SCRAM-SHA-512\n      KAFKA_SASL_ENABLED_MECHANISMS: SCRAM-SHA-512\n      KAFKA_AUTHORIZER_CLASS_NAME: org.apache.kafka.metadata.authorizer.StandardAuthorizer\n      KAFKA_SUPER_USERS: 'User:admin'\n      KAFKA_OPTS: '-Djava.security.auth.login.config=/etc/kafka/kafka_jaas.conf'\n    volumes:\n      - ./config/kafka_jaas.conf:/etc/kafka/kafka_jaas.conf \n      \n  kafka-ui:\n    image: provectuslabs/kafka-ui:latest\n    ports:\n      - 1111:1111\n    environment:\n      SERVER_PORT: 1111\n      KAFKA_CLUSTERS_0_NAME: local\n      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-1:29092\n      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181\n      KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: SASL_PLAINTEXT\n      KAFKA_CLUSTERS_0_PROPERTIES_SASL_MECHANISM: SCRAM-SHA-512\n      KAFKA_CLUSTERS_0_PROPERTIES_SASL_JAAS_CONFIG: 'org.apache.kafka.common.security.scram.ScramLoginModule required username=&quot;admin&quot; password=&quot;admin_password&quot;;'                \n</code></pre>\n<p>And the jaas file</p>\n<pre><code>KafkaServer {\n  org.apache.kafka.common.security.scram.ScramLoginModule required\n  username=&quot;admin&quot;\n  password=&quot;admin_password&quot;\n  user_admin=&quot;admin_password&quot;\n  user_service=&quot;service_password&quot;;\n};\n</code></pre>\n<p>This is the error I get</p>\n<pre><code>kafka-1_1   | [2024-10-28 13:42:04,650] ERROR [controller-1-to-controller-registration-channel-manager]: Request ControllerRegistrationRequestData(controllerId=1, incarnationId=NZkn4xOFS42Kg0RhscJHVw, zkMigrationReady=false, listeners=[Listener(name='CONTROLLER', host='0.0.0.0', port=9093, securityProtocol=2)], features=[Feature(name='metadata.version', minSupportedVersion=1, maxSupportedVersion=19)]) failed due to authentication error with controller (kafka.server.NodeToControllerRequestThread)\nkafka-1_1   | org.apache.kafka.common.errors.SaslAuthenticationException: Authentication failed during authentication due to invalid credentials with SASL mechanism SCRAM-SHA-512\nkafka-1_1   | [2024-10-28 13:42:04,650] ERROR [ControllerRegistrationManager id=1 incarnation=NZkn4xOFS42Kg0RhscJHVw] RegistrationResponseHandler: authentication error (kafka.server.ControllerRegistrationManager)\nkafka-1_1   | org.apache.kafka.common.errors.SaslAuthenticationException: Authentication failed during authentication due to invalid credentials with SASL mechanism SCRAM-SHA-512\n</code></pre>\n<p>If i change SASL mechanism to PLAIN, everything works?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

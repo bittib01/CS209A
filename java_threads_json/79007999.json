@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "swing",
+      "graphics",
+      "jpanel",
+      "hidpi"
+    ],
+    "owner": {
+      "account_id": 1047596,
+      "reputation": 9626,
+      "user_id": 1052284,
+      "user_type": "registered",
+      "accept_rate": 44,
+      "profile_image": "https://www.gravatar.com/avatar/7032e676c9790e067cba9cb68c61ae88?s=256&d=identicon&r=PG",
+      "display_name": "Mark Jeronimus",
+      "link": "https://stackoverflow.com/users/1052284/mark-jeronimus"
+    },
+    "is_answered": false,
+    "view_count": 56,
+    "answer_count": 0,
+    "score": 2,
+    "last_activity_date": 1727267368,
+    "creation_date": 1726859170,
+    "last_edit_date": 1727267368,
+    "question_id": 79007999,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79007999/widgets-hidpi-but-pixel-accurate-layout-placement-and-graphics",
+    "title": "Widgets HiDPI but pixel-accurate layout placement and graphics",
+    "body": "<p>I'm making a modern-looking application (in the same theme/style as IntelliJ IDEA) that's DPI aware and everything should be pixel-accurate.</p>\n<ul>\n<li>I'm using FlatLaf as the theme.</li>\n<li>I'm forcing <code>-Dsun.java2d.uiScale=2</code> for testing but the application should support any DPI.</li>\n<li>I'm using widgets to make forms, dialogs, and control panels, these should be scaled accordingly.</li>\n<li>I'm also displaying panels in layout managers and graphics in internal frames.</li>\n</ul>\n<p>The problem lies with the last point, as <code>-Dsun.java2d.uiScale=2</code> causes &quot;scaling to be invisible to the program&quot; so if I make an internal frame display an image of 512×512 pixels, both the frame and image are actually displayed as 1024×1024 (and coordinates are <code>Transform</code>ed and the active <code>Stroke</code> is doubled, etc). Also, when resizing any panel (split pane splitter, internal frame edges) it jumps by 2 pixels at a time.</p>\n<p>I'm looking to make a GUI that's comparable to IntelliJ IDEA's GUI or web apps, where widgets are 'readable' and splitters and sizes move by device pixels at a time instead of 'logical pixels'.</p>\n<p>I know how to make the image pixel-accurate, by tweaking the <code>Transform</code> during repaint, but I can't 'pack' the (internal) frame to an image if the image has odd dimensions!</p>\n<p>Does anyone have any idea how to achieve this with the least effort (i.e., no entire platforms to build on top of)?</p>\n<p><a href=\"https://i.sstatic.net/C2P7Egrk.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/C2P7Egrk.png\" alt=\"GUI of the code below generates, with annotations largely mirroring the description above\" /></a></p>\n<p>SSCCE:</p>\n<pre><code>import java.awt.*;\nimport javax.swing.*;\nimport java.awt.image.*;\nimport com.formdev.flatlaf.*;\n\npublic final class Scratch extends JDesktopPane {\n    public static void main(String... args) {\n        SwingUtilities.invokeLater(() -&gt; {\n            FlatLaf.setup(new FlatDarkLaf());\n\n            JFrame f = new JFrame();\n            f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);\n\n            f.setContentPane(new Scratch());\n\n            f.setSize(600, 600);\n            f.setVisible(true);\n        });\n    }\n\n    public Scratch() {\n        add(new MyInternalFrame());\n    }\n\n    private static class MyInternalFrame extends JInternalFrame {\n        public MyInternalFrame() {\n            setResizable(true);\n            setContentPane(new Document());\n            setSize(512, 512);\n            setVisible(true);\n        }\n    }\n\n    private static class Document extends JPanel {\n        @Override\n        protected void paintComponent(Graphics g) {\n            super.paintComponent(g);\n\n            // Create custom image to curcumvent any shenanigans with the Panel's g.\n            BufferedImage image = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);\n\n            Graphics2D g2 = image.createGraphics(); // forgot to dispose kek\n            g2.drawOval(0, 0, getWidth() - 1, getHeight() - 1);\n            g2.drawString(getWidth() + &quot;×&quot; + getHeight(), 4, getHeight() - 4);\n\n            g.drawImage(image, 0, 0, null);\n        }\n    }\n}\n</code></pre>\n<p>[Additional information @ 2024-09-25]</p>\n<p>I have the suspicion that the entire IntelliJ IDE works with uiScale=1, and that individual LAF definitions are updated on the fly to reflect the 'visual' scaling. For example, in this screenshot the main window is well over 2400px wide (on my work PC with scaling IDE scale factor 1.25) and the small text under the selected button is styled by a UIResource of 17pt:</p>\n<p><a href=\"https://i.sstatic.net/7CgrYPeK.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/7CgrYPeK.png\" alt=\"enter image description here\" /></a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "multithreading",
+      "netty",
+      "grpc-java"
+    ],
+    "owner": {
+      "account_id": 35991843,
+      "reputation": 21,
+      "user_id": 27510512,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/5bd4dcc157ea7f82df1e3f636101cb1b?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Rohan Sharma",
+      "link": "https://stackoverflow.com/users/27510512/rohan-sharma"
+    },
+    "is_answered": false,
+    "view_count": 110,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1758095279,
+    "creation_date": 1753211523,
+    "question_id": 79710957,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79710957/issue-with-grpc-with-netty-nio-threads",
+    "title": "Issue with GRPC with Netty NIO threads",
+    "body": "<p>Hello I am facing some issues while Integrating Grpc Client to use Netty's NIO for grpc call and handling callbacks, i want application threads to be free from tracking the status of grpc calls and then invoking callbacks.</p>\n<p>The code below works absolutely fine:</p>\n<pre><code>\n public TestClient(String host,int port,boolean isSecure){\n        this.testClientConfiguration.setAddress(host);\n        this.testClientConfiguration.setSecure(isSecure);\n        this.testClientConfiguration.setPort(port);\n        this.testClientConfiguration.setMaxTimeout(20);\n        ManagedChannelBuilder&lt;?&gt; channelBuilder = ManagedChannelBuilder.forAddress(host, port);\n        // check if the TLS is disabled for the client then and use plain text communication on the client\n        if (!this.testClientConfiguration.isSecure()) {\n            channelBuilder = channelBuilder.usePlaintext();\n        }\n        \n        this.channel = channelBuilder\n                // use the custom executor service\n                .executor(testClient.executorService)\n                .build();\n        \n        this.asyncStub   = TestServiceGrpc.newFutureStub(this.channel)\n                .withExecutor(testClient.executorService);\n    \n\n    /**\n     * Non Blocking call to the server\n     */\n   \n\n        public Future&lt;SampleResponse&gt; asyncCheckBalance(SamplePayload payload) {\n\n        return Single.fromFuture(this.asyncStub.withDeadlineAfter(this.testClientConfiguration.getMaxTimeout(), TimeUnit.SECONDS)\n                                .testMethod(payload))\n                .doOnSuccess((resp) -&gt; {\n                    this.logger.info(&quot;Check testMethod got response success {}&quot;, resp;\n                    this.logger.debug(&quot;Check testMethod got response success {}&quot;, resp;\n                }).doOnError(throwable -&gt; this.logError(throwable, &quot;Check testMethod payload:&quot; + payload))\n                .toFuture();\n    }\n</code></pre>\n<p>Now things get weird as soon as i remove .executor build methods to use Netty's thread and also use NettyChannelBuilder with channelBuilder.useTransportSecurity() i start getting grpc exceptions like</p>\n<pre><code>java.util.concurrent.ExecutionException: io.grpc.StatusRuntimeException: UNKNOWN\nconcurrentExecutionException\n</code></pre>\n<p>What can i try to fix this? My goal is to use Netty's NIO to make these calls and callbacks to be scheduled on application thread(caller-&gt;grpc-&gt;netty(caller thread can do another work)-&gt;response comes-&gt;nettyexecutescallback-&gt;schedules rest of processing on application thread(already handled this))</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

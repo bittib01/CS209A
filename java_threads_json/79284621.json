@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "postgresql",
+      "parallel-processing",
+      "project-reactor"
+    ],
+    "owner": {
+      "account_id": 3688497,
+      "reputation": 1558,
+      "user_id": 3071712,
+      "user_type": "registered",
+      "accept_rate": 52,
+      "profile_image": "https://www.gravatar.com/avatar/044d502a7fbaf14979562441b62aa74c?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Marko Taht",
+      "link": "https://stackoverflow.com/users/3071712/marko-taht"
+    },
+    "is_answered": false,
+    "view_count": 58,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1735757026,
+    "creation_date": 1734350953,
+    "last_edit_date": 1735757026,
+    "question_id": 79284621,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79284621/how-to-handle-transactions-in-parallelflux",
+    "title": "How to handle transactions in parallelFlux?",
+    "body": "<p>We have a very processing heavy flux pipeline. To speed it up we are using parallel flux. But now the problem is that everything is waiting behind Database connection and its still slow. The entire pipeline is currently within one big transaction.</p>\n<p>How to handle parallelFlux with transactions so that the DB inserts wouldn't block each other too much? Database is Postgres and we are using r2dbc. Or even better, if the different parallel branches would use different connection.</p>\n<p>A simplified example</p>\n<pre><code>@Transaction\npublic void someFunc(){\n    doSomething()\n    .buffer()\n    .flatMapIterable(x -&gt; x)\n    .parallel(16)\n    .concatMap(id -&gt; doSomethingInParralel(id))\n    .sequential()\n    .collectList();\n}\n\npublic Object doSomethingInParalel(int id){\n  // run some calculation heavy code here\n   repository.insertData(some calculated data);\n}\n</code></pre>\n<p>Desired result would be that someFunc is in a transaction. doSomethingInParralel should be run in parallel to each other, like 10 in parallel or 100 in parallel, and each of these should have their own Transaction so that they wouldn't block each other when they try to read or write database.</p>\n<p>I tries adding <code>Propagation.REQUIRE_NEW</code> to doSomethingInParralel, but the problem is that the first new transaction that is created will suspend the original transaction that someFunc is running with. And since the original gets suspended I can't create more parallel transactions. using <code>Propagation.NESTED</code> is not an option since it uses the same connection as its parent transaction.</p>\n<p>How would I go to create parallel transactions with separate connections to the database?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

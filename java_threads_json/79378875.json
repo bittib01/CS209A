@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "logging",
+      "pyspark",
+      "user-defined-functions",
+      "azure-databricks"
+    ],
+    "owner": {
+      "account_id": 13178201,
+      "reputation": 375,
+      "user_id": 9518467,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/1f4d30372d0ffb6e06e8d0abdd2508ea?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "YerivanLazerev",
+      "link": "https://stackoverflow.com/users/9518467/yerivanlazerev"
+    },
+    "is_answered": false,
+    "view_count": 127,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1737570492,
+    "creation_date": 1737570492,
+    "question_id": 79378875,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79378875/getting-pyspark-udf-logs-from-executor-running-in-databricks",
+    "title": "Getting PySpark UDF logs from Executor running in Databricks",
+    "body": "<p>Not able to get <code>log4j</code> logs from executor that invoked in <code>UDF</code> when running <code>PySprak</code> in <code>Databricks</code>.</p>\n<p>in <code>Databricks</code>  webportal I created Compute cluster, in the Libraries tab I add jar with class implementing <code>org.apache.spark.sql.api.java.UDF2</code></p>\n<p>The jar is maven project.</p>\n<p>The class:</p>\n<pre><code>import org.apache.spark.sql.api.java.UDF2;\nimport org.slf4j.Logger;\nimport org.slf4j.LoggerFactory;\n\n\npublic class SomeUDF implements UDF2&lt;String, String, String&gt; {\n    private static final Logger log = LoggerFactory.getLogger(SomeUDF.class);\n\n    @Override\n    public String call(String a, String b) {\n        System.out.println(&quot;foo1&quot;);\n        log.info(&quot;foo2&quot;);\n        return &quot;dummy&quot;;\n    }\n\n\n}\n</code></pre>\n<p>in the resources folder, I have <code>log4j.properties</code> file:</p>\n<pre><code>log4j.rootCategory=INFO, console\nlog4j.appender.console=org.apache.log4j.ConsoleAppender\nlog4j.appender.console.target=System.out\nlog4j.appender.console.layout=org.apache.log4j.PatternLayout\nlog4j.appender.console.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n\n</code></pre>\n<p>in Python file:</p>\n<pre><code>spark.udf.registerJavaFunction(&quot;myFoo&quot;, &quot;com.example.demo.SomeUDF&quot;, T.StringType())\ndf = df.withColumn(&quot;new_value&quot;, expr(f&quot;myFoo('a', 'b')&quot;))\ndf.show()\n</code></pre>\n<p>After running it, I go to Compute-&gt; Spark UI -&gt; Executors.\nThere in table Under Logs I only see link to stdout and stderr.</p>\n<p>in stdout I only see the above print &quot;foo1&quot; but no where to find INFO &quot;foo2&quot;</p>\n<p>I also tried to add, under Compute-&gt;Advanced Options-&gt;Spark</p>\n<pre><code>spark.executor.extraJavaOptions=-Dlog4j.configuration=/Volumes/xxxxxxxxxxxx/log4j.properties\n</code></pre>\n<p>How to solve it?</p>\n<p>Also not sure I can add file appender, as I am not sure JVM can write to files of Databricks Catalog (Unity)</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

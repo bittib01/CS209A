@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "or-tools"
+    ],
+    "owner": {
+      "account_id": 33896998,
+      "reputation": 1,
+      "user_id": 26262478,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/485b568f6c84b08eb996a1f3cf91a9f9?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Bob Bob",
+      "link": "https://stackoverflow.com/users/26262478/bob-bob"
+    },
+    "is_answered": false,
+    "view_count": 82,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1765826738,
+    "creation_date": 1765825456,
+    "last_edit_date": 1765826738,
+    "question_id": 79847959,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79847959/terminate-called-after-throwing-an-instance-of-stdbad-function-call-long-a",
+    "title": "&quot;terminate called after throwing an instance of &#39;std::bad_function_call&#39;&quot; long after garbage collection",
+    "body": "<p>I am writing a Java program which makes use of OR-Tools to figure out some values during the construction of an object. The libraries are loaded, model is given constraints, solver is ran, and the solution is massaged into an array of records all in a self-contained static function. Any time after running my solver, even long after my object has finished being constructed, terminating my program with SIGINT causes the following error to be printed to the console:</p>\n<pre><code>terminate called after throwing an instance of 'std::bad_function_call'\n  what():  bad_function_call\n</code></pre>\n<p>This always occurs when my program is terminated with SIGINT. If it terminates by reaching the end of main or if System.exit() is called, the error is not printed.</p>\n<p>Below is a greatly simplified version of my program.</p>\n<p>A Solver:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class MySolver {\n    public static MyRecord[] solve(int A, int B) {\n        Loader.loadNativeLibraries();\n        CpModel model = new CpModel();\n        \n        //Create variables\n        IntVar[] varA = new IntVar[A*B];\n        IntVar[] varB = new IntVar[A*B];\n        for(int i = 0; i &lt; A*B; i++) {\n            varA[i] = model.newIntVar(0, A-1, &quot;varA_&quot; + i); \n            varB[i] = model.newIntVar(0, B-1, &quot;varB_&quot; + i); \n        }\n        \n        //Add constraints\n        for(int i=0; i&lt;A*B; i++) {\n            model.addEquality(varA[i], i%A);\n            model.addEquality(varB[i], i%B);\n        }\n        ...\n        \n        //Solve\n        CpSolver solver = new CpSolver();\n        CpSolverStatus status = solver.solve(model);\n\n        //Put the solution into an array of records\n        MyRecord[] records = new MyRecord[A*B];\n        for(int i = 0; i &lt; A*B; i++) {\n            records[i] = new MyRecord(\n                 (int) solver.value(varA[i]),\n                 (int) solver.value(varB[i]));\n        }\n        return records; //return result\n    }\n}\n</code></pre>\n<p>Used in a constructor:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class MyClass {\n    ...\n    public final MyRecord[] records;\n\n    public MyClass(int A, int B) {\n        ...\n        records = MySolver.solve(A, B);\n        ...\n    }\n}\n</code></pre>\n<p>Which is called in the main method. The main method continues forever until terminated using SIGINT (ctrl+c)</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class MyProgram {\n    public static void main(String[] args) {\n        MyClass myObj = new MyClass(...); \n        //Prints error if SIGINT after this point\n        for(;;) {\n            myObj.doFoo();\n        }\n    }\n}\n</code></pre>\n<p>My only guess for why this might be happening is that my solver not being garbage collected correctly when SIGINT is called? Does anyone know why this might be and how I could fix it? There is not very much documentation out there for the Java version of OR-Tools so it's difficult to know what to do.</p>\n<p>I also suspect there are some strange illegal memory things happening in the background when this error occurs as my program also very rarely causes Ubuntu to spit out an error dialogue when it is terminated. Unfortunately it is not reproducible but if it happens again I will update this question with the details of that error as well.</p>\n<p>I am aware I can modify my program loop to accept an input or a keypress that would cause my program to terminate without SIGINT, and I already have. However, I would still like it to terminate gracefully when it receives SIGINT.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

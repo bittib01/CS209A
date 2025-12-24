@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "swing",
+      "transition",
+      "fade",
+      "jcomponent"
+    ],
+    "owner": {
+      "account_id": 19422668,
+      "reputation": 49,
+      "user_id": 14204857,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/wSz4U.png?s=256",
+      "display_name": "Just a Developer",
+      "link": "https://stackoverflow.com/users/14204857/just-a-developer"
+    },
+    "is_answered": true,
+    "view_count": 225,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1737736771,
+    "creation_date": 1736458185,
+    "last_edit_date": 1737736771,
+    "question_id": 79344085,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79344085/jpanel-fade-animation-java-swing-doesnt-work",
+    "title": "JPanel Fade animation java swing doesnt work",
+    "body": "<p><strong>Updated Code:</strong></p>\n<pre><code>package JAnimator;\n\nimport java.awt.AlphaComposite;\nimport java.awt.BorderLayout;\nimport java.awt.EventQueue;\nimport java.awt.Graphics;\nimport java.awt.Graphics2D;\nimport java.awt.Point;\nimport java.awt.event.ActionEvent;\nimport javax.swing.JComponent;\nimport javax.swing.JPanel;\nimport javax.swing.Timer;\n\npublic class JAnimator {\n    \n    public static enum AnimationType {\n        FADE_ANIMATION,\n        ERASE_ANIMATION,\n        ROTATE_ANIMATION,\n        ZOOM_ANIMATION,\n        SLIDE_ANIMATION,\n        FLASH_ANIMATION\n    }\n\n    public fade_animation fadeobj;\n    private int AniType;\n    private final Point xytarget;\n    public JAnimator(JComponent Target_component, int Speed_in_miliseconds, int Delay_in_miliseconds, AnimationType Animation_type) {\n        xytarget = Target_component.getLocation();\n        switch (Animation_type) {\n            case FADE_ANIMATION:\n                fadeobj = new fade_animation(Target_component, Speed_in_miliseconds, Delay_in_miliseconds);\n                AniType = 1;\n                break;\n        }\n    }\n\n    public void playIn() {\n        if (AniType == 1) {\n            fadeobj.fadeIntoView();\n        }\n    }\n\n    public void playOut() {\n        if (AniType == 1) {\n            fadeobj.fadeOutOfView();\n        }\n    }\n\n    public class fade_animation extends JPanel {\n        private float opacity = 0.0f;\n        private Timer timer;\n        private JComponent target;\n        private boolean fadingIn;\n        \n        private int Delay;\n\n        private fade_animation(JComponent targetComponent, int SpeedMilisec, int DelayMilisec) {\n            super.setLayout(null);\n            this.target = targetComponent;\n            this.Delay = DelayMilisec;\n            this.setSize(target.getSize());\n            this.setLayout(new BorderLayout());\n            add(target);\n            \n            this.timer = new Timer(SpeedMilisec, (ActionEvent e) -&gt; fade());\n        }\n\n        private void fade() {\n            if (fadingIn) {\n                opacity += 0.1f;\n                target.setEnabled(true);\n                if (opacity &gt;= 1.0f) {\n                    opacity = 1.0f;\n                    timer.stop();\n                }\n            } else {\n                opacity -= 0.1f;\n                if (opacity &lt;= 0.0f) {\n                    opacity = 0.0f;\n                    target.setEnabled(false);\n                    timer.stop();\n                }\n            }\n\n            repaint();\n            getToolkit().sync();\n        }\n\n        public void fadeIntoView() {\n            EventQueue.invokeLater(() -&gt; {\n                opacity = 0.0f;\n                fadingIn = true;\n                Timer delayTimer = new Timer(Delay, e -&gt; timer.restart());\n                delayTimer.setRepeats(false);\n                delayTimer.start();\n            });\n        }\n\n        public void fadeOutOfView() {\n            EventQueue.invokeLater(() -&gt; {\n                opacity = 1.0f;\n                fadingIn = false;\n                Timer delayTimer = new Timer(Delay, e -&gt; timer.restart());\n                delayTimer.setRepeats(false);\n                delayTimer.start();\n            });\n        }\n\n        @Override\n        protected void paintChildren(Graphics g) {\n            Graphics2D g2 = (Graphics2D) g.create();\n            g2.setComposite(AlphaComposite.SrcOver.derive(opacity));\n            super.paintChildren(g2);\n            g2.dispose();\n        }\n    }\n}\n</code></pre>\n<p>Here I improoved my code by adding a wraper to the fade class called JAnimator where I can call diferent animations in the future. The problem is that when I call <code>playOut();</code> or <code>playIn();</code> It has that weird glitch where the button gets mooved and fades at 0,0 Instead of fading at the same location which is <code>target.getLocation();</code> setting location at paint children seem to fix it though only for static values, when i use target location it keeps fading at xy 0,0.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

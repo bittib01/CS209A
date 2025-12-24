@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "executorservice",
+      "java-21",
+      "virtual-threads"
+    ],
+    "owner": {
+      "account_id": 6780624,
+      "reputation": 181,
+      "user_id": 5221017,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/d4375fb49fe2296f98e87ca4c8e66c7f?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "condiorno",
+      "link": "https://stackoverflow.com/users/5221017/condiorno"
+    },
+    "is_answered": true,
+    "view_count": 11786,
+    "accepted_answer_id": 78061885,
+    "answer_count": 2,
+    "score": 8,
+    "last_activity_date": 1718390591,
+    "creation_date": 1708951919,
+    "last_edit_date": 1718390591,
+    "question_id": 78061049,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78061049/java-21-virtual-thread-executor-performing-worse-than-executor-with-pooled-os-th",
+    "title": "Java 21 virtual thread executor performing worse than executor with pooled OS threads?",
+    "body": "<p>I have just upgraded our Spring Boot applications to Java 21. As a part of that, I have also done changes to use virtual threads. Both when serving API requests and when doing async operations internally using executors.</p>\n<p>For one use-case, it seems like an Executor powered by virtual threads is performing worse than a <code>ForkJoinPool</code> powered by OS threads. This use-case is setting some MDC values and calling an external system <strong>through HTTP</strong>.</p>\n<p>This is my pseudo-ish-code:</p>\n<pre class=\"lang-java prettyprint-override\"><code>List&lt;...&gt; ... = executorService.submit(\n                () -&gt; IntStream.rangeClosed(-from, to)\n                        .mapToObj(i -&gt; ...)\n                        .parallel()\n                        .map(... -&gt; {\n                            try {\n                                service.setSomeThreadLocalString(...);\n                                MDC.put(..., ...);\n                                MDC.put(..., ...);\n\n                                return service.call(...);\n                            } finally {\n                                service.removeSomeThreadLocalString(...);\n                                MDC.remove(...);\n                                MDC.remove(...);\n                            }\n                        })\n                        .toList())\n        .get();\n</code></pre>\n<p>Where ExecutorService is either:</p>\n<ol>\n<li><code>new ForkJoinPool(30)</code></li>\n<li><code>Executors.newVirtualThreadPerTaskExecutor()</code></li>\n</ol>\n<p>It looks like option 1 is performing a lot better than 2. Sometimes it is 100% faster than option 2. I have done this test in a Java 21 environment. I am testing with 10 parallel executions. Where option 1 takes 800-1000ms normally, option 2 takes 1500-2000 ms.</p>\n<p>If it makes any difference, have this property enabled in Spring Boot:</p>\n<pre class=\"lang-yaml prettyprint-override\"><code>spring:\n  threads:\n    virtual:\n      enabled: true\n</code></pre>\n<p>Any ideas why this is happening?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

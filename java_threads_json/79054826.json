@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "youtube-api",
+      "youtube-data-api",
+      "google-ads-api"
+    ],
+    "owner": {
+      "account_id": 5201928,
+      "reputation": 2994,
+      "user_id": 4161024,
+      "user_type": "registered",
+      "accept_rate": 86,
+      "profile_image": "https://www.gravatar.com/avatar/58d4899cb42d1203e8e1bab265e45d9f?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Dave Ranjan",
+      "link": "https://stackoverflow.com/users/4161024/dave-ranjan"
+    },
+    "is_answered": false,
+    "view_count": 363,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1730140930,
+    "creation_date": 1728054025,
+    "last_edit_date": 1730140930,
+    "question_id": 79054826,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79054826/how-to-upload-video-assets-to-google-ads-using-api",
+    "title": "How to upload Video Assets to Google Ads using API",
+    "body": "<p>I am working on automating the upload of video assets to the Google Ads asset library. The process involves first uploading the video to YouTube via the YouTube Data API and then attaching the uploaded video's ID to Google Ads using the Google Ads API.</p>\n<p>Here’s a snippet of the code I'm using to upload a video to YouTube:</p>\n<pre><code>public void upload(Credential credential) throws Exception {\n\n    YouTube youtubeService = new YouTube.Builder(\n        new NetHttpTransport(), JacksonFactory.getDefaultInstance(), credential)\n        .setApplicationName(&quot;youtube-upload&quot;)\n        .build();\n\n    File initialFile = new File(&quot;src/main/resources/test.mp4&quot;);\n    InputStream targetStream = new FileInputStream(initialFile);\n\n    InputStreamContent mediaContent = new InputStreamContent(&quot;video/*&quot;, targetStream);\n\n    Video videoObjectDefiningMetadata = new Video();\n    VideoSnippet snippet = new VideoSnippet();\n    snippet.setTitle(&quot;Test Video &quot; + System.currentTimeMillis());\n    snippet.setDescription(&quot;A video uploaded via YouTube API&quot;);\n    snippet.setTags(Arrays.asList(&quot;test&quot;, &quot;video&quot;, &quot;upload&quot;));\n\n    VideoStatus status = new VideoStatus();\n    status.setPrivacyStatus(&quot;private&quot;);\n\n    videoObjectDefiningMetadata.setSnippet(snippet);\n    videoObjectDefiningMetadata.setStatus(status);\n\n    YouTube.Videos.Insert videoInsert = youtubeService.videos()\n        .insert(List.of(&quot;snippet&quot;, &quot;statistics&quot;, &quot;status&quot;), videoObjectDefiningMetadata, mediaContent);\n\n    Video returnedVideo = videoInsert.execute();\n\n    System.out.println(&quot;Uploaded video ID: &quot; + returnedVideo.getId());\n\n    adsService.uploadVideo(returnedVideo);\n}\n</code></pre>\n<p>The code works as expected and uploads the video to YouTube, retrieves the video ID, and uses it for Google Ads. However, I am hitting YouTube API upload quotas pretty quickly, and this is causing problems for scaling this process.</p>\n<p><strong>My Question:</strong></p>\n<p>How can I handle or mitigate YouTube API quota limits when uploading videos in bulk?\nIs there a way to optimize or reduce the number of quota points consumed when uploading videos via the API?\nAre there any alternative approaches or best practices to avoid hitting the quota limit?</p>\n<p><strong>Notes:</strong></p>\n<p>I am already following YouTube’s best practices for uploads (setting the video privacy to “private,” limiting tags, etc.), but the quota usage is still significant.\nThe YouTube API quota system allocates 1600 units per day for each project by default. Each video upload request consumes around 1600 units (as per the documentation).</p>\n<p><strong>Relevant API Documentation:</strong></p>\n<ol>\n<li><a href=\"https://developers.google.com/youtube/v3/docs\" rel=\"nofollow noreferrer\">YouTube Data API</a></li>\n<li><a href=\"https://developers.google.com/google-ads/api/docs/start\" rel=\"nofollow noreferrer\">Google Ads API</a></li>\n<li><a href=\"https://support.google.com/youtube/thread/303521228\" rel=\"nofollow noreferrer\">Youtube Support Post</a></li>\n</ol>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

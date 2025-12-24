@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "maven"
+    ],
+    "owner": {
+      "account_id": 32534409,
+      "reputation": 5,
+      "user_id": 25278108,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/d365a62a065bd315c2b4d923af90cca3?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Kishido",
+      "link": "https://stackoverflow.com/users/25278108/kishido"
+    },
+    "is_answered": true,
+    "view_count": 125,
+    "accepted_answer_id": 79697695,
+    "answer_count": 3,
+    "score": -1,
+    "last_activity_date": 1752209248,
+    "creation_date": 1751809839,
+    "last_edit_date": 1751810008,
+    "question_id": 79691800,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79691800/spring-boot-java-error-415-with-json-body-on-rest-controller",
+    "title": "Spring Boot java Error 415 with json body on rest controller",
+    "body": "<p>I want to send a POST REQUEST to my REST CONTROLLER to create an Object but i always get the error 415.\nThis is my Pom.xml</p>\n<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;\n&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;\n    xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&gt;\n    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;\n    &lt;parent&gt;\n        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n        &lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;\n        &lt;version&gt;3.5.3&lt;/version&gt;\n        &lt;relativePath/&gt; &lt;!-- lookup parent from repository --&gt;\n    &lt;/parent&gt;\n    &lt;groupId&gt;com.supermercato&lt;/groupId&gt;\n    &lt;artifactId&gt;cassa-automatica&lt;/artifactId&gt;\n    &lt;version&gt;0.0.1-SNAPSHOT&lt;/version&gt;\n    &lt;name&gt;cassaAutomatica&lt;/name&gt;\n    &lt;description&gt;Gestione casse automatiche supermercato&lt;/description&gt;\n    &lt;url/&gt;\n    &lt;licenses&gt;\n        &lt;license/&gt;\n    &lt;/licenses&gt;\n    &lt;developers&gt;\n        &lt;developer/&gt;\n    &lt;/developers&gt;\n    &lt;scm&gt;\n        &lt;connection/&gt;\n        &lt;developerConnection/&gt;\n        &lt;tag/&gt;\n        &lt;url/&gt;\n    &lt;/scm&gt;\n    &lt;properties&gt;\n        &lt;java.version&gt;21&lt;/java.version&gt;\n    &lt;/properties&gt;\n    &lt;dependencies&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n            &lt;artifactId&gt;spring-boot-starter-data-jpa&lt;/artifactId&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n            &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;\n        &lt;/dependency&gt;\n\n        &lt;dependency&gt;\n            &lt;groupId&gt;com.h2database&lt;/groupId&gt;\n            &lt;artifactId&gt;h2&lt;/artifactId&gt;\n            &lt;scope&gt;runtime&lt;/scope&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;com.mysql&lt;/groupId&gt;\n            &lt;artifactId&gt;mysql-connector-j&lt;/artifactId&gt;\n            &lt;scope&gt;runtime&lt;/scope&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n            &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;\n            &lt;scope&gt;test&lt;/scope&gt;\n        &lt;/dependency&gt;\n    &lt;/dependencies&gt;\n\n    &lt;build&gt;\n        &lt;plugins&gt;\n            &lt;plugin&gt;\n                &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n                &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;\n            &lt;/plugin&gt;\n        &lt;/plugins&gt;\n    &lt;/build&gt;\n\n&lt;/project&gt;\n</code></pre>\n<p>ControllerScontrini:</p>\n<pre><code>@RestController\n@RequestMapping(&quot;/scontrini&quot;)\npublic class ControllerScontrini {\n\n    private final ScontrinoService scontrinoService;\n\n    @Autowired\n    public ControllerScontrini(ScontrinoService scontrinoService){\n        this.scontrinoService=scontrinoService;\n    }\n\n   \n\n \n\n\n    @RequestMapping(value=&quot;/crea&quot;,method= RequestMethod.POST)\n    public Scontrino crea(@RequestBody Scontrino scontrino) {\n        return scontrinoService.crea(scontrino);\n    }\n\n}\n</code></pre>\n<p>Scontrino:</p>\n<pre><code>@Entity\npublic class Scontrino {\n    @Id\n    @GeneratedValue(strategy= GenerationType.IDENTITY)\n    private Long id;\n\n    private LocalDateTime data;\n\n    public LocalDateTime getData() {\n        return data;\n    }\n\n    public Scontrino(){}\n\n    public void setData(LocalDateTime data) {\n        this.data = data;\n    }\n\n    @ManyToMany\n    @JoinTable(\n            name=&quot;scontrino_articolo&quot;,\n            joinColumns = @JoinColumn(name= &quot;id_scontrino&quot;),\n            inverseJoinColumns = @JoinColumn(name= &quot;id_articolo&quot;)\n    )\n    private Set&lt;Articolo&gt; articoli=new HashSet&lt;&gt;();\n\n    //attributo dell’associazione tra articolo e scontrino\n    @ElementCollection\n    @JoinTable(name=&quot;Quantita_scontrino_articolo&quot;, joinColumns=@JoinColumn(name=&quot;id_scontrino&quot;))\n    @Column(name=&quot;Quantita&quot;)\n    @MapKeyJoinColumn(name=&quot;id_articolo&quot;)\n    private Map&lt;Articolo,Integer&gt; quantita = new HashMap&lt;Articolo,Integer&gt;();\n\n\n    public Set&lt;Articolo&gt; getArticoli() {\n        return articoli;\n    }\n\n    public Map&lt;Articolo, Integer&gt; getQuantita() {\n        return quantita;\n    }\n\n    public void addArticolo(Articolo articolo) {\n        this.articoli.add(articolo);\n        articolo.getScontrini().add(this);\n    }\n\n    public void removeArticolo(Articolo articolo) {\n        this.articoli.remove(articolo);\n        articolo.getScontrini().remove(this);\n    }\n\n    @Override\n    public boolean equals(Object o) {\n        if (this == o) return true;\n        if (!(o instanceof Scontrino)) return false;\n        Scontrino other = (Scontrino) o;\n        return id != null &amp;&amp; id.equals(other.id);\n    }\n\n    @Override\n    public int hashCode() {\n        return id != null ? id.hashCode() : 0;\n    }\n\n}\n</code></pre>\n<p>I send a request to : http://localhost:8080/scontrini/crea\nbut i always get this error:Resolved [org.springframework.web.HttpMediaTypeNotSupportedException: Content-Type 'application/json;charset=UTF-8' is not supported]</p>\n<p>It's a problem from my pom xml? or i wrote something wrong in my controller or model class?\nthe service method just calls the save method of a repository for the model class and with other requests without a request body it works fine.</p>\n<p>This is the json request body:</p>\n<pre><code> {\n  &quot;data&quot;: &quot;2025-01-05T10:30:00&quot;\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

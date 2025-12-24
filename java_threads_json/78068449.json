@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-micrometer"
+    ],
+    "owner": {
+      "account_id": 16784674,
+      "reputation": 55,
+      "user_id": 12133951,
+      "user_type": "registered",
+      "profile_image": "https://lh6.googleusercontent.com/-Tr4cFbExkeQ/AAAAAAAAAAI/AAAAAAAAAAA/AMZuucmcjrI0jv2KvexPCCpog--ZgeJ2Ow/s96-c/s256-rj/photo.jpg",
+      "display_name": "fredege",
+      "link": "https://stackoverflow.com/users/12133951/fredege"
+    },
+    "is_answered": false,
+    "view_count": 1105,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1741214339,
+    "creation_date": 1709045495,
+    "last_edit_date": 1741214339,
+    "question_id": 78068449,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78068449/manage-baggage-with-spring-boot-3-and-micrometer",
+    "title": "Manage baggage with Spring Boot 3 and micrometer",
+    "body": "<p>I implemented the following simple application in order to understand how to play with baggage.</p>\n<p><strong>application.yaml</strong>:</p>\n<pre><code>management:\n  tracing:\n    enabled: true\n    baggage:\n      enabled: true\n      remote-fields:\n        - my-token\n</code></pre>\n<p><strong>TokenFilter</strong></p>\n<pre><code>@RequiredArgsConstructor\n@Slf4j\n@Component\npublic class TokenFilter implements Filter {\n    private final Tracer tracer;\n    @Override\n    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)\n            throws ServletException, IOException {\n        final String myTokenValue = ((HttpServletRequest) servletRequest).getHeader(&quot;my_token&quot;);\n        log.info(&quot;Token value is '{}'&quot;, myTokenValue);\n        try (BaggageInScope myToken = tracer.createBaggageInScope(&quot;my_token&quot;, myTokenValue)) {\n            log.info(&quot;Bagage content is {}&quot;, myToken.get());\n            log.info(&quot;All baggages are {}&quot;, tracer.getAllBaggage());\n        } catch (Exception exc) {\n            log.error(exc.getMessage());\n        }\n        filterChain.doFilter(servletRequest, servletResponse);\n    }\n}\n</code></pre>\n<p><strong>Controller</strong></p>\n<pre><code>@RestController\n@RequiredArgsConstructor\n@Slf4j\npublic class SampleController {\n    private final Tracer tracer;\n\n    @GetMapping(value = &quot;&quot;, produces = MediaType.APPLICATION_JSON_VALUE)\n    public void sample() {\n        log.info(&quot;Baggages are {}&quot;, tracer.getAllBaggage());\n    }\n}\n</code></pre>\n<p><strong>Resulting log</strong></p>\n<pre><code>2024-02-27T15:36:24.991+01:00  INFO 3688 --- [nio-8080-exec-1] [65ddf368f5abedefc5907ffcd8e8138e-c5907ffcd8e8138e] c.t.micrometersample.filter.TokenFilter  : Token value is 'token value'\n2024-02-27T15:36:24.993+01:00  INFO 3688 --- [nio-8080-exec-1] [65ddf368f5abedefc5907ffcd8e8138e-c5907ffcd8e8138e] c.t.micrometersample.filter.TokenFilter  : Bagage content is null\n2024-02-27T15:36:24.993+01:00  INFO 3688 --- [nio-8080-exec-1] [65ddf368f5abedefc5907ffcd8e8138e-c5907ffcd8e8138e] c.t.micrometersample.filter.TokenFilter  : All baggages are {}\n2024-02-27T15:36:25.005+01:00  INFO 3688 --- [nio-8080-exec-1] [65ddf368f5abedefc5907ffcd8e8138e-c5907ffcd8e8138e] c.t.m.controller.SampleController        : Baggages are {}\n</code></pre>\n<p>What is missing/incorrect that prevents to properly manage the baggage?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

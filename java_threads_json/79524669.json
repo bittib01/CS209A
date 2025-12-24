@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "ssl",
+      "tomcat",
+      "pem"
+    ],
+    "owner": {
+      "account_id": 40879449,
+      "reputation": 11,
+      "user_id": 30009075,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/7488737150fe3ab1fb062927eb31c14f?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Dhruv Agarwal",
+      "link": "https://stackoverflow.com/users/30009075/dhruv-agarwal"
+    },
+    "is_answered": false,
+    "view_count": 92,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1743392858,
+    "creation_date": 1742537904,
+    "last_edit_date": 1743392858,
+    "question_id": 79524669,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79524669/use-ssl-bundle-to-create-another-tomcat-connector",
+    "title": "Use SSL Bundle to create another tomcat connector",
+    "body": "<p>I am using PEM based SSL Bundle in Spring Boot for mTLS APIs:</p>\n<pre><code>spring.ssl.bundle.pem.server.reload-on-update=true\nspring.ssl.bundle.pem.server.keystore.certificate=/etc/spring/ssl/server.crt\nspring.ssl.bundle.pem.server.keystore.private-key=/etc/spring/ssl/server.key\nspring.ssl.bundle.pem.server.truststore.certificate=/etc/spring/ssl/rootCA.crt\n\n# configure server to use &quot;server&quot; ssl bundle\nserver.port=8443\nserver.ssl.bundle=server\nserver.ssl.client-auth=need\n</code></pre>\n<p>I want some API endpoints to be accessible without mTLS, using one-sided TLS. For e.g. for healthCheck endpoints. So I am creating another Tomcat connector on port 8444 for TLS connection. This is the @Configuration file for Tomcat:</p>\n<pre><code>@Configuration \npublic class TomcatConnectorConfig {\n\nprivate int tlsPort = 8444;\nprivate final SSLContext sslContext;\n\npublic TomcatConnectorConfig(SSLContext sslContext) {\n    this.sslContext = sslContext;\n}\n\n@Bean\npublic TomcatServletWebServerFactory servletContainer(SSLContext sslContext) {\n    TomcatServletWebServerFactory factory = new TomcatServletWebServerFactory();\n    factory.addAdditionalTomcatConnectors(createTlsConnector(sslContext));\n    return factory;\n}\n\nprivate Connector createTlsConnector(SSLContext sslContext) {\n    // Create a new connector using the default HTTPS protocol\n    Connector connector = new Connector(TomcatServletWebServerFactory.DEFAULT_PROTOCOL);\n    connector.setPort(tlsPort);\n    connector.setSecure(true);\n    connector.setScheme(&quot;https&quot;);\n\n    // Create a new SSLHostConfig instance for this connector\n    SSLHostConfig sslHostConfig = new SSLHostConfig();\n    sslHostConfig.setSslProtocol(&quot;TLS&quot;); // or &quot;TLSv1.2&quot; etc.\n\n    SSLHostConfigCertificate certificate = new SSLHostConfigCertificate(sslHostConfig, SSLHostConfigCertificate.Type.RSA);\n    certificate.setSslContext(sslContext.getDefault()); //This is a mismatch\n    sslHostConfig.addCertificate(certificate);\n    // Add the SSLHostConfig to the connector\n    connector.addSslHostConfig(sslHostConfig);\n    return connector;\n}\n</code></pre>\n<p>}\nI am trying to use SSLContext provided by SSL Bundle here:</p>\n<pre><code>@Configuration\npublic class SslConfiguration {\n    @Bean\n    public SSLContext sslContext(SslBundles sslBundles) {\n        return sslBundles.getBundle(&quot;server&quot;).createSslContext();\n    }\n}\n</code></pre>\n<p>How do I use this SSL Bundle within tomcat connector? I want to use the same PEM bundle with this port also</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

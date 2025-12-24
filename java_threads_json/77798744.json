@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot"
+    ],
+    "owner": {
+      "account_id": 17228781,
+      "reputation": 4612,
+      "user_id": 12473843,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/HkCxn.jpg?s=256",
+      "display_name": "Sergey Tsypanov",
+      "link": "https://stackoverflow.com/users/12473843/sergey-tsypanov"
+    },
+    "is_answered": true,
+    "view_count": 823,
+    "accepted_answer_id": 77805769,
+    "answer_count": 3,
+    "score": 0,
+    "last_activity_date": 1709818838,
+    "creation_date": 1704963055,
+    "last_edit_date": 1704984394,
+    "question_id": 77798744,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77798744/unexpected-404-instead-of-400-after-migration-to-spring-boot-3-2-1-from-2-7-17",
+    "title": "Unexpected 404 instead of 400 after migration to Spring Boot 3.2.1 from 2.7.17",
+    "body": "<p>In our project we used Spring Boot 2.7.17, OpenAPI specs and RestAssured for testing. Here's the part of API interface, generated from our spec:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@RequestMapping(\n        method = RequestMethod.GET,\n        value = &quot;/accounts/{accountId}/statements/{statementId}&quot;,\n        produces = {&quot;application/pdf&quot;, &quot;image/gif&quot;, &quot;image/jpeg&quot;, &quot;image/tiff&quot;, &quot;image/png&quot;, &quot;application/json&quot;}\n)\nResponseEntity&lt;Resource&gt; getAccountStatement(\n        @Parameter(name = &quot;accountId&quot;, description = &quot;Account Identifier&quot;, required = true, in = ParameterIn.PATH) @PathVariable(&quot;accountId&quot;) String accountId,\n        @Parameter(name = &quot;statementId&quot;, description = &quot;Statement Identifier&quot;, required = true, in = ParameterIn.PATH) @PathVariable(&quot;statementId&quot;) String statementId\n);\n</code></pre>\n<p>The implementation doesn't change anything:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Override\npublic ResponseEntity&lt;Resource&gt; getAccountStatement(String accountId, String statementId) {\n    var consentId = customerClaimsProvider.getConsentId();\n    var subject = getSubject();\n    return accountListService.getAccountStatement(accountId, statementId, consentId, subject);\n}\n</code></pre>\n<p>Here is our Groovy test (spock framework is used), pay attention to whitespaces in URI:</p>\n<pre><code>def &quot;Run endpoint with undefined and empty data for getAccountStatement&quot;() {\n    setup:\n    //...\n\n    when:\n    Response responseEmpty = baseSpec(accessToken)\n            .get(&quot;accounts/v1/accounts/ /statements/ &quot;)\n\n    then:\n    responseEmpty.then().statusCode(400)\n}\n</code></pre>\n<p>Prior to migration the test was OK, but after upgrading SB to 3.2.1 the test began to fail as the controller now returns 404 instead of 400:</p>\n<pre><code>Condition failed with Exception:\n\nresponseEmpty.then().statusCode(400)\n|             |      |\n|             |      java.lang.AssertionError: 1 expectation failed.\n|             |      Expected status code &lt;400&gt; but was &lt;404&gt;.\n</code></pre>\n<p>On the backend it corresponds this:</p>\n<pre><code>org.springframework.web.servlet.resource.NoResourceFoundException: No static resource accounts/%20/statements.\n    at org.springframework.web.servlet.resource.ResourceHttpRequestHandler.handleRequest(ResourceHttpRequestHandler.java:585) ~[spring-webmvc-6.1.2.jar:6.1.2]\n    at org.springframework.web.servlet.mvc.HttpRequestHandlerAdapter.handle(HttpRequestHandlerAdapter.java:52) ~[spring-webmvc-6.1.2.jar:6.1.2]\n    at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089) ~[spring-webmvc-6.1.2.jar:6.1.2]\n    at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979) ~[spring-webmvc-6.1.2.jar:6.1.2]\n    at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014) ~[spring-webmvc-6.1.2.jar:6.1.2]\n    at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:903) ~[spring-webmvc-6.1.2.jar:6.1.2]\n    at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:564) ~[tomcat-embed-core-10.1.17.jar:6.0]\n    at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885) ~[spring-webmvc-6.1.2.jar:6.1.2]\n    at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658) ~[tomcat-embed-core-10.1.17.jar:6.0]\n    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:205) ~[tomcat-embed-core-10.1.17.jar:10.1.17]\n    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149) ~[tomcat-embed-core-10.1.17.jar:10.1.17]\n</code></pre>\n<p>Context path is described as</p>\n<pre class=\"lang-yaml prettyprint-override\"><code>server:\n  servlet:\n    context-path: /open-banking/accounts/v1\n</code></pre>\n<p>Is there</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot"
+    ],
+    "owner": {
+      "account_id": 17750,
+      "reputation": 27260,
+      "user_id": 40064,
+      "user_type": "registered",
+      "accept_rate": 69,
+      "profile_image": "https://www.gravatar.com/avatar/6f118f710d3077f91c0c0d722f7be0a3?s=256&d=identicon&r=PG",
+      "display_name": "Wim Deblauwe",
+      "link": "https://stackoverflow.com/users/40064/wim-deblauwe"
+    },
+    "is_answered": true,
+    "view_count": 5228,
+    "accepted_answer_id": 79047214,
+    "answer_count": 2,
+    "score": 11,
+    "last_activity_date": 1727879247,
+    "creation_date": 1706521152,
+    "question_id": 77898690,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77898690/custom-objectmapper-with-spring-restclient-migrating-from-webclient",
+    "title": "Custom ObjectMapper with Spring RestClient (migrating from WebClient)",
+    "body": "<p>Currently using Spring Boot 3.1 with the reactive <code>WebClient</code> configured like this:</p>\n<pre><code>@Configuration\npublic class MyConfig {\n\n  @Bean\n  WebClient webClient() {\n    ExchangeStrategies strategies = ExchangeStrategies.builder().codecs(clientCodecConfigurer -&gt;\n        {\n          ObjectMapper objectMapper = createObjectMapper();\n          Jackson2JsonDecoder decoder = new Jackson2JsonDecoder(objectMapper);\n          decoder.setMaxInMemorySize(10_000_000);\n          clientCodecConfigurer.customCodecs().register(decoder);\n          clientCodecConfigurer.customCodecs().register(new Jackson2JsonEncoder(objectMapper));\n        }\n    ).build();\n\n    return WebClient.builder()\n        .exchangeStrategies(strategies)\n        .baseUrl(this.properties.baseUrl())\n        .build();\n  }\n\n  @Bean\n  public HttpServiceProxyFactory httpServiceProxyFactory(\n      WebClient webClient) {\n    return HttpServiceProxyFactory\n        .builder(WebClientAdapter.forClient(webClient))\n        .build();\n  }\n\n  @Bean\n  public MyRemoteServiceApi myGateway(HttpServiceProxyFactory httpServiceProxyFactory) {\n    return httpServiceProxyFactory.create(MyRemoteServiceApi.class);\n  }\n\n  private static ObjectMapper createObjectMapper() {\n    ObjectMapper mapper = new ObjectMapper();\n    mapper.setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE);\n    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);\n    mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);\n    mapper.setSerializationInclusion(Include.NON_NULL);\n    mapper.registerModule(new JavaTimeModule());\n    return mapper;\n  }\n}\n</code></pre>\n<p>I am using 2 customizations:</p>\n<ol>\n<li>A custom Jackson ObjectMapper because the application I am calling through the webclient uses kebab-case. The API exposed from my own application uses the normal pascalCase.</li>\n<li>Increase the maximum memory size the Jackson2JsonDecoder can use to read out responses.</li>\n</ol>\n<p>How can I migrate this code to use the <code>RestClient</code> of Spring Boot 3.2?</p>\n<p>For the custom object mapper, I now have done this:</p>\n<pre><code>@Bean\npublic RestClient restClient() {\n    return RestClient.builder()\n        .messageConverters(httpMessageConverters -&gt; {\n          httpMessageConverters.clear();\n          MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();\n          converter.setObjectMapper(createObjectMapper());\n          httpMessageConverters.add(converter);\n        })\n        .baseUrl(this.properties.baseUrl())\n        .build();\n  }\n</code></pre>\n<p>This seems to work, but I find it strange I have to first clear the list. Is this really the way it should be done?</p>\n<p>Second question: how do I set that <code>maxInMemorySize</code>? Or is that not needed with <code>RestClient</code>?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

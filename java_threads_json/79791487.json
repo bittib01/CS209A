@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "prometheus",
+      "metrics",
+      "health-check"
+    ],
+    "owner": {
+      "account_id": 18890249,
+      "reputation": 214,
+      "user_id": 13780725,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/Gh1tC.jpg?s=256",
+      "display_name": "tibotka",
+      "link": "https://stackoverflow.com/users/13780725/tibotka"
+    },
+    "is_answered": true,
+    "view_count": 80,
+    "accepted_answer_id": 79819984,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1763120342,
+    "creation_date": 1760551613,
+    "last_edit_date": 1760552212,
+    "question_id": 79791487,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79791487/expose-custom-health-group-components-into-prometheus-metrics-in-spring-boot",
+    "title": "Expose custom health group components into Prometheus metrics in Spring Boot",
+    "body": "<p>We have two custom health groups named <code>extended</code> and <code>readiness</code>:</p>\n<ul>\n<li><code>extended</code>: custom dependency-heavy <code>HealthIndicator</code>s provided explicitly via application property</li>\n<li><code>readiness</code>: everything except those defined in the <code>extended</code> group</li>\n</ul>\n<p>Currently calling the <code>/actuator/health/readiness</code> endpoint, the response looks like this (simplified for readability):</p>\n<pre><code>db\n ├ storeDataSource\n └ pizzaDataSource\ndiskSpace\ngracefulShutdownHealthCheck\nhazelcast\njms\n ├ internalActiveMQConnectionFactory\n ├ notifConnectionFactory\n └ platformJmsConnectionFactory\nping\nrefreshScope\n</code></pre>\n<p>We want to expose all the components from the <code>readiness</code> group as a <code>Prometheus</code> metric one by one. But since these components aren't defined explicitly, and the number of them can be increased/decreased by adding/removing <code>Maven</code> dependencies (for example <code>jms</code> or <code>hazelcast</code>), we don't know the exact list of the component's name in compile time.</p>\n<p>Therefore we do the following:</p>\n<pre><code>@Configuration\n@AllArgsConstructor\npublic class HealthGroupMetricsConfig {\n\n    private final MeterRegistry meterRegistry;\n    private final HealthEndpoint healthEndpoint;\n\n    @PostConstruct\n    public void bindReadinessHealth() {\n        HealthComponent component = healthEndpoint.healthForPath(&quot;readiness&quot;);\n        CompositeHealth health = (CompositeHealth) component;\n        \n        health.getComponents().forEach( (key, value) -&gt; {\n            if (value instanceof Health h) {\n                Gauge.builder(&quot;app_health_readiness_component&quot;, h, he -&gt; &quot;UP&quot;.equalsIgnoreCase(h.getStatus().getCode()) ? 1 : 0)\n                        .tag(&quot;component&quot;, key)\n                        .register(meterRegistry);\n            } else if (value instanceof CompositeHealth ch) {\n                Gauge.builder(&quot;app_health_readiness_component&quot;, ch, he -&gt; &quot;UP&quot;.equalsIgnoreCase(ch.getStatus().getCode()) ? 1 : 0)\n                        .tag(&quot;component&quot;, key)\n                        .register(meterRegistry);\n            }\n        });\n    }\n\n}\n</code></pre>\n<p>But in this way the <code>healthForPath</code> method will be called once during <code>@PostConstruct</code>, and all the components will be registered as a <code>Prometheus</code> metric <strong>statically</strong>, which means every time the <code>/actuator/prometheus</code> endpoint is called, the same health statuses (which were evaluated for the first time) will be responded, which is not the desired behaviour, since we want fresh data every time.</p>\n<p>If we just put <code>healthForPath</code> inside <code>Gauge.builder</code> to have a fresh call to <code>/actuator/health/readiness</code>, then it will be called multiple times (as many components we have) unnecessarily.</p>\n<p>Our second approach was to call <code>healthForPath</code> once at the beginning just to collect the names of the health components, and after that injecting them as a bean from the <code>ApplicationContext</code>:</p>\n<pre><code>@Configuration\n@AllArgsConstructor\npublic class HealthGroupMetricsConfig {\n\n    private final MeterRegistry meterRegistry;\n    private final HealthEndpoint healthEndpoint;\n    private final ApplicationContext applicationContext;\n\n    @PostConstruct\n    public void bindReadinessHealth() {\n        HealthComponent component = healthEndpoint.healthForPath(&quot;readiness&quot;);\n        CompositeHealth health = (CompositeHealth) component;\n\n        health.getComponents().keySet().forEach(name -&gt; Gauge.builder(&quot;app_health_readiness_component&quot;, () -&gt; {\n            HealthIndicator hi = applicationContext.getBean(name, HealthIndicator.class);\n            return hi.health().getStatus().equals(UP) ? 1 : 0;\n        })\n                .tag(&quot;component&quot;, name)\n                .register(meterRegistry));\n    }\n\n}\n</code></pre>\n<p>But it turned out not all the components are <code>HealthIndicator</code>s, and the indicator's name doesn't always equal to the health component's name either. Listing all the <code>HealthIndicator</code>s we get the following:</p>\n<pre><code>gracefulShutdownHealthCheck\nhazelcastHealthContributor\ndiskSpaceHealthIndicator\npingHealthContributor\nrefreshScopeHealthIndicator\n</code></pre>\n<p>As you can see the <code>CompositeHealth</code>s (i.e. <code>db</code> and <code>jms</code>) are missing, because for example <code>notifConnectionFactory</code> is not a <code>HealthIndicator</code>, but an <code>oracle.jms.AQjmsConnectionFactory</code>.</p>\n<p>Our final thought was to make an <code>HTTP</code> call in case of every components, since the individual statuses can be evaluated by calling <code>/actuator/health/readiness/&lt;components-name&gt;</code>. In this way we can achieve the desired goal, but we are afraid of some performance issue because of the multiple <code>HTTP</code> calls (if any).</p>\n<p>Any suggestion how to do this?</p>\n<p>We are using Spring Boot version <code>2.7.18</code>.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

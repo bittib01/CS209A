@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "swing"
+    ],
+    "owner": {
+      "account_id": 35531768,
+      "reputation": 329,
+      "user_id": 27261123,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/e4db8ad90c980382d79cdc33a0d54d66?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Cagepi",
+      "link": "https://stackoverflow.com/users/27261123/cagepi"
+    },
+    "is_answered": true,
+    "view_count": 72,
+    "accepted_answer_id": 79279219,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1735039483,
+    "creation_date": 1734101443,
+    "last_edit_date": 1735039483,
+    "question_id": 79278711,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79278711/listening-to-text-trims-shows-of-jtextfield",
+    "title": "Listening to text trims/shows of JTextField",
+    "body": "<p>Here's what the user wants: if text is too long for a text field to hold, set it as a tooltip. Otherwise, there should be no tooltip.</p>\n<p>The problem: Swing doesn't tell us if it trims a field's text. There's no such property, no events are fired.</p>\n<p>For simplicity, forget the tooltip. Just make the prints go off (see the MRE). Basically, I need to &quot;listen&quot; to trims/shows.</p>\n<p>Here's an MRE. Change the size of the window to affect the width of the field.</p>\n<pre class=\"lang-java prettyprint-override\"><code>package demos.text.formattedTextField;\n\nimport javax.swing.JFormattedTextField;\nimport javax.swing.JPanel;\nimport javax.swing.text.DefaultFormatter;\nimport javax.swing.text.DefaultFormatterFactory;\nimport java.awt.GridBagConstraints;\nimport java.awt.GridBagLayout;\nimport java.awt.LayoutManager;\nimport java.text.ParseException;\n\npublic class FormattedTextFieldDemo {\n    public static void main(String[] args) {\n        Container mainPanel = createMainPanel();\n        JFrame frame = new JFrame(&quot;FormattableTextField Demo&quot;);\n        frame.setContentPane(mainPanel);\n        frame.setLocationRelativeTo(null);\n        frame.pack();\n        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);\n        frame.setVisible(true);\n    }\n\n    private static JPanel createMainPanel() {\n        LayoutManager layout = new GridBagLayout();\n        JPanel panel = new JPanel(layout);\n        panel.add(createFormattedTextField(), constraints());\n        return panel;\n    }\n\n    private static GridBagConstraints constraints() {\n        GridBagConstraints constraints = new GridBagConstraints();\n        constraints.weightx = 1;\n        constraints.fill = GridBagConstraints.BOTH;\n        return constraints;\n    }\n\n    private static JFormattedTextField createFormattedTextField() {\n        JFormattedTextField textField = new JFormattedTextField();\n        DefaultFormatterFactory formatterFactory = new DefaultFormatterFactory();\n        formatterFactory.setDisplayFormatter(new DefaultFormatter() {\n            @Override\n            public String valueToString(Object value) throws ParseException {\n                return value instanceof Cat ? ((Cat) value).getName() : super.valueToString(value);\n            }\n        });\n        textField.setFormatterFactory(formatterFactory);\n        textField.setValue(createFormattedValue());\n        return textField;\n    }\n\n    private static Cat createFormattedValue() {\n        Cat cat = new Cat(&quot;mew&quot;.repeat(10));\n        return cat;\n    }\n\n    private static void onTextTrim() {\n        System.out.println(&quot;Text has been trimmed...&quot;);\n    }\n\n    private static void onTextShow() {\n        System.out.println(&quot;Text is now fully displayed...&quot;);\n    }\n\n    static class Cat {\n        private final String name;\n\n        public Cat(String name) {\n            this.name = name;\n        }\n\n        @Override\n        public String toString() {\n            return super.toString();\n        }\n\n        public String getName() {\n            return name;\n        }\n    }\n}\n</code></pre>\n<p><a href=\"https://i.sstatic.net/2D1DcPM6.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/2D1DcPM6.png\" alt=\"enter image description here\" /></a></p>\n<p><a href=\"https://i.sstatic.net/ybKe4v0w.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/ybKe4v0w.png\" alt=\"enter image description here\" /></a></p>\n<p>Here's GPT's suggestion which works but is, in my opinion, ugly</p>\n<pre class=\"lang-java prettyprint-override\"><code>textField.addComponentListener(new ComponentAdapter() {\n    private boolean isTrimmed = false;\n\n    @Override\n    public void componentResized(ComponentEvent e) {\n        checkTextTrim(textField);\n    }\n\n    @Override\n    public void componentShown(ComponentEvent e) {\n        checkTextTrim(textField);\n    }\n\n    private void checkTextTrim(JFormattedTextField field) {\n        FontMetrics metrics = field.getFontMetrics(field.getFont());\n        String text = field.getText();\n        int textWidth = metrics.stringWidth(text);\n        int fieldWidth = field.getWidth();\n\n        boolean currentlyTrimmed = textWidth &gt; fieldWidth;\n\n        if (currentlyTrimmed &amp;&amp; !isTrimmed) {\n            isTrimmed = true;\n            onTextTrim();\n        } else if (!currentlyTrimmed &amp;&amp; isTrimmed) {\n            isTrimmed = false;\n            onTextShow();\n        }\n    }\n});        \n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

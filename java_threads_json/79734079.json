@@ -1,0 +1,31 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "google-cloud-run"
+    ],
+    "owner": {
+      "account_id": 14650680,
+      "reputation": 641,
+      "user_id": 10580773,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/1663828a1ee705ab669347bfd6190602?s=256&d=identicon&r=PG",
+      "display_name": "jure",
+      "link": "https://stackoverflow.com/users/10580773/jure"
+    },
+    "is_answered": false,
+    "view_count": 145,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1755181633,
+    "creation_date": 1755075173,
+    "question_id": 79734079,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79734079/programatically-split-traffic-to-cloud-run-revision-using-java-client-library",
+    "title": "Programatically split traffic to Cloud Run revision using Java client library",
+    "body": "<p>I'm trying to programatically split traffic between two revisions, prod-A (serving 100% traffic initially) and custom-B. I'm using the java client library for Cloud run <code>com.google.cloud:google-cloud-run:0.70.0</code>.</p>\n<p>The relevant code snippet:</p>\n<pre class=\"lang-java prettyprint-override\"><code>Service service = serviceClient.getService(...)\n\nList&lt;TrafficTarget&gt; updatedTrafficTargets = ...\n   I fetch existing traffic targets from Cloud run using\n   service.getTrafficList(), and extract\n   the target that matches the one that I want to modify, then add\n   the percentage of traffic I want to split\n   ...\n\nService serviceWithTrafficUpdate = Service.newBuilder()\n    .setName(service.getName())\n    .addAllTraffic(updatedTrafficTargets)\n    .build()\n\nUpdateServiceRequest updateRequest = UpdateServiceRequest.newBuilder()\n    .setService(serviceWithTrafficUpdate)\n    .setUpdateMask(FieldMask.newBuilder().addPaths(&quot;traffic&quot;).build())\n    .build()\n\nservicesClient.updateServiceAsync(updateRequest).get();\n</code></pre>\n<p>The update service request content, when logged, looks like this:</p>\n<pre><code>service {\n  name: &quot;projects/my-project/locations/us-central1/services/my-service&quot;\n  traffic {\n    type: TRAFFIC_TARGET_ALLOCATION_TYPE_REVISION\n    revision: &quot;my-target-revision-dfjs&quot;\n    percent: 100\n    tag: &quot;custom-B&quot;\n  }\n}\n</code></pre>\n<p>However, the API responds with an error:</p>\n<pre><code>java.util.concurrent.ExecutionException: com.google.api.gax.rpc.AlreadyExistsException: io.grpc.StatusRuntimeException: ALREADY_EXISTS: Revision named 'my-target-revision-dfjs' with different configuration already exists.\n</code></pre>\n<p>I've also tried including both the source revision from which I'm splitting and the target revision to which I'm splitting (with 99 percent traffic remaining on the source, and 1 percent on the target)</p>\n<pre><code>service {\n  name: &quot;projects/my-project/locations/us-central1/services/my-service&quot;\n  traffic {\n    type: TRAFFIC_TARGET_ALLOCATION_TYPE_REVISION\n    revision: &quot;my-target-revision-dfjs&quot;\n    percent: 1\n    tag: &quot;custom-B&quot;\n  }\n  traffic {\n    type: TRAFFIC_TARGET_ALLOCATION_TYPE_REVISION\n    revision: &quot;my-source-revision-wkjl&quot;\n    percent: 99\n    tag: &quot;prod-A&quot;\n  }\n}\nupdate_mask {\n  paths: &quot;traffic&quot;\n}\n\n</code></pre>\n<p>Which is a bit confusing, because obviously I need the revision to exist already, if I'm to split traffic to it; which leads me to believe that I'm likely misusing the client library in some way.</p>\n<p>For clarity, the cloud run service, where I'm splitting the traffic, contains other revisions that are tagged, but have no traffic assigned to them (they do appear in the service yaml under the traffic section on GCP though).</p>\n<p>Any help would be appreciated.</p>\n<p><em>n.b.: for sanity, I tried splitting the traffic manually with <code>gcloud</code> to the same revisions,</em></p>\n<pre><code> gcloud run services update-traffic my-service --region=us-central1 --project=my-project --to-revisions=my-target-revision-dfjs=1,my-source-revision-wkjl=99\n</code></pre>\n<p><em>and it works as expected, just to confirm there's nothing wrong with my cloud run setup</em></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "mongodb",
+      "apache-flink",
+      "connector",
+      "mongo-connector"
+    ],
+    "owner": {
+      "account_id": 13743867,
+      "reputation": 83,
+      "user_id": 9918191,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/atAsw.jpg?s=256",
+      "display_name": "zaro",
+      "link": "https://stackoverflow.com/users/9918191/zaro"
+    },
+    "is_answered": true,
+    "view_count": 431,
+    "accepted_answer_id": 79444834,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1739781535,
+    "creation_date": 1736866694,
+    "question_id": 79355426,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79355426/apache-flink-job-trying-to-read-from-mongo-via-cdc-source-connector-results-in-m",
+    "title": "Apache Flink job trying to read from Mongo via cdc source connector results in MongoTimeoutException",
+    "body": "<p>I am trying to use Mongo CDC connector as a source for my DataStream source in my Flink job. I use the same example code as [per the docs][1].</p>\n<p>That's my code:</p>\n<pre><code>MongoDBSource&lt;String&gt; mongoSource =\n        MongoDBSource.&lt;String&gt;builder()\n              .hosts(&quot;cluster0-shard-...:&lt;port&gt;,cluster0-shard-...:&lt;port&gt;,cluster0-shard-...:&lt;port&gt;&quot;)\n              .username(&quot;myUsername&quot;)\n              .password(&quot;myPassword&quot;)\n              .databaseList(&quot;exercises&quot;)\n              .collectionList(&quot;exercises.movies&quot;)\n              .deserializer(new JsonDebeziumDeserializationSchema())\n              .build();\n\nStreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();\n\nenv.enableCheckpointing(3000);\n\nenv.fromSource(mongoSource, WatermarkStrategy.noWatermarks(), &quot;MongoDBIncrementalSource&quot;)\n   .setParallelism(1)\n   .print();\n\nenv.execute(&quot;mongo-cdc&quot;);\n</code></pre>\n<p>Since I am using a replica set I put the connection URIs for all three nodes with the ports, separated by comma. I tried to use the normal connection URI from Compass, but another error was produced because of the due to <code>mongodb+srv</code> in the beginning and I had to change the URI.</p>\n<p>I have my local Flink cluster running and I submit via the terminal:\n<code>./bin/flink run -c org.example.MongoStream D:/Java-Projects/SimpleFlinkJob/target/flink-1.0.jar</code></p>\n<p>It takes about 30 seconds before the job appears in the Flink UI on port 8081 and it constantly switches its status between <code>RUNNING</code> and <code>RESTARTING</code>.</p>\n<p>The error that the job produces is this:\n<code>Caused by: com.mongodb.MongoTimeoutException: Timed out after 30000 ms while waiting to connect. Client view of cluster state is {type=UNKNOWN, servers=[{address=cluster0-shard-...:&lt;port&gt;, type=UNKNOWN, state=CONNECTING, exception={com.mongodb.MongoSocketReadException: Prematurely reached end of stream}}, {address=cluster0-shard-00-...:&lt;port&gt;, type=UNKNOWN, state=CONNECTING, exception={com.mongodb.MongoSocketReadException: Prematurely reached end of stream}}, {address=cluster0-shard-...:&lt;port&gt;, type=UNKNOWN, state=CONNECTING, exception={com.mongodb.MongoSocketReadException: Prematurely reached end of stream}}]</code></p>\n<p>I am sure the problem isn't in Mongo because I connect without a problem via the Compass and I also tried the other example for [Mongo sink/source without cdc][2] and the everything works, even when using the standard <code>mongodb+srv</code> URI.</p>\n<p>I am using Flink 1.20.0 and these are my dependencies:</p>\n<pre><code>&lt;dependency&gt;\n        &lt;groupId&gt;org.apache.flink&lt;/groupId&gt;\n            &lt;artifactId&gt;flink-java&lt;/artifactId&gt;\n            &lt;version&gt;1.20.0&lt;/version&gt;\n        &lt;/dependency&gt;\n\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.apache.flink&lt;/groupId&gt;\n            &lt;artifactId&gt;flink-streaming-java&lt;/artifactId&gt;\n            &lt;version&gt;1.20.0&lt;/version&gt;\n        &lt;/dependency&gt;\n\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.apache.flink&lt;/groupId&gt;\n            &lt;artifactId&gt;flink-connector-mongodb&lt;/artifactId&gt;\n            &lt;version&gt;1.2.0-1.19&lt;/version&gt;\n        &lt;/dependency&gt;\n\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.apache.flink&lt;/groupId&gt;\n            &lt;artifactId&gt;flink-connector-mongodb-cdc&lt;/artifactId&gt;\n            &lt;version&gt;3.2.1&lt;/version&gt;\n        &lt;/dependency&gt;\n    ```\n\nWhat could I be missing?\n\n\n  [1]: https://nightlies.apache.org/flink/flink-cdc-docs-master/docs/connectors/flink-sources/mongodb-cdc/#datastream-source\n  [2]: https://nightlies.apache.org/flink/flink-docs-release-1.20/docs/connectors/datastream/mongodb/\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

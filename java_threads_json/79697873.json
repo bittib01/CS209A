@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "itext",
+      "pdf-generation",
+      "html-to-pdf",
+      "xmlworker"
+    ],
+    "owner": {
+      "account_id": 16979778,
+      "reputation": 9,
+      "user_id": 12282078,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/fc36f66aabb604bf177fc6d12339d114?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Ansh Bargoti",
+      "link": "https://stackoverflow.com/users/12282078/ansh-bargoti"
+    },
+    "is_answered": false,
+    "view_count": 111,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1752421346,
+    "creation_date": 1752212173,
+    "last_edit_date": 1752421346,
+    "question_id": 79697873,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79697873/itext-xmlworker-pdf-generation-fails-with-invalid-nested-tag-tr-found-expecte",
+    "title": "iText XMLWorker: PDF generation fails with &quot;Invalid nested tag tr found, expected closing tag td&quot; when data contains special characters",
+    "body": "<p>I know this issue has come up before, but I haven't found any solutions that work.</p>\n<p>I'm using iText's XMLWorker to <strong>generate PDFs from HTML templates in a Java backend</strong>.\nRecently, I started getting this error:</p>\n<blockquote>\n<p>Invalid nested tag tr found, expected closing tag td</p>\n</blockquote>\n<p>But when i validate the html file using this <code>https://html.onlineviewer.net/</code>, it seems fine.</p>\n<p>Upon further debugging, I found that if any variable contains special characters (like &amp;), it breaks.\nFor example, passing &quot;T&amp;T&quot; in <code>$data.var1$</code> produces the error above. While, If I write &quot;T&amp;T TEST&quot;, it works fine.</p>\n<p>My questions:</p>\n<ol>\n<li>Is there a way to automatically escape all variables in the template, or do I need to manually escape every value before passing it to the template?</li>\n<li>Is there a setting in XMLWorker, StringTemplate, or elsewhere that can handle this automatically?</li>\n<li>What is the best practice for handling this, especially when there are many variables and it's hard to know which ones might contain special characters?</li>\n</ol>\n<p><strong>Error</strong></p>\n<pre><code>com.itextpdf.tool.xml.exceptions.RuntimeWorkerException: Invalid nested tag tr found, expected closing tag td.\n    at com.itextpdf.tool.xml.XMLWorker.endElement(XMLWorker.java:134)\n    at com.itextpdf.tool.xml.parser.XMLParser.endElement(XMLParser.java:403)\n    at com.itextpdf.tool.xml.parser.state.ClosingTagState.process(ClosingTagState.java:70)\n    at com.itextpdf.tool.xml.parser.XMLParser.parseWithReader(XMLParser.java:238)\n    at com.itextpdf.tool.xml.parser.XMLParser.parse(XMLParser.java:216)\n    at com.itextpdf.tool.xml.parser.XMLParser.parse(XMLParser.java:177)\n    at com.itextpdf.tool.xml.XMLWorkerHelper.parseXHtml(XMLWorkerHelper.java:238)\n    at com.itextpdf.tool.xml.XMLWorkerHelper.parseXHtml(XMLWorkerHelper.java:210)\n    at com.itextpdf.tool.xml.XMLWorkerHelper.parseXHtml(XMLWorkerHelper.java:183)\n    at com.ekart.citylogistics.docsvc.PDFGenerator.generatePdfDocumentFromStringTemplate(PDFGenerator.java:80)\n    at com.ekart.citylogistics.docsvc.PDFGenerator.generateFile(PDFGenerator.java:39)\n    at com.ekl.bifrost.hub.utils.FileUtil.generateFile(FileUtil.java:53)\n</code></pre>\n<p><strong>This is the code which generates the pdf</strong></p>\n<pre><code>    public static InputStream generateFile(Object data) {\n        DocumentGenerator documentGenerator = DocumentGeneratorFactory.getDocumentGenerator(DocumentType.PDF);\n        byte[] bytes = documentGenerator.generateFile(data, Constants.POD_TEMPLATE_ROOT_DIR,\n                Constants.POD_TEMPLATE_FILE_NAME, TemplateType.STRINGTEMPLATE);\n        InputStream inputStream = new ByteArrayInputStream(bytes);\n        return inputStream;\n    }\n</code></pre>\n<p><strong>And we're using this string template file</strong></p>\n<pre><code>&lt;html xmlns=&quot;http://www.w3.org/1999/xhtml&quot;&gt;\n&lt;head&gt;\n    &lt;title&gt;File needs to be shared&lt;/title&gt;\n    &lt;link href=&quot;{% get_service_url 'doc','stylesheets/reset.css' %}&quot; media=&quot;all&quot; rel=&quot;stylesheet&quot; type=&quot;text/css&quot; /&gt;\n    &lt;link href=&quot;{% get_service_url 'doc','stylesheets/margin.css' %}&quot; media=&quot;all&quot; rel=&quot;stylesheet&quot; type=&quot;text/css&quot; /&gt;\n    &lt;link href=&quot;{% get_service_url 'doc','stylesheets/padding.css' %}&quot; media=&quot;all&quot; rel=&quot;stylesheet&quot; type=&quot;text/css&quot; /&gt;\n    &lt;link href=&quot;{% get_service_url 'doc','stylesheets/fkl_base.css' %}&quot; media=&quot;all&quot; rel=&quot;stylesheet&quot;  type=&quot;text/css&quot; /&gt;\n    &lt;link href=&quot;{% get_service_url 'doc','stylesheets/utils.css' %}&quot; media=&quot;all&quot; rel=&quot;stylesheet&quot; type=&quot;text/css&quot; /&gt;\n    &lt;link href=&quot;{% get_service_url 'doc','stylesheets/print.css' %}&quot; media=&quot;print&quot; rel=&quot;stylesheet&quot; type=&quot;text/css&quot; /&gt;\n\n&lt;/head&gt;\n\n&lt;body&gt;\n&lt;div&gt;\n\n    &lt;div class=&quot;fk-text-center&quot; align=&quot;center&quot;&gt;&lt;b&gt;XYZ Private Limited&lt;/b&gt;&lt;/div&gt;\n    &lt;br /&gt;\n    &lt;div class=&quot;fk-text-center&quot; align=&quot;center&quot;&gt;Heading 1&lt;/div&gt;\n    &lt;br /&gt;\n    &lt;div class=&quot;fk-text-center&quot; align=&quot;center&quot;&gt;Heading 2&lt;/div&gt;\n    &lt;br /&gt;\n    &lt;div class=&quot;fk-text-center&quot; align=&quot;center&quot;&gt;Heading 3&lt;/div&gt;\n    &lt;br /&gt;&lt;br /&gt;\n\n    &lt;table border=&quot;0&quot;&gt;\n        &lt;tr&gt;\n            &lt;td&gt;&lt;b&gt;Var1:&lt;/b&gt;&lt;/td&gt;\n            &lt;td&gt;&lt;pre&gt;      &lt;/pre&gt;$data.var1$&lt;/td&gt;\n        &lt;/tr&gt;\n    &lt;/table&gt;\n    &lt;br /&gt;&lt;br /&gt;\n\n&lt;/div&gt;\n&lt;/body&gt;\n&lt;/html&gt;\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

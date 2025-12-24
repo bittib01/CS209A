@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jpa",
+      "jackson"
+    ],
+    "owner": {
+      "account_id": 10187542,
+      "reputation": 2735,
+      "user_id": 20692967,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/NZSXm.jpg?s=256",
+      "display_name": "Sergey Zolotarev",
+      "link": "https://stackoverflow.com/users/20692967/sergey-zolotarev"
+    },
+    "is_answered": false,
+    "view_count": 52,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1747773316,
+    "creation_date": 1747767784,
+    "last_edit_date": 1747768355,
+    "question_id": 79631018,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79631018/cycle-during-jackson-serialization",
+    "title": "Cycle during Jackson serialization",
+    "body": "<p>Suppose I have these entities:</p>\n<pre class=\"lang-java prettyprint-override\"><code>import jakarta.persistence.Entity;\nimport jakarta.persistence.GeneratedValue;\nimport jakarta.persistence.GenerationType;\nimport jakarta.persistence.Id;\nimport jakarta.persistence.OneToMany;\nimport jakarta.persistence.OneToOne;\nimport jakarta.persistence.Table;\nimport lombok.Getter;\nimport lombok.Setter;\n\n@Entity\n@Getter\n@Setter\n@Table(name = &quot;\\&quot;user\\&quot;&quot;)\npublic class User {\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n    private String name;\n    @OneToMany\n    private List&lt;EmailData&gt; emailData;\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>import jakarta.persistence.Column;\nimport jakarta.persistence.Entity;\nimport jakarta.persistence.GeneratedValue;\nimport jakarta.persistence.GenerationType;\nimport jakarta.persistence.Id;\nimport jakarta.persistence.ManyToOne;\nimport jakarta.persistence.Table;\nimport lombok.Getter;\nimport lombok.Setter;\n\n@Entity\n@Getter\n@Setter\n@Table(name = &quot;email_data&quot;)\npublic class EmailData {\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n    @ManyToOne\n    @JoinColumn(name = &quot;user_id&quot;)\n    private User user;\n    private String email;\n}\n</code></pre>\n<p>I also have a <code>PUT</code> endpoint that should return a user DTO. The DTO must contain emails. The DTO is serialized by Jackson into JSONs, as usual.</p>\n<p>How do I avoid a cycle between <code>UserDto</code> and <code>EmailData</code> when Jackson attempts to serialize it?</p>\n<p>I may create <code>EmailDataDto</code> for that specific purpose (in essence, <code>EmailData</code> without a link to <code>User</code>). Thus, <code>UserDto</code> would have a <code>List&lt;EmailDataDto&gt;</code> instead of <code>List&lt;EmailData&gt;</code>. However, imagine there are dozens of relations like that one. Would I have to create a similar DTO for each one? There must be a better way, I reckon.</p>\n<p>Here's what I tried:</p>\n<pre class=\"lang-java prettyprint-override\"><code>import com.example.pixel_user_api.data.entity.EmailData;\nimport com.example.pixel_user_api.data.entity.PhoneData;\nimport com.fasterxml.jackson.annotation.JsonManagedReference;\nimport lombok.Getter;\nimport lombok.Setter;\n\nimport java.util.List;\n\n@Getter\n@Setter\npublic class UserRequestDto {\n\n    private Long id;\n    private String name;\n    @JsonManagedReference\n    private List&lt;EmailData&gt; emailData;\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>// EmailData\n    @ManyToOne\n    @JoinColumn(name = &quot;user_id&quot;)\n    @JsonBackReference // added this\n    private User user;\n</code></pre>\n<p>Result DTO:</p>\n<pre class=\"lang-json prettyprint-override\"><code>{\n  &quot;id&quot;: 0,\n  &quot;name&quot;: &quot;string&quot;,\n  &quot;emailData&quot;: [\n    {\n      &quot;id&quot;: 0,\n      &quot;user&quot;: {\n        &quot;id&quot;: 0,\n        &quot;name&quot;: &quot;string&quot;,\n        &quot;emailData&quot;: [\n          &quot;string&quot;\n        ],\n      },\n      &quot;email&quot;: &quot;string&quot;\n    }\n  ]\n}\n</code></pre>\n<p>Emails &quot;datas&quot; still have references to users. I expected something like this – no serialization of back references.</p>\n<pre class=\"lang-json prettyprint-override\"><code>{\n  &quot;id&quot;: 0,\n  &quot;name&quot;: &quot;string&quot;,\n  &quot;emailData&quot;: [\n    {\n      &quot;id&quot;: 0,\n      &quot;email&quot;: &quot;string&quot;\n    }\n  ]\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

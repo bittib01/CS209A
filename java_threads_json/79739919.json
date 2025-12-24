@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "encryption",
+      "tls1.3",
+      "ecdh",
+      "hkdf"
+    ],
+    "owner": {
+      "account_id": 43558369,
+      "reputation": 31,
+      "user_id": 31300293,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/53qDmWwH.png?s=256",
+      "display_name": "whynotjava",
+      "link": "https://stackoverflow.com/users/31300293/whynotjava"
+    },
+    "is_answered": false,
+    "view_count": 42,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1758674163,
+    "creation_date": 1755608013,
+    "last_edit_date": 1758674163,
+    "question_id": 79739919,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79739919/tls-key-schedule-is-failing-via-server-handshake-traffic-secret",
+    "title": "TLS Key Schedule is failing via Server_Handshake_traffic_secret",
+    "body": "<p>I am making a minimal TLS 1.3/HTTPS server in Java using only Sockets.</p>\n<p>I have already created a ClientHello parser and a ServerHello. When testing with OpenSSL the ServerHello is accepted, but when its time for encrypted extension it fails. After debugging with the flag <code>-keylogfile</code> I came to the conclusion that the &quot;Server_Handshake_Traffic_Secret&quot; is not the same on the server(me) and the client(OpenSSL).</p>\n<p>I have gone through every part related to the Key Schedule, Transcipt_Hash, Shared_Secret, HKDF Functions(Expand and Extract), HkdfLabel, Context, Length, Salt vs IKM, and AAD(for AES/GCM). I have triple checked everything 100 times.</p>\n<p>HkdfLabel.</p>\n<pre class=\"lang-java prettyprint-override\"><code>public static byte[] expandLabel(byte[] secret, String label, byte[] context, int length)\n  throws NoSuchAlgorithmException, InvalidKeyException {\n\n  // Prefix the label with &quot;tls13 &quot; as per TLS 1.3 spec\n  String fullLabel = &quot;tls13 &quot; + label;\n  byte[] labelBytes = fullLabel.getBytes(StandardCharsets.UTF_8);\n  byte[] contextBytes = (context != null) ? context : new byte[0];\n\n  // Total length of the label structure\n  int hkdfLabelLength = 2 + 1 + labelBytes.length + 1 + contextBytes.length;\n\n  if (labelBytes.length &lt; 7 || labelBytes.length &gt; 255) {\n    throw new IllegalArgumentException(&quot;Label length must be between 7 and 255 bytes&quot;);\n  }\n  if (contextBytes.length &gt; 255) {\n    throw new IllegalArgumentException(&quot;Context length must be between 0 and 255 bytes&quot;);\n  }\n\n  ByteBuffer buffer = ByteBuffer.allocate(hkdfLabelLength);\n\n  // Set byte order to BIG_ENDIAN for TLS 1.3 spec compliance\n  // buffer.order(ByteOrder.BIG_ENDIAN);\n\n  // Write the output length (uint16)\n  buffer.putShort((short) length);\n\n  // Write the label length (uint8) and the label bytes\n  buffer.put((byte) labelBytes.length);\n  buffer.put(labelBytes);\n\n  // Write the context length (uint8) and the context bytes\n  buffer.put((byte) contextBytes.length);\n  buffer.put(contextBytes);\n\n  byte[] hkdfLabel = buffer.array();\n  return expand(secret, hkdfLabel, length);\n}\n</code></pre>\n<p>ECDH/SharedSecret.</p>\n<pre class=\"lang-java prettyprint-override\"><code>NamedParameterSpec paramSpec = new NamedParameterSpec(&quot;X25519&quot;);\nECGenParameterSpec ecSpec = new ECGenParameterSpec(&quot;X25519&quot;);\n\nKeyFactory kf = KeyFactory.getInstance(&quot;X25519&quot;);\nXECPublicKeySpec clientPublicKeySpec = new XECPublicKeySpec(paramSpec,\n  new BigInteger(1, clientPubKey));\nXECPublicKey clientPublicKey = (XECPublicKey) kf.generatePublic(clientPublicKeySpec);\n\nXECPrivateKey secretKey = (XECPrivateKey) key.getPrivate();\n\nKeyAgreement ka = KeyAgreement.getInstance(&quot;X25519&quot;);\nka.init(secretKey);\nka.doPhase(clientPublicKey, true);\nbyte[] sharedSecret = ka.generateSecret();\n</code></pre>\n<p>Key Schedule.</p>\n<pre class=\"lang-java prettyprint-override\"><code>KeySchedule ks = new KeySchedule();\n\nks.early_secret = HKDF.extract(HKDF.zeros, HKDF.zeros);\nSystem.out.println(&quot;early_serect: &quot; + Hex.toHexString(ks.early_secret) + &quot; zeros length &quot;+ HKDF.zeros.length);\nks.derived_secret = HKDF.expandLabel(ks.early_secret, &quot;derived&quot;, null, 32);\n\nks.handshake_secret = HKDF.extract(ks.derived_secret, sharedSecret);\n// ks.handshake_secret = HKDF.extract(sharedSecret, ks.derived_secret);\n\nks.server_handshake_traffic_secret = HKDF.expandLabel(ks.handshake_secret, &quot;s hs traffic&quot;,trascriptHash, 32);// &lt;------ this is the problem\nks.client_handshake_traffic_secret = HKDF.expandLabel(ks.handshake_secret, &quot;c hs traffic&quot;,trascriptHash, 32);\n</code></pre>\n<p>I have I simple implementation of HKDF (Extract and Expand) using Bouncy Castle HMAC and tested with the first test case from the RFC5869. Test case not here, but working.</p>\n<pre class=\"lang-java prettyprint-override\"><code>public static byte[] extract(byte[] salt, byte[] ikm)\n            throws NoSuchAlgorithmException, InvalidKeyException {\n        if (salt == null || salt.length == 0) {\n            // If salt is not provided, use a string of HashLen zeros\n            salt = new byte[32]; // 32 for SHA-256\n        }\n\n        Mac mac = Mac.getInstance(HMAC_ALGORITHM);\n        mac.init(new SecretKeySpec(salt, HMAC_ALGORITHM));\n        return mac.doFinal(ikm); // PRK\n    }\n\n    // HKDF-Expand(PRK, info, length)\n    public static byte[] expand(byte[] prk, byte[] info, int outputLength)\n            throws NoSuchAlgorithmException, InvalidKeyException {\n        int hashLen = 32; // for SHA-256\n        int n = (int) Math.ceil((double) outputLength / hashLen);\n        if (n &gt; 255) {\n            throw new IllegalArgumentException(&quot;Cannot expand to more than 255 blocks&quot;);\n        }\n\n        byte[] okm = new byte[outputLength];\n        byte[] previousT = new byte[0];\n        Mac mac = Mac.getInstance(HMAC_ALGORITHM);\n        mac.init(new SecretKeySpec(prk, HMAC_ALGORITHM));\n\n        int offset = 0;\n        for (int i = 1; i &lt;= n; i++) {\n            mac.reset();\n            mac.update(previousT);\n            if (info != null) {\n                mac.update(info);\n            }\n            mac.update((byte) i);\n            previousT = mac.doFinal();\n            int toCopy = Math.min(hashLen, outputLength - offset);\n            System.arraycopy(previousT, 0, okm, offset, toCopy);\n            offset += toCopy;\n        }\n\n        return okm;\n    }\n</code></pre>\n<p><a href=\"https://datatracker.ietf.org/doc/html/rfc8446\" rel=\"nofollow noreferrer\">RFC 8446(TLS1.3 docs)</a>.</p>\n<p><a href=\"https://github.com/WeirdandWhistle/Chatty/tree/main/Chatty/src/lib\" rel=\"nofollow noreferrer\">REPO</a>.</p>\n<p>Update: cant get TLS 1.3 test vector to work in java</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "xpages"
+    ],
+    "owner": {
+      "account_id": 4329929,
+      "reputation": 706,
+      "user_id": 3535729,
+      "user_type": "registered",
+      "accept_rate": 61,
+      "profile_image": "https://i.sstatic.net/EQf0g.jpg?s=256",
+      "display_name": "Malin",
+      "link": "https://stackoverflow.com/users/3535729/malin"
+    },
+    "is_answered": false,
+    "view_count": 88,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1760511935,
+    "creation_date": 1760447646,
+    "question_id": 79790212,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79790212/how-to-implement-xpages-fileupload-control-multiple-files-option",
+    "title": "How to implement XPages FileUpload control multiple files option",
+    "body": "<p>I have added the attribute to allow multiple file selections in the file upload control as described here:</p>\n<p><a href=\"https://domino-ideas.hcltechsw.com/ideas/DDXP-I-431\" rel=\"nofollow noreferrer\">https://domino-ideas.hcltechsw.com/ideas/DDXP-I-431</a></p>\n<p>When I select more than 1 file the control states that multiple files have been selected.</p>\n<p>For the control I have added a custom button that I have bound to a java managed bean class:</p>\n<pre><code>&lt;xp:button \n    id=&quot;btnSaveFile&quot; \n    styleClass=&quot;btnSaveFile&quot; \n    disabled=&quot;true&quot;&gt;\n    &lt;xp:this.attrs&gt;\n        &lt;xp:attr name=&quot;data-placement&quot; value=&quot;bottom&quot; /&gt;\n        &lt;xp:attr name=&quot;data-toggle&quot; value=&quot;tooltip&quot; /&gt;\n        &lt;/xp:this.attrs&gt;\n        &lt;xp:this.title&gt;&lt;![CDATA[#{javascript:xptI18NBean.getValue(&quot;case.help&quot;)}]]&gt;&lt;/xp:this.title&gt;\n        &lt;xp:this.value&gt;&lt;![CDATA[#{javascript:xptI18NBean.getValue(&quot;case. attachment&quot;)}]]&gt;&lt;/xp:this.value&gt;\n        &lt;i class=&quot;fa fa-upload&quot; aria-hidden=&quot;true&quot; /&gt;\n                        &amp;#160;\n        &lt;xp:eventHandler \n            event=&quot;onclick&quot; \n            submit=&quot;true&quot; \n            refreshMode=&quot;partial&quot; \n            onError=&quot;console.log('onerror')&quot; \n            onStart=&quot;console.log('onstart')&quot; \n            refreshId=&quot;pnlFiles&quot;&gt;\n        &lt;xp:this.action&gt;&lt;![CDATA[#{javascript:attachmentBean.save(compositeData.ref,compositeData.key, compositeData.copyFields);}]]&gt;&lt;/xp:this.action&gt;\n    &lt;/xp:eventHandler&gt;\n&lt;/xp:button&gt;\n</code></pre>\n<p>Here is the save method in the attachmentBean java class:</p>\n<pre><code>private UploadedFile uploadedFile;\n\npublic void save(String parentId, String type, String fields) { \n    try {\n        IUploadedFile iUploadedFile = null;\n        if (null != uploadedFile) {\n            iUploadedFile = uploadedFile.getUploadedFile();\n        }\n        if (null != iUploadedFile) {\n            attachmentCrud.save(parentId, type, fields, iUploadedFile);\n        }           \n    } catch (Exception e) {\n        //\n    }       \n}\n</code></pre>\n<p>The save method that is called does the beef. However instead of multiple files it only saves 1 file since I</p>\n<pre><code>@Override\n    public void save(String parentId, String type, String fields, IUploadedFile iUploadedFile) {        \n        try {\n            if (null != iUploadedFile) {\n                Session sess = Factory.getSession(SessionType.CURRENT);         \n                Database db = sess.getDatabase(null, filePath + fileName);\n                if (null != db) {\n                    if (db.isOpen()) {\n                        String fieldName = null;\n                        //get the original filename                     \n                        String tempClientFile = iUploadedFile.getClientFileName();\n                        system.print.outline(&quot;# iUploadedFile - getClientFileName: &quot; + iUploadedFile.getClientFileName());\n                        system.print.outline(&quot;# iUploadedFile - getServerFileName:  &quot; + iUploadedFile.getServerFileName());\n                        system.print.outline(&quot;# iUploadedFile - getContentType:  &quot; + iUploadedFile.getContentType());\n                        system.print.outline(&quot;# iUploadedFile - getContentLength:  &quot; + iUploadedFile.getContentLength());\n\n                        //get the &quot;&quot; file (with a cryptic filename)\n                        File tempFile = iUploadedFile.getServerFile();  \n</code></pre>\n<p>The problem relies at I forward the UploadedFile object:</p>\n<p>private UploadedFile uploadedFile;</p>\n<p>This can represent to my belief only a single file object. And I cannot find a multiple file object in its representing class:\n<a href=\"https://public.dhe.ibm.com/software/dw/lotus/Domino-Designer/JavaDocs/DesignerAPIs/index.html?com/ibm/xsp/component/xp/XspFileUpload.html\" rel=\"nofollow noreferrer\">https://public.dhe.ibm.com/software/dw/lotus/Domino-Designer/JavaDocs/DesignerAPIs/index.html?com/ibm/xsp/component/xp/XspFileUpload.html</a></p>\n<p>but then this v9 documentation and v12 multiple files option should be added but I can not find recent documentation about this?</p>\n<p>However I am able to call:</p>\n<pre><code>System.out.println(&quot;iUploadedFile.getClientFileNames() = &quot; + iUploadedFile.getClientFileNames());\nString[] tmpFiles= iUploadedFile.getClientFileNames();\nfor (String s: tmpFiles) {           \n     //Do your stuff here\n    System.out.println(s); \n}\n</code></pre>\n<p>but this prints only a single file.</p>\n<p>The UploadedFile class only allows to get a single file:</p>\n<pre><code>iUploadedFile = uploadedFile.getUploadedFile();\n</code></pre>\n<p>Anyone knows how I can adapt my existing code to support upload of multiple files?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

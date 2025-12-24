@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "cryptography",
+      "bouncycastle",
+      "fips"
+    ],
+    "owner": {
+      "account_id": 33258629,
+      "reputation": 11,
+      "user_id": 25753955,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/4fc2025070d04c0bf7d82ad67df3ac57?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "user25753955",
+      "link": "https://stackoverflow.com/users/25753955/user25753955"
+    },
+    "is_answered": true,
+    "view_count": 1574,
+    "answer_count": 2,
+    "score": 1,
+    "last_activity_date": 1762288520,
+    "creation_date": 1725378484,
+    "last_edit_date": 1725472910,
+    "question_id": 78945143,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78945143/how-to-use-ml-kem-kyber-for-encrypting-data-using-publickey-and-decrypting-data",
+    "title": "How to use ML-KEM/Kyber for encrypting data using PublicKey and decrypting data using PrivateKey",
+    "body": "<p>I am learning how to use Post quantum cryptography with Java. The vendor implementation is provided by BouncyCastle version 1.78.1. In short, I'm using a  BouncyCastlePQCProvider to obtain a Key Pair of specification Kyber1024.</p>\n<pre><code>static\n    {\n        Security.addProvider(new BouncyCastleProvider());\n        Security.addProvider(new BouncyCastlePQCProvider());\n    }\n    \n    public static KeyPair generateKeyPair() {\n        try {\n            KeyPairGenerator kpg=KeyPairGenerator.getInstance(&quot;Kyber&quot;,&quot;BCPQC&quot;);\n            kpg.initialize(KyberParameterSpec.kyber1024);\n            return kpg.generateKeyPair();\n        } catch (Throwable t) {\n            t.printStackTrace();\n            throw new RuntimeException(t.getMessage(), t);\n        }\n    }\n    \n    public static byte[] encryptData(byte[] data, PublicKey publicKey)\n    {\n        Cipher cipher=null;\n        try\n        {\n            cipher=Cipher.getInstance(&quot;Kyber&quot;, &quot;BCPQC&quot;);\n            cipher.init(Cipher.ENCRYPT_MODE, publicKey);\n            return cipher.doFinal(data);\n        } catch (Throwable t) {\n            t.printStackTrace();\n            throw new RuntimeException(t.getMessage(), t);\n        }\n    }\n    \n    public static byte[] decryptData(byte[] encryptedData, PrivateKey privateKey)\n    {\n        Cipher cipher=null;\n        try\n        {\n            cipher=Cipher.getInstance(&quot;Kyber&quot;, &quot;BCPQC&quot;);\n            cipher.init(Cipher.DECRYPT_MODE, privateKey);\n            return cipher.doFinal(encryptedData);\n        } catch (Throwable t) {\n            t.printStackTrace();\n            throw new RuntimeException(t.getMessage(), t);\n        }\n    }\n    \n    public static void main(String[] args) {\n        KeyPair keyPair=generateKeyPair();\n        byte[] publicKeyData=keyPair.getPublic().getEncoded();\n        byte[] privateKeyData=keyPair.getPrivate().getEncoded();\n        String publicKeyHex=Hex.toHexString(publicKeyData);\n        String privateKeyHex=Hex.toHexString(privateKeyData);\n        System.out.println(&quot;Public key length &quot; + keyPair.getPublic().getEncoded().length + &quot; format &quot; + keyPair.getPublic().getFormat() + &quot; algorithm &quot; + keyPair.getPublic().getAlgorithm());\n        System.out.println(&quot;Public Key &quot;);\n        System.out.println(publicKeyHex);\n        System.out.println(&quot;Private key length &quot; + keyPair.getPrivate().getEncoded().length + &quot; format &quot; + keyPair.getPrivate().getFormat() + &quot; algorithm &quot; + keyPair.getPrivate().getAlgorithm());\n        System.out.println(&quot;Private Key &quot;);\n        System.out.println(privateKeyHex);\n        String message=&quot;Hello World!&quot;;\n        byte[] encryptedData=encryptData(message.getBytes(), keyPair.getPublic());\n        String encryptedDataStr=DatatypeConverter.printBase64Binary(encryptedData);\n        System.out.println(&quot;encrypted:&quot; + encryptedDataStr);\n        byte[] decryptedData=decryptData(encryptedData, keyPair.getPrivate());\n        String decrtyptedDataStr=new String(decryptedData);\n        System.out.println(&quot;decrypted:&quot; + decrtyptedDataStr);\n    }\n</code></pre>\n<p>However when running this code, getting some exceptions during encryption, getting Cipher only valid for wrapping/unwrapping exception</p>\n<p><code>java.security.InvalidParameterException: Cipher only valid for wrapping/unwrapping</code></p>\n<p>What am I doing wrong?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

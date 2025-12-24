@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "aws-sdk",
+      "cloudflare",
+      "cloudflare-r2"
+    ],
+    "owner": {
+      "account_id": 7531034,
+      "reputation": 2948,
+      "user_id": 5719229,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/6ce9838b80ca63bca34363ae64e500a1?s=256&d=identicon&r=PG",
+      "display_name": "Sercan Noyan Germiyanoğlu",
+      "link": "https://stackoverflow.com/users/5719229/sercan-noyan-germiyano%c4%9flu"
+    },
+    "is_answered": false,
+    "view_count": 175,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1760376079,
+    "creation_date": 1748360710,
+    "last_edit_date": 1760376079,
+    "question_id": 79640803,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79640803/how-to-fix-401-unauthorized-when-i-use-the-aws-sdk-with-cloudflare-r2-storage-in",
+    "title": "How to fix 401 Unauthorized when I use the AWS SDK with Cloudflare R2 Storage in Spring Boot example?",
+    "body": "<p>I have a problem about fixing <strong>401 Unauthorized</strong> issue when I upload a file through Cloudflare R2 Storage in my Spring Boot example.</p>\n<p>I get Token value, access key, secret key and jurisdiction-specific endpoints for S3 clients from Account API Tokens of R2 Storage.</p>\n<p><strong>Bucket</strong> name is stored in <strong>Eastern Europe (EEUR)</strong></p>\n<p>Here are the dependencies defined in <code>pom.xml</code>:</p>\n<pre><code>    &lt;dependency&gt;\n        &lt;groupId&gt;software.amazon.awssdk&lt;/groupId&gt;\n        &lt;artifactId&gt;s3&lt;/artifactId&gt;\n        &lt;version&gt;${cloudflare-aws-sdk-version}&lt;/version&gt;\n        &lt;scope&gt;compile&lt;/scope&gt;\n    &lt;/dependency&gt;\n\n    &lt;!-- AWS SDK’s Apache HTTP-client integration --&gt;\n    &lt;dependency&gt;\n        &lt;groupId&gt;software.amazon.awssdk&lt;/groupId&gt;\n        &lt;artifactId&gt;apache-client&lt;/artifactId&gt;\n        &lt;version&gt;${cloudflare-aws-sdk-version}&lt;/version&gt;\n    &lt;/dependency&gt;\n\n    &lt;!-- force the httpclient version to 4.5.13 --&gt;\n    &lt;dependency&gt;\n        &lt;groupId&gt;org.apache.httpcomponents&lt;/groupId&gt;\n        &lt;artifactId&gt;httpclient&lt;/artifactId&gt;\n        &lt;version&gt;${apache-httpclient.version}&lt;/version&gt;\n    &lt;/dependency&gt;\n</code></pre>\n<p>Here is the <code>application.yml</code> file:</p>\n<pre><code>cloudflare:\n  r2:\n    endpoint: https://&lt;account-id&gt;.r2.cloudflarestorage.com\n    accessKey: access-key\n    secretKey: secret-key\n    bucket: buckey-name\n</code></pre>\n<p>Here is the <code>CloudflareProperties</code> class:</p>\n<pre><code>@Getter\n@Setter\n@ConfigurationProperties(prefix = &quot;cloudflare.r2&quot;)\npublic class CloudflareProperties {\n    private String endpoint;\n    private String accessKey;\n    private String secretKey;\n}\n</code></pre>\n<p>This is the <code>CloudflareR2Config</code> class:</p>\n<pre><code>@Configuration\n@EnableConfigurationProperties(CloudflareProperties.class)\n@RequiredArgsConstructor\npublic class CloudflareR2Config {\n\n    private final CloudflareProperties cloudflareProperties;\n\n    @Bean\n    public S3Client s3Client() {\n\n        return S3Client.builder()\n                .httpClientBuilder(ApacheHttpClient.builder())\n                .region(Region.of(&quot;eeur&quot;))\n                .endpointOverride(URI.create(cloudflareProperties.getEndpoint()))\n                .credentialsProvider(StaticCredentialsProvider.create(\n                        AwsBasicCredentials.create(\n                                cloudflareProperties.getAccessKey(),\n                                cloudflareProperties.getSecretKey())))\n                .serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(true).build())\n                .build();\n    }\n\n}\n</code></pre>\n<p>And this is the service class:</p>\n<pre><code>@Service\n@RequiredArgsConstructor\npublic class MediaService {\n\n    private final S3Client s3Client;\n\n    @Value(&quot;${cloudflare.r2.bucket}&quot;)\n    private String bucket;\n\n    public String uploadFile(MultipartFile file) {\n\n        String originalFilename = Optional.ofNullable(file.getOriginalFilename())\n                .orElseThrow(() -&gt; new UnsupportedMediaTypeException(&quot;Filename is missing&quot;))\n                .toLowerCase();\n\n        String contentType = Optional.ofNullable(file.getContentType())\n                .orElseThrow(() -&gt; new UnsupportedMediaTypeException(&quot;Content-Type is unknown&quot;));\n\n        String folder = switch (getFileExtension(originalFilename)) {\n            case &quot;jpg&quot;, &quot;jpeg&quot;, &quot;png&quot; -&gt; &quot;images&quot;;\n            case &quot;mp4&quot;, &quot;mov&quot; -&gt; &quot;videos&quot;;\n            default -&gt; throw new UnsupportedMediaTypeException(&quot;Unsupported file type: &quot; + contentType);\n        };\n\n        String key = folder + &quot;/&quot; + UUID.randomUUID() + &quot;-&quot; + originalFilename;\n\n        PutObjectRequest putRequest = PutObjectRequest.builder()\n                .bucket(bucket)\n                .key(key)\n                .contentType(contentType)\n                .build();\n\n        try {\n            s3Client.putObject(putRequest, RequestBody.fromBytes(file.getBytes()));\n        } catch (IOException e) {\n            throw new FileUploadException(&quot;File upload to Cloudflare R2 failed&quot;, e);\n        }\n\n        return key;\n    }\n\n\n    private String getFileExtension(String filename) {\n        int lastDot = filename.lastIndexOf('.');\n        if (lastDot == -1 || lastDot == filename.length() - 1) {\n            throw new IllegalArgumentException(&quot;Invalid file extension in filename: &quot; + filename);\n        }\n        return filename.substring(lastDot + 1);\n    }\n}\n</code></pre>\n<p>This is the controller class:</p>\n<pre><code>@RestController\n@RequiredArgsConstructor\n@RequestMapping(&quot;/api/media&quot;)\npublic class MediaController {\n\n    private final MediaService mediaService;\n\n    @PostMapping(&quot;/upload&quot;)\n    public ResponseEntity&lt;String&gt; uploadImage(@RequestParam(&quot;file&quot;) MultipartFile file) {\n\n        String key = mediaService.uploadFile(file);\n        return ResponseEntity.ok(key);\n    }\n}\n</code></pre>\n<p>When I send a request to <code>localhost:7777/api/media/upload</code>, I got this error:</p>\n<pre><code>{\n    &quot;error&quot;: &quot;Internal Server Error&quot;,\n    &quot;message&quot;: &quot;Unauthorized (Service: S3, Status Code: 401, Request ID: null) (SDK Attempt Count: 1)&quot;\n}\n</code></pre>\n<p>How can I fix the issue?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

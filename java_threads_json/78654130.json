@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "jaxb",
+      "unmarshalling",
+      "oxm"
+    ],
+    "owner": {
+      "account_id": 367586,
+      "reputation": 801,
+      "user_id": 713872,
+      "user_type": "registered",
+      "accept_rate": 60,
+      "profile_image": "https://www.gravatar.com/avatar/87e9971420bcebc8457c0eab3957d09d?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Lucky",
+      "link": "https://stackoverflow.com/users/713872/lucky"
+    },
+    "is_answered": false,
+    "view_count": 58,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1719253086,
+    "creation_date": 1718997455,
+    "last_edit_date": 1719253086,
+    "question_id": 78654130,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78654130/jaxb-timestamp-xmladapter-not-working-while-unmarshalling",
+    "title": "Jaxb timestamp xmlAdapter not working while unmarshalling",
+    "body": "<p>I'm trying to unmarshall the given XML to the java object, everything except from the timestamp is populating. I wrote a custom xmlAdapter to parse the timestamp, but while debugging, it never stops there, neither it populates the field.</p>\n<pre><code>Example XML:\n`&quot;&lt;RootElement&gt;&quot; +\n    &quot;&lt;Id&gt;4&lt;/Id&gt;&quot; +\n    &quot;&lt;Number&gt;628&lt;/Number&gt;&quot; +\n    &quot;&lt;rId&gt;110080110&lt;/rId&gt;&quot; +\n    &quot;&lt;OrderNmbr&gt;1234&lt;/OrderNmbr&gt;&quot; +\n    &quot;&lt;Responses&gt;&quot; +\n    &quot;   &lt;Response&gt;&quot; +\n    &quot;       &lt;Date&gt;2016-10-21T12:56:19.549+05:30&lt;/Date&gt;&quot; +\n    &quot;       &lt;Premium&gt;1232131&lt;/Premium&gt;&quot; +\n            &quot;&lt;Income&gt;1231232&lt;/Income&gt;&quot; +\n            &quot;&lt;E1&gt;251345&lt;/E1&gt;&quot; +\n            &quot;&lt;E2&gt;7645233&lt;/E2&gt;&quot; +\n            &quot;&lt;Tags&gt;&quot; +\n            &quot;   &lt;Tag&gt;&quot; +\n            &quot;       &lt;timeStamp xsi:type=\\&quot;java:java.lang.String\\&quot; xmlns:xsi=\\&quot;http://www.w3.org/2001/XMLSchema-instance\\&quot;&gt;1970-01-10 02:07:36.453&lt;/timeStamp&gt;&quot; +\n            &quot;       &lt;Cd&gt;3425235&lt;/Cd&gt;&quot; +\n            &quot;       &lt;Cd1&gt;1&lt;/Cd1&gt;&quot; +\n            &quot;       &lt;ValText&gt;1&lt;/ValText&gt;&quot; +\n            &quot;       &lt;TokenId&gt;1234&lt;/TokenId&gt;&quot; +\n            &quot;   &lt;/Tag&gt;&quot; +\n            &quot;   &lt;Tag&gt;&quot; +\n            &quot;       &lt;timeStamp xsi:type=\\&quot;java:java.lang.String\\&quot; xmlns:xsi=\\&quot;http://www.w3.org/2001/XMLSchema-instance\\&quot;&gt;1970-01-10 02:07:36.453&lt;/timeStamp&gt;&quot; +\n            &quot;       &lt;Cd&gt;3425236&lt;/Cd&gt;&quot; +\n            &quot;       &lt;Cd1&gt;2&lt;/Cd1&gt;&quot; +\n            &quot;       &lt;ValText&gt;2&lt;/ValText&gt;&quot; +\n            &quot;       &lt;TokenId&gt;1235&lt;/TokenId&gt;&quot; +\n            &quot;   &lt;/Tag&gt;&quot; +\n            &quot;&lt;/Tags&gt;&quot; +\n        &quot;&lt;/Response&gt;&quot; +\n    &quot;&lt;/Responses&gt;&quot; +\n&quot;&lt;/RootElement&gt;&quot;;\n`\n//classes in my project.\n\n`@XmlRootElement(name = &quot;RootElement&quot;)\npublic class ExampleClass {\n\n@XmlElement(name = &quot;Id&quot;)\nprotected String pId;\n@XmlElement(name = &quot;Number&quot;)\nprotected Integer cNumber;\nprotected Integer rId;\nprotected String orderNmbr;\n@XmlElementWrapper(name = &quot;responses&quot;)\n@XmlElement(name = &quot;Response&quot;)\nprotected List&lt;Response&gt; responses;\n// Getters and setters\n        \npublic class Response {\n\nprotected Date date;                    \nprotected BigDecimal premium;       \nprotected BigDecimal income;            \nprotected BigDecimal e1;                    \nprotected BigDecimal e2;                    \nprotected List&lt;Tag&gt; tags;\n// Getters and setters\n    \n        \npublic class Tag {\n\n@XmlElement(name = &quot;timeStamp&quot;, namespace = &quot;http://www.w3.org/2001/XMLSchema-instance&quot;, type =  String.class)\n@XmlJavaTypeAdapter(CustomTimeStampAdapter.class)\nprotected Timestamp timeStamp;\nprotected Integer cd;\nprotected Integer cd1;\nprotected String valText;\nprotected String tokenId;\n// Getters and setters\n`\n\n//here is my custom adapter.\n`public class CustomTimeStampAdapter extends XmlAdapter&lt;String, Timestamp&gt; {\n\n\n/**\n * Convert a value type to a bound type.\n *\n * @param timeStamp The value to be converted. Can be null.\n * @throws Exception if there's an error during the conversion. The caller is responsible for\n *                   reporting the error to the user through {@link ValidationEventHandler}.\n */\n@Override\npublic Timestamp unmarshal(String timeStamp) throws Exception {\n    if (StringUtils.isBlank(timeStamp)) {\n        return null;\n    }\n    return Timestamp.valueOf(timeStamp.trim());\n}\n\n/**\n * Convert a bound type to a value type.\n *\n * @param timeStamp The value to be convereted. Can be null.\n * @throws Exception if there's an error during the conversion. The caller is responsible for\n *                   reporting the error to the user through {@link ValidationEventHandler}.\n */\n@Override\npublic String marshal(Timestamp timeStamp) throws Exception {\n    return timeStamp.toString();\n}\n}`\n\n//bean for jaxb\n`@Bean(name = &quot;jaxb2Marshaller&quot;)\npublic Jaxb2Marshaller getJaxb2Marshaller() {\n    Jaxb2Marshaller jaxb2Marshaller = new Jaxb2Marshaller();\n    jaxb2Marshaller.setClassesToBeBound(\n            //all the classes the context needs to know about\n       ExampleClass.class, Response.class, Tag.class);\n\n    return jaxb2Marshaller;\n}`\n</code></pre>\n<p>All the elements are populating except for &quot;timeStamp&quot;. What am I missing? Please Help!</p>\n<p>Update: -\nWhile testing, I tried removing the &quot;xsi:type=&quot;java:java.lang.String&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; from the timestamp node, and the debugger stops at CustomTimeStampAdapter, and I'm able to convert the timestamp string to TimeStamp. So I'm missing something with the namespace. Will continue digging.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

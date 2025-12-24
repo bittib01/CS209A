@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "pdfbox",
+      "digital-signature"
+    ],
+    "owner": {
+      "account_id": 16075330,
+      "reputation": 1,
+      "user_id": 11602669,
+      "user_type": "registered",
+      "profile_image": "https://lh4.googleusercontent.com/-D7YTOZtampw/AAAAAAAAAAI/AAAAAAAAAAA/ACHi3re5RLf-cWS5A5r0fRTjISTqw19z9Q/mo/s256-rj/photo.jpg",
+      "display_name": "dtr",
+      "link": "https://stackoverflow.com/users/11602669/dtr"
+    },
+    "is_answered": false,
+    "view_count": 117,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1750597527,
+    "creation_date": 1744292896,
+    "question_id": 79566835,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79566835/how-to-add-multiple-visible-signature-stamps-to-a-document-using-pdfbox-while-ma",
+    "title": "How to add multiple visible signature stamps to a document using PDFBox while maintaining 1 valid digital signature",
+    "body": "<p>I am trying to implement a solution using PDFBox (version 2.0.24) that allows adding multiple visual signature stamps while maintaining a valid digital signature. This is based on the requirement that users need to see the signatures on the pages after signing has been performed once. <a href=\"https://drive.google.com/file/d/1CX5699EkDmgy4wPmoc0UwSJHbVRcXbuu/view?usp=sharing\" rel=\"nofollow noreferrer\">This attached signed PDF</a> is the expectation output performed by skribble.</p>\n<p>There is <a href=\"https://stackoverflow.com/a/79504390\">similar solution from mkl</a>but the output does not meet my requirements because each visible signature has its own valid signature field (<code>rev</code>), which appears separately in the signature panel of Adobe Reader.</p>\n<p>I tried the approach below that allows only one signatureField and its widget is created and provided for <code>addSignatureField</code>. This approach based on the previously mentioned solution, but it seems the library does not behave correctly. All the visual signature stamps end up sharing the same location, even though different positions are specified for different pages. Additionally, when placing multiple visible signatures on the same page, only the last one is visible.</p>\n<pre class=\"lang-java prettyprint-override\"><code>PDSignature pdSignature = new PDSignature();\n...\nthis.pdDocument.addSignature(pdSignature);\nremoveSignatureField(acroForm, pdSignature);\n\nPDSignatureField signatureField = new PDSignatureField(acroForm);\nsignatureField.setValue(pdSignature);\nPDAnnotationWidget widget = signatureField.getWidgets().get(0);\nfor (SignatureDefinition signatureDefinition : this.signatureDefinitions) {\n    ...\n    addSignatureField(signatureField, widget, this.pdDocument, pdPage, rect, pdSignature);\n}\n</code></pre>\n<p>Adjustment on <code>addSignatureField</code> method</p>\n<pre class=\"lang-java prettyprint-override\"><code>void addSignatureField(PDSignatureField signatureField, PDAnnotationWidget widget, PDDocument pdDocument, PDPage pdPage, PDRectangle rectangle, PDSignature signature) throws IOException {\n  PDAcroForm acroForm = pdDocument.getDocumentCatalog().getAcroForm();\n  List&lt;PDField&gt; acroFormFields = acroForm.getFields();\n\n  // PDSignatureField signatureField = new PDSignatureField(acroForm);\n  // signatureField.setValue(signature);\n  PDAnnotationWidget widget = signatureField.getWidgets().get(0);\n  acroFormFields.add(signatureField);\n\n  widget.setRectangle(rectangle);\n  widget.setPage(pdPage);\n  ...\n</code></pre>\n<p>Is there an appropriate way to achieve the expected output using PDFBox?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

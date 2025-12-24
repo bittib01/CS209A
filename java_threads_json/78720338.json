@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "memory",
+      "memory-leaks",
+      "overflow"
+    ],
+    "owner": {
+      "account_id": 16887828,
+      "reputation": 1,
+      "user_id": 12212159,
+      "user_type": "registered",
+      "profile_image": "https://lh4.googleusercontent.com/-Vxoei0lQ8TE/AAAAAAAAAAI/AAAAAAAAAAA/ACHi3rdFKO2GVDU7NvygsbZjAlf1xJNQkA/s256-rj/photo.jpg",
+      "display_name": "开心每一天",
+      "link": "https://stackoverflow.com/users/12212159/%e5%bc%80%e5%bf%83%e6%af%8f%e4%b8%80%e5%a4%a9"
+    },
+    "is_answered": true,
+    "view_count": 168,
+    "accepted_answer_id": 79316676,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1735525574,
+    "creation_date": 1720434816,
+    "last_edit_date": 1722605676,
+    "question_id": 78720338,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78720338/springboot-application-memory-consistently-exceeds-jvm-configured-heap-size",
+    "title": "SpringBoot application memory consistently exceeds JVM configured heap size",
+    "body": "<p>Spring Boot application memory usage continues to exceed the JVM configured heap size without overflow errors, RES usage is approaching 5G when viewed with the top command.</p>\n<p>My application is deployed on Linux, the frameworks used in the project are spring-rabbit (version 2.3.11) with kafka-clients (2.7.1) and spring-kafka (2.7.8). The project has a single HTTP interface, and the code inside the interface is used in the following way:</p>\n<pre class=\"lang-java prettyprint-override\"><code>private final KafkaTemplate&lt;String, String&gt; kafkaTemplate;\nprivate final RabbitTemplate rabbitTemplate;\nrabbitTemplate.convertAndSend(&quot;cloud&quot;, &quot;ctrlLog&quot;, data);\nkafkaTemplate.send(BIG_DATA_TOPIC, data);\n</code></pre>\n<p>JVM Configuration:</p>\n<ul>\n<li>java Virtual Machine Specification 1.8</li>\n<li>Heap memory settings: <code>-Xms3072m -Xmx3072m</code></li>\n<li>Metaspace settings: <code>-XX:MetaspaceSize=128M -XX:MaxMetaspaceSize=512M</code></li>\n<li>GC settings: <code>-XX:+UseG1GC -XX:+UseCMSCompactAtFullCollection -XX:CMSInitiatingOccupancyFraction=70</code></li>\n<li>Other parameters: <code>-XX:NativeMemoryTracking=detail -XX:LargePageSizeInBytes=128M</code></li>\n</ul>\n<p>Tried by myself, -XX:NativeMemoryTracking=detail export file analysis and dump file analysis, but did not find the problem, after a few days through the <code>jcmd pid VM.native_memory detail.diff scale=MB</code> found to be</p>\n<pre class=\"lang-none prettyprint-override\"><code>[0x00007f32dc1cf5ea] JNIHandleBlock::allocate_block(Thread*)+0xaa\n[0x00007f32dc163dda] JavaCallWrapper::JavaCallWrapper(methodHandle, Handle, JavaValue*, Thread*)+0x6a\n[0x00007f32dc166840] JavaCalls::call_helper(JavaValue*, methodHandle*, JavaCallArguments*, Thread*)+0x8f0\n[0x00007f32dc1debf4] JVM_DoPrivileged+0x4f4\n                             (malloc=1049MB type=Internal +456MB #3526800 +1531841)\n</code></pre>\n<p>But I don't really understand where the leak occurs.</p>\n<p>Documents exported in connection with your own analysis of the problem.</p>\n<ul>\n<li><a href=\"https://e.pcloud.link/publink/show?code=XZ4V0gZVjpa5jH5bof16VFibxttrVegX5PX\" rel=\"nofollow noreferrer\">https://e.pcloud.link/publink/show?code=XZ4V0gZVjpa5jH5bof16VFibxttrVegX5PX</a></li>\n<li><a href=\"https://mega.nz/file/cXNwDa5a#YOHyWgp1X4bXlFsQ9ORCk9NioOelQG3CoJbyq98GajQ\" rel=\"nofollow noreferrer\">https://mega.nz/file/cXNwDa5a#YOHyWgp1X4bXlFsQ9ORCk9NioOelQG3CoJbyq98GajQ</a></li>\n</ul>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

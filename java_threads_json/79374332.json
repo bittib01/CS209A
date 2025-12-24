@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "project-reactor",
+      "spring-data-mongodb-reactive"
+    ],
+    "owner": {
+      "account_id": 6776305,
+      "reputation": 15,
+      "user_id": 5218352,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/7f730e5f84f3036697b6ad939f5ac99c?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "invalid",
+      "link": "https://stackoverflow.com/users/5218352/invalid"
+    },
+    "is_answered": true,
+    "view_count": 109,
+    "accepted_answer_id": 79374816,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1743110523,
+    "creation_date": 1737460956,
+    "last_edit_date": 1742948614,
+    "question_id": 79374332,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79374332/process-reactive-query-result-concurrently",
+    "title": "process reactive query result concurrently",
+    "body": "<p>I need to iterate over a massive query result and perform some business logic on each entity. The database is connected with Spring Data Mongo Reactive so I get a Flux&lt;Entity&gt;.<br />\nThe simple implementation would be:</p>\n<pre><code>Query query = new Query();\nquery.withReadPreference(ReadPreference.secondary());\n\nreactiveMongoTemplate.find(query, Entity.class)\n    .flatMap(this::processEntity)\n    .doOnError(e -&gt; log.error(&quot;there was an error&quot;, e))\n    .doOnComplete(() -&gt; doSomethingWhenEverythingIsDone())\n    .subscribe();\n</code></pre>\n<p>But this would take too much time. I can process each entity individually so why not process them concurrently? But I cant get that to work properly, its not using more resources nor increasing processing speed.</p>\n<p>I tried using a parallelFlux with runOn Schedulers.paralllel().<br />\nCurrent implementation:</p>\n<pre><code>Query query = new Query();\n    query.cursorBatchSize(properties.getDatabaseCursorBatchsizePerThread() * properties.getParallelism());\n        query.withReadPreference(ReadPreference.secondary());\n\nreactiveMongoTemplate.find(query, Entity.class)\n    .parallel(properties.getParallelism(), properties.getDatabaseCursorBatchsizePerThread())\n    .runOn(Schedulers.parallel())\n    .flatMap(this::processEntity)\n    .doOnError(e -&gt; log.error(&quot;there was an error&quot;, e))\n    .sequential()\n    .doOnComplete(() -&gt; doSomethingWhenEverythingIsDone())\n    .subscribe();\n</code></pre>\n<p>I could not get any performance improvements from this code.<br />\nIm familiar with project reactor but new to parallel compute with the framework.<br />\nI suspect that Im waiting for something that I dont want to wait for.<br />\nCan you help me fix the concurrency?<br />\nIm not sure what the right approach is for this case.<br />\nIm neither database nor network limited, Im monitoring those closely.</p>\n<p>Thank you for the help</p>\n<p>PS:\nI dont use the return value of the processEntity method, instead I just flatMap to Mono.empty(). I dont use a doOnNext because the consumer is notified first, which causes issues if you expect the processing of all doOnNext to be completed. The flatMap fixed this issue for me.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

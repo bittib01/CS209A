@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "postgresql",
+      "kotlin",
+      "hibernate"
+    ],
+    "owner": {
+      "account_id": 25939300,
+      "reputation": 151,
+      "user_id": 19659058,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/b5792eba96ccc54b7ceed52701ab0f36?s=256&d=identicon&r=PG",
+      "display_name": "gearbase",
+      "link": "https://stackoverflow.com/users/19659058/gearbase"
+    },
+    "is_answered": true,
+    "view_count": 250,
+    "accepted_answer_id": 79810478,
+    "answer_count": 3,
+    "score": 3,
+    "last_activity_date": 1762524591,
+    "creation_date": 1762041770,
+    "question_id": 79806877,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79806877/save-and-get-large-objects-blob-to-postgresql-using-hibernate-and-spring-data",
+    "title": "Save and get large objects (BLOB) to postgresql using hibernate and Spring Data JPA",
+    "body": "<p>experts!</p>\n<p>I encountered the following problem: when trying to read a large file from a PostgreSQL database in a Spring Boot application using the Spring Data JPA framework, all the data is loaded into memory, even though the Blob class specification says <a href=\"https://docs.oracle.com/en/java/javase/17/docs/api/java.sql/java/sql/Blob.html\" rel=\"nofollow noreferrer\">otherwise</a>:</p>\n<p><code>By default drivers, implement Blob using an SQL locator (BLOB), which means that a Blob object contains a logical pointer to the SQL BLOB data rather than the data itself.</code></p>\n<p>Details below:</p>\n<pre class=\"lang-kotlin prettyprint-override\"><code>@RestController\nclass LargeFileController(\n    val fileRepo: FileContentRepo\n) {\n    @PostMapping(&quot;/file&quot;, consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])\n    fun saveFile(@RequestBody file: MultipartFile) {\n        fileRepo.save(LargeFileContent(file))\n    }\n\n    @GetMapping(&quot;/file/{id}&quot;, produces = [MediaType.APPLICATION_OCTET_STREAM_VALUE])\n    @Transactional\n    fun getFileById(@PathVariable(&quot;id&quot;) id: Long): InputStreamResource {\n        val file = fileRepo.findById(id).orElseThrow()\n        // Here I see that all the data is stored in memory (regardless of file size) \n        // in the InputStream buffer (in the screenshot below) \n        // If I turn off the database at this point, I still have access to the entire contents of the file.\n        val content = file.content\n\n        return InputStreamResource {\n            file.content.binaryStream\n        }\n    }\n}\n\n@Entity\n@Table(name = &quot;file_content&quot;)\nclass LargeFileContent (\n    @Column(nullable = false)\n    @Lob\n    @JdbcTypeCode(java.sql.Types.BINARY)\n    val content: Blob,\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    val id: Long?=null,\n) {\n    constructor(file: MultipartFile) : this(\n        content = BlobProxy.generateProxy(file.inputStream, file.size)\n    )\n}\n\n@Repository\ninterface FileContentRepo: JpaRepository&lt;LargeFileContent, Long&gt; {\n}\n</code></pre>\n<p><a href=\"https://i.sstatic.net/QsYPp1gn.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/QsYPp1gn.png\" alt=\"All data saved in buf\" /></a></p>\n<p>My idea was to save the InputStream from the database to a temporary file on disk and then return the InputStream from that file to the client (so as not to hold up the database connection while the client reads). Is it possible to read the data from the Blob in chunks, rather than loading the entire contents into memory at once?</p>\n<p>Thanks in advance for your answers!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

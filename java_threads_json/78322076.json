@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "configuration",
+      "java-record"
+    ],
+    "owner": {
+      "account_id": 25080079,
+      "reputation": 67,
+      "user_id": 18932947,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/74aadd65c3ca32231482085b2aa5ed58?s=256&d=identicon&r=PG",
+      "display_name": "Alexxxx",
+      "link": "https://stackoverflow.com/users/18932947/alexxxx"
+    },
+    "is_answered": true,
+    "view_count": 1852,
+    "accepted_answer_id": 78323001,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1714657092,
+    "creation_date": 1713043806,
+    "last_edit_date": 1714657092,
+    "question_id": 78322076,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78322076/java-17-record-and-configurationproperties-are-not-working",
+    "title": "Java 17 Record and ConfigurationProperties are not working",
+    "body": "<p>I hope is there someone who could help me to understand this error.</p>\n<h2>My problem</h2>\n<p>I have a problem usign Record with @ConfigurationProperties:\nwhen I start the application I get this error:</p>\n<pre><code>Caused by: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'environmentConstants' defined in file [C:\\Workspace-IntelliJ\\TEST\\record-configuration-properties-test\\target\\classes\\it\\test\\recordconfigurationpropertiestest\\model\\EnvironmentConstants.class]: Unsatisfied dependency expressed through constructor parameter 0: No qualifying bean of type 'java.lang.String' available: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {}\n</code></pre>\n<h2>What I tried:</h2>\n<p>In Springboot 3.2.4 with Java 17 I was looking for the correct way to expose configuration values from application.yml.<br />\nI need a way to expose them and to be immutable, in a more clean way than using @Value annotation.<br />\nI found out it is possible with @ConfigurationProperties annotation and a Record, so to try it I created a new spring project with spring initializer with the only dependencies of spring-boot-starter, spring-boot-starter-test and lombok.<br />\nThen I created my configuration:<br />\n<strong>my application.yml:</strong></p>\n<pre class=\"lang-yaml prettyprint-override\"><code>app:\n  constants:\n    my-constant: 'MyValue'\n</code></pre>\n<p><strong>and my Record:</strong></p>\n<pre><code>@ConfigurationProperties(&quot;app.constants&quot;)\n@Component\npublic record EnvironmentConstants (\n    String myConstant){\n}\n</code></pre>\n<p>and I was expecting, like the tutorial said, to be able to use it everywhere, so I created a test like this:<br />\n<strong>my test:</strong></p>\n<pre><code>@SpringBootTest\n@Slf4j\nclass ConfigurationTest {\n    @Autowired\n    private EnvironmentConstants environmentConstants;\n\n    @Test\n    void test(){\n        log.info(&quot;TEst: {}&quot;, environmentConstants.myConstant());\n    }\n}\n</code></pre>\n<h2>Other information:</h2>\n<p>I also tried a few of different configuration but none of them worked correctly.\nFirst: I tried to modify my configuration in application.yml like this:</p>\n<pre class=\"lang-yaml prettyprint-override\"><code>app:\n  environment-constants:\n    my-constant: 'MyValue'\n</code></pre>\n<p>Second: I tried to use <code>@EnableConfigurationProperties</code> and <code>@ConfigurationPropertiesScan</code> on the Application class or in the Test Class.<br />\nThird: I tried to add the dependency</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;dependency&gt;\n    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n    &lt;artifactId&gt;spring-boot-configuration-processor&lt;/artifactId&gt;\n&lt;/dependency&gt;\n</code></pre>\n<p>I found a lot of documentation about this, but it seems to me I'm doing this correctly, so why is it not working?</p>\n<h2>Similar example:</h2>\n<p><a href=\"https://stackoverflow.com/questions/66696828/how-to-use-configurationproperties-with-records\">StackOverflow old discussion</a><br />\n<a href=\"https://www.baeldung.com/configuration-properties-in-spring-boot\" rel=\"nofollow noreferrer\">Baeldung guide</a></p>\n<h2>Update with correct solution</h2>\n<p>Thank to @andy-wilkinson response I could find the solution.\nI left here the right configuration for everyone who get stucks in the same problem.\nRight application.yml</p>\n<pre class=\"lang-yaml prettyprint-override\"><code>app:\n  environment-constants:\n    my-constant: 'MyValue'\n</code></pre>\n<p>Right Record class:</p>\n<pre><code>@ConfigurationProperties(prefix = &quot;app.environment-constants&quot;)\npublic record EnvironmentConstants (\n    String myConstant){\n}\n</code></pre>\n<p>My Application.class with the right annotation:</p>\n<pre><code>@SpringBootApplication\n@ConfigurationPropertiesScan\npublic class RecordConfigurationPropertiesTestApplication {\n\n    public static void main(String[] args) {\n        SpringApplication.run(RecordConfigurationPropertiesTestApplication.class, args);\n    }\n\n}\n</code></pre>\n<p>My Test:</p>\n<pre><code>@SpringBootTest\n@Slf4j\nclass ConfigurationTest {\n    @Autowired\n    private EnvironmentConstants environmentConstants;\n\n    @Test\n    void test(){\n        log.info(&quot;Test: {}&quot;, environmentConstants.myConstant());\n        assertEquals(&quot;MyValue&quot;, environmentConstants.myConstant());\n    }\n}\n</code></pre>\n<h2>Second solution</h2>\n<p>If I want to use <code>@EnableConfigurationProperties</code> instead of <code>@ConfigurationPropertyScan</code> I need to specify the class. So the Application.class need to be like this:</p>\n<pre><code>@SpringBootApplication\n@EnableConfigurationProperties({EnvironmentConstants.class})\npublic class RecordConfigurationPropertiesTestApplication {\n\n    public static void main(String[] args) {\n        SpringApplication.run(RecordConfigurationPropertiesTestApplication.class, args);\n    }\n\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

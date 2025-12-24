@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "micrometer",
+      "distributed-tracing",
+      "micrometer-tracing"
+    ],
+    "owner": {
+      "account_id": 14482834,
+      "reputation": 5478,
+      "user_id": 10461625,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/fgo5D.jpg?s=256",
+      "display_name": "PatPanda",
+      "link": "https://stackoverflow.com/users/10461625/patpanda"
+    },
+    "is_answered": false,
+    "view_count": 206,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1737089414,
+    "creation_date": 1733865194,
+    "last_edit_date": 1737089414,
+    "question_id": 79269825,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79269825/correlate-traces-for-spans-sent-in-parallel-for-springboot-micrometer",
+    "title": "Correlate traces for spans sent in parallel for Springboot micrometer",
+    "body": "<p>I have a Springboot 3.4 web service with micrometer</p>\n<p>The endpoint is straightforward, the controller accepts a list of messages to be sent to an external rest API I have no control over. The processing on their side takes very long.</p>\n<p>The payload looks like, this is just an example, please imagine many many inner messages.</p>\n<pre><code>[\n        &quot;somefirst message&quot;,\n        &quot;some second message&quot;,\n        &quot;etc&quot;\n    ]\n</code></pre>\n<p>To handle this, I wrote the following spring rest controller:</p>\n<pre><code>    @PostMapping(&quot;/question2&quot;)\n    public String question2(@RequestBody List&lt;String&gt; messages) {\n        Observation parent = Observation.createNotStarted(&quot;parent&quot;, registry);\n        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {\n            for (String message : messages) {\n                parent.observe(() -&gt; {\n                    ContextExecutorService.wrap(executor,\n                                    () -&gt; ContextSnapshotFactory.builder().build().captureAll())\n                            .submit(() -&gt; {\n                                Observation.createNotStarted(&quot;child&quot; + message, registry).observe(() -&gt; {\n                                    messageProducer.sendRequest(&quot;topic-loom-micrometer&quot;,\n                                            message + Thread.currentThread().getName());\n                                });\n                            });\n                });\n            }\n            executor.shutdown();\n        }\n        return &quot;it seems everything went fine&quot;;\n    }\n</code></pre>\n<p>I also wrote another version with the new stream + gatherers map concurrent construct.</p>\n<pre><code>@PostMapping(&quot;/question3&quot;)\n    public List&lt;String&gt; question3(@RequestBody List&lt;String&gt; messages) {\n        Observation parent = Observation.createNotStarted(&quot;parent&quot;, registry);\n        return messages.stream()\n                .gather(Gatherers.mapConcurrent(messages.size() + 1, oneMessage -&gt; sendRequestInParallel(oneMessage, parent)))\n                .toList();\n    }\n\n    private String sendRequestInParallel(String oneMessage, Observation parent) {\n        return parent.observe(() -&gt; {\n            return Observation.createNotStarted(&quot;child&quot; + oneMessage, registry).observe(() -&gt; {\n                return restClient.post()\n                        .uri(&quot;http://localhost:8081/justString?name=&quot; + oneMessage)\n                        .retrieve()\n                        .body(String.class);\n            });\n        });\n    }\n</code></pre>\n<p>However, it seems there is an issue for tracing.\nIn a plain old for loop, we would see something like this, some sort of cascade</p>\n<pre><code>        for (String message : messages) {\n            messageProducer.sendMessage(&quot;topic-loom&quot;, message);\n        }\n</code></pre>\n<p><a href=\"https://i.sstatic.net/Wx9SDNxw.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/Wx9SDNxw.png\" alt=\"enter image description here\" /></a></p>\n<p>With project loom, the virtual thread (first construct) or the gatherers mapconcurent (second approach), I would have expected to see something like this (please correct me if I am wrong). Something like &quot;not a cascade, but more parallel&quot;.</p>\n<p><a href=\"https://i.sstatic.net/65SZA6eB.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/65SZA6eB.png\" alt=\"enter image description here\" /></a></p>\n<p>In short, this is what I am expecting:</p>\n<p><a href=\"https://i.sstatic.net/oTtpxpyA.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/oTtpxpyA.png\" alt=\"enter image description here\" /></a></p>\n<p>However, with both approaches, there seems to be an issue with the traces. It shows something very strange with the parent.</p>\n<p>This is the actual result:</p>\n<p><a href=\"https://i.sstatic.net/3KuwwOwl.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/3KuwwOwl.png\" alt=\"enter image description here\" /></a></p>\n<p>Question:</p>\n<p>How to properly display something similar to the loop (first image) , where there are just two levels, the main task, and all the parallel runs?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

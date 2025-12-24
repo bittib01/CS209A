@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hadoop",
+      "classpath"
+    ],
+    "owner": {
+      "account_id": 3761893,
+      "reputation": 417,
+      "user_id": 3126580,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/864efafb116d05ccef8a4c7b4cc1f7db?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "hehe",
+      "link": "https://stackoverflow.com/users/3126580/hehe"
+    },
+    "is_answered": false,
+    "view_count": 92,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1745204197,
+    "creation_date": 1744961900,
+    "last_edit_date": 1745204197,
+    "question_id": 79580612,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79580612/java-classpath-add-a-common-file-is-no-meaning",
+    "title": "java classpath add a common file is no meaning?",
+    "body": "<p>My Java program relies on a third-party configuration directory as part of its classpath. Initially, I directly appended the entire directory to the classpath using <code>-cp /a/b/c:</code>.</p>\n<p>However, I later discovered that some of the configuration files in this directory have an unintended impact on my application. In reality, I only need 4 specific configuration files out of the 8 total files present in their directory.</p>\n<p>I attempted to modify the classpath by explicitly specifying only the required files, like this:</p>\n\n<pre><code>-cp /a/b/c/1.xml:/a/b/c/2.xml\n</code></pre>\n<p>However, this approach did not work as expected. After reviewing the Java SE documentation, I learned that:</p>\n<ul>\n<li>Appending a directory (e.g., /a/b/c/) to the classpath will load class files and resource files from that directory.</li>\n<li>Appending a directory with a wildcard (e.g., /a/b/c/*) will load all JAR files from that directory.</li>\n</ul>\n<p>This raises the following questions:</p>\n<ol>\n<li>What happens when you append individual files (e.g., /a/b/c/1.xml) to the classpath? Are these files ignored?</li>\n<li>How can I configure my application to use only the 4 specific configuration files I need from the third-party directory, while excluding the other 4 files?</li>\n</ol>\n<hr />\n<p>update 2025-04-21</p>\n<p>Thanks to everyone's help. Let me provide more details about the specific scenario of my problem.\nI maintain a very old Java program that uses <code>guice-4.1.0</code>, and guice depends on the <code>commons-logging</code> package.\nIn my program, I use <code>slf4j-1.7.36</code> + <code>logback-1.2.12</code> to output logs. That is to say, my service includes <code>slf4j + logback + commons-logging</code>.</p>\n<p>Then, my program operates on the Hadoop cluster through the Hadoop client. And my program depends on the Hadoop configuration directory maintained by colleagues in other departments, but this directory contains a <code>commons-logging.properties</code> file.</p>\n<pre><code>-rwxr-xr-x 1 yarn yarn  1020 Sep 13  2024 commons-logging.properties\n-rwxr-xr-x 1 yarn yarn  7017 Sep 13  2024 core-site.xml\n-rwxr-xr-x 1 yarn yarn  1697 Sep 13  2024 hadoop-env.sh\n-rwxr-xr-x 1 yarn yarn  1015 Sep 19  2024 hadoop-metrics2.properties\n-rwxr-xr-x 1 yarn yarn 16926 Sep 13  2024 hdfs-site.xml\n-rwxr-xr-x 1 yarn yarn  1602 Sep 13  2024 health_check\n-rwxr-xr-x 1 yarn yarn 10640 Sep 13  2024 log4j.properties\n-rwxr-xr-x 1 yarn yarn   783 Sep 13  2024 mapred-env.sh\n-rwxr-xr-x 1 yarn yarn  7764 Sep 13  2024 mapred-site.xml\n-rwxr-xr-x 1 yarn yarn   967 Sep 13  2024 taskcontroller.cfg\n-rwxr-xr-x 1 yarn yarn  2406 Sep 13  2024 task-log4j.properties\n-rwxr-xr-x 1 yarn yarn  3615 Sep 13  2024 yarn-env.sh\n-rwxr-xr-x 1 yarn yarn 22970 Sep 13  2024 yarn-site.xml\n</code></pre>\n<p>In this <code>commons-logging.properties</code>, there is a configuration:</p>\n<pre><code>org.apache.commons.logging.Log = org.apache.commons.logging.impl.Log4JLogger\n\n</code></pre>\n<p>Our usage method is to add <code>hadoop-client-api-3.3.6</code> and <code>hadoop-client-runtime-3.3.6</code> to the dependencies, and then concatenate their Hadoop conf dir in the classpath.</p>\n<p>However, the additional commons-logging configuration item in their Hadoop conf dir causes my program to report an error, as it can't find the Log4j implementation class.\nI want to filter out other files that affect us by only concatenating several configuration files we use, such as <code>/conf/core-site.xml:/conf/hdfs-site.xml:/conf/yarn-site.xml</code>. Then, through testing, I found that adding ordinary files to the classpath is meaningless.</p>\n<p>Since this configuration directory is maintained by colleagues in other departments and is shared by many components, we can't directly modify their configuration. If we copy their configuration files to our configuration directory, there will be a problem that they may forget to notify us when they update the configuration.</p>\n<p>So, I hope there is an elegant way to solve this problem.\nCurrently, my solution is not to add their configuration directory to our classpath. When creating a new Configuration in the Hadoop client, change it to the <code>loadDefaults = false</code>, and add the specific path of <code>core-site.xml</code> <code>yarn-site.xml</code> <code>hdfs-site.xml</code> to the Configuration.\nThat is, it needs to be implemented by modifying the code, and many places need to be changed, including <code>UserGroupInformation.setConfiguration()</code>.</p>\n<pre><code>        Configuration configuration = new Configuration(false);\n        configuration.addResource(new Path(coreSiteXml));\n        configuration.addResource(new Path(hdfsSiteXml));\n\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

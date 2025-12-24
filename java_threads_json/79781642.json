@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "activemq-artemis"
+    ],
+    "owner": {
+      "account_id": 20809273,
+      "reputation": 47,
+      "user_id": 15283592,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/42ca4c07a94608b9f814ac77dd00530d?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "romisup",
+      "link": "https://stackoverflow.com/users/15283592/romisup"
+    },
+    "is_answered": true,
+    "view_count": 64,
+    "accepted_answer_id": 79781995,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1759517056,
+    "creation_date": 1759485760,
+    "last_edit_date": 1759504730,
+    "question_id": 79781642,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79781642/cannot-add-address-settings-via-artemis-core-api",
+    "title": "Cannot add address settings via Artemis Core API",
+    "body": "<p>In my work project I need to create an app to configure Artemis queues. I need to dynamically create queues and modify their parameters.</p>\n<p>I found some parameters I need to pass: <code>maxConsumers</code> of queue and <code>maxSizeBytes</code> and <code>maxSizeMessages</code> of queue's address. I wrote the following code:</p>\n<pre class=\"lang-java prettyprint-override\"><code>Integer maxConsumerCount = 10;\nInteger maximumQueueDepth = 1_000; // max-size-messages\nInteger volume = 1_000_000; // max-size-bytes\n\nString addressSettingsJson = &quot;&quot;&quot;\n    {\n        &quot;maxSizeBytes&quot;: &quot;%d&quot;,\n        &quot;maxSizeMessages&quot;: &quot;%d&quot;\n    }\n    &quot;&quot;&quot;.formatted(volume, maximumQueueDepth);\n\nString managementAddress = &quot;activemq.management&quot;;\nString responseAddress = &quot;temp_management_response&quot;;\nQueueConfiguration managementQueueConfig = QueueConfiguration.of(managementAddress)\n    .setAddress(managementAddress)\n    .setDurable(false)\n    .setTemporary(true);\nQueueConfiguration responseQueueConfig = QueueConfiguration.of(responseAddress)\n    .setAddress(responseAddress)\n    .setDurable(false)\n    .setTemporary(true);\n\ntry (\n    ServerLocator serverLocator = ServerLocatorImpl.newLocator(url);\n    ClientSessionFactory clientSessionFactory = serverLocator.createSessionFactory();\n    ClientSession session = clientSessionFactory.createSession(\n        username,\n        password,\n        false,\n        false,\n        false,\n        false,\n        0\n    )\n) {\n  log.info(&quot;Creating management queue&quot;);\n  session.createQueue(managementQueueConfig); // Creating management queue - works fine\n  log.info(&quot;Management queue created&quot;);\n\n  log.info(&quot;Creating queue&quot;);\n  QueueConfiguration queueConfiguration = QueueConfiguration.of(queueName);\n  queueConfiguration.setAddress(SimpleString.of(queueName));\n  queueConfiguration.setMaxConsumers(maxConsumerCount);\n  session.createQueue(queueConfiguration); // Creating queue - works fine\n  log.info(&quot;Queue successfully created&quot;);\n\n  log.info(&quot;Creating response queue&quot;);\n  session.createQueue(responseQueueConfig); // Creating queue for server response - works fine\n  log.info(&quot;Response queue created&quot;);\n\n  log.info(&quot;Updating address settings&quot;);\n  ClientMessage request = session.createMessage(true);\n  request.setReplyTo(SimpleString.of(responseAddress));\n  request.setAddress(managementAddress);\n  // Does not throw exception, so maybe it works fine\n  ManagementHelper.putOperationInvocation(\n      request,\n      ResourceNames.BROKER,\n      &quot;addAddressSettings&quot;,\n      queueName,\n      addressSettingsJson\n  );\n  // Does not throw exception, so maybe it works fine\n  session.createProducer().send(managementAddress, request);\n\n  // Response is null, no matter how long I wait\n  ClientMessage response = session.createConsumer(responseAddress).receive(5_000);\n  if (response != null) {\n    log.info(&quot;result = {}&quot;, Arrays.toString(ManagementHelper.getResults(response)));\n  }\n  if (ManagementHelper.hasOperationSucceeded(response)) {\n    log.info(&quot;Address settings successfully updated&quot;);\n  } else {\n    log.error(&quot;Address settings failed&quot;);\n  }\n} catch (Exception e) {\n  log.error(&quot;Error while creating queue&quot;, e);\n}\n</code></pre>\n<p>My problem is that I don't receive reply message of adding settings.</p>\n<p>I'm not familiar with Artemis Core API, so maybe I use something wrong? Or maybe it's impossible to receive a reply for this type of messages in general?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

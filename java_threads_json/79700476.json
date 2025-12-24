@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-webflux"
+    ],
+    "owner": {
+      "account_id": 5640896,
+      "reputation": 407,
+      "user_id": 4464806,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/-2L0zF6wN_Vc/AAAAAAAAAAI/AAAAAAAAABI/G06iSsfPM_0/s256-rj/photo.jpg",
+      "display_name": "Abhinash Jha",
+      "link": "https://stackoverflow.com/users/4464806/abhinash-jha"
+    },
+    "is_answered": false,
+    "view_count": 75,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1752471850,
+    "creation_date": 1752471850,
+    "question_id": 79700476,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79700476/unable-to-fetch-response-from-a-springboot-api-using-webclient-but-works-well-wh",
+    "title": "Unable to fetch response from a Springboot API using WebClient but works well when using RestTemplate called from Spring App",
+    "body": "<p>There is an existing API developed using SpringBoot and Java 21 and it works fine when the consumer is also Java 21. I had to switch the API to Java 8 and hence also downgraded SpringBoot version(2.3.12). The consumer is application is also based on Java 8 and cannot be upgraded to Java 21. Below is how I am calling api using WebClient:</p>\n<pre><code>webClient\n          .get()\n          .uri(uri)\n          .headers(httpHeaders -&gt; setHeaders(httpHeaders, headers))\n          .retrieve()\n          .onStatus(\n              status -&gt; !status.is2xxSuccessful(),\n              clientResponse -&gt;\n                  clientResponse\n                      .bodyToMono(ErrorResponse.class)\n                      .flatMap(\n                          response -&gt;\n                              Mono.error(\n                                  new CustomServiceException(\n                                      clientResponse.statusCode(), response))))\n          .bodyToMono(responseType)\n          .block();\n</code></pre>\n<p>The WebClient setup is as follows:</p>\n<pre><code>WebClient.builder().baseUrl(&quot;http://172.22.35.203:8081&quot;).build();\n</code></pre>\n<p>I am using below spring-webflux dependency:</p>\n<pre><code>&lt;dependency&gt;\n  &lt;groupId&gt;org.springframework&lt;/groupId&gt;\n  &lt;artifactId&gt;spring-webflux&lt;/artifactId&gt;\n  &lt;version&gt;5.3.39&lt;/version&gt;\n&lt;/dependency&gt;\n</code></pre>\n<p>The issue is that the app seems to be hung while executing <code>block()</code>. I added a timeout and and this to log the error:</p>\n<pre><code>.doOnError(error -&gt; System.out.println(&quot;Error signal detected&quot; + error))\n</code></pre>\n<p>and I get the below error:</p>\n<pre><code>Exception thrown from webclient: java.util.concurrent.TimeoutException: Did not observe any item or terminal signal within 30000ms in 'flatMap' (and no fallback has been configured)\nreactor.core.Exceptions$ReactiveException: java.util.concurrent.TimeoutException: Did not observe any item or terminal signal within 30000ms in 'flatMap' (and no fallback has been configured\n</code></pre>\n<p>Which suggests that the host doesn't send any response. But, I doubt that this is the case, as sending request through postman and using RestTemplate does return the response. Below is how I am using RestTemplate and that prints the response:</p>\n<pre><code>restTemplate.getForEntity(&quot;http://172.22.35.203:8081/v1/customer/search?firstName=MVYHFPQDNH&amp;lastName=BSGWUDKCOUVE&amp;alwaysWildcardAccountNumber=false&quot;, String.class).getBody()\n</code></pre>\n<p>Also, I have added logs to Controller and Repository layer and by the logs I can confirm that there is no error there.\nI would re-iterate here that same WebClient configuration works when the API was running on java 21.(The API is basically a multi-module maven project and one of the projects there is a simple client that connects to the API endpoints).</p>\n<p>So, basically, I want to know how I can debug/probable reason of failure when block() is called.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,27 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring"
+    ],
+    "owner": {
+      "user_type": "does_not_exist",
+      "display_name": "user23450337"
+    },
+    "is_answered": false,
+    "view_count": 129,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1740432795,
+    "creation_date": 1712665165,
+    "last_edit_date": 1740432795,
+    "question_id": 78298387,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78298387/spring-boot-custom-validation-of-foreign-key-existence-does-not-work",
+    "title": "Spring Boot: Custom validation of foreign key existence does not work",
+    "body": "<p>I'm having a problem creating a validation regarding Laravel's &quot;exists&quot; in Spring Boot 3, but I'm having the problem:</p>\n<blockquote>\n<p>There was an unexpected error (type=Internal Server Error, status=500).HV000030: No validator could be found for constraint 'com.springboot3.project.Validation.CustomerValidation' validating type 'com.springboot3.project.Entity.CustomerEntity'. Check configuration for 'project_id'\njakarta.validation.UnexpectedTypeException: HV000030: No validator could be found for constraint 'com.springboot3.project.Validation.CustomerValidation' validating type 'com.springboot3.project.Entity.CustomerEntity'</p>\n</blockquote>\n<p>What is the best solution to solve this?</p>\n<ul>\n<li><code>CustomerDAO.java</code></li>\n</ul>\n<pre><code>package com.springboot3.project.DAO;\n\nimport com.springboot3.project.Entity.CustomerEntity;\n\nimport java.util.*;\n\npublic interface CustomerDAO {\n\n    boolean existsId(String id);\n\n}\n</code></pre>\n<ul>\n<li><code>CustomerService.java</code></li>\n</ul>\n<pre><code>package com.springboot3.project.Service;\n\nimport com.springboot3.project.DAO.*;\nimport com.springboot3.project.Entity.*;\nimport jakarta.persistence.*;\nimport jakarta.transaction.*;\nimport org.springframework.stereotype.*;\n\nimport java.time.*;\nimport java.util.*;\n\n@Service\npublic class CustomerService implements CustomerDAO {\n\n    @PersistenceContext\n    private EntityManager entityManager;\n\n    public CustomerService(EntityManager theEntityManager) {\n        this.entityManager = theEntityManager;\n    }\n\n    @Override\n    public boolean existsId(String id) {\n        try {\n            int idAsInt = Integer.parseInt(id);\n            CustomerEntity customerEntity = entityManager.find(CustomerEntity.class, idAsInt);\n            return customerEntity != null;\n        } catch (NumberFormatException e) {\n            return false;\n        }\n    }\n\n}\n</code></pre>\n<ul>\n<li><code>CustomerValidation.java</code></li>\n</ul>\n<pre><code>package com.springboot3.project.Validation;\n\nimport com.springboot3.project.Validation.ConstraintValidation.*;\nimport jakarta.validation.*;\nimport java.lang.annotation.*;\n\n@Constraint(validatedBy = CustomerConstraintValidation.class)\n@Target({ElementType.METHOD, ElementType.FIELD})\n@Retention(RetentionPolicy.RUNTIME)\npublic @interface CustomerValidation {\n\n    String message() default &quot;Invalid customer&quot;;\n    Class&lt;?&gt;[] groups() default {};\n    Class&lt;? extends Payload&gt;[] payload() default {};\n}\n</code></pre>\n<ul>\n<li><code>CustomerConstraintValidation.java</code></li>\n</ul>\n<pre><code>package com.springboot3.project.Validation.ConstraintValidation;\n\nimport com.springboot3.project.Service.*;\nimport com.springboot3.project.Validation.*;\nimport jakarta.validation.*;\nimport org.springframework.beans.factory.annotation.*;\nimport org.springframework.stereotype.*;\n\n@Component\npublic class CustomerConstraintValidation implements ConstraintValidator&lt;CustomerValidation, String&gt; {\n\n    @Autowired\n    private CustomerService customerService;\n\n    @Override\n    public void initialize(CustomerValidation constraintAnnotation) {\n    }\n\n    @Override\n    public boolean isValid(String customerId, ConstraintValidatorContext context) {\n        return custumerId != null &amp;&amp; custumerService.existsId(custumerId);\n    }\n\n}\n</code></pre>\n<ul>\n<li><code>RewardEntity.java</code></li>\n</ul>\n<pre><code>package com.springboot3.project.Entity;\n\nimport jakarta.persistence.*;\nimport jakarta.validation.constraints.*;\n\nimport java.time.*;\n\n@Entity\n@Table(name=&quot;reward&quot;)\npublic class RewardEntity {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    @Column(name=&quot;id&quot;)\n    private int id;\n\n    @OneToOne\n    @CustomerValidation\n    @NotNull(message = &quot;Customer is required&quot;)\n    @JoinColumn(name=&quot;customer_id&quot;, referencedColumnName=&quot;id&quot;)\n    private CustomerEntity customer_id;\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

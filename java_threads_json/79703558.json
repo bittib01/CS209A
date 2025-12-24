@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "open-telemetry",
+      "micrometer",
+      "jaeger",
+      "open-telemetry-collector"
+    ],
+    "owner": {
+      "account_id": 35583260,
+      "reputation": 21,
+      "user_id": 27290237,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/7ad5b258ef8c5f16dc91a9d36a2daa9d?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Mak",
+      "link": "https://stackoverflow.com/users/27290237/mak"
+    },
+    "is_answered": true,
+    "view_count": 365,
+    "accepted_answer_id": 79743190,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1755853332,
+    "creation_date": 1752675103,
+    "question_id": 79703558,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79703558/otel-collector-not-sending-traces-to-jaeger",
+    "title": "Otel-collector not sending traces to jaeger",
+    "body": "<p>I have a few Java applications that have working otel tracing implementations. The details of how this works is largely irrelevant (implemented using micrometer and spring-boot-actuator) but the point is when I point these programs directly at jaeger:4318, the traces show up as expected. Quite a few of my traces are not necessary so I wanted to remove certain unhelpful traces or ideally rename them. This lead me to discovering the otel-collector which seemed like the ideal thing to take traces in from my service and send them out to jaeger but trying to get them working has completely failed, there is no error just nothing happens.</p>\n<p>Here is my api service's docker image</p>\n<pre><code>  api-service:\n    image: &lt;api-image&gt;\n    restart: on-failure\n    depends_on:\n    - mysql\n    - zookeeper\n    - redis\n    - kafka\n    - user-app\n    - ff4j-ui\n    volumes:\n    - $PWD/data/config:/config\n    environment:\n      SPRING_REDIS_HOST: &lt;host&gt;\n      AWS_ACCESS_KEY_ID: &lt;AWS_ACCESS_KEY_ID&gt;\n      SPRING_DATASOURCE_PASSWORD: &lt;PASSWORD&gt;\n      AWS_SECRET_ACCESS_KEY: &lt;AWS_SECRET_ACCESS_KEY&gt;\n      CORS_EXPOSED_HEADERS: &lt;HEADERS&gt;\n      XSRF_DOMAIN: 127.0.0.1\n      ZOOKEEPER_CONNECTION: zookeeper:2181\n      JAEGER_SAMPLER_TYPE: const\n      SPRING_DATASOURCE_USERNAME: &lt;USERNAME&gt;\n      REDIS_SESSION_HOST: redis\n      JDBC_INCLUDES: QUERY, KEYS, FETCH\n      OTEL_EXPORTER_OTLP_ENDPOINT=: http://0.0.0.0:4318\n      CCS_SERVICE_NAME: &lt;SERVICE-NAME&gt;\n      FEATUREFLAG_HOSTURL: http://ff4j-ui:8099\n      CORS_ALLOWED_ORIGINS: http://127.0.0.1:8081\n      SWAGGER_ENABLED: 'false'\n      CORS_ALLOWED_METHODS: GET,POST,HEAD,OPTIONS,PATCH,PUT,DELETE\n      JAEGER_SAMPLER_PARAM: '1'\n      JAEGER_AGENT_HOST: jaeger\n      HTTP_SERVICE_CONNECT_TIMEOUT: '99999'\n      HTTP_SERVICE_READ_TIMEOUT: '999999'\n      SPRING_DATASOURCE_URL: &lt;DATASOURCE-URL&gt;\n      SPRING_KAFKA_BOOTSTRAPSERVERS: kafka:9092\n      MANAGEMENT_OTLP_TRACING_ENDPOINT: http://0.0.0.0:4318\n    ports:\n    - 8082:8080\n    - 7988:5005\n</code></pre>\n<p>Here is the otel-collector's docker file</p>\n<pre><code>  otel-collector:\n    image: otel/opentelemetry-collector-contrib:latest\n    depends_on:\n    - jaeger\n    volumes:\n    - $PWD/data/config/otel-collector-config.yml:/etc/otel-collector-config.yml\n    ports:\n    - 4317:4317\n    - 4318:4318\n    - 1888:1888\n    - 13133:13133\n    - 55679:55679\n</code></pre>\n<p>Here is the jaeger docker file:</p>\n<pre><code>image: jaegertracing/all-in-one:latest # At least 1.35 if you want to have enabled collector\ncontainer_name: jaeger\nenvironment:\n   COLLECTOR_ZIPKIN_HOST_PORT: 9411\n   COLLECTOR_OTLP_ENABLED: true\n   SPAN_STORAGE_TYPE: memory\n   LOG_LEVEL: debug\n   JAEGER_LOG_LEVEL: debug\nports: \n   - &quot;16686:16686&quot; \n   - &quot;16685:16685&quot;\n</code></pre>\n<p>And here is the config file for the otel-collector</p>\n<pre><code>receivers:\n  otlp:\n    protocols:\n      grpc:\n        endpoint: 0.0.0.0:4317\n      http:\n        endpoint: 0.0.0.0:4318\n\nprocessors:\n  filter:\n    traces:\n      exclude:\n        spans:\n          - 'name == &quot;security filterchain before&quot;'\n          - 'name == &quot;authorize request&quot;'\n\nexporters:\n  otlp/jaeger:\n    endpoint: jaeger:4317\n    tls:\n      insecure: true # Use this for local Docker environments without TLS\n\n  debug:\n    verbosity: detailed\n\nservice:\n  telemetry:\n    logs:\n      level: debug\n  extensions: [zpages]\n  pipelines:\n    traces:\n      receivers: [otlp]\n      exporters: [otlp/jaeger,debug]\n</code></pre>\n<p>When I set it to export to debug it this works and displays logs in the console but sending to jaeger does not send anywhere and does not show up at http://localhost:16686/ even though when I set my api-service's MANAGEMENT_OTLP_TRACING_ENDPOINT to jaeger:4318 it works flawlessly.</p>\n<p>I have tried everything, removing all processors from the config file so I know that's not the issue, changing it to point at jaeger:4318 or jaeger:14250, trying newer versions of jaeger I've even messed around with setting the MANAGEMENT_OTLP_TRACING_ENDPOINT to otel-collector:4138 or otel-collector:4137 (which isn't really necessary given the traces show up in debug mode).</p>\n<p>Regardless of what I do, no traces end up going out from my collector to jaeger. Either I would like to fix this or failing that just find another solution to do what I want to do.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "algorithm",
+      "dynamic-programming"
+    ],
+    "owner": {
+      "account_id": 30371201,
+      "reputation": 326,
+      "user_id": 23274861,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/b9d78f087d509f0283f4e60fbf420d94?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "user23274861",
+      "link": "https://stackoverflow.com/users/23274861/user23274861"
+    },
+    "is_answered": true,
+    "view_count": 141,
+    "answer_count": 2,
+    "score": 2,
+    "last_activity_date": 1727049082,
+    "creation_date": 1726963453,
+    "last_edit_date": 1727049082,
+    "question_id": 79010648,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79010648/number-of-jumps-to-reach-the-end-with-updates",
+    "title": "Number of jumps to reach the end (with updates)",
+    "body": "<p>We are given <code>N</code> squares number 0 to N - 1. Each square has target jump square <code>J[i]</code> (which must be at a larger index). At square <code>i</code>, you can only jump to square <code>J[i]</code>. If <code>J[i]</code> is past the last square, then you are done.</p>\n<p>We know all <code>J[i]</code> at the start, then we have <code>Q</code> queries. if query is update, it changes <code>J[i]</code> for a specific <code>i</code> (still satisfies <code>J[i] &gt; i</code>). other type of query ask for how many jumps it takes starting from a given square to go past the last square (<code>N-1</code>).</p>\n<pre><code>Constraints:\n1 &lt;= N, Q &lt;= 100,000\ni + 1 &lt;= J[i] &lt;= 1,000,000\n</code></pre>\n<pre><code>Example:\nJump squares: \n[1, 3, 3, 5]\nGet answer fro square 1: 1 -&gt; 3 -&gt; 5 [past end] (2 jumps)\nUpdate square 2's jump square (J[2]) to 4\nGet answer for square 2: 2-&gt;4 [past end] (1 jump)\n</code></pre>\n<p>I tried to use dp (dynamic programming) to store # of jumps from each square, but updates make my solution slow down too much since I have to update dp answer for possibly all the squares.</p>\n<pre><code>static int[] dp;\n\nstatic int getjump(int square, int[] jumpSquares) {\n    if (square &gt;= dp.length) return 0; // past end\n    if (dp[square] != -1) return dp[square]; // already calc\n    return dp[square] = 1 + getjump(jumpSquares[square], jumpSquares); // do one jump and check\n}\n\nstatic List&lt;Integer&gt; solve(int n, int[] jumpSquares, int[][] queries) {\n    dp = new int[n];\n    for (int i = 0; i &lt; n; i++) dp[i] = -1;\n    List&lt;Integer&gt; answers = new ArrayList&lt;Integer&gt;();\n    for (int[] qq : queries) {\n        if (qq.length == 1) {\n             answers.add(getjump(qq[0], jumpSquares));\n        } else { // update\n             jumpSquares[qq[0]] = qq[1];\n             for (int i = 0; i &lt;= qq[0]; i++) dp[i] = -1; \n             // reset answers that might depend on updated square (qq[0])\n        }\n    }\n    return answers;\n}\n</code></pre>\n<p>how do I solve this more efficiently (better than O(N*Q))?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

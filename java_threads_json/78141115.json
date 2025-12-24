@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-test",
+      "testcontainers",
+      "spring-boot-testcontainers"
+    ],
+    "owner": {
+      "account_id": 18335030,
+      "reputation": 1,
+      "user_id": 13353006,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/6f35c51356158796f52595c9da25f04f?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Yury",
+      "link": "https://stackoverflow.com/users/13353006/yury"
+    },
+    "is_answered": true,
+    "view_count": 1934,
+    "accepted_answer_id": 78146189,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1716481127,
+    "creation_date": 1710164910,
+    "last_edit_date": 1710164966,
+    "question_id": 78141115,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78141115/when-i-try-to-test-with-testcontainers-more-than-one-testclass-others-always-fa",
+    "title": "When i try to test with Testcontainers more than one TestClass, others always failed",
+    "body": "<p>The problem is:\nWhen i try to use singleton-testcontainer, all my testclasses after first failed by assertions.\nIt means, that even if i see in log that my scenarios was comlete success, Assertions always failed.</p>\n<p>The fact is, when i use @Testcontainers and @Container annotation - it's all good.</p>\n<p>My first test class.</p>\n<pre><code>@SpringBootTest(classes = {ContractSpringBootApplication.class})\n@ExtendWith({MockitoExtension.class, OutputCaptureExtension.class})\n@TestMethodOrder(MethodOrderer.OrderAnnotation.class)\n@ActiveProfiles(&quot;test&quot;)\npublic class UpdateMergeTest extends AbstractTestcontainersTest {\n\n    @SpyBean\n    @Autowired\n    private TechMergeUpdateRepo techMergeUpdateRepo;\n    \n    @BeforeEach\n     void clean() {\n        techMergeUpdateRepo.deleteAll();\n    }\n</code></pre>\n<p>My second test class. (does the same things, but used more repositories)</p>\n<pre><code>@SpringBootTest(classes = {ContractSpringBootApplication.class})\n@ExtendWith({MockitoExtension.class, OutputCaptureExtension.class})\n@TestMethodOrder(MethodOrderer.OrderAnnotation.class)\n@ActiveProfiles(&quot;test&quot;)\npublic class UpdateEntityTest extends AbstractTestcontainersTest {\n\n    @SpyBean\n    @Autowired\n    private TechMergeUpdateRepo techMergeUpdateRepo;\n    \n    @SpyBean\n    @Autowired\n    private UpdateEntityRepo updateEntityRepo;\n    \n\n    @BeforeEach\n     void clean() {\n        techMergeUpdateRepo.deleteAll();\n        updateEntityRepo.deleteAll();\n    }\n</code></pre>\n<p>My &quot;singleton&quot; testcontainer class.</p>\n<pre><code>public abstract class AbstractTestcontainersTest {\n    private final static String DATABASE_NAME = &quot;test_name&quot;;\n\n    public static final PostgreSQLContainer&lt;?&gt; postgresContainer = new PostgreSQLContainer&lt;&gt;(&quot;postgres:12&quot;)\n            .withReuse(true)\n            .withDatabaseName(DATABASE_NAME);\n\n    static {\n\n        postgresContainer.start();\n\n    }\n    \n    @DynamicPropertySource\n    public static void overrideProps(DynamicPropertyRegistry registry) {\n        registry.add(&quot;spring.datasource.url&quot;, postgresContainer::getJdbcUrl);\n        registry.add(&quot;spring.datasource.username&quot;, postgresContainer::getUsername);\n        registry.add(&quot;spring.datasource.password&quot;, postgresContainer::getPassword);\n        registry.add(&quot;spring.datasource.driver-class-name&quot;, postgresContainer::getDriverClassName);\n    }\n\n\n}\n</code></pre>\n<p>After tests i always get this:\n<a href=\"https://i.sstatic.net/5tsg3.jpg\" rel=\"nofollow noreferrer\">enter image description here</a></p>\n<p>BUT!</p>\n<p>If I change my AbstractTestcontainersTest for:</p>\n<pre><code>@Slf4j\n@Testcontainers\npublic abstract class AbstractTestcontainersTest {\n\n    private final static String DATABASE_NAME = &quot;test_name&quot;;\n\n    @Container\n    public static final PostgreSQLContainer&lt;?&gt; postgresContainer = new PostgreSQLContainer&lt;&gt;(&quot;postgres:12&quot;)\n            .withReuse(true)\n            .withDatabaseName(DATABASE_NAME);\n\n    static {\n        postgresContainer.start();\n      \n    }\n\n    @DynamicPropertySource\n    public static void overrideProps(DynamicPropertyRegistry registry) {\n        registry.add(&quot;spring.datasource.url&quot;, postgresContainer::getJdbcUrl);\n        registry.add(&quot;spring.datasource.username&quot;, postgresContainer::getUsername);\n        registry.add(&quot;spring.datasource.password&quot;, postgresContainer::getPassword);\n        registry.add(&quot;spring.datasource.driver-class-name&quot;, postgresContainer::getDriverClassName);\n\n    }\n\n\n}\n</code></pre>\n<p>It will start working correctly.</p>\n<p><a href=\"https://i.sstatic.net/4ugND.png\" rel=\"nofollow noreferrer\">enter image description here</a></p>\n<p>I checked the log output.\nThe feeling is that the problem is somewhere in the “underrun” of Spring tests, in test classes, starting from the second.\nI checked the logs - my “scenarion” is fully completed and works correctly, but the assertions are falling</p>\n<p>I checked the log output.\nThe feeling is that the problem is somewhere in the “underrun” of Spring tests, in test classes, starting from the second.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

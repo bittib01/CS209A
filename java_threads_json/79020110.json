@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "windows",
+      "callback",
+      "listener",
+      "clipboard"
+    ],
+    "owner": {
+      "account_id": 7421543,
+      "reputation": 3596,
+      "user_id": 5645656,
+      "user_type": "registered",
+      "accept_rate": 100,
+      "profile_image": "https://i.sstatic.net/cWJZKa1g.png?s=256",
+      "display_name": "Cardinal System",
+      "link": "https://stackoverflow.com/users/5645656/cardinal-system"
+    },
+    "is_answered": true,
+    "view_count": 333,
+    "answer_count": 2,
+    "score": 2,
+    "last_activity_date": 1761677116,
+    "creation_date": 1727206480,
+    "last_edit_date": 1761071541,
+    "question_id": 79020110,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79020110/can-you-detect-when-the-clipboard-has-been-closed",
+    "title": "Can you detect when the clipboard has been closed?",
+    "body": "<p><strong>TL;DR</strong>: I want to detect when another application closes the system clipboard.</p>\n<hr />\n<h2>Scenario</h2>\n<p>I am using a <a href=\"https://docs.oracle.com/javase/8/docs/api/java/awt/datatransfer/FlavorListener.html\" rel=\"nofollow noreferrer\"><code>FlavorListener</code></a> to toggle a button when the clipboard content type changes. The listener is calling <a href=\"https://docs.oracle.com/javase/8/docs/api/java/awt/datatransfer/Clipboard.html#getAvailableDataFlavors--\" rel=\"nofollow noreferrer\"><code>Clipboard#getAvailableDataFlavors</code></a>, which will inconsistently throw an an exception when I copy data from other programs:</p>\n<pre><code>Exception in thread &quot;AWT-EventQueue-0&quot; java.lang.IllegalStateException: cannot open system clipboard\n    at sun.awt.windows.WClipboard.openClipboard(Native Method)\n    at sun.awt.datatransfer.SunClipboard.getClipboardFormatsOpenClose(SunClipboard.java:327)\n    at sun.awt.datatransfer.SunClipboard.getAvailableDataFlavors(SunClipboard.java:168)\n</code></pre>\n<h2>MVCE</h2>\n<p>To reproduce the problem, run the program below and copy data to your system clipboard from another program (you may need multiple copy attempts before the exception is thrown):</p>\n<pre><code>import java.awt.Toolkit;\nimport java.awt.datatransfer.Clipboard;\nimport java.awt.datatransfer.DataFlavor;\nimport java.awt.datatransfer.FlavorListener;\nimport java.util.Arrays;\nimport java.util.Scanner;\n\npublic class Foo { \n\n    public static void main(String[] args) {\n        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();\n        FlavorListener listener = e -&gt; System.out.print(&quot;\\rClipboard has text: &quot;\n                + Arrays.stream(clipboard.getAvailableDataFlavors()).anyMatch(DataFlavor::isFlavorTextType)\n                + &quot;\\nPress enter to exit...&quot;);\n        clipboard.addFlavorListener(listener);\n\n        System.out.print(&quot;Press enter to exit...&quot;);\n        new Scanner(System.in).nextLine();\n    }\n\n}\n</code></pre>\n<h2>Findings</h2>\n<p>Internally, AWT's <a href=\"https://docs.oracle.com/javase/8/docs/api/java/awt/datatransfer/Clipboard.html\" rel=\"nofollow noreferrer\"><code>Clipboard</code></a> is using the <a href=\"https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-openclipboard\" rel=\"nofollow noreferrer\"><code>OpenClipboard</code></a> function from <code>winuser.h</code>. According to the documentation, &quot;OpenClipboard fails if another window has the clipboard open.&quot; Looking at the <a href=\"https://github.com/openjdk/jdk8/blob/6a383433a9f4661a96a90b2a4c7b5b9a85720031/jdk/src/windows/native/sun/windows/awt_Clipboard.cpp#L158\" rel=\"nofollow noreferrer\">underlying C++ code</a> for AWT clipboard, we can see that this is exactly the cause of the <code>IllegalStateException</code>.</p>\n<p>I found these similar questions when researching this:</p>\n<ul>\n<li><a href=\"https://stackoverflow.com/questions/51797673/in-java-why-do-i-get-java-lang-illegalstateexception-cannot-open-system-clipboa\">In Java why do i get java.lang.IllegalStateException: cannot open system clipboard</a></li>\n<li><a href=\"https://stackoverflow.com/questions/5484927/listen-to-clipboard-changes-check-ownership\">listen to clipboard changes, check ownership?</a></li>\n</ul>\n<p>In both scenarios, the solution (which came from <a href=\"https://coderanch.com/t/377833/java/listen-clipboard\" rel=\"nofollow noreferrer\">a Coderanch thread</a>) was to use <a href=\"https://docs.oracle.com/javase/8/docs/api/java/lang/Thread.html#sleep-long-\" rel=\"nofollow noreferrer\"><code>Thread#sleep(long)</code></a> to allow time for the other application to close the clipboard.</p>\n<h2>Objections</h2>\n<p>I prefer not rely on <code>sleep</code> because there is no way of knowing with certainty when (or if!) the clipboard will be closed. Additionally:</p>\n<ol>\n<li>If you don't sleep for long enough, the <code>IllegalStateException</code> will still occur.</li>\n<li>A sleep duration which works for one machine is not guaranteed to work on a different machine.</li>\n<li>A sleep duration which successfully waits for one application to close the clipboard is not guaranteed to work for another application.</li>\n<li>If you &quot;play it safe&quot; and use a very long sleep duration:\n<ul>\n<li>The user may have to wait for the button to be enabled.</li>\n<li>The user may click the button before it is disabled (causing an error to occur).</li>\n</ul>\n</li>\n<li>Sleeping on the AWT Event thread will freeze the UI, preventing the user from performing other actions which are not dependent on the clipboard.\n<ul>\n<li>I would have to utilize more system resources to create a worker thread just to perform the sleep.</li>\n</ul>\n</li>\n</ol>\n<h2>Question</h2>\n<p>I would like to know if there is a listener or callback that can be registered to execute when the clipboard has been closed. Does anything like this exist?</p>\n<p>To clarify, I am open to the possibility of writing my own shared/dynamic link library if I need to utilize a native function to achieve this.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

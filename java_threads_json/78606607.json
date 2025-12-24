@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "postgresql",
+      "asynchronous",
+      "triggers",
+      "postgresql-10"
+    ],
+    "owner": {
+      "account_id": 32843012,
+      "reputation": 13,
+      "user_id": 25521599,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/4279a602cfff63160ddb46ac40c46ed0?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "sanjiv",
+      "link": "https://stackoverflow.com/users/25521599/sanjiv"
+    },
+    "is_answered": true,
+    "view_count": 278,
+    "accepted_answer_id": 79596909,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1745857716,
+    "creation_date": 1718098305,
+    "question_id": 78606607,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78606607/postgres-pg-background-asynchronous-queries",
+    "title": "Postgres pg_background asynchronous queries",
+    "body": "<p>I am trying to perform <code>DELETE</code> and <code>INSERT</code> statements in a trigger function, like</p>\n<pre><code>BEGIN\n  IF (TG_OP = 'DELETE') THEN\n    DELETE FROM…;\n    INSERT INTO…;\n    RETURN OLD;\n  ELSIF (TG_OP = 'UPDATE' OR TG_OP = 'INSERT') THEN\n    DELETE FROM…;\n    INSERT INTO…;\n    RETURN NEW;\n  END IF;\n  RETURN NULL; -- result is ignored since this is an AFTER trigger\nEND;\n</code></pre>\n<p>but as trigger execution is synchronous, the performance of each statement will be bad, so I need to have the statements in the trigger function to be performed asynchronously. I had found some approaches like dblink and pg_background. In dblink, PostgreSQL creates a new connection, which also does not suit for my use case, and it also takes long, so I dropped it.</p>\n<p>I tried pg_background to achieve asynchronous execution like</p>\n<pre><code>DECLARE\n    result text;\nBEGIN\n    IF (TG_OP = 'DELETE') THEN\n        SELECT * FROM pg_background_result(pg_background_launch(sql_command)) AS (result TEXT) INTO  result;\n        SELECT * FROM pg_background_result(pg_background_launch(sql_command)) as (result TEXT) INTO result;\n        RETURN OLD;\n    ELSIF (TG_OP = 'UPDATE' OR TG_OP = 'INSERT') THEN\n        SELECT * FROM pg_background_result(pg_background_launch(sql_command)) as (result TEXT) INTO     result;\n        SELECT * FROM pg_background_result(pg_background_launch(sql_command)) as (result TEXT) INTO result;\n        RETURN NEW;\n    END IF;\n    RETURN NULL; -- result is ignored since this is an AFTER trigger\nEND;\n</code></pre>\n<p>Here we are also facing performance issues.  PostgreSQL consumes more time than with direct synchronous statements.</p>\n<p>Is this approach correct for my use case? How can I achieve it using some other approach?</p>\n<p>I had tried with <code>LISTEN</code> and <code>NOTIFY</code> using <code>pg_notify()</code>, but I can’t listen and perform additional statements inside Postgres itself, so I have written a Java application to listen for this notification and perform the statements asynchronously. That is working fine, but I need to reduce the external dependencies here.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

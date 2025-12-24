@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "swiftui",
+      "uikit",
+      "appium",
+      "accessibility-inspector"
+    ],
+    "owner": {
+      "account_id": 29224320,
+      "reputation": 170,
+      "user_id": 22389422,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/aadee2080375e250237188d4fca0e5e5?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "kbartlett",
+      "link": "https://stackoverflow.com/users/22389422/kbartlett"
+    },
+    "is_answered": true,
+    "view_count": 101,
+    "accepted_answer_id": 79697238,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1752158899,
+    "creation_date": 1747850752,
+    "last_edit_date": 1749588015,
+    "question_id": 79632546,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79632546/swiftui-accessibility-id-not-able-to-be-accesse-by-automated-testing-framework",
+    "title": "SwiftUI accessibility ID not able to be accesse by automated testing framework",
+    "body": "<p>In the app I'm working on, I have a SwiftUI View embedded in a UIKit Storyboard. The SwiftUI View holds a menu with a list of payment tools, and the ForEach loop looks like this:</p>\n<pre class=\"lang-swift prettyprint-override\"><code>ForEach(self.paymentToolsVM.paymentToolsItems, id: \\.self) { paymentTool in\n    Button {\n        navigationCallback(paymentTool.segueID)\n    } label: {\n        PaymentToolsRow(paymentToolName: paymentTool.title, imageName: paymentTool.imageName)\n            .accessibilityElement()\n           .accessibilityIdentifier(&quot;Billing_\\(paymentTool.title.replacingOccurrences(of: &quot; &quot;, with: &quot;&quot;))&quot;)\n    }\n    if paymentTool != self.paymentToolsVM.paymentToolsItems.last {\n          Divider()\n    }\n}\n</code></pre>\n<p>So you can see the accessibility ID is there, and it shows up properly when I open up Accessibility Inspector with the simulator, but the testing script isn't picking up on it, and it doesn't show up when the view is inspected in Appium. I have other SwiftUI views embedded in the UIKit view, and the script picks up the buttons on those, so I'm not sure what's different about this one.</p>\n<p>Here's the script we're using to test (written in Java, using BDD framework):</p>\n<pre class=\"lang-java prettyprint-override\"><code>try {\n    WaitForElement.waitForText(driver, &quot;Bill details&quot;);\n    actualDueAmount = BaseClass.getAmountFromStr(driver.findElement(actualDueAmountIos));\n    if (driver.getPageSource().contains(&quot;Scheduled&quot;))\n        deletePaymentFromManageBill(platform);\n    if (driver.getPageSource().contains(&quot;Pay&quot;)) {\n        BaseClass.logInfo(&quot;Pay button is available on the screen&quot;);\n        BaseClass.takeScreenShot(driver);\n    } else {\n        BaseClass.logFail(&quot;Pay button is not available on the screen&quot;);\n        fail(&quot;Pay button is not available on the screen&quot;);\n    }\n                                                \n    scroll.scrollDown(&quot;Pay bills&quot;, platform);\n    //WaitForElement.waitForText(driver, &quot;Pay bills&quot;);\n    BaseClass.clickObject(driver, paybillbutton, &quot;Pay bills&quot;);\n}\n</code></pre>\n<p>Does anyone have any ideas for what the disconnect could be?</p>\n<p>UPDATE: Here's an example of the buttons that are working in the same storyboard:</p>\n<pre class=\"lang-swift prettyprint-override\"><code>VStack {\n    // some other stuff here\n\n    HStack(spacing: 12) {\n        if let leftButton = reminderViewModel.getLeftButtonType() {\n            GenericButtonView(text: Text(leftButton.getButtonTitle()), \n\n                buttonType: leftButton.buttonType, \n                callback: {\n                    reminderViewModel.leftButtonSelected(leftButtonType: leftButton, hasAutopay: reminderViewModel.hasAutoPay)\n                })\n                .accessibilityIdentifier(reminderViewModel.accessibilityObject.leftBillButtonIdentifier)\n        }\n                        \n        GenericButtonView(text: Text(BillingButtonType.billDetails.getButtonTitle()), \n            buttonType: BillingButtonType.billDetails.buttonType, \n            callback: {\n                reminderViewModel.rightButtonSelected()\n            })\n            .accessibilityIdentifier(reminderViewModel.accessibilityObject.rightBillButtonIdentifier)\n    }\n}\n</code></pre>\n<p>Each of these VStacks is a single cell in the UITableView, but the list of buttons up above are also a single cell. Generic Button View is a custom view to handle all the styling.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

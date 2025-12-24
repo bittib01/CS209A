@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "authorization"
+    ],
+    "owner": {
+      "account_id": 16478911,
+      "reputation": 413,
+      "user_id": 11906121,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/c6320114c699f06d4038d99c1a9273f6?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "elcye",
+      "link": "https://stackoverflow.com/users/11906121/elcye"
+    },
+    "is_answered": false,
+    "view_count": 70,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1754936803,
+    "creation_date": 1754579689,
+    "question_id": 79728793,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79728793/different-grantedauthority-returning-the-same-for-getauthority",
+    "title": "Different GrantedAuthority returning the same for getAuthority()",
+    "body": "<p>I have a spring application, where users can have various authorities and where some of those authorities can be scoped.</p>\n<p>For example, the <code>READ_ALLOWED</code> authority is scoped by company domain. So I have</p>\n<pre><code>class Auth implements GrantedAuthority {\n  String role;\n  String domain;\n  \n  String getAuthority() {\n    return role + &quot;_&quot; + scope;\n  }\n}\n</code></pre>\n<p>When someone calls an endpoint, I have a <code>@PreAuthorize</code> that checks calls a custom method that checks the parameters of the request and that the user has the <code>GrantedAuthority</code> with the <code>READ_ALLOWED</code> role and scope corresponding to the parameter.</p>\n<p>It works well, but I also have some generic endpoints that are allowed to everyone having a <code>READ_ALLOWED</code> authority, regardless of scope. In that case, I have a <code>@PreAuthorize(&quot;hasAuthority('READ_ALLOWED')&quot;)</code>, but in order for it to work I must give all the users who have a scoped <code>READ_ALLOWED</code> authority another one, unscoped, that returns <code>READ_ALLOWED</code> for its <code>getAuthority()</code>.</p>\n<p>So I was thinking about making all my scoped authorities like that :</p>\n<pre><code>class Auth implements GrantedAuthority {\n  String role;\n  String domain;\n  \n  String getAuthority() {\n    return role;\n  }\n}\n</code></pre>\n<p>This way, any authority with <code>role == READ_ALLOWED</code> will be granted access by <code>hasAuthority('READ_ALLOWED')</code>, and my custom method that checks the domain will continue to check the domain on top, and that would allow me to not use functionally duplicate authorities.</p>\n<p>As long as I have good <code>equals</code> and <code>hashCode</code> implementations, I don't see any glaring issues, but I'm not sure if Spring won't cause issues in having different authorities returning the same for <code>getAuthority()</code>.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

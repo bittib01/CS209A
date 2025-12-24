@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "overriding",
+      "apache-httpclient-4.x",
+      "autocloseable"
+    ],
+    "owner": {
+      "account_id": 26384984,
+      "reputation": 418,
+      "user_id": 20037647,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/9nb18CcK.png?s=256",
+      "display_name": "EarthTurtle",
+      "link": "https://stackoverflow.com/users/20037647/earthturtle"
+    },
+    "is_answered": true,
+    "view_count": 46,
+    "accepted_answer_id": 78841181,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1722982193,
+    "creation_date": 1721321834,
+    "last_edit_date": 1721346841,
+    "question_id": 78765763,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78765763/stop-callers-from-accidentally-closing-closeablehttpclient",
+    "title": "Stop callers from accidentally closing CloseableHttpClient",
+    "body": "<p>I am configuring a class to manage an Apache <code>HttpClient</code> that will be used application-wide for the lifetime of the application, like the following:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class HttpManager {\n  private CloseableHttpClient client;\n  private HttpClientBuilder builder;\n\n  public HttpClient getClient() {\n    // throw if null\n    return client;\n  }\n\n  /** \n   * Returns the builder configured with default settings, \n   * in case a new client needs to be made with a different config for\n   * a specific purpose.\n   */\n  public HttpClientBuilder getClientBuilder() {\n    // throw if null\n    return builder;\n  }\n\n  // repeat for HttpAsyncClient\n\n  public void startup() {\n    // construct builders and clients, read from config\n  }\n\n  public void shutdown() {\n    client.close();\n  }\n}\n</code></pre>\n<p>However, returning an <code>HttpClient</code> does not provide <code>CloseableHttpResponse</code>s from its <code>execute</code> functions. Returning a <code>CloseableHttpClient</code> allows <code>execute</code> to return the closeable response, but it also exposes <code>close()</code> on the client, and I don't want other modules to accidentally close the client before the rest of the application is done with it. <strong>Is there a way to provide a <code>CloseableHttpClient</code> that gives a <code>CloseableHttpResponse</code> but does not allow itself to be closed?</strong></p>\n<p>I initially tried to find a way to override or wrap just the <code>close()</code> method of the client, so that users external to <code>HttpManager</code> would get an <code>UnsupportedOperationException</code>. However, I'm a little wary of creating a class like this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>class UncloseableHttpClient extends CloseableHttpClient {\n  CloseableHttpClient delegate;\n  // basic constructor\n\n  @Override \n  public CloseableHttpResponse doExecute(HttpHost target, HttpRequest request, HttpContext context) throws IOException {\n    return delegate.doExecute(target, request, context);\n  }\n\n  @Override\n  public void close() {\n    throw new UnsupportedOperationException(&quot;Only HttpManager should close this client!&quot;);\n  }\n\n  // delegate other methods, including ones that are deprecated\n}\n\n</code></pre>\n<p>Extending <code>CloseableHttpClient</code> looks like it might have side affects I'm not confident in evaluating.</p>\n<p>Returning a plain <code>HttpClient</code> doesn't allow for use of the try-with-resources statement for <code>HttpResponse</code>, and I've had trouble with connection leaks from response entities not being consumed properly.</p>\n<p>The overall goal of the manager is to centralize proxy logic and thread pooling, as right now it's very common in the application to create and discard clients per-module, per-transaction, or even per-request.</p>\n<p>To note: this method of returning a <code>CloseableHttpClient</code> might not be needed if there's a better way to manage connections such as with <code>builder.setConnectionManager()</code>. I want to be able to stop connection leaks on the client itself if possible, and provide the try-with-resources <code>CloseableHttpResponse</code> if not.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "griddb"
+    ],
+    "owner": {
+      "account_id": 36221209,
+      "reputation": 33,
+      "user_id": 27628193,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/O7dx8v18.png?s=256",
+      "display_name": "Farwa Waheed",
+      "link": "https://stackoverflow.com/users/27628193/farwa-waheed"
+    },
+    "is_answered": false,
+    "view_count": 16,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1742815656,
+    "creation_date": 1742574650,
+    "last_edit_date": 1742815656,
+    "question_id": 79526077,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79526077/how-can-i-implement-automatic-data-expiration-in-griddb-using-the-ttl-feature-wi",
+    "title": "How can I implement automatic data expiration in GridDB using the TTL feature with Java?",
+    "body": "<p>I am working with IoT data stored in GridDB where each record contains sensor readings. To manage storage efficiently, I want to automatically expire and delete outdated records after a certain period. I learned that GridDB supports a Time-To-Live (TTL) feature, but I am unsure how to set it up using the Java API.</p>\n<p>Specifically:\nHow do I create a container with a TTL setting so that records expire automatically?\nAre there any best practices when designing such a container for high-throughput IoT applications?</p>\n<p>Below is a sample code snippet demonstrating my initial approach:</p>\n<pre><code>import com.toshiba.mwcloud.gs.*;\nimport java.sql.Timestamp;\n\npublic class TTLExample {\n    public static void main(String[] args) {\n        GridStore store = null;\n        try {\n            // Connect to the GridDB cluster\n            GridStoreFactory factory = GridStoreFactory.getInstance();\n            store = factory.getGridStore(\n                &quot;192.168.0.10:31999&quot;, &quot;defaultCluster&quot;, &quot;admin&quot;, &quot;Admin_Farwa&quot;\n            );\n\n            // Define container information with TTL set to 1 day (86400 seconds)\n            ContainerInfo containerInfo = new ContainerInfo();\n            containerInfo.setName(&quot;IoTData&quot;);\n            containerInfo.setColumnInfo(new ColumnInfo[] {\n                new ColumnInfo(&quot;sensor_id&quot;, ColumnType.STRING),\n                new ColumnInfo(&quot;reading&quot;, ColumnType.DOUBLE),\n                new ColumnInfo(&quot;timestamp&quot;, ColumnType.TIMESTAMP)\n            });\n            containerInfo.setRowKeyAssigned(true);\n            containerInfo.setTimeToLive(86400); // TTL in seconds\n\n            // Create or get the container\n            Collection&lt;String, Row&gt; container = store.putContainer(containerInfo);\n\n            // Insert a sample record with current timestamp\n            Row row = container.createRow();\n            row.setColumn(0, &quot;sensor_1&quot;);\n            row.setColumn(1, 23.5);\n            row.setColumn(2, new Timestamp(System.currentTimeMillis()));\n            container.put(row);\n\n            System.out.println(&quot;Record inserted with a TTL of 1 day. It will expire automatically.&quot;);\n\n        } catch (GSException e) {\n            e.printStackTrace();\n        } finally {\n            if (store != null) {\n                store.close();\n            }\n        }\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

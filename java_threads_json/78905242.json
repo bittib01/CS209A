@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "braintree"
+    ],
+    "owner": {
+      "account_id": 35075330,
+      "reputation": 1,
+      "user_id": 26962912,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/924002ef6685a5c9f04f98c4f3fd2b22?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Filip Budić",
+      "link": "https://stackoverflow.com/users/26962912/filip-budi%c4%87"
+    },
+    "is_answered": false,
+    "view_count": 352,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1724406114,
+    "creation_date": 1724406012,
+    "last_edit_date": 1724406114,
+    "question_id": 78905242,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78905242/java-lang-illegalstateexception-lifecycleowner-is-attempting-to-register-while",
+    "title": "java.lang.IllegalStateException: LifecycleOwner is attempting to register while current state is RESUMED",
+    "body": "<p>When it is that the string has changed, I get exception:</p>\n<pre><code>java.lang.IllegalStateException: LifecycleOwner ... is attempting to register while current state is RESUMED. LifecycleOwners must call register before they are STARTED.\n</code></pre>\n<p>That exception is thrown on the line:</p>\n<pre><code>dropInClient = new DropInClient(DonateActivity.this, clientToken);\n</code></pre>\n<pre><code>private String amount = &quot;&quot;;\n    private DropInClient dropInClient;\n    private DropInRequest dropInRequest = new DropInRequest();\n    private MutableLiveData&lt;String&gt; clientTokenValue = new MutableLiveData&lt;&gt;();\n\n    @Override\n    protected void onCreate(Bundle savedInstanceState) {\n        super.onCreate(savedInstanceState);\n        setContentView(R.layout.activity_donate);\n        ButterKnife.bind(this);\n\n        hideActionBar();\n        getClientToken();\n        setupListeners();\n\n        clientTokenValue.observe(this, new Observer&lt;String&gt;() {\n            @Override\n            public void onChanged(String clientToken) {\n                Log.d(&quot;LOGTRACETOKEN&quot;, &quot;onChanget&quot; + clientToken);\n                if (clientToken != null &amp;&amp; !clientToken.isEmpty()) {\n                    try {\n                        dropInClient = new DropInClient(DonateActivity.this, clientToken);\n                    } catch (Exception e) {\n                        Log.d(&quot;LOGTRACETOKEN&quot;, e.toString());\n                    }\n                    try {\n                        dropInClient.setListener(DonateActivity.this);\n                    } catch (Exception e) {\n                        Log.d(&quot;LOGTRACETOKEN&quot;, e.toString());\n                    }\n                    Log.d(&quot;LOGTRACETOKEN&quot;, clientToken);\n                } else {\n                    showToast(&quot;Failed to fetch client token&quot;);\n                    Log.e(&quot;LOGTRACETOKEN&quot;, &quot;Client token is empty&quot;);\n                }\n            }\n        });\n    }\n\n    private void getClientToken(){\n        try {\n            BaseWebserviceAPI apiCall = APIClient.getInstance().getClient(true).create(BaseWebserviceAPI.class);\n            Call&lt;Map&lt;String, String&gt;&gt; tokenCall = apiCall.getBtreeClientToken();\n            tokenCall.enqueue(new GenericCallback&lt;&gt;(new GenericCallback.CallbackListener&lt;Map&lt;String, String&gt;&gt;() {\n                @Override\n                public void onDataReceived(Map&lt;String, String&gt; data) {\n                    clientTokenValue.setValue(data.get(&quot;clientToken&quot;));\n                }\n\n                @Override\n                public void onRequestFailure() {\n                    showToast(&quot;Failed to fetch client token&quot;);\n                }\n            }));\n        } catch (Exception e) {\n            Log.d(&quot;CLIENTTOKENE&quot;, e.toString());\n        }\n    }\n</code></pre>\n<p>I get the same thing if I try to setup drop in client directly when i get the response from the GET request (onDataReceived).</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

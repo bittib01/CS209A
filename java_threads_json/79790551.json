@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "transactions",
+      "integration-testing",
+      "junit4"
+    ],
+    "owner": {
+      "account_id": 23344863,
+      "reputation": 31,
+      "user_id": 17419318,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/f018e36b189ad94001706ede25fcc5ad?s=256&d=identicon&r=PG",
+      "display_name": "VezzoLayer",
+      "link": "https://stackoverflow.com/users/17419318/vezzolayer"
+    },
+    "is_answered": false,
+    "view_count": 69,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1760533562,
+    "creation_date": 1760470154,
+    "last_edit_date": 1760533562,
+    "question_id": 79790551,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79790551/why-transactional-method-does-not-behave-as-expected-in-tests",
+    "title": "Why @Transactional method does not behave as expected in tests?",
+    "body": "<p>I'm testing that:</p>\n<pre><code>@RunWith(SpringRunner.class)\n@DataJpaTest\n@Import({ OrderService.class, UserService.class })\n@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)\npublic class OrderServiceRepositoryIT {\n\n    @Autowired\n    private OrderService orderService;\n\n    @Autowired\n    private UserService userService;\n\n    @Autowired\n    private OrderRepository orderRepository;\n\n    @Test\n    public void testServiceInsertNewOrderWhenRepositorySaveFailsShouldRollbackUserBalance() {\n        User user = userService.insertNewUser(new User(null, &quot;u1&quot;, &quot;n1&quot;, &quot;e1&quot;, 2000));\n        Order notSavedOrder = new Order(null, null, 500, user);\n\n        assertThatThrownBy(() -&gt; orderService.insertNewOrder(notSavedOrder))\n                .isInstanceOf(DataIntegrityViolationException.class);\n\n        assertThat(orderRepository.findById(notSavedOrder.getId()).orElse(null)).isNull();\n        assertThat(userService.getUserById(user.getId()).getBalance()).isEqualTo(2000);\n    }\n}\n</code></pre>\n<p>With this method from <code>orderService</code>:</p>\n<pre><code>    @Transactional\n    public Order insertNewOrder(Order order) {\n        order.setId(null);\n\n        try {\n            userService.withdraw(order.getUser().getId(), order.getPrice());\n        } catch (IllegalArgumentException | IllegalStateException e) {\n            throw new IllegalStateException(&quot;Unable to insert new order&quot;);\n        }\n\n        return orderRepository.save(order);\n    }\n</code></pre>\n<p>And this one from <code>userService</code>:</p>\n<pre><code>    @Transactional\n    public void withdraw(long id, long amount) {\n        if (amount &lt; 0) {\n            throw new IllegalArgumentException(&quot;Withdraw amount cannot be negative&quot;);\n        }\n\n        User user = userRepository.findById(id).orElse(null);\n\n        if (user == null) {\n            throw new IllegalStateException(&quot;User not found&quot;);\n        }\n\n        if (user.getBalance() - amount &lt; 0) {\n            throw new IllegalStateException(&quot;Not enough balance to perform withdraw&quot;);\n        }\n\n        user.setBalance(user.getBalance() - amount);\n        userRepository.save(user);\n    }\n</code></pre>\n<p>So I manually tested that and if I try to insert an order that fails on the <code>userRepository.save(user);</code> the rollback actually happens. But in the test it doesn't, as I receive this error:</p>\n<pre><code>expected: 2000L\n but was: 1500L\n</code></pre>\n<p>Why?</p>\n<p>I'm trying every possible scenarios, but the test does not pass</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

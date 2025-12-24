@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "zip",
+      "tar",
+      "apache-commons-compress"
+    ],
+    "owner": {
+      "account_id": 26474010,
+      "reputation": 25,
+      "user_id": 20114202,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/4a1804f0df3c7ae7c455e8a5b7b027f8?s=256&d=identicon&r=PG",
+      "display_name": "Etienne",
+      "link": "https://stackoverflow.com/users/20114202/etienne"
+    },
+    "is_answered": true,
+    "view_count": 90,
+    "accepted_answer_id": 79769703,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1758555516,
+    "creation_date": 1758293029,
+    "last_edit_date": 1758296206,
+    "question_id": 79769651,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79769651/java-io-ioexception-request-to-write-bytes-exceeds-size-in-header-of-bytes-for",
+    "title": "java.io.IOException: request to write bytes exceeds size in header of bytes for entry make more robust",
+    "body": "<p>I'm trying to convert a zip into a TAR. For this I'm using a <em>visitor</em>, but sometimes when I'm doing the conversion I have a:</p>\n<pre class=\"lang-none prettyprint-override\"><code>Caused by: platform.kernel.io.compresser.CompresserException: \n    at platform.kernel.io.compresser.TarIdefixCompresser.compress(TarIdefixCompresser.java:69)\n    at platform.kernel.io.compresser.IdefixCompresser.compress(IdefixCompresser.java:165)\n    at telegestion.daemon.sadmin.distribution.NodeFilesConsumer.sendFile(NodeFilesConsumer.java:351)\n    ... 9 more\nCaused by: java.io.IOException: request to write '69013' bytes exceeds size in header of '198041' bytes for entry 'CAT_ST_20250108-215416738.zip'\n    at org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.write(TarArchiveOutputStream.java:377)\n    at platform.kernel.io.compresser.TarVisitor.visitFile(TarVisitor.java:55)\n    at platform.kernel.io.compresser.TarVisitor.visitFile(TarVisitor.java:27)\n    at java.nio.file.Files.walkFileTree(Unknown Source)\n    at java.nio.file.Files.walkFileTree(Unknown Source)\n    at platform.kernel.io.compresser.TarIdefixCompresser.compress(TarIdefixCompresser.java:66)\n    ... 11 more\n    Suppressed: java.io.IOException: This archives contains unclosed entries.\n        at org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.finish(TarArchiveOutputStream.java:220)\n        at org.apache.commons.compress.archivers.tar.TarArchiveOutputStream.close(TarArchiveOutputStream.java:236)\n        at platform.kernel.io.compresser.TarIdefixCompresser.compress(TarIdefixCompresser.java:68)\n        ... 11 more\n</code></pre>\n<p>The method <code>visitFile</code> of <code>TarVisitor</code> class:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Override\npublic FileVisitResult visitFile(Path pFile, BasicFileAttributes pAttrs) throws IOException {\n    try (FileInputStream lFis = new FileInputStream(pFile.toFile())) {\n        ArchiveEntry lArchiveEntry = tarOs.createArchiveEntry(pFile.toFile(), \n                pFile.getFileName().toString());\n        tarOs.putArchiveEntry(lArchiveEntry);\n        byte[] lBytesTampon = new byte[bufferSize];\n        int lCount;\n        while ((lCount = lFis.read(lBytesTampon)) != -1) {\n            tarOs.write(lBytesTampon, 0, lCount);\n        }\n    }\n    tarOs.closeArchiveEntry();\n    return FileVisitResult.CONTINUE;\n}\n</code></pre>\n<p>I would like to know how can I make my method more robust and avoid this type of problem.\nShould I do a retry for each exception?\nI expect that my ZIP file is not well closed after its creation, so the direct conversion in a tar can be sometimes not really stable.\nShould I have something like <code>fos.getFD().sync();</code> after my try-with-resources ?</p>\n<p>The code that compresses my file into zip:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Override\npublic List&lt;Path&gt; compress(String pFileName, Path pParentPath, List&lt;Path&gt; pPathlist,\n        Integer pLevel, boolean pDeleteInputFiles) throws CompresserException {\n\n    String lFileName = pFileName + getExtension();\n    Path lPathCompressed = pParentPath.resolve(lFileName);\n    List&lt;Path&gt; lPathReturn = new ArrayList&lt;&gt;();\n    lPathReturn.add(lPathCompressed);\n    logCompression(lFileName, pPathlist);\n    try (ZipOutputStream lZipOs = \n            new ZipOutputStream(new FileOutputStream(lPathCompressed.toFile()))) {\n        lZipOs.setLevel(pLevel);\n        for (Path lPath : pPathlist) {\n            ZipVisitor lZipVisitor = new ZipVisitor(lZipOs, BUFFER_SIZE);\n            Files.walkFileTree(lPath, lZipVisitor);\n        }\n    } catch (IOException lEx) {\n        throw new CompresserException(IdefixComponentName.NONE,\n                KernelError.COMPRESSION_ERROR, lEx, &quot;ZIP&quot;);\n    }\n    return lPathReturn;\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

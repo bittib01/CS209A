@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-security",
+      "oauth-2.0",
+      "google-oauth"
+    ],
+    "owner": {
+      "account_id": 21731332,
+      "reputation": 3,
+      "user_id": 16040028,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a-/AOh14Gg12XHmjXj6lqx8WjKaQH6qz1vHxQcsWE6KT0Zm20k=k-s256",
+      "display_name": "Avijit Patra",
+      "link": "https://stackoverflow.com/users/16040028/avijit-patra"
+    },
+    "is_answered": false,
+    "view_count": 173,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1734941312,
+    "creation_date": 1734897441,
+    "last_edit_date": 1734941312,
+    "question_id": 79301637,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79301637/google-oauth-redirects-to-login-oauth2-code-google-instead-of-my-custom-success",
+    "title": "Google OAuth Redirects to /login/oauth2/code/google Instead of My Custom Success Handler URL",
+    "body": "<p>I am implementing Google OAuth login for my Spring Boot application, and I am facing an issue with redirection after a successful login.</p>\n<p>Homepage URL: <code>https://www.codebyte.work/</code></p>\n<p>Desired Redirect URL After Login:</p>\n<pre><code>https://www.codebyte.work/courses?accessToken=&lt;token&gt;&amp;refreshToken=&lt;token&gt;\n</code></pre>\n<p>Authorized JavaScript Origins in Google Console: <code>https://www.codebyte.work</code></p>\n<p>Authorized Redirect URIs in Google Console: <strong><code>https://www.codebyte.work/login/oauth2/code/google</code></strong></p>\n<p><strong>My OAuth2SuccessHandler Class:</strong></p>\n<pre><code>    @Component\n    @RequiredArgsConstructor\n    public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {\n        private final UserEntityService userService;\n        private final JwtService jwtService;\n    \n        @Override\n        public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,\n                                            Authentication authentication) throws IOException, ServletException {\n            OAuth2AuthenticationToken token = (OAuth2AuthenticationToken) authentication;\n            DefaultOAuth2User OAuthUser = (DefaultOAuth2User) token.getPrincipal();\n    \n            String email = OAuthUser.getAttribute(&quot;email&quot;);\n            UserEntity user = userService.getUserByEmail(email);\n            if (user == null) {\n                user = userService.save(\n                    UserEntity.builder()\n                              .name(OAuthUser.getAttribute(&quot;name&quot;))\n                              .email(email)\n                              .roles(Set.of(Roles.USER))\n                              .build()\n                );\n            }\n    \n            String accessToken = jwtService.generateAccessJwtToken(user);\n            String refreshToken = jwtService.generateRefreshJwtToken(user);\n    \n            Cookie cookie = new Cookie(&quot;refreshToken&quot;, refreshToken);\n            cookie.setHttpOnly(true);\n            cookie.setPath(&quot;/&quot;);\n            response.addCookie(cookie);\n    \n            // Redirecting to the frontend with tokens\n            String frontEndUrl = &quot;https://www.codebyte.work/courses?accessToken=&quot; + accessToken\n                    + &quot;&amp;refreshToken=&quot; + refreshToken;\n            getRedirectStrategy().sendRedirect(request, response, frontEndUrl);\n        }\n    }\n</code></pre>\n<p><strong>Web Security Configuration:</strong></p>\n<pre><code>    @Configuration\n    @EnableWebSecurity\n    @EnableMethodSecurity\n    @RequiredArgsConstructor\n    public class WebSecurityConfigs {\n        private final JwtAuthFilter jwtAuthFilter;\n        private final OAuth2SuccessHandler successHandler;\n    \n        @Bean\n        SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {\n            http.authorizeRequests(auth -&gt; auth\n                    .requestMatchers(&quot;/auth/**&quot;, &quot;/swagger-ui/**&quot;, &quot;/v3/api-docs/**&quot;, &quot;/home.html&quot;).permitAll()\n                    .anyRequest().authenticated())\n                .csrf(AbstractHttpConfigurer::disable)\n                .sessionManagement(session -&gt; session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))\n                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)\n                .oauth2Login(oauth2 -&gt; oauth2\n                    .successHandler(successHandler)\n                );\n            return http.build();\n        }\n    }\n</code></pre>\n<p><strong>application.properties Configuration:</strong></p>\n<pre><code>spring.security.oauth2.client.registration.google.client-id=your-client-id\nspring.security.oauth2.client.registration.google.client-secret=your-client-secret\nspring.security.oauth2.client.registration.google.redirect-uri=https://www.codebyte.work/login/oauth2/code/google\n</code></pre>\n<p><strong>The Problem:</strong>\nWhen I log in with Google, instead of being redirected to my desired URL <code>(https://www.codebyte.work/courses?accessToken=&lt;token&gt;&amp;refreshToken=&lt;token&gt;)</code>, the application redirects to:</p>\n<pre><code>https://www.codebyte.work/login/oauth2/code/google?state=...&amp;code=...&amp;scope=...\n</code></pre>\n<p><strong>This triggers my custom &quot;Page Not Found&quot; error page, which is designed to show if someone tries to access any non-existing endpoint.</strong></p>\n<p>I have verified that:</p>\n<p><strong>Client ID and Client Secret:</strong> Correctly configured in application.properties.\n<strong>Authorized Redirect URI in Google Console:</strong> Matches the application configuration.\n<strong>OAuth2SuccessHandler:</strong> Is registered in WebSecurityConfigs.</p>\n<p><strong>What I Need:</strong>\nHow can I ensure the application redirects to my custom URL (<code>[https://www.codebyte.work/courses][1]</code>) after a successful login instead of showing the &quot;Page Not Found&quot; error page?</p>\n<p>You can refer to the below images for more details about the issue:</p>\n<p>Any guidance or suggestions would be appreciated.</p>\n<p><img src=\"https://i.sstatic.net/C96VZsrk.png\" alt=\"404 Not Found-snapshot\" /></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

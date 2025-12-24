@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "excel",
+      "apache-poi",
+      "thread-safety",
+      "java-threads"
+    ],
+    "owner": {
+      "account_id": 28632201,
+      "reputation": 11,
+      "user_id": 21922982,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AGNmyxY9L1CDC1rzMoU7_HbZmoajxWdxEdOCjpwkFivz=k-s256",
+      "display_name": "Jolyou Lu",
+      "link": "https://stackoverflow.com/users/21922982/jolyou-lu"
+    },
+    "is_answered": true,
+    "view_count": 67,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1752262984,
+    "creation_date": 1752239033,
+    "last_edit_date": 1752262984,
+    "question_id": 79698379,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79698379/is-it-thread-safe-to-use-opcpackage-open-in-a-multi-threaded-environment",
+    "title": "Is it thread-safe to use OPCPackage.open in a multi-threaded environment",
+    "body": "<p>This is a piece of test code with POI. It reads an Excel file as a template to write data and saves it locally. This code will eventually be executed under a web application, meaning it will be accessed concurrently</p>\n<pre class=\"lang-java prettyprint-override\"><code>public static void main(String[] args) throws FileNotFoundException, InterruptedException {\n    List&lt;Thread&gt; threadList = new ArrayList&lt;&gt;();\n    for (int i = 0; i &lt; 10; i++) {\n        Thread thread = new Thread(() -&gt; {\n            try (OPCPackage opcPackage = OPCPackage.open(new FileInputStream(&quot;C:\\\\Users\\\\samson\\\\Downloads\\\\temp.xlsx&quot;))) {\n                SXSSFWorkbook workbook = new SXSSFWorkbook(new XSSFWorkbook(opcPackage));\n                Sheet sheet = workbook.getSheetAt(0);\n                // 写入 100 条数据\n                for (int j = 1; j &lt;= 100; j++) {\n                    Row row = sheet.createRow(j);\n                    row.createCell(0).setCellValue(j);\n                    row.createCell(1).setCellValue(&quot;用户&quot; + j);\n                    row.createCell(2).setCellValue(20 + j % 30);\n                    row.createCell(3).setCellValue(&quot;user&quot; + j + &quot;@example.com&quot;);\n                }\n                // 写入文件\n                try (FileOutputStream fos = new FileOutputStream(&quot;C:\\\\Users\\\\samson\\\\Downloads\\\\&quot; + Thread.currentThread().getName() + &quot;_large_data.xlsx&quot;)) {\n                    workbook.write(fos);\n                }\n            } catch (IOException e) {\n                throw new RuntimeException(e);\n            } catch (InvalidFormatException e) {\n                throw new RuntimeException(e);\n            }\n        });\n        threadList.add(thread);\n    }\n    threadList.forEach(Thread::start);\n    for (Thread thread : threadList) {\n        thread.join();\n    }\n}\n</code></pre>\n<p>I created multiple threads to execute the code logic simultaneously. I found that the generated file content did not detect any anomalies, but I'm not sure if this code is thread-safe.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

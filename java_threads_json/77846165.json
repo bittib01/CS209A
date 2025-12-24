@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "optimization",
+      "timefold"
+    ],
+    "owner": {
+      "account_id": 30363261,
+      "reputation": 1,
+      "user_id": 23268947,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/00172a512a1b955bf78625c98211aa9b?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Peter C",
+      "link": "https://stackoverflow.com/users/23268947/peter-c"
+    },
+    "is_answered": true,
+    "view_count": 180,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1709329092,
+    "creation_date": 1705668256,
+    "last_edit_date": 1705668452,
+    "question_id": 77846165,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77846165/adding-a-further-constraint-to-the-timefold-timetabling-example-where-teachers-c",
+    "title": "Adding a further constraint to the Timefold timetabling example where teachers can only work certain days",
+    "body": "<p>I am trying to extend the Timefold 'Hello World' java example. I have added in my own lesson, class and teacher data, and now I want to add in an additional constraint, where certain teachers only work on certain days.</p>\n<p>I have tried this:</p>\n<pre><code>Constraint restDayConstraint(ConstraintFactory constraintFactory) {\n        // teachers don't teach on their rest day\n        return constraintFactory\n                .forEachUniquePair(Lesson.class, Teacher.class,\n                        Joiners.equal(Lesson::getTimeslot),\n                        Joiners.equal(Teacher::getTeacher))\n                .filter((lesson1, teacher) -&gt; lesson1.getTimeslot().getDayOfWeek() != teacher.getRestDay())\n                .penalize(HardSoftScore.ONE_HARD)\n                .justifyWith(\n                        (lesson1, teacher, score) -&gt; new TeacherConflictJustification(lesson1.getTeacher(), lesson1, teacher))\n                .asConstraint(&quot;Teacher conflict&quot;);\n    }\n</code></pre>\n<p>and have created a Teacher.java file with the following code:</p>\n<pre><code>package org.acme.schooltimetabling.domain;\n\nimport ai.timefold.solver.core.api.domain.entity.PlanningEntity;\nimport ai.timefold.solver.core.api.domain.lookup.PlanningId;\nimport ai.timefold.solver.core.api.domain.variable.PlanningVariable;\n\n@PlanningEntity\npublic class Teacher {\n\n    @PlanningId\n    private Long id;\n\n    private String subject;\n    private String restDay;\n\n    @PlanningVariable\n    private Timeslot timeslot;\n\n    @PlanningVariable\n    private Room room;\n\n    // No-arg constructor required for Timefold\n    public Teacher() {\n    }\n\n    public Teacher(long id, String subject, String restDay) {\n        this.id = id;\n        this.subject = subject;\n        this.restDay = restDay;\n    }\n\n    @Override\n    public String toString() {\n        return subject + &quot;(&quot; + id + &quot;)&quot;;\n    }\n\n    // ************************************************************************\n    // Getters and setters\n    // ************************************************************************\n\n    public Long getId() {\n        return id;\n    }\n\n    public String getRestDay() {\n        return restDay;\n    }\n\n    public String getSubject() {\n        return subject;\n    }\n\n}\n</code></pre>\n<p>But I get the following error:</p>\n<pre><code>The method forEachUniquePair(Class&lt;A&gt;, BiJoiner&lt;A,A&gt;, BiJoiner&lt;A,A&gt;) in the type ConstraintFactory is not applicable for the arguments (Class&lt;Lesson&gt;, BiJoiner&lt;Lesson,Lesson&gt;, BiJoiner&lt;Teacher,Teacher&gt;)\n</code></pre>\n<p>How can I enforce the constraint that certain teachers only work on certain days?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

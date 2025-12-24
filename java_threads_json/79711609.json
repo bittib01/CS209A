@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "winapi",
+      "ui-automation",
+      "credential-providers",
+      "winlogon"
+    ],
+    "owner": {
+      "account_id": 9660706,
+      "reputation": 386,
+      "user_id": 7168877,
+      "user_type": "registered",
+      "accept_rate": 100,
+      "profile_image": "https://i.sstatic.net/kieuF.png?s=256",
+      "display_name": "Stew",
+      "link": "https://stackoverflow.com/users/7168877/stew"
+    },
+    "is_answered": false,
+    "view_count": 82,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1753262096,
+    "creation_date": 1753262096,
+    "question_id": 79711609,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79711609/intermittent-ui-automation-failures-after-programmatic-windows-screen-lock-and-u",
+    "title": "Intermittent UI automation failures after programmatic Windows screen lock and unlock",
+    "body": "<p>I am developing a UI automation script using a Java-based framework that leverages image recognition (similar to Sikuli) to interact with desktop applications on Windows.</p>\n<p>My script needs to perform the following sequence of actions:</p>\n<ol>\n<li>Open and interact with a few initial desktop applications (e.g., Notepad, WordPad).</li>\n<li>Programmatically lock the user session using the command: <code>Rundll32.exe user32.dll, LockWorkStation</code>.</li>\n<li>The automation system automatically unlocks the session to continue the script.</li>\n<li>After a delay, launch a new Java Swing application (<code>java -jar ...</code>).</li>\n<li>Find and interact with UI elements within this new Java application using image recognition.</li>\n</ol>\n<p><strong>The Problem:</strong></p>\n<p>This automation is unreliable. It fails intermittently (around 3-5% of the time) on the step where it tries to find an image within the Java Swing application launched after the screen lock/unlock cycle. The error is consistently a <code>&quot;NoSuchElementException&quot;</code></p>\n<p>If I remove the <code>Rundll32.exe user32.dll,LockWorkStation</code> command from the script, the failure rate drops to 0%. This strongly suggests the issue is related to the session's state after being unlocked.</p>\n<p>What I've Analyzed from Logs:</p>\n<ol>\n<li>In failed runs, I can confirm that the Java application process starts successfully and its main window handle is found by the automation tool.</li>\n<li>The failure occurs when the script tries to find the first image inside that window. The image search times out after waiting for a configured period (e.g., 10 seconds).</li>\n<li>During cleanup at the end of a failed run, I also notice warnings that the initial applications (like Notepad) are &quot;not responding&quot; when the script tries to close them.</li>\n</ol>\n<p>The failure occurs when the script tries to find the first image inside that window. The image search times out after waiting for a configured period (e.g., 10 seconds).</p>\n<pre><code>// Step 1: Works reliably\nopen(&quot;notepad.exe&quot;)\nwindow(&quot;[CLASS:Notepad]&quot;)\nsendKeys(&quot;Preparing to lock...&quot;)\nsleep(2000)\n\n// Step 2: The source of instability\nopen(&quot;Rundll32.exe user32.dll,LockWorkStation&quot;)\n\n// The system unlocks the screen here automatically.\n\n// Step 3: Attempt to wait for stability (unreliable)\nsleep(8000)\n\n// Step 4: Launch the application that fails intermittently\ndef jarPath = downloadFileOnAgent(&quot;path/to/some/SwingApp.jar&quot;)\nopen(&quot;java -jar ${jarPath}&quot;)\n\n// Step 5: This is where it fails intermittently\ntry {\n    window(&quot;[CLASS:SunAwtFrame;TITLE:My Swing App]&quot;)\n    // This next command fails with &quot;Image not found&quot;\n    $(byImage(&quot;path/to/button_image.png&quot;)).waitUntil(APPEARS, 10000).click() \n} catch (Exception e) {\n    // Throws NoSuchElementException / ImageNotFoundException\n    log.error(&quot;Failed to find the element after screen unlock.&quot;, e)\n}\n\n// ... rest of the script\n</code></pre>\n<p><strong>Question:</strong></p>\n<p>I am looking for an explanation for this behavior. What could be causing it?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,31 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "openrewrite"
+    ],
+    "owner": {
+      "account_id": 4360446,
+      "reputation": 1990,
+      "user_id": 3557714,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/dca1b60d2a69bc389eac206a844b448d?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Ben R.",
+      "link": "https://stackoverflow.com/users/3557714/ben-r"
+    },
+    "is_answered": false,
+    "view_count": 163,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1758004301,
+    "creation_date": 1757936241,
+    "question_id": 79765080,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79765080/why-is-openrewrite-not-adding-an-import-statement-for-moreobjects",
+    "title": "Why is OpenRewrite not adding an import statement for MoreObjects?",
+    "body": "<p>I am trying to use OpenRewrite (BOM v 3.14.1) to change all usages of Guava's deprecated <code>Objects#toStringHelper</code> to <code>MoreObjects#toStringHelper</code>.</p>\n<p>This is my attempt at the recipe.</p>\n<pre class=\"lang-java prettyprint-override\"><code>\n    private static final MethodMatcher TO_STRING_HELPER_MATCHER =\n            new MethodMatcher(&quot;com.google.common.base.Objects toStringHelper(..)&quot;);\n\n    public TreeVisitor&lt;?, @NotNull ExecutionContext&gt; getVisitor() {\n        return new JavaIsoVisitor&lt;@NotNull ExecutionContext&gt;() {\n            @Override\n            @NotNull\n            public MethodInvocation visitMethodInvocation(@NotNull MethodInvocation method, ExecutionContext ctx) {\n                MethodInvocation mi = super.visitMethodInvocation(method, ctx);\n\n                if (TO_STRING_HELPER_MATCHER.matches(mi)) {\n                    maybeAddImport(&quot;com.google.common.base.MoreObjects&quot;);\n                    JavaTemplate template = JavaTemplate.builder(&quot;MoreObjects.toStringHelper(#{any()})&quot;)\n                            .build();\n                    mi = template.apply(getCursor(), mi.getCoordinates().replace(), mi.getArguments().toArray());\n                }\n\n                return mi;\n            }\n        };\n</code></pre>\n<p>However, in all my tests, the import statement for <code>MoreObjects</code> is not being added. Can anyone explain why?</p>\n<p>Moreover, I have one test which gives the following Java as an input:</p>\n<pre class=\"lang-java prettyprint-override\"><code>package foo;\n\nimport java.math.BigDecimal;\n\nimport com.google.common.base.Function;\nimport com.google.common.base.Objects;\n\npublic class Example {\n\n    private static final Function&lt;Transaction, UnsettledAmount&gt; funcConvertToTransactionUnsettledAmount = new Function&lt;&gt;() {\n        @Override\n        public UnsettledAmount apply(final Transaction transaction) {\n            return new UnsettledAmount() {\n                @Override\n                public BigDecimal getUnsettledAmount() {\n                    return transaction.getUnsettledAmount();\n                }\n\n                @Override\n                public String toString() {\n                    return Objects.toStringHelper(this).add(&quot;key&quot;, transaction.getId())\n                            .add(&quot;unsettledAmount&quot;, transaction.getUnsettledAmount()).toString();\n                }\n            };\n        }\n    };\n    \n    \n\n    interface Transaction {\n        String getId();\n\n        BigDecimal getUnsettledAmount();\n    }\n\n    interface UnsettledAmount {\n        BigDecimal getUnsettledAmount();\n\n        String toString();\n    }\n}\n</code></pre>\n<p>and expects the usage of <code>Objects#toStringHelper</code> from the anonymous inner class of <code>UnsettledAmount</code> to be successfully refactored. However, the test keeps on throwing exceptions like</p>\n<pre><code>    return new UnsettledAmount() {\n        /*~~(MethodDeclaration type is missing or malformed)~~&gt;*/@/*~~(Identifier type is missing or malformed)~~&gt;*/Override\n        public BigDecimal getUnsettledAmount() {\n            return /*~~(Identifier type is missing or malformed)~~&gt;*/transaction.getUnsettledAmount();\n        }\n\n        /*~~(MethodDeclaration type is missing or malformed)~~&gt;*/@/*~~(Identifier type is missing or malformed)~~&gt;*/Override\n        public String toString() {\n            return /*~~(Identifier type is missing or malformed)~~&gt;*/Objects.toStringHelper(/*~~(Identifier type is missing or malformed)~~&gt;*/this).add(&quot;key&quot;, /*~~(Identifier type is missing or malformed)~~&gt;*/transaction.getId())\n                    .add(&quot;unsettledAmount&quot;, /*~~(Identifier type is missing or malformed)~~&gt;*/transaction.getUnsettledAmount()).toString();\n        }\n    };\n</code></pre>\n<p>It's as if anything declared inside the anonymous class, whether a return type, input parameter, or annotation, is not being associated with the imports at the top of the classfile.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

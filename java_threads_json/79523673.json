@@ -1,0 +1,31 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jackson"
+    ],
+    "owner": {
+      "account_id": 15486800,
+      "reputation": 2692,
+      "user_id": 12044155,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/-5M5bU2mBMxc/AAAAAAAAAAI/AAAAAAAAAAA/ACHi3reGgSHlqfnuZeNnIsOh9GuLfEbY6w/s256-rj/photo.jpg",
+      "display_name": "Allan Juan",
+      "link": "https://stackoverflow.com/users/12044155/allan-juan"
+    },
+    "is_answered": true,
+    "view_count": 478,
+    "answer_count": 1,
+    "score": 6,
+    "last_activity_date": 1743849568,
+    "creation_date": 1742490937,
+    "question_id": 79523673,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79523673/what-is-the-fastest-way-to-retrieve-a-subset-of-json-with-jackson",
+    "title": "What is the fastest way to retrieve a subset of JSON with Jackson?",
+    "body": "<p>Let's say I'm handling large JSON payloads, but I only care about a small subset of their properties. In this scenario, deserializing the whole thing would be a waste of time and memory, so I'm looking for a more efficient approach that will only work with the attributes that I actually need.</p>\n<p>So far, I have tried two different approaches using Jackson. Here's a simplified version of my implementation:</p>\n<pre class=\"lang-java prettyprint-override\"><code>// First approach: using objectMapper.readTree\npublic String retrieve(String jsonPayload, String field) {\n  return objectMapper.readTree(jsonPayload).get(field).asText();\n}\n\n// Second approach: using Jackson's low level streaming API, JsonParser\npublic String retrieve(String jsonPayload, String field) {\n    try (JsonParser parser = objectMapper.createParser(jsonPayload)){\n        while (parser.nextValue() != null) {\n            if (field.equals(parser.currentName())) {\n                return parser.getText();\n            }\n        }\n    }\n}\n</code></pre>\n<p>My initial hypothesis was that the second approach would be more performant, based on the following <strong>premises</strong>:</p>\n<ul>\n<li>JsonParser doesn't need to parse the whole thing and can return early, so it will run faster</li>\n<li>JsonParser is not loading the whole content but rather just streaming it, so it will use less memory</li>\n</ul>\n<p>But this didn't show to be true. I ran some tests comparing the performance of both approaches in regards to time elapsed and memory usage. I used a JSON with over ~450k entries as input, which amounts to about 30MB of data. Then, I run several iterations retrieving random properties from such JSON.</p>\n<p>JsonParser used slightly less memory than readTree, but was almost 3 times slower. At first glance, this was surprising, but I guess there are some ways we could explain it.</p>\n<ul>\n<li><code>readTree</code> must have internal optimizations that make it faster than naively using <code>JsonParser</code></li>\n<li>Maybe <code>JsonParser</code> does not discard past items, which makes the memory usage on par with readTree, since it's still loading a good chunk of content</li>\n<li>Jackson's biggest bottleneck lies in reflection APIs used to map the JSON trees to DTO classes. <code>readTree</code> doesn't do any of this so it brings good performance</li>\n</ul>\n<p>So, it seems <code>JsonParser</code> is not the way to go, at least not the way I've tried so far. Which leaves the question: is <code>readTree()</code> the fastest way to extract JSON subsets with Jackson, or are there better options?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

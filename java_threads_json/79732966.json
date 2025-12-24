@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "griddb"
+    ],
+    "owner": {
+      "account_id": 15738612,
+      "reputation": 79,
+      "user_id": 26968350,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/bc2d96202ddb562d22cd8d6b6ee22041?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Ahmed Ben Khelifa",
+      "link": "https://stackoverflow.com/users/26968350/ahmed-ben-khelifa"
+    },
+    "is_answered": false,
+    "view_count": 101,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1755137617,
+    "creation_date": 1754991657,
+    "last_edit_date": 1754992151,
+    "question_id": 79732966,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79732966/how-to-query-a-json-column-by-a-nested-key",
+    "title": "How to query a JSON column by a nested key?",
+    "body": "<p>I’m using GridDB 5.3 with the Java client to store IoT sensor readings.\nEach reading is stored in a collection, and one of the columns contains a JSON payload as a string.</p>\n<p>Here’s a minimal Java example of how I’m inserting the data:</p>\n<pre><code>Properties props = new Properties();\nprops.setProperty(&quot;host&quot;, &quot;127.0.0.1&quot;);\nprops.setProperty(&quot;port&quot;, &quot;10001&quot;);\nprops.setProperty(&quot;clusterName&quot;, &quot;defaultCluster&quot;);\nprops.setProperty(&quot;user&quot;, &quot;admin&quot;);\nprops.setProperty(&quot;password&quot;, &quot;admin&quot;);\n\nGridStore store = GridStoreFactory.getInstance().getGridStore(props);\n\nContainerInfo info = new ContainerInfo();\ninfo.setName(&quot;sensor_data&quot;);\ninfo.setType(ContainerType.COLLECTION);\ninfo.setColumnInfoList(Arrays.asList(\n    new ColumnInfo(&quot;id&quot;, GSType.INTEGER),\n    new ColumnInfo(&quot;timestamp&quot;, GSType.TIMESTAMP),\n    new ColumnInfo(&quot;payload&quot;, GSType.STRING) // JSON data stored here\n));\nstore.putContainer(info);\n\nCollection&lt;Integer, Row&gt; col = store.getCollection(&quot;sensor_data&quot;, Row.class);\n\nString json1 = &quot;{\\&quot;deviceId\\&quot;:\\&quot;A1\\&quot;,\\&quot;temp\\&quot;:22.5}&quot;;\nString json2 = &quot;{\\&quot;deviceId\\&quot;:\\&quot;A2\\&quot;,\\&quot;temp\\&quot;:28.1}&quot;;\n\nRow row1 = col.createRow();\nrow1.setInteger(0, 1);\nrow1.setTimestamp(1, new Date());\nrow1.setString(2, json1);\n\nRow row2 = col.createRow();\nrow2.setInteger(0, 2);\nrow2.setTimestamp(1, new Date());\nrow2.setString(2, json2);\n\ncol.put(row1);\ncol.put(row2);\n\n</code></pre>\n<p>What I want is a query like:</p>\n<p><code>Find all rows where payload.deviceId = &quot;A2&quot;. </code>\nCurrently, the only way I’ve found is:</p>\n<ul>\n<li>Select all rows</li>\n<li>Parse the JSON in Java</li>\n<li>Filter manually</li>\n</ul>\n<p>This works but is slow with large datasets.</p>\n<p><strong>My question:</strong></p>\n<p>Is there a way in GridDB to filter rows directly by a nested JSON value inside a STRING column, without retrieving and parsing everything in the application?</p>\n<p>I’m not looking for schema redesign advice right now — I just want to know if native querying of nested JSON is possible in GridDB, and if so, how to do it in Java.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

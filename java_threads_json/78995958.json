@@ -1,0 +1,37 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "c++",
+      "swig",
+      "linkage",
+      "visual-c++-runtime"
+    ],
+    "owner": {
+      "account_id": 1818669,
+      "reputation": 3258,
+      "user_id": 1653225,
+      "user_type": "registered",
+      "accept_rate": 68,
+      "profile_image": "https://www.gravatar.com/avatar/19097d5cf2cd514aa099c002c7337111?s=256&d=identicon&r=PG",
+      "display_name": "Nick Williams",
+      "link": "https://stackoverflow.com/users/1653225/nick-williams"
+    },
+    "is_answered": false,
+    "view_count": 445,
+    "closed_date": 1763736213,
+    "answer_count": 1,
+    "score": 5,
+    "last_activity_date": 1763643645,
+    "creation_date": 1726611240,
+    "last_edit_date": 1726703339,
+    "question_id": 78995958,
+    "link": "https://stackoverflow.com/questions/78995958/how-do-i-resolve-this-linking-conflict-with-the-vcruntime140-dll-shipped-with-th",
+    "closed_reason": "Not suitable for this site",
+    "title": "How do I resolve this linking conflict with the vcruntime140.dll shipped with the JVM?",
+    "body": "<p>My organization publishes a fairly substantial C++17-based library and associated applications, and we also publish Java and C# bindings using Swig. Our library and bindings support multiple flavors and versions of macOS, Linux, and Windows. We have successfully done this for years without issue, but we've hit a bit of a snag regarding the <code>vcruntime140.dll</code> file that the JVM ships with.</p>\n<p>My tl;dr understanding of the Microsoft recommended best practices is that you should not ship the VC runtime, but rather should ship or provide a link to the VC runtime <em>installer</em>, allowing the user to install (or already have) the runtime on their system and get the associated security and bug fix updates for it from Microsoft. The JVM appears to be violating those best practices by shipping the <code>vcruntime140.dll</code> file directly (and not just the Oracle JVM ... it appears that OpenJDK, Temurin, and others do/have done this). And up to this point that has not broken anything for us.</p>\n<p>But now it appears that Microsoft has introduced one or more binary incompatibilities with the VC runtime between versions 14.31 (shipped with the JVM) and 14.40 (the runtime installed on our builders, from Microsoft, against which all of our libraries, bindings, and applications are linked at build time). Or, the incompatibility could be with the VC runtime 14.31 vs the header provided with the latest compiler. Either way, when the opt version of our bindings library is loaded with Java's <code>System.loadLibrary( libName )</code>, we get errors that prevent loading the library:</p>\n<pre><code>Unhandled exception at [sensored] (msvcp140.dll) in java.exe: [censored]: Access violation reading location 0x00000000.\n#0 msvcp140.dll!mtx_do_lock(_Mtx_internal_imp_t * mtx, const xtime * target) Line 102 C++\n#1 [censored].dll![censored]::[censored](void) C++\n#2 ...\n</code></pre>\n<p>The line of code in frame #1 that is triggering the crashing <code>mtx_do_lock</code> call is:</p>\n<pre><code>std::unique_lock&lt; std::mutex &gt; lock( [censored] );\n</code></pre>\n<p>We do not have the same error when loading the debug version of our bindings, which makes sense, because the JVM does not ship with the debug version of the VC runtime. We also do not get errors if we (temporarily) replace the <code>vcruntime140.dll</code> in the JVM's <code>bin</code> directory with a copy of the current one from the system directories, but we cannot ask our users to do that, and there's no telling what kind of potential errors that might cause in the JVM itself.</p>\n<p>This would seem to confirm that the problem is at least to some extent related to or the same as <a href=\"https://stackoverflow.com/questions/78598141/first-stdmutexlock-crashes-in-application-built-with-latest-visual-studio\">this problem previously reported numerous places</a>, with one exception: When this problem first appeared some months ago, we were able to fix it by defining <code>_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR</code>, but this macro is not working anymore with the latest MSVC update (which might be a red herring). We're still defining it in all the same places, and have even tried defining it in additional places, to no avail. It no longer stops the crash.</p>\n<p>We have tried explicitly loading the system's VC runtime library version 14.40 using <code>System.load( vcRuntimeDLLfile )</code> before loading our library, and while that succeeds (it throws no exceptions), it appears to be ignored (or rather the older first-loaded version is preferred), because we still cannot load the opt version of our bindings. There doesn't appear to be a way to tell the underlying system that we need the newer version for our binding library.</p>\n<p><a href=\"https://docs.oracle.com/javase/8/docs/technotes/guides/troubleshoot/crashes003.html\" rel=\"noreferrer\">This documentation from Oracle</a> appears to suggest that they recommend shipping the <code>vcruntime140.dll</code> version that your library needs with your library, which violates those aforementioned Microsoft recommendations, and others on my team are hesitant to do that for a number of reasons. However, I'm starting to think that we have no other option. I'm assuming we would need to provide it under a different name (such as <code>vcruntime14.40.dll</code>) in our Jar file and link against that other name to ensure that the JVM-provided DLL is not chosen over ours. Ugly!</p>\n<p>One thought I'm exploring is always linking our Windows opt bindings against the debug version of the VC runtime, so that the JVM-provided DLL is bypassed. I'm unsure yet whether that will even work or if there will be too many downsides / performance impacts.</p>\n<p>Are we overlooking something? Is there another option for solving this? Is Microsoft right and the JVM devs wrong? Are the JVM devs right and Microsoft wrong? I do at least get why the JVM devs would want to include this DLL given that Microsoft is breaking binary compatibility—one Windows update could render a Java installation completely useless if it depends on the system runtime!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

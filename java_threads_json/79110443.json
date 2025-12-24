@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "graalvm",
+      "graalvm-native-image"
+    ],
+    "owner": {
+      "account_id": 6502221,
+      "reputation": 1585,
+      "user_id": 5032541,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/7bb5ebe3503f96f4e000715c50b35367?s=256&d=identicon&r=PG",
+      "display_name": "Erwan Daniel",
+      "link": "https://stackoverflow.com/users/5032541/erwan-daniel"
+    },
+    "is_answered": true,
+    "view_count": 153,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1730922238,
+    "creation_date": 1729519998,
+    "question_id": 79110443,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79110443/how-to-get-rid-of-the-isolatethread-argument",
+    "title": "How to get rid of the IsolateThread argument",
+    "body": "<p>I'm trying to pass a function pointer in a structure to a C library (FUSE). The prototypes of the functions are defined by the library, so I don't have the chance to change them.</p>\n<p>The problem is that graalvm require to have an IsolateThread parameter. I found a github that uses those annotation to get rid of it:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@CEntryPoint\n@CEntryPointOptions(prologue = CEntryPointSetup.EnterCreateIsolatePrologue.class,\n                    epilogue = CEntryPointSetup.LeaveTearDownIsolateEpilogue.class)\nprivate static void idle() {\n</code></pre>\n<p>I had to add this dependency to have this annotation available:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>        &lt;dependency&gt;\n            &lt;groupId&gt;org.graalvm.nativeimage&lt;/groupId&gt;\n            &lt;artifactId&gt;svm&lt;/artifactId&gt;\n            &lt;version&gt;24.1.1&lt;/version&gt;\n        &lt;/dependency&gt;\n</code></pre>\n<p>But then I can't compile at all (I use the shade plugin of maven to include all my dependencies):</p>\n<pre class=\"lang-none prettyprint-override\"><code>Error: Processing jar:file:///net/172.18.192.1/c/Users/edaniel/IdeaProjects/java-hdfs-fuse/target/java-hdfs-fuse-1.0-SNAPSHOT.jar!/META-INF/native-image/org.graalvm.truffle.compiler/native-image.properties failed\nCaused by: com.oracle.svm.driver.NativeImage$NativeImageError: Failed to process ForceOnModulePath attribute: Module descriptor for the module org.graalvm.truffle.compiler could not be resolved with class-path entry: /net/172.18.192.1/c/Users/edaniel/IdeaProjects/java-hdfs-fuse/target/java-hdfs-fuse-1.0-SNAPSHOT.jar.\nCaused by: java.lang.module.FindException: Unable to derive module descriptor for /net/172.18.192.1/c/Users/edaniel/IdeaProjects/java-hdfs-fuse/target/java-hdfs-fuse-1.0-SNAPSHOT.jar\nCaused by: java.lang.module.InvalidModuleDescriptorException: jnamed.class found in top-level directory (unnamed package not allowed in module)\n\n</code></pre>\n<p>Opening the jar and removing the problematic files, I get this error:</p>\n<pre><code>Fatal error: java.lang.IllegalAccessError: superclass access check failed: class jdk.graal.compiler.hotspot.HotSpotGraalJVMCIServiceLocator (in unnamed module @0x2dc54ad4) cannot access class jdk.vm.ci.services.JVMCIServiceLocator (in module jdk.internal.vm.ci) because module jdk.internal.vm.ci does not export jdk.vm.ci.services to unnamed module @0x2dc54ad4\n        at java.base/java.lang.ClassLoader.defineClass1(Native Method)\n        at java.base/java.lang.ClassLoader.defineClass(ClassLoader.java:1027)\n        at java.base/java.security.SecureClassLoader.defineClass(SecureClassLoader.java:150)\n        at org.graalvm.nativeimage.builder/com.oracle.svm.hosted.NativeImageClassLoader.defineClass(NativeImageClassLoader.java:490)\n        at org.graalvm.nativeimage.builder/com.oracle.svm.hosted.NativeImageClassLoader.findClassViaClassPath(NativeImageClassLoader.java:442)\n        at org.graalvm.nativeimage.builder/com.oracle.svm.hosted.NativeImageClassLoader.loadClass(NativeImageClassLoader.java:629)\n        at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)\n        at java.base/java.lang.reflect.Method.invoke(Method.java:580)\n\n</code></pre>\n<p>So I'm wondering where I'm doing something wrong ?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

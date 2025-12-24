@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "xml",
+      "soap",
+      "jaxb"
+    ],
+    "owner": {
+      "account_id": 2636263,
+      "reputation": 6299,
+      "user_id": 2703209,
+      "user_type": "registered",
+      "accept_rate": 89,
+      "profile_image": "https://www.gravatar.com/avatar/01cc31c9b124d090aeb3e06f94bb8ed8?s=256&d=identicon&r=PG",
+      "display_name": "user149408",
+      "link": "https://stackoverflow.com/users/2703209/user149408"
+    },
+    "is_answered": true,
+    "view_count": 72,
+    "accepted_answer_id": 79757204,
+    "answer_count": 1,
+    "score": -4,
+    "last_activity_date": 1757110746,
+    "creation_date": 1757103870,
+    "last_edit_date": 1757106170,
+    "question_id": 79757132,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79757132/is-this-soap-envelope-valid",
+    "title": "Is this SOAP envelope valid?",
+    "body": "<p>I am using JAXB to process XML input wrapped in a SOAP 1.2. However, I am getting an exception during unmarshaling:</p>\n<pre><code>javax.xml.bind.UnmarshalException: unexpected element (uri:&quot;&quot;, local:&quot;d2LogicalModel&quot;). Expected elements are &lt;{http://datex2.eu/schema/2/2_0}d2LogicalModel&gt;\n</code></pre>\n<p>This is the XML code:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;\n&lt;soap:Envelope xmlns:soap=&quot;http://www.w3.org/2003/05/soap-envelope&quot;&gt;\n  &lt;soap:Body&gt;\n    &lt;d2LogicalModel xmlns:ns2=&quot;http://datex2.eu/schema/2/2_0&quot; modelBaseVersion=&quot;2&quot;&gt;\n      &lt;ns2:exchange&gt;\n        &lt;ns2:supplierIdentification&gt;\n          &lt;ns2:country&gt;fr&lt;/ns2:country&gt;\n          &lt;ns2:nationalIdentifier&gt;Tipi&lt;/ns2:nationalIdentifier&gt;\n        &lt;/ns2:supplierIdentification&gt;\n        &lt;ns2:subscription&gt;\n          &lt;ns2:operatingMode&gt;operatingMode3&lt;/ns2:operatingMode&gt;\n          &lt;ns2:subscriptionStartTime&gt;2025-09-05T15:06:26.906+02:00&lt;/ns2:subscriptionStartTime&gt;\n          &lt;ns2:subscriptionState&gt;active&lt;/ns2:subscriptionState&gt;\n          &lt;ns2:subscriptionStopTime&gt;2025-09-05T15:06:26.906+02:00&lt;/ns2:subscriptionStopTime&gt;\n          &lt;ns2:updateMethod&gt;snapshot&lt;/ns2:updateMethod&gt;\n          &lt;ns2:target&gt;\n            &lt;ns2:address/&gt;\n            &lt;ns2:protocol/&gt;\n          &lt;/ns2:target&gt;\n        &lt;/ns2:subscription&gt;\n      &lt;/ns2:exchange&gt;\n      &lt;ns2:payloadPublication xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xsi:type=&quot;ns2:SituationPublication&quot; lang=&quot;fr&quot;&gt;\n        &lt;feedType xmlns=&quot;http://datex2.eu/schema/2/2_0&quot;&gt;2736545&lt;/feedType&gt;\n        &lt;ns2:publicationTime&gt;2025-09-05T15:06:26.906+02:00&lt;/ns2:publicationTime&gt;\n        &lt;ns2:publicationCreator&gt;\n          &lt;ns2:country&gt;fr&lt;/ns2:country&gt;\n          &lt;ns2:nationalIdentifier&gt;Tipi&lt;/ns2:nationalIdentifier&gt;\n        &lt;/ns2:publicationCreator&gt;\n        &lt;!-- several ms2:situation elements omitted for brevity --&gt;\n      &lt;/ns2:payloadPublication&gt;\n    &lt;/d2LogicalModel&gt;\n  &lt;/soap:Body&gt;\n&lt;/soap:Envelope&gt;\n</code></pre>\n<p>And the code to unmarshal it:</p>\n<pre class=\"lang-java prettyprint-override\"><code>JAXBElement&lt;D2LogicalModel&gt; root;\nJAXBContext jc = JAXBContext.newInstance(D2LogicalModel.class);\nUnmarshaller unmarshaller = jc.createUnmarshaller();\nMessageFactory mf = MessageFactory.newInstance(SOAPConstants.SOAP_1_2_PROTOCOL);\nSOAPMessage soapMessage = mf.createMessage(null, is);\nSOAPBody body = soapMessage.getSOAPBody();\nroot = (JAXBElement&lt;D2LogicalModel&gt;)unmarshaller.unmarshal(body.getFirstChild());\nD2LogicalModel d2lm = root.getValue();\nreturn d2lm;\n</code></pre>\n<p><code>D2LogicalModel</code> was auto-generated from the Datex-II XML schema found at <a href=\"https://docs.datex2.eu/downloads/modelv23/#datex-ii-xml-schema-23\" rel=\"nofollow noreferrer\">https://docs.datex2.eu/downloads/modelv23/#datex-ii-xml-schema-23</a> using</p>\n<pre><code>xjc -no-header -d schemas -b xsd/binding.xml xsd\n</code></pre>\n<p>Class declaration is as follows:</p>\n<pre><code>@XmlAccessorType(XmlAccessType.FIELD)\n@XmlType(name = &quot;D2LogicalModel&quot;, propOrder = {\n    &quot;exchange&quot;,\n    &quot;payloadPublication&quot;,\n    &quot;d2LogicalModelExtension&quot;\n})\npublic class D2LogicalModel {\n    // body omitted\n}\n</code></pre>\n<p>The helpful AI assistant tells me that the <code>d2LogicalModel</code> element is missing <code>xmlns=&quot;http://datex2.eu/schema/2/2_0&quot;</code>. Indeed, when I add <code>xmlns</code> alongside <code>xmlns:ns2</code> in the XML input, it unmarshals with no issues.</p>\n<p>However, it seems strange that I’d be the first to notice an error in a resource published by a national road network operator. Also, having to add almost the same namespace definition twice seems odd to me.</p>\n<p>Is this really an error in the input, or am I doing something wrong in my unmarshaling code?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

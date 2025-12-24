@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "micronaut",
+      "jackson-databind",
+      "graalvm",
+      "graalvm-native-image"
+    ],
+    "owner": {
+      "account_id": 8707851,
+      "reputation": 807,
+      "user_id": 6515166,
+      "user_type": "registered",
+      "accept_rate": 85,
+      "profile_image": "https://i.sstatic.net/yxxFp.jpg?s=256",
+      "display_name": "Mssm",
+      "link": "https://stackoverflow.com/users/6515166/mssm"
+    },
+    "is_answered": true,
+    "view_count": 47,
+    "accepted_answer_id": 79795993,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1761061123,
+    "creation_date": 1760970360,
+    "question_id": 79794995,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79794995/testing-micronaut-in-graal-native-runtime-environment",
+    "title": "Testing micronaut in graal native runtime environment",
+    "body": "<p>I have a basic micronaut CRUD application which manages contacts through a Rest API. When running the app locally using graalvm-ce 21.0.2, the API returns the contact response as expected.</p>\n<p>When I package the app using native packaging (docker-native or native-image) using:\n<code>mvn clean compile package -Dpackaging=native-image</code>, my app doesn't return the Contact entity with all the properties</p>\n<p>This is how the ContactResponse POJO looks like:</p>\n<pre><code>@Builder\npublic record ContactResponse(\n        String id,\n        String name,\n        String address,\n        String phoneNumber,\n        String email,\n\n        @JsonFormat(pattern = ObjectMapperConfig.API_DATE_TIME_PATTERN)\n        LocalDateTime createdAt\n)\n</code></pre>\n<p>And calling the API (after packaging) returns:</p>\n<pre><code>{\n   &quot;createdAt&quot;: &quot;2025-10-14T12:35:41&quot;\n}\n</code></pre>\n<p>Adding @JsonProperty() to a field makes it appear in the response. After doing some research, i found that during the native executable building, graalvm compiler removes all items which are &quot;not needed&quot;, including Reflective access, for performance reasons.</p>\n<p>Since i'm using Jackson databind in my project, which relies on Java Reflection, I made it work by adding <strong>@ReflectiveAccess</strong> to force the compiler to generate reflection metadata for that specific object (ContactResponse)</p>\n<p>I'd like to know if there's a way to reproduce this issue during the development process (and not during the packaging) so that my tests fail before i package and deploy. My tests are happening before i package the app into a native executable and thus can't discover this in advance.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

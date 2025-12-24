@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "java-8",
+      "rmiregistry"
+    ],
+    "owner": {
+      "account_id": 42521262,
+      "reputation": 1,
+      "user_id": 30794063,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/74f36f68378f8e90056cc8b4c31b7dad?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "XERVIS",
+      "link": "https://stackoverflow.com/users/30794063/xervis"
+    },
+    "is_answered": false,
+    "view_count": 50,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1749813277,
+    "creation_date": 1749813277,
+    "question_id": 79664746,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79664746/java-security-accesscontrolexception-access-denied-java-net-socketpermission",
+    "title": "java.security.AccessControlException: access denied (&quot;java.net.SocketPermission&quot; &quot;localhost:1099&quot; &quot;listen,resolve&quot;)",
+    "body": "<p>Facing issue with RMI Registry.</p>\n<p>Inititally my code was developed using java 6 or lower version but recently we have upgrade our java to java 8 and came to understand that it has some tighter Security policies.</p>\n<p>Due to this my code is throwing a permission errors while establishing the RMI registry connection</p>\n<p>I tried giving grant permission to port in java.policy file.\nPort used 1099 which default RMI Registry port.</p>\n<p>Please find below code</p>\n<pre><code>package com.aurionpro.reuters;\n\nimport com.aurionpro.reuters.service.UpdateCurrencyRates;\nimport java.io.IOException;\nimport java.rmi.NotBoundException;\nimport java.rmi.RemoteException;\nimport java.rmi.registry.LocateRegistry;\nimport java.rmi.registry.Registry;\nimport java.util.Properties;\n\npublic final class RMIServiceClient {\n   private final String hostname;\n   private final int port;\n   private final String serviceName;\n   private UpdateCurrencyRates currencyRates;\n   private Registry registry = null;\n\n   public RMIServiceClient(String appPropFileName, String productName) {\n      Properties properties = new Properties();\n      ClassLoader loader = Thread.currentThread().getContextClassLoader();\n\n      try {\n         properties.load(loader.getResourceAsStream(appPropFileName));\n      } catch (IOException var6) {\n         var6.printStackTrace();\n      }\n\n      this.hostname = properties.getProperty(&quot;rmiclient.&quot; + productName + &quot;.registry.host&quot;);\n      this.port = Integer.parseInt(properties.getProperty(&quot;rmiclient.&quot; + productName + &quot;.registry.port&quot;));\n      this.serviceName = properties.getProperty(&quot;rmiclient.&quot; + productName + &quot;.registry.serviceName&quot;);\n   }\n\n   public UpdateCurrencyRates getCurrencyRatesService() throws RemoteException, NotBoundException {\n      SecurityManager securityManager = new SecurityManager();\n      System.setSecurityManager(securityManager);\n      this.registry = LocateRegistry.getRegistry(this.hostname, this.port);\n      this.currencyRates = (UpdateCurrencyRates)this.registry.lookup(this.serviceName);\n      return this.currencyRates;\n   }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

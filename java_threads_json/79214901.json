@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "spring-bean",
+      "spring-validator"
+    ],
+    "owner": {
+      "account_id": 20005375,
+      "reputation": 210,
+      "user_id": 14693766,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/7b69ba9e8ae3ffd08a8862d9c5987774?s=256&d=identicon&r=PG",
+      "display_name": "Aisteru Fir&#235;",
+      "link": "https://stackoverflow.com/users/14693766/aisteru-fir%c3%ab"
+    },
+    "is_answered": false,
+    "view_count": 64,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1732285043,
+    "creation_date": 1732276454,
+    "question_id": 79214901,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79214901/spring-group-validation-does-not-work-on-autowired-beans",
+    "title": "Spring group validation does not work on autowired beans",
+    "body": "<h1>Situation</h1>\n<p>I am trying to create a autoconfiguration in which some properties must pass validation only in specific cases. I have a service <code>MyService</code> which requires credentials <code>properties.username</code> and <code>properties.password</code>, and a <code>OncePerRequestFilter</code>, which intercepts controller calls and calls <code>MyService</code> to perform some action, which requires the application's name <code>properties.app-name</code>.</p>\n<p>Here is the global layout:</p>\n<ul>\n<li>when I provide no property and no <code>MyService</code> bean exists, the autoconfiguration does nothing,</li>\n<li>when no <code>MyService</code> bean exists, but I provide a username and password in the properties, I will create a new <code>MyService</code> bean, and I wish to validate the username and password,</li>\n<li>when there exists a <code>MyService</code> bean, I will create a <code>OncePerRequestFilter</code>, and I wish to validate the application name.</li>\n</ul>\n<p>In order to do so, I wanted to use validation groups. I already implemented some validation in configuration properties before, and therefore know that Spring checks them when instantiating the object, but I have never tried with groups.</p>\n<h1>First try</h1>\n<h2>Code</h2>\n<h3>Autoconfiguration</h3>\n<pre class=\"lang-java prettyprint-override\"><code>@AutoConfiguration\n@EnableConfigurationProperties(MyProperties.class)\npublic class MyAutoConfiguration {\n    @Bean\n    @ConditionalOnMissingBean\n    @ConditionalOnProperty(prefix = &quot;properties&quot;, name = { &quot;username&quot;, &quot;password&quot; })\n    @Validated(CredentialsRequired.class)\n    public MyService myDefaultService(@Valid MyProperties properties) {\n        return new MyService(properties);\n    }\n\n    @Bean\n    @ConditionalOnBean(MyService.class)\n    @Validated(AppNameRequired.class)\n    OncePerRequestFilter myFilter(@Valid MyProperties properties, MyService myService) {\n        return new MyFilter(properties, myService);\n    }\n}\n</code></pre>\n<h3>Configuration properties</h3>\n<pre class=\"lang-java prettyprint-override\"><code>@Data\n@ConfigurationProperties(&quot;properties&quot;)\npublic class MyProperties {\n    @NotBlank(groups = AppNameRequired.class)\n    private String appName;\n\n    @NotBlank(groups = CredentialsRequired.class)\n    private String username;\n\n    @NotBlank(groups = CredentialsRequired.class)\n    private String password;\n}\n</code></pre>\n<h2>Result</h2>\n<p>When I provide no property, nothing fails, which is desired. However, if I just use the following properties:</p>\n<pre class=\"lang-none prettyprint-override\"><code>properties.username=\nproperties.password=\n</code></pre>\n<p>then both the service and the filter are created without any automatic validation issue, as this short modification shows:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Bean\n@ConditionalOnBean(MyService.class)\n@Validated(AppNameRequired.class)\nOncePerRequestFilter myFilter(@Valid MyProperties properties, MyService myService, Validator validator) {\n    if(!validator.validate(properties, AppNameRequired.class).isEmpty()) {\n        throw new IllegalArgumentException();  // Should not be reached if validation works, but is thrown on instantiation\n    }\n\n    return new MyFilter(properties, myService);\n}\n</code></pre>\n<h2>Trying with <code>@Validated</code> on properties class</h2>\n<p>I have also tried applying <code>@Validated</code> on <code>MyProperties</code>, but it did not change much. Furthermore, I noticed this in a more global case:</p>\n<ul>\n<li>when there is <code>@Validated</code> on the class, and constraints without groups are all valid, no error is thrown, even if some constraints with groups are invalid</li>\n<li>when there is <code>@Validated</code> on the class, but at least one constraint without group is violated, Spring fails the instantiation</li>\n<li>when there is <code>@Validated(AppNameRequired.class)</code> on the class, and constraints without groups are all valid, no error is thrown, <em>even if the constraints with group <code>AppNameRequired</code> are invalid</em></li>\n</ul>\n<h2>My conclusion, and my question</h2>\n<p>After all of this, my conclusion is that Spring does not support validation groups for bean validation. Hence, I wonder: is there a way to perform this conditional validation by relying on the Jakarta and Spring Boot annotations only, or am I forced to manually call a validator to perform this?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

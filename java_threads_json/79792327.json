@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "binary",
+      "compression",
+      "bit-manipulation",
+      "huffman-code"
+    ],
+    "owner": {
+      "account_id": 30719361,
+      "reputation": 19,
+      "user_id": 23554990,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocKXKr2nps9xK3X_X0e1L48V01soX3vTIS4yL-ngcxbjgA=k-s256",
+      "display_name": "Eslyn19",
+      "link": "https://stackoverflow.com/users/23554990/eslyn19"
+    },
+    "is_answered": true,
+    "view_count": 160,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1760669877,
+    "creation_date": 1760628592,
+    "last_edit_date": 1760632081,
+    "question_id": 79792327,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79792327/how-can-i-store-huffman-encoded-bits-into-a-truly-compressed-binary-file-in-java",
+    "title": "How can I store Huffman-encoded bits into a truly compressed binary file in Java?",
+    "body": "<p>I'm building a Huffman compressor in Java.<br />\nI already have: The original text, the Huffman code table (<code>Map&lt;Character, String&gt;</code>), and the order of character appearance.</p>\n<p>My current goal is to write the compressed result into a <code>.bin</code> file.<br />\nHowever, the output file is <strong>larger than the original text</strong>, because each <code>'0'</code> or <code>'1'</code> bit is being stored as a full byte instead of being packed into real bits.</p>\n<p>Here’s my current implementation:</p>\n<pre><code>private static byte[] convertBitsToBytes(String bits) {\n        int len = bits.length();\n        int numBytes = (int) Math.ceil(len / 8.0);\n        byte[] bytes = new byte[numBytes];\n\n        for (int i = 0; i &lt; len; i++) {\n            if (bits.charAt(i) == '1') {\n                bytes[i / 8] |= (byte) (1 &lt;&lt; (7 - (i % 8)));\n            }\n        }\n        return bytes;\n    }\n\n    public static void saveBinaryFile(File file, String originalText, Map&lt;Character, String&gt; huffmanTable) {\n        try (FileOutputStream fos = new FileOutputStream(file)) {\n            for (char c : originalText.toCharArray()) {\n                String huffmanCode = huffmanTable.get(c);\n                if (huffmanCode != null) {\n                    fos.write((byte) c);\n\n                    byte[] compressedBytes = convertBitsToBytes(huffmanCode);\n                    fos.write(compressedBytes);\n                }\n            }\n            System.out.println(&quot;Binary file saved successfully.&quot;);\n        } catch (IOException ex) {\n            System.out.println(&quot;Error saving binary file: &quot; + ex.getMessage());\n        }\n    }\n</code></pre>\n<p>I tried writing both the character and its Huffman binary string directly into the binary file.<br />\nEach bit (<code>'0'</code> or <code>'1'</code>) was written as a full byte, using <code>DataOutputStream.writeByte()</code>.</p>\n<p>I expected the resulting <code>.bin</code> file to contain the original character followed by its compressed bit sequence — and overall to <strong>weigh less than the original text file</strong> from which the data was taken.</p>\n<p>However, the file ended up <strong>larger than the text file</strong>, because each <code>'0'</code> and <code>'1'</code> is still stored as one byte instead of real bits.<br />\nI’m trying to find a way to make it truly compressed by packing the bits efficiently. Result should be &quot;h111e10l10l10o0&quot; in the binary file imaging I had those binary codes.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

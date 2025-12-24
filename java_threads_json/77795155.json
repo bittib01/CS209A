@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "quarkus",
+      "quarkus-panache",
+      "mutiny",
+      "hibernate-reactive"
+    ],
+    "owner": {
+      "account_id": 13244072,
+      "reputation": 75,
+      "user_id": 9942602,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/94747727ca908d0a04e23c7e4ae2204a?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Hzt",
+      "link": "https://stackoverflow.com/users/9942602/hzt"
+    },
+    "is_answered": false,
+    "view_count": 1041,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1713356271,
+    "creation_date": 1704906398,
+    "last_edit_date": 1707687327,
+    "question_id": 77795155,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77795155/quarkus-reactive-panache-how-to-use-reactivetransactional-annotation-in-non-res",
+    "title": "Quarkus reactive panache how to use @ReactiveTransactional annotation in non-REST endpoint",
+    "body": "<p>I have a service that regularly receives messages in a batch, and then for each of those messages perform a transaction.</p>\n<p>Here is the sample code:</p>\n<pre class=\"lang-java prettyprint-override\"><code>// scheduled to run every 5 second\nprivate Uni&lt;Void&gt; receiveMessage() {\n    Uni&lt;List&lt;Message&gt;&gt; uniListMessage = messageService.get();\n    \n    return uniListMessage\n            .map(listMessage -&gt; {\n                final UniJoin.Builder&lt;Void&gt; uniBuilder = Uni.join().builder();\n                listMessage.forEach(message -&gt; {\n                    Uni&lt;Void&gt; uniOperation = businessService.doOperation(message);\n                    uniBuilder.add(uniOperation);\n                });\n                \n                return uniBuilder.joinAll().andCollectFailures()\n                        .replaceWithVoid();\n            });\n}\n</code></pre>\n<p>And in <code>BusinessService</code>:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@ReactiveTransactional\npublic Uni&lt;Void&gt; doOperation(Message message) {\n    // do find query, insert, update, etc to multiple tables\n    Uni&lt;Fruit&gt; uniFruit = fruitRepo.findByMessage(message);\n    \n    return uniFruit\n            .map(fruit -&gt; {\n                // calculate things\n                final UniJoin.Builder&lt;Void&gt; uniBuilder = Uni.join().builder();\n                \n                Uni&lt;Apple&gt; uniApple = appleRepo.doUpdate(fruit);\n                Uni&lt;Melon&gt; uniMelon = melonRepo.doUpdate(fruit);\n\n                return uniJoinBuilder.joinAll().andFailFast();\n            });\n}\n</code></pre>\n<p><code>appleRepo.doUpdate()</code> and <code>melonRepo.doUpdate</code> does not have <code>@ReactiveTransactional</code> annotation, and only doing <code>.persist()</code> or <code>.update()</code> using <code>PanacheRepositoryBase</code></p>\n<p>I'm aware they recommend us to put <code>@ReactiveTransactional</code> at REST endpoint controllers, but I'm not using REST so I'm not sure how to do this correctly</p>\n<p>I run some test, if I just commit 1 message everything works fine</p>\n<p>However things starting to get weird if I have ~100 messages, for example I got:</p>\n<pre><code>NoStackTraceThrowable: Transaction already completed\njava.lang.IllegalStateException: HR000061: Session is currently connecting to database\nio.vertx.mysqlclient.MySQLBatchException: Error occurs during batch execution\n</code></pre>\n<p>and very rarely</p>\n<pre><code>index out of bound 1 out of 0\n</code></pre>\n<p>I previously using classic-orm, but got into trouble because the @Transactional cannot be used for function that returns <code>Uni</code></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

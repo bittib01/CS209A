@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "onesignal",
+      "react-native-onesignal"
+    ],
+    "owner": {
+      "account_id": 44937,
+      "reputation": 6825,
+      "user_id": 132127,
+      "user_type": "registered",
+      "accept_rate": 33,
+      "profile_image": "https://i.sstatic.net/TnwQX.jpg?s=256",
+      "display_name": "anta40",
+      "link": "https://stackoverflow.com/users/132127/anta40"
+    },
+    "is_answered": false,
+    "view_count": 39,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1761195757,
+    "creation_date": 1761195757,
+    "question_id": 79797415,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79797415/why-additional-data-on-onesignals-response-is-null",
+    "title": "Why additional data on OneSignal&#39;s response is null?",
+    "body": "<p>Our mobile app is written using ReactNative. We need to able to handle the push notification response even if the app is minimized/on background, so some native code is necessary.</p>\n<p>Here's the Android code:</p>\n<pre><code>import android.util.Log;\n\nimport androidx.annotation.Keep;\nimport androidx.annotation.NonNull;\n\nimport com.onesignal.notifications.IDisplayableMutableNotification;\nimport com.onesignal.notifications.INotificationReceivedEvent;\nimport com.onesignal.notifications.INotificationServiceExtension;\n\nimport org.json.JSONObject;\n\n@Keep\npublic class OSNotificationService implements INotificationServiceExtension{\n\n\n    @Override\n    public void onNotificationReceived(@NonNull INotificationReceivedEvent event) {\n        IDisplayableMutableNotification notif = event.getNotification();\n        System.out.println(&quot;OSNotificationService raw payload: &quot;+notif.getRawPayload());\n        if (notif.getAdditionalData() != null) {\n            System.out.println(&quot;OSNotificationService additional data: &quot;+notif.getAdditionalData().toString());\n            JSONObject jsObj = notif.getAdditionalData();\n        }\n        else {\n            System.out.println(&quot;OSNotificationService additional data: null&quot;);\n        }\n        event.getNotification().display();\n    }\n}\n</code></pre>\n<p>When running the app on Android emulator and OneSignal notification is received, I saw this on logcat (which is correct):</p>\n<pre><code>OSNotification raw payload: {\n    &quot;google.delivered_priority&quot;: &quot;high&quot;,\n    &quot;google.sent_time&quot;: 9999999999,\n    &quot;google.ttl&quot;: 9999999999,\n    &quot;google.original_priority&quot;: &quot;high&quot;,\n    &quot;custom&quot;: &quot;{\\&quot;i\\&quot;:\\&quot;xxxxxxxxxx\\&quot;,\\&quot;u\\&quot;:\\&quot;xxxxxxxxxx:\\/\\/transaction\\/xxxxxxxxxx\\&quot;}&quot;,\n    &quot;google.product_id&quot;: 9999999999,\n    &quot;pri&quot;: &quot;10&quot;,\n    &quot;from&quot;: &quot;xxxxxxxxxx&quot;,\n    &quot;alert&quot;: &quot;Your invoice has been paid by the customer. Tap here to view the details.&quot;,\n    &quot;title&quot;: &quot;Invoice Paid&quot;,\n    &quot;google.message_id&quot;: &quot;xxxxxxxxxx&quot;,\n    &quot;google.c.sender.id&quot;: &quot;xxxxxxxxxx&quot;\n}\n</code></pre>\n<p>The issue is this line:</p>\n<pre><code>System.out.println(&quot;OSNotificationService additional data: null&quot;);\n</code></pre>\n<p>Why the <code>additionalData</code> object is null? I don't work on the backend side, and my understanding is <code>data</code> object is already sent. Here's the code (Go):</p>\n<pre><code>type NotificationPayload struct {\n    AppID            string                 `json:&quot;app_id&quot;`\n    Contents         map[string]string      `json:&quot;contents&quot;`\n    Headings         map[string]string      `json:&quot;headings&quot;`\n    Priority         int                    `json:&quot;priority&quot;`\n    URL              string                 `json:&quot;url&quot;`\n    TTL              int                    `json:&quot;ttl&quot;`\n    IncludeAliases   map[string][]string    `json:&quot;include_aliases&quot;`\n    TargetChannel    string                 `json:&quot;target_channel&quot;`\n    IosSound         string                 `json:&quot;ios_sound,omitempty&quot;`\n    AndroidChannelID string                 `json:&quot;android_channel_id,omitempty&quot;`\n    Data             map[string]interface{} `json:&quot;data&quot;`\n}\n\nfunc (c Client) SendNotification(\n    ctx context.Context,\n    externalID string,\n    contents Contents,\n    headings Headings,\n    url URL,\n    iosSound *string,\n    androidChannelID *string,\n    additionalData map[string]interface{},\n) error {\n    client := httpclient.NewClient(30*time.Second, 3, 2*time.Second)\n    headers := map[string]string{\n        &quot;Authorization&quot;: c.config.ApiKey,\n        &quot;accept&quot;:        &quot;application/json&quot;,\n        &quot;content-type&quot;:  &quot;application/json&quot;,\n    }\n\n    data := NotificationPayload{\n        AppID: c.config.AppId,\n        Contents: map[string]string{\n            &quot;id&quot;: contents.ID,\n            &quot;en&quot;: contents.EN,\n        },\n        Headings: map[string]string{\n            &quot;id&quot;: headings.ID,\n            &quot;en&quot;: headings.EN,\n        },\n        Priority: 10,\n        URL:      url.Value,\n        TTL:      259200,\n        IncludeAliases: map[string][]string{\n            &quot;external_id&quot;: {externalID},\n        },\n        TargetChannel: &quot;push&quot;,\n        Data:          additionalData,\n    }\n\n    // Only set optional fields if they are provided\n    if iosSound != nil {\n        data.IosSound = *iosSound\n    }\n    if androidChannelID != nil {\n        data.AndroidChannelID = *androidChannelID\n    }\n\n    body, err := json.Marshal(data)\n    if err != nil {\n        return fmt.Errorf(&quot;failed to marshal data: %v&quot;, err)\n    }\n\n    resp, err := client.Do(\n        ctx,\n        &quot;POST&quot;,\n        fmt.Sprintf(&quot;%s/%s&quot;, c.config.BaseEndpoint, &quot;notifications?c=push&quot;),\n        headers,\n        body,\n    )\n    if err != nil {\n        return fmt.Errorf(&quot;failed to send request: %v&quot;, err)\n    }\n    defer resp.Body.Close()\n\n    if resp.StatusCode != 200 {\n        return fmt.Errorf(&quot;failed to send email: %v&quot;, resp.Status)\n    }\n\n    return nil\n}\n</code></pre>\n<p>I'm on react-native-onesignal 5.2.8, BTW.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

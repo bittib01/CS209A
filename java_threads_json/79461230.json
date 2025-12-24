@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot"
+    ],
+    "owner": {
+      "account_id": 12445994,
+      "reputation": 71,
+      "user_id": 9062178,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/77b65b0723f68e0a74a64abcd5f66457?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Ziv Aviv",
+      "link": "https://stackoverflow.com/users/9062178/ziv-aviv"
+    },
+    "is_answered": true,
+    "view_count": 114,
+    "accepted_answer_id": 79461626,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1740331265,
+    "creation_date": 1740314628,
+    "question_id": 79461230,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79461230/spring-boot-creating-jpa-entities-from-raw-json",
+    "title": "Spring boot: Creating JPA Entities from raw JSON",
+    "body": "<p>I am building a REST API using Spring boot and hibernate. Now I want to create a POST method that gets a JSON. After some validations, I want to save this object as a new entity in my DB. I was wondering how to convert the map of attributes to a new User entity?  I have the following classes:</p>\n<p><strong>User.java</strong></p>\n<pre><code>@Entity\n@Table(name=&quot;users&quot;)\n@JsonIdentityInfo(generator= ObjectIdGenerators.IntSequenceGenerator.class, property=&quot;id&quot;)\npublic class User {\n    \n    @Transient\n    Logger logger = LogManager.getLogger(getClass());\n\n    \n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private int ID;\n    \n    @NotNull\n    private String username;\n    \n    @NotNull\n    private String Last_Name;\n    @NotNull\n    private String First_Name;\n\n    private String Title;\n</code></pre>\n<p>//...</p>\n<p>}</p>\n<p><strong>UserController.java</strong></p>\n<pre><code>@PostMapping(&quot;/user&quot;) \npublic ResponseEntity test(@RequestBody Map&lt;String,Object&gt; object) throws Exception {\n    try {\n        userService.createAccount(object);\n    } catch (IllegalArgumentException e) {\n        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());\n    }\n    return ResponseEntity.ok(&quot;Account was added successfully&quot;);\n}\n</code></pre>\n<p><strong>UserService.java</strong></p>\n<pre><code>public void createAccount(Map&lt;String, Object&gt; accountObject) throws Exception {\n        logger.trace(&quot;Entering createAccount(). account=&quot; +accountObject);\n        User user = new User( ??? );\n        userRepository.save(user);\n  }\n            \n</code></pre>\n<p>I was thinking of creating a new constructor in User.java that maps every MapEntry to a field, but I was wondering if there is a better approach?</p>\n<pre><code>public User(Map&lt;String, Object&gt; fieldsMapping) {\n        this(\n            getValue(fieldsMapping, &quot;username&quot;, String.class),\n            getValue(fieldsMapping, &quot;last_name&quot;, String.class),\n            getValue(fieldsMapping, &quot;first_name&quot;, String.class),\n        );\n    }\n\n    // Helper method for type-safe value extraction.\n    private static &lt;T&gt; T getValue(Map&lt;String, Object&gt; map, String key, Class&lt;T&gt; clazz) {\n        Object value = map.get(key);\n        if (value == null) {\n            return null;\n        }\n        return clazz.cast(value);\n    }\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

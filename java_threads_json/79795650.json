@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hibernate",
+      "jpql"
+    ],
+    "owner": {
+      "account_id": 5376331,
+      "reputation": 450,
+      "user_id": 4283100,
+      "user_type": "registered",
+      "accept_rate": 60,
+      "profile_image": "https://www.gravatar.com/avatar/3a0e0b4a915bc664f53652bc99df2fb5?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Maverick",
+      "link": "https://stackoverflow.com/users/4283100/maverick"
+    },
+    "is_answered": true,
+    "view_count": 82,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1761045551,
+    "creation_date": 1761038531,
+    "question_id": 79795650,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79795650/jpql-statement-to-involve-multiple-conditions",
+    "title": "jpql statement to involve multiple conditions",
+    "body": "<p>I use scheduler to pick up tasks from database based on the status of associated document. I have one task to many documents relationship, and each Document entity has its own status value.\nI need to pick one distinct task with the following criteria from Document:</p>\n<ul>\n<li>status 101: get max version of the document</li>\n<li>status 102: get any, no matter what version it is (and prefer 102 over 101)</li>\n</ul>\n<p>To this end, I use this JPQL:</p>\n<pre class=\"lang-sql prettyprint-override\"><code>select task, document.id from Task task\njoin Document document on task.uuid = document.taskUuid\n    where (\n                document.status = 102\n            or (document.status = 101\n                and document.wersjaNumer =\n                            (select max(sub.wersjaNumer) from Document sub\n                                        where sub.numerUuid = document.numerUuid)\n                )\n            )\n        order by case when document.status=102 then 1 else 2 end\n</code></pre>\n<p>As far as I understand, this should retreive only one instance of Task with given uuid.\nSo here:</p>\n<pre><code>Task(uuid = &quot;xxx&quot;)\nDocument(taskUuid = &quot;xxx&quot;, status=101)\nDocument(taskUuid = &quot;xxx&quot;, status=102)\n</code></pre>\n<p>I expect only one Task and document.id associated with status=102, but I get both results. I suspect, I got something wrong with\n<code>order by case when document.status=102 then 1 else 2 end</code> part. Any ideas how to fix it?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

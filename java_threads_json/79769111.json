@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot"
+    ],
+    "owner": {
+      "account_id": 21188558,
+      "reputation": 22,
+      "user_id": 15581449,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/f884da35440e8c3141797a5dcb6231b8?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "handsomeboy",
+      "link": "https://stackoverflow.com/users/15581449/handsomeboy"
+    },
+    "is_answered": false,
+    "view_count": 156,
+    "answer_count": 3,
+    "score": 1,
+    "last_activity_date": 1762825980,
+    "creation_date": 1758255316,
+    "last_edit_date": 1759980175,
+    "question_id": 79769111,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79769111/why-is-the-onapplicationevent-method-of-the-applicationlistener-interface-in-spr",
+    "title": "Why is the onApplicationEvent method of the ApplicationListener interface in Springboot I implemented reentrant?",
+    "body": "<p>Below is my code and the running result is that I got twice logs.</p>\n<pre><code>    \n@Slf4j\n@Component\npublic class HandlerMappingAfterSpringInitializationExporter implements ApplicationListener&lt;ContextRefreshedEvent&gt; {\n    @Autowired\n    private ApplicationContext applicationContext;\n    private volatile boolean  exported = false;\n\n    private volatile  int count = 0;\n\n    @Override\n    public void onApplicationEvent(ContextRefreshedEvent event) {\n\n  synchronized (HandlerMappingAfterSpringInitializationExporter.class) {   \n        count+=1;\n\n        if (exported) {\n            return;\n        }\n        try {\n//getAllServletFilters and getAllSpringManagedInterceptor method details are listed at the end.\n             getAllServletFilters();\n             getAllSpringManagedInterceptor();\n            //here are  some other io operations like File.write()  which are ignored\n            log.info(&quot;the value of count is :{}&quot;,count);\n            log.info(&quot;the value of exported is :{}&quot;,exported)\n\n        } catch (Exception e) {\n            System.err.println(&quot;导出Web组件信息失败: &quot; + e.getMessage());\n            e.printStackTrace();\n        }\n    \n        exported = true;\n    }\n}\n}\n</code></pre>\n<p>The first one is as below</p>\n<pre><code>&quot;the value of count is :1&quot;\n&quot;the value of exported is :false&quot;\n</code></pre>\n<p>The second one is as below</p>\n<pre><code>&quot;the value of count is :2&quot;\n&quot;the value of exported is :false&quot;\n</code></pre>\n<p>Here is my springboot version</p>\n<pre><code>&lt;parent&gt;\n    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n    &lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;\n    &lt;version&gt;1.5.9.RELEASE&lt;/version&gt;\n    &lt;relativePath/&gt; &lt;!-- lookup parent from repository --&gt;\n  &lt;/parent&gt;\n</code></pre>\n<p>I write the code in order to export some spring beans information just for once, so I use synchronizde and volatile.\nI have logged the thread information and find they are the same one name 'main'.\nI wonder how this happen. Thank you .</p>\n<p>the below is  supplement to the omitted code.</p>\n<pre><code>    public List&lt;WebInterceptorFilterInfo&gt; getAllServletFilters() {\n        List&lt; WebInterceptorFilterInfo&gt; filters = new ArrayList&lt;&gt;();\n\n        \n        if (applicationContext instanceof WebApplicationContext) {\n            WebApplicationContext webApplicationContext = (WebApplicationContext) applicationContext;\n            ServletContext servletContext = webApplicationContext.getServletContext();\n\n\n\n            if (servletContext != null) {\n                \n                Map&lt;String, FilterRegistration&gt; filterRegistrationMap = (Map&lt;String, FilterRegistration&gt;) servletContext.getFilterRegistrations();\n\n                for(Map.Entry&lt;String,FilterRegistration&gt; e: filterRegistrationMap.entrySet()){\n                    FilterRegistration filterRegistration = e.getValue();\n                    String filterName  =filterRegistration.getName();\n                    String fullClassName = filterRegistration.getClassName();\n                    WebInterceptorFilterInfo filterInfo = new WebInterceptorFilterInfo();\n                    filterInfo.setComponentName(filterName);\n                    filterInfo.setComponentType(&quot;servelet-filter&quot;);\n                    filterInfo.setFullClassName(fullClassName);\n                    filters.add(filterInfo);\n                }\n\n            } else {\n                System.err.println(&quot;fail to obtain ServletContext：can not get ServletContext in WebApplicationContext&quot;);\n            }\n        } else {\n            System.err.println(&quot;can not get ServletContext：current ApplicationContext is not WebApplicationContext&quot;);\n        }\n\n        return filters;\n    }\n</code></pre>\n<pre><code>    public List&lt;WebInterceptorFilterInfo&gt; getAllSpringManagedInterceptor() {\n        List&lt;WebInterceptorFilterInfo&gt; result = new ArrayList&lt;&gt;();\n\n\n\n        Map&lt;String, HandlerInterceptor&gt; interceptorBeans = applicationContext.getBeansOfType(HandlerInterceptor.class);\n        for (Map.Entry&lt;String, HandlerInterceptor&gt; entry : interceptorBeans.entrySet()) {\n            WebInterceptorFilterInfo info = new WebInterceptorFilterInfo();\n            info.setComponentName(entry.getKey()); \n            info.setComponentType(&quot;HandlerInterceptor&quot;);\n            info.setFullClassName(entry.getValue().getClass().getName());\n            result.add(info);\n        }\n\n\n        Collections.sort(result, Comparator.comparing(WebInterceptorFilterInfo::getComponentType));\n        return result;\n    }\n\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

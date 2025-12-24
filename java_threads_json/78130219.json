@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot"
+    ],
+    "owner": {
+      "account_id": 168379,
+      "reputation": 17180,
+      "user_id": 393805,
+      "user_type": "registered",
+      "accept_rate": 80,
+      "profile_image": "https://www.gravatar.com/avatar/0564b2fc256ec925920cd3aee2caf53b?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "tftd",
+      "link": "https://stackoverflow.com/users/393805/tftd"
+    },
+    "is_answered": true,
+    "view_count": 279,
+    "answer_count": 2,
+    "score": 2,
+    "last_activity_date": 1733390351,
+    "creation_date": 1709930910,
+    "last_edit_date": 1709933455,
+    "question_id": 78130219,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78130219/spring-boot-webflux-serving-static-resources-from-a-dependency",
+    "title": "Spring boot webflux serving static resources from a dependency",
+    "body": "<p>I haven't used Spring Boot for a while and seem to have a problem getting Spring to serve static assets. My project contains multiple modules - one of which is <code>webui</code>. It builds an Angular application and archives it into a <code>jar</code>. This dependency is then consumed from the <code>webapp</code> and is included in the fat jar. I have the following <code>WebConfiguration</code> class:</p>\n<pre><code>@Configuration\n@EnableWebFlux\npublic class WebConfig implements WebFluxConfigurer\n{\n\n\n    @Bean\n    RouterFunction&lt;ServerResponse&gt; redirectToIndex()\n    {\n        ClassPathResource index = new ClassPathResource(&quot;static/index.html&quot;);\n        List&lt;String&gt; extensions = List.of(&quot;js&quot;, &quot;css&quot;, &quot;ico&quot;, &quot;png&quot;, &quot;jpg&quot;, &quot;gif&quot;);\n        RequestPredicate spaPredicate = path(&quot;/api/**&quot;).or(path(&quot;/error&quot;))\n                                                       .or(pathExtension(extensions::contains))\n                                                       .negate();\n\n        return route().resource(spaPredicate, index).build();\n    }\n\n\n    @Override\n    public void addResourceHandlers(ResourceHandlerRegistry registry)\n    {\n        registry.addResourceHandler(&quot;*.html&quot;)\n                .addResourceLocations(&quot;classpath*:/static&quot;)\n                .setCacheControl(CacheControl.maxAge(Duration.ofHours(1)));\n\n        registry.addResourceHandler(&quot;/static/**&quot;)\n                .addResourceLocations(&quot;classpath*:/static/&quot;)\n                .setCacheControl(CacheControl.maxAge(Duration.ofHours(1)))\n                .resourceChain(true)\n                .addResolver(new EncodedResourceResolver())\n                .addResolver(new PathResourceResolver());\n    }\n\n\n}\n</code></pre>\n<p>Unfortunately this does not seem to be working and I'm sure I'm doing something wrong.\nThere is indeed a <code>static/index.html</code> and <code>static/assets/</code> resource, but that's under a 3rd party dependency. I have a feeling that <code>static/index.html</code> refers to the top root of the <code>fat jar</code>. What am I doing wrong?</p>\n<p><a href=\"https://i.sstatic.net/eDLH4.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/eDLH4.png\" alt=\"enter image description here\" /></a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

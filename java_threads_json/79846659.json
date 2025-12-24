@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "selenium-webdriver",
+      "asynchronous"
+    ],
+    "owner": {
+      "account_id": 44931784,
+      "reputation": 21,
+      "user_id": 32011068,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/e30287b1a5e72b36641d45c2d3d27aab?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Laolu Ade OG CSR",
+      "link": "https://stackoverflow.com/users/32011068/laolu-ade-og-csr"
+    },
+    "is_answered": true,
+    "view_count": 91,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1765745817,
+    "creation_date": 1765648629,
+    "last_edit_date": 1765733342,
+    "question_id": 79846659,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79846659/unable-to-create-a-web-driver-object-if-the-selenium-container-is-stuck-in-the-m",
+    "title": "Unable to create a web driver object if the selenium container is stuck in the middle of a session",
+    "body": "<p>I have the following piece of code that I use to create web drivers for my Spring Boot application.</p>\n<pre class=\"lang-java prettyprint-override\"><code>public RemoteWebDriver createDriver() {\n    ChromeOptions options = new ChromeOptions();\n    URL containerLocator;\n\n    try {\n        URI containerIdentifier = new URI(this.driverSocket);\n        containerLocator = containerIdentifier.toURL();\n    }\n    catch (URISyntaxException | MalformedURLException e) {\n        this.logService.createInfoLog(this.messageService.createChapterURLExceptionMessage(this.driverSocket));\n        return null;\n    }\n\n    this.logService.createInfoLog(this.messageService.getLoggingInfoChapterCreatedDriver());\n    return new RemoteWebDriver(containerLocator, options);\n}\n</code></pre>\n<p>This code is used to create drivers whenever I call my Spring Boot service to do some Selenium parsing. For example:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Async\npublic CompletableFuture&lt;FutureData&gt; startParsingTask(String sessionId) {\n    RemoteWebDriver driver = this.createDriver();\n    if (driver.getSessionId() != null) {\n        this.logService.createInfoLog(this.messageService.getLoggingInfoActiveSessionFound());\n        driver.quit();\n        driver = this.createDriver();\n    }\n    else {\n        this.logService.createInfoLog(this.messageService.getLoggingInfoNoActiveSessionFound());\n    }\n\n    // Try to parse and quit the driver after the attempt\n    try {\n        this.doParsingTask(driver, sessionId);\n        this.logService.createInfoLog(this.messageService.getLoggingInfoParseSucceeded());\n        driver.quit();\n        this.logService.createInfoLog(this.messageService.getLoggingInfoQuitDriver());\n    }\n    ...\n}\n</code></pre>\n<p>I am not concerned with the second block of code. My issue is that, due to the asynchronous nature of my Selenium sessions, there are cases where the task will throw an exception and error out. This leaves the Selenium container that the driver connects to stuck in the middle of a session and not properly quit.</p>\n<p>If the Spring Boot backend then tries to run a task that requires the driver, it freezes at the following line from the first block of code:</p>\n<pre class=\"lang-java prettyprint-override\"><code>return new RemoteWebDriver(containerLocator, options);\n</code></pre>\n<p>I have tested my program and determined that this is where my asynchronous tasks get stuck, but I do not know how to fix it using the first block of code. I have checked similar posts on Stack Overflow, but they all give solutions that require the WebDriver object to be instantiated first, which I can't use because the program gets stuck during instantiation.</p>\n<p>Is there a way to modify the first block of code to create a WebDriver session without getting stuck due to a hung session in the Selenium container?</p>\n<p>For further context, here is the Docker command I use to create the container:</p>\n<pre class=\"lang-bash prettyprint-override\"><code>docker run -d -p 4444:4444 -p 7900:7900 --shm-size=&quot;2g&quot; selenium/standalone-chrome:136.0-20251101\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

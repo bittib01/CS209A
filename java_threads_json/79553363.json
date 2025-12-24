@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "string",
+      "memory",
+      "java-21",
+      "string-pool"
+    ],
+    "owner": {
+      "account_id": 19529032,
+      "reputation": 165,
+      "user_id": 14289259,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/09a727e39d4997db07e6c0850a45094a?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Voy",
+      "link": "https://stackoverflow.com/users/14289259/voy"
+    },
+    "is_answered": true,
+    "view_count": 432,
+    "accepted_answer_id": 79553550,
+    "answer_count": 2,
+    "score": 12,
+    "last_activity_date": 1751968301,
+    "creation_date": 1743693881,
+    "last_edit_date": 1743696735,
+    "question_id": 79553363,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79553363/increased-memory-consumption-due-to-string-constant-pool-behavior-after-upgradin",
+    "title": "Increased memory consumption due to String Constant Pool behavior after upgrading from Java 17 to Java 21",
+    "body": "<p>While upgrading our project from Java 17 to Java 21, we noticed an increase in memory consumption. After dumping the heap and analyzing the differences, I found that there are thousands of empty strings stored in memory.</p>\n<p>I succeeded in reproducing the issue with the following code:</p>\n<pre><code>import java.lang.management.ManagementFactory;\nimport java.text.DecimalFormat;\n\npublic class DecimalFormating {\n    \n    static DecimalFormat decimalFormat = new DecimalFormat(&quot;#.##&quot;);\n    static DecimalFormat decimalFormat2 = new DecimalFormat();\n    \n    public static void main(String[] args) {\n        Runtime.getRuntime().addShutdownHook(new Thread(() -&gt; {\n            try {\n                String pid = ManagementFactory.getRuntimeMXBean().getName().split(&quot;@&quot;)[0];\n                Process p = Runtime.getRuntime().exec(&quot;D:\\\\JAVA\\\\jdk-17.0.2\\\\bin\\\\jmap.exe -dump:format=b,file=heapdump_string_decimal_17.hprof &quot; + pid);\n                p.waitFor();\n            } catch (Exception e) {\n                e.printStackTrace();\n            }\n        }));\n    }\n}\n</code></pre>\n<p>The following code is straightforward as it defines two instances of DecimalFormat, which in turn define multiple empty strings, as seen <a href=\"https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/text/DecimalFormat.java#L4266\" rel=\"noreferrer\">here</a> and <a href=\"https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/text/DecimalFormat.java#L4274\" rel=\"noreferrer\">here</a>. It then dumps the heap into a file.</p>\n<p>I compiled and ran the code with both Java 17.0.2 and Java 21.0.6, and here is what the memory looks like:</p>\n<ul>\n<li>For Java 17, you can see that all the strings that should be empty point to the same memory address, which is expected behavior due to the String Constant Pool:\n<a href=\"https://i.sstatic.net/6HVLO3CB.png\" rel=\"noreferrer\"><img src=\"https://i.sstatic.net/6HVLO3CB.png\" alt=\"JDK17_MEMORY_DUMP\" /></a></li>\n<li>For Java 21, each string has a different memory address, resulting in the empty string being defined six times and consuming six times more memory than in the previous Java:\n<a href=\"https://i.sstatic.net/owgw1JA4.png\" rel=\"noreferrer\"><img src=\"https://i.sstatic.net/owgw1JA4.png\" alt=\"enter image description here\" /></a></li>\n</ul>\n<p>Is this behavior normal? I can't find any mention of this kind of change in the release notes of Java between versions 18 and 21.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jboss",
+      "wildfly"
+    ],
+    "owner": {
+      "account_id": 294406,
+      "reputation": 24904,
+      "user_id": 598289,
+      "user_type": "registered",
+      "accept_rate": 85,
+      "profile_image": "https://www.gravatar.com/avatar/b04c9074fed0dd215caec771c2a9ea98?s=256&d=identicon&r=PG",
+      "display_name": "SJuan76",
+      "link": "https://stackoverflow.com/users/598289/sjuan76"
+    },
+    "is_answered": false,
+    "view_count": 51,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1752844746,
+    "creation_date": 1752834168,
+    "last_edit_date": 1752844746,
+    "question_id": 79706034,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79706034/securing-webapp-with-ws-in-wildfly-14",
+    "title": "Securing webapp with ws in wildfly 14",
+    "body": "<p>I am trying to configure security for a webservice inside an ear.</p>\n<p>I did configure properties realm, security domain, http authentication factory and undertow application security domain:</p>\n<pre><code>[standalone@localhost:9990 /] /subsystem=elytron/http-authentication-factory=testHAF:query()\n{\n    &quot;outcome&quot; =&gt; &quot;success&quot;,\n    &quot;result&quot; =&gt; {\n        &quot;available-mechanisms&quot; =&gt; [&quot;BASIC&quot;],\n        &quot;http-server-mechanism-factory&quot; =&gt; &quot;global&quot;,\n        &quot;mechanism-configurations&quot; =&gt; [{\n            &quot;mechanism-name&quot; =&gt; &quot;BASIC&quot;,\n            &quot;mechanism-realm-configurations&quot; =&gt; [{&quot;realm-name&quot; =&gt; &quot;TestDomain&quot;}]\n        }],\n        &quot;security-domain&quot; =&gt; &quot;TestSD&quot;\n    }\n}\n\n[standalone@localhost:9990 /] /subsystem=undertow/application-security-domain=TestASD:query()\n{\n    &quot;outcome&quot; =&gt; &quot;success&quot;,\n    &quot;result&quot; =&gt; {\n        &quot;enable-jacc&quot; =&gt; false,\n        &quot;http-authentication-factory&quot; =&gt; &quot;testHAF&quot;,\n        &quot;override-deployment-config&quot; =&gt; false,\n        &quot;referencing-deployments&quot; =&gt; undefined,\n        &quot;security-domain&quot; =&gt; undefined,\n        &quot;setting&quot; =&gt; undefined\n    }\n}\n</code></pre>\n<p>I have a war inside an ear.</p>\n<p>The ear does not have jboss specific files.</p>\n<p>The war has both a jboss-web.xml:</p>\n<pre><code>&lt;jboss-web xmlns=&quot;http://www.jboss.com/xml/ns/javaee&quot;\n    xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;\n    xsi:schemaLocation=&quot;http://www.jboss.org/schema/jbossas\n    http://www.jboss.org/schema/jbossas/jboss-web_7_2.xsd&quot;&gt;\n   &lt;security-domain&gt;TestASD&lt;/security-domain&gt;\n&lt;/jboss-web&gt;\n</code></pre>\n<p>and a jboss-ejb3.xml:</p>\n<pre><code>&lt;?xml version=&quot;1.1&quot; encoding=&quot;UTF-8&quot;?&gt;\n&lt;jboss:ejb-jar xmlns:jboss=&quot;http://www.jboss.com/xml/ns/javaee&quot;\n               xmlns=&quot;http://java.sun.com/xml/ns/javaee&quot;\n               xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;\n               xmlns:s=&quot;urn:security:1.1&quot;\n               xsi:schemaLocation=&quot;http://www.jboss.com/xml/ns/javaee http://www.jboss.org/j2ee/schema/jboss-ejb3-2_0.xsd http://java.sun.com/xml/ns/javaee http://www.jboss.org/j2ee/schema/jboss-ejb3-spec-2_0.xsd&quot;\n               version=&quot;3.1&quot;\n               impl-version=&quot;2.0&quot;&gt;\n&lt;/jboss:ejb-jar&gt;\n</code></pre>\n<p>Yet when I deploy the ear, I get an error that &quot;jboss.security.security-domain.TestASD&quot; is not found:</p>\n<pre><code>12:13:07,128 ERROR [org.jboss.as.controller.management-operation] (Controller Boot Thread) WFLYCTL0013: Operation (&quot;deploy&quot;) failed - address: ([(&quot;deployment&quot; =&gt; &quot;ear-module-1.0-SNAPSHOT.ear&quot;)]) - failure description: {\n    &quot;WFLYCTL0412: Required services that are not installed:&quot; =&gt; [&quot;jboss.security.security-domain.TestASD&quot;],\n    &quot;WFLYCTL0180: Services with missing/unavailable dependencies&quot; =&gt; [\n        &quot;jboss.ws.endpoint.\\&quot;ear-module-1.0-SNAPSHOT.ear\\&quot;.\\&quot;com.example-web-module-1.0-SNAPSHOT.war\\&quot;.\\&quot;com.example.web.HelloWsWar\\&quot; is missing [jboss.security.security-domain.TestASD]&quot;,\n        &quot;jboss.deployment.subunit.\\&quot;ear-module-1.0-SNAPSHOT.ear\\&quot;.\\&quot;com.example-web-module-1.0-SNAPSHOT.war\\&quot;.component.HelloBean.CREATE is missing [jboss.security.security-domain.TestASD]&quot;\n    ]\n}\n</code></pre>\n<p>What I am doing wrong? TIA</p>\n<h3>Update</h3>\n<p>It turns out that if I delete my WS from the war, it works as expected. But if I add:</p>\n<p>HelloWsIface:</p>\n<pre><code>@WebService\npublic interface HelloWsWarIface {\n    public String echo(@WebParam(name = &quot;parametro&quot;) @XmlElement(required = true) String parametro);\n}\n</code></pre>\n<p>HelloWsWar:</p>\n<pre><code>@WebService(endpointInterface = &quot;com.example.web.HelloWsWarIface&quot;)\npublic class HelloWsWar implements HelloWsWarIface {\n\n    @WebMethod\n    @Override\n    public String echo(\n        @WebParam(name = &quot;parametro&quot;) @XmlElement(required = true) String parametro) {\n        return &quot;echo &quot; + parametro;\n    }\n}\n</code></pre>\n<p>it starts failing at deployment.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "mapping",
+      "mapstruct"
+    ],
+    "owner": {
+      "account_id": 306540,
+      "reputation": 3196,
+      "user_id": 2695990,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/EVYyd.jpg?s=256",
+      "display_name": "fascynacja",
+      "link": "https://stackoverflow.com/users/2695990/fascynacja"
+    },
+    "is_answered": true,
+    "view_count": 88,
+    "accepted_answer_id": 79811811,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1762466748,
+    "creation_date": 1753440643,
+    "last_edit_date": 1753441107,
+    "question_id": 79714606,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79714606/how-to-map-a-list-of-products-in-source-json-to-a-single-product-in-target-based",
+    "title": "How to map a list of products in source JSON to a single product in target based on unique ID?",
+    "body": "<p>I am using MapStruct to map data from a source DTO representing a JSON structure that contains a list of products:</p>\n<pre><code>public class SourceDto {\n    List&lt;ProductDto&gt; products;\n}\n</code></pre>\n<p>I want to map it to a target DTO that contains only one product:</p>\n<pre><code>public class Target {\n    Product product;\n}\n</code></pre>\n<p>The mapping should select exactly one product from the source list based on a unique product ID and map that single product into the target’s product field.\n<a href=\"https://i.sstatic.net/FyWeS0eV.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/FyWeS0eV.png\" alt=\"enter image description here\" /></a></p>\n<p>I have written the code which does the desired mapping:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Mapper(componentModel = &quot;spring&quot; )\npublic interface MainMapper {\n\n    ProductMapper productMapper = Mappers.getMapper(ProductMapper.class);\n\n    @Mapping(source = &quot;.&quot;, target = &quot;product&quot;, qualifiedByName = &quot;mapProduct&quot;)\n    Target map(SourceDto dto);\n\n    @Named(&quot;mapProduct&quot;)\n    default Product mapProduct(SourceDto dto) {\n        ProductDto desiredProduct = filteredProduct(dto);\n        return productMapper.toProduct(desiredProduct);\n    }\n\n    private ProductDto filteredProduct(SourceDto dto) {\n        String desiredId = &quot;numberFromConfig&quot;;\n        List&lt;ProductDto&gt; products= dto.getProducts();\n        return products.stream()\n                .filter(product -&gt; product.getId().equals(desiredId))\n                .findAny()\n                .get();\n    }\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>@Mapper(componentModel = &quot;spring&quot; )\ninterface ProductMapper {\n    @Mapping(target = &quot;name&quot;, source = &quot;name&quot;)\n    Product toProduct(ProductDto dto);\n}\n</code></pre>\n<p>But I do not like the fact that I initialize the nested mapper in the class itself:</p>\n<pre class=\"lang-java prettyprint-override\"><code>ProductMapper productMapper = Mappers.getMapper(ProductMapper.class);\n</code></pre>\n<p>I also tried to use the</p>\n<pre class=\"lang-java prettyprint-override\"><code>Mapper(componentModel = &quot;spring&quot;, uses = {ProductMapper .class })\n</code></pre>\n<p>so that ProductMapper will be injected by spring. But like that I am not able to use it directly in the mapProduct method.\nIs there other elegant way to address this topic? In reality my mapping is much bigger and has much more nested mappers so I wish to avoid to initialize all of them inside the MainMapper class. Also I do not want to map all products in the source list and then choose only one in order to avoid unnecessary calculations.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "function",
+      "spring-cloud"
+    ],
+    "owner": {
+      "account_id": 18890249,
+      "reputation": 214,
+      "user_id": 13780725,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/Gh1tC.jpg?s=256",
+      "display_name": "tibotka",
+      "link": "https://stackoverflow.com/users/13780725/tibotka"
+    },
+    "is_answered": true,
+    "view_count": 192,
+    "accepted_answer_id": 79791536,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1760555334,
+    "creation_date": 1757693794,
+    "question_id": 79763162,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79763162/functional-bean-cant-be-recognized-by-spring-function",
+    "title": "Functional bean can&#39;t be recognized by Spring Function",
+    "body": "<p>I have two configuration classes with functional beans:</p>\n<pre><code>@Configuration\npublic class PositionReporter {\n\n    @Bean\n    public Supplier&lt;Aircraft&gt; reportPositions() {\n        return () -&gt; new Aircraft(\n                null,\n                &quot;SAL001&quot;,\n                &quot;sqwk&quot;,\n                &quot;N12345&quot;,\n                &quot;SAL001&quot;,\n                &quot;route&quot;,\n                &quot;LJ&quot;,\n                &quot;ct&quot;,\n                30000,\n                280,\n                440,\n                0,\n                0,\n                39.2979849,\n                -94.71921,\n                0.0d,\n                0.0d,\n                0.0d,\n                false,\n                true,\n                Instant.now(),\n                Instant.now(),\n                Instant.now()\n        );\n    }\n\n}\n</code></pre>\n<pre><code>@Configuration\n@AllArgsConstructor\npublic class PositionRetriever {\n\n    private final AircraftRepository aircraftRepository;\n\n    @Bean\n    public Consumer&lt;Aircraft&gt; retrievePositions() {\n        return aircraft -&gt; {\n            aircraftRepository.deleteAll();\n            aircraftRepository.save(aircraft);\n        };\n    }\n\n}\n</code></pre>\n<p>If I don't registrate them with <code>spring.cloud.function.definition</code>, then I receive the following warning (which absolutely proves that they are recognized as functional beans):</p>\n<pre><code>2025-09-12T18:07:42.916+02:00  WARN 6568 --- [RestApi] [           main] c.f.c.c.BeanFactoryAwareFunctionRegistry : Multiple functional beans were found [retrievePositions, reportPositions], thus can't determine default function definition. Please use 'spring.cloud.function.definition' property to explicitly define it.\n</code></pre>\n<p>But if I register them, no matter in which combination of the followings</p>\n<p><code>reportPositions;retrievePositions</code></p>\n<p><code>reportPositions,retrievePositions</code></p>\n<p><code>reportPositions|retrievePositions</code></p>\n<p><code>reportPositions</code></p>\n<p>I will get this warning:</p>\n<pre><code>2025-09-12T18:09:40.596+02:00  WARN 6840 --- [RestApi] [           main] c.f.c.c.BeanFactoryAwareFunctionRegistry : Failed to locate function 'reportPositions' for function definition 'reportPositions|retrievePositions'. Returning null.\n</code></pre>\n<p>the related properties from my <code>application.yaml</code>:</p>\n<pre><code>spring:\n  cloud:\n    function:\n      definition: reportPositions|retrievePositions\n    stream:\n      poller:\n        fixed-delay: 10000\n      bindings:\n        reportPositions-out-0:\n          destination: aircraftpositions\n        retrievePositions-in-0:\n          destination: aircraftpositions\n          group: aircraftpositions\n</code></pre>\n<p>Could anyone help me out here? I am really frustrated with this WARN message.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

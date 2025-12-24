@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jakarta-mail"
+    ],
+    "owner": {
+      "account_id": 34905461,
+      "reputation": 21,
+      "user_id": 26853901,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/2550bead763cf8c2c4c59ef11e467ee5?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Kamrul Hassan",
+      "link": "https://stackoverflow.com/users/26853901/kamrul-hassan"
+    },
+    "is_answered": false,
+    "view_count": 129,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1724434038,
+    "creation_date": 1723861140,
+    "last_edit_date": 1724434038,
+    "question_id": 78881253,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78881253/how-do-i-retrieve-the-email-and-the-envelope-content",
+    "title": "How do I retrieve the email and the envelope content",
+    "body": "<p>I am using the JakartaMail API in my Spring Boot application and I have already created a fetch profile and I am able to get the message content printed out on the command line. However, I need some help in retrieving the email content from the IMAP server and storing it into an array so my client can properly display it. Furthermore, I am only getting envelope items, i.e. from, to subject, etc., but my request are not working and my requests are always timed out.</p>\n<p>I need help in understanding a flow to properly retrieve the email and the envelope content to then send back to the client.</p>\n<p>Here is detail run down of the code I have thus far we will start with the email service that will fetch the email content:</p>\n<pre><code>    @Async\n    public CompletableFuture&lt;List&lt;EmailResponseDto&gt;&gt; fetchEmails() {\n        List&lt;EmailResponseDto&gt; emailResponseDtoList = new ArrayList&lt;&gt;();\n        try {\n            Properties prop = new Properties();\n            prop.put(&quot;mail.store.protocol&quot;, &quot;imaps&quot;);\n            prop.put(&quot;mail.imaps.host&quot;, &quot;imap.gmail.com&quot;);\n            prop.put(&quot;mail.imaps.port&quot;, &quot;993&quot;);\n            prop.put(&quot;mail.imaps.ssl.enable&quot;, &quot;true&quot;);\n            prop.put(&quot;mail.imaps.ssl.protocols&quot;, &quot;TLSv1.2&quot;);\n            prop.put(&quot;mail.imaps.ssl.trust&quot;, &quot;*&quot;);\n\n            Session emailSession = Session.getInstance(prop, new Authenticator() {\n                @Override\n                protected PasswordAuthentication getPasswordAuthentication() {\n                    return new PasswordAuthentication(&quot;username&quot;, &quot;password&quot;);\n                }\n            });\n\n            FetchProfile profile = new FetchProfile();\n            profile.add(FetchProfile.Item.ENVELOPE);\n\n            Store store = emailSession.getStore(&quot;imaps&quot;);\n            store.connect(&quot;username&quot;, &quot;password&quot;);\n\n            Folder emailFolder = store.getFolder(&quot;INBOX&quot;);\n            emailFolder.open(Folder.READ_ONLY);\n\n            emailFolder.fetch(emailFolder.getMessages(), profile);\n\n            for (Message message : emailFolder.getMessages()) {\n                EmailResponseDto emailResponseDto = new EmailResponseDto();\n                emailResponseDto.setSubject(message.getSubject());\n                emailResponseDto.setFrom(message.getFrom()[0].toString());\n                emailResponseDto.setSentDate(message.getSentDate());\n                emailResponseDtoList.add(emailResponseDto);\n            }\n\n            emailFolder.close(false);\n            store.close();\n\n        } catch (MessagingException e) {\n            e.printStackTrace();\n        }\n        return CompletableFuture.completedFuture(emailResponseDtoList);\n    }\n\nI am able to get a response back, but I get a 401 response, and my API client tells me &quot;No Body returned for Response&quot;\n\nI am using an async function because I understand I will get a ton of emails. However, even if I limit the amount, I am not able to get a response back. I am wondering is my implementation or logic, correct? Should I instead be writing the email content to a file instead? \n</code></pre>\n<p>EDIT:\nI am to get the addres from the Emails however I cannot do it\n@Async annotation</p>\n<pre><code>@Async\npublic CompletableFuture&lt;List&lt;String&gt;&gt; getEmails(String username, String password) {\n    SecurityContext context = SecurityContextHolder.getContext();\n    return CompletableFuture.supplyAsync(() -&gt; {\n        SecurityContextHolder.setContext(context);\n\n        EmailProtocol emailProtocol = new EmailProtocol(username, password);\n        List&lt;String&gt; fromList = new ArrayList&lt;&gt;();\n        Session imapSession = emailProtocol.ImapSession();\n\n        try  {\n            Store store = imapSession.getStore(&quot;imaps&quot;);\n            store.connect(username, password);\n            Folder inboxFolder = store.getFolder(&quot;INBOX&quot;);\n            inboxFolder.open(Folder.READ_WRITE);\n\n            Message[] messages = inboxFolder.getMessages();\n            for (Message m : messages) {\n                Address[] fromAddresses = m.getFrom();\n                if (fromAddresses != null) {\n                    for (Address address : fromAddresses) {\n                        fromList.add(address.toString());\n                    }\n                }\n            }\n            inboxFolder.close(false);\n        } catch (Exception e) {\n            e.printStackTrace();\n        }\n\n        return fromList;\n    });\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

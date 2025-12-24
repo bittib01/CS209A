@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "lucene"
+    ],
+    "owner": {
+      "account_id": 19211594,
+      "reputation": 2088,
+      "user_id": 14037302,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/Dddht.png?s=256",
+      "display_name": "sweak",
+      "link": "https://stackoverflow.com/users/14037302/sweak"
+    },
+    "is_answered": false,
+    "view_count": 508,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1753833073,
+    "creation_date": 1706046393,
+    "last_edit_date": 1706103468,
+    "question_id": 77869449,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77869449/how-to-run-lucene-on-android",
+    "title": "How to run Lucene on Android?",
+    "body": "<p>I am trying to use the Apache Lucene library (9.9.1 version) in my Android application. Here are the relevant parts of my <code>build.gradle.kts</code> file:</p>\n<pre class=\"lang-kotlin prettyprint-override\"><code>android {\n    compileOptions {\n        isCoreLibraryDesugaringEnabled = true\n        sourceCompatibility = JavaVersion.VERSION_17\n        targetCompatibility = JavaVersion.VERSION_17\n    }\n    kotlinOptions {\n        jvmTarget = &quot;17&quot;\n    }\n}\n\ndependencies {\n    // Lucene\n    implementation(&quot;org.apache.lucene:lucene-core:9.9.1&quot;)\n\n    // Core library desugaring\n    coreLibraryDesugaring(&quot;com.android.tools:desugar_jdk_libs:2.0.4&quot;)\n}\n</code></pre>\n<p>I am using Java 17 and desugaring the core library to get extended Java features as per the <a href=\"https://developer.android.com/studio/write/java8-support\" rel=\"nofollow noreferrer\">documentation</a>.</p>\n<p>Yet, when trying to use Lucene in the application, this line:</p>\n<pre class=\"lang-kotlin prettyprint-override\"><code>val indexDirectory: Directory = FSDirectory.open(indexPath)\n</code></pre>\n<p>causes the following error:</p>\n<pre><code>FATAL EXCEPTION: DefaultDispatcher-worker-1\nProcess: com.example.myapp, PID: 2444\njava.lang.NoSuchMethodError: No static method version()Ljava/lang/Runtime$Version; in class Ljava/lang/Runtime; or its super classes (declaration of 'java.lang.Runtime' appears in /apex/com.android.art/javalib/core-oj.jar)\n    at org.apache.lucene.util.Constants.&lt;clinit&gt;(Constants.java:40)\n    at org.apache.lucene.store.FSDirectory.open(FSDirectory.java:161)\n    at org.apache.lucene.store.FSDirectory.open(FSDirectory.java:156)\n    ...\n</code></pre>\n<p>Method <code>java.lang.Runtime.version()</code> couldn't have been found...</p>\n<p>From what I've read in the <a href=\"https://lucene.apache.org/core/9_9_1/SYSTEM_REQUIREMENTS.html\" rel=\"nofollow noreferrer\">requirements</a>, Lucene runs on Java 11 or greater. This and the error suggest to me that the Java on Android is missing some features required to run Lucene - especially the 'version()' method from the error.</p>\n<p>What can I do at this point? Should I downgrade Lucene to an Android-stable version (if there even is one)? Or is there some better approach that I'm not aware of? Please help!</p>\n<p><strong>UPDATE:</strong> I've tried replacing the version of Lucene with <code>8.11.2</code>, <code>7.7.3</code>, <code>6.6.6</code> and <code>5.5.5</code>. In all of these versions, the first error stopped happening, but another one started occuring:</p>\n<pre><code>FATAL EXCEPTION: DefaultDispatcher-worker-2\nProcess: com.example.myapp PID: 5143\njava.lang.NoClassDefFoundError: Failed resolution of: Ljava/lang/ClassValue;\n    at org.apache.lucene.analysis.standard.StandardAnalyzer.createComponents(StandardAnalyzer.java:103)\n    at org.apache.lucene.analysis.Analyzer.tokenStream(Analyzer.java:198)\n    at org.apache.lucene.document.Field.tokenStream(Field.java:574)\n    at org.apache.lucene.index.DefaultIndexingChain$PerField.invert(DefaultIndexingChain.java:740)\n    at org.apache.lucene.index.DefaultIndexingChain.processField(DefaultIndexingChain.java:447)\n    at org.apache.lucene.index.DefaultIndexingChain.processDocument(DefaultIndexingChain.java:403)\n    at org.apache.lucene.index.DocumentsWriterPerThread.updateDocument(DocumentsWriterPerThread.java:232)\n    at org.apache.lucene.index.DocumentsWriter.updateDocument(DocumentsWriter.java:478)\n    at org.apache.lucene.index.IndexWriter.updateDocument(IndexWriter.java:1571)\n    at org.apache.lucene.index.IndexWriter.addDocument(IndexWriter.java:1316)\n    ...\n</code></pre>\n<p>Again, Android Java is missing something - this time the class <code>ClassValue</code>...</p>\n<p>Apparently the <a href=\"https://developer.android.com/reference/java/lang/ClassValue\" rel=\"nofollow noreferrer\"><code>ClassValue</code></a> has been added in API 34 - no way I'm setting <code>minSdk</code> to 34.</p>\n<p>Is there really no workaround for these issues on Android? Is Lucene just not compatible?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

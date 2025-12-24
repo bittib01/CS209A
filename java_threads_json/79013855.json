@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "algorithm",
+      "performance",
+      "file-processing",
+      "union-find"
+    ],
+    "owner": {
+      "account_id": 15828861,
+      "reputation": 59,
+      "user_id": 17708778,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/QWmF6.jpg?s=256",
+      "display_name": "Denis  Konev",
+      "link": "https://stackoverflow.com/users/17708778/denis-konev"
+    },
+    "is_answered": true,
+    "view_count": 87,
+    "accepted_answer_id": 79014894,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1727099248,
+    "creation_date": 1727081268,
+    "last_edit_date": 1727083501,
+    "question_id": 79013855,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79013855/how-to-correctly-group-rows-by-column-values-using-union-find-in-java",
+    "title": "How to Correctly Group Rows by Column Values Using Union-Find in Java?",
+    "body": "<p>I have a task that I can't seem to solve. I am given a file with a million rows. Each row may contain an unlimited number of elements of the following type:</p>\n<pre><code>&quot;111&quot;;&quot;123&quot;;&quot;222&quot;\n&quot;200&quot;;&quot;123&quot;;&quot;100&quot;\n&quot;300&quot;;&quot;&quot;;&quot;100&quot;\n</code></pre>\n<p>Invalid rows (to be ignored) are formatted as:</p>\n<pre><code>&quot;8383&quot;200000741652251&quot;\n&quot;79855053897&quot;83100000580443402&quot;;&quot;200000133000191&quot;\n</code></pre>\n<p>The goal is to group rows based on the following criteria:\nIf two rows have a match in one or more non-empty columns, they should belong to the same group.\nFor example:</p>\n<pre><code>&quot;111&quot;;&quot;123&quot;;&quot;222&quot;\n&quot;200&quot;;&quot;123&quot;;&quot;100&quot;\n&quot;300&quot;;&quot;&quot;;&quot;100&quot;\n</code></pre>\n<p>These all belong to the same group because the first two rows have the same value 123 in the second column, and the last two rows have the same value 100 in the third column.</p>\n<p>However, rows like:</p>\n<pre><code>&quot;100&quot;;&quot;200&quot;;&quot;300&quot;\n&quot;200&quot;;&quot;300&quot;;&quot;100&quot;\n</code></pre>\n<p>should not be in the same group because they don't meet the column-matching criteria.</p>\n<p>The program should complete in 30 seconds and must work within 1GB of memory (-Xmx1G).</p>\n<p>AI assistant suggested using the &quot;union-find&quot; or &quot;disjoint-set&quot; algorithm and provided some initial code. After making some modifications, here's my current implementation:</p>\n<pre><code>package com.test;\n\nimport java.io.BufferedReader;\nimport java.io.FileReader;\nimport java.io.IOException;\nimport java.util.*;\n\npublic class UniqueLineGrouper {\n    static class UnionFind {\n        private int[] parent;\n        private int[] rank;\n\n        public UnionFind(int size) {\n            parent = new int[size];\n            rank = new int[size];\n            for (int i = 0; i &lt; size; i++) {\n                parent[i] = i;\n                rank[i] = 0;\n            }\n        }\n\n        public int find(int x) {\n            if (parent[x] != x) {\n                parent[x] = find(parent[x]);\n            }\n            return parent[x];\n        }\n\n        public void union(int x, int y) {\n            int rootX = find(x);\n            int rootY = find(y);\n            if (rootX != rootY) {\n                if (rank[rootX] &gt; rank[rootY]) {\n                    parent[rootY] = rootX;\n                } else if (rank[rootX] &lt; rank[rootY]) {\n                    parent[rootX] = rootY;\n                } else {\n                    parent[rootY] = rootX;\n                    rank[rootX]++;\n                }\n            }\n        }\n    }\n\n    public static void main(String[] args) {\n        List&lt;String[]&gt; rows = new ArrayList&lt;&gt;();\n        try (BufferedReader br = new BufferedReader(new FileReader(args[0]))) {\n            String line;\n            while ((line = br.readLine()) != null) {\n                String[] columns = line.split(&quot;;&quot;);\n                boolean isValid = true;\n                for (String column : columns) {\n                    if (column.isEmpty() &amp;&amp; !column.matches(&quot;\\\\d{3}&quot;)) {\n                        isValid = false;\n                        break;\n                    }\n                }\n                if (isValid) {\n                    rows.add(columns);\n                }\n            }\n        } catch (IOException e) {\n            e.printStackTrace();\n        }\n\n//This part has a bug\n        UnionFind uf = new UnionFind(rows.size());\n        Map&lt;String, Integer&gt; columnValueMap = new HashMap&lt;&gt;();\n        for (int i = 0; i &lt; rows.size(); i++) {\n            String[] row = rows.get(i);\n            for (int j = 0; j &lt; row.length; j++) {\n                String value = row[j].trim();\n                if (!value.isEmpty() &amp;&amp; !value.equals(&quot;\\&quot;\\&quot;&quot;)) {\n                    if (columnValueMap.containsKey(value)) {\n                        int prevRowIdx = columnValueMap.get(value);\n                        uf.union(i, prevRowIdx);\n                    } else {\n                        columnValueMap.put(value, i);\n                    }\n                }\n            }\n        }\n\n        Map&lt;Integer, List&lt;Integer&gt;&gt; groups = new HashMap&lt;&gt;();\n        for (int i = 0; i &lt; rows.size(); i++) {\n            int group = uf.find(i);\n            groups.computeIfAbsent(group, k -&gt; new ArrayList&lt;&gt;()).add(i);\n        }\n\n        for (List&lt;Integer&gt; group : groups.values()) {\n            System.out.println(&quot;Group:&quot;);\n            for (int idx : group) {\n                System.out.println(Arrays.toString(rows.get(idx)));\n            }\n            System.out.println();\n        }\n    }\n}\n</code></pre>\n<p>The grouping works, but there’s a bug where rows are grouped even if the match is across different columns. For example, the following set of rows gets grouped together, even though the last two rows shouldn’t be in the same group as per the column-matching rule:</p>\n<pre><code>&quot;111&quot;;&quot;123&quot;;&quot;222&quot;\n&quot;200&quot;;&quot;123&quot;;&quot;100&quot;\n&quot;300&quot;;&quot;&quot;;&quot;100&quot;\n&quot;100&quot;;&quot;200&quot;;&quot;300&quot;\n&quot;200&quot;;&quot;300&quot;;&quot;100&quot;\n</code></pre>\n<p>Also I was thinking of using Collections.disjoint() to skip rows that don’t share any elements but I’m not sure if this would improve performance.</p>\n<p>Can anyone help me resolve this issue?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

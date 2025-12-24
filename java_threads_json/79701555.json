@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "flutter",
+      "android-studio",
+      "visual-studio-code",
+      "fedora"
+    ],
+    "owner": {
+      "account_id": 14597160,
+      "reputation": 59,
+      "user_id": 10542502,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/YgrTH.jpg?s=256",
+      "display_name": "Bitmapper",
+      "link": "https://stackoverflow.com/users/10542502/bitmapper"
+    },
+    "is_answered": true,
+    "view_count": 1583,
+    "answer_count": 1,
+    "score": 4,
+    "last_activity_date": 1757965685,
+    "creation_date": 1752553823,
+    "last_edit_date": 1752555136,
+    "question_id": 79701555,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79701555/how-to-fix-flutter-toolchain-installation-usr-lib-jvm-java-21-openjdk-does-no",
+    "title": "How to fix Flutter &quot;Toolchain installation `usr/lib/jvm/java-21-openjdk` does not provide the required capabilities&quot; error",
+    "body": "<p>I keep getting this warning on (Fedora) Linux when opening a Flutter project of mine inside VS Code. I changed <code>JAVA_HOME</code> and used <code>flutter config --jdk-dir=&quot;/usr/lib/jvm/java-24-openjdk/</code> to change my Java version but it still keeps coming up with a warning referencing OpenJDK 21 (so before we even get to the question of the right java version, why is it stuck on version 21?):</p>\n<pre><code>The supplied phased action failed with an exception.\nCould not create task ':app:compileDebugAndroidTestJavaWithJavac'.\nFailed to calculate the value of task ':app:compileDebugAndroidTestJavaWithJavac' property 'javaCompiler'.\nToolchain installation '/usr/lib/jvm/java-21-openjdk' does not provide the required capabilities: [JAVA_COMPILER]\n</code></pre>\n<p>I even added <code>org.gradle.java.home=/usr/lib/jvm/java-24-openjdk</code> to <code>android/gradle.properties</code>.</p>\n<p>This is the output of <code>flutter doctor --verbose</code>:</p>\n<pre><code>[✓] Flutter (Channel stable, 3.32.6, on Fedora Linux 41 (KDE Plasma) 6.15.5-100.fc41.x86_64, locale en_GB.UTF-8) [120ms]\n    • Flutter version 3.32.6 on channel stable at /home/bitmapp3r/dev/flutter-sdk\n    • Upstream repository https://github.com/flutter/flutter.git\n    • Framework revision 077b4a4ce1 (6 days ago), 2025-07-08 13:31:08 -0700\n    • Engine revision 72f2b18bb0\n    • Dart version 3.8.1\n    • DevTools version 2.45.1\n\n[✓] Android toolchain - develop for Android devices (Android SDK version 36.0.0) [1,977ms]\n    • Android SDK at /home/bitmapp3r/Android/Sdk\n    • Platform android-36, build-tools 36.0.0\n    • Java binary at: /usr/lib/jvm/java-17-openjdk/bin/java\n      This JDK is specified in your Flutter configuration.\n      To change the current JDK, run: `flutter config --jdk-dir=&quot;path/to/jdk&quot;`.\n    • Java version OpenJDK Runtime Environment (Red_Hat-17.0.15.0.6-1) (build 17.0.15+6)\n    • All Android licenses accepted.\n\n[✓] Chrome - develop for the web [25ms]\n    • Chrome at google-chrome\n\n[✓] Linux toolchain - develop for Linux desktop [556ms]\n    • clang version 19.1.7 (Fedora 19.1.7-4.fc41)\n    • cmake version 3.30.8\n    • ninja version 1.12.1\n    • pkg-config version 2.3.0\n    • OpenGL core renderer: AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.63, 6.15.5-100.fc41.x86_64)\n    • OpenGL core version: 4.6 (Core Profile) Mesa 25.0.7\n    • OpenGL core shading language version: 4.60\n    • OpenGL ES renderer: AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.63, 6.15.5-100.fc41.x86_64)\n    • OpenGL ES version: OpenGL ES 3.2 Mesa 25.0.7\n    • OpenGL ES shading language version: OpenGL ES GLSL ES 3.20\n    • GL_EXT_framebuffer_blit: yes\n    • GL_EXT_texture_format_BGRA8888: yes\n\n[✓] Android Studio (version 2025.1.1) [21ms]\n    • Android Studio at /opt/android-studio\n    • Flutter plugin can be installed from:\n      🔨 https://plugins.jetbrains.com/plugin/9212-flutter\n    • Dart plugin can be installed from:\n      🔨 https://plugins.jetbrains.com/plugin/6351-dart\n    • Java version OpenJDK Runtime Environment (build 21.0.6+-13391695-b895.109)\n\n[✓] VS Code (version unknown) [19ms]\n    • VS Code at /usr/share/code\n    • Flutter extension version 3.114.0\n    ✗ Unable to determine VS Code version.\n\n[✓] Connected device (3 available) [261ms]\n    • SM S911B (mobile) • RFCX808ZYCE • android-arm64  • Android 15 (API 35)\n    • Linux (desktop)   • linux       • linux-x64      • Fedora Linux 41 (KDE Plasma) 6.15.5-100.fc41.x86_64\n    • Chrome (web)      • chrome      • web-javascript • Google Chrome 138.0.7204.100\n\n[✓] Network resources [656ms]\n    • All expected network resources are available.\n\n• No issues found!\n</code></pre>\n<p>Here is my <code>android/app/build.gradle.kts</code> (I omitted the project name)</p>\n<pre><code>plugins {\n    id(&quot;com.android.application&quot;)\n    id(&quot;kotlin-android&quot;)\n    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.\n    id(&quot;dev.flutter.flutter-gradle-plugin&quot;)\n}\n\nandroid {\n    namespace = &quot;com.example.x&quot;\n    compileSdk = flutter.compileSdkVersion\n    ndkVersion = flutter.ndkVersion\n\n    compileOptions {\n        sourceCompatibility = JavaVersion.VERSION_11\n        targetCompatibility = JavaVersion.VERSION_11\n    }\n\n    kotlinOptions {\n        jvmTarget = JavaVersion.VERSION_11.toString()\n    }\n\n    defaultConfig {\n        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).\n        applicationId = &quot;com.example.x&quot;\n        // You can update the following values to match your application needs.\n        // For more information, see: https://flutter.dev/to/review-gradle-config.\n        minSdk = flutter.minSdkVersion\n        targetSdk = flutter.targetSdkVersion\n        versionCode = flutter.versionCode\n        versionName = flutter.versionName\n    }\n\n    buildTypes {\n        release {\n            // TODO: Add your own signing config for the release build.\n            // Signing with the debug keys for now, so `flutter run --release` works.\n            signingConfig = signingConfigs.getByName(&quot;debug&quot;)\n        }\n    }\n}\n\nflutter {\n    source = &quot;../..&quot;\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

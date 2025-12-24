@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "dependency-injection",
+      "spring-context"
+    ],
+    "owner": {
+      "account_id": 1349124,
+      "reputation": 800,
+      "user_id": 1289270,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/a994da122d7e9738111f18e189f3ec4f?s=256&d=identicon&r=PG",
+      "display_name": "Kostas Filios",
+      "link": "https://stackoverflow.com/users/1289270/kostas-filios"
+    },
+    "is_answered": true,
+    "view_count": 123,
+    "answer_count": 2,
+    "score": 3,
+    "last_activity_date": 1761221029,
+    "creation_date": 1761207779,
+    "last_edit_date": 1761210061,
+    "question_id": 79797564,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79797564/how-can-i-tell-if-a-spring-applicationcontext-has-been-refreshed-without-using-a",
+    "title": "How can I tell if a Spring ApplicationContext has been refreshed without using an event listener?",
+    "body": "<p>I have an instance of a Spring <code>ApplicationContext</code> in a method and I need to &quot;probe&quot; it and decide if:</p>\n<ol>\n<li>it has been fully <code>refresh()</code>ed at least once so I can be sure that the beanFactory is done creating all of its beans and</li>\n<li>no subsequent <code>refresh()</code> is currently in progress</li>\n</ol>\n<p>Important restriction: In my use case I cannot use a listener for <code>ContextRefreshedEvent</code>. I can only operate on the <code>applicationContext</code> that was passed to me, which might have happened during a <code>refresh()</code>, before or after it.</p>\n<p>If you take a look at <code>org.springframework.context.support.AbstractApplicationContext#refresh</code> you will see the following steps, among others:</p>\n<pre class=\"lang-java prettyprint-override\"><code>    public void refresh() throws BeansException, IllegalStateException {\n        // :\n        prepareRefresh();  // makes this.isActive() return true\n\n        // :\n        finishBeanFactoryInitialization(beanFactory);\n        // internally calls:\n        // beanFactory.freezeConfiguration()  -&gt; makes beanFactoroy.isConfigurationFrozen() return true\n        // beanFactory.preInstantiateSingletons()\n\n        // :\n        finishRefresh();\n    }\n</code></pre>\n<p>The above selection of steps highlights the fact that <code>ConfigurableApplicationContext.isActive()</code> and <code>ConfigurableListableBeanFactory.isConfigurationFrozen()</code> which I have tried do not guarantee that <code>beanFactory.preInstantiateSingletons()</code> has been completed, which is very important in my case.</p>\n<p>Ideally I would expect</p>\n<ol>\n<li>A <code>ConfigurableApplicationContext.isRefreshed()</code> method which would indicate if a context has been fully refreshed at least once and</li>\n<li>A <code>ConfigurableApplicationContext.isBeingRefreshed()</code> which would indicate whether a refresh, the first or a subsequent one, is currently in progress.</li>\n</ol>\n<p>Schematically they would fit in the existing <code>refresh()</code> method as follows:</p>\n<pre class=\"lang-java prettyprint-override\"><code>    public void refresh() throws BeansException, IllegalStateException {\n        // Addition 1\n        setIsBeingRefreshed(true)\n\n        // :\n        prepareRefresh();\n\n        // :\n        finishBeanFactoryInitialization(beanFactory);\n\n        // Addition 2\n        setIsBeingRefreshed(false)\n        setIsRefreshed(true)\n\n        // :\n        finishRefresh();\n    }\n</code></pre>\n<p>With that available I would be able to test if <code>isRefreshed() &amp;&amp; !isBeingRefreshed()</code> to make sure I have a &quot;stable&quot; and refreshed context.</p>\n<p>But no such methods exist so I was wondering if you are aware of anything effectively equivalent.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

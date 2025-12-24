@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-kafka"
+    ],
+    "owner": {
+      "account_id": 34107195,
+      "reputation": 1,
+      "user_id": 26388899,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/f0d7a4f9e4fece58adbadf9beaa9d393?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Pallavi Ar",
+      "link": "https://stackoverflow.com/users/26388899/pallavi-ar"
+    },
+    "is_answered": false,
+    "view_count": 44,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1764945440,
+    "creation_date": 1764912586,
+    "last_edit_date": 1764945440,
+    "question_id": 79838557,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79838557/getting-duplicate-records-in-parquet-files-created-in-kafka-consumer",
+    "title": "Getting duplicate records In Parquet files created In Kafka Consumer",
+    "body": "<p>So when The consumer polls records after subscribing to kafka topic when the Very first parquet file created its has some offset entries but is creating a Huge file and when the next file created it has offset entries from previous files too so meaning that the latest File is having records from past entries why this duplicate records coming and until the batch is true we are not committing anything need solution to resolve the duplicate record issue</p>\n<p>Any Resolutions</p>\n<pre><code>try (KafkaConsumer&lt;byte[], String&gt; consumer = new KafkaConsumer&lt;byte[], String&gt;(props)) {       \n LOGGER.info(&quot;subscribing to kafka topic.&quot;);\n        consumer.subscribe(Arrays.asList(topic));\n\n        ConsumerRecords&lt;byte[], String&gt; records;\n        do {\n            LOGGER.info(&quot;polling new records from kafka stream.&quot;);\n            records = consumer.poll(Duration.ofMillis(10000));\n            LOGGER.info(&quot;{} records returned.&quot;, records.count());\n\n            for (ConsumerRecord&lt;byte[], String&gt; record : records) {\n                JsonObject jsonObject = JsonParser.parseString(record.value()).getAsJsonObject();\n                String payload = jsonObject.get(&quot;payload&quot;).getAsString();\n\n               \n                try (InputStream payloadIn = IOUtils.toInputStream(payload, StandardCharsets.US_ASCII)) {\n\n                    try (Base64InputStream base64In = new Base64InputStream(payloadIn)) {\n\n                        \n                        try (GZIPInputStream gzipIn = new GZIPInputStream(base64In)) {\n                            String xml = IOUtils.toString(gzipIn, StandardCharsets.UTF_8);\n\n                            writer.write(record.topic(), record.partition(), record.offset(), record.timestamp(), xml);\n                        }\n                    }\n                }\n            }\n\n            LOGGER.info(&quot;records processed.&quot;);\n\n            if (writer.endBatch()) {\n                LOGGER.info(&quot;batch closed.&quot;);\n                consumer.commitSync();\n                LOGGER.info(&quot;batch committed.&quot;);\n            }\n        } while(true);\n    }   \n\npublic boolean endBatch() throws IOException { if (this.writer != null) { Instant now = Instant.now(); Duration elapsed = Duration.between(this.firstRecordTimestamp, now); if ( (this.maxRecordsPerFile &gt; 0 &amp;&amp; (this.recordCount % this.maxRecordsPerFile) == 0) || (this.maxCollectionDuration.compareTo(Duration.ZERO) &gt; 0 &amp;&amp; (elapsed.compareTo(this.maxCollectionDuration) &gt;= 0)) ) { LOGGER.info(&quot;batch is complete either because of record limit or duration limit.&quot;); // the writer is full and should be closed. this.close(); return true; } }\n\n    return false;\n}  `\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

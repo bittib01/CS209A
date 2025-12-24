@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "multithreading"
+    ],
+    "owner": {
+      "account_id": 27035480,
+      "reputation": 21,
+      "user_id": 20591167,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/21789488894e382180b1002348cd1888?s=256&d=identicon&r=PG",
+      "display_name": "UnderMan4",
+      "link": "https://stackoverflow.com/users/20591167/underman4"
+    },
+    "is_answered": true,
+    "view_count": 131,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1727131175,
+    "creation_date": 1727017459,
+    "last_edit_date": 1727131175,
+    "question_id": 79011940,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79011940/how-to-detect-end-of-async-method-in-spring-boot-and-run-some-code",
+    "title": "How to detect end of @Async method in Spring Boot and run some code",
+    "body": "<p>I'm writing a Spring Boot app that I want to run some multi-threaded calculations in background. At one time there can be from just a few up to several thousand calculations in queue so I don't want to rely solely on <code>ThreadPoolTaskExecutor</code>s queueCapacity. What is the best way to tackle this problem.</p>\n<p>I thought about calling <code>calculate</code> method recursively at the end but as far as I know it is not good idea (correct me if I'm wrong).</p>\n<p>This is how my app looks like now:</p>\n<p><code>AsyncConfig.java</code></p>\n<pre class=\"lang-java prettyprint-override\"><code>@Configuration\n@EnableAsync\npublic class AsyncConfig {\n\n    @Bean(name = &quot;taskExecutor&quot;)\n    public ThreadPoolTaskExecutor taskExecutor() {\n        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();\n        executor.setQueueCapacity(100);\n        executor.setCorePoolSize(2);\n        executor.setMaxPoolSize(10);\n        executor.setThreadNamePrefix(&quot;taskExecutor-&quot;);\n        executor.initialize();\n        return executor;\n    }\n}\n</code></pre>\n<p><code>CalculationContext.java</code></p>\n<pre class=\"lang-java prettyprint-override\"><code>import lombok.extern.java.Log;\nimport org.springframework.beans.factory.annotation.Qualifier;\nimport org.springframework.scheduling.annotation.Async;\nimport org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;\nimport org.springframework.stereotype.Component;\n\nimport java.util.concurrent.BlockingQueue;\nimport java.util.concurrent.CompletionService;\nimport java.util.concurrent.ExecutorCompletionService;\nimport java.util.concurrent.LinkedBlockingQueue;\n\n@Log\n@Component\npublic class CalculationContext {\n\n    private final SettingsContext         settingsContext;\n    private final ThreadPoolTaskExecutor  taskExecutor;\n    private final CompletionService&lt;Void&gt; completionService;\n\n    private final BlockingQueue&lt;CalculationData&gt; queue = new LinkedBlockingQueue&lt;&gt;();\n\n    public CalculationContext(\n            SettingsContext settingsContext,\n            @Qualifier(&quot;taskExecutor&quot;) ThreadPoolTaskExecutor taskExecutor\n    ) {\n        this.settingsContext   = settingsContext;\n        this.taskExecutor      = taskExecutor;\n        this.completionService = new ExecutorCompletionService&lt;&gt;(taskExecutor);\n    }\n\n    public void addToQueue(CalculationData data) {\n        queue.add(data);\n        startScraping();\n    }\n\n    public void startCalculation() {\n        if (queue.isEmpty()) return;\n        if (getAvailableThreads() == 0) return;\n\n        do {\n            try {\n                CalculationData data = queue.take();\n                scrapePage(data);\n            } catch (InterruptedException e) {\n                throw new RuntimeException(e);\n            }\n        } while (getAvailableThreads() &gt; 0);\n\n\n    }\n\n    @Async\n    public void calculate(CalculationData data) {\n        //This is where all logic will be\n    }\n\n    private int getAvailableThreads() {\n        return taskExecutor.getMaxPoolSize() - taskExecutor.getActiveCount();\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

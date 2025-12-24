@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "cassandra",
+      "datastax-java-driver"
+    ],
+    "owner": {
+      "account_id": 16609627,
+      "reputation": 1,
+      "user_id": 12003052,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a-/AAuE7mCYg0UvSLIK0expRxxcncLduNV8MFbHlfoDtsU=k-s256",
+      "display_name": "kertzi",
+      "link": "https://stackoverflow.com/users/12003052/kertzi"
+    },
+    "is_answered": false,
+    "view_count": 106,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1736837150,
+    "creation_date": 1732870184,
+    "last_edit_date": 1736837150,
+    "question_id": 79236384,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79236384/how-to-add-ttl-variable-using-querybuilder-in-cassandra-java-driver-4-17-0",
+    "title": "How to add TTL variable using QueryBuilder in Cassandra Java driver 4.17.0",
+    "body": "<p>I want to generate query like &quot;INSERT INTO table1 (id, data) VALUES (:id, :data) USING TTL :ttl&quot;</p>\n<p>with Datastax Cassandra driver <code>QueryBuilder.insertInto()</code>.</p>\n<p>Other related questions are so old and related to old driver so I wanted to post new</p>\n<p>I have already tried something like:</p>\n<pre><code>RegularInsert insert = QueryBuilder.insertInto(&quot;table1&quot;)\n.value(&quot;id&quot;, QueryBuilder.literal(&quot;someid&quot;))\n.value(&quot;data&quot;, QueryBuilder.literal(&quot;somedata&quot;));\n\ninsert.usingTtl(bindMarker(&quot;ttl&quot;));\n\nSimpleStatement simple = insert.build().setExecutionProfileName(CassandraClient.SAFE_OPTIONS_PROFILE);\n\nPreparedStatement preparedStatement = context.getCassandraClient().getSession().prepare(simpleStatement);\n\nBoundStatement boundStatement = preparedStatement.bind().setInt(&quot;ttl&quot;, ttl);\n\nCompletionStage&lt;AsyncResultSet&gt; future = context.getCassandraClient().getSession().executeAsync(boundStatement);\n</code></pre>\n<p>But looks like USING is not added to query because I get error:\n<code>java.lang.IllegalArgumentException: ttl is not a variable in this bound statement</code></p>\n<p>What I'm missing or is there bug in Datastax Java driver? Driver version 4.17.0</p>\n<p>UPDATE:\nMy current hack is injecting USING TTL with code like:\n<code>String cqlQueryWithTtl = insert.asCql() + &quot; USING TTL &quot; + ttl;</code></p>\n<p>Also noticed that in other parts in our code <code>usingTtl()</code> works but not in this particular case. Strange</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

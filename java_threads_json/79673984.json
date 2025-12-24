@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "python-3.x",
+      "kivy",
+      "pyjnius"
+    ],
+    "owner": {
+      "account_id": 902651,
+      "reputation": 10270,
+      "user_id": 938363,
+      "user_type": "registered",
+      "accept_rate": 78,
+      "profile_image": "https://www.gravatar.com/avatar/23d75d7db4d98e9004cc9988c4b3a67f?s=256&d=identicon&r=PG",
+      "display_name": "user938363",
+      "link": "https://stackoverflow.com/users/938363/user938363"
+    },
+    "is_answered": false,
+    "view_count": 39,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1750456118,
+    "creation_date": 1750456118,
+    "question_id": 79673984,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79673984/how-to-convert-python-bytes-into-java-byte-in-kivy-android-app",
+    "title": "How to convert python bytes into java byte[] in kivy android app?",
+    "body": "<p>In my kivy 2.3.1 app, pyjnius 1.6.1 and python-for-android 2024.02.21, python 3.11.16 on MacOS, the app needs to generate a random 12 byte initialization vector (iv) and pass it to java function cipher.init. Tried quite several ways and none of them works (not accepted by cipher.init as valid java bytes[]). Here is one of them which didn't work:</p>\n<pre><code>KeyStore = autoclass(&quot;java.security.KeyStore&quot;)\nKeyGenerator = autoclass(&quot;javax.crypto.KeyGenerator&quot;)\nCipher = autoclass(&quot;javax.crypto.Cipher&quot;)\nGCMParameterSpec = autoclass(&quot;javax.crypto.spec.GCMParameterSpec&quot;)\nKeyGenParameterSpecBuilder = autoclass(&quot;android.security.keystore.KeyGenParameterSpec$Builder&quot;)\nKeyProperties = autoclass(&quot;android.security.keystore.KeyProperties&quot;)\nPythonActivity = autoclass(&quot;org.kivy.android.PythonActivity&quot;)\nSecureRandom = autoclass('java.security.SecureRandom')\nKey = autoclass('java.security.Key')\nArrays = autoclass('java.util.Arrays')\nJavaString = autoclass('java.lang.String')\nJavaByte = autoclass(&quot;java.lang.Byte&quot;)\nByteArray = autoclass(&quot;java.lang.reflect.Array&quot;)\n\niv = bytearray(12). ##&lt;&lt;== python bytes object like: b&quot;\\x1dYq\\xf9\\xe7x\\xeb \\xb2EC'&quot;\nSecureRandom().nextBytes(iv). ##&lt;&lt;== tried iv = os.urandom(12) as well\n\n# Convert to Java byte[] for GCMParameterSpec\niv_java = autoclass(&quot;[B&quot;)(12)\nfor i in range(12):\n    iv_java[i] = iv[i]\n\ngcm_spec = GCMParameterSpec(128, iv_java). ##&lt;&lt;==this iv_java not accepted in cipher.init()\n</code></pre>\n<p>Here is another failed conversion:</p>\n<pre><code>iv = os.urandom(12)  # Python bytes object\n\n# Convert to Java byte[] properly\n# Step 1: Create a Python list of integers (0-255)\niv_list = [x &amp; 0xFF for x in iv]  # &lt;&lt;== python list\n\n# Step 2: Cast to Java byte[]\njava_iv = cast('byte[]', iv_list)  ##&lt;&lt;== not accepted as java byte[] in cipher.init()\n</code></pre>\n<p>It is easy to convert python bytes into python list. But what is the right way to convert python list into java byte[] in kivy?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

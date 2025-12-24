@@ -1,0 +1,37 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "log4j2",
+      "junit5",
+      "maven-surefire-plugin"
+    ],
+    "owner": {
+      "account_id": 2437520,
+      "reputation": 1470,
+      "user_id": 2127029,
+      "user_type": "registered",
+      "accept_rate": 67,
+      "profile_image": "https://i.sstatic.net/VB2JL.jpg?s=256",
+      "display_name": "BtySgtMajor",
+      "link": "https://stackoverflow.com/users/2127029/btysgtmajor"
+    },
+    "is_answered": true,
+    "view_count": 621,
+    "accepted_answer_id": 78500981,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1725693743,
+    "creation_date": 1716057874,
+    "last_edit_date": 1716060830,
+    "question_id": 78500693,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78500693/log4j2-routingappender-with-listappenders-across-multiple-threads",
+    "title": "Log4j2 RoutingAppender with ListAppenders across Multiple Threads",
+    "body": "<p>(This is a follow-up from my original question: <a href=\"https://stackoverflow.com/questions/78493268/log4j2-custom-appender-in-maven-surefire-possible-to-reuse-across-threads/78498752\">Log4j2 Custom Appender in Maven Surefire: Possible to Reuse Across Threads?</a>)</p>\n<p>I'm attempting to unit test the output of any logging coming from Log4j2 in my application Spring application via JUnit5. To help with this, I've created a JUnit5 extension that creates a <code>WriterAppender</code> before each test that I can use to verify any logged messages.</p>\n<p>Maven is being used along with the Surefire plugin. By default, Surefire forks multiple threads to speed up testing. However, it's been pointed out that each of these test appenders will also contain the output of other tests that run at the same time.</p>\n<p>(I've verified this to be the case for myself.)</p>\n<p>It's been suggested to use a <code>RoutingAppender</code> that creates <code>ListAppender</code>s based on the value stored in <code>ThreadContext</code> which I'm attempting to do.</p>\n<p>I've reviewed multiple posts, threads and articles about creating such a setup. It looks to be as though the best way to do it is via an XML configuration, and not to do so programmatically as I'm not sure it fits in conceptually with what's being attempted.</p>\n<p>I've tried the following XML configuration (and variations thereof):</p>\n<p><strong>log4j2.xml</strong></p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;\n&lt;Configuration status=&quot;WARN&quot; name=&quot;RoutingForTests&quot;&gt;\n    &lt;Appenders&gt;\n        &lt;Routing name=&quot;Routing&quot;&gt;\n            &lt;Routes pattern=&quot;$${ctx:appenderName}&quot;&gt;\n                &lt;Route&gt;\n                    &lt;List name=&quot;$${ctx:appenderName}&quot; /&gt;\n                &lt;/Route&gt;\n            &lt;/Routes&gt;\n        &lt;/Routing&gt;\n    &lt;/Appenders&gt;\n    &lt;Loggers&gt;\n        &lt;Root level=&quot;info&quot;&gt;\n            &lt;AppenderRef ref=&quot;Routing&quot; /&gt;\n        &lt;/Root&gt;\n    &lt;/Loggers&gt;\n&lt;/Configuration&gt;\n</code></pre>\n<p>The <code>ThreadContext</code> is setup (correctly or incorrectly) via a JUnit5 registered extension, e.g.</p>\n<p><strong>LoggerExtension.java</strong></p>\n<pre class=\"lang-java prettyprint-override\"><code>public class LoggerExtension implements BeforeEachCallback, AfterEachCallback {\n    // ...\n\n    @Override\n    public void beforeEach(ExtensionContext context) {\n        // ...\n        ThreadContext.put(&quot;appenderName&quot;, context.getUniqueId()); // I've even tried hardcoding this value\n        // ...\n    }\n\n    public void verifyMessage(String message) {\n        ListAppender appender = ListAppender.getListAppender(ThreadContext.get(&quot;appenderName&quot;)); // appender ends up null\n        // ...\n    }\n}\n</code></pre>\n<p>I've also tried using a hardcoded <code>ListAppender</code> name, and tried using the same lookup variable but with a single $ instead of two (but I think that would resolve to a blank/null value since I don't think the <code>ThreadContext</code> has been properly setup at that point, though I can't be sure). I've also tried setting the <code>key</code> for the <code>Route</code>, but to no avail.</p>\n<p>I even tried using <code>ThreadId</code> from <code>event</code> but any attempts to lookup the <code>ListAppender</code> have failed as well.</p>\n<p>I'm guessing that I'm either missing something or misunderstanding how this is to be applied.</p>\n<p>I also tried doing this programmatically but it turned out something of a mess.</p>\n<p>Any help would be appreciated, and I apologize ahead of time if it's something simple that I've somehow managed to overlook.</p>\n<p>Thank you in advance!</p>\n<p>Sources:</p>\n<ul>\n<li><a href=\"https://logging.apache.org/log4j/2.x/faq.html#separate_log_files\" rel=\"nofollow noreferrer\">https://logging.apache.org/log4j/2.x/faq.html#separate_log_files</a></li>\n<li><a href=\"https://logging.apache.org/log4j/2.x/manual/appenders.html#RoutingAppender\" rel=\"nofollow noreferrer\">https://logging.apache.org/log4j/2.x/manual/appenders.html#RoutingAppender</a></li>\n<li><a href=\"https://stackoverflow.com/questions/25114526/log4j2-how-to-write-logs-to-separate-files-for-each-user\">Log4j2: How to write logs to separate files for each user?</a></li>\n<li><a href=\"https://lists.apache.org/thread/3n9xqc132pm49w3m67zm6wnjfw6yphkq\" rel=\"nofollow noreferrer\">https://lists.apache.org/thread/3n9xqc132pm49w3m67zm6wnjfw6yphkq</a></li>\n<li><a href=\"https://stackoverflow.com/questions/76860849/log4j2-with-routing-appenders-and-threadcontext\">Log4J2 with Routing Appenders and ThreadContext</a></li>\n</ul>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

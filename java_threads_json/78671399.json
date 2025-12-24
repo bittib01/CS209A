@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "kotlin",
+      "network-programming",
+      "ktor",
+      "ktor-client"
+    ],
+    "owner": {
+      "account_id": 216810,
+      "reputation": 16391,
+      "user_id": 472270,
+      "user_type": "registered",
+      "accept_rate": 87,
+      "profile_image": "https://www.gravatar.com/avatar/f8f2c3a99fdbca9f05555235f137329f?s=256&d=identicon&r=PG",
+      "display_name": "Barmaley",
+      "link": "https://stackoverflow.com/users/472270/barmaley"
+    },
+    "is_answered": true,
+    "view_count": 147,
+    "accepted_answer_id": 78671488,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1744294964,
+    "creation_date": 1719392881,
+    "question_id": 78671399,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78671399/ktor-upload-file-based-on-curl-example",
+    "title": "ktor upload file based on curl example",
+    "body": "<p>I have following example which works well using curl:</p>\n<pre><code>curl -X 'POST' \\\n  'https://example.com/rest/someservice?oauth_token=&lt;token&gt;' \\\n  -H 'accept: application/json' \\\n  -H 'Content-Type: multipart/form-data' \\\n  -F 'file=@docs_recognize_ok.jpg;type=image/jpeg' \\\n  -F 'meta={\n  &quot;images&quot;: [\n    {\n      &quot;name&quot;: &quot;file&quot;\n    }\n  ]\n}'\n</code></pre>\n<p>Can't figure out how to handle it using ktor client in Java/Kotlin?</p>\n<p>For the moment I'm trying to handle it as:</p>\n<pre><code>        val json = &quot;{\\n&quot; +\n                &quot;  \\&quot;images\\&quot;: [\\n&quot; +\n                &quot;    {\\n&quot; +\n                &quot;      \\&quot;name\\&quot;: \\&quot;file\\&quot;\\n&quot; +\n                &quot;    }\\n&quot; +\n                &quot;  ]\\n&quot; +\n                &quot;}&quot;\n        val filesList = mutableListOf&lt;PartData&gt;()\n        val partData = formData {\n            append(key = &quot;meta&quot;, value = json, headers = Headers.build {\n                append(HttpHeaders.ContentType, &quot;application/json; charset=utf-8&quot;)\n            })\n            request.images.forEach { file -&gt;\n                append(\n                    &quot;file&quot;,\n                    InputProvider { File(file.imageFileName).inputStream().asInput() },\n                    Headers.build {\n                        append(HttpHeaders.ContentType, &quot;image/jpeg&quot;)\n                    }\n                )\n            }\n        }\n        filesList.addAll(partData)\n        httpClient.post(&quot;rest/someservice&quot;) {\n            setBody(MultiPartFormDataContent(parts = filesList))\n            parameters {\n                append(&quot;oauth_token&quot;, apiKey)\n            }\n        }\n</code></pre>\n<p>Any ideas?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

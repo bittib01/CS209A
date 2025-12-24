@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-kafka",
+      "apache-kafka-streams"
+    ],
+    "owner": {
+      "account_id": 24538913,
+      "reputation": 41,
+      "user_id": 18449553,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/b115e24581f28b0f0246793f562caee7?s=256&d=identicon&r=PG",
+      "display_name": "xmm_581",
+      "link": "https://stackoverflow.com/users/18449553/xmm-581"
+    },
+    "is_answered": false,
+    "view_count": 69,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1735496115,
+    "creation_date": 1732094289,
+    "question_id": 79206510,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79206510/kafka-streams-send-custom-headers-with-transformer-when-multiple-messages-output",
+    "title": "Kafka Streams send custom headers with Transformer when multiple messages output",
+    "body": "<p>I want to send multiple messages downstream using Transformer (kafka streams dsl)</p>\n<pre class=\"lang-java prettyprint-override\"><code>    private ProcessorContext context;\n\n\n    @Override\n    public void init(ProcessorContext context) {\n        this.context = context;\n    }\n\n@Override\n    public KeyValue&lt;String, Map&lt;String, String&gt;&gt; transform(String s, String msg) {\n        Headers headers = context.headers();\n        for (int i = 0; i &lt; 2; i++) {\n            headers.add(&quot;test&quot;, &quot;test&quot;.getBytes());\n            headers.add(&quot;meta&quot;, &quot;test&quot;.getBytes());\n\n            context.forward(&quot;new key&quot;, msg);\n        }\n        return null;\n    }\n</code></pre>\n<p>On downstream there would be TopicNameExtractor</p>\n<pre class=\"lang-java prettyprint-override\"><code>.transform(TestTransformer::new)\n                .to(orderTopicNameExtractor, Produced.with(Serdes.serdeFrom(String.class),\n                        Serdes.serdeFrom(String.class)));\n</code></pre>\n<p>Where I need to use data from header (there would be topic name), also other headers must be written to Kafka to.</p>\n<p>The problem is, that on second message next step is receiving multiple headers (so there would be 2 &quot;test&quot; keys), only way is to remove them before adding in transform cycle. It works locally, but what about thread safety and high throughput? Context seems to be shared, can there be a situation where remove() will remove header before downstream extractor processes a message?</p>\n<pre class=\"lang-java prettyprint-override\"><code>headers.remove(&quot;meta&quot;);\nheaders.add(&quot;meta&quot;, &quot;test&quot;.getBytes());\ncontext.forward(&quot;new key&quot;, msg);\n</code></pre>\n<p>Is there any more right way to solve this problem? The only way i think maybe will work is to use Process interface and send message with withHeaders(new RecordHeaders()), or just add them to message directly</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

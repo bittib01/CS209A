@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "python",
+      "java",
+      "csv",
+      "parquet",
+      "duckdb"
+    ],
+    "owner": {
+      "account_id": 8005849,
+      "reputation": 29,
+      "user_id": 6039183,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/4454b204e8597d745a4b091cbfdc1bd5?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Tijmen",
+      "link": "https://stackoverflow.com/users/6039183/tijmen"
+    },
+    "is_answered": true,
+    "view_count": 125,
+    "answer_count": 1,
+    "score": -3,
+    "last_activity_date": 1765711876,
+    "creation_date": 1765460525,
+    "question_id": 79844017,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79844017/is-there-a-way-to-directly-convert-csv-to-parquet-with-duckdb-in-java",
+    "title": "Is there a way to directly convert CSV to Parquet with DuckDB in Java?",
+    "body": "<p>I am doing some tests comparing DuckDB usage among different languages etc, and I've noticed something strange.\nIn python you can do the following:</p>\n<pre class=\"lang-py prettyprint-override\"><code>duckdb.read_csv(inputFile, max_line_size=10000000, null_padding=True, delimiter=&quot;;&quot;)\n.write_parquet(outputFile)\n</code></pre>\n<p>However, this syntax is not available in Java, where you'd have to do the following:</p>\n<pre class=\"lang-java prettyprint-override\"><code>PreparedStatement statement = conn.prepareStatement(String.format(&quot;&quot;&quot;\n                PRAGMA memory_limit='16GB';\n                CREATE TABLE &quot;%s&quot; AS\n                SELECT * FROM read_csv(&quot;%s&quot;, delim=';');\n                COPY &quot;%s&quot; TO &quot;%s&quot; (FORMAT parquet);\n                &quot;&quot;&quot;,\n        path.getFileName(),\n        path.toAbsolutePath(),\n        path.getFileName(),\n        outputdir.getAbsolutePath() + &quot;/&quot; +  path.getFileName().toString().replace(&quot;.csv&quot;,&quot;.parquet&quot;)\n        ));\n\nstatement.execute();\n</code></pre>\n<p>The issue with this is, this is far slower.\nNormallly, I'd expect to be able to do a statement like:</p>\n<pre class=\"lang-sql prettyprint-override\"><code>COPY read_csv(&quot;INPUTFILE&quot;, delim=';') TO &quot;OUTPUTFILE&quot; (FORMAT parquet);\n</code></pre>\n<p>But as far as I can tell, within a copy statement you can only apply these arguments to one side of the statement. Meaning that if you use a non-standard delimiter (delimiter != &quot;,&quot;)  you need to first copy the entire file into memory.</p>\n<p>In my benchmarks I am converting about 35 gigabytes consisting of 25k CSV files as this is essentially what the real world usage will be.</p>\n<p>This causes the program to be far slower when using java:</p>\n<p>Java:\nTotal time 528.120 (s)\nAverage time 20912133 (ns)</p>\n<p>vs</p>\n<p>Python:\nTotal Time: 375.7097873687744 (s)\nAverage time: 14896365.527604684 (ns)</p>\n<p>Does anyone know of any way I can better approach this? Or is this a shortcoming of the DuckDB syntax?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

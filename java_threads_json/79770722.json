@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "android-intent"
+    ],
+    "owner": {
+      "account_id": 23289063,
+      "reputation": 111,
+      "user_id": 17371427,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a-/AOh14GjOju4KXJ_WQlheVJr---lR7DTSIsS5yFB4CsIi=k-s256",
+      "display_name": "IsHacker",
+      "link": "https://stackoverflow.com/users/17371427/ishacker"
+    },
+    "is_answered": true,
+    "view_count": 165,
+    "accepted_answer_id": 79778032,
+    "answer_count": 2,
+    "score": 3,
+    "last_activity_date": 1759318642,
+    "creation_date": 1758439916,
+    "last_edit_date": 1759318642,
+    "question_id": 79770722,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79770722/why-does-intent-getstringextra-return-null-when-broadcast-is-sent-using-am-s",
+    "title": "Why does intent.getStringExtra() return null when broadcast is sent using &quot;am&quot; shell command?",
+    "body": "<p>I have an app that runs as <code>UID 1000 (system)</code>, and I want to run shell commands as the system user via this app and display the output as a toast.<br><br>\n<strong>CmdReceiver.java:</strong></p>\n<pre><code>package com.ishacker.android.cmdreceiver;\n\nimport android.content.BroadcastReceiver;\nimport android.content.Context;\nimport android.content.Intent;\nimport android.widget.Toast;\nimport java.io.BufferedReader;\nimport java.io.InputStreamReader;\nimport java.util.Objects;\n\npublic class CmdReceiver extends BroadcastReceiver {\n    @Override\n    public void onReceive(Context context, Intent intent) {\n        String Cmd = intent.getStringExtra(&quot;Cmd&quot;);\n        try {\n            Process process = Runtime.getRuntime().exec(Cmd);\n            BufferedReader reader = new BufferedReader(\n                    new InputStreamReader(process.getInputStream()));\n\n            int read;\n            char[] buffer = new char[4096];\n            StringBuffer output = new StringBuffer();\n            while ((read = reader.read(buffer)) &gt; 0) {\n                output.append(buffer, 0, read);\n            }\n            reader.close();\n            process.waitFor();\n            if (!Objects.equals(intent.getStringExtra(&quot;App&quot;), &quot;yes&quot;)) {\n                Toast.makeText(context, output.toString(), Toast.LENGTH_LONG).show();\n            }\n            else {\n                // Code to handle what happens when it is launched using intent.putExtra(&quot;App&quot;,&quot;yes&quot;)\n            }\n        } catch (Exception e) {\n            throw new RuntimeException(e);\n        }\n    }\n}\n</code></pre>\n<p><strong>AndroidManifest.xml:</strong></p>\n<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;\n&lt;manifest xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;\n    xmlns:tools=&quot;http://schemas.android.com/tools&quot;&gt;\n\n    &lt;application\n        android:allowBackup=&quot;true&quot;\n        android:dataExtractionRules=&quot;@xml/data_extraction_rules&quot;\n        android:fullBackupContent=&quot;@xml/backup_rules&quot;\n        android:icon=&quot;@mipmap/ic_launcher&quot;\n        android:label=&quot;@string/app_name&quot;\n        android:roundIcon=&quot;@mipmap/ic_launcher_round&quot;\n        android:supportsRtl=&quot;true&quot;\n        android:sharedUserId=&quot;android.uid.system&quot; &gt;\n        &lt;receiver android:name=&quot;.CmdReceiver&quot;\n            android:exported=&quot;true&quot;&gt;\n            &lt;intent-filter&gt;\n                &lt;action android:name=&quot;android.intent.action.MAIN&quot; /&gt;\n            &lt;/intent-filter&gt;\n        &lt;/receiver&gt;\n    &lt;/application&gt;\n\n&lt;/manifest&gt;\n</code></pre>\n<p>This is the command I used to broadcast:</p>\n<pre><code>am broadcast com.ishacker.android.cmdreceiver/.CmdReceiver --es Cmd &quot;whoami&quot;\n</code></pre>\n<p>Apparently <code>intent.getStringExtra(&quot;Cmd&quot;)</code> <strong>always returns null</strong> for some reason.</p>\n<p>Is there anything wrong in my code or the command used to broadcast?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

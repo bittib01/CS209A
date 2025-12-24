@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "mqtt"
+    ],
+    "owner": {
+      "account_id": 4413691,
+      "reputation": 405,
+      "user_id": 3595891,
+      "user_type": "registered",
+      "accept_rate": 75,
+      "profile_image": "https://www.gravatar.com/avatar/fe8826033b6d2dc853127364b30776b0?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Joydeep",
+      "link": "https://stackoverflow.com/users/3595891/joydeep"
+    },
+    "is_answered": false,
+    "view_count": 99,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1754487168,
+    "creation_date": 1754487168,
+    "question_id": 79727356,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79727356/spring-integration-mqtt-emqx-messages-sent-while-client-is-offline-are-not-re",
+    "title": "Spring Integration MQTT (EMQX): Messages sent while client is offline are not received after reconnect",
+    "body": "<p>I'm using Spring Integration with EMQX MQTT broker and trying to implement message delivery for the scenario where:</p>\n<p>The client is offline when the broker receives messages</p>\n<p>After the client restarts/reconnects, the queued messages should be delivered and processed, however that is not happening.</p>\n<h2>Current Setup</h2>\n<p>I'm using Mqttv5PahoMessageDrivenChannelAdapter and EMQX with the following:</p>\n<p>EMQX settings:</p>\n<ul>\n<li><p>QoS: 1</p>\n</li>\n<li><p>Retained messages: enabled</p>\n</li>\n<li><p>Message queue: visible in dashboard (e.g., 3/1000 when client is offline)</p>\n</li>\n<li><p>Spring config:</p>\n</li>\n</ul>\n<pre><code>@Bean\npublic ClientManager&lt;IMqttAsyncClient, MqttConnectionOptions&gt; mqttClientManager() {\n    return new DefaultMqtt5ClientManager(() -&gt; {\n        return new MqttConnectionOptionsBuilder()\n            .cleanStart(false)  // Attempt to enable persistent session\n            .sessionExpiryInterval(86400L) // 1 day session retention\n            .automaticReconnect(true)\n            .serverURI(&quot;tcp://localhost:1883&quot;)\n            .build();\n    });\n}\n</code></pre>\n<p>And the IntegrationFlow:</p>\n<pre><code>@Bean\npublic IntegrationFlow mqttInputFlow(\n    ClientManager&lt;IMqttAsyncClient, MqttConnectionOptions&gt; clientManager,\n    @Qualifier(&quot;mqttInboundTopics&quot;) List&lt;String&gt; topics\n) {\n    Mqttv5PahoMessageDrivenChannelAdapter adapter =\n        new Mqttv5PahoMessageDrivenChannelAdapter(clientManager, topics.toArray(new String[0]));\n\n    adapter.setQos(1);\n    adapter.setManualAcks(false); // Using automatic ack\n\n    return IntegrationFlow.from(adapter)\n        .handle(msg -&gt; {\n            String payload = new String((byte[]) msg.getPayload(), StandardCharsets.UTF_8);\n            LOG.info(&quot;Received MQTT message: {}&quot;, payload);\n        })\n        .get();\n}\n</code></pre>\n<h2>Problem</h2>\n<ul>\n<li><p>When messages are sent while the client is offline, EMQX shows them as queued (e.g., 3/1000).</p>\n</li>\n<li><p>After the client restarts, EMQX shows the queue as empty (0/1000) — which indicates delivery.</p>\n</li>\n<li><p>BUT the .handle(...) method in Spring is not invoked.</p>\n</li>\n<li><p>No logs from the handler, wiretap, or exception logs show up.</p>\n</li>\n</ul>\n<h2>What I’ve Checked:</h2>\n<ul>\n<li><p>EMQX shows the client session is preserved after disconnect</p>\n</li>\n<li><p>QoS is set to 1</p>\n</li>\n<li><p>Retained messages enabled</p>\n</li>\n<li><p>cleanStart(false) and sessionExpiryInterval(...) are set</p>\n</li>\n<li><p>Used both .queue() and .executor() channel types</p>\n</li>\n<li><p>Tried wireTap(...) — nothing is printed</p>\n</li>\n<li><p>When the client is online, everything works perfectly</p>\n</li>\n</ul>\n<h2>Question</h2>\n<p>What else might be missing in the Spring Integration + EMQX setup that prevents offline messages from being received upon reconnect?</p>\n<p>Am I misconfiguring Mqttv5PahoMessageDrivenChannelAdapter, or is there another mechanism in Spring that must be enabled to get these messages?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

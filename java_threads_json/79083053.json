@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "javacard"
+    ],
+    "owner": {
+      "account_id": 23644880,
+      "reputation": 157,
+      "user_id": 17675047,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/8898b1a0a1d07ea0c3cbe3dba6366b1e?s=256&d=identicon&r=PG",
+      "display_name": "Bart",
+      "link": "https://stackoverflow.com/users/17675047/bart"
+    },
+    "is_answered": true,
+    "view_count": 215,
+    "accepted_answer_id": 79084514,
+    "answer_count": 2,
+    "score": 4,
+    "last_activity_date": 1731092422,
+    "creation_date": 1728820450,
+    "last_edit_date": 1728841756,
+    "question_id": 79083053,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79083053/javacard-multiply-shorts",
+    "title": "Javacard multiply shorts",
+    "body": "<p>I am trying to convert some Java code to Javacard code, where I cannot use type int or long, but I am running into an issue.\nThe code I have that I want to convert:</p>\n<pre class=\"lang-java prettyprint-override\"><code>void someFunction(short a, short b)\n{\n    int x = (int)((int)a * (int)b);\n}\n</code></pre>\n<p>Since Javacard cannot use integer types at all, I tried to convert this using a 'multiplyShorts' function, which looks as following:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public static short[] multiplyShorts(short a, short b)\n{\n    short aHigh = (short)((a &gt;&gt; 8) &amp; 0xFF);\n    short aLow  = (short)(a &amp; 0xFF);\n    short bHigh = (short)((b &gt;&gt; 8) &amp; 0xFF);\n    short bLow  = (short)(b &amp; 0xFF);\n    short lowLow = (short)(aLow * bLow);\n    short highLow = (short)(aHigh * bLow);\n    short lowHigh = (short)(aLow * bHigh);\n    short highHigh = (short)(aHigh * bHigh);\n    short[] result = new short[2];\n    result[1] = (short)(lowLow &amp; 0xFF);\n    short carry = (short)((lowLow &gt;&gt; 8) &amp; 0xFF);\n    short middle = (short)(highLow + lowHigh + carry);\n    result[1] |= (short)((middle &amp; 0xFF) &lt;&lt; 8);\n    result[0] = (short)((middle &gt;&gt; 8) &amp; 0xFF);\n    result[0] = (short)(result[0] + highHigh);\n    return result;\n}\n</code></pre>\n<p>This code is working in most cases, but not for all {a,b} ∈ {0...65535}, as example the case of a=0xFFFF and b=0xFFFF I would expect:</p>\n<pre class=\"lang-java prettyprint-override\"><code>result[0] = 0xFFFE = 0b11111111_11111110\nresult[1] = 0x0001 = 0b00000000_00000001\n</code></pre>\n<p>However, the result I get is:</p>\n<pre class=\"lang-java prettyprint-override\"><code>result[0] = 0xFEFE = 0b11111110_11111110 //Spot the difference on this line\nresult[1] = 0x0001 = 0b00000000_00000001\n</code></pre>\n<p>Can someone explain me what I am missing here, or provide me any help converting my code?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

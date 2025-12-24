@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "couchbase",
+      "project-reactor",
+      "couchbase-java-api"
+    ],
+    "owner": {
+      "account_id": 5289146,
+      "reputation": 9950,
+      "user_id": 4222206,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/416696430ab23f397a5dbeda73e72896?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "queeg",
+      "link": "https://stackoverflow.com/users/4222206/queeg"
+    },
+    "is_answered": true,
+    "view_count": 104,
+    "accepted_answer_id": 79775927,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1760018835,
+    "creation_date": 1758886991,
+    "last_edit_date": 1760018835,
+    "question_id": 79775868,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79775868/how-to-retrieve-metrics-from-couchbase-query-with-async-api",
+    "title": "How to retrieve metrics from Couchbase query with async API?",
+    "body": "<p>After I understood how to run queries including to evaluate the metadata in <a href=\"https://stackoverflow.com/questions/79718670/how-to-retrieve-metrics-from-couchbase-query\">this question</a> I am running into a design flaw:</p>\n<pre><code>Instant threshold = Instant.now().minus(retention);\nString query = String.format(&quot;delete from %s.%s.%s where _lastmodified &lt; \\&quot;%s\\&quot;&quot;, bucketName, scopeName, collectionName, threshold);\nQueryResult result = cluster.query(query);\n</code></pre>\n<p>The above code returns <a href=\"https://docs.couchbase.com/sdk-api/couchbase-java-client/com/couchbase/client/java/query/QueryResult.html\" rel=\"nofollow noreferrer\">QueryResult</a>, and it only has methods like <code>rowsAs...</code> that will return the full data set. It was just a matter of time until I run queries returning more data than my JVM heap can cover.</p>\n<p>The answer is to stream the data: Read as much as you can digest, digest it and forget. Repeat until done.</p>\n<p>The Couchbase documentation mentions to switch to the <a href=\"https://docs.couchbase.com/java-sdk/current/howtos/sqlpp-queries-with-sdk.html#reactive-and-async-apis\" rel=\"nofollow noreferrer\">Reactive and Async APIs</a>:</p>\n<p><em><strong>Reactive And Async APIs</strong></em></p>\n<p><em>[...]</em></p>\n<p><em>Also, there is another reason you want to use the reactive API: <strong>streaming large results with backpressure from the application side.</strong> Both the blocking and async APIs have no means of signalling backpressure in a good way, so if you need it the reactive API is your best option.</em></p>\n<p>So I changed my code snippet to this:</p>\n<pre><code>  Instant threshold = Instant.now().minus(retention);\n  String query = String.format(&quot;delete from %s.%s.%s where _lastmodified &lt; \\&quot;%s\\&quot;&quot;, bucketName, scopeName, collectionName, threshold);\n  ReactiveCluster rc = couchbase.reactive();\n  try {\n    rc.query(query,\n          QueryOptions.queryOptions()\n            .readonly(true)\n            .scanConsistency(QueryScanConsistency.REQUEST_PLUS)\n            .metrics(true)\n    ).flux().flatMap(result -&gt; {\n      Flux&lt;JsonObject&gt; rows = result.rowsAs(JsonObject.class);\n      return rows;\n    }).subscribe(row -&gt; {\n        // process one row\n    }, (Throwable t) -&gt; {\n      log.error(&quot;Could not read data&quot;, t);\n    }\n            );\n  } finally {\n    rc.disconnect();\n  }\n</code></pre>\n<p>As in my last question: How can I get hold of the query metrics in this async setup?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "hibernate"
+    ],
+    "owner": {
+      "account_id": 9905560,
+      "reputation": 773,
+      "user_id": 7334180,
+      "user_type": "registered",
+      "accept_rate": 75,
+      "profile_image": "https://lh4.googleusercontent.com/-EAbkjqzEmTs/AAAAAAAAAAI/AAAAAAAAAA0/2Q-c8KJnDSs/s256-rj/photo.jpg",
+      "display_name": "Holinc",
+      "link": "https://stackoverflow.com/users/7334180/holinc"
+    },
+    "is_answered": false,
+    "view_count": 116,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1755375651,
+    "creation_date": 1755248018,
+    "last_edit_date": 1755261990,
+    "question_id": 79736263,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79736263/why-this-method-still-works-transactionally-in-spring-boot",
+    "title": "Why this.method still works transactionally in Spring Boot",
+    "body": "<p>Why do <code>this.methodA()</code> and <code>this.methodB()</code> appear to join methodD's transaction? Normally, <code>this.method()</code> calls bypass Spring's proxy mechanism, and <code>@Transactional</code> would be ignored for such calls.</p>\n<p>Each method should execute in non-transactional context</p>\n<pre class=\"lang-java prettyprint-override\"><code>public interface AopProxy&lt;T&gt; {\n    default T self() {\n        return (T)AopContext.currentProxy();\n    }\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>@Slf4j\n@Service\npublic class TestTransactionalService implements AopProxy&lt;TestTransactionalService&gt; {\n    @Autowired\n    private DataSource dataSource;\n\n    @Transactional(rollbackFor = Exception.class)\n    public void methodA() {\n        System.out.println(&quot;methodA&quot;);\n        logTransactionInfo();\n    }\n\n    @Transactional(rollbackFor = Exception.class)\n    public void methodB() {\n        System.out.println(&quot;methodB&quot;);\n        logTransactionInfo();\n    }\n\n    @Transactional(rollbackFor = Exception.class)\n    public void methodC() {\n        self().methodA();\n        self().methodB();\n        System.out.println(&quot;methodC&quot;);\n        logTransactionInfo();\n    }\n\n    @Transactional(rollbackFor = Exception.class)\n    public void methodD() {\n        System.out.println(this.getClass().getName());\n        this.methodA();\n        this.methodB();\n        System.out.println(&quot;methodD&quot;);\n        logTransactionInfo();\n    }\n\n    public void logTransactionInfo() {\n        boolean isActive = TransactionSynchronizationManager.isActualTransactionActive();\n        System.out.println(&quot;Is transaction active? &quot; + isActive);\n\n        String transactionName = TransactionSynchronizationManager.getCurrentTransactionName();\n        System.out.println(&quot;Transaction name: &quot; + transactionName);\n\n        Integer isolationLevel = TransactionSynchronizationManager.getCurrentTransactionIsolationLevel();\n        System.out.println(&quot;Isolation level: &quot; + isolationLevel);\n\n        java.sql.Connection connection = DataSourceUtils.getConnection(dataSource);\n        System.out.println(&quot;Connection hashCode: &quot; + connection.hashCode());\n    }\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>@RunWith(SpringRunner.class)\n@SpringBootTest\n@EnableAspectJAutoProxy(exposeProxy = true, proxyTargetClass = true)\n@Slf4j\npublic class OrderManagementTest {\n    @Autowired\n    private TestTransactionalService testTransactionalService;\n\n    @Before\n    public void setUp() {\n\n    }\n\n    @Test\n    public void testTransactionalC() {\n        testTransactionalService.methodC();\n    }\n\n    @Test\n    public void testNoTransactionalD() {\n        testTransactionalService.methodD();\n    }\n\n}\n</code></pre>\n<p>testNoTransactionalD method output with same connection:</p>\n<pre class=\"lang-none prettyprint-override\"><code>methodA\nIs transaction active? true\nTransaction name: org.o2.order.server.TestTransactionalService.methodD\nIsolation level: null\nConnection hashCode: 1232075168\nmethodB\nIs transaction active? true\nTransaction name: org.o2.order.server.TestTransactionalService.methodD\nIsolation level: null\nConnection hashCode: 1232075168\nmethodD\nIs transaction active? true\nTransaction name: org.o2.order.server.TestTransactionalService.methodD\nIsolation level: null\nConnection hashCode: 1232075168\n</code></pre>\n<p>I know <code>testTransactionalC</code> method would work in the same transaction with <code>AopContext.currentProxy()</code>, but why <code>testNoTransactionalD</code> method still outputs the same connection hashCode, does it mean methodA and methodB work in the same transaction?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

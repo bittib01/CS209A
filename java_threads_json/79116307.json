@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "string",
+      "spring-boot",
+      "javabeans"
+    ],
+    "owner": {
+      "account_id": 20744246,
+      "reputation": 55,
+      "user_id": 15233154,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a-/AOh14Gjv9eaGM4cYzqlNdsJcV-9Ye8Xy6NuCkrz4mxwTBT0=k-s256",
+      "display_name": "tejas Reddy p",
+      "link": "https://stackoverflow.com/users/15233154/tejas-reddy-p"
+    },
+    "is_answered": true,
+    "view_count": 71,
+    "answer_count": 1,
+    "score": -3,
+    "last_activity_date": 1729663165,
+    "creation_date": 1729654395,
+    "question_id": 79116307,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79116307/how-to-convert-a-normal-java-class-into-spring-managed-class-and-create-beans-in",
+    "title": "How to convert a normal java class into spring managed class and create beans in spring boot",
+    "body": "<p>Hi folks i have an use case to convert the code to asyncronus code using spring boot.</p>\n<pre><code>@Service\npublic class TaggedPdfReaderToolone extends TaggedPdfReaderTool {\n@Autowired\nViewTagUtils viewTagUtils;\n\nprotected int order;\n/**\n * Constructs a {@link TaggedPdfReaderTool} via a given {@link PdfDocument}.\n *\n * @param document the document to read tag structure from\n */\npublic TaggedPdfReaderToolone(PdfDocument document) {\n    super(document);\n}\n\n@Override\npublic TaggedPdfReaderToolone setRootTag(String rootTagName) {\n    this.rootTag = rootTagName;\n    order =0;\n    return this;\n}\n\n@Override\n@Async\npublic void convertToXml(OutputStream os)\n        throws IOException {\n    convertToXml(os, &quot;UTF-8&quot;);\n}\n\n@Override\n@Async\npublic void convertToXml(OutputStream os, String charset)\n        throws IOException {\n    out = new OutputStreamWriter(os, Charset.forName(charset));\n    if (rootTag != null) {\n        out.write(&quot;&lt;&quot; + rootTag + &quot;&gt;&quot; + System.lineSeparator());\n    }\n    // get the StructTreeRoot from the document\n    PdfStructTreeRoot structTreeRoot = document.getStructTreeRoot();\n    if (structTreeRoot == null)\n        throw new PdfException(KernelExceptionMessageConstant.DOCUMENT_DOES_NOT_CONTAIN_STRUCT_TREE_ROOT);\n    // Inspect the child or children of the StructTreeRoot\n    inspectKids(structTreeRoot.getKids());\n    out.write(&quot;&lt;/page&gt; &quot;);\n    if (rootTag != null) {\n        out.write(&quot;&lt;/&quot; + rootTag + &quot;&gt;&quot;);\n    }\n    out.flush();\n    out.close();\n}\n</code></pre>\n<p>}</p>\n<p>i am using a method from the above class in other class</p>\n<pre><code>@Slf4j\n@Service\npublic class Viewtag {\n\n@Autowired\nViewTagUtils viewTagUtils;\n\npublic void gettagcontent(String taggedPdf, String xmlfilepath) throws IOException {\n    log.info(&quot;Viewing tagged page content started &quot;+ taggedPdf);\n    PdfReader reader = new PdfReader(taggedPdf);\n//        log.info(&quot;Before file load.&quot;);\n    //filePathBean.setFilePath(taggedPdf);\n    PdfDocument doc = new PdfDocument(reader);\n    log.info(&quot;After file load.&quot;);\n    viewTagUtils.setPagNumber(0);\n\n\n    if (doc.isTagged()) {\n        log.info(&quot;view tagged content called&quot;);\n        log.info(xmlfilepath);\n        FileOutputStream xmlOut = new FileOutputStream(xmlfilepath);\n   //            new TaggedPdfReaderTool(doc).setRootTag(&quot;root&quot;).convertToXml(xmlOut);\n        TaggedPdfReaderToolone taggedPdfReaderToolone = new \n     TaggedPdfReaderToolone(doc);\n        taggedPdfReaderToolone.setRootTag(&quot;root&quot;).convertToXml(xmlOut);\n    }else\n        log.info(&quot;PDF is not a tagged pdf.&quot;);\n    doc.close();\n    log.info(&quot;Viewing tagged page content completed &quot;+ taggedPdf);\n}\n}\n</code></pre>\n<p>I got an error consider creating a bean PdfDocument</p>\n<p>after encountering this error i have done the configuration\nas shown below ,</p>\n<pre><code>@Configuration\npublic class BeanCreation {\n\n\n@Bean\npublic PdfDocument createPdfDocument(String filePath) throws IOException {\n    return new PdfDocument(new PdfReader(filePath));\n}\n}\n</code></pre>\n<p>After doing the configuration\n<strong>Now i am getting the error</strong></p>\n<p><strong>consider creating a bean java.lang.String in BeanCreation,</strong></p>\n<p>Note:- The project i am working is <strong>gradel build</strong> and <strong>no xml file</strong> usage is done .</p>\n<p>Any inputs to solve the issue will be help full\nThanks.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

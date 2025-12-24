@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "file",
+      "spark-java"
+    ],
+    "owner": {
+      "account_id": 21687948,
+      "reputation": 21,
+      "user_id": 16003067,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a-/AOh14Ggcol-210J9rHljwJsTQ8_iCqzg8zaPnakIl4hr=k-s256",
+      "display_name": "Rochit Aggarwal",
+      "link": "https://stackoverflow.com/users/16003067/rochit-aggarwal"
+    },
+    "is_answered": false,
+    "view_count": 48,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1758273317,
+    "creation_date": 1758211237,
+    "last_edit_date": 1758273317,
+    "question_id": 79768684,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79768684/unable-to-upload-file-using-spark-java",
+    "title": "Unable to upload file using spark Java",
+    "body": "<p>I'm using Spark java with below dependency, and I'm trying to make one API endpoint to receive an file using multipart file, Below is the code attached, I've tried multiple ways to do that, but everytime I'm getting request.raw().getPart(&quot;file&quot;) as null. Please correct me where I'm going wrong.</p>\n<p>com.sparkjava.spark-core.2.9.4</p>\n<pre><code>public class FileUploadRoutesNew {\n\npublic void registerRoutes() {\n    post(&quot;/upload/new&quot;, &quot;multipart/form-data&quot;, (request, response) -&gt; {\n        // Enable multipart support\n        String location = &quot;/tmp&quot;;          // the directory location where files will be stored\n        long maxFileSize = 100000000;       // the maximum size allowed for uploaded files\n        long maxRequestSize = 100000000;    // the maximum size allowed for multipart/form-data requests\n        int fileSizeThreshold = 1024;       // the size threshold after which files will be written to disk\n\n        MultipartConfigElement multipartConfigElement = new MultipartConfigElement(\n                location, maxFileSize, maxRequestSize, fileSizeThreshold);\n        request.raw().setAttribute(&quot;org.eclipse.jetty.multipartConfig&quot;,\n                multipartConfigElement);\n\n        Collection&lt;Part&gt; parts = request.raw().getParts();\n        for (Part part : parts) {\n            System.out.println(&quot;Name: &quot; + part.getName());\n            System.out.println(&quot;Size: &quot; + part.getSize());\n            System.out.println(&quot;Filename: &quot; + part.getSubmittedFileName());\n        }\n\n        try {\n            Part filePart = request.raw().getPart(&quot;file_upload&quot;); // &quot;file&quot; is the form field name\n            String fileName = filePart.getSubmittedFileName();\n\n            File uploadDir = new File(&quot;uploads&quot;);\n            uploadDir.mkdirs(); // Create the directory if not exists\n\n            File uploadedFile = new File(uploadDir, fileName);\n\n            try (InputStream is = filePart.getInputStream();\n                 OutputStream os = new FileOutputStream(uploadedFile)) {\n                IOUtils.copy(is, os);\n            }\n\n            filePart.delete(); // Clean up temp file\n            response.status(200);\n            return &quot;File uploaded successfully: &quot; + fileName;\n\n        } catch (Exception e) {\n            e.printStackTrace();\n            response.status(500);\n            return &quot;File upload failed: &quot; + e.getMessage();\n        }\n    });\n}\n</code></pre>\n<p>}</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "comparator",
+      "timsort"
+    ],
+    "owner": {
+      "account_id": 13087697,
+      "reputation": 57,
+      "user_id": 9456200,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/LtEjd.jpg?s=256",
+      "display_name": "polo",
+      "link": "https://stackoverflow.com/users/9456200/polo"
+    },
+    "is_answered": false,
+    "view_count": 219,
+    "answer_count": 0,
+    "score": 5,
+    "last_activity_date": 1765916191,
+    "creation_date": 1763551069,
+    "last_edit_date": 1765916191,
+    "question_id": 79824377,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79824377/why-does-the-shuffle-found-trigger-order-for-a-timsort-comparator-contract-viola",
+    "title": "Why does the shuffle-found trigger order for a TimSort comparator contract violation *not* reliably reproduce the error when manually tested?",
+    "body": "<p><strong>Background:</strong></p>\n<p>I'm debugging a Java sorting setup where I found a faulty Comparator already (violates the contract).\nMy goal is to implement a test case which provokes the well-known</p>\n<blockquote>\n<p>java.lang.IllegalArgumentException: Comparison method violates its general contract!</p>\n</blockquote>\n<p>thrown by TimSort for such Comparators.</p>\n<p><strong>How do I provoke the error?</strong><br />\nI repeatedly shuffle and sort a list with many &quot;problematic&quot; values (e.g., many elements with the same field value). This is very reliable an reproducable, after a couple runs the expected error is thrown.</p>\n<pre class=\"lang-java prettyprint-override\"><code>for (int i = 0; i &lt; 10_000; i++) {\n    List&lt;Pojo&gt; shuffled = new ArrayList&lt;&gt;(input);\n    Collections.shuffle(shuffled);\n    try {\n        List&lt;Pojo&gt; sorted = new ArrayList&lt;&gt;(shuffled);\n        Collections.sort(sorted, faultyComparator);\n    } catch (Exception e) {\n        // Store the list that triggered the exception!\n        triggerOrder = new ArrayList&lt;&gt;(shuffled);\n        break;\n    }\n}\n</code></pre>\n<p><strong>My confusion:</strong></p>\n<p>After successfully capturing a list (<code>triggerOrder</code>) that caused the contract violation error, I expect <em>replaying</em> the sort <strong>with exactly this same order</strong> and comparator to yield the same error every time.</p>\n<p>But when I switch the input to a found triggerOrder for the next execution the sort runs fine! Even further shuffling of <code>triggerOrder</code> respectively <code>input</code> never provokes the error again.</p>\n<p>The input generator:</p>\n<pre class=\"lang-java prettyprint-override\"><code>List&lt;Pojo&gt; input = IntStream\n// starting order to find a trigger order\n        .of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40)\n// a found trigger order\n//        .of(10, 7, 27, 24, 33, 13, 23, 19, 37, 25, 22, 31, 1, 35, 18, 28, 29, 3, 9, 8, 15, 39, 14, 10, 10, 34, 17, 26, 2, 12, 4, 32, 5, 11, 16, 36, 38, 21, 10, 6)\n        .mapToObj(i -&gt; new Pojo(null, i % 10 == 0 ? 10 : i, i + &quot;.pdf&quot;))\n        .collect(Collectors.toCollection(ArrayList::new));\n\nclass Pojo {\n    private String name;\n    private Integer date;\n    private String file;\n\n    public Pojo(String name, int date, String file) {\n        this.name = name;\n        this.date = date;\n        this.file = file;\n    }\n\n    // Getter\n}\n</code></pre>\n<p>Just if you're curios, the faulty comparator (I know it's rubbish ;)):</p>\n<pre class=\"lang-java prettyprint-override\"><code>Comparator&lt;Pojo&gt; faultyComparator = (b1, b2) -&gt; {\n    if (b1 == null &amp;&amp; b2 == null) return 0;\n    if (b1 == null) return -1;\n    if (b2 == null) return 1;\n    final int result = compareToNullSave(b1.getName(), (b2.getName()));\n    if (result != 0) return result;\n    final int dateResult = b1.getDate().compareTo(b2.getDate());\n    if (dateResult != 0) return result; // this should be &quot;return dateResult;&quot;\n    return compareToNullSave(b1.getFile(), b2.getFile());\n}\n\npublic static int compareToNullSave(String s1, String s2) {\n    if (s1 == null) return s2 == null ? 0 : -1;\n    if (s2 == null) return 1;\n    return s1.compareTo(s2);\n}\n</code></pre>\n<p><strong>Why does a shuffle-found trigger order, which <em>reliably</em> causes a TimSort comparator contract violation in one run, fail to reproduce the exception in another run?</strong></p>\n<ul>\n<li>The comparator is still broken in the same way.</li>\n<li>The error is provoked in a shuffle-for loop easily.</li>\n<li>Re-playing with the exact list order (that triggered the error) in a new run does <em>not</em> throw. Whereas the trigger order in the <em>same</em> run reliable reproduces the error.</li>\n<li>Even further shuffling doesn't seem to help after that.</li>\n</ul>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

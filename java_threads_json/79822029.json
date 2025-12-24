@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-kafka",
+      "spring-kafka",
+      "kafka-consumer-api",
+      "apache-kafka-streams"
+    ],
+    "owner": {
+      "account_id": 30355866,
+      "reputation": 23,
+      "user_id": 23263239,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocLoTZGKC239-h9SO9Tp8vLmubg2f-sKVicEU7PVPv6c=k-s256",
+      "display_name": "Andreas10001",
+      "link": "https://stackoverflow.com/users/23263239/andreas10001"
+    },
+    "is_answered": true,
+    "view_count": 72,
+    "answer_count": 7,
+    "score": 0,
+    "last_activity_date": 1763593576,
+    "creation_date": 1763367650,
+    "last_edit_date": 1763373324,
+    "question_id": 79822029,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79822029/how-to-populate-two-stores-from-one-topic-using-kafka-streams-globalktable",
+    "title": "How to populate two stores from one topic using Kafka Streams GlobalKTable",
+    "body": "<p>I am using Kafka Streams, and trying to figure out the best practice for handling multiple stores that are populated using the same data without having to read it twice.<br />\nMy Kafka Streams service is required to reload the entire Kafka topic on startup, and afterwards subscribe to any new message put on the topic. The store(s) must be accessible everywhere, and thus I ended up reading about GlobalKTables. This fits my use-case very nicely, as I'm unable to specify a random group id for my consumer and GlobalKTables seem to read everything for every startup. So far so good.</p>\n<p>However, I seem to be limited in populating more than one store using the same global store and I would like to avoid having to read every message twice or really n-number of times with n being the number of stores I need for any specific topic.</p>\n<p>I came across an example like the one below with two stores, and having to manually add them to my state stores. The global store only references the <strong>myStoreBuilder</strong> and not both of them. Is this the recommended approach, or is there any better way to do this? My <strong>GlobalProcessor</strong> currently retrieves both stores and populates both as I wish, but something tells me my current approach is a workaround. Perhaps I'm not meant to work with two stores within the same processor, but I should rather invoke addGlobalStore twice - once for each of my store builders and then just accept data is read twice.</p>\n<pre class=\"lang-java prettyprint-override\"><code>var myStoreBuilder = Stores.keyValueStoreBuilder(\n        Stores.inMemoryKeyValueStore(&quot;MY_STORE_NAME&quot;),\n        Serdes.String(),\n        Serdes.String()\n);\n\nvar myStoreBuilder2 = Stores.keyValueStoreBuilder(\n        Stores.inMemoryKeyValueStore(&quot;MY_STORE_NAME2&quot;),\n        Serdes.String(),\n        Serdes.String()\n);\n\nmyStreamsBuilder().addStateStore(myStoreBuilder);\nmyStreamsBuilder().addStateStore(myStoreBuilder2);\n\nmyStreamsBuilder().addGlobalStore(\n        myStoreBuilder,\n        &quot;my_topic&quot;,\n        Consumed.with(Serdes.String(), Serdes.String()),\n        new DataGlobalProcessorSupplier()\n);\n</code></pre>\n<p>Any help is appreciated.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

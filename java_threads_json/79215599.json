@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "android-studio",
+      "onbackpressed"
+    ],
+    "owner": {
+      "account_id": 103637,
+      "reputation": 10600,
+      "user_id": 277480,
+      "user_type": "registered",
+      "accept_rate": 68,
+      "profile_image": "https://i.sstatic.net/JMaKB.jpg?s=256",
+      "display_name": "StealthRT",
+      "link": "https://stackoverflow.com/users/277480/stealthrt"
+    },
+    "is_answered": true,
+    "view_count": 41,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1732870576,
+    "creation_date": 1732289064,
+    "question_id": 79215599,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79215599/android-leanback-back-button-press-does-not-stop-video-fragment",
+    "title": "Android Leanback back button press does not stop video fragment",
+    "body": "<p>Hey all I am having an issue with <strong>closing</strong> my <strong>PlaybackVideoFragment</strong> that extends <strong>VideoSupportFragmentafter</strong> I press my <strong>back button</strong> on my remote.</p>\n<p>The code I have to <strong>fire</strong> when the <strong>back button</strong> is pressed is this (the <strong>playerView.addOnUnhandledKeyEventListener</strong>):</p>\n<pre><code>@OptIn(markerClass = UnstableApi.class)\n@Override\npublic void onCreate(Bundle savedInstanceState) {\n    super.onCreate(savedInstanceState);\n\n    MainFragment.movie = (Movie) getActivity().getIntent().getSerializableExtra(MOVIE);\n\n    long cacheMaxSize = 90 * 1024 * 1024;\n    File cacheRoot = getContext().getExternalCacheDir() != null ? getContext().getExternalCacheDir() : getContext().getCacheDir();\n    File cacheDir = new File(cacheRoot, &quot;media&quot;);\n    SimpleCache simpleCache = new SimpleCache(cacheDir, new LeastRecentlyUsedCacheEvictor(cacheMaxSize), new StandaloneDatabaseProvider(getContext()));\n\n    DefaultHttpDataSource.Factory httpDataSourceFactory = new DefaultHttpDataSource.Factory();\n\n    CacheDataSource.Factory cacheDataSourceFactory = new CacheDataSource.Factory()\n            .setCache(simpleCache)\n            .setUpstreamDataSourceFactory(httpDataSourceFactory)\n            .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR);\n\n    ProgressiveMediaSource.Factory mediaSourceFactory = new ProgressiveMediaSource.Factory(cacheDataSourceFactory);\n\n    DefaultLoadControl loadControl = new DefaultLoadControl.Builder()\n            .setBufferDurationsMs(8 * 1024, 64 * 1024, 50, 1024)\n            .build();\n\n    ExoPlayer player = new ExoPlayer.Builder(getContext())\n            .setMediaSourceFactory(mediaSourceFactory)\n            .setLoadControl(loadControl)\n            .build();\n\n    if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.P) {\n        playerView.addOnUnhandledKeyEventListener((v, event) -&gt; {\n            //Handle BACK button\n            if (event.getKeyCode() == KeyEvent.KEYCODE_BACK &amp;&amp; event.getAction() == KeyEvent.ACTION_UP)\n            {\n                getActivity().finish();\n                //playerView.hideController(); //Hide mediaController,according to your needs, you can also called here onBackPressed() or finish()\n            }\n            return true;\n        });\n    }\n\n    playerView.setUseController(true);\n    player.setPlayWhenReady(false);\n    playerView.setPlayer(player);\n\n    Uri uri = Uri.parse(MainFragment.movie.getVideoUrl());\n    MediaItem mediaItem = MediaItem.fromUri(uri);\n\n    player.setMediaItem(mediaItem);\n    player.addListener(pbl());\n    player.setRepeatMode(Player.REPEAT_MODE_OFF);\n    player.prepare();\n    player.play();\n}\n</code></pre>\n<p>This does take me back to my main screen but I can still here the video playing in the background (I hear the audio just don't see the video).</p>\n<p>The way I am calling the video fragment is by this:</p>\n<pre><code>public class PlaybackActivity extends FragmentActivity {\n    public static ProgressBar mProgressBar;\n    public static PlayerView playerView;\n    public static Activity activity;\n\n    @Override\n    public void onCreate(Bundle savedInstanceState) {\n        super.onCreate(savedInstanceState);\n\n        setContentView(R.layout.activity_details);\n\n        activity = this;\n        mProgressBar = findViewById(R.id.amPrgbrLoading);\n        playerView = findViewById(R.id.player_view);\n\n        getSupportFragmentManager()\n                .beginTransaction()\n                .replace(android.R.id.content, new PlaybackVideoFragment())\n                .commit();\n    }    \n}\n</code></pre>\n<p>Any help would be greatly appreciated!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

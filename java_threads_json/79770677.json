@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "next.js",
+      "servlets",
+      "vercel",
+      "render.com"
+    ],
+    "owner": {
+      "account_id": 34840377,
+      "reputation": 1,
+      "user_id": 26816827,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/6be0254595884cab8915be45bfa5a84b?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Sagar",
+      "link": "https://stackoverflow.com/users/26816827/sagar"
+    },
+    "is_answered": false,
+    "view_count": 54,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1758432177,
+    "creation_date": 1758432177,
+    "question_id": 79770677,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79770677/connecting-java-backendservlets-to-vercel-frontendfetch-api-cors-error",
+    "title": "Connecting Java backend(Servlets) to Vercel frontend(fetch API). Cors Error",
+    "body": "<p>So basically I have put up my backend on Render web Service (on tomcat) and my frontend(Nextjs) is on Vercel. I have put up a Filter for Cors Policy to intercept all policies and as well as handled OPTIONS request. In my local setup, when I send requests from port 3000 to port 8080(tomcat), my requests does hit my backend, but when i deploy and try to send requests from vercel to render, I keep getting &quot;Response to preflight request didnt attach allow origin header&quot;, I have attached it in my filter and im using annotations. I tried with both Annotations and web.xml but none seem to work.I binded tomcat to Port 10000 on Render.</p>\n<p><strong>This is my DOCKERFILE</strong>:</p>\n<pre><code># ===== Stage 1: Build with Maven =====\nFROM maven:3.8.5-openjdk-8 AS builder\nWORKDIR /app\n\n# Copy pom.xml and download dependencies first (better cache)\nCOPY pom.xml .\nRUN mvn dependency:go-offline -B\n\n# Copy source and build WAR\nCOPY src ./src\nRUN mvn -B clean package -DskipTests\n\n\n# ===== Stage 2: Tomcat runtime =====\nFROM openjdk:8-jdk-alpine\n\n# Install wget and unzip\nRUN apk add --no-cache wget bash tar\n\n# Set Tomcat environment\nENV TOMCAT_VER=9.0.80\nENV CATALINA_HOME=/usr/local/tomcat\nENV PATH=$CATALINA_HOME/bin:$PATH\n\n# Download Tomcat from archive (since 9.0.80 is old)\nRUN wget https://archive.apache.org/dist/tomcat/tomcat-9/v$TOMCAT_VER/bin/apache-tomcat-$TOMCAT_VER.tar.gz \\\n    &amp;&amp; mkdir -p $CATALINA_HOME \\\n    &amp;&amp; tar xzf apache-tomcat-$TOMCAT_VER.tar.gz -C $CATALINA_HOME --strip-components=1 \\\n    &amp;&amp; rm apache-tomcat-$TOMCAT_VER.tar.gz\n\n# Fix Tomcat port to use Render's PORT environment variable\nRUN sed -i &quot;s/port=\\&quot;8080\\&quot;/port=\\&quot;${PORT:-10000}\\&quot;/&quot; $CATALINA_HOME/conf/server.xml\n\n# Copy WAR from builder stage\nCOPY --from=builder /app/target/IssuesandDeploymentTracker-0.0.1-SNAPSHOT.war $CATALINA_HOME/webapps/ROOT.war\n\n# Expose Tomcat port\n#EXPOSE 8080\n\n# Run Tomcat\nCMD [&quot;catalina.sh&quot;, &quot;run&quot;]\n\n\n</code></pre>\n<p><strong>and This is my filter</strong>:</p>\n<pre><code>@WebFilter(&quot;/*&quot;)\npublic class CorsFilter implements Filter {\n\n    public CorsFilter() {\n        super();\n        System.out.println(&quot;&gt;&gt;&gt; CorsFilter constructor loaded, class = &quot; + this.getClass().getName());\n\n    }\n    public void destroy() {\n    }\n\n    public void doFilter(ServletRequest request, ServletResponse resp, FilterChain chain)\n            throws IOException, ServletException {\n\n        HttpServletResponse response = (HttpServletResponse) resp;\n        HttpServletRequest req = (HttpServletRequest) request;\n        System.out.println(&quot;CorsFilter hit for: &quot; + req.getRequestURI());\n\n        response.setHeader(&quot;Access-Control-Allow-Origin&quot;,&quot;https://issues-deployment-tracker.vercel.app&quot;);\n        response.setHeader(&quot;Access-Control-Allow-Methods&quot;, &quot;GET, POST, PUT, DELETE, OPTIONS&quot;);\n        response.setHeader(&quot;Access-Control-Allow-Headers&quot;, &quot;Content-Type, Authorization&quot;);\n\n        // Handle preflight immediately\n        if (&quot;OPTIONS&quot;.equalsIgnoreCase(req.getMethod())) {\n            response.setStatus(HttpServletResponse.SC_OK);\n            return;\n        }\n\n        // pass the request along the filter chain\n        chain.doFilter(request, response);\n    }\n\n    /**\n     * @see Filter#init(FilterConfig)\n     */\n    public void init(FilterConfig fConfig) throws ServletException {\n        // TODO Auto-generated method stub\n    }\n\n}\n</code></pre>\n<p>I have used Hibernate, Postgres for prod, maven build.\n**This is my pom.xml for reference: **\nyes the urls used in frontend to send requests are correct as well. My render service goes live but doesnt receive anything. no logs except healthchecks.\n<a href=\"https://github.com/STRO09/Issues-Deployment-Tracker.git\" rel=\"nofollow noreferrer\">Github repo for further reference</a></p>\n<p>I have no idea whats going wrong at this point.</p>\n<p>I tried with both Annotations and web.xml but none seem to work. I binded tomcat to Port 10000 on Render. requests dont even hit the filter forget servlets. Using annotations currently. No spring, just plain Hibernate, JPA Daos and Servlets.\nI have not tried with proxy in next config since I heard its only for local dev.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

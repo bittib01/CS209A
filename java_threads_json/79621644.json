@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "ant",
+      "drools",
+      "drools-decisiontables"
+    ],
+    "owner": {
+      "account_id": 938881,
+      "reputation": 15320,
+      "user_id": 967330,
+      "user_type": "registered",
+      "accept_rate": 90,
+      "profile_image": "https://www.gravatar.com/avatar/b731ee0bd2400959e9d13737e42c6418?s=256&d=identicon&r=PG",
+      "display_name": "Thom",
+      "link": "https://stackoverflow.com/users/967330/thom"
+    },
+    "is_answered": true,
+    "view_count": 226,
+    "accepted_answer_id": 79673848,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1750446186,
+    "creation_date": 1747231390,
+    "last_edit_date": 1747310210,
+    "question_id": 79621644,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79621644/youre-trying-to-compile-a-drools-asset-without-mvel",
+    "title": "You&#39;re trying to compile a Drools asset without mvel",
+    "body": "<p>I have a unit test for my drools project that is running inside my Intellij IDEA environment, but fails in ant build. The error is:</p>\n<pre><code>Exception org.drools.base.common.MissingDependencyException: You're trying to compile a Drools asset without mvel. Please add the module org.drools:drools-mvel to your classpath. [in thread &quot;ForkJoinPool-1-worker-3&quot;]\n</code></pre>\n<p>Here is my junit target.</p>\n<pre><code>&lt;target name=&quot;test&quot; description=&quot;Runs all JUnit tests&quot; depends=&quot;jar&quot;&gt;\n    &lt;echo&gt;${toString:test.classpath}&lt;/echo&gt;\n    &lt;junit haltonfailure=&quot;true&quot;&gt;\n      &lt;classpath refid=&quot;test.classpath&quot; /&gt;\n\n      &lt;formatter type=&quot;brief&quot; usefile=&quot;false&quot; /&gt;\n      &lt;batchtest&gt;\n        &lt;fileset dir=&quot;${build.classes.dir}&quot;&gt;\n            &lt;include name=&quot;**/*Test.class&quot;/&gt;\n            &lt;exclude name=&quot;**/RandomBag*.class&quot;/&gt;\n        &lt;/fileset&gt;\n      &lt;/batchtest&gt;\n    &lt;/junit&gt;\n\n    &lt;fail message=&quot;test failed&quot; if=&quot;test.failure&quot; /&gt;\n&lt;/target&gt;\n</code></pre>\n<p>As you can see, I am echoing the classpath I'm using and it includes drools-mvel library.</p>\n<p>After reviewing the stacktrace, it is actually running inside of classes from drols-mvel library.</p>\n<p>I googled the error and only found things that did not have drools-mvel in the classpath, which makes me wonder why they posted, but nevermind.</p>\n<p>So now I'm stumped and looking for help.</p>\n<p>EDIT</p>\n<p>So just trying stuff, I figured out that this is probably the line which is generating my error:</p>\n<pre><code>    FieldAccessorFactory instance = KieService.load( FieldAccessorFactory.class );\n</code></pre>\n<p>This line of code looks for an implementation of the interface passed. So I looked at drools-mvel jar and found the implementing class it's probably looking for. I then thought I'd see what happens if I ran this line of code outside in my unit test.</p>\n<p>I tried it and it worked in both environments, but interestingly generated a bunch of messages in ant outside of intellij</p>\n<pre><code>[junit] WARN  Environment variable M2_HOME is not set\n[junit] WARN  File 'rules/postponementRules.drl.csv' is in folder 'rules' but declares package 'postponementRules'. It is advised to have a correspondance between package and folder names.\n[junit] ERROR Unable to build KieBaseModel:defaultKieBase\n[junit] Rule Compilation error : [Rule name='postponePart_18']\n[junit]     package com.gs.jxx.bo does not exist\n[junit]     package com.gs.jx.request does not exist\n[junit]     package com.gs.jxx.request does not exist\n</code></pre>\n<p>Keep in mind, these unit tests run just fine inside of IntelliJ. And I verified that the directory that contains these packages is on the classpath dumped by the echo.</p>\n<p>So I dig some and figure out that ant runs it's own class loader AntClassLoader as opposed to the JDK internal one that runs inside of intelliJ.</p>\n<p>I don't know what all of this means, but they appear to be pieces of the puzzle.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

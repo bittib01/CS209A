@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "swing",
+      "assertj-swing"
+    ],
+    "owner": {
+      "account_id": 10187542,
+      "reputation": 2735,
+      "user_id": 20692967,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/NZSXm.jpg?s=256",
+      "display_name": "Sergey Zolotarev",
+      "link": "https://stackoverflow.com/users/20692967/sergey-zolotarev"
+    },
+    "is_answered": false,
+    "view_count": 75,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1757322895,
+    "creation_date": 1757322187,
+    "last_edit_date": 1757322895,
+    "question_id": 79758690,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79758690/showing-lean-windows-makes-them-tiny",
+    "title": "Showing lean windows makes them tiny",
+    "body": "<p>If a <code>Window</code> has little content, AssertJ's <code>Robot</code> makes the window even smaller before showing it.</p>\n<p>Here's a failing test:</p>\n<pre class=\"lang-java prettyprint-override\"><code>import org.assertj.swing.core.BasicRobot;\nimport org.assertj.swing.core.Robot;\nimport org.assertj.swing.edt.GuiActionRunner;\nimport org.junit.jupiter.api.AfterEach;\nimport org.junit.jupiter.api.BeforeEach;\nimport org.junit.jupiter.api.Test;\nimport org.mockito.ArgumentCaptor;\n\nimport javax.swing.JComponent;\nimport javax.swing.JFrame;\nimport javax.swing.JTextField;\nimport java.awt.Dimension;\nimport java.util.List;\n\nimport static org.assertj.core.api.Assertions.within;\nimport static org.assertj.core.api.AssertionsForClassTypes.assertThat;\nimport static org.assertj.core.api.Assumptions.assumeThat;\nimport static org.mockito.BDDMockito.then;\nimport static org.mockito.Mockito.atLeastOnce;\nimport static org.mockito.Mockito.spy;\n\n\nclass RobotTest {\n\n    private Robot robot;\n\n    @BeforeEach\n    void setUp() {\n        robot = BasicRobot.robotWithCurrentAwtHierarchy();\n    }\n\n    @AfterEach\n    void tearDown() {\n        robot.cleanUp();\n    }\n\n    @Test\n    void showWindow_ifPreferredWindowHeightExceedsTitleBarHeight_doesNotShrinkWindowToTitleBarHeight() {\n        JTextField field = new JTextField();\n        field.setColumns(10);\n        JFrame frame = spy(createFrame(field));\n        int titleBarInset = frame.getInsets().top;\n        assumeThat(titleBarInset).isCloseTo(30, within(1));\n        assumeThat(frame.getPreferredSize().height).isGreaterThan(titleBarInset);\n\n        robot.showWindow(frame);\n\n        ArgumentCaptor&lt;Dimension&gt; captor = ArgumentCaptor.forClass(Dimension.class);\n        then(frame).should(atLeastOnce()).setSize(captor.capture());\n        List&lt;Dimension&gt; setSizes = captor.getAllValues();\n        Dimension lastSetDimension = setSizes.get(setSizes.size() - 1);\n        assertThat(lastSetDimension.height).isGreaterThan(titleBarInset);\n    }\n\n    private JFrame createFrame(JComponent component) {\n        return GuiActionRunner.execute(() -&gt; {\n            JFrame frame = new JFrame();\n            frame.add(component);\n            frame.pack(); // packed\n            return frame;\n        });\n    }\n}\n</code></pre>\n<p>It's all because of the <code>shouldResize()</code> method (see <code>org.assertj.swing.monitor.WindowStatus#makeLargeEnoughToReceiveEvents</code>). If the window's preferred size (which doesn't include insets) minus ≈30 pixels of the title bar top inset is lower than 30 pixels, the window is guaranteed to be shrunk to <code>MINIMUM_WINDOW_SIZE</code> (50,30). You also get ugly jittering of the pointer for several seconds.</p>\n<pre class=\"lang-java prettyprint-override\"><code>// org.assertj.swing.monitor.WindowStatus\n\n  @RunsInCurrentThread\n  private void makeLargeEnoughToReceiveEvents(@Nonnull Window window) {\n    if (!shouldResize(window)) {\n      return;\n    }\n    window.setSize(MINIMUM_WINDOW_SIZE);\n  }\n\n  @RunsInCurrentThread\n  private boolean shouldResize(@Nonnull Window window) {\n    Insets insets = window.getInsets();\n    int w = window.getWidth() - (insets.left + insets.right);\n    if (w &lt; MINIMUM_WINDOW_SIZE.width) {\n      return true;\n    }\n    int h = window.getHeight() - (insets.top + insets.bottom);\n    return h &lt; MINIMUM_WINDOW_SIZE.height;\n  }\n</code></pre>\n<p>It's not likely to be fixed any time soon (or ever) since <a href=\"https://github.com/assertj/assertj-swing\" rel=\"nofollow noreferrer\">AssertJ Swing</a> does not have any new releases lately (or merged PRs, for that matter). So I wonder if there's a more elegant solution than stuffing my content pane with some filler components. Sometimes, for example, you need to test focus handling by your custom <code>JTextComponent</code>, so you <em>do</em> need a <code>JFrame</code> but do <em>not</em> need anything beside your component in it.</p>\n<pre class=\"lang-java prettyprint-override\"><code>// a workaround\n    private JFrame createFrame(JComponent component) {\n        return GuiActionRunner.execute(() -&gt; {\n            JFrame frame = new JFrame();\n            JPanel contentPane = new JPanel();\n            contentPane.add(component);\n            frame.setContentPane(contentPane);\n            frame.pack(); // packed\n            return frame;\n        });\n    }\n</code></pre>\n<p>Java 8.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

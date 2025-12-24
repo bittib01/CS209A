@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "garbage-collection",
+      "virtual-threads"
+    ],
+    "owner": {
+      "account_id": 1535484,
+      "reputation": 4687,
+      "user_id": 2365727,
+      "user_type": "registered",
+      "accept_rate": 88,
+      "profile_image": "https://www.gravatar.com/avatar/4df450ae019ffd21501db0552183542b?s=256&d=identicon&r=PG",
+      "display_name": "michaldo",
+      "link": "https://stackoverflow.com/users/2365727/michaldo"
+    },
+    "is_answered": true,
+    "view_count": 955,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1720699138,
+    "creation_date": 1717879648,
+    "last_edit_date": 1717917240,
+    "question_id": 78596905,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78596905/why-virtual-thread-is-not-garbage-collected-when-not-reachable",
+    "title": "Why virtual thread is not garbage collected when not reachable",
+    "body": "<p>I would like my virtual thread is garbage collected when blocking queue, which the thread consumes, is thrown away.</p>\n<p>It should work: according to <a href=\"https://openjdk.org/jeps/444\" rel=\"nofollow noreferrer\">https://openjdk.org/jeps/444</a>,</p>\n<blockquote>\n<p>Unlike platform thread stacks, virtual thread stacks are not GC roots.\nThus the references they contain are not traversed in a stop-the-world\npause by garbage collectors, such as G1, that perform concurrent heap\nscanning. This also means that if a virtual thread is blocked on,\ne.g., BlockingQueue.take(), and no other thread can obtain a reference\nto either the virtual thread or the queue, then the thread can be\ngarbage collected — which is fine, since the virtual thread can never\nbe interrupted or unblocked. Of course, the virtual thread will not be\ngarbage collected if it is running or if it is blocked and could ever\nbe unblocked.</p>\n</blockquote>\n<p>See my code</p>\n<pre><code>public static void main(String[] args) throws InterruptedException {\n    BlockingQueue&lt;String&gt; blockingQueue = new ArrayBlockingQueue&lt;&gt;(100);\n    Thread thread = fireVirtualConsumer(blockingQueue);\n    blockingQueue = null;\n    thread = null;\n    System.out.println(&quot;Blocking queue is: &quot; + blockingQueue + &quot; thread is &quot; + thread);\n    // here I catch thread/heap dump\n    TimeUnit.SECONDS.sleep(5);\n}\n\nprivate static Thread fireVirtualConsumer(BlockingQueue&lt;String&gt; blockingQueue) {\n    return Thread.ofVirtual().start(() -&gt; {\n        try {\n            for(;;) {\n                blockingQueue.take();\n            }\n        } catch (InterruptedException e) {\n            System.out.println(&quot;Demo interrupted&quot;);\n        }\n    });\n}\n</code></pre>\n<p>When I catch the heap dump, I see that the <code>ArrayBlockingQueue</code> is not candidate for GC</p>\n<pre><code>java.util.concurrent.ArrayBlockingQueue 0x6059ac1a0 504 B\n    arg$1 of Demo$$Lambda+0x00000200a1003200 0x6059acf40 520 B\n        val$task of java.lang.VirtualThread$VThreadContinuation$1 0x6059c1c98 544 B\n            target of java.lang.VirtualThread$VThreadContinuation 0x6059c1bf8 624 B\n                cont of java.lang.VirtualThread 0x6059c1728 904 B\n                    key of java.util.concurrent.ConcurrentHashMap$Node 0x6059c2350 936 B\n                        java.util.concurrent.ConcurrentHashMap$Node[16] 0x6059c2300 1,02 kB\n                            table of java.util.concurrent.ConcurrentHashMap 0x6059bfaa8 1,08 kB\n                                map of java.util.concurrent.ConcurrentHashMap$KeySetView 0x6059bfa90 1,1 kB\n                                    VTHREADS of jdk.internal.vm.ThreadContainers$RootContainer$TrackingRootContainer, GC Root: Sticky class 0x6059bf9f0 1,22 kB\n</code></pre>\n<p>And VirtualThread also</p>\n<pre><code>java.lang.VirtualThread 0x60454dc40 904 B\n    key of java.util.concurrent.ConcurrentHashMap$Node 0x60454e798 936 B\n        java.util.concurrent.ConcurrentHashMap$Node[16] 0x60454e748 1,02 kB\n            table of java.util.concurrent.ConcurrentHashMap 0x60454bfa0 1,08 kB\n                map of java.util.concurrent.ConcurrentHashMap$KeySetView 0x60454bf88 1,1 kB\n                    VTHREADS of jdk.internal.vm.ThreadContainers$RootContainer$TrackingRootContainer, GC Root: Sticky class 0x60454bee8 1,22 kB\n</code></pre>\n<p>Virtual thread seems be blocked:</p>\n<blockquote>\n<p>#30 &quot;&quot; virtual\njava.base/java.lang.VirtualThread.park(VirtualThread.java:582)\njava.base/java.lang.System$2.parkVirtualThread(System.java:2643)\njava.base/jdk.internal.misc.VirtualThreads.park(VirtualThreads.java:54)\njava.base/java.util.concurrent.locks.LockSupport.park(LockSupport.java:369)\njava.base/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(AbstractQueuedSynchronizer.java:519)\njava.base/java.util.concurrent.ForkJoinPool.unmanagedBlock(ForkJoinPool.java:3780)\njava.base/java.util.concurrent.ForkJoinPool.managedBlock(ForkJoinPool.java:3725)\njava.base/java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1707)\njava.base/java.util.concurrent.ArrayBlockingQueue.take(ArrayBlockingQueue.java:420)\nDemo.lambda$fireVirtualConsumer$0(Demo.java:24)\njava.base/java.lang.VirtualThread.run(VirtualThread.java:309)</p>\n</blockquote>\n<p>Demo.java:24 is <code>blockingQueue.take();</code></p>\n<p>What is wrong? Why virtual thread is visible from CG root when ArrayBlockingQueue is empty, not visible from main and VirtualThread is also not visible main?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

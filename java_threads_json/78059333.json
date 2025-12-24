@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "junit",
+      "quarkus",
+      "smallrye",
+      "quarkus-reactive"
+    ],
+    "owner": {
+      "account_id": 9614093,
+      "reputation": 117,
+      "user_id": 7137509,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/eGoXc.png?s=256",
+      "display_name": "Ahmed M. Elzubair",
+      "link": "https://stackoverflow.com/users/7137509/ahmed-m-elzubair"
+    },
+    "is_answered": false,
+    "view_count": 1087,
+    "answer_count": 2,
+    "score": 1,
+    "last_activity_date": 1727868370,
+    "creation_date": 1708934001,
+    "last_edit_date": 1709016241,
+    "question_id": 78059333,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78059333/how-to-test-reactive-apis-in-quarkus-using-restassured",
+    "title": "How to test reactive APIs in Quarkus using RestAssured",
+    "body": "<p>I have Quarkus app and I am trying to test my reactive Controller REST APIs using RestAssured.</p>\n<p>And I am using <a href=\"https://smallrye.io/smallrye-mutiny/1.6.0/tutorials/creating-uni-pipelines\" rel=\"nofollow noreferrer\">smallrye-mutiny</a> for developing my REST APIs.</p>\n<p><strong>The issue is when running the test RestAssured is trying to serialize the Uni and it throwing the following exception saying it could not found a serializer for Uni type. :</strong></p>\n<pre><code>Caused by:\n\ncom.fasterxml.jackson.databind.exc.InvalidDefinitionException: Cannot construct instance of \n`io.smallrye.mutiny.Uni` (no Creators, like default constructor, exist): abstract types either \nneed to be mapped to concrete types, have custom deserializer, or contain additional type \ninformation\n\nat [Source: (String) \n{   \n   &quot;header&quot;:{\n      &quot;statusCode&quot;:&quot;99-9999&quot;,\n      &quot;statusDescription&quot;:&quot;com.fasterxml.jackson.databind.exc.InvalidDefinitionException: No serializer found for class io.smallrye.mutiny.operators.uni.builders.UniCreateFromKnownItem and no properties discovered to create BeanSerializer (to avoid exception, disable SerializationFeature.FAIL_ON_EMPTY_BEANS)&quot;    \n    } \n} \n; line: 1, column: 1]\n</code></pre>\n<p>Here is how my code looks like:</p>\n<p>My Service Layer:</p>\n<pre><code>import io.smallrye.mutiny.Uni;\n@ApplicationScoped\npublic class AccountOpeningServiceImpl implements AccountOpeningService {\n\n\n@Override\npublic Uni&lt;GetRandomNumberResponseApi&gt; getRandomNumber(GetRandomNumberRequestApi requestApi) {\n   Uni&lt;GetRandomNumberResponseApi&gt; numberUni = Uni.createFrom().item(() -&gt; GetRandomNumberResponseApi.builder().number(10).build()))\n   return numberUni;\n}\n</code></pre>\n<p>My Controller :</p>\n<pre><code>import io.smallrye.mutiny.Uni;    \n@Path(&quot;&quot;)\npublic class AccountOpeningController {\n\n@Inject\nAccountOpeningService accountOpeningService;\n\n@POST\n@Path(&quot;/random-number&quot;)\npublic Uni&lt;GetRandomNumberResponseApi&gt; getRandomNumber(@Valid GetRandomNumberRequestApi requestApi) {\n    return accountOpeningService.getRandomNumber(requestApi);\n}\n</code></pre>\n<p>And finally here is my test how it looks like.</p>\n<pre><code>@QuarkusTest\npublic class AccountOpeningControllerTest {\n\n@InjectMock\nAccountOpeningService accountOpeningService;\n\n@Inject\nMockUtil mockUtil;\n\n@Test\nvoid getRandomNumber() throws IOException {\n    GetRandomNumberRequestApi requestApi = mockUtil.getMock(&quot;Get_Random_Number_Request.json&quot;,\n            GetRandomNumberRequestApi.class);\n\n    GetRandomNumberResponseApi responseApi = mockUtil.getMock(&quot;Get_Random_Number_Response.json&quot;,\n            GetRandomNumberResponseApi.class);\n    when(accountOpeningService.getRandomNumber(requestApi)).thenReturn(Uni.createFrom().item(responseApi));\n\n    Uni&lt;GetRandomNumberResponseApi&gt; response = given()\n            .contentType(MediaType.APPLICATION_JSON)\n            .body(requestApi)\n            .when()\n            .post(&quot;/get-random-number&quot;)\n            .then()\n            .statusCode(200)\n            .extract()\n            .as(new TypeRef&lt;Uni&lt;GetRandomNumberResponseApi&gt;&gt;() {\n            });\n    \n    GetRandomNumberResponseApi actualResponse = response.subscribe()\n            .withSubscriber(UniAssertSubscriber.create())\n            .assertCompleted()\n            .getItem();\n    Assertions.assertEquals(responseApi, actualResponse);\n}\n</code></pre>\n<p>Any help, advices, resources?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

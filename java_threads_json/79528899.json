@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "microservices",
+      "openfeign"
+    ],
+    "owner": {
+      "account_id": 3235148,
+      "reputation": 388,
+      "user_id": 2729551,
+      "user_type": "registered",
+      "accept_rate": 50,
+      "profile_image": "https://i.sstatic.net/yKtdl.jpg?s=256",
+      "display_name": "Dev",
+      "link": "https://stackoverflow.com/users/2729551/dev"
+    },
+    "is_answered": false,
+    "view_count": 97,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1742730910,
+    "creation_date": 1742730910,
+    "question_id": 79528899,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79528899/how-to-save-data-which-are-dependent-in-different-microservices-using-springboot",
+    "title": "How to save data which are dependent in different microservices using springboot",
+    "body": "<p>I have two microservices(for now) Movie, Show</p>\n<p>MovieEntity.java</p>\n<pre><code> @Entity\n    @Table(name = &quot;MOVIES&quot;)\n    @Data\n    @Builder\n    @NoArgsConstructor\n    @AllArgsConstructor\n    public class Movie {\n    \n        @Id\n        @GeneratedValue(strategy = GenerationType.IDENTITY)\n        private Integer id;\n    \n        @Column(nullable = false)\n        private String movieName;\n    \n        private Double duration;\n    \n        @Column(scale = 2)\n        private Double rating;\n    \n        private Date releaseDate;\n    \n        @Enumerated(value = EnumType.STRING)\n        private Genre genre;\n    \n        @Enumerated(value = EnumType.STRING)\n        private Language language;\n    \n        @OneToMany(mappedBy = &quot;movie&quot;,cascade = CascadeType.ALL)\n        @JsonManagedReference\n        private List&lt;Show&gt; shows = new ArrayList&lt;&gt;();\n    }\n</code></pre>\n<p>MovieService.java</p>\n<pre><code>public void addShowToMovie(Integer movieId, Show show) {\n        Movie movie = movieRepository.findById(movieId)\n                .orElseThrow(() -&gt; new MovieDoesNotExistsException(movieId));\n        //Show show = Transformer.showDtoToShow(showEntryDto);\n        if (movie.getShows() == null) {\n            movie.setShows(new ArrayList&lt;&gt;());\n        }\n        show.setMovie(movie); // Ensure it's linked\n        movie.getShows().add(show);\n        movieRepository.save(movie);\n    }\n</code></pre>\n<p>Similarly in Show microservice,</p>\n<pre><code>@Entity\n@Table(name = &quot;SHOWS&quot;)\n@Data\n@Builder\n@NoArgsConstructor\n@AllArgsConstructor\npublic class Show {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Integer showId;\n\n    private Time time;\n\n    private Date date;\n\n    @ManyToOne\n    @JoinColumn\n    @JsonBackReference\n    private Movie movie;\n\n    @OneToMany(mappedBy = &quot;show&quot;, cascade = CascadeType.ALL)\n    private List&lt;ShowSeat&gt; showSeatList = new ArrayList&lt;&gt;();\n\n    @OneToMany(mappedBy = &quot;show&quot;, cascade = CascadeType.ALL)\n    private List&lt;Ticket&gt; ticketList = new ArrayList&lt;&gt;();\n\n    @ManyToOne\n    @JoinColumn\n    private Theater theater;\n}\n</code></pre>\n<p>ShowService.java</p>\n<pre><code>    public String addShow(ShowEntryDto showEntryDto) {\n        // Validate movieId\n        Movie movie = getMovieById(showEntryDto.getMovieId());\n        Show show = Transformer.showDtoToShow(showEntryDto);\n        show.setMovie(movie);\n\n        // Step 1: Save Show in Show Microservice\n        show = showRepository.save(show);\n        try {\n            // Step 2: Call Movie Microservice to link Show\n            apiGatewayClient.addShowToMovie(movie.getId(), show);\n        } catch (Exception e) {\n            // Step 3: Rollback (Delete the Show) if API call fails\n            e.printStackTrace();\n            showRepository.delete(show);\n            throw new RuntimeException(&quot;Failed to link Show to Movie. Rolling back Show creation.&quot;, e);\n        }\n\n        return &quot;Show has been added Successfully&quot;;\n    }\n\n    private Movie getMovieById(Integer movieId) {\n        try {\n            return apiGatewayClient.getMovie(movieId).getBody();\n        } catch (FeignException.NotFound e) {\n            System.out.println(&quot;Movie not found: &quot; + movieId);\n            throw new MovieDoesNotExistsException(movieId);\n        } catch (FeignException e) {\n            System.out.println(&quot;Movie Service error: &quot; + e.getMessage());\n            throw new RuntimeException(&quot;Movie Service unavailable&quot;);\n        }\n    }\n</code></pre>\n<p>While calling /show/addShow controller,\nthough I am able to save the show first, In movie service while linking the show to movie and save, its throwing below error</p>\n<pre><code>feign.FeignException$InternalServerError: [500] during [POST] to [http://MOVIE-SERVICE/movie/1/shows] [ApiGatewayClient#addShowToMovie(Integer,Show)]: [{&quot;status&quot;:500,&quot;error&quot;:&quot;Internal Server Error&quot;,&quot;message&quot;:&quot;Cannot invoke \\&quot;java.util.List.size()\\&quot; because \\&quot;this.this$0.operationQueue\\&quot; is null&quot;,&quot;path&quot;:&quot;/movie/1/shows&quot;,&quot;timestamp&quot;:&quot;2025-03-23T17:19:12.090776&quot;}]     at feign.FeignException.serverErrorStatus(FeignException.java:281)  at feign.FeignException.errorStatus(FeignException.java:226)\n</code></pre>\n<p>I am new to springboot and microservices architecture, I want to know what is the issue here and apart from using DTO(which has its own drawbacks) and saving List of showId, what is the best way to implement saving of show and linking movie to the show(with casecade preferably).</p>\n<p>Thanks,\nDebasish</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

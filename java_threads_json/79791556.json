@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "redis",
+      "spring-data-redis",
+      "lettuce"
+    ],
+    "owner": {
+      "account_id": 44326141,
+      "reputation": 21,
+      "user_id": 31695579,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/14c94110ea4bc8e91177def41aa67818?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "user31695579",
+      "link": "https://stackoverflow.com/users/31695579/user31695579"
+    },
+    "is_answered": true,
+    "view_count": 151,
+    "accepted_answer_id": 79792345,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1760632807,
+    "creation_date": 1760557396,
+    "last_edit_date": 1760602739,
+    "question_id": 79791556,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79791556/spring-boot-3-with-lettuce-how-to-avoid-sentinel-replicas-command-when-user-lac",
+    "title": "Spring Boot 3 with Lettuce: How to avoid SENTINEL REPLICAS command when user lacks permissions?",
+    "body": "<p>I am setting up a Spring Boot 3 application (using Gradle and Java 17) with Redis Sentinel and the Lettuce client (non-reactive, with RedisTemplate).</p>\n<p>Our infrastructure team has provided a Redis Sentinel setup (1 node) with a master and a replica, along with a dedicated user and password(+ACL). However, on application startup, we encounter a health check failure.</p>\n<pre><code>PoolException: Could not get a resource from the pool\nRedisConnectionException: Unable to connect to redis-sentinel://test:****@&lt;ADDRESS&gt;?sentinelMasterId=&lt;MasterName&gt;&amp;timeout=3s\nRedisCommandExecutionException: NOPERM User test has no permissions to run the 'sentinel|replicas' command. \n</code></pre>\n<p>The infrastructure team confirms they have intentionally restricted this command, because they believe it serves a reactive purpose, where they found a bug that wasn't fixed in recent versions...</p>\n<p>They also suggested that Lettuce can be configured not to use this command. Is this true?</p>\n<p>How can I configure the Lettuce client in a non-reactive Spring Boot application to work without requiring the SENTINEL REPLICAS permission? Are there specific settings, like the ReadFrom strategy or an alternative configuration method, that would avoid this command?</p>\n<p>I'm sure this is standard behavior in both reactive and non-reactive Lettuce modes, and you can't do without this command.</p>\n<p>My configuration: I am using a standard RedisSentinelConfiguration to set up the LettuceConnectionFactory and ReadFrom.Master.</p>\n<pre><code>@Configuration\n@ConditionalOnProperty(prefix = &quot;app.cache.redis&quot;, name = &quot;enabled&quot;, havingValue = &quot;true&quot;)\n@RequiredArgsConstructor\n@Slf4j\npublic class RedisConfig {\n\n  private final CustomRedisProperties customRedisProperties;\n\n  @Bean(destroyMethod = &quot;shutdown&quot;)\n  public ClientResources clientResources() {\n    return DefaultClientResources.create();\n  }\n\n  @Bean\n  public ClientOptions clientOptions() {\n    return ClientOptions.builder()\n        .timeoutOptions(TimeoutOptions.enabled(Duration.ofMillis(customRedisProperties.getConnectTimeout())))\n        .disconnectedBehavior(DisconnectedBehavior.REJECT_COMMANDS)\n        .pingBeforeActivateConnection(true)\n        .autoReconnect(true)\n        .build();\n  }\n\n  @Bean\n  public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {\n    return RedisCacheManager.RedisCacheManagerBuilder\n        .fromConnectionFactory(redisConnectionFactory)\n        .build();\n  }\n\n  @Bean\n  public GenericObjectPoolConfig&lt;?&gt; redisPoolConfig() {\n    GenericObjectPoolConfig&lt;?&gt; genericObjectPoolConfig = new GenericObjectPoolConfig&lt;&gt;();\n    genericObjectPoolConfig.setMaxTotal(customRedisProperties.getMaxActive());\n    genericObjectPoolConfig.setMaxIdle(customRedisProperties.getMaxIdle());\n    genericObjectPoolConfig.setMinIdle(customRedisProperties.getMinIdle());\n    genericObjectPoolConfig.setMaxWait(Duration.ofMillis(customRedisProperties.getMaxWait()));\n    genericObjectPoolConfig.setTestOnBorrow(true);\n    genericObjectPoolConfig.setTestWhileIdle(true);\n    genericObjectPoolConfig.setTimeBetweenEvictionRuns(Duration.ofSeconds(30));\n    genericObjectPoolConfig.setMinEvictableIdleDuration(Duration.ofSeconds(60));\n    genericObjectPoolConfig.setNumTestsPerEvictionRun(3);\n    return genericObjectPoolConfig;\n  }\n\n  @Bean\n  public LettuceClientConfiguration lettuceClientConfiguration(\n      GenericObjectPoolConfig&lt;?&gt; redisPoolConfig,\n      ClientOptions clientOptions,\n      ClientResources clientResources\n  ) {\n    return LettucePoolingClientConfiguration.builder()\n        .poolConfig(redisPoolConfig)\n        .clientOptions(clientOptions)\n        .clientResources(clientResources)\n        .commandTimeout(Duration.ofMillis(customRedisProperties.getCommandTimeout()))\n        .readFrom(ReadFrom.UPSTREAM) //ReadFrom.MASTER\n        .build();\n  }\n\n  @Bean\n  public RedisConnectionFactory redisConnectionFactory(\n      LettuceClientConfiguration lettuceClientConfiguration\n  ) {\n    RedisSentinelConfiguration sentinelConfig = new RedisSentinelConfiguration();\n    sentinelConfig.master(customRedisProperties.getSentinel().getMaster());\n\n    if (Objects.nonNull(customRedisProperties.getSentinel().getPassword())) {\n      sentinelConfig.setSentinelPassword(RedisPassword.of(customRedisProperties.getSentinel().getPassword()));\n    }\n\n    if (Objects.nonNull(customRedisProperties.getSentinel().getUsername())) {\n      sentinelConfig.setSentinelUsername(customRedisProperties.getSentinel().getUsername());\n    }\n\n    if (customRedisProperties.getSupportUsername()\n        &amp;&amp; Objects.nonNull(customRedisProperties.getUsername())) {\n      sentinelConfig.setUsername(customRedisProperties.getUsername());\n    }\n\n    if (Objects.nonNull(customRedisProperties.getPassword())) {\n      sentinelConfig.setPassword(RedisPassword.of(customRedisProperties.getPassword()));\n    }\n\n\n    customRedisProperties.getSentinel().getNodes().forEach(node -&gt; {\n      final var parts = node.split(&quot;:&quot;);\n      sentinelConfig.sentinel(parts[0], Integer.parseInt(parts[1]));\n    });\n\n    final var factory = new LettuceConnectionFactory(sentinelConfig, lettuceClientConfiguration);\n    factory.setShareNativeConnection(false);\n    factory.setValidateConnection(false);\n\n    return factory;\n  }\n\n  @Bean\n  public RedisTemplate&lt;String, Object&gt; redisTemplate(\n      RedisConnectionFactory redisConnectionFactory,\n      ObjectMapper objectMapper) {\n    RedisTemplate&lt;String, Object&gt; template = new RedisTemplate&lt;&gt;();\n    final var serializer = new Jackson2JsonRedisSerializer&lt;&gt;(objectMapper, Object.class);\n\n    template.setKeySerializer(new StringRedisSerializer());\n    template.setValueSerializer(serializer);\n    template.setHashKeySerializer(new StringRedisSerializer());\n    template.setHashValueSerializer(serializer);\n\n    template.setConnectionFactory(redisConnectionFactory);\n\n    return template;\n  }\n\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

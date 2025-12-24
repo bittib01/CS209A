@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-kafka",
+      "kafka-consumer-api"
+    ],
+    "owner": {
+      "account_id": 27542688,
+      "reputation": 59,
+      "user_id": 21019175,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/36ef76055aa0d34be24f79cbe349032b?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "World of Titans",
+      "link": "https://stackoverflow.com/users/21019175/world-of-titans"
+    },
+    "is_answered": false,
+    "view_count": 57,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1732382568,
+    "creation_date": 1732283743,
+    "last_edit_date": 1732382568,
+    "question_id": 79215295,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79215295/kafkaconsumer-api-performance-challenges-and-optimization-suggestions-kafka-cl",
+    "title": "KafkaConsumer API Performance Challenges and Optimization Suggestions ( Kafka clients 3.6.1)",
+    "body": "<p>Scenario is: The user will give the offset as input and based on the offset we need to give 1000 messages from kafka topic and next offset.The kafka topic contains only one partition.</p>\n<p>We are trying to migrate from old kafka to new kafka.In the old kafka we were using code like:</p>\n<p>old code(kafka clients 0.8 .1):</p>\n<pre><code>FetchRequest req = new FetchRequestBuilder().clientId(clientName).addFetch(a_topic,\n        a_partition, readOffset, fetchSize).build();\nFetchResponse fetchResponse = consumer.fetch(req);\nByteBufferMessageSet set = fetchResponse.messageSet(a_topic, a_partition);\n</code></pre>\n<p>This code is super fast and same we are trying to achieve using KafkaConsumer API and getting slowness</p>\n<p>New kafkaconsumer code is using(kafkaclients 3.6 .1)</p>\n<pre><code>TopicPartition topicPartition = new TopicPartition(&quot;Test&quot;, 0);\nconsumer.seekToBeginning(Collections.singletonList(topicPartition));\nlong kafkaEarliestOffset = consumer.position(topicPartition);\ntry (KafkaConsumer &lt; String, String &gt; consumer = KafkaConsumerFactory.createConsumer(clientName, fetchSize)) {\n    consumer.partitionsFor(topicName);\n    consumer.assign(Collections.singletonList(topicPartition));\n    consumer.seek(topicPartition, readOffset);\n    do {\n        ConsumerRecords &lt; String, String &gt; records =\n            consumer.poll(Duration.ofMillis(1500));\n    } while (!end)\n\npublic static KafkaConsumer&lt;String,String&gt; createConsumer(String clientName,int fetchSize) {\n            Properties props = new Properties();\n            String kafkaBrokerStr = Config.getConsumerPropValue(&quot;kafkabrokerslist&quot;);\n            String groupId = Config.getConsumerPropValue(&quot;group.id&quot;);\n            props.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());\n            props.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());\n            props.setProperty(ConsumerConfig.GROUP_ID_CONFIG, &quot;&quot;);\n            props.setProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, &quot;false&quot;);\n            props.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, &quot;earliest&quot;);\n            props.put(ConsumerConfig.FETCH_MIN_BYTES_CONFIG, &quot;1024&quot;);\n            props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG,&quot;500&quot;);\n            props.put(ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG, &quot;500&quot;);\n            return new KafkaConsumer&lt;String,String&gt;(props);\n   }\n</code></pre>\n<p>Code explanation:The assign, seek, finding earliestoffset and fetching records is taking time.</p>\n<pre><code>Poll Records Count: 500 diff: 1284 \nPoll Records Count: 500 diff: 4\n</code></pre>\n<p>For the first 500 records it took 1284 ms and next 500 records it took 4 ms</p>\n<p>why this much difference? I would like to improve the performance of first poll time?</p>\n<p>How can I 1) how to fetch first 500 records in less time 2) efficiently do consumer.assign,consumer.seek and get the earliest offset in kafka?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "maven",
+      "apache-camel",
+      "openapi"
+    ],
+    "owner": {
+      "account_id": 19834004,
+      "reputation": 53,
+      "user_id": 14527999,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/b4e1b015554af5636e2384dda65d75d7?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Malfestio",
+      "link": "https://stackoverflow.com/users/14527999/malfestio"
+    },
+    "is_answered": false,
+    "view_count": 68,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1763414895,
+    "creation_date": 1737624377,
+    "question_id": 79380476,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79380476/apache-camel-spring-boot-possible-to-load-more-than-one-openapi-file",
+    "title": "Apache Camel Spring Boot possible to load more than one openapi file?",
+    "body": "<p>We're currently setting up Apache Camel routes with a contract-first openapi approach within a SpringBoot application. If we only load one file there's no problem and it works without any issues. But we have several openapi files that we'd like to keep separated and that we'd like to load into camel routes, which results in an error. Now we're wondering if it's possible to load more than one openapi file into camel routes and we're just missing a specific configuration or if camel is only able to load a single file. So far we haven't found anything useful within the Apache documentation, stackoverflow and google searches.</p>\n<p>Would appreciate any help.</p>\n<p>Error message:</p>\n<blockquote>\n<p>org.apache.camel.FailedToStartRouteException: Failed to start route route2 because of Multiple consumers for the same endpoint is not allowed: platform-http:///?matchOnUriPrefix=true</p>\n</blockquote>\n<p>My camel routes:</p>\n<p>foo.camel.yaml</p>\n<pre><code>- rest:\n    openApi:\n      specification: &quot;openapi/foo.yml&quot;\n      missingOperation: &quot;ignore&quot;\n- route:\n    id: &quot;foo&quot;\n    from:\n      uri: &quot;direct:foo&quot;\n      steps:\n        - log:\n            message: &quot;Foo works&quot;\n</code></pre>\n<p>foobar.camel.yaml</p>\n<pre><code>- rest:\n    openApi:\n      specification: &quot;openapi/foobar.yml&quot;\n      missingOperation: &quot;ignore&quot;\n- route:\n    id: &quot;foobar&quot;\n    from:\n      uri: &quot;direct:foobar&quot;\n      steps:\n        - log:\n            message: &quot;foobar works&quot;\n</code></pre>\n<p>My openapi files:</p>\n<p>openapi\\foo.yml</p>\n<pre><code>openapi: &quot;3.0.3&quot;\ninfo:\n  title: &quot;FOO&quot;\ntags:\n- name: &quot;foo&quot;\n  description: &quot;Foo Test Openapi file&quot;\npaths:\n  /foo:\n    post:\n      tags:\n      - &quot;foo&quot;\n      summary: &quot;Interface for foo operation&quot;\n      operationId: &quot;foo&quot;\n      requestBody:\n        content:\n          application/json:\n            schema:\n              type: &quot;object&quot;\n      responses:\n        &quot;200&quot;:\n          description: &quot;Successful operation foo&quot;\n</code></pre>\n<p>openapi\\foobar.yml</p>\n<pre><code>openapi: &quot;3.0.3&quot;\ninfo:\n  title: &quot;FOOBAR&quot;\ntags:\n- name: &quot;foobar&quot;\n  description: &quot;Foobar Test Openapi file&quot;\npaths:\n  /foobar:\n    post:\n      tags:\n        - &quot;foobar&quot;\n      summary: &quot;Interface for foobar operation&quot;\n      operationId: &quot;foobar&quot;\n      requestBody:\n        content:\n          application/json:\n            schema:\n              type: &quot;object&quot;\n      responses:\n        &quot;200&quot;:\n          description: &quot;Successful operation foobar&quot;\n</code></pre>\n<p>My pom.xml</p>\n<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;\n&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;\n    xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&gt;\n    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;\n    &lt;parent&gt;\n        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n        &lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;\n        &lt;version&gt;3.3.5&lt;/version&gt;\n        &lt;relativePath/&gt;\n    &lt;/parent&gt;\n    &lt;groupId&gt;com.test&lt;/groupId&gt;\n    &lt;artifactId&gt;camel-rest-dsl&lt;/artifactId&gt;\n    &lt;version&gt;0.0.1-SNAPSHOT&lt;/version&gt;\n    &lt;name&gt;camel-rest-dsl&lt;/name&gt;\n    &lt;description&gt;Demo project for Camel Rest DSL&lt;/description&gt;\n\n    &lt;properties&gt;\n        &lt;java.version&gt;17&lt;/java.version&gt;\n        &lt;camel-springboot.version&gt;4.8.2&lt;/camel-springboot.version&gt;\n    &lt;/properties&gt;\n\n    &lt;dependencies&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n            &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.apache.camel.springboot&lt;/groupId&gt;\n            &lt;artifactId&gt;camel-yaml-dsl-starter&lt;/artifactId&gt;\n            &lt;version&gt;${camel-springboot.version}&lt;/version&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.apache.camel.springboot&lt;/groupId&gt;\n            &lt;artifactId&gt;camel-http-starter&lt;/artifactId&gt;\n            &lt;version&gt;${camel-springboot.version}&lt;/version&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.apache.camel.springboot&lt;/groupId&gt;\n            &lt;artifactId&gt;camel-rest-openapi-starter&lt;/artifactId&gt;\n            &lt;version&gt;${camel-springboot.version}&lt;/version&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.apache.camel.springboot&lt;/groupId&gt;\n            &lt;artifactId&gt;camel-platform-http-starter&lt;/artifactId&gt;\n            &lt;version&gt;${camel-springboot.version}&lt;/version&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.apache.camel.springboot&lt;/groupId&gt;\n            &lt;artifactId&gt;camel-direct-starter&lt;/artifactId&gt;\n            &lt;version&gt;${camel-springboot.version}&lt;/version&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n            &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;\n            &lt;scope&gt;test&lt;/scope&gt;\n        &lt;/dependency&gt;\n    &lt;/dependencies&gt;\n&lt;/project&gt;\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

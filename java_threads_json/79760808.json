@@ -1,0 +1,31 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "pdfbox"
+    ],
+    "owner": {
+      "account_id": 41685303,
+      "reputation": 11,
+      "user_id": 30404070,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/0e488b6f0ec8626d120a461b7f52bb98?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Kyle KYL",
+      "link": "https://stackoverflow.com/users/30404070/kyle-kyl"
+    },
+    "is_answered": false,
+    "view_count": 88,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1757504308,
+    "creation_date": 1757504308,
+    "question_id": 79760808,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79760808/check-pdf-with-corrupt-pages-using-apache-pdfbox",
+    "title": "Check PDF with corrupt pages using Apache PDFBox",
+    "body": "<p>I've the following PDF where the 2nd page is corrupted with the error Insufficient data for an image\n<a href=\"https://drive.google.com/file/d/16E1ZCBjweWeDixY-vcLghQkFa2CiMbx5/view?usp=sharing\" rel=\"nofollow noreferrer\">https://drive.google.com/file/d/16E1ZCBjweWeDixY-vcLghQkFa2CiMbx5/view?usp=sharing</a></p>\n<p><a href=\"https://i.sstatic.net/izewxqj8.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/izewxqj8.png\" alt=\"enter image description here\" /></a></p>\n<p>Is it possible to use Apache PDFBox to check for page corruption? I've tried using the below code but it passes the parse check and I can't find anything in the validation result that returns data image error</p>\n<pre><code>package com.pictureworks.util;\n\nimport org.apache.pdfbox.preflight.PreflightConstants;\nimport org.apache.pdfbox.preflight.parser.PreflightParser;\n\nimport java.util.List;\nimport java.util.Set;\nimport java.util.stream.Collectors;\n\npublic class PreflightTest {\n    private static final Set&lt;String&gt; CHECKED_ERRORS = Set.of(PreflightConstants.ERROR_SYNTAX_COMMON,\n            PreflightConstants.ERROR_SYNTAX_BODY);\n\n    public static void main(String[] args) {\n        try {\n            var parser = new PreflightParser(&quot;corrupt_2.pdf&quot;);\n            parser.parse();\n\n            try (var document = parser.getPreflightDocument()) {\n                document.validate();\n                var result = document.getResult();\n                result.getErrorsList();\n\n                if (!result.getErrorsList().isEmpty()) {\n                    // There are lots of preflight errors but we'll only want pdf structure and metadata errors\n                    List&lt;String&gt; errors = result.getErrorsList().stream()\n                            .map(e -&gt; e.getErrorCode())\n                            .filter(ec -&gt; CHECKED_ERRORS.contains(ec))\n                            .collect(Collectors.toList());\n                    if (!errors.isEmpty()) {\n                        throw new RuntimeException(org.apache.commons.lang3.StringUtils.join(errors, &quot;,&quot;));\n                    }\n                }\n            }\n        } catch (Exception e) {\n            e.printStackTrace();\n        }\n    }\n}\n\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

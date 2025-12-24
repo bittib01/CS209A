@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-batch",
+      "spring-transactions"
+    ],
+    "owner": {
+      "account_id": 2161358,
+      "reputation": 45221,
+      "user_id": 1915448,
+      "user_type": "registered",
+      "accept_rate": 96,
+      "profile_image": "https://www.gravatar.com/avatar/51afb9344f8a44e60916753d37186513?s=256&d=identicon&r=PG",
+      "display_name": "Dimitri Mestdagh",
+      "link": "https://stackoverflow.com/users/1915448/dimitri-mestdagh"
+    },
+    "is_answered": false,
+    "view_count": 51,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1763645932,
+    "creation_date": 1763633246,
+    "last_edit_date": 1763645932,
+    "question_id": 79825366,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79825366/multiresourceitemwriter-does-not-work-with-transactional-staxeventitemwriter",
+    "title": "MultiResourceItemWriter does not work with transactional StaxEventItemWriter",
+    "body": "<p>I configured a <code>StaxEventItemWriter</code> like this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Bean\npublic StaxEventItemWriter&lt;Foo&gt; fooWriter() {\n    return new StaxEventItemWriterBuilder&lt;Foo&gt;()\n        .name(&quot;fooWriter&quot;)\n        .marshaller(marshaller())\n        .rootTagName(&quot;foos&quot;)\n        .build();\n}\n</code></pre>\n<p>And a <code>MultiResourceItemWriter</code> like this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Bean\npublic MultiResourceItemWriter&lt;Foo&gt; multiFooWriter() {\n    return new MultiResourceItemWriterBuilder&lt;Foo&gt;()\n        .name(&quot;multiFooWriter&quot;)\n        .delegate(fooWriter())\n        .itemCountLimitPerResource(100)\n        .resourceSuffixCreator(index -&gt; &quot;-&quot; + index + &quot;.xml&quot;)\n        .resource(new FileSystemResource(&quot;foo&quot;))\n        .build();\n}\n</code></pre>\n<p>However, when I run a batch using these writers, I get the following exception:</p>\n<pre><code>Caused by: java.nio.channels.ClosedChannelException: null\n    at java.base/sun.nio.ch.FileChannelImpl.ensureOpen(FileChannelImpl.java:160) ~[na:na]\n    at java.base/sun.nio.ch.FileChannelImpl.write(FileChannelImpl.java:284) ~[na:na]\n    at org.springframework.batch.support.transaction.TransactionAwareBufferedWriter$1.complete(TransactionAwareBufferedWriter.java:121) ~[spring-batch-infrastructure-5.2.4.jar:5.2.4]\n    at org.springframework.batch.support.transaction.TransactionAwareBufferedWriter$1.beforeCommit(TransactionAwareBufferedWriter.java:106) ~[spring-batch-infrastructure-5.2.4.jar:5.2.4]\n    ... 44 common frames omitted\n</code></pre>\n<p>I noticed it seems to have something to do with the transactional flushing, so I tried disabling transactions on the <code>StaxEventItemWriter</code> and then it indeed works:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Bean\npublic StaxEventItemWriter&lt;Foo&gt; fooWriter() {\n    return new StaxEventItemWriterBuilder&lt;Foo&gt;()\n        .name(&quot;fooWriter&quot;)\n        .marshaller(marshaller())\n        .rootTagName(&quot;foos&quot;)\n        .transactional(false) // Adding this works\n        .build();\n}\n</code></pre>\n<p>In addition, if I write to a single large XML file (eg. by using <code>fooWriter()</code> directly in my <code>Step</code> configuration in stead of <code>multiFooWriter()</code>), then the job also succeeds.</p>\n<p>Is there a reason why <code>StaxEventItemWriter</code> combined with <code>MultiResourceItemWriter</code> does not work with transactions?</p>\n<p>For completeness of the example, this is the <code>Foo</code> class I used and the <code>ItemReader</code> (but that's irrelevant to the question as the problem occurs with any reader/JAXB class):</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Getter\n@XmlRootElement(name = &quot;foo&quot;)\n@XmlType(propOrder = { &quot;itemCount&quot; })\n@NoArgsConstructor\npublic class Foo implements ItemCountAware {\n    private int itemCount;\n\n    @Override\n    @XmlElement(name = &quot;count&quot;)\n    public void setItemCount(int count) {\n        this.itemCount = count;\n    }\n}\n</code></pre>\n<p>For the reader I'm using <code>AbstractItemCountingItemStreamItemReader</code> in combination with <code>ItemCountAware</code> to generate some unique <code>Foo</code> POJO's (but it's irrelevant to the problem):</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Component\npublic class FooReader extends AbstractItemCountingItemStreamItemReader&lt;Foo&gt; {\n    public FooReader() {\n        setName(&quot;fooReader&quot;);\n        setMaxItemCount(10000);\n    }\n\n    @Override\n    protected Foo doRead() {\n        return new Foo();\n    }\n\n    @Override\n    protected void doOpen() {\n\n    }\n\n    @Override\n    protected void doClose() {\n\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

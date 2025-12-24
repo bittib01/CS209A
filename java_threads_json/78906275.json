@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "amazon-web-services",
+      "http",
+      "amazon-s3"
+    ],
+    "owner": {
+      "account_id": 35079803,
+      "reputation": 11,
+      "user_id": 26965876,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/394bf743fc5800f4d7f220a461b74b14?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Mikhail Tarasov",
+      "link": "https://stackoverflow.com/users/26965876/mikhail-tarasov"
+    },
+    "is_answered": true,
+    "view_count": 175,
+    "accepted_answer_id": 79227317,
+    "answer_count": 2,
+    "score": 1,
+    "last_activity_date": 1732634855,
+    "creation_date": 1724421467,
+    "last_edit_date": 1724421667,
+    "question_id": 78906275,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78906275/cant-upload-file-with-big-size-on-stand-socketexception-connection-reset-by-p",
+    "title": "Can&#39;t upload file with big size on stand. SocketException: Connection reset by peer AWS S3 Java Spring",
+    "body": "<p>When I try to upload files to S3 from storage via an application deployed on the stand with a file size of 1mb and above, I get an error</p>\n<pre><code>com.amazonaws.SdkClientException exception: The HTTP request cannot be executed: The peer resets the connection.\n</code></pre>\n<p>Everything is working locally. All files is uploading without errors.</p>\n<p>Without a config</p>\n<pre><code>request.getRequestClientOptions().setReadLimit(custom buffer size); \n</code></pre>\n<p>I get an error like this</p>\n<pre><code>The request to the service failed for a reason that can be repeated, but the reset of the request input stream failed. See exception.getExtraInfo or the debug log for information about the initial failure that caused this retry.; If the request includes an input stream, the maximum size of the stream buffer can be configured using request.getRequestClientOptions().setReadLimit(int)\n</code></pre>\n<p>Although locally, without any settings, everything is ok</p>\n<p>Previously, I caught an error, the server address with the bucket was specified with https instead http, files were loaded a couple of kb in size, 100 kb was an http error &lt;Remote end is closed&gt;</p>\n<p>method code:</p>\n<pre><code>public ResponseEntity uploadFile(String catalogId, MultipartFile file) {\n        if (file == null || file.isEmpty()) {\n            return ResponseEntity.status(400).body(new ErrorResponse(&quot;Файл не передан&quot;));\n        }\n        if (file.getSize() &gt; maxFileSize * 1024 * 1024) {\n            return ResponseEntity.status(PAYLOAD_TOO_LARGE).contentType(MediaType.APPLICATION_JSON).body(new ErrorResponse(&quot;Размер файла не должен превышать: &quot; + maxFileSize + &quot; Мб&quot;));\n        }\n        log.info(&quot;Начинаем загрузку файла: {}&quot;, file.getOriginalFilename());\n        String filePath = PathGenerator.generateFileUri(catalogId);\n        try {\n//            if (checkExists(filePath)) {\n//                log.info(&quot;Такой файл уже есть, удаляем для создания нового&quot;);\n//                deleteFile(filePath);\n//            }\n            ObjectMetadata meta = new ObjectMetadata();\n            meta.setContentType(file.getContentType());\n            meta.setContentLength(file.getSize());\n            meta.addUserMetadata(&quot;originalFileName&quot;, URLEncoder.encode(requireNonNull(file.getOriginalFilename()), StandardCharsets.UTF_8));\n            PutObjectRequest request = new PutObjectRequest(bucketName, filePath, file.getInputStream(), meta);\n            if (isCustomBufferSize) {\n                request.getRequestClientOptions().setReadLimit(customBufferSize);\n            }\n            awsConfig.getAwsClient().putObject(request);\n            log.info(&quot;Файл успешно загружен!&quot;);\n            HashMap&lt;String, String&gt; response = new HashMap&lt;&gt;();\n            response.put(&quot;fileUuid&quot;, filePath);\n            return ResponseEntity.ok().body(response);\n        } catch (Exception e) {\n            log.error(e.getMessage(), e);\n            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(new ErrorResponse(&quot;Ошибка записи: &quot; + e.getMessage()));\n        }\n    }\n</code></pre>\n<p>AwsConfig code:</p>\n<pre><code>public AmazonS3 getAwsClient() {\n        String str = s3endpoint;\n        String[] arr = str.split(&quot;://&quot;);\n\n        String endpoint;\n        Protocol protocol;\n        if (arr.length == 1) {\n            protocol = Protocol.HTTP;\n            endpoint = str;\n        } else {\n            protocol = (arr[0].equalsIgnoreCase(Protocol.HTTPS.name())) ? Protocol.HTTPS : Protocol.HTTP;\n            endpoint = arr[1];\n        }\n        ClientConfiguration clientConfig = new ClientConfiguration();\n        clientConfig.setProtocol(protocol);\n        clientConfig.setSocketTimeout(60000);\n        if (endpoint.contains(&quot;10.241.34.61&quot;)) {\n            return AmazonS3ClientBuilder.standard()\n                    .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKey, secretKey)))\n                    .withClientConfiguration(clientConfig)\n                    .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(endpoint, Region.EU_Ireland.getFirstRegionId()))\n                    .withPathStyleAccessEnabled(true)\n                    .build();\n        } else {\n            return AmazonS3ClientBuilder.standard()\n                    .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKey, secretKey)))\n                    .withClientConfiguration(clientConfig)\n                    .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(endpoint, Region.US_Standard.getFirstRegionId()))\n                    .withPathStyleAccessEnabled(true)\n                    .build();\n        }\n\n    }\n</code></pre>\n<p>Configs of aws fully identitive on local and remote application.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

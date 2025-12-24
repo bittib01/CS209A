@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "javafx"
+    ],
+    "owner": {
+      "account_id": 44220432,
+      "reputation": 21,
+      "user_id": 31639703,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/ad62ef9062ff8032238691bb2ef82ddf?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Aikman",
+      "link": "https://stackoverflow.com/users/31639703/aikman"
+    },
+    "is_answered": true,
+    "view_count": 85,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1760015026,
+    "creation_date": 1759780498,
+    "last_edit_date": 1759780737,
+    "question_id": 79784030,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79784030/how-do-i-get-the-pixels-in-an-image-object-that-contribute-to-the-pixel-in-the-i",
+    "title": "How do I get the pixels in an Image object that contribute to the pixel in the ImageView object at a particular location in the imageview object",
+    "body": "<p>Please how do I get the pixels in the Image object that contribute to the pixel in the ImageView object at a particular location in the ImageView object. Smooth is true and preserveRatio is false.</p>\n<p>I am writing a programming in javafx that will be able to crop an imageview object. The crop region will be the area that intersects a rectangle. I don't want to directly map each location in the imageview to the equivalent location in the image object because javafx uses bilinear interpolation to display an image object in an imageview. Mapping pixel to pixel creates a blurred image when enlarged.</p>\n<pre><code>public Color getDisplayedColorAt(ImageView imageView, double xView, double yView) {\n        Image image = imageView.getImage();\n        \n        if (image == null || image.getPixelReader() == null) {\n            return Color.TRANSPARENT;\n        }\n\n        PixelReader reader = image.getPixelReader();\n\n        // Get actual dimensions\n        double imageWidth = image.getWidth();\n        double imageHeight = image.getHeight();\n        double viewWidth = imageView.getFitWidth();\n        double viewHeight = imageView.getFitHeight();\n\n        // Map ImageView coordinate → Image coordinate\n        double scaleX = imageWidth / viewWidth;\n        double scaleY = imageHeight / viewHeight;\n\n        double imgX = (xView + 0.5) * scaleX - 0.5;\n        double imgY = (yView + 0.5) * scaleY - 0.5;\n\n        // Base coordinates and fractional parts\n        int x0 = (int) Math.floor(imgX);\n        int y0 = (int) Math.floor(imgY);\n        double fx = imgX - x0;\n        double fy = imgY - y0;\n\n        // Clamp neighbors\n        int x1 = clamp(x0 + 1, 0, (int) imageWidth - 1);\n        int y1 = clamp(y0 + 1, 0, (int) imageHeight - 1);\n        x0 = clamp(x0, 0, (int) imageWidth - 1);\n        y0 = clamp(y0, 0, (int) imageHeight - 1);\n\n        // Read contributing colors\n        Color c00 = reader.getColor(x0, y0);\n        Color c10 = reader.getColor(x1, y0);\n        Color c01 = reader.getColor(x0, y1);\n        Color c11 = reader.getColor(x1, y1);\n\n        // Bilinear interpolation\n        double r = bilerp(c00.getRed(), c10.getRed(), c01.getRed(), c11.getRed(), fx, fy);\n        double g = bilerp(c00.getGreen(), c10.getGreen(), c01.getGreen(), c11.getGreen(), fx, fy);\n        double b = bilerp(c00.getBlue(), c10.getBlue(), c01.getBlue(), c11.getBlue(), fx, fy);\n        double a = bilerp(c00.getOpacity(), c10.getOpacity(), c01.getOpacity(), c11.getOpacity(), fx, fy);\n\n        return new Color(r, g, b, a);\n    }\n\n    // Bilinear interpolation\n    private double bilerp(double c00, double c10, double c01, double c11, double fx, double fy) {\n        double i1 = c00 * (1 - fx) + c10 * fx;\n        double i2 = c01 * (1 - fx) + c11 * fx;\n        return i1 * (1 - fy) + i2 * fy;\n    }\n\n    // Clamp helper\n    private int clamp(int val, int min, int max) {\n        return Math.max(min, Math.min(max, val));\n    }\n</code></pre>\n<p>The code above is from ChatGPT but it doesn't work. It doesn't give the pixels at the specified location or region</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

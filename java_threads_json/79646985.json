@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "thymeleaf",
+      "spring-thymeleaf"
+    ],
+    "owner": {
+      "account_id": 12265575,
+      "reputation": 78,
+      "user_id": 8952212,
+      "user_type": "registered",
+      "accept_rate": 25,
+      "profile_image": "https://www.gravatar.com/avatar/c19d54674f0d8034532e446f40e6155a?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "zetbo",
+      "link": "https://stackoverflow.com/users/8952212/zetbo"
+    },
+    "is_answered": false,
+    "view_count": 111,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1762182014,
+    "creation_date": 1748725013,
+    "question_id": 79646985,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79646985/thymeleaf-thobject-with-thwith-variable",
+    "title": "Thymeleaf th:object with th:with variable",
+    "body": "<p>I'm trying to centralize my Spring Model attribute names in a ModelConstants class for better refactoring safety, but I'm encountering persistent issues when trying to use these constants with th:object in Thymeleaf forms. While accessing constants for th:if or th:each works well, th:object seems to be problematic.</p>\n<p>My goal is to have a single source of truth for all model attribute names (e.g., &quot;doctorSearchForm&quot;) using public static final String constants in a Java class, and to use these constants in both my backend Spring controllers and my Thymeleaf templates. This ensures that if I change a model attribute name, I only change it in one place.</p>\n<p>ModelConstants class</p>\n<pre><code>    public final class ModelConstants {\n\n          public static final String DOCTOR_SEARCH_FORM = &quot;doctorSearchForm&quot;;\n          public static final String DOCTOR_SEARCH_RESULTS = &quot;doctorSearchResults&quot;;\n          public static final String PAGE_ALERT_LIST = &quot;pageAlerts&quot;;\n\n          private ModelConstants() {}\n    }\n</code></pre>\n<p>Controller class</p>\n<pre><code>@GetMapping(&quot;/booking&quot;)\npublic String booking(Model model) {\n    if (!model.containsAttribute(ModelConstants.DOCTOR_SEARCH_FORM)) {\n          model.addAttribute(ModelConstants.DOCTOR_SEARCH_FORM, new DoctorSearchDto());\n    }\n    return &quot;booking&quot;;\n}\n</code></pre>\n<p>Template (html)</p>\n<pre><code>&lt;div class=&quot;doctor-search&quot;\n    th:with=&quot;searchForm=${#vars[T(com.example.model.ModelConstants).DOCTOR_SEARCH_FORM]}&quot;&gt;\n\n    &lt;form id=&quot;doctor-search-form&quot;\n        th:if=&quot;${searchForm != null}&quot;\n        th:action=&quot;@{/api/search}&quot;\n        th:object=&quot;${searchForm}&quot;&gt; // ISSUE HERE\n\n        ...\n\n    &lt;/form&gt;   \n\n&lt;/div&gt;\n</code></pre>\n<p>Thymeleaf does not seem to like me trying to bind a from using th:object and the form object referenced via the variable, and a long exception is thrown, with one of the messages stating:</p>\n<pre><code>IllegalStateException: Neither BindingResult nor plain target object for bean name 'searchForm' available as request attribute\n</code></pre>\n<p>I have tried setting the element's 'id' attribtue to 'searchForm' and upon inspection of generated HTML code it does show the actual <code>DoctorSearchDto</code> object and its values stored:</p>\n<pre><code>&lt;form id=&quot;doctor-search-form&quot;\n       th:if=&quot;${searchForm != null}&quot;\n       th:id=&quot;${searchForm}&quot; // DoctorSearchDto(...)\n\n</code></pre>\n<p>When I change 'searchForm' to the actual name of the object in the model - 'doctorSearchForm', everything works fine, but it somehow defeats the purpose of having a centralized class for the names. Is what I'm trying to achieve possible?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "postgresql",
+      "jdbc",
+      "amazon-rds",
+      "amazon-iam"
+    ],
+    "owner": {
+      "account_id": 24749601,
+      "reputation": 73,
+      "user_id": 18635292,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/4DoiN.jpg?s=256",
+      "display_name": "Caio Fernandes",
+      "link": "https://stackoverflow.com/users/18635292/caio-fernandes"
+    },
+    "is_answered": false,
+    "view_count": 1403,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1737600750,
+    "creation_date": 1717781429,
+    "question_id": 78593346,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78593346/using-aws-advanced-jdbc-wrapper-to-make-a-secure-ssl-and-iam-based-connection-to",
+    "title": "Using aws-advanced-jdbc-wrapper to make a secure SSL and IAM based connection to Aurora Postgres",
+    "body": "<p>I recently discovered that <a href=\"https://github.com/aws/aws-advanced-jdbc-wrapper\" rel=\"nofollow noreferrer\">aws-advanced-jdbc-wrapper</a> is a great library to handle RDS IAM based authentication, since it will refresh the token dynamically for me, so I follow the tutorial in this <a href=\"https://github.com/aws/aws-advanced-jdbc-wrapper/blob/main/examples/AWSDriverExample/src/main/java/software/amazon/AwsIamAuthenticationPostgresqlExample.java\" rel=\"nofollow noreferrer\">page</a>:</p>\n<pre class=\"lang-kotlin prettyprint-override\"><code>package software.amazon;\n\nimport software.amazon.jdbc.PropertyDefinition;\nimport java.sql.Connection;\nimport java.sql.DriverManager;\nimport java.sql.ResultSet;\nimport java.sql.SQLException;\nimport java.sql.Statement;\nimport java.util.Properties;\n\npublic class AwsIamAuthenticationPostgresqlExample {\n  public static final String POSTGRESQL_CONNECTION_STRING =\n      &quot;jdbc:aws-wrapper:postgresql://db-identifier.XYZ.us-east-2.rds.amazonaws.com:5432/employees&quot;;\n  private static final String USERNAME = &quot;john_smith&quot;;\n\n  public static void main(String[] args) throws SQLException {\n\n    final Properties properties = new Properties();\n\n    // Enable AWS IAM database authentication and configure driver property values\n    properties.setProperty(PropertyDefinition.PLUGINS.name, &quot;iam&quot;);\n    properties.setProperty(PropertyDefinition.USER.name, USERNAME);\n\n    // Attempt a connection\n    try (Connection conn = DriverManager.getConnection(POSTGRESQL_CONNECTION_STRING, properties);\n        Statement statement = conn.createStatement();\n        ResultSet result = statement.executeQuery(&quot;select aurora_db_instance_identifier()&quot;)) {\n\n      System.out.println(Util.getResult(result));\n    }\n  }\n}\n</code></pre>\n<p>The only problem with this approach is that I receive an error:</p>\n<p><code>org.postgresql.util.PSQLExeption: FATAL: PAM authentication failed for user john_smith ...</code></p>\n<p>And that make sense, I'm not providing any certs or ssl information.</p>\n<p>I tried to connect using the <code>psql</code> CLI and it worked:</p>\n<pre class=\"lang-bash prettyprint-override\"><code>psql &quot;host=$RDSHOST port=$RDSPORT sslmode=verify-ca sslrootcert=global-bundle.pem user=$RDSUSER dbname=$RDSDB&quot;\n</code></pre>\n<p>So my guess is that I just forgot to provide this properties to my application, so I did and tried again:</p>\n<pre class=\"lang-kotlin prettyprint-override\"><code>    properties.setProperty(&quot;sslrootcert&quot;, &quot;&lt;PATH_TO_GLOBAL_BUNDLE&gt;&quot;);\n    properties.setProperty(&quot;ssl&quot;, true);\n    properties.setProperty(&quot;sslmode&quot;, &quot;verify-ca&quot;);\n</code></pre>\n<p>No lucky, same error.</p>\n<p>Then I imported my global-bundle.pem to my ca-certs using:</p>\n<pre class=\"lang-bash prettyprint-override\"><code>keytool -importcert -alias aws-certs -trustcacerts -file /path/to/global-bundle.pem -storepass changeit -cacerts  -noprompt\n</code></pre>\n<p>This time my message error changed (IDK if I'm getting closer or distant from the final solution:</p>\n<p><code>org.postgresql.util.PSQLExeption: Could not open SSL root certificate file /home/&lt;MY_USER&gt;/.postgresql/root.crt</code></p>\n<p>Any thoughts on how to do this please? What am I missing?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

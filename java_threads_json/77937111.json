@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "servlets",
+      "virtual-threads"
+    ],
+    "owner": {
+      "account_id": 5974754,
+      "reputation": 326,
+      "user_id": 4696034,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/e782256e2c8b2a3e4b495362ac8adc2a?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "ReactionTime",
+      "link": "https://stackoverflow.com/users/4696034/reactiontime"
+    },
+    "is_answered": true,
+    "view_count": 5810,
+    "accepted_answer_id": 77938687,
+    "answer_count": 1,
+    "score": 16,
+    "last_activity_date": 1724074980,
+    "creation_date": 1707071811,
+    "question_id": 77937111,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77937111/utilizing-logging-mdc-with-virtual-threads",
+    "title": "Utilizing Logging MDC with Virtual Threads",
+    "body": "<p>In a typical servlet environment, each request gets its own thread. Adding logging MDC to generate a unique request ID to the request can be achieved with a simple servlet filter.</p>\n<pre><code>public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {\n    try {\n        String requestId = UUID.randomUUID().toString();\n        HttpServletResponse httpServletResponse = (HttpServletResponse)response;\n        httpServletResponse.setHeader(&quot;requestId&quot;, requestId);\n        MDC.put(&quot;requestId&quot;, requestId);\n        chain.doFilter(request, response);\n    } finally {\n        MDC.remove(&quot;requestId&quot;);\n    }\n}\n</code></pre>\n<p>Logging configuration.</p>\n<pre><code>&lt;Pattern&gt;%d %-5level %X{requestId} [%t] %C{10}:%L %m%n&lt;/Pattern&gt;\n</code></pre>\n<p>Sample logging.</p>\n<pre><code>2024-02-04 10:29:55,160 INFO  99cd4d64-5d7c-4577-a5d3-cb8d48d1dfd5 [http-nio-8080-exec-6] c.s.q.UserController:65 Deleteing user 'test'\n2024-02-04 10:29:55,260 INFO  99cd4d64-5d7c-4577-a5d3-cb8d48d1dfd5 [http-nio-8080-exec-6] c.s.q.UserController:70 Successfully deleted user 'test'\n</code></pre>\n<p>With Virtual Threads in Java 21+, I'm under the impression a thread can automatically suspended a request while it's waiting on any IO and the thread can begin working on other requests. In this scenario it seems like the logging MDC can &quot;bleed&quot; into other request logs as the thread begins serving other requests. How can I work around this so I can continue to have a unique value added to each request's logging statements?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

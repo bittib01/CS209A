@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "pkcs#11",
+      "hardware-security-module",
+      "cryptoki"
+    ],
+    "owner": {
+      "account_id": 3253983,
+      "reputation": 1595,
+      "user_id": 2743585,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/a50fa6d45c5ed5b96235e5eb85b08846?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "wi2ard",
+      "link": "https://stackoverflow.com/users/2743585/wi2ard"
+    },
+    "is_answered": true,
+    "view_count": 635,
+    "accepted_answer_id": 79149685,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1758140438,
+    "creation_date": 1728397515,
+    "last_edit_date": 1728399150,
+    "question_id": 79066456,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79066456/pkcs11-with-luna-cloud-hsm-private-key-listed-with-cmu-list-is-not-found-in-ja",
+    "title": "Pkcs#11 with Luna Cloud HSM: private key listed with cmu list is not found in Java KeyStore",
+    "body": "<p>Connecting to Luna Cloud HSM I am able to add a RSA private key to the HSM (either by <code>cmu importkey</code> or by <code>cmu gen</code>) and the command-line tool <code>cmu list</code> displays this key from the server.</p>\n<p>I am connecting to the HSM using Pkcs#11 with minimal configuration file</p>\n<pre><code>name=LunaHsm\ndescription=SunPKCS11 accessing LunaHsm\nlibrary=libCryptoki2.so\nshowInfo=true\nslot=3\n</code></pre>\n<p>But I cannot find the private key as I was expecting. I enabled logging for <code>java.security.debug=sunpkcs11</code> (log bellow) and the Java code is correctly initializing the PKCS#11 library, listing the correct information for the provider SunPKCS11-LunaHsm, it finds the correct slot but it only finds the secret keys present on this slot, without the private key I was expecting to find. I'm using OpenJdk 11.0.18</p>\n<pre><code>SunPKCS11 loading lunahsm-pkcs11.cfg\nsunpkcs11: Initializing PKCS#11 library libCryptoki2.so\nInformation for provider SunPKCS11-LunaHsm\nLibrary info:\n  cryptokiVersion: 2.20\n  manufacturerID: SafeNet                         \n  flags: 0\n  libraryDescription: Chrystoki                       \n  libraryVersion: 10.07\nAll slots: 0, 1, 2, 3\nSlots with tokens: 3\nSlot info for slot 3:\n  slotDescription: Net Token Slot                                                  \n  manufacturerID: SafeNet                         \n  flags: CKF_TOKEN_PRESENT | CKF_REMOVABLE_DEVICE | CKF_HW_SLOT\n  hardwareVersion: 0.00\n  firmwareVersion: 0.00\nToken info for token in slot 3:\n  label: my_partition          \n  manufacturerID: SafeNet                         \n  model: Cryptovisor7    \n  serialNumber: 123123   \n  flags: CKF_RNG | CKF_LOGIN_REQUIRED | CKF_USER_PIN_INITIALIZED | CKF_RESTORE_KEY_NOT_NEEDED | CKF_TOKEN_INITIALIZED\n  ulMaxSessionCount: CK_EFFECTIVELY_INFINITE\n  ulSessionCount: 1\n  ulMaxRwSessionCount: CK_EFFECTIVELY_INFINITE\n  ulRwSessionCount: 1\n  ulMaxPinLen: 255\n  ulMinPinLen: 7\n  ulTotalPublicMemory: 159744\n  ulFreePublicMemory: 156528\n  ulTotalPrivateMemory: 159744\n  ulFreePrivateMemory: 156528\n  hardwareVersion: 0.00\n  firmwareVersion: 7.03\n  utcTime: 20241008132333  \n&lt;list of Mechanisms&gt;\nsunpkcs11: login succeeded\n</code></pre>\n<p>If I use the Luna JSP LunaProvider.jar then I can find also the private keys:</p>\n<pre class=\"lang-java prettyprint-override\"><code>Security.addProvider(new LunaProvider());\nmyStore = KeyStore.getInstance(&quot;Luna&quot;);\nByteArrayInputStream is1 = new ByteArrayInputStream(\n                (&quot;slot:&quot; + slot + &quot;\\ncaching:false&quot; + &quot;\\ndefertokenization:true&quot;).getBytes());\nmyStore.load(is1, passwd.toCharArray());\n</code></pre>\n<p>But I want to only use the Pkcs#11 API:</p>\n<pre class=\"lang-java prettyprint-override\"><code>Provider provider = Security.getProvider(&quot;SunPKCS11&quot;);\nprovider = provider.configure(&quot;path/to/config/file&quot;);\nKeyStore ks = KeyStore.getInstance(&quot;PKCS11&quot;, provider);\nks.load(is1,passwd.toCharArray());\n</code></pre>\n<p>Any suggestion?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

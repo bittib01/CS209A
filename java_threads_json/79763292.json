@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "trading",
+      "algorithmic-trading",
+      "quantitative-finance"
+    ],
+    "owner": {
+      "account_id": 5987208,
+      "reputation": 95,
+      "user_id": 4704423,
+      "user_type": "registered",
+      "accept_rate": 60,
+      "profile_image": "https://i.sstatic.net/7CiRD.jpg?s=256",
+      "display_name": "Oskar Woźniak",
+      "link": "https://stackoverflow.com/users/4704423/oskar-wo%c5%baniak"
+    },
+    "is_answered": false,
+    "view_count": 44,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1757706028,
+    "creation_date": 1757706028,
+    "question_id": 79763292,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79763292/vold-ratio-using-polygon-data",
+    "title": "VOLD Ratio using Polygon data",
+    "body": "<p>HI I'm trying to calculate VOLD Ratio, but when I'm testing my functionality I'm facing below issues</p>\n<p>Getting mismatch between polygon volume vs trading view volume (-2.5%)</p>\n<p>My VOLD Ratio is much more lesser than TV (1 vs 4) &lt;- Most important</p>\n<p>How I can properly calculate VOLD Ratio using polygon data?</p>\n<p>I'm doing it for 9/11/2025 as VOLD ratio was very high at that time (4-5 vs calculated by me ~1)</p>\n<p>Trading view (Dashed line is 3)\n<a href=\"https://i.sstatic.net/idGsWHj8.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/idGsWHj8.png\" alt=\"Trading view (Dashed line is 3)\" /></a></p>\n<p>Here I was comparing differences for query parameters in polygon url under &quot;name&quot;\n<a href=\"https://i.sstatic.net/AJRTCTu8.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/AJRTCTu8.png\" alt=\"Diffferent polygon query parameters\" /></a></p>\n<p>Here are calculated times and VOLD Ratios\n<a href=\"https://i.sstatic.net/Ih6DGtWk.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/Ih6DGtWk.png\" alt=\"results\" /></a></p>\n<p>Here is aggregated data from trading view</p>\n<p><a href=\"https://www.tradingview.com/symbols/USI-UPVOL.US/?timeframe=60M\" rel=\"nofollow noreferrer\">https://www.tradingview.com/symbols/USI-UPVOL.US/?timeframe=60M</a>\n<a href=\"https://www.tradingview.com/symbols/USI-DNVOL.US/?timeframe=60M\" rel=\"nofollow noreferrer\">https://www.tradingview.com/symbols/USI-DNVOL.US/?timeframe=60M</a></p>\n<p>Here is my code in java but any working example in any language would be fine</p>\n<pre><code>    package com.owozniak.tradingplugin.controllers.controllers.market;\n\n    import com.owozniak.tradingplugin.controllers.OhlcCandleResult;\n\n    import java.time.Instant;\n    import java.time.ZoneId;\n    import java.time.format.DateTimeFormatter;\n    import java.util.*;\n\n    public class VoldCalculator {\n\n    private static final DateTimeFormatter MINUTE_FORMATTER =\n            DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd HH:mm&quot;)\n                             .withZone(ZoneId.systemDefault()); // adjust if needed\n\n    /**\n     * Calculates VOLD ratio per minute across all symbols.\n     *\n     * @param candlesBySymbol input grouped by symbol\n     * @return map of minute timestamp (String) to VOLD ratio\n     */\n    public static Map&lt;String, Double&gt; calculateVoldRatio(Map&lt;String, List&lt;OhlcCandleResult&gt;&gt; candlesBySymbol,\n                                                         boolean cumulative) {\n        Map&lt;String, Double&gt; result = new TreeMap&lt;&gt;();\n\n        // symbol -&gt; (minute -&gt; candle)\n        Map&lt;String, Map&lt;String, OhlcCandleResult&gt;&gt; symbolTimeCandle = new HashMap&lt;&gt;();\n        for (Map.Entry&lt;String, List&lt;OhlcCandleResult&gt;&gt; entry : candlesBySymbol.entrySet()) {\n            String symbol = entry.getKey();\n            Map&lt;String, OhlcCandleResult&gt; timeMap = new HashMap&lt;&gt;();\n            for (OhlcCandleResult c : entry.getValue()) {\n                String minuteKey = MINUTE_FORMATTER.format(c.getT());\n                timeMap.put(minuteKey, c);\n            }\n            symbolTimeCandle.put(symbol, timeMap);\n        }\n\n        // All minutes across all symbols\n        Set&lt;String&gt; allMinutes = new TreeSet&lt;&gt;();\n        symbolTimeCandle.values().forEach(m -&gt; allMinutes.addAll(m.keySet()));\n\n        long cumulativeUpVol = 0;\n        long cumulativeDownVol = 0;\n\n        for (String minute : allMinutes) {\n            long upVol = 0;\n            long downVol = 0;\n\n            for (Map&lt;String, OhlcCandleResult&gt; timeMap : symbolTimeCandle.values()) {\n                OhlcCandleResult candle = timeMap.get(minute);\n                if (candle == null) continue;\n\n                String prevMinute = getPrevMinute(minute);\n                OhlcCandleResult prevCandle = timeMap.get(prevMinute);\n                if (prevCandle == null) continue;\n\n                if (candle.getC() &gt; prevCandle.getC()) {\n                    upVol += candle.getV();\n                } else if (candle.getC() &lt; prevCandle.getC()) {\n                    downVol += candle.getV();\n                }\n            }\n\n            if (cumulative) {\n                cumulativeUpVol += upVol;\n                cumulativeDownVol += downVol;\n            } else {\n                cumulativeUpVol = upVol;\n                cumulativeDownVol = downVol;\n            }\n\n            double ratio;\n            if (cumulativeDownVol &gt; 0) {\n                ratio = (double) cumulativeUpVol / cumulativeDownVol;\n            } else if (cumulativeUpVol &gt; 0) {\n                ratio = Double.POSITIVE_INFINITY;\n            } else {\n                ratio = 1.0;\n            }\n\n            result.put(minute, ratio);\n        }\n\n        return result;\n    }\n\n\n    private static String getPrevMinute(String currentMinute) {\n        Instant instant = Instant.from(MINUTE_FORMATTER.parse(currentMinute));\n        Instant prev = instant.minusSeconds(60);\n        return MINUTE_FORMATTER.format(prev);\n    }\n    }\n</code></pre>\n<p>I tried to reach polygon support -&gt; they can't help\nTried GPT -&gt; but still ratio is not correct\nTried different algos - but still something is wrong</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

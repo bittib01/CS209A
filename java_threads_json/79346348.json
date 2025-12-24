@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "oracle-database",
+      "jpa",
+      "eclipselink",
+      "oracle21c"
+    ],
+    "owner": {
+      "account_id": 318237,
+      "reputation": 1323,
+      "user_id": 635347,
+      "user_type": "registered",
+      "accept_rate": 67,
+      "profile_image": "https://www.gravatar.com/avatar/9d2b0ef64bcc6be31e55901f9d9a33e8?s=256&d=identicon&r=PG",
+      "display_name": "Jan Stanicek",
+      "link": "https://stackoverflow.com/users/635347/jan-stanicek"
+    },
+    "is_answered": false,
+    "view_count": 67,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1739538563,
+    "creation_date": 1736526367,
+    "last_edit_date": 1739538563,
+    "question_id": 79346348,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79346348/how-to-use-jpa-for-column-of-type-json-in-entity-of-type-map",
+    "title": "How to use JPA for column of type JSON in entity of type Map",
+    "body": "<p>I have a usecase where I want to persist some configuration (flag name + boolean state pairs) into DB. I have picked the way to persist it as JSON due to internal reasons.</p>\n<p>I am able to persist the data, but fetching persisted ones is failing.</p>\n<p>Simplified table for storing data</p>\n<pre><code>CREATE TABLE &quot;SCHEMA&quot;.&quot;CONFIG&quot; (    \n    &quot;ID&quot; NUMBER(38,0) NOT NULL ENABLE, \n    &quot;ITEMS&quot; JSON DEFAULT '' NOT NULL ENABLE, \n     CONSTRAINT &quot;PK_CONFIG&quot; PRIMARY KEY (&quot;ID&quot;)\n   )\n</code></pre>\n<p>Related entity which should reflect the DB table:</p>\n<pre><code>@Entity\n@Table(name = &quot;CONFIG&quot;)\n@SequenceGenerator(name = &quot;ConfigIdGenerator&quot;, sequenceName = &quot;CONFIG_ID_SEQ&quot;, allocationSize = 1)\npublic class ConfigEntity {\n    \n    private long id;\n    private Map&lt;String, Boolean&gt; items;\n\n    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = &quot;ConfigIdGenerator&quot;)\n    @Column(name = &quot;ID&quot;, nullable = false)\n    @Id\n    public long getId() {\n        return id;\n    }\n\n    public void setId(long id) {\n        this.id = id;\n    }\n\n    @Convert(converter = ConfigItemsConverter.class)\n    @Column(name = &quot;ITEMS&quot;, nullable = false, columnDefinition = &quot;JSON&quot;)\n    public Map&lt;String, Boolean&gt; getItems() {\n        return items;\n    }\n\n    public void setItems(Map&lt;String, Boolean&gt; items) {\n        this.items = items;\n    }   \n}\n</code></pre>\n<p>Used converter which should ensure MAP &lt;=&gt; STRING conversion:</p>\n<pre><code>@Converter\npublic class ConfigItemsConverter implements AttributeConverter&lt;Map&lt;String, Boolean&gt;, String&gt; {\n    \n    private static final ObjectMapper MAPPER = new ObjectMapper();\n    \n    @Override\n    public String convertToDatabaseColumn(Map&lt;String, Boolean&gt; value) {\n        try {\n            return MAPPER.writeValueAsString(value);\n        } catch (JsonProcessingException ex) {\n            // Should not happen. Map values should be in correct format due to generics.\n            ex.printStackTrace();\n        }\n        return null;\n    }\n\n    @Override\n    public Map&lt;String, Boolean&gt; convertToEntityAttribute(String dbValue) {\n        try {\n            return MAPPER.readValue(dbValue, new TypeReference&lt;Map&lt;String, Boolean&gt;&gt;() {});\n        } catch (JsonProcessingException ex) {\n            // Should not happen. DB data are in JSON format due to JSON datatype\n            ex.printStackTrace();\n        }\n        return null;\n    }\n\n}\n</code></pre>\n<p>When I try to persist new data, it works correctly. The converter calls <code>convertToDatabaseColumn</code> method, do the conversion and data are stored in the DB.</p>\n<p>On the other hand, when I try to fetch those data (<code>query.setMaxResults(1).getResultStream()...</code>), I get the exception</p>\n<pre><code>jakarta.persistence.PersistenceException: Exception [EclipseLink-4002] (Eclipse Persistence Services - 4.0.2.v202306161219): org.eclipse.persistence.exceptions.DatabaseException\nInternal Exception: java.sql.SQLException: Invalid column type: getOracleObject not implemented for class oracle.jdbc.driver.T4CJsonAccessor\nError Code: 17004\nCall: SELECT * FROM (SELECT /*+ FIRST_ROWS */ a.*, ROWNUM rnum  FROM (SELECT t1.ID AS a1, t1.ITEMS AS a2 FROM CONFIG t1 ) a WHERE ROWNUM &lt;= ?) WHERE rnum &gt; ?\n    bind =&gt; [1, 0]\nQuery: ReadAllQuery(name=&quot;ConfigEntity.FIND_ALL&quot; referenceClass=ConfigEntity sql=&quot;SELECT * FROM (SELECT /*+ FIRST_ROWS */ a.*, ROWNUM rnum  FROM (SELECT t1.ID AS a1, t1.ITEMS AS a2 FROM CONFIG t1 ) a WHERE ROWNUM &lt;= ?) WHERE rnum &gt; ?&quot;)\n    at org.eclipse.persistence.internal.jpa.QueryImpl.getDetailedException(QueryImpl.java:392) ~[org.eclipse.persistence.jpa-4.0.2.jar:?]\n    at org.eclipse.persistence.internal.jpa.QueryImpl.executeReadQuery(QueryImpl.java:265) ~[org.eclipse.persistence.jpa-4.0.2.jar:?]\n    at org.eclipse.persistence.internal.jpa.QueryImpl.getResultList(QueryImpl.java:483) ~[org.eclipse.persistence.jpa-4.0.2.jar:?]\n    at jakarta.persistence.TypedQuery.getResultStream(TypedQuery.java:93) ~[jakarta.persistence-api-3.2.0.jar:3.2.0]\n    ...\nCaused by: java.sql.SQLException: Invalid column type: getOracleObject not implemented for class oracle.jdbc.driver.T4CJsonAccessor\n    at oracle.jdbc.driver.GeneratedAccessor.getOracleObject(GeneratedAccessor.java:1221) ~[ojdbc11-21.10.0.0.jar:21.10.0.0.0]\n    at oracle.jdbc.driver.JsonAccessor.getObject(JsonAccessor.java:263) ~[ojdbc11-21.10.0.0.jar:21.10.0.0.0]\n    at oracle.jdbc.driver.GeneratedStatement.getObject(GeneratedStatement.java:196) ~[ojdbc11-21.10.0.0.jar:21.10.0.0.0]\n    at oracle.jdbc.driver.GeneratedScrollableResultSet.getObject(GeneratedScrollableResultSet.java:334) ~[ojdbc11-21.10.0.0.jar:21.10.0.0.0]\n    at oracle.ucp.jdbc.proxy.oracle.ResultSetProxy.getObject(ResultSetProxy.java:152) ~[ucp11-21.10.0.0.jar:21.10.0.0.0]\n    at oracle.ucp.jdbc.proxy.oracle$1ucp$1jdbc$1proxy$1oracle$1ResultSetProxy$2oracle$1jdbc$1internal$1OracleResultSet$$$Proxy.getObject(Unknown Source) ~[ucp11-21.10.0.0.jar:21.10.0.0.0]\n    at org.eclipse.persistence.internal.databaseaccess.DatabasePlatform.getObjectFromResultSet(DatabasePlatform.java:1230) ~[org.eclipse.persistence.core-4.0.2.jar:?]\n    at org.eclipse.persistence.platform.database.OraclePlatform.getObjectFromResultSet(OraclePlatform.java:575) ~[org.eclipse.persistence.core-4.0.2.jar:?]\n    at org.eclipse.persistence.internal.databaseaccess.DatabaseAccessor.getObject(DatabaseAccessor.java:1375) ~[org.eclipse.persistence.core-4.0.2.jar:?]\n    at org.eclipse.persistence.internal.databaseaccess.DatabaseAccessor.fetchRow(DatabaseAccessor.java:1094) ~[org.eclipse.persistence.core-4.0.2.jar:?]\n</code></pre>\n<p>The conversion method <code>convertToEntityAttribute</code> is never called.</p>\n<p>Can you provide me some clue, why the conversion works in one way only? What is missing and how can I fix it?</p>\n<p>Thank you</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

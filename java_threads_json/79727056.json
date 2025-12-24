@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "out-of-memory",
+      "mqtt",
+      "paho"
+    ],
+    "owner": {
+      "account_id": 13484734,
+      "reputation": 1,
+      "user_id": 9728863,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/c31b80eea10d4b96b71fe8550a72b658?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Salman R",
+      "link": "https://stackoverflow.com/users/9728863/salman-r"
+    },
+    "is_answered": false,
+    "view_count": 98,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1766484824,
+    "creation_date": 1754471342,
+    "last_edit_date": 1754479857,
+    "question_id": 79727056,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79727056/getting-java-lang-outofmemoryerror-java-heap-space-with-org-eclipse-paho-mqttv5",
+    "title": "Getting java.lang.OutOfMemoryError: Java heap space with org.eclipse.paho.mqttv5.client.internal.ClientState",
+    "body": "<p>Memory Dump Screenshot</p>\n<p><a href=\"https://i.sstatic.net/eAjcRQwv.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/eAjcRQwv.png\" alt=\"Memory Dump Screenshot\" /></a></p>\n<p>When I run my springboot app for some time, I get <code>java.lang.OutOfMemoryError: Java heap space</code>\nSeems that the size of <code>org.eclipse.paho.mqttv5.client.internal.ClientState</code> keep increasing.</p>\n<p>Am I missing something?</p>\n<p>** Note that I'm setting <code>options.setCleanStart(false);</code> and <code>options.setSessionExpiryInterval(4294967295L);</code></p>\n<p>so if the application instance dies then the new instance continue as if its the same client so it consumes the message that were not consumed before.</p>\n<pre class=\"lang-java prettyprint-override\"><code>public void connect() {\n  try {\n    client = new MqttAsyncClient(brokerUrl, &quot;my-client&quot;);\n\n    MqttConnectionOptions options = new MqttConnectionOptions();\n    options.setUserName(username);\n    options.setPassword(password.getBytes());\n    options.setAutomaticReconnect(true);\n    options.setCleanStart(false); // Persistent session\n    options.setSessionExpiryInterval(4294967295L); // Max session expiry\n\n    client.setCallback(new MqttCallback() {\n      @Override\n      public void messageArrived(String topic, MqttMessage message) {\n        executor.submit(() -&gt; {\n          try {\n            String payload = new String(message.getPayload());\n            routeMessage(topic, payload);\n          } catch (Exception e) {\n            log.error(&quot;❌ Error processing MQTT message from topic {}: {}&quot;,\n                topic, e.getMessage(), e);\n          }\n        });\n      }\n\n      @Override\n      public void disconnected(MqttDisconnectResponse disconnectResponse) {\n        log.warn(&quot;🔌 Disconnected from MQTT broker: {}&quot;,\n            disconnectResponse.getReasonString());\n      }\n\n      @Override\n      public void mqttErrorOccurred(MqttException exception) {\n        log.error(&quot;❌ MQTT error occurred&quot;, exception);\n      }\n\n      @Override\n      public void deliveryComplete(IMqttToken token) {\n        // Not used for subscriptions\n      }\n\n      @Override\n      public void connectComplete(boolean reconnect, String serverURI) {\n        log.info(&quot;🔄 MQTT connection complete to {}&quot;, serverURI);\n      }\n\n      @Override\n      public void authPacketArrived(int reasonCode, MqttProperties properties) {\n        // Optional, unused\n      }\n    });\n\n    client.connect(options).waitForCompletion();\n\n    log.info(&quot;✅ Connected to MQTT broker at {}&quot;, brokerUrl);\n\n    for (String topic : topics) {\n      client.subscribe(topic, 2).waitForCompletion();\n      log.info(&quot;📡 Subscribed to topic: {}&quot;, topic);\n    }\n\n  } catch (MqttException e) {\n    log.error(&quot;❌ Failed to connect or subscribe to MQTT broker&quot;, e);\n  }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

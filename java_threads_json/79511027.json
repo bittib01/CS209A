@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "vault",
+      "spring-vault"
+    ],
+    "owner": {
+      "account_id": 4646767,
+      "reputation": 19499,
+      "user_id": 3764804,
+      "user_type": "registered",
+      "accept_rate": 59,
+      "profile_image": "https://i.sstatic.net/fZQON.png?s=256",
+      "display_name": "BullyWiiPlaza",
+      "link": "https://stackoverflow.com/users/3764804/bullywiiplaza"
+    },
+    "is_answered": false,
+    "view_count": 526,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1752304636,
+    "creation_date": 1742037192,
+    "question_id": 79511027,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79511027/unable-to-read-hashicorp-vault-secrets-using-spring-boot",
+    "title": "Unable to read Hashicorp Vault Secrets using Spring Boot",
+    "body": "<p>I'm using <code>Spring Boot 3.4.3</code>, <code>Java 21</code> and <code>Windows 11 Pro</code>. I'm trying to read secrets from <a href=\"https://www.vaultproject.io\" rel=\"nofollow noreferrer\"><code>Hashicorp Vault</code></a>. I followed various tutorials such as <a href=\"https://www.youtube.com/watch?v=MaTDiKp_IrA\" rel=\"nofollow noreferrer\">this one</a> but reading credentials has never worked successfully.</p>\n<p>First, I added the following maven dependencies:</p>\n<pre><code>&lt;dependency&gt;\n    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;\n    &lt;artifactId&gt;spring-cloud-starter-vault-config&lt;/artifactId&gt;\n&lt;/dependency&gt;\n&lt;dependency&gt;\n    &lt;groupId&gt;org.springframework.vault&lt;/groupId&gt;\n    &lt;artifactId&gt;spring-vault-core&lt;/artifactId&gt;\n&lt;/dependency&gt;\n</code></pre>\n<p>I started Vault via <code>vault server -dev</code> and copied the root token. Then I added the following entry in my <code>application.properties</code> (while replacing <code>ROOT_TOKEN</code> with the actual root token):</p>\n<pre><code>spring.cloud.vault.uri=http://localhost:8200\nspring.cloud.vault.token=ROOT_TOKEN\n</code></pre>\n<p>In the vault web interface under <a href=\"http://127.0.0.1:8020\" rel=\"nofollow noreferrer\">http://127.0.0.1:8020</a> I added 2 secrets <code>login</code> and <code>password</code> under the <code>secret/application</code> path:\n<a href=\"https://i.sstatic.net/v8Z6bCyo.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/v8Z6bCyo.png\" alt=\"\" /></a></p>\n<p>The JSON looks as follows:\n<a href=\"https://i.sstatic.net/4hnNorgL.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/4hnNorgL.png\" alt=\"\" /></a></p>\n<p>I defined a Java configuration class such as:</p>\n<pre><code>@Configuration\n@Data\npublic class VaultConfiguration\n{\n    @Value(&quot;${login}&quot;)\n    private String login;\n\n    @Value(&quot;${password}&quot;)\n    private String password;\n}\n</code></pre>\n<p>Apparently now Spring Boot is supposed to resolve both secrets into those Java String variables so that I can proceed to work with them, just like how it works by reading properties from e.g. an <code>application.properties</code> file.</p>\n<p>Unfortunately, I get the following exception:</p>\n<pre><code>Caused by: org.springframework.util.PlaceholderResolutionException: Could not resolve placeholder 'login' in value &quot;${login}&quot;\n</code></pre>\n<p>I'm not sure what else to try to debug this problem. Definining additional properties such as</p>\n<pre><code>spring.cloud.vault.kv.enabled=true\nspring.cloud.vault.kv.backend=secret\nspring.cloud.vault.kv.default-context=application\nlogging.level.org.springframework.cloud=TRACE\nlogging.level.org.springframework.vault=TRACE\n</code></pre>\n<p>did not help, the top 3 are already set to those defaults so they have no effect. I would prefer not to use the <a href=\"https://docs.spring.io/spring-vault/reference/api/java/org/springframework/vault/core/VaultTemplate.html\" rel=\"nofollow noreferrer\"><code>VaultTemplate</code></a> class directly, but I also didn't manage to read secrets with it either.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

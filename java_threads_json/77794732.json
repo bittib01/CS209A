@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "kotlin",
+      "jackson"
+    ],
+    "owner": {
+      "account_id": 161943,
+      "reputation": 22566,
+      "user_id": 383087,
+      "user_type": "registered",
+      "accept_rate": 89,
+      "profile_image": "https://i.sstatic.net/J4W5G.jpg?s=256",
+      "display_name": "Evgeni Dimitrov",
+      "link": "https://stackoverflow.com/users/383087/evgeni-dimitrov"
+    },
+    "is_answered": true,
+    "view_count": 370,
+    "answer_count": 1,
+    "score": 3,
+    "last_activity_date": 1710160651,
+    "creation_date": 1704902566,
+    "question_id": 77794732,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77794732/jackson-jsongenerationexception-can-not-write-a-field-name-expecting-a-value",
+    "title": "Jackson JsonGenerationException: Can not write a field name, expecting a value",
+    "body": "<p>Just updated Spring boot (to 3.2) and Java (to 21) of an existing project and started to have problems with Jackson (updated to version 2.15.3)</p>\n<p>The problem is with classes that implement interface and use <code>JsonTypeIdResolver</code></p>\n<pre><code>@JsonTypeInfo(\n    use = JsonTypeInfo.Id.CUSTOM,\n    include = JsonTypeInfo.As.EXISTING_PROPERTY,\n    property = &quot;screen&quot;,\n    visible = true\n)\n@JsonTypeIdResolver(BaseFilterResolver::class)\ninterface BaseFilter: ProjectFilter {\n    val id: Long?\n    val screen: Screen\n}\n\ndata class Screen1Filter(\n        override val id: Long? = null,\n        val period: Period?,\n        //... other properties\n        override val screen: Screen = Screen.SCREEN1\n): BaseFilter {...}\n\n\n\nclass BaseFilterResolver : TypeIdResolverBase() {\n    private var superType: JavaType? = null\n    override fun init(baseType: JavaType?) {\n        superType = baseType\n    }\n\n    override fun idFromValue(obj: Any): String? {\n        return null\n    }\n\n    override fun idFromValueAndType(obj: Any?, subType: Class&lt;*&gt;): String? {\n        return null\n    }\n\n    override fun typeFromId(context: DatabindContext, id: String?): JavaType {\n        return context.constructSpecializedType(superType, Screen.values().find { it.name == id }!!.filterClass)\n    }\n\n    override fun getMechanism(): JsonTypeInfo.Id {\n        return JsonTypeInfo.Id.CUSTOM;\n    }\n}\n</code></pre>\n<p>When I run:</p>\n<pre><code>ObjectMapperService.objectMapperForFilters.writeValueAsString(Screen1Filter(...))\n</code></pre>\n<p>I get:</p>\n<pre><code>com.fasterxml.jackson.core.JsonGenerationException: Can not write a field name, expecting a value\n</code></pre>\n<p>The searialization works for other objects that does not have the configuration with <code>@JsonTypeIdResolver</code></p>\n<p>Any ideas?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

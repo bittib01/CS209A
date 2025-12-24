@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "maven",
+      "jna"
+    ],
+    "owner": {
+      "account_id": 1200580,
+      "reputation": 970,
+      "user_id": 1171328,
+      "user_type": "registered",
+      "accept_rate": 75,
+      "profile_image": "https://www.gravatar.com/avatar/991a1daf7de47d3dcc3d94933c70ce2d?s=256&d=identicon&r=PG",
+      "display_name": "CAA",
+      "link": "https://stackoverflow.com/users/1171328/caa"
+    },
+    "is_answered": true,
+    "view_count": 118,
+    "accepted_answer_id": 79222939,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1732536012,
+    "creation_date": 1732288765,
+    "last_edit_date": 1732306527,
+    "question_id": 79215579,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79215579/java-lang-unsatisfiedlinkerror-on-calling-native-loadlibrary",
+    "title": "java.lang.UnsatisfiedLinkError on calling Native.loadLibrary()",
+    "body": "<p>I'm trying to call a method from a .dll, using com.sun.jna.Native. It works fine when run from IntelliJ, but crashes when executed as a .jar file.</p>\n<p>How do I fix it, so that the .jar is able to call the method from the .dll too?</p>\n<p><strong>Startup.java:</strong></p>\n<pre><code>package de.company;\nimport com.sun.jna.Library;\nimport com.sun.jna.Native;\n\npublic class Startup {\n\n    public interface LibInterface extends Library {\n        public String getA(int a, int b, int c, String d);\n        public String getB(int a, int b, int c, String d);\n    }\n\n\n    public static void main(String[] args){\n        System.out.println(&quot;hello world&quot;);\n\n        try{\n            LibInterface library = (LibInterface) Native.loadLibrary(&quot;NameOfLibraryWithoutDotDll&quot;, LibInterface.class);\n            System.out.println(&quot;Successfully loaded the library&quot;);\n\n            System.out.println(&quot;Result of the call: &quot; + library.getA(1,2,3,&quot;asdf&quot;));\n        }catch(Exception e){\n            System.out.println(&quot;Exception: &quot; + e.getMessage());\n        }\n    }\n}\n</code></pre>\n<p><strong>pom.xml:</strong></p>\n<pre><code>&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&gt;\n&lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;\n&lt;artifactId&gt;Test&lt;/artifactId&gt;\n&lt;groupId&gt;de.company&lt;/groupId&gt;\n&lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;\n&lt;name&gt;Test&lt;/name&gt;\n&lt;description&gt;Dinghy to test JNA&lt;/description&gt;\n&lt;dependencies&gt;\n    &lt;dependency&gt;\n        &lt;groupId&gt;net.java.dev.jna&lt;/groupId&gt;\n        &lt;artifactId&gt;jna&lt;/artifactId&gt;\n        &lt;version&gt;4.2.1&lt;/version&gt;\n    &lt;/dependency&gt;\n&lt;/dependencies&gt;\n&lt;build&gt;\n    &lt;finalName&gt;${artifactId}&lt;/finalName&gt;\n    &lt;plugins&gt;\n        &lt;plugin&gt;\n            &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;\n            &lt;artifactId&gt;maven-dependency-plugin&lt;/artifactId&gt;\n            &lt;executions&gt;\n                &lt;execution&gt;\n                    &lt;id&gt;copy-dependencies&lt;/id&gt;\n                    &lt;phase&gt;prepare-package&lt;/phase&gt;\n                    &lt;goals&gt;\n                        &lt;goal&gt;copy-dependencies&lt;/goal&gt;\n                    &lt;/goals&gt;\n                    &lt;configuration&gt;\n                        &lt;outputDirectory&gt;${project.build.directory}/lib&lt;/outputDirectory&gt;\n                        &lt;overWriteReleases&gt;false&lt;/overWriteReleases&gt;\n                        &lt;overWriteSnapshots&gt;false&lt;/overWriteSnapshots&gt;\n                        &lt;overWriteIfNewer&gt;true&lt;/overWriteIfNewer&gt;\n                    &lt;/configuration&gt;\n                &lt;/execution&gt;\n            &lt;/executions&gt;\n        &lt;/plugin&gt;\n        &lt;plugin&gt;\n            &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;\n            &lt;artifactId&gt;maven-jar-plugin&lt;/artifactId&gt;\n            &lt;configuration&gt;\n                &lt;archive&gt;\n                    &lt;manifest&gt;\n                        &lt;addClasspath&gt;true&lt;/addClasspath&gt;\n                        &lt;classpathPrefix&gt;lib/&lt;/classpathPrefix&gt;\n                        &lt;mainClass&gt;de.company.Startup&lt;/mainClass&gt;\n                    &lt;/manifest&gt;\n                &lt;/archive&gt;\n            &lt;/configuration&gt;\n        &lt;/plugin&gt;\n    &lt;/plugins&gt;\n&lt;/build&gt;\n</code></pre>\n\n<p>When I run the code from inside IntelliJ, I get the output:</p>\n<blockquote>\n<p>hello world</p>\n<p>Successfully loaded the library</p>\n<p>Result of the call: FooBar</p>\n</blockquote>\n<p>But when I run the jar file from a commandline, even when started with administrator privileges, via:</p>\n<pre><code>mvn clean install\njava -jar -Djna.debug_load=true target/test.jar \n</code></pre>\n<p>I get the following console output:</p>\n<pre><code>Hello world\nLooking in classpath from sun.misc.Launcher$AppClassLoader@55f96302 for /com/sun/jna/win32-x86-64/jnidispatch.dll\nFound library resource at jar:file:/D:/dev/Test/target/lib/jna-4.2.1.jar!/com/sun/jna/win32-x86-64/jnidispatch.dll\nException in thread &quot;main&quot; java.lang.UnsatisfiedLinkError: C:\\Users\\CAA\\AppData\\Local\\Temp\\jna--517937128\\jna2553495241482547583.dll: %1 is not a valid Win32 application\nat java.lang.ClassLoader$NativeLibrary.load(Native Method)\nat java.lang.ClassLoader.loadLibrary0(Unknown Source)\nat java.lang.ClassLoader.loadLibrary(Unknown Source)\nat java.lang.Runtime.load0(Unknown Source)\nat java.lang.System.load(Unknown Source)\nat com.sun.jna.Native.loadNativeDispatchLibraryFromClasspath(Native.java:851)\nat com.sun.jna.Native.loadNativeDispatchLibrary(Native.java:826)\nat com.sun.jna.Native.&lt;clinit&gt;(Native.java:140)\nat de.company.Startup.main(Startup.java:17)\n</code></pre>\n<p><strong>Update:</strong></p>\n<p>If i attempt to load a dll that does not exist, I get the same error.</p>\n<p>The folder C:\\Users\\CAA\\AppData\\Local\\Temp\\jna--517937128\\ got created by the JNA framework, but it doesn't contain any files.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

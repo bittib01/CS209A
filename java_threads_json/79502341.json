@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "langchain",
+      "langchain4j"
+    ],
+    "owner": {
+      "account_id": 2449433,
+      "reputation": 807,
+      "user_id": 2280645,
+      "user_type": "registered",
+      "accept_rate": 96,
+      "profile_image": "https://i.sstatic.net/Y8eOb.jpg?s=256",
+      "display_name": "KenobiBastila",
+      "link": "https://stackoverflow.com/users/2280645/kenobibastila"
+    },
+    "is_answered": true,
+    "view_count": 900,
+    "accepted_answer_id": 79506857,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1765717960,
+    "creation_date": 1741736311,
+    "question_id": 79502341,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79502341/gpt-4o-search-preview-model-in-langchain4j-spring",
+    "title": "gpt-4o-search-preview Model In LangChain4J - Spring",
+    "body": "<p>Tonight I received the following from openAI via email:</p>\n<blockquote>\n<p>Web search delivers accurate and clearly-cited answers from the web. Using the same tool as search in ChatGPT, it’s great at conversation and follow-up questions—and you can integrate it with just a few lines of code. Web Search is available in the Responses API as a tool for the <code>gpt-4o</code> and <code>gpt-4o-mini</code> models, and can be paired with other tools. In the Chat Completions API, web search is available as a separate model, called <code>gpt-4o-search-preview</code> and <code>gpt-4o-mini-search-preview</code>. Available to all developers in preview</p>\n</blockquote>\n<p><strong>Question:</strong></p>\n<p>I currently use langchain4j with springboot, and I want to implement the gpt-4o-search-preview model.\nIm unsure how to do it. How do I tell langchain4j to use the tool from openAI itself? And How do I tell langchain4j to set the web_search_options like on the python code snippet below:</p>\n<pre><code>from openai import OpenAI\nclient = OpenAI()\n\ncompletion = client.chat.completions.create(\n    model=&quot;gpt-4o-search-preview&quot;,\n    web_search_options={\n        &quot;user_location&quot;: {\n            &quot;type&quot;: &quot;approximate&quot;,\n            &quot;approximate&quot;: {\n                &quot;country&quot;: &quot;GB&quot;,\n                &quot;city&quot;: &quot;London&quot;,\n                &quot;region&quot;: &quot;London&quot;,\n            }\n        },\n    },\n    messages=[{\n        &quot;role&quot;: &quot;user&quot;,\n        &quot;content&quot;: &quot;What are the best restaurants around Granary Square?&quot;,\n    }],\n)\n\nprint(completion.choices[0].message.content)\n</code></pre>\n<p><strong>Context</strong></p>\n<p>Below there are the codes I am currently using:</p>\n<pre><code>import dev.langchain4j.service.MemoryId;\nimport dev.langchain4j.service.Result;\nimport dev.langchain4j.service.SystemMessage;\nimport dev.langchain4j.service.UserMessage;\nimport dev.langchain4j.service.V;\nimport dev.langchain4j.service.spring.AiService;\n\n@AiService\npublic interface Assistant {\n\n    @SystemMessage(&quot;{{systemMessage}}&quot;)\n    Result&lt;String&gt; chat(@MemoryId long memoryId, @UserMessage String userMessage, @V(&quot;systemMessage&quot;) String systemMessage);\n}\n</code></pre>\n<hr />\n<pre><code>@Service\npublic class ChatAiService {\n\n\n    @Autowired\n    private Assistant assistant;\n\n    @Autowired\n    private OpenAiModerationModel moderationModel;\n\n    @Autowired\n    private Environment environment;\n\n    public ChatAiService() {\n\n    }\n\n    public String sendRequest(ChatAiDTO chatAiDTO) {\n\n        String userInput = chatAiDTO.getInput();\n        UserDTO loggedUser = LoginContext.getLoggedUser();\n\n\n        String systemMessagePrompt = &quot;You are an educated assistant. Answer me in HTML language.&quot;;\n        String model = environment.getProperty(&quot;langchain4j.open-ai.chat-model.model-name&quot;);\n\n\n        String response = &quot;&quot;;\n        Result&lt;String&gt; result = null;\n        try {\n\n            Response&lt;Moderation&gt; moderate = moderationModel.moderate(userInput);\n            boolean flagged = moderate.content().flagged();\n\n            if (flagged) {\n                throw new ModerationException(&quot;Blocked by moderation!&quot;);\n            }\n\n            result = assistant.chat(loggedUser.getId(), userInput, systemMessagePrompt);\n\n            response = result.content();\n            \n        } catch (ModerationException e) {\n            \n            response = &quot;Blocked by moderation!&quot;;\n        }\n        //\n        //\n        return response;\n\n    }\n\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "java-time",
+      "dst",
+      "zoneddatetime",
+      "timeofday"
+    ],
+    "owner": {
+      "account_id": 7612423,
+      "reputation": 87449,
+      "user_id": 5772882,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/8283c64511fa80afed5259d10850168f?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Anonymous",
+      "link": "https://stackoverflow.com/users/5772882/anonymous"
+    },
+    "is_answered": true,
+    "view_count": 1395,
+    "accepted_answer_id": 79728616,
+    "answer_count": 7,
+    "score": 9,
+    "last_activity_date": 1757129138,
+    "creation_date": 1754571752,
+    "last_edit_date": 1757129138,
+    "question_id": 79728609,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79728609/given-a-whole-hour-of-the-day-how-to-find-the-next-whole-hour",
+    "title": "Given a whole hour of the day, how to find the next whole hour?",
+    "body": "<p>I need to iterate through the whole hours of an interval of a particular day. So given the time at one whole hour on the day in question, say, 01:00, how do I find the next whole hour? The next whole hour would usually be 02:00, but due to summer time (DST) and other anomalies it could be 01:00 again or 03:00 or maybe even other hours.</p>\n<p>In case it’s 01:00 again, this is the result I want, as long as I can distinguish from the first 01:00 — so I will need for example a <code>ZonedDateTime</code> or an <code>Instant</code>.</p>\n<p>The next whole hour may be “midnight”, the start of the next day, but I have no need to go further into the next day.</p>\n<p>Easy, you may say, add one hour. But not everywhere does summer time mean adjusting the clock by exactly one hour, so I may not hit a whole hour again. And at least in the past time zone changes have occurred that turned the clocks forward or backward by funny amounts, for example +0:09:40 (Danish time 1894).</p>\n<p>Next idea, add an hour and truncate to whole hours. The following example demonstrates that this does not always give the correct time either. The example uses Australia/Lord_Howe time zone just for the sake of the example.</p>\n<pre><code>    ZoneId zoneId = ZoneId.of(&quot;Australia/Lord_Howe&quot;);\n    ZonedDateTime zdt = ZonedDateTime.of(2026, 4, 5,\n            1, 0, 0, 0, zoneId);\n    System.out.println(zdt);\n    System.out.println(zdt.plusHours(1));\n    System.out.println(zdt.plusHours(1).truncatedTo(ChronoUnit.HOURS));\n</code></pre>\n<p>Output:</p>\n<pre class=\"lang-none prettyprint-override\"><code>2026-04-05T01:00+11:00[Australia/Lord_Howe]\n2026-04-05T01:30+10:30[Australia/Lord_Howe]\n2026-04-05T01:00+11:00[Australia/Lord_Howe]\n</code></pre>\n<p>Lord Howe Island has a summer time offset of 30 minutes. When summer time ends and the time approaches 02:00, it’s adjusted to 01:30. Truncating gets us back to the 01:00 where we started. I may repeat the operation, but I will always get back where I started.</p>\n<p><strong>For precision:</strong> I need the next point in time (the next instant) where the clock in the time zone in question is at a whole hour (minutes, seconds and fraction of second all being 0).</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

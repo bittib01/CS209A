@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-graphql"
+    ],
+    "owner": {
+      "account_id": 26368872,
+      "reputation": 23,
+      "user_id": 20023869,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a-/AFdZucowwBc5Qg1L0T5hFgtqbwTy4_tf7rALYczn9JyV=k-s256",
+      "display_name": "imsilversurfer",
+      "link": "https://stackoverflow.com/users/20023869/imsilversurfer"
+    },
+    "is_answered": false,
+    "view_count": 48,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1743755735,
+    "creation_date": 1740983380,
+    "last_edit_date": 1743755033,
+    "question_id": 79480304,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79480304/custom-graphqlschema-with-coderegistry-datafetchers-lost-when-converting-to-sdl",
+    "title": "Custom GraphQLSchema with CodeRegistry DataFetchers Lost When Converting to SDL in Spring Boot",
+    "body": "<p>I'm building a GraphQL API using GraphQL Java and Spring Boot. I create my GraphQLSchema programmatically, including a custom GraphQLCodeRegistry that registers my data fetchers. For example, I build my schema like this:</p>\n<pre><code>GraphQLCodeRegistry.Builder codeRegistryBuilder = GraphQLCodeRegistry.newCodeRegistry();\n// ... build custom types and register data fetchers, e.g.:\ncodeRegistryBuilder.dataFetcher(\n    FieldCoordinates.coordinates(&quot;Query&quot;, &quot;fetchReport&quot;),\n    (DataFetcher&lt;Object&gt;) environment -&gt; {\n         Map&lt;String, Object&gt; report = new HashMap&lt;&gt;();\n         report.put(&quot;field1&quot;, &quot;value1&quot;);\n         report.put(&quot;field2&quot;, &quot;value2&quot;);\n         return report;\n    }\n);\nGraphQLObjectType queryType = GraphQLObjectType.newObject()\n    .name(&quot;Query&quot;)\n    .field(GraphQLFieldDefinition.newFieldDefinition()\n            .name(&quot;fetchReport&quot;)\n            .type(/* custom type built from a tree structure */)\n            .build())\n    .build();\n\nGraphQLSchema schema = GraphQLSchema.newSchema()\n    .query(queryType)\n    .codeRegistry(codeRegistryBuilder.build())\n    .build();\n\n</code></pre>\n<p>To integrate with Spring Boot’s GraphQL auto-configuration, I convert my schema to SDL using new SchemaPrinter().print(schema) and pass the SDL as a ByteArrayResource via a GraphQlSourceBuilderCustomizer:</p>\n<pre><code>ByteArrayResource resource = new ByteArrayResource(schemaSdl.getBytes(StandardCharsets.UTF_8));\nbuilder.schemaResources(resource);\n</code></pre>\n<p>However, when I execute a query like:</p>\n<pre><code>{\n  fetchReport(filter: &quot;test&quot;) {\n    field1\n    field2\n  }\n}\n\n</code></pre>\n<p>I get for all fields, and my data fetchers (both at the query level and for the leaf fields) are never invoked—their breakpoints are not hit. It appears that converting my custom schema to SDL is discarding the runtime wiring (i.e. the code registry and my data fetchers).</p>\n<p>I don't want to use a RuntimeWiringConfigurer to re-register my fetchers. How can I ensure that my fully built custom GraphQLSchema (with its GraphQLCodeRegistry) is used by Spring Boot, without converting it to SDL and losing the wiring?</p>\n<p>Any help to retain the custom data fetchers would be greatly appreciated.</p>\n<pre><code>{\n  &quot;data&quot;: {\n    &quot;fetchReport&quot;: null\n  }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

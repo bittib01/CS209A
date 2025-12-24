@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "java-stream",
+      "collectors"
+    ],
+    "owner": {
+      "account_id": 4068081,
+      "reputation": 11979,
+      "user_id": 3342253,
+      "user_type": "registered",
+      "accept_rate": 94,
+      "profile_image": "https://i.sstatic.net/bHXDR.jpg?s=256",
+      "display_name": "Jan Nielsen",
+      "link": "https://stackoverflow.com/users/3342253/jan-nielsen"
+    },
+    "is_answered": true,
+    "view_count": 233,
+    "answer_count": 7,
+    "score": 1,
+    "last_activity_date": 1762743180,
+    "creation_date": 1761768128,
+    "last_edit_date": 1762531323,
+    "question_id": 79804174,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79804174/java-21-multi-key-map-collector",
+    "title": "Java 21 multi-key map collector",
+    "body": "<p>In my Java 21+ projects, I often have objects with multiple unique keys maps that I keep in multi-key maps like below. How can I build a multi-key map using the stream collector?</p>\n<p>For example:</p>\n<pre><code>// id and symbol are guaranteed unique\nrecord Foo(int id, String symbol) {};\n</code></pre>\n<p>then I create a multi-key map:</p>\n<pre><code>    var fooA = new Foo(1, &quot;A&quot;);\n    var fooB = new Foo(2, &quot;B&quot;);\n    var fooList = List.of(fooA, fooB);\n\n    var fooMap = new HashMap&lt;Object,Foo&gt;();\n    for (var foo : fooList) {\n        fooMap.put(foo.id(), foo);\n        fooMap.put(foo.symbol(), foo);\n    }\n\n    assertThat(fooMap.get(1)).isEqualTo(fooA);\n    assertThat(fooMap.get(&quot;A&quot;)).isEqualTo(fooA);\n    assertThat(fooMap.get(2)).isEqualTo(fooB);\n    assertThat(fooMap.get(&quot;B&quot;)).isEqualTo(fooB);\n</code></pre>\n<p>What is the streams collector equivalent? Perhaps something like:</p>\n<pre><code>var fooMap = fooList.stream().collect(\n    Collectors.flatMapping(???...)\n    );\n</code></pre>\n<p>or with a custom <code>multiKeyMap</code> varargs helper:</p>\n<pre><code>var fooMap = fooList.stream().collect(\n    multiKeyMap(Function.identity(), Foo::id, Foo::symbol)\n    );\n</code></pre>\n<hr />\n<p>I'll summarize the solutions; I feel the &quot;best practice&quot; format difficult to read quickly in part because I cannot edit for clarity for also the visual noise of the comments vs. solutions:</p>\n<p><strong>@shmosel solution #1</strong>:</p>\n<pre><code>var fooMap = fooList.stream()\n    .map(foo -&gt; Map.of(foo.id(), foo, foo.symbol(), foo))\n    .collect(HashMap::new, Map::putAll, Map::putAll);\n</code></pre>\n<p><strong>@shmosel solution #2</strong>:</p>\n<pre><code>var fooMap = fooList.stream().collect(\n    HashMap::new,\n    (map, foo) -&gt; {\n        map.put(foo.id(), foo);\n        map.put(foo.symbol(), foo);\n    },\n    HashMap::putAll);\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

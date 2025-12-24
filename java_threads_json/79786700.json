@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "utf-8",
+      "character-encoding",
+      "utf-16",
+      "saxparser"
+    ],
+    "owner": {
+      "account_id": 12309331,
+      "reputation": 420,
+      "user_id": 8981345,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/-AdxH5i2R_Eo/AAAAAAAAAAI/AAAAAAAAAoM/622bLwg0l50/s256-rj/photo.jpg",
+      "display_name": "Philip H",
+      "link": "https://stackoverflow.com/users/8981345/philip-h"
+    },
+    "is_answered": true,
+    "view_count": 134,
+    "accepted_answer_id": 79787797,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1760555152,
+    "creation_date": 1760031073,
+    "last_edit_date": 1760554984,
+    "question_id": 79786700,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79786700/parsing-utf-8-xml-using-defaulthandler-when-how-does-it-become-utf-16-in-java",
+    "title": "Parsing UTF-8 XML using DefaultHandler: when / how does it become UTF-16 in Java?",
+    "body": "<p>I have a Java program that was working perfectly in Corretto 17, but is now having character set encoding issues in Corretto 25.</p>\n<p>I am reading a UTF-8 encoded XML from an <a href=\"https://boardgamegeek.com/xmlapi2/thing?id=164928&amp;type=boardgame,boardgameexpansion&amp;stats=1\" rel=\"nofollow noreferrer\">external API</a>. The code is quite simple: I form an <code>HTTPUrlConnection</code> and I have a class that extends <code>DefaultHandler</code>:</p>\n<pre class=\"lang-java prettyprint-override\"><code>URI uri = new URI(url);\nURL authenticatedURL = uri.toURL();\nHttpURLConnection connection = (HttpURLConnection) authenticatedURL.openConnection();\nconnection.setRequestMethod(&quot;GET&quot;);\nconnection.setRequestProperty(&quot;Authorization&quot;, &quot;Bearer &quot; + BEARER_TOKEN);\n// connection.setRequestProperty(&quot;Accept-Charset&quot;, &quot;UTF-8&quot;);  // This line of code seems to have no impact.\n[...]\nInputStream connectionInputStream = connection.getInputStream();\nInputSource connectionInputSource = new InputSource(connectionInputStream);\nconnectionInputSource.setEncoding(StandardCharsets.UTF_8.displayName());\nparser.parse(connectionInputSource, dh);\n// parser.parse(connection.getInputStream(), dh);  // This 1 line seems to work the same as the above 4 lines.\n</code></pre>\n<p>My understanding is that Java uses UTF-16 for all <code>String</code>s, but also it assumes some inputs (e.g. XML) will be in UTF-8, for instance the <a href=\"https://docs.oracle.com/javase/8/docs/api/java/util/jar/Attributes.html\" rel=\"nofollow noreferrer\"><code>Attributes</code></a> class used by <code>DefaultHandler</code>. <strong>I'm assuming this UTF-8 assumption is why explicitly setting the charset / encoding in the code above makes no difference. Is this correct?</strong></p>\n<p>The issue I'm having is I don't understand when / how the UTF-8 I read in is converted to UTF-16. For instance, in my extension of <code>DefaultHandler</code>, <code>attributes.getValue()</code> seems to return a UTF-8 encoded <code>String</code>, but <code>Float.parseFloat()</code> works perfectly:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public void startElement(String uri, String localName, String qName, Attributes attributes) {\n  if (&quot;name&quot;.equals(qName)) {\n    if (&quot;primary&quot;.equals(attributes.getValue(&quot;type&quot;))) {\n      if (attributeHasValue(attributes, &quot;value&quot;)) {\n        primaryName = attributes.getValue(&quot;value&quot;);  // Seems to store UTF-8 string.\n      }\n    }\n  } else if (&quot;averageweight&quot;.equals(qName)) {\n    if (attributeHasValue(attributes, &quot;value&quot;)) {\n      averageWeight = Float.parseFloat(attributes.getValue(&quot;value&quot;));\n    }\n  [...]\n</code></pre>\n<p>Outputs (when I print the values to <code>System.out.println</code>):</p>\n<pre class=\"lang-none prettyprint-override\"><code>Primary name = Orl�ans   // NOT GOOD!\nAverage weight = 3.0137  // But Floats and Integers are parsed just fine.\n</code></pre>\n<p>I suppose I have to explicitly convert the value returned by <code>attributes.getValue()</code> from UTF-8 to UTF-16, is that correct?</p>\n<p>But, if so, why are numeric values being parsed correctly?</p>\n<p>And, I currently assume the <code>qName</code> and <code>localName</code> parameters are provided in UTF-16, is that correct?</p>\n<p>I'm just confused in general / don't have the right mental model of what the SAXParser + DefaultHandler are doing encoding-wise, because I don't understand how most of my code is working if the encoding is wrong everywhere.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "concurrency",
+      "java.util.concurrent",
+      "virtual-threads"
+    ],
+    "owner": {
+      "account_id": 2303891,
+      "reputation": 2171,
+      "user_id": 2023577,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/b4ahpbUr.png?s=256",
+      "display_name": "user2023577",
+      "link": "https://stackoverflow.com/users/2023577/user2023577"
+    },
+    "is_answered": true,
+    "view_count": 575,
+    "accepted_answer_id": 79285541,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1734966411,
+    "creation_date": 1734319014,
+    "last_edit_date": 1734445011,
+    "question_id": 79283583,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79283583/cant-reproduce-virtual-thread-pinning-jdk-21-yet-mysql-not-as-parallel-as-sh",
+    "title": "Can&#39;t reproduce virtual thread pinning (jdk 21), yet mysql not as parallel as should be",
+    "body": "<p>The jdk 21 doc about virtual threads (hereafter &quot;VT&quot;)\n(<a href=\"https://docs.oracle.com/en/java/javase/21/core/virtual-threads.html\" rel=\"nofollow noreferrer\">https://docs.oracle.com/en/java/javase/21/core/virtual-threads.html</a>)\nis pretty clear about a synchronized block causing a thread to be pinned, or native methods, or ...</p>\n<p>It all started with another SO question about mysql and virtual threads (<a href=\"https://stackoverflow.com/questions/79281409/can-virtual-threads-improve-querying-a-database-in-java/79282438#79282438\">Can Virtual Threads improve querying a database in Java?</a>), and this showed that VT are not parallelizing upon mysql statements as they should (on driver prior to 9.0.0, like 8.4). <strong>I though, I can surely reproduce that in a kata.... Let's try!</strong></p>\n<p>I created 12 tasks at 1 thread per task, each task doing 3 blocking op of 1000ms inside a synchronized block. It should take 3x1000ms = 3seconds per task. At least on platform threads. And those platform threads never fail to do so predictably.</p>\n<p>I wrote variations of blocking ops as Object.wait() inside s synchronized, as simple Thread.sleep() (synchronized and not), as ReentrantLock's condition.await() and as socket inputstream read() (synchronized and not). My money was on the network read, since that what mysql driver did. Also, we can see from the jdk source that object.wait() and thread.sleep() have been made VT friendly. I even tried but deleted a Pipe Input/Output Stream setup because it's all based on the same previous in-memory synchronization.</p>\n<p>On VTs, according to the doc, I should expect synchronized and native methods, but not  reentrantlocks, to take more time, but it would depends how many carrier threads are around... They don't say.</p>\n<p>(UPDATE: actually I found later that there are as many as cores, but extras can be created up to 256 total).</p>\n<p>If there are only as many carrier threads as there are cores, then I have 4 carriers. I should expect my tasks to run only 4 at a time if I really pinned the VT, and the whole tasks to finish by the 9 seconds mark.</p>\n<p>I wanted to prove that. So I wrote this complex test below.\n<strong>And I failed to pin any carrier thread;</strong> (at first: see my own answer) the 12 tasks end nearly together at the 3 seconds mark.</p>\n<p>What's even more interesting is that I started 12 threads, but 14 carriers were used at some point.</p>\n<p>(UPDATE: this is the extra carriers expected after finding better doc: &quot;The capture of an OS thread is compensated by temporarily adding a carrier thread to the scheduler.&quot; Ref: <a href=\"https://liakh-aliaksandr.medium.com/concurrent-programming-in-java-with-virtual-threads-8f66bccc6460\" rel=\"nofollow noreferrer\">https://liakh-aliaksandr.medium.com/concurrent-programming-in-java-with-virtual-threads-8f66bccc6460</a>)</p>\n<p>To see the carried thread id, I used JNA at first, to pull the kernel 32 GetCurrentThreadId(). Later I used Foreign Function Invocation (FFI) as suggested by a commenter. I removed this JNA code since.</p>\n<p>I will not repeat the original question's code as it is obsolete and much even if you don't read the answer too.</p>\n<p>I really wanted to know how the older mysql driver 8.4 can pin a VT carrier to the point of reducing concurrency, and particularly how they would fix it in driver 9.0.x, but I didn't feel like reading mysql code to do that. It seemed like a single-file-sized kata was in order.</p>\n<p>(UPDATE: so I found the way to reproduce pinning, see answer.)</p>\n<p>(UPDATE: since the answer, commenters have noted that java 24 will implement synchronized() blocks and methods in a way that VTs can unbind from the platform threads.)</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

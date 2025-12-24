@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "testing",
+      "mockito"
+    ],
+    "owner": {
+      "account_id": 10187542,
+      "reputation": 2735,
+      "user_id": 20692967,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/NZSXm.jpg?s=256",
+      "display_name": "Sergey Zolotarev",
+      "link": "https://stackoverflow.com/users/20692967/sergey-zolotarev"
+    },
+    "is_answered": false,
+    "view_count": 71,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1766500438,
+    "creation_date": 1765799030,
+    "last_edit_date": 1766500438,
+    "question_id": 79847641,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79847641/nested-mockito-stubbings-keep-or-replace",
+    "title": "Nested Mockito stubbings — keep or replace?",
+    "body": "<p>I'm not sure nested stubbings like this one is good practice.</p>\n<pre class=\"lang-java prettyprint-override\"><code>        given(settingsMock.getConnections()).willReturn(connections);\n        will(i -&gt; given(settingsMock.getConnections()).willReturn(i.getArgument(0))).given(settingsMock).setConnections(any());\n</code></pre>\n<p>In plain English, it means:</p>\n<blockquote>\n<p>If this settings object is asked for connections, it should return these hardcoded connections.</p>\n<p>If connections are set for this settings object, then it should return those set connections on subsequent connection queries.</p>\n</blockquote>\n<p>It's from a JavaFX panel test. In a nutshell, the first stubbing (<code>getConnections()</code>) is invoked when loading the data, the second stubbing (<code>setConnections()</code>) is invoked during saving.</p>\n<p>The actual settings object reads from and writes into a physical XML on <code>getConnections()</code> and <code>setConnections()</code> respectively.</p>\n<p>I sort of rely on the fact that the mock imitates state mutation since my test method has to make sure the <em>correct</em> (updated) settings object is passed to a DAO, not the outdated one.</p>\n<pre class=\"lang-java prettyprint-override\"><code>        ArgumentCaptor&lt;DbSettings&gt; captor = ArgumentCaptor.forClass(DbSettings.class);\n        then(settingsDaoMock).should().saveSettings(captor.capture());\n        DbSettings savedSettings = captor.getValue();\n        // this assert follows deletion of one of the initially loaded connections from the GUI list\n        assertThat(savedSettings.getConnections()).containsOnly(postgresConnection);\n</code></pre>\n<p>Naturally, I'm not enthusiastic about overhauling the whole settings class. For example, I'd personally prefer <code>DbSettings</code> to be a plain data class with no logic whatsoever and interact with an XML separately. At any rate, I'm not testing the settings class, so whatever the real implementation does should, in theory, be irrelevant to me.</p>\n<p>What's your take on this? Should I keep my approach, or should I replace it with something better?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "maven",
+      "resilience4j",
+      "resilience4j-retry"
+    ],
+    "owner": {
+      "account_id": 9038948,
+      "reputation": 79,
+      "user_id": 9539527,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/fd56ffe99836d121294aa15eb96e7c99?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "s.bhardwaj",
+      "link": "https://stackoverflow.com/users/9539527/s-bhardwaj"
+    },
+    "is_answered": false,
+    "view_count": 520,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1721210843,
+    "creation_date": 1709531629,
+    "question_id": 78099182,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78099182/resilience4j-retry-with-spring-not-spring-boot-and-using-annotations",
+    "title": "resilience4j retry with spring (not spring boot ) and using annotations",
+    "body": "<p>Is it possible to use resilience4j for retry in a spring ( not spring boot application ) while using annotations.\nRoughly this is what I am doing.\nBut I don't see the retry happening.\nAdding dependency in pom</p>\n<pre><code>&lt;dependency&gt;\n                &lt;groupId&gt;io.github.resilience4j&lt;/groupId&gt;\n                &lt;artifactId&gt;resilience4j-retry&lt;/artifactId&gt;\n                &lt;version&gt;1.7.1&lt;/version&gt; &lt;!-- Use the latest version here --&gt;\n            &lt;/dependency&gt;\n            &lt;dependency&gt;\n                &lt;groupId&gt;io.github.resilience4j&lt;/groupId&gt;\n                &lt;artifactId&gt;resilience4j-spring&lt;/artifactId&gt;\n                &lt;version&gt;1.7.1&lt;/version&gt; &lt;!-- Use the latest version here --&gt;\n            &lt;/dependency&gt;\n</code></pre>\n<p>Adding beans</p>\n<pre><code>package com.xyz;\n\nimport io.github.resilience4j.retry.Retry;\nimport io.github.resilience4j.retry.RetryConfig;\nimport io.github.resilience4j.retry.RetryRegistry;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\n\nimport java.time.Duration;\nimport java.util.EmptyStackException;\n\n@Configuration\npublic class Resilience4jConfig {\n\n    @Bean\n    public RetryConfig retryConfig() {\n        return RetryConfig.custom()\n                .maxAttempts(10)\n                .waitDuration(Duration.ofMillis(1000))\n                .retryExceptions(EmptyStackException.class)\n                .build();\n    }\n\n    @Bean\n    public Retry retryRegistry(RetryConfig retryConfig) {\n        return Retry.of(&quot;id&quot;, retryConfig);\n    }\n\n}\n\n</code></pre>\n<p>Using annotation</p>\n<pre><code>@Retry(name = &quot;id&quot;)\n     public returnType servicelayerMethodIwantTORetry(SomeType sometype) {\n         \n        logger.info(CALMarkers.ALWAYS, &quot;throwing exception to test retry&quot;);\n        if(false){}else{\n            throw new EmptyStackException();\n        }\n</code></pre>\n<p>My app works just fine with spring-retry, but due to requirements I need to use resilience library.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "swing",
+      "swingworker"
+    ],
+    "owner": {
+      "account_id": 30863553,
+      "reputation": 1,
+      "user_id": 23682837,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/3aa248b4a50af94d9e28c06f882322c5?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "JosephFC97",
+      "link": "https://stackoverflow.com/users/23682837/josephfc97"
+    },
+    "is_answered": false,
+    "view_count": 57,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1733085320,
+    "creation_date": 1721562528,
+    "last_edit_date": 1733085320,
+    "question_id": 78775096,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78775096/how-can-i-make-sure-my-java-code-is-thread-safe",
+    "title": "How can I make sure my Java code is thread safe",
+    "body": "<p>I am trying to use SwingWorkers in my application (written in Java) where I collect some data from an API and display it in the app's GUI. Please keep in mind that I am very unsure when it comes to threads, it's a concept I struggle to grasp and understand.</p>\n<p>I will provide the method for which the thread is being run.</p>\n<pre><code>    private void initialThread() {\n        dataUpdateTimer = new Timer(60 * 60 * 1000, new ActionListener() { // Update every hour\n            \n            @Override\n            public void actionPerformed(ActionEvent e) {\n                rg.getLoadingMsg(); // Display the JOptionPane message\n                if (cachedChannelData != null) { //If the cached data is not null\n                    cachedChannelData.clear(); //Clear the cached data to make new cache\n                }\n                rg.clearChannelTable(); //Clear the table displaying the channels (GUI)\n                rg.clearGui(); //Clear the rest of the GUI\n                SwingWorker&lt;Void, Map&lt;String, Map&lt;String, programClass&gt;&gt;&gt; sw = new SwingWorker&lt;Void, Map&lt;String, Map&lt;String, programClass&gt;&gt;&gt;() {\n                    @Override\n                    protected Void doInBackground() throws Exception {\n                        cachedChannelData = cm.loadChannels(); //Get the channels (data retrieved from API)\n                        publish(cachedChannelData); //Send the data that's been collected\n                        return null; // Ensure doInBackground returns null as specified by its return type\n                    }\n    \n                    @Override\n                    protected void process(List&lt;Map&lt;String, Map&lt;String, programClass&gt;&gt;&gt; chunks) {\n\n                        Map&lt;String, Map&lt;String, programClass&gt;&gt; result = chunks.get(chunks.size() - 1);\n                        for (Map.Entry&lt;String, Map&lt;String, programClass&gt;&gt; channelEntry : result.entrySet()) { //For every channel data retrieved from the API, do the following\n\n                            String cname = cm.getChannelName(channelEntry.getKey()); //Get the channel's name\n                            rg.displayChannels(cname, channelEntry.getKey()); //Add that channel to the table to display it\n                            Map&lt;String, programClass&gt; programs = channelEntry.getValue(); //List of programs in that channel retrieved from the API\n                            if(programs != null)\n                            { //If there are programs in the channel, hence programs != null\n                                for (Map.Entry&lt;String, programClass&gt; programEntry : programs.entrySet()) { //For every program in the channel\n                                    programClass program = programEntry.getValue(); //Get a variable containing info about that program\n                                    String description = program.getDescription(); // Get the description from the program\n                                    JLabel image = program.getDisplayImage(); // Get the image JLabel from the program\n                                    String start = program.getStart(); //Get the start time of the program\n                                    String end = program.getEnd(); //Get the end time of the program\n                                    String name = program.getName(); //Get the name of the program\n                                    \n                                    // Assuming you have a method to display each program's description and image individually\n                                    rg.displayPrograms(description, image, name, start, end); // Display the programs\n                                }\n                                rg.clearGui(); //Clear the GUI of it's all old displayed data\n                            }\n                            \n                        }\n                    }\n                };\n                sw.execute(); \n            }\n        });\n    \n        dataUpdateTimer.setInitialDelay(0); // Start timer immediately\n        dataUpdateTimer.start();\n    }\n</code></pre>\n<p>Here's the order in which I want my application to run:</p>\n<ol>\n<li>Display a message (JOptionPane)</li>\n<li>Clear the GUI</li>\n<li>Collect the data</li>\n<li>Display the data on screen</li>\n</ol>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

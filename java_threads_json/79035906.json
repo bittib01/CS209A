@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "testing",
+      "junit5"
+    ],
+    "owner": {
+      "account_id": 22178568,
+      "reputation": 288,
+      "user_id": 21505152,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/6d73ce21936530ef305c610308cad5f1?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "theMyth",
+      "link": "https://stackoverflow.com/users/21505152/themyth"
+    },
+    "is_answered": true,
+    "view_count": 1026,
+    "accepted_answer_id": 79036064,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1747679240,
+    "creation_date": 1727597519,
+    "last_edit_date": 1747382574,
+    "question_id": 79035906,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79035906/how-to-load-properties-from-application-properties-with-extendwithspringextens",
+    "title": "How to load properties from application.properties with @ExtendWith(SpringExtension.class)",
+    "body": "<p>I am trying to learn Spring Boot and I was trying to get a solid understanding about testing.</p>\n<p>I am aware that @SpringBootTest loads the full context I do not want to do that.\nI know that the slice tests (i.e: @WebMvcTest, @JdbcTest) internally use @ExtendWith(SpringExtension.class),\nWhat if i just want a simple integrated test with my own beans and I also want to load configuration properties, is it possible to use this with the @Value ?</p>\n<p>I know I can use ReflectionTestUtils but I thought since Spring Extension loads a test context, it should get the application.properties file ?</p>\n<p>So far I am getting a very strange result with @Value, it gets the key instead of the value. It works perfectly with @SpringBootTest so I know the properties are loaded fine when the full application.</p>\n<p>Here is my code:</p>\n<p>application.properties in src/test/resources:</p>\n<pre><code>misc.test-prop-value=testPropValue\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>@ExtendWith(SpringExtension.class)\npublic class ConfigPropertiesTest {\n\n    @Value( value = &quot;${misc.test-prop-value}&quot;)\n    private String testPropValue;\n\n\n    @Value(&quot;${some.non.existent.value}&quot;)\n    private String nonExistentValue;\n\n    @Test\n    void testNonExistentValue() {\n        assertNull(nonExistentValue); // Fails, the value is: ${some.non.existent.value}\n    }\n\n    @Test\n    public void testConfigProperties() {\n        assertEquals(&quot;testPropValue&quot;, testPropValue); //Fails, the value is: ${misc.test-prop-value}\n    }\n\n}\n</code></pre>\n<p>Why is the @Value picking up the key itself ?</p>\n<p>It works perfectly with @SpringBootTest,</p>\n<p>I thought since @SpringExtension loads an application context:</p>\n<pre><code>@ExtendWith(SpringExtension.class)\npublic class SpringExtensionBasicTest {\n\n    @Autowired\n    private ApplicationContext applicationContext;\n\n    @Test\n    void contextLoads() throws Exception {\n        //GenericApplicationContext instance:\n        System.out.println(&quot;Context instance: &quot; + applicationContext.getClass());\n        assertNotNull(applicationContext); // Test passes\n    }\n\n\n\n}\n</code></pre>\n<p>When I extend a base class that has @SpringBootTest,\nEverything works fine, it loads the context, and there is even an error when the some.non.existent.value property not found.\nBut with the Spring Extension, the behaviour is weird.</p>\n<p>Maybe this is a silly question, I can sense this is one of those things, where I am missing something so obvious in my face that no one has even explained it, but i am not getting it.\nAlso if I wanted my own slice test but I still want the .properties file to be loaded like it does with @JdbcTest for example, how would this work</p>\n<p>Edit:</p>\n<p>I got two of the tests to pass when using @TestPropertySource, but the non existent value that is null with @SpringBootTest, still shows the same key:</p>\n<pre><code>@ExtendWith(SpringExtension.class)\n@TestPropertySource(value = &quot;classpath:application.properties&quot;)\npublic class ConfigPropertiesTest  {\n\n    @Value( value = &quot;${misc.test-prop-value}&quot;)\n    private String testPropValue;\n\n    @Value(&quot;${family.mother}&quot;)\n    private String mamaValue;\n\n    /**\n     * When a non-existent value is there,\n     * It is not null for some strange reason,\n     * But it still shows the key\n     */\n    @Value(&quot;${some.non.existent.value}&quot;)\n    private String nonExistentValue;\n\n    @Test\n    void testNonExistentValue() {\n        //Still shows ${some.non.existent.value}\n        assertNull(nonExistentValue);\n    }\n\n    @Test\n    void testPropValue1() {\n        assertEquals(&quot;Mama-test&quot;, mamaValue); //Ok\n    }\n\n    @Test\n    public void testConfigProperties() {\n        assertEquals(&quot;testPropValue&quot;, testPropValue); //Ok\n    }\n\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

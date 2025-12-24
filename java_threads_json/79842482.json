@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "lombok",
+      "mapstruct"
+    ],
+    "owner": {
+      "account_id": 22567698,
+      "reputation": 37,
+      "user_id": 16754423,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/b6b418573f85d35a8c5d337eaa2a6af5?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "bkqdad",
+      "link": "https://stackoverflow.com/users/16754423/bkqdad"
+    },
+    "is_answered": false,
+    "view_count": 28,
+    "closed_date": 1765349464,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1765367530,
+    "creation_date": 1765328883,
+    "last_edit_date": 1765367530,
+    "question_id": 79842482,
+    "link": "https://stackoverflow.com/questions/79842482/mapping-multiple-derived-classes-with-differing-field-names",
+    "closed_reason": "Duplicate",
+    "title": "Mapping multiple derived classes with differing field names",
+    "body": "<p>I have several classes as follows:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Data\npublic class Parent {\n  long id;\n  String name;\n}\n\n@Data\npublic class Child extends Parent {\n  String nickName;\n}\n\n@Data\npublic class Grandchild extends Child {\n  int count;\n}\n</code></pre>\n<p>and their associated DTOs:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Data\npublic class ParentDto {\n  long idDto;\n  String name;\n}\n\n@Data\npublic class ChildDto extends ParentDto {\n  String nickNameDto;\n}\n\n@Data\npublic class GrandchildDto extends ChildDto {\n  int countDto;\n}\n</code></pre>\n<p>I am trying to create the corresponding mappers/mapper configs that will describe the mappings from Object to ObjectDto.  If I define a mapperconfig for ParentToParentDto as:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@MapperConfig(mappingInheritanceStrategy = MappingInheritanceStrategy.AUTO_INHERIT_FROM_CONFIG, \nunmappedSourcePolicy = ReportingPolicy.ERROR, \nunmappedTargetPolicy = ReportingPolicy.ERROR)\npublic interface ParentMapperConfig {\n  @Mapping(target = &quot;idDto&quot;, source = &quot;id&quot;)\n  ParentDto map(Parent parent);\n\n  @Mapping(target = &quot;id&quot;, source = &quot;idDto)\n  Parent map(ParentDto parentDto);\n}\n</code></pre>\n<p>and the mapper as:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Mapper(config = ParentMapperConfig.class)\npublic interface ParentToParentDto {\n  ParentDto map(Parent parent);\n\n  Parent map(ParentDto parentDto);\n}\n</code></pre>\n<p>My implementation looks correct with the correct mappings for id&lt;-&gt;idDto.</p>\n<p>When I create the ChildToChildDto mapper, I would prefer not to have to repeat the id&lt;-&gt;idDto mappings, but I cannot figure out how to accomplish that. I have tried:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@MapperConfig(uses = ParentMapperConfig.class)\npublic interface ChildMapperConfig {\n  @Mapping(target = &quot;nickNameDto&quot;, source = &quot;nickName&quot;)\n  ChildDto map(Child child);\n\n  @Mapping(target = &quot;nickName&quot;, source = &quot;nickNameDto)\n  Child map(ChildDto childDto);\n}\n</code></pre>\n<p>and the mapper as:</p>\n<pre><code>@Mapper(config = ChildMapperConfig.class)\npublic interface ChildToChildDto {\n  ChildDto map(Child child);\n\n  Child map(ChildDto childDto);\n}\n</code></pre>\n<p>as well as quite a number of other incantations.</p>\n<p>Unfortunately, the ChildToChildDto does not pick up the id&lt;-&gt;idDto mapping from the parent. This seems like it should be a solved problem, but I cannot find a solution.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

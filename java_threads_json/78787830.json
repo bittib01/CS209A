@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "wildfly",
+      "wildfly-26"
+    ],
+    "owner": {
+      "account_id": 4360446,
+      "reputation": 1990,
+      "user_id": 3557714,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/dca1b60d2a69bc389eac206a844b448d?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Ben R.",
+      "link": "https://stackoverflow.com/users/3557714/ben-r"
+    },
+    "is_answered": false,
+    "view_count": 196,
+    "answer_count": 0,
+    "score": 5,
+    "last_activity_date": 1758805890,
+    "creation_date": 1721817487,
+    "last_edit_date": 1721825658,
+    "question_id": 78787830,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78787830/why-is-wildfly-26-suddenly-causing-spring-to-identify-injectable-components",
+    "title": "Why is Wildfly 26 suddenly causing Spring to identify injectable components?",
+    "body": "<p>I'm investigating migrating a large codebase from deploying on Wildfly 23.0.1 to 26.1.3.</p>\n<p>One of the JARs being deployed within the EAR uses Spring, and provides an entrypoint to an otherwise-exclusively-EE/EJB CDI landscape:</p>\n<pre><code>@org.springframework.context.annotation.Configuration\npublic class MyFooComponentFactory {\n  @Bean\n  public MyFooComponent() {\n    return new JndiTemplate()\n        .lookup(name(MyFooComponent.class), MyFooComponent.class);\n    }\n}\n</code></pre>\n<p>The implementation of the MyFooComponent interface uses EJB annotations at field level, e.g.:</p>\n<pre><code>@Resource\nprivate SessionContext ctx;\n\n@EJB\nprivate OtherComponent other;\n</code></pre>\n<p>When running in Wildfly 23, the server starts without any issues. But when I try to deploy to Wildfly 26, Spring throws a <code>NoSuchBeanDefinitionException</code> for <code>OtherComponent</code>.</p>\n<p>This is because, on Wildfly 23, Spring creates an <code>org.springframework.beans.factory.annotation.InjectionMetadata</code> with empty collections for the <code>injectedElements</code> and <code>checkedElements</code> fields.</p>\n<p>But for Wildfly 26, these fields are non-empty, meaning Spring tries to inject them. But they aren't defined in the Spring application context, because it's already being handled by EJB.</p>\n<h1>UPDATE</h1>\n<p>I've now identified that the reason <code>InjectionMetadata</code> is constructed differently on versions 23 and 26 is because <code>org.springframework.context.annotation.CommonAnnotationBeanPostProcessor#buildResourceMetadata</code> is navigating up the class hierarchy for <code>MyFooComponent</code> (actually it's <code>MyFooComponent$$$view530</code>, which I assume is a JBoss proxy?)</p>\n<p>For Wildfly 23, <code>clazz.getSuperclass()</code> returns <code>java.lang.Object</code>, but for Wildfly 26, it returns the <code>MyFooComponentImpl</code> class, and then <em>that</em> returns <code>java.lang.Object</code>.</p>\n<p>The fields on the <code>-Impl</code> are responsible for the non-empty metadata.</p>\n<p>So, can anyone tell me why this happens? Classloader changes between Wildfly 23 and 26?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

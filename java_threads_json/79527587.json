@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "hibernate",
+      "jpa"
+    ],
+    "owner": {
+      "account_id": 40892827,
+      "reputation": 1,
+      "user_id": 30016310,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/e20cbdc4d8de5081dba19f3e9040f846?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Reluctant",
+      "link": "https://stackoverflow.com/users/30016310/reluctant"
+    },
+    "is_answered": false,
+    "view_count": 111,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1742890698,
+    "creation_date": 1742653508,
+    "last_edit_date": 1742659340,
+    "question_id": 79527587,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79527587/hibernate-runs-additional-queries-when-using-query-annotation",
+    "title": "Hibernate runs additional queries when using @Query annotation",
+    "body": "<p>Recently I've run into a problem with Hibernate running additional queries, even though I specify a query for it in the CrudRepository interface.</p>\n<p>For this example I'm using Java 23, Spring Boot 3.4.4, Hibernate 6.6.11.Final and an H2 database.</p>\n<p>I have these 2 entities:</p>\n<pre><code>@Entity\n@Table(name = &quot;box&quot;)\n@Data\n@AllArgsConstructor\n@NoArgsConstructor\npublic class Box {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n\n    // fetch type is changed to EAGER because I run a simple integration test\n    @OneToMany(mappedBy = &quot;box&quot;, cascade = CascadeType.ALL, fetch = FetchType.EAGER)\n    private List&lt;Item&gt; items;\n}\n</code></pre>\n<pre><code>@Entity\n@Table(name = &quot;item&quot;)\n@Data\n@AllArgsConstructor\n@NoArgsConstructor\npublic class Item {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n\n    private String name;\n\n    @ManyToOne\n    @JoinColumn(name = &quot;box_id&quot;)\n    private Box box;\n\n    // override toString() to avoid the toString methods from calling each other endlessly.\n}\n</code></pre>\n<p>I also have this repository with a method using @NativeQuery annotation:</p>\n<pre><code>public interface BoxRepository extends CrudRepository&lt;Box, Long&gt; {\n\n    @NativeQuery(&quot;&quot;&quot;\n            SELECT\n                b.id as box_id,\n                i.id as item_id,\n                i.name as item_name\n            FROM box b\n            JOIN item i ON i.box_id = b.id\n            WHERE i.name = :name\n            &quot;&quot;&quot;)\n    List&lt;Box&gt; getBoxesContainingItemWithName(@Param(&quot;name&quot;) String name);\n}\n</code></pre>\n<p>The goal is to fetch boxes that contain at least one item with a specific name. However, when I run this query, Hibernate fetches all items in a box that contains an item matching the WHERE clause (i.e., any box that has any item with the specified name will have all its items loaded, not just the matching ones).</p>\n<p>Problem:\nEven though the SQL query filters for items based on their name, Hibernate still loads all items for each box in the result, which isn't efficient.</p>\n<p>Question:\nHow can I modify this behavior so that only the items that match the WHERE clause are fetched, without Hibernate performing additional queries to load all items for each box?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "arrays",
+      "jvm",
+      "virtual-memory"
+    ],
+    "owner": {
+      "account_id": 1679688,
+      "reputation": 2311,
+      "user_id": 1544278,
+      "user_type": "registered",
+      "accept_rate": 61,
+      "profile_image": "https://www.gravatar.com/avatar/1c50978c4d6b53d68b225457c68c20bc?s=256&d=identicon&r=PG",
+      "display_name": "Turin",
+      "link": "https://stackoverflow.com/users/1544278/turin"
+    },
+    "is_answered": false,
+    "view_count": 41,
+    "closed_date": 1747305904,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1764764237,
+    "creation_date": 1747305664,
+    "last_edit_date": 1764764237,
+    "question_id": 79623139,
+    "link": "https://stackoverflow.com/questions/79623139/can-jvm-present-fragmented-memory-as-continuous-to-the-application",
+    "closed_reason": "Duplicate",
+    "title": "Can JVM present fragmented memory as continuous to the application?",
+    "body": "<p>Contemporary operating system have advanced virtual memory models, and are good at presenting separate pages in physical memory as continuous addresses in virtual memory, to a great extent because of how relatively huge virtual space is on 64-bit architectures. Java, however, is a tiny operating system in itself (a virtual machine, after all), and needs to implement many features normally granted by memory systems.</p>\n<p>In particular, I am somewhat worrided about the usage of array-based structures (such as <code>ArrayList</code>), especially inside libraries which had no control or mind to optimize for that use case, and which I cannot change myself. For example, sorting of a <code>LinkedList</code> happens normally by copying it to an array and back, which I can do nothing about except for looking for a different library or implementing some features myself, and I need to be aware of this happening in the first place. This of course is just a simple example of a prevalent issue.</p>\n<p>To be clear: physical memory and OS virtual memory are irrelevant to this question. JVM models memory as a continuous address space. The closer that space becomes to filling up, the harder it is to allocate continuous chunks for the Java app. Imagine running the JVM with <code>-Xmx16GB</code>. This will make the JVM use 32bit pointers, limiting the memory it can address to 16GB (addresses are increased every 4 bytes, not every byte). Lets say the process requests an array which requires <code>x</code> GB, and there is no continuous chunk in the youngest generation. What will JVM do? Pause and move enough objects to create a chunk of suitable size? It seems to me like the only viable option. Now replace 'youngest generation' with the total pool of memory that 32bit addressing can cover. Moving that much of memory would require considerable time.</p>\n<p>And what if I use <code>-Xmx24GB</code>, which will make the JVM use 64 bit pointers. Does the memory limit define the valid address space, or does it only apply to the total amount of memory actually requested from the OS? In other words, does the memory model limit the address space within the VM to 6*10^9? I assume here that the minimal chunk of memory allocated is also 4 bytes here, but if it is 8 bytes then just replace 6 with 3 in the previous sentence. Or does it model the memory as full 2^66/2^67, mapped one-to-one with the virtual memory space of the JVM process itself and just watches itself to not request more than 24GB memory total from the OS, regardless of how it is fragmented?</p>\n<p>In my mind, allocating a <code>long[0x7fffff00]</code> is an accident waiting to happen, even if comparatively extreme for emphasis. I do not have a good understanding of how JVM works and interacts with the operating system. I know however that it is very typical to restrict the amount memory when launching the virtual machine, and that it must correspond to the virtual memory of the process, as userspace has no actual control over how physical memory is used. Allocating a long, continuous memory block should be especially hard with a generational garbage collector, requiring a deep gc run in the best, stopping the world and moving stuff around in extreme, and causing a downright <code>OutOfMemoryError</code> due to fragmentation at worst.</p>\n<p>Am I missing something? Is virtual memory actually not a problem at all, or the JVM can divide a huge array into chunks itself? Or is it something I should keep in mind when writing code if I do not have a clear idea that the real data size will be much more limited.</p>\n<p>To be clear, I do not ask about alternative data structures, in the standard library or outside of it. I am also less interested in recommendations on how to safeguard myself and optimize my own code. I am worried about existing libraries using internally arrays or array-based structures, especially larger than linear with user's data without checking the size first.</p>\n<p>Writing benchmarks, especially Hotspot VM benchmarks is an art of its own, and I do not even have a good idea how to properly baseline such a hypothetical benchmark to expose the factor of memory being continuous, and not simply that allocating gigabytes at a time is bloody hard in the first place. I am not even sure what a realistic scenario would be. Generally, JVM benchmarks, even the good ones I've seen, work with completely extracted problems (with the goal to limit the effect of uncontrolled variables) and focus on very hot, C2 code. This is quite the opposite to what I look out for, that is very occasional, uncharastically large inputs. I am interested here in the worst case scenarios not breaking the application, rather than its marginal statistical performance improvement.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

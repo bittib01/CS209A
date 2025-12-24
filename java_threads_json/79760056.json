@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "scala",
+      "itext",
+      "itext7",
+      "openpdf"
+    ],
+    "owner": {
+      "account_id": 26482099,
+      "reputation": 1,
+      "user_id": 20121201,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/d734178fe434021eeb7b640667c536df?s=256&d=identicon&r=PG",
+      "display_name": "BALAJI",
+      "link": "https://stackoverflow.com/users/20121201/balaji"
+    },
+    "is_answered": false,
+    "view_count": 42,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1757432463,
+    "creation_date": 1757432463,
+    "question_id": 79760056,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79760056/how-to-enable-kerning-ligatures-layoutprocessor-with-ttf-loaded-from-cloud-sto",
+    "title": "How to enable kerning/ligatures (LayoutProcessor) with TTF loaded from Cloud Storage?",
+    "body": "<p><strong>Library:</strong> OpenPDF 1.4.2 (com.lowagie.text.pdf)</p>\n<p><strong>Goal:</strong> Enable kerning and ligatures for TrueType/OTF fonts using LayoutProcessor (enableKernLiga) when rendering text via ColumnText/Paragraph.</p>\n<p><strong>Constraint</strong>: The font files come from Cloud Storage at runtime. We only have the font as byte[] in memory. We cannot write to the local filesystem and would like to avoid temp files.</p>\n<p><strong>What happens</strong>\nWith LayoutProcessor enabled, BaseFont.createFont fails and the logs show:</p>\n<pre><code>is Layout processor is enabled true\njava.lang.RuntimeException: Font creation failed for BodoniRecutFS-Regular.ttf.\n  at com.lowagie.text.pdf.LayoutProcessor.loadFont(LayoutProcessor.java:282)\n  at com.lowagie.text.pdf.BaseFont.createFont(BaseFont.java:741)\n  ...\nCaused by: java.io.IOException: BodoniRecutFS-Regular.ttf not found as file or resource.\n  at com.lowagie.text.pdf.LayoutProcessor.loadFont(LayoutProcessor.java:271)\n</code></pre>\n<p>We download a TTF to memory, then create a BaseFont from the bytes. Before creating the font, we enable the LayoutProcessor to get kerning/ligatures.</p>\n<pre><code>private[pdf] def createFont(fontObjectName: String, fontBytes: Array[Byte]): BaseFont = {\n  // e.g. fontObjectName = &quot;BodoniRecutFS-Regular.ttf&quot;\n  if (!LayoutProcessor.isEnabled) {\n    LayoutProcessor.enableKernLiga()\n  }\n  BaseFont.createFont(\n    fontObjectName,           // has .ttf extension\n    BaseFont.IDENTITY_H,      // Unicode\n    BaseFont.EMBEDDED,        // embed font (true)\n    BaseFont.NOT_CACHED,      // we do our own caching\n    fontBytes,                // font comes from Cloud Storage as bytes\n    null                      // not using PFB (Type 1)\n  )\n}\n</code></pre>\n<p><strong>Expected</strong></p>\n<p>A way to enable kerning/ligatures (LayoutProcessor) when our TTF font is only available as byte[] in memory, without writing a temp file to disk.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

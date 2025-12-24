@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "pagination",
+      "hibernate-criteria",
+      "criteria-api"
+    ],
+    "owner": {
+      "account_id": 9976375,
+      "reputation": 495,
+      "user_id": 7380828,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/ef7e5a2c06ac8c8bfb82af5b9989b00d?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Giacomo Venturini",
+      "link": "https://stackoverflow.com/users/7380828/giacomo-venturini"
+    },
+    "is_answered": true,
+    "view_count": 725,
+    "accepted_answer_id": 77841085,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1721838098,
+    "creation_date": 1705596545,
+    "question_id": 77841084,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77841084/how-to-iterate-over-every-page-returned-by-a-jpa-criteria",
+    "title": "How to iterate over every page returned by a JPA Criteria?",
+    "body": "<p>I need to build a background process that will periodically process all the elements of a database table.\nSince I can not load all the elements in memory, I need to divide the database in subportions. Unfortunately, I can not use JPQL Stream return type, since the query uses a complex filter based logic which is not achievable by writing a JPQL query.</p>\n<p>Thus, I have built the following criteria query, to return only a page of Products. After I have processed a page, how can I iterate over next one until I have processed them all?</p>\n<pre class=\"lang-java prettyprint-override\"><code>import org.springframework.data.jpa.repository.query.QueryUtils;\n\n@Repository\n@AllArgsConstructor\npublic class ProductRepositoryImpl implements CustomProductRepository {\n\n    private final EntityManager entityManager;\n\n    @Override\n    public Page&lt;Product&gt; getProducts(Pageable pageable, /* fields used to filter the results */) {\n        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();\n        CriteriaQuery&lt;Product&gt; criteriaQuery = criteriaBuilder.createQuery(Product.class);\n        Root&lt;Product&gt; root = criteriaQuery.from(Product.class);\n        \n        List&lt;Predicate&gt; predicates = getPredicates(/* fields used to filter the results */);\n\n        criteriaQuery.where(combinePredicatesWithAndStatement(criteriaBuilder, predicates))\n            .orderBy(QueryUtils.toOrders(pageable.getSort(), root, criteriaBuilder));\n\n        List&lt;Product&gt; result = entityManager.createQuery(criteriaQuery)\n            .setFirstResult((int) pageable.getOffset())\n            .setMaxResults(pageable.getPageSize())\n            .getResultList();\n\n        CriteriaBuilder criteriaBuilderCount = entityManager.getCriteriaBuilder();\n        CriteriaQuery&lt;Long&gt; countQuery = criteriaBuilderCount.createQuery(Long.class);\n        Root&lt;Product&gt; rootCount = countQuery.from(Product.class);\n\n        List&lt;Predicate&gt; predicatesCount = getPredicates(/* fields used to filter the results */);\n\n        countQuery.select(criteriaBuilderCount.count(rootCount))\n            .where(combinePredicatesWithAndStatement(criteriaBuilderCount, predicatesCount));\n\n        Long totalElements = entityManager.createQuery(countQuery).getSingleResult();\n\n        return new PageImpl&lt;&gt;(result, pageable, totalElements);\n    }\n\n    private List&lt;Product&gt; getPredicates(/* fields used to filter the results */) {\n        List&lt;Predicate&gt; predicates = new ArrayList&lt;Predicate&gt;();\n        // assemble predicates based on some complex conditions not replicable with JPQL\n        return predicates;\n    }\n\n    private Predicate combinePredicatesWithAndStatement(CriteriaBuilder criteriaBuilder, List&lt;Predicate&gt; predicates) {\n        return criteriaBuilder.and(predicates.stream().filter(Objects::nonNull).toArray(Predicate[]::new));\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "parallel-processing",
+      "java-stream",
+      "short-circuiting"
+    ],
+    "owner": {
+      "account_id": 43022,
+      "reputation": 24636,
+      "user_id": 125562,
+      "user_type": "registered",
+      "accept_rate": 64,
+      "profile_image": "https://i.sstatic.net/SdIqA.png?s=256",
+      "display_name": "Basilevs",
+      "link": "https://stackoverflow.com/users/125562/basilevs"
+    },
+    "is_answered": true,
+    "view_count": 193,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1757535780,
+    "creation_date": 1755090684,
+    "last_edit_date": 1757434320,
+    "question_id": 79734319,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79734319/can-stream-allmatch-call-the-predicate-multiple-times-for-the-same-element",
+    "title": "Can `Stream.allMatch()` call the predicate multiple times for the same element?",
+    "body": "<p>I'm trying to implement a short-circuited processing for an external input of <code>java.util.Stream</code> (think <code>Stream.forEach()</code> but with short-circuiting). I do not care about order of the elements, but if processing is not short-circuited, their identity and count are important.  I've already got a solution based on a <code>Stream.spliterator()</code> and a <code>while</code> loop, however it is not parallelized and is hard to read.\nI've got an unreliable hint to use <code>allMatch()</code> to short-circuit the operation instead. The resulting code could then look like:</p>\n<pre><code>&lt;T&gt; void process(Stream&lt;T&gt; input) {\n  input.allMatch(element -&gt; {\n    if (isCancelled) {\n      return false;\n    }\n    send(element); // Should receive all elements in any order exactly once unless cancelled\n    return true;\n  });\n}\n</code></pre>\n<p>Will <code>allMatch()</code> ever apply it's predicate argument to the same element multiple times?</p>\n<p>I see that following test does not fail on my machine, can I rely on this behavior?</p>\n<pre><code>    @Test\n    public void anyMatch() {\n        AtomicLong count = new AtomicLong(0); \n        IntStream.range(0, Integer.MAX_VALUE).parallel().mapToObj(ignored -&gt; new Object()) .allMatch(i -&gt; {\n            count.incrementAndGet(); // verify that no objects are processed more than once\n            return true;\n        });\n        Assert.assertEquals(count.get(), Integer.MAX_VALUE);\n    }\n</code></pre>\n<p>IMO, given the nature of underlying <code>Spliterator.trySplit()</code> this is a reliable approach, but I'd like to get a confirmation and prognosis somehow.</p>\n<p>For the reference, the actual processing I'm trying to simplify is\n<a href=\"https://github.com/basilevs/jstackfilter/blob/586d09d9125c26e1bab58050c98a7443f92f1240/core/core/src/main/java/org/basilevs/jstackfilter/PushSpliterator.java#L40\" rel=\"nofollow noreferrer\"><code>PushSpliterator.parallel()</code></a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

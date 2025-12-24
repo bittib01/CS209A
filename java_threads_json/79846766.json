@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "html",
+      "android-alertdialog"
+    ],
+    "owner": {
+      "account_id": 5123768,
+      "reputation": 77,
+      "user_id": 4106573,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/0ygEnzCY.png?s=256",
+      "display_name": "Dana Bell",
+      "link": "https://stackoverflow.com/users/4106573/dana-bell"
+    },
+    "is_answered": false,
+    "view_count": 128,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1765796525,
+    "creation_date": 1765660909,
+    "last_edit_date": 1765796525,
+    "question_id": 79846766,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79846766/link-in-html-file-in-alertdialog-isnt-clickable",
+    "title": "Link in HTML file in AlertDialog isn&#39;t clickable",
+    "body": "<p>I'm trying to load an HTML file in an AlertDialog and have links clickable and have dialog properly formatted with padding.</p>\n<p>The following code shows the dialog box, but the link is not clickable.</p>\n<pre><code>public void showNews(int number) {\n  int last = shared.getInt(&quot;news&quot;, 1);\n  Log.d(&quot;News&quot;, String.valueOf(last));\n\n  if (last &gt;= number) return;\n  AlertDialog.Builder builder = new AlertDialog.Builder(SearchActivity.this, R.style.darkAlertDialog); //, R.style.darkAlertDialog\n  builder.setTitle(&quot;Application News&quot;);\n\n  StringBuilder text = new StringBuilder();\n\n  BufferedReader reader = null;\n  try {\n    reader = new BufferedReader(\n    new InputStreamReader(getAssets().open(&quot;html/&quot; + &quot;news.html&quot;)));\n    String mLine;\n    while ((mLine = reader.readLine()) != null) {\n      text.append(mLine);\n      text.append('\\n');\n    }\n  } catch(IOException e) {\n    Toast.makeText(getApplicationContext(), &quot;Error reading file!&quot;, Toast.LENGTH_LONG).show();\n    e.printStackTrace();\n  } finally {\n    if (reader != null) {\n      try {\n        reader.close();\n      } catch(IOException e) {\n        Log.e(&quot;showNews&quot;, &quot;Error reading file&quot;);\n        return;\n      }\n    }\n  }\n\n  // Trouble\n  Spanned result;\n  if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.N) {\n    result = Html.fromHtml(text.toString(), Html.FROM_HTML_MODE_LEGACY);\n  } else {\n    result = Html.fromHtml(text.toString());\n  }\n  builder.setMessage(result);\n\n  //        result.setMovementMethod(LinkMovementMethod.getInstance());\n  //        result.setClickable(true);\n  // Trouble\n  builder.setPositiveButton(&quot;Okay&quot;, new DialogInterface.OnClickListener() {@Override\n    public void onClick(DialogInterface dialog, int which) {\n      //                prefs.putInt(&quot;news&quot;, number);\n      //                prefs.apply();\n      dialog.dismiss();\n    }\n  });\n\n  builder.create();\n  builder.show();\n}\n</code></pre>\n<p>The set movement and set clickable gives a syntax error</p>\n<p>If I replace the section between // Trouble, as suggested by <a href=\"https://stackoverflow.com/questions/14652894/using-html-in-android-alert-dialog#14652941\">Using HTML in Android Alert Dialog</a> with</p>\n<pre><code>TextView msg = new TextView(this);\nmsg.setText(Html.fromHtml(String.valueOf(text)));\nbuilder.setView(msg);\nmsg.setMovementMethod(LinkMovementMethod.getInstance());\nmsg.setClickable(true);\n</code></pre>\n<p>the link is clickable but there is no padding between the text and the dialog box.</p>\n<p><a href=\"https://i.sstatic.net/CbKUDjFr.jpg\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/CbKUDjFr.jpg\" alt=\"Example from the alternate code\" /></a></p>\n<p>I've also tried using a custom layout but it comes out empty, even though log files show that the text is there.</p>\n<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;\n&lt;android.support.constraint.ConstraintLayout\n    xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;\n    xmlns:app=&quot;http://schemas.android.com/apk/res-auto&quot;\n    xmlns:tools=&quot;http://schemas.android.com/tools&quot;\n    android:layout_width=&quot;match_parent&quot;\n    android:layout_height=&quot;match_parent&quot;&gt;\n    &lt;TextView\n        android:id=&quot;@+id/textNews&quot;\n        android:layout_width=&quot;0dp&quot;\n        android:layout_height=&quot;0dp&quot;\n        android:layout_marginStart=&quot;32dp&quot;\n        android:layout_marginTop=&quot;80dp&quot;\n        android:layout_marginEnd=&quot;32dp&quot;\n        android:layout_marginBottom=&quot;80dp&quot;\n        android:scrollbarAlwaysDrawVerticalTrack=&quot;true&quot;\n        android:textColor=&quot;@color/lightgray&quot;\n        android:visibility=&quot;visible&quot;\n        app:layout_constraintBottom_toBottomOf=&quot;parent&quot;\n        app:layout_constraintEnd_toEndOf=&quot;parent&quot;\n        app:layout_constraintStart_toStartOf=&quot;parent&quot;\n        app:layout_constraintTop_toTopOf=&quot;parent&quot;\n        tools:text=&quot;TextNews&quot;\n        tools:visibility=&quot;visible&quot; /&gt;\n&lt;/android.support.constraint.ConstraintLayout&gt;\n</code></pre>\n<pre><code>Log.d(&quot;text&quot;, String.valueOf(text));\n\nAlertDialog.Builder builder = new AlertDialog.Builder(SearchActivity.this, R.style.darkAlertDialog); //, R.style.darkAlertDialog\nbuilder.setTitle(&quot;Application News&quot;);\n\nLayoutInflater inflater = this.getLayoutInflater();\nView dialogView = inflater.inflate(R.layout.app_news, null);\nfinal TextView appNews = dialogView.findViewById(R.id.textNews);\nappNews.setText(result);\nappNews.setMovementMethod(LinkMovementMethod.getInstance());\nappNews.setClickable(true);\n\nLog.d(&quot;msg&quot;, String.valueOf(appNews.getText()));\nbuilder.setView(dialogView);\n</code></pre>\n<p><a href=\"https://i.sstatic.net/ZLdStP1m.jpg\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/ZLdStP1m.jpg\" alt=\"Result when using custom layout\" /></a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "scala",
+      "overriding",
+      "variadic-functions",
+      "scala-java-interop"
+    ],
+    "owner": {
+      "account_id": 30939813,
+      "reputation": 31,
+      "user_id": 23756460,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/a0f129dde6ed13eef9acc30685420b03?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Ian Bertolacci",
+      "link": "https://stackoverflow.com/users/23756460/ian-bertolacci"
+    },
+    "is_answered": false,
+    "view_count": 101,
+    "answer_count": 0,
+    "score": 3,
+    "last_activity_date": 1750315550,
+    "creation_date": 1750265527,
+    "last_edit_date": 1750273388,
+    "question_id": 79671047,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79671047/how-to-override-a-varargs-java-method-in-a-scala-class-which-is-still-callable-i",
+    "title": "How to override a varargs java method in a scala class which is still callable in both scala and java variadically?",
+    "body": "<p>Assume there is a base class in a Java library which cannot be modified</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class BaseClass {\n    public Something function(int... args){ ... }\n}\n</code></pre>\n<p>Typically, this would be overridden in Scala by using the Scala varargs syntax:</p>\n<pre class=\"lang-scala prettyprint-override\"><code>class TypicalScalaVarargsOverrideClass extends BaseClass {\n  override def function(args: Int*): Something = { ... }\n}\n</code></pre>\n<p>But if <code>TypicalScalaVarargsOverrideClass.function</code> is invoked in Java code, a no suitable method error is raised:</p>\n<pre><code>// no args\nno suitable method found for function(no arguments)\n    method TypicalScalaVarargsOverrideClass.function(scala.collection.Seq&lt;java.lang.Object&gt;) is not applicable\n      (actual and formal argument lists differ in length)\n    method TypicalScalaVarargsOverrideClass.function(int[]) is not applicable\n      (actual and formal argument lists differ in length)\n\n// 1 arg\nno suitable method found for function(int)\n    method TypicalScalaVarargsOverrideClass.function(scala.collection.Seq&lt;java.lang.Object&gt;) is not applicable\n      (argument mismatch; int cannot be converted to scala.collection.Seq&lt;java.lang.Object&gt;)\n    method TypicalScalaVarargsOverrideClass.function(int[]) is not applicable\n      (argument mismatch; int cannot be converted to int[])\n\n// 3 args\nno suitable method found for function(int,int,int)\n    method TypicalScalaVarargsOverrideClass.function(scala.collection.Seq&lt;java.lang.Object&gt;) is not applicable\n      (actual and formal argument lists differ in length)\n    method TypicalScalaVarargsOverrideClass.function(int[]) is not applicable\n      (actual and formal argument lists differ in length)\n</code></pre>\n<p>Typically, the solution to this is to add <code>@varargs</code> annotation, making the bytecode generated from the Scala code compatible the Java:</p>\n<pre class=\"lang-scala prettyprint-override\"><code>class UsingVarargsAnnotationClass extends BaseClass {\n  @varargs\n  override def function(args: Int*): Something = { ... }\n}\n</code></pre>\n<p>But this results in a double definition error, as it now collides with the original function definition:</p>\n<pre><code>double definition:\noverride def function(args: Int*): Something at line 1 and\noverride def function(args: Array[Int]): Something at line 3\nhave same type after erasure: (args: Array[Int])Something\n  override def function(args: Int*): Something = {\n</code></pre>\n<p>So is there a way, in Scala (specifically 2.12 or 2.13), to define an override of a Java varargs method which is still callable from both Scala and Java?</p>\n<p>The primary suggestion I've received is to avoid this entirely by defining the interface of the override class in Java, with the override methods making a call to some delegate function defined in Scala (there are a few ways to do that).</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

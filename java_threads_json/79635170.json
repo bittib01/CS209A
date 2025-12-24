@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "azure",
+      "azure-functions",
+      "rabbitmq"
+    ],
+    "owner": {
+      "account_id": 2650647,
+      "reputation": 1634,
+      "user_id": 3514976,
+      "user_type": "registered",
+      "accept_rate": 71,
+      "profile_image": "https://i.sstatic.net/o5LkM.png?s=256",
+      "display_name": "nonzaprej",
+      "link": "https://stackoverflow.com/users/3514976/nonzaprej"
+    },
+    "is_answered": true,
+    "view_count": 128,
+    "accepted_answer_id": 79653863,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1749103233,
+    "creation_date": 1747990323,
+    "last_edit_date": 1748011759,
+    "question_id": 79635170,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79635170/azure-function-with-rabbitmq-output-multiple-messages",
+    "title": "Azure Function with RabbitMQ: output multiple messages",
+    "body": "<p>I have an Azure Function made in Java, which is triggered by RabbitMQ messages on a specific queue.<br />\nMy problem is that I need to output two different messages, one in the middle of the function's code and one at the end. I saw that <code>OutputBinding.setValue</code> doesn't immediately send a message but only sets the value to be used as the output of the function.</p>\n<p>Here's my code structure:</p>\n<pre class=\"lang-java prettyprint-override\"><code>import com.microsoft.azure.functions.ExecutionContext;\nimport com.microsoft.azure.functions.OutputBinding;\nimport com.microsoft.azure.functions.annotation.FunctionName;\nimport com.microsoft.azure.functions.rabbitmq.annotation.RabbitMQOutput;\nimport com.microsoft.azure.functions.rabbitmq.annotation.RabbitMQTrigger;\n\npublic class MyFunction {\n\n    @FunctionName(&quot;MyFunction&quot;)\n    public void run(\n            @RabbitMQTrigger(connectionStringSetting = &quot;RABBIT_URL&quot;, queueName = &quot;input-queue&quot;)\n            InputMessage message,\n            @RabbitMQOutput(connectionStringSetting = &quot;RABBIT_URL&quot;, queueName = &quot;output-queue&quot;)\n            OutputBinding&lt;OutputMessage&gt; output,\n            final ExecutionContext context) {\n        \n        // some code...\n        \n        output.setValue(new OutputMessage(OutputMessage.Status.PROCESSING, &quot;some other info 1&quot;));\n        \n        // other code...\n        \n        output.setValue(new OutputMessage(OutputMessage.Status.DONE, &quot;some other info 2&quot;));\n    }\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>public record OutputMessage (Status status, String info) {\n    \n    public enum Status {\n        PROCESSING,\n        DONE\n    }\n}\n</code></pre>\n<p>The message with status &quot;PROCESSING&quot; needs to be fired before the function has done its thing, but if I test the function and go to the RabbitMQ management interface I see that there's only 1 message in the output queue, not 2, and it's the one with status &quot;DONE&quot;.</p>\n<p>Is there actually a way to send 2 messages from 1 function by using the available tools provided by the Azure Functions Java library/es? Or do I have to import the RabbitMQ library, connect to the queue and manually send a message through that?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

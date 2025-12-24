@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "tomcat",
+      "cxf",
+      "slf4j"
+    ],
+    "owner": {
+      "account_id": 27127742,
+      "reputation": 13,
+      "user_id": 21377381,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/8264a82fbbb9f02f273c76a63bd9f200?s=256&d=identicon&r=PG",
+      "display_name": "sbnet",
+      "link": "https://stackoverflow.com/users/21377381/sbnet"
+    },
+    "is_answered": false,
+    "view_count": 31,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1760428137,
+    "creation_date": 1760428137,
+    "question_id": 79789937,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79789937/sse-subscription-method-with-a-specific-parameter-is-not-logged",
+    "title": "Sse subscription method with a specific parameter is not logged",
+    "body": "<p>I have an application using Java 11, Spring, Apache CXF 3.4.2, Tomcat and slf4j. The method that serves as the endpoint for subscribing to server-sent events doesn't log any errors. They're visible in debugging, but nothing appears in the logs. All other methods log normally. SLF4J is fine, though. I explain that logging starts working fine if I remove the <code>@Context SseEventSink sseEventSink</code> method from its parameters, but I can't do anything else.</p>\n<pre><code>public class RestService implements GameApi {\n\n    public static Logger LOG = LoggerFactory.getLogger(RestService.class);\n    private static final Map&lt;UUID, SseBroadcaster&gt; playersConnectionsMap = new HashMap&lt;&gt;();\n\n    @Resource\n    private MasterRepository masterRepository;\n    @Resource\n    private GameRepository gameRepository;\n    @Resource\n    ObjectMapper objectMapper;\n    @Context\n    private Sse sse;\n\n    @GET\n    @Path(&quot;/shipMovementSubscribe&quot;)\n    @Produces(MediaType.SERVER_SENT_EVENTS)\n    public void shipMovementSubscribe(@Context SseEventSink sseEventSink\n            , @Context Sse sse, MoveChipDTO moveChipDTO\n            , @Context HttpHeaders headers) {\n\n\n        UUID gameId = GAME_ID;\n\n        if (!playersConnectionsMap.containsKey(gameId)) {\n            playersConnectionsMap.put(gameId, sse.newBroadcaster());\n        }\n        playersConnectionsMap.get(gameId).register(sseEventSink);\n    }\n... other methods with successful logging\n}\n</code></pre>\n<p>logback.xml</p>\n<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;\n&lt;configuration scan=&quot;true&quot; scanPeriod=&quot;30 seconds&quot;&gt;\n&lt;!--    &lt;statusListener class=&quot;ch.qos.logback.core.status.OnConsoleStatusListener&quot; /&gt;--&gt;\n    &lt;appender name=&quot;STDOUT&quot; class=&quot;ch.qos.logback.core.ConsoleAppender&quot;&gt;\n        &lt;encoder&gt;\n            &lt;pattern&gt;%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n&lt;/pattern&gt;\n        &lt;/encoder&gt;\n    &lt;/appender&gt;\n\n    &lt;root level=&quot;INFO&quot;&gt;\n        &lt;appender-ref ref=&quot;STDOUT&quot;/&gt;\n    &lt;/root&gt;\n  \n&lt;/configuration&gt;\n</code></pre>\n<p>Tried changing the logging settings.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

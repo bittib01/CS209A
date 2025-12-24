@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "chat",
+      "socketchannel"
+    ],
+    "owner": {
+      "account_id": 38890247,
+      "reputation": 156,
+      "user_id": 29003408,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/LhjH9Wyd.jpg?s=256",
+      "display_name": "Andrei Greblă",
+      "link": "https://stackoverflow.com/users/29003408/andrei-grebl%c4%83"
+    },
+    "is_answered": true,
+    "view_count": 186,
+    "closed_date": 1743971287,
+    "accepted_answer_id": 79555709,
+    "answer_count": 1,
+    "score": -3,
+    "last_activity_date": 1746057320,
+    "creation_date": 1743775340,
+    "last_edit_date": 1746057320,
+    "question_id": 79555533,
+    "link": "https://stackoverflow.com/questions/79555533/event-driven-vs-socketchannel-loop-best-approach-for-a-simple-java-chat-system",
+    "closed_reason": "Opinion-based",
+    "title": "Event-Driven vs. SocketChannel Loop: Best Approach for a simple Java Chat System?",
+    "body": "<p>I am developing a chat system in Java and evaluating two different approaches for handling communications:</p>\n<ol>\n<li><strong>SocketChannel with a While Loop</strong> – A commonly used method that is straightforward to implement and read, though it may not be the most efficient.</li>\n<li><strong>Event-Driven Model</strong> – A more performance-oriented approach that can potentially offer better efficiency but involves greater complexity in implementation and maintenance.</li>\n</ol>\n<p>Each chat server will support a maximum of 10 clients, meaning the system will not be highly populated. Given these constraints, I am analyzing whether adopting the Event-Driven Model would provide meaningful advantages over the simpler SocketChannel approach.</p>\n<p>My current server looks like this:</p>\n<pre><code>package Chat;\nimport java.io.IOException;\nimport java.net.InetSocketAddress;\nimport java.nio.ByteBuffer;\nimport java.nio.channels.SocketChannel;\nimport java.nio.channels.spi.SelectorProvider;\nimport java.nio.charset.StandardCharsets;\nimport java.util.ArrayList;\nimport java.util.Iterator;\nimport java.util.List;\nimport java.util.concurrent.CopyOnWriteArrayList;\n\npublic class SimpleServerChannel {\n    private List&lt;SocketChannel&gt; clientChannels = new CopyOnWriteArrayList&lt;&gt;();\n    private List&lt;Chat_Interface&gt; clientInterfaces = new ArrayList&lt;&gt;();\n    \n    public void start() {\n        \n            try (CustomServerSocket serverChannel = new CustomServerSocket(SelectorProvider.provider(), clientChannels, clientInterfaces)) {\n                serverChannel.socket().bind(new InetSocketAddress(5000));\n                serverChannel.configureBlocking(false);\n                System.out.println(&quot;Server is listening on port &quot; + serverChannel.socket().getLocalPort());\n                ByteBuffer buffer = ByteBuffer.allocate(1024);\n                \n                clientChannels = serverChannel.getClientChannels();\n                clientInterfaces = serverChannel.getClientInterfaces();\n                \n                while (true) {\n                    SocketChannel clientChannel = serverChannel.accept();\n                    Iterator&lt;SocketChannel&gt; iterator = clientChannels.iterator();\n                    if (clientChannel != null) {\n                        clientChannel.configureBlocking(false);\n                            clientChannels.add(clientChannel);\n                        System.out.printf(&quot;Client %s connected%n&quot;, clientChannel.socket().getRemoteSocketAddress());\n                    }\n                    \n                        while (iterator.hasNext()) {\n                            SocketChannel client = iterator.next();\n                            try {\n                                buffer.clear();\n                                int bytesRead = client.read(buffer);\n                                if (bytesRead == -1) {\n                                    System.out.printf(&quot;Client %s disconnected%n&quot;, client.socket().getRemoteSocketAddress());\n                                    clientChannels.remove(client);\n                                    client.close();\n                                } else if (bytesRead &gt; 0) {\n                                    buffer.flip();\n                                    byte[] data = new byte[buffer.remaining()];\n                                    buffer.get(data);\n                                    String message = String.format(&quot;%s&quot;, new String((data), StandardCharsets.UTF_8));\n                                    \n                                    for (SocketChannel otherClient : clientChannels) {\n                                        buffer.clear();\n                                        buffer.put((message).getBytes());\n                                        buffer.flip();\n                                        while (buffer.hasRemaining()) {\n                                            otherClient.write(buffer);\n                                        }\n                                    }\n                                }\n                            } catch (IOException e) {\n                                System.out.printf(&quot;Client %s disconnected due to error%n&quot;, client.socket().getRemoteSocketAddress());\n                                clientChannels.remove(client);\n                                client.close();\n                            }\n                        }\n                }\n            } catch (IOException e) {\n                throw new RuntimeException(e);\n            }\n    }\n\n    \n    public List&lt;SocketChannel&gt; getClientChannels() {\n        return clientChannels;\n    }\n    \n    public List&lt;Chat_Interface&gt; getClientInterfaces() {\n        return clientInterfaces;\n    }\n}\n</code></pre>\n<p><strong>My question</strong> is if I have to switch with the second approach, or for my needs(mentioned earlier), keeping this approach is enough for understanding low level network programming and build a small feature?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

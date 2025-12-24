@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "spring-data-jpa"
+    ],
+    "owner": {
+      "account_id": 2106302,
+      "reputation": 947,
+      "user_id": 1872565,
+      "user_type": "registered",
+      "accept_rate": 62,
+      "profile_image": "https://www.gravatar.com/avatar/0fa57ad1ec419dc83ffefe38a412d06e?s=256&d=identicon&r=PG",
+      "display_name": "Learner",
+      "link": "https://stackoverflow.com/users/1872565/learner"
+    },
+    "is_answered": true,
+    "view_count": 229,
+    "accepted_answer_id": 79457878,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1740151858,
+    "creation_date": 1740084981,
+    "last_edit_date": 1740109907,
+    "question_id": 79455821,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79455821/one-to-many-relationship-update-data-in-spring-boot-is-not-working",
+    "title": "One to Many relationship, update data in spring boot is not working",
+    "body": "<p>iam a naive user, working on Spring boot., Creating a onetoMany relationship with User(Parent) - &gt; Address(Child).</p>\n<p>POST is working ( Creating a user is working)</p>\n<p>Unable to update the User Record on Postman, tried to search online but none of the solutions worked for me.</p>\n<p>here is my code</p>\n<pre><code>User.java\n\n@Entity\npublic class User {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n\n    private String name;\n   // @JsonIgnore\n    @JsonManagedReference\n    @OneToMany(mappedBy = &quot;user&quot;, cascade = CascadeType.ALL, orphanRemoval = true)\n    private List&lt;Address&gt; addresses;\n\n    // Getters and setters\n}\n\n@Entity\npublic class Address {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n\n\n    private String street;\n    private String city;\n    private String state;\n    private String zip;\n\n    @JsonBackReference\n    @ManyToOne\n    @JoinColumn(name = &quot;user_id&quot;)\n    private User user;\n\n    // Getters and setters\n}\n\nUserController.java\n\n   @PutMapping(&quot;/{id}&quot;)\n    public User updateUser(@PathVariable Long id, @RequestBody User user) {\n        User existingUser = userService.getUser(id);\n        existingUser.setName(user.getName());\n        existingUser.setAddresses(user.getAddresses());\n        return userService.updateUser(existingUser);\n    }\n\n\nuserService.java\n\n    public User updateUser(User user) {\n        return userRepository.save(user);\n    }\n\n**OutPut**\n\n\norg.hibernate.TransientObjectException: persistent instance references an unsaved transient instance of 'com.clt.product_service.entity.User' (save the transient instance before flushing)\n    at org.hibernate.engine.spi.CascadingActions$9.cascade(CascadingActions.java:382) ~[hibernate-core-6.6.4.Final.jar:6.6.4.Final]\n    at org.hibernate.engine.spi.CascadingActions$9.cascade(CascadingActions.java:372) ~[hibernate-core-6.6.4.Final.jar:6.6.4.Final]\n    at org.hibernate.engine.internal.Cascade.cascadeToOne(Cascade.java:570) ~[hibernate-core-6.6.4.Final.jar:6.6.4.Final]\n    at org.hibernate.engine.internal.Cascade.cascadeAssociation(Cascade.java:492) ~[hibernate-core-6.6.4.Final.jar:6.6.4.Final]\n</code></pre>\n<p>Postman - Output</p>\n<pre><code> &quot;timestamp&quot;: &quot;2025-02-20T20:35:11.402+00:00&quot;,\n    &quot;status&quot;: 500,\n    &quot;error&quot;: &quot;Internal Server Error&quot;,\n    &quot;trace&quot;: &quot;org.springframework.dao.InvalidDataAccessApiUsageException: org.hibernate.TransientObjectException: persistent instance references an unsaved transient instance of 'com.clt.product_service.entity.User' (save the transient instance before flushing)\\r\\n\\tat org.springframework.orm.jpa.EntityManagerFactoryUtils.convertJpaAccessExceptionIfPossible(EntityManagerFactoryUtils.java:368)\\r\\n\\tat org.springframework.orm.jpa.vendor.HibernateJpaDialect.translateExceptionIfPossible(HibernateJpaDialect.java:246)\\r\\n\\tat org.springframework.orm.jpa.JpaTransactionManager.doCommit(JpaTransactionManager.\n</code></pre>\n<p>Updated the Code as Suggested below</p>\n<pre><code>public User updateUser(@PathVariable Long id, @RequestBody User user) {\n    User existingUser = userService.getUser(id);\n    existingUser.setName(user.getName());\n     existingUser.setAddresses(user.getAddresses().stream()\n            .map(address -&gt; {\n                address.setId(null);\n                address.setUser(existingUser);\n                return address;\n            })\n            .toList());\n  return userService.updateUser(existingUser);\n}\n</code></pre>\n<p>now getting error as</p>\n<p>&quot;timestamp&quot;: &quot;2025-02-21T03:47:47.749+00:00&quot;,\n&quot;status&quot;: 500,\n&quot;error&quot;: &quot;Internal Server Error&quot;,\n&quot;trace&quot;: &quot;java.lang.UnsupportedOperationException\\r\\n\\tat java.base/java.util.ImmutableCollections.uoe(ImmutableCollections.java:142)\\r\\n\\tat java.base/java.util.ImmutableCollections$AbstractImmutableCollection.clear(ImmutableCollections.java:149)\\r\\n\\tat org.hibernate.type.CollectionType.replaceElements(CollectionType.java:506)\\r\\n\\tat org.hibernate.type.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

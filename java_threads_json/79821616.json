@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "http",
+      "tomcat",
+      "google-drive-api",
+      "google-slides-api"
+    ],
+    "owner": {
+      "account_id": 22925447,
+      "reputation": 27,
+      "user_id": 21287547,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/aa58d946216b5eb43d957589d243bf82?s=256&d=identicon&r=PG",
+      "display_name": "Alan",
+      "link": "https://stackoverflow.com/users/21287547/alan"
+    },
+    "is_answered": false,
+    "view_count": 89,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1763496667,
+    "creation_date": 1763313162,
+    "last_edit_date": 1763406977,
+    "question_id": 79821616,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79821616/how-do-i-specify-a-q-parameter-for-www-googleapis-com-drive-v3-files",
+    "title": "How do I specify a &quot;q&quot; parameter for www.googleapis.com/drive/v3/files",
+    "body": "<p>In the <a href=\"https://developers.google.com/workspace/slides/api/samples/presentation#list-presentations\" rel=\"nofollow noreferrer\">Google Slides API sample</a>, it says to do a <code>GET</code> request:</p>\n<pre class=\"lang-http prettyprint-override\"><code>GET https://www.googleapis.com/drive/v3/files?q=&quot;mimeType=application/vnd.google-apps.presentation&quot;&amp;fields=files(id,name,webViewLink)\n</code></pre>\n<ul>\n<li><p>I tried without <code>q</code> and <code>fields</code> parameters and I get the default fields of all files just fine.</p>\n</li>\n<li><p>I tried without a <code>q</code> parameter, but with a <code>fields</code> parameter, and I get the specified fields of all files just fine.</p>\n</li>\n</ul>\n<p>My program is written in Java (Tomcat) and for historical reasons it just does:</p>\n<pre class=\"lang-java prettyprint-override\"><code>HttpRequest.newBuilder().uri(URI.create(uri)).header(&quot;Authorization&quot;, &quot;Bearer &quot; + result.getString(&quot;access_token&quot;)).build();\n</code></pre>\n<p>to make requests.</p>\n<p>The double quotes in the <code>q=&quot;mimeType=application/vnd.google-apps.presentation&quot;</code> clearly require escaping via URL encoding; without doing that one gets:</p>\n<pre><code>java.lang.IllegalArgumentException: Illegal character in query at index 44: https://www.googleapis.com/drive/v3/files?q=&quot;mimeType=application/vnd.google-apps.presentation&quot;&amp;fields=files(id,name,webViewLink)&amp;key=mykey\n    java.base/java.net.URI.create(URI.java:906)\n</code></pre>\n<p>Fully URL encoding <code>&quot;mimeType=application/vnd.google-apps.presentation&quot;</code> and passing that as the value of the <code>q</code> parameter results in a URI of:\n<code>https://www.googleapis.com/drive/v3/files?q=mimeType%3Dapplication%2Fvnd.google-apps.presentation&amp;fields=files(id,name,webViewLink)&amp;key=mykey</code>\nand gives a 400 error with:</p>\n<pre class=\"lang-json prettyprint-override\"><code>{\n  &quot;error&quot;: {\n    &quot;code&quot;: 400,\n    &quot;message&quot;: &quot;Invalid Value&quot;,\n    &quot;errors&quot;: [\n      {\n        &quot;message&quot;: &quot;Invalid Value&quot;,\n        &quot;domain&quot;: &quot;global&quot;,\n        &quot;reason&quot;: &quot;invalid&quot;,\n        &quot;location&quot;: &quot;q&quot;,\n        &quot;locationType&quot;: &quot;parameter&quot;\n      }\n    ]\n  }\n}\n</code></pre>\n<p>So how do I specify the <code>q</code> parameter?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

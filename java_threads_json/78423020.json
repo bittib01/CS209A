@@ -1,0 +1,31 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hazelcast"
+    ],
+    "owner": {
+      "account_id": 32042003,
+      "reputation": 1,
+      "user_id": 24847271,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/cdcf7dabb6cad170e0a1fca610fb5d2d?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "dmanosov",
+      "link": "https://stackoverflow.com/users/24847271/dmanosov"
+    },
+    "is_answered": false,
+    "view_count": 88,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1718176442,
+    "creation_date": 1714717875,
+    "question_id": 78423020,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78423020/hazelcast-5-1-7-countdownlatch-produces-outofmemory",
+    "title": "Hazelcast 5.1.7 CountDownLatch produces OutOfMemory",
+    "body": "<p>Usage of Hazelcast (5.1.7) <code>ICountDownLatch</code> produces an OOM in an OLTP system despite I call <code>destroy()</code> method as the documentation recommends.</p>\n<p>I have an Spring Boot application which already works in production. Currently it uses embedded Hazelcast version 3.12.13. The application is an OLTP system and uses <code>ICountDownLatch</code> for a certain purpose. It obtains an instance of <code>ICountDownLatch</code> for every transaction and then destroys it after some time.</p>\n<p>Currently I obtain the <code>ICountDownLatch</code> in the following manner <code>hazelcastInstance.getCountDownLatch(&quot;name&quot;)</code></p>\n<p>And later destroy it like:</p>\n<pre><code>hazelcastInstance.getDistributedObjects()\n                .stream()\n                .filter(object -&gt; type.isAssignableFrom(ICountDownLatch.class))\n                .filter(object -&gt; &quot;name&quot;.equals(object.getName()))\n                .forEach(object -&gt; {\n                    logger.debug(&quot;destroy data collector countDownLatch with name {}&quot;, object.getName());\n                    object.destroy();\n                });\n</code></pre>\n<p>I'm not fully sure that it is correct, but it works without known OOM issues under a quite high load.</p>\n<p>For one reason I'm planning to upgrade Hazelcast version to 5.1.7 (this version is a transitive dependency of my current Spring Boot version).</p>\n<p>In the documentation they say that I have to use <code>ICountDownLatch.destroy()</code> to destroy the latch which I don't need any more. But they also say the <a href=\"https://docs.hazelcast.com/hazelcast/5.2/data-structures/distributed-data-structures#destroying-objects\" rel=\"nofollow noreferrer\">following</a>:</p>\n<blockquote>\n<p>If you call the <code>destroy()</code> method on a CP data structure object, that data structure is terminated in the underlying CP group and cannot be reinitialized until the CP group is force-destroyed. For this reason, please make sure that you are completely done with a CP data structure before destroying it.</p>\n</blockquote>\n<p>This was the first thing to confuse me. How can Hazelcast keep information about the destroyed object 'forever' without producing an OOM at some time?</p>\n<p>So, I did an experiment. I wrote a simple <code>Controller</code> and tried to load it with JMeter:</p>\n<pre><code>    @GetMapping(value = {&quot;/hz-test&quot;})\n    public ResponseEntity&lt;?&gt; hzTest() {\n        try {\n            final String latchId = &quot;latch-&quot; + UUID.randomUUID();\n\n            ICountDownLatch latch = hazelcastInstance.getCPSubsystem().getCountDownLatch(latchId);\n\n            latch.trySetCount(1);\n\n            latch.countDown();\n\n            latch.destroy();\n\n            return ResponseEntity.ok(&quot;OK&quot;);\n        } catch (Exception e) {\n            logger.error(&quot;error&quot;, e);\n            return ResponseEntity.internalServerError().body(e.getClass().getSimpleName() + &quot;:&quot; + e.getMessage());\n        }\n    }\n</code></pre>\n<p>As I expected, in VisualVM I see that heap usage grows gradually until it ends up with an OOM. Then probably Hazelcast's <code>OutOfMemoryHandler</code> kills the HazelcastInstance and GC cleans all HC objects from the heap.</p>\n<p>I didn't do any particular configuration of CP subsystem of the embedded Hazelcast instance.</p>\n<p>So, I doubt. Either I need some additional configuration of my CP subsystem? Or I somehow destroy my latch in the wrong manner? Or <code>ICountDownLatch</code> is not supposed to be used in the manner I use it?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

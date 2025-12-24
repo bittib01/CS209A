@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hibernate",
+      "jpql",
+      "collation",
+      "hibernate-query"
+    ],
+    "owner": {
+      "account_id": 24111,
+      "reputation": 1891,
+      "user_id": 61104,
+      "user_type": "registered",
+      "accept_rate": 85,
+      "profile_image": "https://www.gravatar.com/avatar/de357816d5d57debab13abc5999ab068?s=256&d=identicon&r=PG",
+      "display_name": "Kevin",
+      "link": "https://stackoverflow.com/users/61104/kevin"
+    },
+    "is_answered": true,
+    "view_count": 224,
+    "accepted_answer_id": 78556051,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1717084323,
+    "creation_date": 1716145315,
+    "question_id": 78503631,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78503631/collation-in-hibernate-v6-for-order-by-clause-of-jpql",
+    "title": "Collation in Hibernate v6 for ORDER BY clause of JPQL",
+    "body": "<p>Hibernate has support for collation in v6: <a href=\"https://docs.jboss.org/hibernate/orm/6.0/userguide/html_single/Hibernate_User_Guide.html#hql-string-functions\" rel=\"nofollow noreferrer\">https://docs.jboss.org/hibernate/orm/6.0/userguide/html_single/Hibernate_User_Guide.html#hql-string-functions</a>. A lot of the SO questions about collation in hibernate are from before this feature was added to Hibernate. I want to use this in a JPQL query to sort by a column.</p>\n<p>The Hibernate 6 user guide references a <code>collate</code> function. Unfortunately, it shows functional examples of complete queries for all the string functions <em>except</em> collate: <a href=\"https://docs.jboss.org/hibernate/orm/6.0/userguide/html_single/Hibernate_User_Guide.html#_collate\" rel=\"nofollow noreferrer\">https://docs.jboss.org/hibernate/orm/6.0/userguide/html_single/Hibernate_User_Guide.html#_collate</a>.</p>\n<p>What is shown in the user guide is <code>collate(p.name as collation)</code>, whereas the other functions from the same table are called with parameters separated by commas, not the <code>AS</code> keyword. I tried it both ways, and got the following results:</p>\n<p>SQL Migration:</p>\n<pre class=\"lang-sql prettyprint-override\"><code>CREATE COLLATION display_id_collation (\n    provider = icu,\n    deterministic = false,\n    locale = 'und-u-ka-shifted-kn');\n</code></pre>\n<p><strong>Attempt #1</strong></p>\n<pre><code>SELECT new com.test.Result(i, i.customer, pi)\nFROM Invoice i\nINNER JOIN PaidInvoice pi ON i.id = pi.invoice.id\nORDER BY COLLATE(i.displayId as display_id_collation)\n</code></pre>\n<p>Error:</p>\n<pre><code>Caused by: o.s.d.j.r.q.BadJpqlGrammarException: Line 6:35 mismatched input 'as' expecting {',', ')', '+', '-', '/', '||', '[', '.', '*', BY, DAY, EPOCH, HOUR, MINUTE, MONTH, NANOSECOND, QUARTER, SECOND, WEEK, YEAR}; Bad JPQL grammar [...]\n        at o.s.d.j.r.q.BadJpqlGrammarErrorListener.syntaxError(BadJpqlGrammarErrorListener.java:39)\n</code></pre>\n<p><strong>Attempt #2</strong></p>\n<pre><code>SELECT new com.test.Result(i, i.customer, pi)\nFROM Invoice i\nINNER JOIN PaidInvoice pi ON i.id = pi.invoice.id\nORDER BY COLLATE(i.displayIdSearch, display_id_collation) ASC\n</code></pre>\n<p>Error:</p>\n<pre><code>Caused by: o.h.q.SemanticException: Could not interpret path expression 'display_id_collation'\n        at o.h.q.h.i.BasicDotIdentifierConsumer$BaseLocalSequencePart.resolvePathPart(BasicDotIdentifierConsumer.java:255)\n</code></pre>\n<p><strong>Attempt #2.1</strong></p>\n<pre><code>SELECT new com.test.Result(i, i.customer, pi)\nFROM Invoice i\nINNER JOIN PaidInvoice pi ON i.id = pi.invoice.id\nORDER BY COLLATE(i.displayIdSearch, 'display_id_collation') ASC\n</code></pre>\n<p>Error:</p>\n<pre><code>Caused by: o.h.q.s.p.f.FunctionArgumentException: Parameter 2 of function 'collate()' has type 'COLLATION', but argument is of type 'java.lang.Object'\n        at o.h.q.s.p.f.ArgumentTypesValidator.throwError(ArgumentTypesValidator.java:303)\n        at o.h.q.s.p.f.ArgumentTypesValidator.validate(ArgumentTypesValidator.java:120)\n</code></pre>\n<p>The error message from attempt #2.1 seems to suggest it could work if I can pass in an object of type 'COLLATION', but I couldn't find any documentation for how to do that.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

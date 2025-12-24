@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "printing",
+      "raster",
+      "mime-types",
+      "cups"
+    ],
+    "owner": {
+      "account_id": 20616386,
+      "reputation": 1016,
+      "user_id": 15134376,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/c1357e0944aa16541c899d63045a346e?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Jungwon",
+      "link": "https://stackoverflow.com/users/15134376/jungwon"
+    },
+    "is_answered": false,
+    "view_count": 181,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1720150048,
+    "creation_date": 1718005474,
+    "last_edit_date": 1720150048,
+    "question_id": 78601048,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78601048/i-try-to-print-it-after-using-cups-pdftoraster-but-a-format-error-occurs",
+    "title": "I try to print it after using cups pdftoraster, but a format error occurs",
+    "body": "<p>I created a pdf file into a raster file using <code>pdftoraster.cxx</code> of <code>cupsfilter</code>.</p>\n<p>This is my printer <code>Epson L6290</code>. Below are the supported <code>mimetypes</code>.</p>\n<pre><code>&quot;application/octet-stream&quot;\n&quot;image/pwg-raster&quot;\n&quot;image/urf&quot;\n&quot;image/jpeg&quot;\n&quot;application/vnd.epson.escpr&quot;\n</code></pre>\n<pre><code>inPdf = fopen(&quot;test_raster_0604.tmp&quot;,&quot;wb&quot;);\n\nif(inPdf == NULL){\n  LOG(&quot;pdftoraster() inPdf == NULL&quot;);\n  goto err1;\n}else{\n  LOG(&quot;pdftoraster() inPdf != NULL&quot;);\n  inpdfdf = fileno(inPdf);\n}\n\nif ((raster = cupsRasterOpen(inpdfdf, pwgraster ? CUPS_RASTER_WRITE_PWG : CUPS_RASTER_WRITE)) == 0) {\n   exit(1);\n}\n\nselectConvertFunc(raster);\n\nfor (i = 1;i &lt;= npages;i++) {\n   outPage(doc,catalog,i,out,raster);\n}\ncupsRasterClose(raster);\ninSize = ftell(inPdf); //not 0\nfclose(inPdf);\n</code></pre>\n<p>The entire code is long, so I wrote it briefly. I am attaching the URL of the code referenced below.<br />\n<a href=\"https://github.com/jianglei12138/cups-filters/blob/master/filter/pdftoraster.cxx#L1941\" rel=\"nofollow noreferrer\">https://github.com/jianglei12138/cups-filters/blob/master/filter/pdftoraster.cxx#L1941</a></p>\n<p>Since the raster file has been created as a file called <code>test_raster_0604.tmp</code>, we are now going to print the raster file using CUPS.</p>\n<pre><code>int nOptions = 0;\n\nFile* outRaster = fopen(&quot;/data/user/0/cache/test_raster_0604.tmp&quot;, &quot;rb&quot;);\n\ncupsSetEncryption(HTTP_ENCRYPTION_REQUIRED);\n\ncups_dest_t* dest = cupsGetDestWithURI(&quot;EPSON_L6290_Series&quot;, &quot;ipps://ip_address/ipp/print&quot;);\n\nhttp_t* http = cupsConnectDest(dest, CUPS_DEST_FLAGS_DEVICE, 10000, NULL, resource, sizeof(resource), NULL, NULL);\n\ncups_dinfo_t* pInfo = cupsCopyDestInfo(http, dest)\n\nnOptions = cupsAddOption(CUPS_COPIES, &quot;1&quot;, nOptions, &amp;pOptions);\nnOptions = cupsAddOption(CUPS_MEDIA, CUPS_MEDIA_A4, nOptions, &amp;pOptions);\nnOptions = cupsAddOption(CUPS_ORIENTATION, CUPS_ORIENTATION_PORTRAIT, nOptions, &amp;pOptions);      \n\nipp_status_t status = cupsCreateDestJob(http, dest, pInfo, &amp;nJobId, &quot;My Document&quot;, nOptions, pOptions);\n\n\n if (cupsStartDestDocument(http, dest, pInfo, nJobId, &quot;test_raster_0604.tmp&quot;, &quot;image/pwg-raster&quot;, 0, NULL, 1) == HTTP_STATUS_CONTINUE)\n{\n   while ((bytes = fread(buffer, 1, sizeof(buffer), outRaster)) &gt; 0)\n   {\n      if (cupsWriteRequestData(http, buffer, bytes) != HTTP_STATUS_CONTINUE)\n                    break;\n   }\n\n   LOG(&quot;Document send write done : %s&quot;, cupsLastErrorString()); ///successful-ok\n\n   if (cupsFinishDestDocument(http, dest, pInfo) != IPP_STATUS_OK)\n   {\n       LOG(&quot;Document send failed: %s&quot;, cupsLastErrorString()); ///client-error-document-format-error\n   }\n}\n\n</code></pre>\n<p>I believe I have set the <code>MimeType</code> correctly, but a format error occurs in CUPS. Do you know the solution?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

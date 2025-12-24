@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "csv",
+      "apache-camel",
+      "spring-camel"
+    ],
+    "owner": {
+      "account_id": 2375876,
+      "reputation": 3859,
+      "user_id": 2079249,
+      "user_type": "registered",
+      "accept_rate": 86,
+      "profile_image": "https://www.gravatar.com/avatar/3fcded7f2ae3a90901101a27b5867f56?s=256&d=identicon&r=PG",
+      "display_name": "Ronak Patel",
+      "link": "https://stackoverflow.com/users/2079249/ronak-patel"
+    },
+    "is_answered": true,
+    "view_count": 48,
+    "accepted_answer_id": 79625832,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1747479937,
+    "creation_date": 1747370597,
+    "last_edit_date": 1747479937,
+    "question_id": 79624489,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79624489/camel-4-5-0-or-greater-breaks-csvdataformat",
+    "title": "Camel 4.5.0 or greater breaks csvdataformat",
+    "body": "<p>After updating to 4.5.0 this route has been failing where data just do not get past the dotry, it split the file as one line per split and then hangs.\nTried all version till 4.11.0 - manually tried to unmashal the data in <code>processor</code> but throwing npe as <code>csvDataFormat.unmarshaller</code> is null</p>\n<p>currently it is working on version 4.4.0.</p>\n<pre><code>CsvDataFormat csvDataFormat = new CsvDataFormat().setUseMaps(true);\n\nfrom(&quot;file:&quot; + rootDir + &quot;/test/&quot;)\n                .log(LoggingLevel.INFO,&quot;Start processing ${file:name}&quot;)\n                .unmarshal().pgp(pgpFileName,pgpUserId,pgpPassword)\n                .process(exchange -&gt; { /* just to get csv header */\n                    InputStream inputStream = exchange.getIn().getBody(InputStream.class);\n                    try(BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream))){\n                        String header = bufferedReader.readLine();\n                        exchange.getIn().setHeader(&quot;CSV_HEADER&quot;,header);\n                        csvDataFormat.setHeader(header.split(&quot;,&quot;)); //&lt;- this does not work, so had to add in body below!\n                        System.out.println(&quot;csvHeader is : &quot; + header);// + &quot; ? &quot; + Arrays.asList(csvDataFormat.getHeader()));\n                    }\n                })\n                .split(body().tokenize(&quot;\\n&quot;)).shareUnitOfWork()\n                .parallelProcessing().streaming()\n                .setBody(exchange -&gt; exchange.getIn().getHeader(&quot;CSV_HEADER&quot;) + &quot;\\n&quot; + exchange.getIn().getBody())\n                .doTry()\n                  .unmarshal(csvDataFormat)\n                  .process(requestFileService)\n                .doCatch(IOException.class)\n                  //TODO: custom processing here...\n                  .process(exchange -&gt; log.error(&quot;caught in dotry: &quot; + exchange.getIn().getBody())).stop()\n                .end()//end try/catch\n                .choice()\n                    .when(simple(&quot;${property.&quot; + Exchange.SPLIT_COMPLETE + &quot;} == true&quot;))\n                    .log(LoggingLevel.INFO, &quot;Finished processing ${file:name}&quot;)\n                .end();\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

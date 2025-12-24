@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "python",
+      "java",
+      "docker",
+      "apache-spark",
+      "pyspark"
+    ],
+    "owner": {
+      "account_id": 30486141,
+      "reputation": 41,
+      "user_id": 23362545,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/z1sOx.png?s=256",
+      "display_name": "DestCom",
+      "link": "https://stackoverflow.com/users/23362545/destcom"
+    },
+    "is_answered": true,
+    "view_count": 8126,
+    "accepted_answer_id": 77965008,
+    "answer_count": 2,
+    "score": 1,
+    "last_activity_date": 1744488503,
+    "creation_date": 1707341101,
+    "last_edit_date": 1707343487,
+    "question_id": 77957991,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77957991/pyspark-exceptions-java-gateway-exited-java-gateway-process-exited-before-se",
+    "title": "Pyspark Exceptions : [JAVA_GATEWAY_EXITED] Java gateway process exited before sending its port number",
+    "body": "<p>Yes, I know I'm going to be told it's a duplicate, but it's not.</p>\n<p>When I try to connect to my Apache Spark via my Bitnami/Spark container, I always get this error.</p>\n<pre><code>Error : unable to find or load main class org.apache.spark.deploy.SparkSubmit\nCaused by : java.lang.ClassNotFoundException: org.apache.spark.deploy.SparkSubmit\nTraceback (most recent call last):\n  File &quot;d:\\Users\\azeve\\Desktop\\École\\MT4\\DEVOPS\\RENDU_DEVOPS_MT4\\src\\main.py&quot;, line 40, in &lt;module&gt;\n    spark = SparkSession.builder.master(f'spark://spark-master:7077').appName(&quot;SimpleApp&quot;).getOrCreate()\n  File &quot;D:\\Users\\azeve\\Desktop\\École\\MT4\\DEVOPS\\RENDU_DEVOPS_MT4\\.venv\\lib\\site-packages\\pyspark\\sql\\session.py&quot;, line 497, in getOrCreate\n    sc = SparkContext.getOrCreate(sparkConf)\n  File &quot;D:\\Users\\azeve\\Desktop\\École\\MT4\\DEVOPS\\RENDU_DEVOPS_MT4\\.venv\\lib\\site-packages\\pyspark\\context.py&quot;, line 515, in getOrCreate\n    SparkContext(conf=conf or SparkConf())\n  File &quot;D:\\Users\\azeve\\Desktop\\École\\MT4\\DEVOPS\\RENDU_DEVOPS_MT4\\.venv\\lib\\site-packages\\pyspark\\context.py&quot;, line 201, in __init__\n    SparkContext._ensure_initialized(self, gateway=gateway, conf=conf)\n  File &quot;D:\\Users\\azeve\\Desktop\\École\\MT4\\DEVOPS\\RENDU_DEVOPS_MT4\\.venv\\lib\\site-packages\\pyspark\\context.py&quot;, line 436, in _ensure_initialized\n    SparkContext._gateway = gateway or launch_gateway(conf)\n  File &quot;D:\\Users\\azeve\\Desktop\\École\\MT4\\DEVOPS\\RENDU_DEVOPS_MT4\\.venv\\lib\\site-packages\\pyspark\\java_gateway.py&quot;, line 107, in launch_gateway\n    raise PySparkRuntimeError(\npyspark.errors.exceptions.base.PySparkRuntimeError: [JAVA_GATEWAY_EXITED] Java gateway process exited before sending its port number.\n</code></pre>\n<p>As I've seen in several places on the internet,</p>\n<ul>\n<li><p>At first, i tried with jdk8 but it didn't work</p>\n</li>\n<li><p>I uninstalled JAVA then installed jdk 11,</p>\n</li>\n<li><p>I also added JAVA_HOME to my path and when I type java -version, I get :\n<code>openjdk version &quot;11.0.22&quot; 2024-01-16 OpenJDK Runtime Environment Temurin-11.0.22+7 (build 11.0.22+7) OpenJDK 64-Bit Server VM Temurin-11.0.22+7 (build 11.0.22+7, mixed mode)</code>\nas answer.</p>\n</li>\n<li><p>I was careful to align my PySpark version with that of my Bitnami Spark Cluster in 3.5.0.</p>\n</li>\n<li><p>My python version is Python 3.12.1</p>\n</li>\n<li><p>The ports on my spark master are 8080 for the webUI and 7077 for the Spark.</p>\n</li>\n</ul>\n<p>Here's the code I'm trying to run</p>\n<pre class=\"lang-py prettyprint-override\"><code>from pyspark.sql import SparkSession\nfrom pyspark.conf import SparkConf\n\nfrom pyspark.sql.types import IntegerType\nfrom pyspark.sql.types import StructField\nfrom pyspark.sql.types import StructType\n\nif __name__ == &quot;__main__&quot;:\n    \n    conf = SparkConf()\n    conf.setAll(\n        [\n            (\n                &quot;spark.master&quot;,\n                &quot;spark://spark-master:7077&quot;\n            ),\n            (&quot;spark.driver.host&quot;, &quot;local[*]&quot;),\n            (&quot;spark.submit.deployMode&quot;, &quot;client&quot;),\n            (&quot;spark.driver.bindAddress&quot;, &quot;0.0.0.0&quot;),\n            (&quot;spark.app.name&quot;, &quot;HelloWorld&quot;),\n        ] \n    )\n    \n    spark = SparkSession.builder.config(conf=conf).getOrCreate()\n\n\n    df = spark.createDataFrame([(&quot;Hello World&quot;,)], [&quot;greeting&quot;])\n    df.show()\n\n    spark. Stop()\n</code></pre>\n<p>In the pySpark config I tried for &quot;spark.master&quot; :</p>\n<ul>\n<li>spark://127.0.1.1:7077</li>\n<li>spark://localhost:7077</li>\n<li>spark://spark-master:7077</li>\n<li>spark://host.docker.internal:7077</li>\n</ul>\n<p>And have also tried for &quot;spark.driver.host&quot; :</p>\n<ul>\n<li>The IP of my machine on my internal network</li>\n<li>Container IP</li>\n<li>127.0.0.1</li>\n<li>localhost</li>\n</ul>\n<p>I really hope you can help me, I used this video to set everything up: <a href=\"https://www.youtube.com/watch?v=luiJttJVeBA\" rel=\"nofollow noreferrer\">https://www.youtube.com/watch?v=luiJttJVeBA</a>.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

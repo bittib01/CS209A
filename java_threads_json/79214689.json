@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hadoop",
+      "mapreduce"
+    ],
+    "owner": {
+      "account_id": 1688842,
+      "reputation": 303,
+      "user_id": 1551605,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/f86c57aa4782cb40021efd164d2221ba?s=256&d=identicon&r=PG",
+      "display_name": "user1551605",
+      "link": "https://stackoverflow.com/users/1551605/user1551605"
+    },
+    "is_answered": false,
+    "view_count": 55,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1732376771,
+    "creation_date": 1732272682,
+    "last_edit_date": 1732376709,
+    "question_id": 79214689,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79214689/is-the-hadoop-documentation-wrong-for-set",
+    "title": "Is the Hadoop documentation wrong for set",
+    "body": "<p>The documentation of the Hadoop Job API gives as example:</p>\n<p>From <a href=\"https://hadoop.apache.org/docs/r3.3.5/api/org/apache/hadoop/mapreduce/Job.html\" rel=\"nofollow noreferrer\">https://hadoop.apache.org/docs/r3.3.5/api/org/apache/hadoop/mapreduce/Job.html</a></p>\n<blockquote>\n<p>Here is an example on how to submit a job:</p>\n</blockquote>\n<pre class=\"lang-java prettyprint-override\"><code>     // Create a new Job\n     Job job = Job.getInstance();\n     job.setJarByClass(MyJob.class);\n     \n     // Specify various job-specific parameters     \n     job.setJobName(&quot;myjob&quot;);\n     \n     job.setInputPath(new Path(&quot;in&quot;));\n     job.setOutputPath(new Path(&quot;out&quot;));\n     \n     job.setMapperClass(MyJob.MyMapper.class);\n     job.setReducerClass(MyJob.MyReducer.class);\n\n     // Submit the job, then poll for progress until the job is complete\n     job.waitForCompletion(true);\n</code></pre>\n<p>This seems natural to attach the input and output paths to the job.</p>\n<p>However, the <code>setInputPath()</code>and <code>setOutputPath()</code> methods <strong>do not exist</strong> in the API (see the rest of the documentation page).</p>\n<p>And this example actually does not compile.</p>\n<p>The correct way to set it is to replace those two instructions with:</p>\n<pre class=\"lang-java prettyprint-override\"><code>FileInputFormat.addInputPath(job, new Path(&quot;in&quot;));\nFileOutputFormat.setOutputPath(job, new Path(&quot;out&quot;));\n</code></pre>\n<p>The use of these methods (doc here [1]), seems pretty inelegant to me as I can't see why it cannot be a function of the Job (as the example in the doc intended to show).</p>\n<p>My question is: can an expert</p>\n<ul>\n<li>give an explanation of the rationale,</li>\n<li>confirm the documentation is wrong.</li>\n</ul>\n<p>[1] <a href=\"https://hadoop.apache.org/docs/r3.3.5/api/org/apache/hadoop/mapreduce/lib/input/FileInputFormat.html\" rel=\"nofollow noreferrer\">https://hadoop.apache.org/docs/r3.3.5/api/org/apache/hadoop/mapreduce/lib/input/FileInputFormat.html</a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

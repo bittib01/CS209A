@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "swing"
+    ],
+    "owner": {
+      "account_id": 10187542,
+      "reputation": 2735,
+      "user_id": 20692967,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/NZSXm.jpg?s=256",
+      "display_name": "Sergey Zolotarev",
+      "link": "https://stackoverflow.com/users/20692967/sergey-zolotarev"
+    },
+    "is_answered": false,
+    "view_count": 118,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1765387568,
+    "creation_date": 1765273438,
+    "last_edit_date": 1765387568,
+    "question_id": 79841757,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79841757/scrolling-to-jtree-node-vertically-only",
+    "title": "Scrolling to JTree node vertically only",
+    "body": "<p>Our <code>JTree</code> subtype automatically scrolls to its selected node. It's implemented essentially as follows:</p>\n<pre class=\"lang-java prettyprint-override\"><code>            @Override\n            public void setSelectionPath(TreePath path) {\n                super.setSelectionPath(path);\n                scrollPathToVisible(path);\n            }\n</code></pre>\n<p>Some nodes have long names. When such a node is selected, its <code>JScrollPane</code> performs both vertical and horizontal scrolling.</p>\n<p><a href=\"https://i.sstatic.net/vf9Hiho7.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/vf9Hiho7.png\" alt=\"enter image description here\" /></a></p>\n<p><a href=\"https://i.sstatic.net/A4Hlm8JT.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/A4Hlm8JT.png\" alt=\"enter image description here\" /></a></p>\n<p>I was tasked with disabling the horizontal scrolling.</p>\n<p>In my attempted solution (see the snippet below), I trick Swing into believing it has to show a different <code>Rectangle</code> than the one that actually corresponds to the selected node. However, the challenging part is to retrieve the &quot;current&quot; X and width. If you hardcode them as zeroes, as I did, the horizontal scroll bar is going to be reset to the beginning each time selection occurs, even if the bar is in the middle.</p>\n<p>I guess there may be other pathways as well.</p>\n<p>How do can achieve my goal?</p>\n<p>Java 8.</p>\n<pre class=\"lang-java prettyprint-override\"><code>import javax.swing.JFrame;\nimport javax.swing.JScrollPane;\nimport javax.swing.JTree;\nimport javax.swing.WindowConstants;\nimport javax.swing.tree.DefaultMutableTreeNode;\nimport javax.swing.tree.TreeNode;\nimport javax.swing.tree.TreePath;\nimport java.awt.Component;\nimport java.awt.Container;\nimport java.awt.Dimension;\nimport java.awt.Rectangle;\n\npublic class SimpleTreeDemo {\n\n    public static void main(String[] args) {\n        Container mainPanel = createMainPanel();\n        JFrame frame = new JFrame(&quot;Tree Demo&quot;);\n        frame.setContentPane(mainPanel);\n        frame.setLocationRelativeTo(null);\n        frame.pack();\n        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);\n        frame.setVisible(true);\n    }\n\n    private static Container createMainPanel() {\n        JScrollPane panel = new JScrollPane();\n        panel.setViewportView(createTree());\n        Dimension smallDimension = new Dimension(200, 100);\n        panel.setPreferredSize(smallDimension);\n        return panel;\n    }\n\n    private static Component createTree() {\n        JTree tree = new TreeEx(createRoot());\n        tree.setShowsRootHandles(true);\n        return tree;\n    }\n\n    private static TreeNode createRoot() {\n        DefaultMutableTreeNode root = new DefaultMutableTreeNode(&quot;Root&quot;);\n        root.add(new DefaultMutableTreeNode(&quot;Short child&quot;));\n        root.add(new DefaultMutableTreeNode(&quot;Loooooooooooooooooooooooooooooooooooong child&quot;));\n        return root;\n    }\n\n    private static class TreeEx extends JTree {\n\n        public TreeEx(TreeNode root) {\n            super(root);\n        }\n\n        @Override\n        public void setSelectionPath(TreePath path) {\n            super.setSelectionPath(path);\n            scrollPathToVisible(path);\n        }\n\n        @Override\n        public void scrollPathToVisible(TreePath path) {\n            // mostly a copy-pasted super-method\n            if (path == null) return;\n            makeVisible(path);\n            Rectangle bounds = buildVerticalBounds(path);\n            if (bounds == null) return;\n            scrollRectToVisible(bounds);\n            if (accessibleContext == null) return;\n            ((AccessibleJTree) accessibleContext).fireVisibleDataPropertyChange();\n        }\n\n        private Rectangle buildVerticalBounds(TreePath path) {\n            Rectangle requestedPath = getPathBounds(path);\n            if (requestedPath == null) return null;\n            requestedPath.setLocation(getCurrentX(), (int) requestedPath.getLocation().getY());\n            requestedPath.setSize(getCurrentWidth(), (int) requestedPath.getSize().getHeight());\n            return requestedPath;\n        }\n\n        // in theory, by correctly implementing the following two methods, one can achieve the desired functionality\n        private int getCurrentX() {\n            return 0;\n        }\n\n        private int getCurrentWidth() {\n            return 0;\n        }\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

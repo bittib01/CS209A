@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "browserstack",
+      "browserstack-app-automate"
+    ],
+    "owner": {
+      "account_id": 14930452,
+      "reputation": 138,
+      "user_id": 10779988,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/2C23W.jpg?s=256",
+      "display_name": "Looi",
+      "link": "https://stackoverflow.com/users/10779988/looi"
+    },
+    "is_answered": false,
+    "view_count": 60,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1752730396,
+    "creation_date": 1752730396,
+    "question_id": 79704327,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79704327/testng-on-browserstack-webdriveragent-errors-when-running-large-test-group-of-m",
+    "title": "TestNG on Browserstack: WebDriverAgent errors when running large test group of more than 600 tests",
+    "body": "<p>I basically followed the <a href=\"https://www.browserstack.com/docs/app-automate/appium/getting-started/java/testng?fw-lang=java%2Ftestng\" rel=\"nofollow noreferrer\">TestNG sample project</a> to migrate an existing Android testing codebase from Appium 1 to Appium 2. The initial implementation based entirely on the sample project worked fine for parallel runs containing less than 30 tests. I'm now trying to run our entire test suite of 600 tests in 21 parallels. However, it's causing large number of failures on what appears to be intermittent connection or very slow execution on the remote device. The pattern I noticed is:</p>\n<ol>\n<li>Appium 2 launches Android app.</li>\n<li>Appium 2 starts the login process. This carries out several commands that switches between Page Object Model classes. A total of five switches happen.</li>\n<li>Appium 2 pauses up to several minutes. No timeout that long exists here.</li>\n<li>Appium 2 does several commands again</li>\n<li>Throws error. This is typically at the 13+ minute mark and without completing the login process. The login process is normally done under 3 minutes. The error is always one of these:</li>\n</ol>\n<pre><code>- ‘WebDriverException Unknown Error’ is thrown where an Appium method call failed. \n- Java: Null Pointer' when attempting to initialise a Page Object Model class\n</code></pre>\n<p>Another observation is at test start, all 21 parallels specified are occupied. However, the number drops off to just 5 to 8 later one. Could it be due to devices dropping off?</p>\n<p>To try solving this, I have done the following:</p>\n<ol>\n<li>Examine the logs and video recordings. That's how I noticed the pattern</li>\n<li>Removed unneeded WebDriver.wait steps during the steps from login until HomePage is loaded</li>\n<li>Ensure thread safety by:</li>\n</ol>\n<pre><code>- Implementing ThreadLocal in a top-level DriverManager class. This replaces the implementation of AndroidDriver and IOSDriver in the Browserstack tutorial\n- Make DriverManager the sole source of the current method's AppiumDriver. This is by removing all duplication of AppiumDriver from assignment to variable\n- Ensure AppiumDriver.quit() is called after each test followed by ThreadLocal.remove to free up the thread\n- Implementing the earliest-compatible (1.17.2) and latest version of browserstack-java-sdk (1.36.1)\n</code></pre>\n<p>While it did raise the success rate from just zero, the result still suffers a large number of those errors above. Any ideas on where else to look?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

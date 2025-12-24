@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hibernate",
+      "hibernate-envers"
+    ],
+    "owner": {
+      "account_id": 4276239,
+      "reputation": 73,
+      "user_id": 3496758,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/33e2694bbdca2df25de7e51e93ad645c?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "fuqsha",
+      "link": "https://stackoverflow.com/users/3496758/fuqsha"
+    },
+    "is_answered": false,
+    "view_count": 147,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1724775747,
+    "creation_date": 1721838725,
+    "last_edit_date": 1721841977,
+    "question_id": 78789539,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78789539/hibernate-envers-how-to-map-custom-revisionentity-columns-into-audit-queries",
+    "title": "Hibernate Envers - how to map custom RevisionEntity columns into audit queries",
+    "body": "<p>I have separated the auditing support and the revisions in my solution. It works fine, but I have no idea how to create a query to get all revisions where the audit data is mapped from the <code>REVINFO</code> to the <code>MyEntity</code> in the query result. Like joining the <code>MYENTITY_AUD</code> and the <code>REVINFO</code> on <code>REV</code> for lastModified columns. For created columns it is even more complicated, because it might requires a subquery with <code>REVTYPE = 0</code>.</p>\n<pre><code>private List&lt;MyEntity&gt; allRevisions() {\n  AuditReaderFactory.get(entityManager).createQuery()\n    .forRevisionsOfEntity(MyEntity.class, true, true)        \n    .addOrder(AuditEntity.revisionNumber().asc())\n    .getResultList();\n}\n</code></pre>\n<p>My tables looks like this:</p>\n<pre><code>MYENTITY table\n+---------------------------------------------------------------------------+\n| ID | MYDATA | CREATEDBY | CREATEDDATE | LASTMODIFIEDBY | LASTMODIFIEDDATE |\n+---------------------------------------------------------------------------+\n\nMYENTITY_AUD table\n+-----------------------------+\n| ID | REV | REVTYPE | MYDATA |\n+-----------------------------+\n\nREVINFO table\n+-----------------------------+\n| REV | REVTSTMP | MODIFIEDBY |\n+-----------------------------+\n</code></pre>\n<p>Examples from the code:</p>\n<pre><code>@Audited\n@Entity\npublic class MyEntity {\n    \n    private String myData;\n\n    @CreatedBy\n    @NotAudited\n    private String createBy;\n\n    @CreateDate\n    @NotAudited\n    private LocalDateTime createdDate;\n\n    @LastModifiedBy\n    @NotAudited\n    private String lastModifiedBy;\n\n    @LastModifiedDate\n    @NotAudited\n    private LocalDateTime lastModifiedDate;\n}\n\n</code></pre>\n<pre><code>@Entity\n@Table(name = &quot;REVINFO&quot;)\n@RevisionEntity(MyRevisionListener.class)\npublic class MyRevisionEntity implements Serializable {\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    @RevisionNumber\n    @Column(name = &quot;REV&quot;)\n    private int id;\n\n    @RevisionTimestamp\n    @Column(name = &quot;REVTSTMP&quot;)\n    private long timestamp;\n\n    @Column(name = &quot;MODIFIED_BY&quot;)\n    private String modifiedBy;\n    ...\n}\n</code></pre>\n<pre><code>public class MyRevisionListener implements RevisionListener {\n\n    @Override\n    public void newRevision(Object revisionEntity) {\n        MyRevisionEntity revision = (MyRevisionEntity) revisionEntity;\n        revision.setModifiedBy(MyContext.getUserName())\n    }\n}\n</code></pre>\n<p>Thanks.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

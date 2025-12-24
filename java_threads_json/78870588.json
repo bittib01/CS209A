@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "spring-cloud",
+      "spring-cloud-feign"
+    ],
+    "owner": {
+      "account_id": 16327739,
+      "reputation": 50,
+      "user_id": 11798123,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/yLMqp.jpg?s=256",
+      "display_name": "silenzzz",
+      "link": "https://stackoverflow.com/users/11798123/silenzzz"
+    },
+    "is_answered": false,
+    "view_count": 239,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1724869932,
+    "creation_date": 1723633621,
+    "last_edit_date": 1724434271,
+    "question_id": 78870588,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78870588/spring-cloud-openfeign-is-not-sending-audio-ogg-header-when-calling-the-endpoint",
+    "title": "Spring Cloud OpenFeign is not sending audio/ogg header when calling the endpoint",
+    "body": "<p>I'm trying to send audio OGG file bytes via <strong>Spring Cloud Feign Client</strong> by calling the API.</p>\n<p>But I'm getting a <code>400 Bad Request</code> with the error given below:</p>\n<pre><code>&quot;error_message&quot; : &quot;OGG header has not been found&quot;\n</code></pre>\n<p>Although, if the OGG file was sent from Postman (with the same headers and OGG file), then everything works just fine.</p>\n<p><strong>FeignClient:</strong></p>\n<pre><code>@FeignClient(name = &quot;${integration[0].speech.name}&quot;,\n        url = &quot;${integration[0].speech.url}&quot;,\n        configuration = SpeechRecognizerConfig.class)\npublic interface YandexSpeechRecognizerClient {\n\n    @PostMapping\n    @Headers({\n            &quot;Content-Type&quot;, &quot;audio/ogg&quot;\n    })\n    RecognizedTextResponse recognizeText(@RequestHeader(&quot;Authorization&quot;) String token,\n                                         @RequestParam(&quot;lang&quot;) String lang,\n                                         @RequestBody ByteArrayResource oggFileBytes);\n\n}\n</code></pre>\n<p><strong>FeignClient config:</strong></p>\n<pre><code>@Bean\npublic Logger.Level feignLoggerLevel() {\n    return Logger.Level.FULL;\n}\n\n@Bean\npublic Client httpFeignClient() {\n    return new OkHttpClient(new okhttp3.OkHttpClient.Builder()\n            .build());\n}\n\n@Bean\npublic Feign.Builder speechFeignBuilder(@Autowired Logger.Level logLevel, @Autowired Client client) {\n    return Feign.builder()\n            .logger(new Slf4jLogger(log))\n            .logLevel(logLevel)\n            .client(client);\n}\n</code></pre>\n<p><strong>Test method:</strong></p>\n<pre><code>byte[] bytes = Files.readAllBytes(oggFile.toPath());\nRecognizedTextResponse yandexRecognizedTextResponse = underTest.recognizeText(\n                &quot;Bearer &quot; + authClient.getToken().getAccessToken(),\n                &quot;en-EN&quot;,\n                false,\n                false,\n                &quot;123123123&quot;,\n                new ByteArrayResource(bytes)\n        );\n</code></pre>\n<p>I have tried every other alternatives but none of them are working.</p>\n<p>How to fix this issue?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

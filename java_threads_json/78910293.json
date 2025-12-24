@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "debugging",
+      "authorization",
+      "spotify"
+    ],
+    "owner": {
+      "account_id": 35125433,
+      "reputation": 1,
+      "user_id": 26998304,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/5600fd8580a8bead46c34003ebe82ad0?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Aradhya Sharma",
+      "link": "https://stackoverflow.com/users/26998304/aradhya-sharma"
+    },
+    "is_answered": false,
+    "view_count": 123,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1727326013,
+    "creation_date": 1724549938,
+    "last_edit_date": 1727322818,
+    "question_id": 78910293,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78910293/spotify-user-authorization-forbidden-error",
+    "title": "Spotify User Authorization forbidden error",
+    "body": "<p>I'm creating a project using spotify API and springboot but having some issues with user authorization.</p>\n<p>Problem: I can authorize but only once, after that I have to wait 3600s to auth with same account or even a different account which is a huge issue. I looked up online but couldn't find any working solution. I was wondering if anyone can help me solve this issue or even give some advice on how I should proceed with this, I would really appreciate that.</p>\n<p>I'm following this repo:</p>\n<p><a href=\"https://github.com/spotify-web-api-java/spotify-web-api-java\" rel=\"nofollow noreferrer\">github.com/spotify-web-api-java</a></p>\n<pre><code> @GetMapping(&quot;/login&quot;)\n    public ResponseEntity&lt;Map&lt;String, String&gt;&gt; spotifyLogin() {\n        try {\n            String state = generateRandomString(16);\n\n            stateStore.put(state, &quot;pending&quot;);\n\n            SpotifyApi spotifyApi = spotifyConfiguration.getSpotifyObject();\n            AuthorizationCodeUriRequest authorizationCodeUriRequest = spotifyApi.authorizationCodeUri()\n                    .scope(&quot;user-library-read user-top-read&quot;)\n                    .state(state)\n                    .show_dialog(true)\n                    .build();\n\n            URI uri = authorizationCodeUriRequest.execute();\n            Map&lt;String, String&gt; response = new HashMap&lt;&gt;();\n            response.put(&quot;spotifyAuthUrl&quot;, uri.toString());\n\n            return ResponseEntity.ok(response);\n        } catch (Exception e) {\n            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)\n                    .body(Map.of(&quot;error&quot;, &quot;Unexpected error: &quot; + e.getMessage()));\n        }\n    }\n</code></pre>\n<pre><code> @GetMapping(&quot;/callback&quot;)\n    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; getSpotifyUserCode(\n            @RequestParam(&quot;code&quot;) String userCode,\n            @RequestParam(&quot;state&quot;) String state) throws IOException, ParseException, SpotifyWebApiException {\n        try {\n            SpotifyApi spotifyApi = spotifyConfiguration.getSpotifyObject();\n\n            AuthorizationCodeRequest authorizationCodeRequest = spotifyApi.authorizationCode(userCode).build();\n            AuthorizationCodeCredentials authorizationCode = authorizationCodeRequest.execute();\n\n            spotifyApi.setAccessToken(authorizationCode.getAccessToken());\n            spotifyApi.setRefreshToken(authorizationCode.getRefreshToken());\n\n            GetCurrentUsersProfileRequest getCurrentUsersProfile = spotifyApi.getCurrentUsersProfile().build();\n            User user = getCurrentUsersProfile.execute();\n\n            if (userProfileService.userExists(user.getId())) {\n                if (userProfileService.isTokenExpired(user.getId())) {\n                    spotifyApi = refreshAccessToken(userProfileService.getRefreshToken(user.getId()), user.getId());\n                }\n            }\n\n            userProfileService.InsertOrUpdateUserDetails(user, spotifyApi.getAccessToken(), spotifyApi.getRefreshToken());\n\n            Map&lt;String, Object&gt; responseData = new HashMap&lt;&gt;();\n            responseData.put(&quot;userId&quot;, user.getId());\n            responseData.put(&quot;username&quot;, user.getDisplayName());\n            responseData.put(&quot;email&quot;, user.getEmail());\n            responseData.put(&quot;accessToken&quot;, spotifyApi.getAccessToken());\n            responseData.put(&quot;refreshToken&quot;, spotifyApi.getRefreshToken());\n            responseData.put(&quot;country&quot;, user.getCountry());\n            responseData.put(&quot;displayName&quot;, user.getDisplayName());\n\n            return ResponseEntity.ok(responseData);\n\n        } catch (Exception e) {\n            Map&lt;String, Object&gt; errorResponse = new HashMap&lt;&gt;();\n            errorResponse.put(&quot;error&quot;, &quot;Error processing Spotify user code: &quot; + e.getMessage());\n            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);\n        }\n    }\n</code></pre>\n<p>I tried adding randomly generated state for each user and updating the access token using my refresh token expecting it to work properly but It didn't really do anything.</p>\n<p><strong>FIRST ATTEMPT</strong>:</p>\n<p><strong>1st API call</strong>: <code>/api/login</code></p>\n<p><strong>response</strong>: redirectURI/code=&quot;&quot; (working as expected)</p>\n<p><strong>2nd api call</strong>: <code>/api/callback?code=val1&amp;state=val2</code></p>\n<p><strong>response</strong>: correctly returns a JSON with user details including access/refresh tokens</p>\n<p><strong>SECOND ATTEMPT</strong>:</p>\n<p><strong>1st API call</strong>: <code>/api/login</code></p>\n<p><strong>response</strong>: redirectURI/code=&quot;&quot; (working as expected)</p>\n<p><strong>2nd api call</strong>: <code>/api/callback?code=val1&amp;state=val2</code></p>\n<p><strong>response</strong>:</p>\n<pre><code>{\n&quot;error&quot;: &quot;Error processing Spotify user code: Forbidden&quot;\n}\n</code></pre>\n<p><em>PS: After 3600s (code expiration) it works again only once and repeats this pattern.</em></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "maven",
+      "netflix-eureka",
+      "spring-cloud-gateway"
+    ],
+    "owner": {
+      "account_id": 14359658,
+      "reputation": 75,
+      "user_id": 10372375,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/dc56fcef7af67e89159ee9e431657361?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Delano van der Waal",
+      "link": "https://stackoverflow.com/users/10372375/delano-van-der-waal"
+    },
+    "is_answered": true,
+    "view_count": 3727,
+    "accepted_answer_id": 78132416,
+    "answer_count": 3,
+    "score": 0,
+    "last_activity_date": 1743279854,
+    "creation_date": 1709929984,
+    "last_edit_date": 1709976714,
+    "question_id": 78130153,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78130153/spring-cloud-gateway-with-eureka-discovery-not-routing-requests-to-microservices",
+    "title": "Spring Cloud Gateway with Eureka Discovery not routing requests to Microservices",
+    "body": "<p>I'm working on a project with multiple microservices registered with a Eureka Discovery Server. I've set up a Spring Cloud Gateway as an Eureka client and configured the routes accordingly. However, my requests through the Gateway result in 404 errors, while direct requests to the microservices succeed.</p>\n<p>API Gateway application.properties:</p>\n<pre><code>eureka.client.service-url.defaultZone= http://localhost:8761/eureka/\nspring.application.name=api-gateway\nserver.port=8080\n\n##Product Service Route\nspring.cloud.gateway.routes[0].id=product-service\nspring.cloud.gateway.routes[0].uri=lb://product-service\nspring.cloud.gateway.routes[0].predicates[0]=Path=/api/product\n\n##Order Service Route\nspring.cloud.gateway.routes[1].id=order-service\nspring.cloud.gateway.routes[1].uri=lb://order-service\nspring.cloud.gateway.routes[1].predicates[0]=Path=/api/order\n</code></pre>\n<p>ApiGatewayMain:</p>\n<pre><code>\nimport org.springframework.boot.SpringApplication;\nimport org.springframework.boot.autoconfigure.SpringBootApplication;\nimport org.springframework.cloud.client.discovery.EnableDiscoveryClient;\n\n@SpringBootApplication\n@EnableDiscoveryClient\npublic class ApiGatewayApplication {\n\n    public static void main(String[] args) {\n        SpringApplication.run(ApiGatewayApplication.class, args);\n    }\n}\n</code></pre>\n<p>pom.xml:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;artifactId&gt;api-gateway&lt;/artifactId&gt;\n\n    &lt;properties&gt;\n        &lt;maven.compiler.source&gt;21&lt;/maven.compiler.source&gt;\n        &lt;maven.compiler.target&gt;21&lt;/maven.compiler.target&gt;\n        &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;\n        &lt;spring-cloud.version&gt;2023.0.0&lt;/spring-cloud.version&gt;\n    &lt;/properties&gt;\n\n    &lt;dependencies&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;\n            &lt;artifactId&gt;spring-cloud-starter-gateway-mvc&lt;/artifactId&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;\n            &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-client&lt;/artifactId&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n            &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;\n        &lt;/dependency&gt;\n\n    &lt;/dependencies&gt;\n\n\n    &lt;dependencyManagement&gt;\n        &lt;dependencies&gt;\n            &lt;dependency&gt;\n                &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;\n                &lt;artifactId&gt;spring-cloud-dependencies&lt;/artifactId&gt;\n                &lt;version&gt;${spring-cloud.version}&lt;/version&gt;\n                &lt;type&gt;pom&lt;/type&gt;\n                &lt;scope&gt;import&lt;/scope&gt;\n            &lt;/dependency&gt;\n        &lt;/dependencies&gt;\n    &lt;/dependencyManagement&gt;\n\n\n    &lt;build&gt;\n        &lt;plugins&gt;\n            &lt;plugin&gt;\n                &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n                &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;\n                &lt;configuration&gt;\n                    &lt;excludes&gt;\n                        &lt;exclude&gt;\n                            &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;\n                            &lt;artifactId&gt;lombok&lt;/artifactId&gt;\n                        &lt;/exclude&gt;\n                    &lt;/excludes&gt;\n                &lt;/configuration&gt;\n            &lt;/plugin&gt;\n        &lt;/plugins&gt;\n    &lt;/build&gt;\n</code></pre>\n<p>Both my microservices (order-service and product-service) have server.port=0 for random port selection and are registered with Eureka:</p>\n<p>order-service and product-service application.properties:</p>\n<pre><code>eureka.client.service-url.defaultZone=http://localhost:8761/eureka/\nspring.application.name=order-service  # for order-service\n# spring.application.name=product-service  # for product-service\n</code></pre>\n<p>OrderController:</p>\n<pre><code>@RestController\n@RequestMapping(&quot;/api/order&quot;)\n@RequiredArgsConstructor\npublic class OrderController {\n    private final OrderService orderService;\n\n    @PostMapping\n    @ResponseStatus(HttpStatus.CREATED)\n    public String placeOrder(@RequestBody OrderRequest orderRequest) {\n        orderService.placeOrder(orderRequest);\n        return &quot;Order placed successfully&quot;;\n    }\n    // ... other methods ...\n}\n</code></pre>\n<p>ProductController:</p>\n<pre><code>@RestController\n@RequestMapping(&quot;/api/product&quot;)\n@RequiredArgsConstructor\npublic class ProductController {\n    private final ProductService productService;\n    // ... methods ...\n}\n</code></pre>\n<p>Issue:</p>\n<p>When making a POST request to http://localhost:8080/api/order via Postman, I receive the following error:</p>\n<pre><code>{\n    &quot;timestamp&quot;: &quot;2024-03-08T20:08:59.340+00:00&quot;,\n    &quot;status&quot;: 404,\n    &quot;error&quot;: &quot;Not Found&quot;,\n    &quot;path&quot;: &quot;/api/order&quot;\n}\n</code></pre>\n<p>However, directly calling the order-service using its dynamically assigned port, such as <code>http://localhost:54062/api/order</code>, works correctly and I receive a <code>Order placed successfully</code> response.</p>\n<p>What am I missing in my Gateway setup that's preventing it from routing requests to the microservices? Any insights or troubleshooting tips would be greatly appreciated.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

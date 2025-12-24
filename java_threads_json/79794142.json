@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "vaadin-flow"
+    ],
+    "owner": {
+      "account_id": 17518861,
+      "reputation": 11,
+      "user_id": 12705348,
+      "user_type": "registered",
+      "profile_image": "https://graph.facebook.com/2574501216000712/picture?type=large",
+      "display_name": "Jose Daniel Navarro Brito",
+      "link": "https://stackoverflow.com/users/12705348/jose-daniel-navarro-brito"
+    },
+    "is_answered": true,
+    "view_count": 47,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1761728145,
+    "creation_date": 1760858902,
+    "last_edit_date": 1761728145,
+    "question_id": 79794142,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79794142/issues-vaadin-combobox-using-an-abstractbackenddataprovider-in-a-ui-view",
+    "title": "Issues Vaadin ComboBox using an AbstractBackEndDataProvider in a UI view",
+    "body": "<p>I'm developing a Vaadin project which fetches data from an external web API. On the frontend I have a combobox that is outsourced using a <code>AbstractBackEndDataProvider</code>, the details are as follows:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class housing_projects_data_provider extends AbstractBackEndDataProvider&lt;housing_projects_read_only_dto,String&gt; {\n\n    private Integer                lastkey;\n    private String                 searchText;\n    private final                  housing_projects_services  services;\n\n    public housing_projects_data_provider(housing_projects_services services)\n    {\n        this.services = services;\n    }\n\n    public void setFilter(String searchText)\n    {\n        this.searchText=searchText;\n        refreshAll();\n    }\n\n    @Override\n    protected Stream&lt;housing_projects_read_only_dto&gt; fetchFromBackEnd(Query&lt;housing_projects_read_only_dto, String&gt; query) {\n        String filter = query.getFilter().orElse(null);\n        try {\n            if (query.getOffset() == 0) {\n                List&lt;housing_projects_read_only_dto&gt; items = services.housing_projects_list(query.getOffset(), query.getLimit(), filter).collectList().block();\n                if (!items.isEmpty()) {\n                    this.lastkey = items.get(items.size() - 1).getId();\n                }\n                return items.stream();\n            } else {\n                List&lt;housing_projects_read_only_dto&gt; items = services.housing_projects_list(query.getOffset(), query.getLimit(), filter).collectList().block();\n                if (!items.isEmpty()) {\n                    this.lastkey = items.get(items.size() - 1).getId();\n                }\n                return items.stream();\n            }\n        } catch (Exception e) {\n            return Stream.of(); //Stream of empty Array to return without error\n        }\n    }\n\n    @Override\n    protected int sizeInBackEnd(Query&lt;housing_projects_read_only_dto, String&gt; query)\n    {\n        String filter=query.getFilter().orElse(this.searchText);\n        return services.housing_projects_count(filter).block();\n    }\n\n    public void reset() {\n        this.lastkey = null;\n        refreshAll();\n    }\n\n}\n</code></pre>\n<p>Then I have the frontend combobox calling the above data provider as below:</p>\n<pre class=\"lang-java prettyprint-override\"><code>private final housing_projects_services housingprojectservices;\n    \npublic Conveynacing view(housing_projects_services housingprojectservices)\n{\n    this.housingprojectservices = housingprojectservices;\n}\n\nhousing_projects_data_provider data_provider = new housing_projects_data_provider(housingprojectservices);\n\nComboBox&lt;housing_projects_read_only_dto&gt; projects = new ComboBox&lt;&gt;();\nprojects.setLabel(&quot;Select Project&quot;);\nprojects.getStyle().set(&quot;--vaadin-combo-box-overlay-width&quot;, &quot;350px&quot;);\nprojects.setDataProvider(data_provider);\n</code></pre>\n<p>The issue here is that the debbuger complains saying:</p>\n<blockquote>\n<p>Cannot resolve method 'setDataProvider(housing_projects_data_provider)'</p>\n</blockquote>\n<p>I don't know what the issue really is, as all the methods seem to be initiated correctly.\nAny idea what I'm doing wrong here?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "completable-future"
+    ],
+    "owner": {
+      "account_id": 152786,
+      "reputation": 5538,
+      "user_id": 367544,
+      "user_type": "registered",
+      "accept_rate": 77,
+      "profile_image": "https://www.gravatar.com/avatar/0b524df25b1229764e7af64f55ffddb7?s=256&d=identicon&r=PG",
+      "display_name": "Dasmowenator",
+      "link": "https://stackoverflow.com/users/367544/dasmowenator"
+    },
+    "is_answered": false,
+    "view_count": 413,
+    "closed_date": 1731710005,
+    "answer_count": 0,
+    "score": 4,
+    "last_activity_date": 1736244198,
+    "creation_date": 1731706829,
+    "question_id": 79194027,
+    "link": "https://stackoverflow.com/questions/79194027/why-does-canceling-a-completablefuture-not-actually-interrupt-the-underlying-tas",
+    "closed_reason": "Duplicate",
+    "title": "Why does canceling a CompletableFuture not actually interrupt the underlying task?",
+    "body": "<p>Here's a simple example:</p>\n<pre><code>public static void main(String[] args) throws Exception {\n    ExecutorService executorService = Executors.newCachedThreadPool();\n    CompletableFuture&lt;Void&gt; callbackHook = new CompletableFuture&lt;&gt;();\n    CompletableFuture&lt;Void&gt; future = CompletableFuture.runAsync(() -&gt; {\n        try {\n            System.out.println(&quot;Starting Runnable&quot;);\n            while (true) {\n                System.out.println(&quot;still running&quot;);\n                Thread.sleep(1000);\n            }\n        } catch (InterruptedException e) {\n            // why is this code never getting hit?\n            System.err.println(&quot;InterruptedException caught in Runnable!&quot;);\n            callbackHook.complete(null);\n        }\n    }, executorService);\n    future.cancel(true);\n    callbackHook.get(); // this hangs forever...\n    System.out.println(&quot;*** DONE ***&quot;); // this line is never reached\n}\n</code></pre>\n<p>Output:</p>\n<pre><code>Starting Runnable\nstill running\nstill running\nstill running\nstill running\n...(this continues forever)\n</code></pre>\n<p>Why so why does calling <code>cancel(true)</code> on the CompletableFuture not cause it to trigger an interrupt in the underlying task even though the <code>true</code> parameter in <code>cancel(true)</code> is supposed to cause it to interrupt the task?</p>\n<p>And yes, I know this example is a bit contrived, since there's no reason why you'd necessarily want to be waiting on <code>callbackHook</code> instead of on <code>future</code>, but there are more complex cases where this sort of logic would be used - this is just a simplified example.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

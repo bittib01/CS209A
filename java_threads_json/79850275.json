@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "spring-boot-test",
+      "spring-async"
+    ],
+    "owner": {
+      "account_id": 1681237,
+      "reputation": 1897,
+      "user_id": 1545425,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/GmowT.jpg?s=256",
+      "display_name": "Luca Tampellini",
+      "link": "https://stackoverflow.com/users/1545425/luca-tampellini"
+    },
+    "is_answered": false,
+    "view_count": 151,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1766140664,
+    "creation_date": 1766059146,
+    "last_edit_date": 1766140664,
+    "question_id": 79850275,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79850275/threadpooltaskexecutor-on-shutdown-threads-not-awaiting-full-completion",
+    "title": "ThreadPoolTaskExecutor : on shutdown, threads not awaiting full completion",
+    "body": "<h1>Problem with Spring's ThreadPoolTaskExecutor, @EnableAsync, AsyncConfigurer, @Async</h1>\n<h2>The context</h2>\n<p>I have:</p>\n<ul>\n<li>a very simple method to run asynchronously :\n<pre class=\"lang-java prettyprint-override\"><code>@Async\npublic void asyncMethod() {\n    System.out.println(&quot;entering method...&quot;);\n    try {\n        Thread.sleep(10000);\n    } catch (InterruptedException e) {\n        throw new RuntimeException(e);\n    }\n    System.out.println(&quot;exiting method...&quot;);\n}\n</code></pre>\n</li>\n<li>An <code>Executor</code> service declared in a <code>@Configuration</code> that uses <code>@EnableAsync</code>\n<pre class=\"lang-java prettyprint-override\"><code>@Configuration\n@EnableAsync\npublic class AsyncConfig implements AsyncConfigurer {\n\n    @Override\n    public Executor getAsyncExecutor() {\n        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();\n        executor.setCorePoolSize(5);\n        executor.setMaxPoolSize(10);\n        executor.setQueueCapacity(100);\n        executor.setThreadNamePrefix(&quot;myAsyncStuff-&quot;);\n        executor.initialize();\n        return executor;\n    }\n\n}\n</code></pre>\n</li>\n<li>The asynchronous method is then activated from an endpoint of a <code>@RestController</code> [not sharing the content of the controller, as it hardly matters]</li>\n<li>Finally, I am calling the controller's endpoint from a JUnit test, integrated within a full application context with @SpringBootTest\n<pre class=\"lang-java prettyprint-override\"><code>@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, useMainMethod = SpringBootTest.UseMainMethod.ALWAYS)\npublic class SomeIntegrationTest {\n\n    @Autowired\n    MockMvc mockMvc;\n\n    @Autowired\n    ThreadPoolTaskExecutor taskExecutor;\n\n    @Test\n    void someTest() throws Exception {\n        final var body = &quot;&quot;&quot;\n            {&quot;someKey&quot;: &quot;someValue&quot;}\n        &quot;&quot;&quot;;\n        mockMvc.perform(post(&quot;/api/myEndpoint&quot;)\n                        .accept(MediaType.APPLICATION_JSON_VALUE)\n                        .contentType(MediaType.APPLICATION_JSON_VALUE)\n                        .content(body))\n                .andExpect(status().isOk());\n        taskExecutor.setWaitForTasksToCompleteOnShutdown(true); // ensuring that the taskExecutor awaits completion\n        taskExecutor.shutdown();    // call to shutdown\n        final var asyncFinished = taskExecutor.getThreadPoolExecutor().awaitTermination(5, TimeUnit.MINUTES); // await doing nothing !!!\n        Assertions.assertTrue(asyncFinished);\n    }\n\n}\n</code></pre>\n</li>\n</ul>\n<h2>The issue</h2>\n<p>The simple <code>@Async</code> method - <a href=\"https://docs.spring.io/spring-framework/reference/6.2/integration/scheduling.html#scheduling-annotation-support-async\" rel=\"nofollow noreferrer\">correctly integrated following the official documentation</a> - is called, the pool is shut down but <code>awaitTermination</code> does nothing and the thread is interrupted before the method reaches the end.</p>\n<p>The logs on console, for <code>someTest</code> shows only the result of the first <code>println</code>:</p>\n<pre><code>&gt; entering method...\n</code></pre>\n<p>Why is the pool no waiting for task completion???</p>\n<h2>UPDATE 1</h2>\n<p>Beyond what written already in the comments, I have tried debugging the <code>taskExecutor</code> (at runtime) and have found a sensible information that may explain the whole thing: <strong>the thread does not seem to been running on my <code>ThreadPoolTaskExecutor</code> bean</strong>, as when using a break-point on the <code>shutdown()</code> i saw this:\n<code>org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor$1@1c23e369[Running, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0]</code></p>\n<p>So I have tried analysing the context, finding the presence of other beans instancing <code>ExecutorService</code>, that were provided by an autoconfiguration of another framework; thereby, the beans were removed by excluding the autoconfiguration with  <code>@SpringBootApplication(exclude = {TheNameOfTheAutoconfiguration.class}</code>.</p>\n<p>Still: my task executor, based on a thread pool, seem to remain empty...</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

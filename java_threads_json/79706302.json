@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "concurrency",
+      "synchronization",
+      "thread-safety",
+      "synchronized"
+    ],
+    "owner": {
+      "account_id": 17896313,
+      "reputation": 1,
+      "user_id": 13038741,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/28dcf44ce43cee324c0053008ed4fc66?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Absolute_Arthur",
+      "link": "https://stackoverflow.com/users/13038741/absolute-arthur"
+    },
+    "is_answered": true,
+    "view_count": 159,
+    "answer_count": 4,
+    "score": 0,
+    "last_activity_date": 1752871471,
+    "creation_date": 1752848154,
+    "last_edit_date": 1752849521,
+    "question_id": 79706302,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79706302/in-a-synchronized-block-can-i-synchronize-on-a-collection-of-monitor-objects",
+    "title": "In a synchronized block, can I synchronize on a Collection of monitor objects?",
+    "body": "<p>I have a class that I want to make thread-safe. In it are these 2 functions :</p>\n<pre class=\"lang-java prettyprint-override\"><code>public void add(String param1, String param2) {\n    // do something\n}\n\npublic void clear() {\n    // do something else\n}\n</code></pre>\n<p>I want the <code>add()</code> function to be synchronized <em>only</em> when both parameters are similar (can only run at the same time if any parameter is different)</p>\n<p>I want the <code>clear()</code> function to be synchronized on every lock (can only run when <code>add()</code> is not running)</p>\n<p>For my first requirement, I have found this solution which works :</p>\n<pre class=\"lang-java prettyprint-override\"><code>private ConcurrentMap&lt;String, Object&gt; locks = new ConcurrentHashMap&lt;&gt;();\n\npublic void add(String param1, String param2) {\n    Object lock = locks.computeIfAbsent(param1+ &quot;:&quot; + param2, k -&gt; new Object());\n    synchronized (lock) {\n        // do something\n    }\n}\n</code></pre>\n<p>However, I cannot find a way to only allow <code>clear()</code> when all locks are released. Naturally, I tried putting directly <code>locks</code> or <code>locks.values()</code> in synchronized, as a Monitor Object, but did not work.\nIs this possible? Or are there alternatives?</p>\n<hr />\n<p>For details, the action of <code>add()</code> is to put (if absent) key/value pairs to two concurrentMaps, and the action of <code>clear()</code> is to empty both maps. I want to avoid the case where <code>clear()</code> empties both map while <code>add()</code> just finished one put and starts the next.\nI have tried using the atomic computeIfAbsent, but could not find a way to modify both maps atomically.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot"
+    ],
+    "owner": {
+      "account_id": 18936970,
+      "reputation": 351,
+      "user_id": 13817825,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/cbced2a5eafd2c2cec5f5dd41b288905?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "phildeg31",
+      "link": "https://stackoverflow.com/users/13817825/phildeg31"
+    },
+    "is_answered": true,
+    "view_count": 249,
+    "accepted_answer_id": 79592099,
+    "answer_count": 3,
+    "score": 0,
+    "last_activity_date": 1745569056,
+    "creation_date": 1743512781,
+    "last_edit_date": 1743686498,
+    "question_id": 79548721,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79548721/exception-when-using-timeout-on-transaction",
+    "title": "Exception when using timeout on transaction",
+    "body": "<p>I use Spring Boot 3 with an Oracle database (JpaRepository and Hikari connection are used) and I have a strange behaviour when using timeout on @Transactional.\nWhat I want is to do a select but if the query is too long, then I want a timeout with an exception to catch to return a specific error to the front-end.</p>\n<p>I use this on the service method:</p>\n<pre><code>@Transactional(readOnly = true, timeout = 30)\n</code></pre>\n<p>When timeout occurs, I see these errors in logs:</p>\n<pre><code>ORA-01013: user requested cancel of current operation &lt;-- seems to be due to the timeout\n...\nERROR o.s.t.i.TransactionInterceptor - Application exception overridden by rollback exception\n...\nCaused by: oracle.jdbc.OracleDatabaseException: ORA-01013\n</code></pre>\n<p>In the controller, if I catch the Exception thrown by the service, I have a JPA exception (<code>org.springframework.orm.jpa.JpaSystemException: Unable to rollback against JDBC Connection</code>) due to the fact that a rollback cannot be done because the connection is closed:</p>\n<pre><code>org.springframework.orm.jpa.JpaSystemException: Unable to rollback against JDBC Connection\nat org.springframework.orm.jpa.vendor.HibernateJpaDialect.convertHibernateAccessException(HibernateJpaDialect.java:341)\nat org.springframework.orm.jpa.vendor.HibernateJpaDialect.translateExceptionIfPossible(HibernateJpaDialect.java:241)\nat org.springframework.orm.jpa.JpaTransactionManager.doRollback(JpaTransactionManager.java:593)\n...\nCaused by: org.hibernate.TransactionException: Unable to rollback against JDBC Connection\nat org.hibernate.resource.jdbc.internal.AbstractLogicalConnectionImplementor.rollback(AbstractLogicalConnectionImplementor.java:137)\nat org.hibernate.resource.transaction.backend.jdbc.internal.JdbcResourceLocalTransactionCoordinatorImpl$TransactionDriverControlImpl.rollback(JdbcResourceLocalTransactionCoordinatorImpl.java:289)\nat org.hibernate.engine.transaction.internal.TransactionImpl.rollback(TransactionImpl.java:142)\n...\nCaused by: java.sql.SQLException: Connection is closed\nat com.zaxxer.hikari.pool.ProxyConnection$ClosedConnection.lambda$getClosedConnection$0(ProxyConnection.java:503)\nat jdk.proxy3/jdk.proxy3.$Proxy144.rollback(Unknown Source)\nat com.zaxxer.hikari.pool.ProxyConnection.rollback(ProxyConnection.java:386)\nat com.zaxxer.hikari.pool.HikariProxyConnection.rollback(HikariProxyConnection.java)\n</code></pre>\n<p>I do not understand because my transaction is readOnly so I do not expect to have a commit or a rollback. Also, I do not expect to have an error due to a closed connection but just to have a TransactionTimedOutException or something like that to catch indicating that the error is due to timeout.</p>\n<p>I would like to catch an exception in my controller linked to the timeout like this if it is possible to be able to return a specific response to the front-end that there was a timeout:</p>\n<pre><code>try {\n  this.myService.doService();\n} catch(Exception e) { // An explicit exception indication that we had a timeout (ex: TransactionTimedOutException)\n  // return a specific error code to front-end\n}\n</code></pre>\n<p>For the moment, I have a <code>org.springframework.orm.jpa.JpaSystemException: Unable to rollback against JDBC Connection</code> due to the fact that the rollback cannot be done because the connection has been closed after a SQL exception (with ORA-01013 error). I am not able to have information about the original exception that is a SQLTimeoutException.</p>\n<p>Can you help me please?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

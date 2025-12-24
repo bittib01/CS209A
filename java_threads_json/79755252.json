@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "http",
+      "resttemplate"
+    ],
+    "owner": {
+      "account_id": 40455865,
+      "reputation": 1,
+      "user_id": 29788476,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/6b8f36b77215d077fee18989886e601b?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "himenosena",
+      "link": "https://stackoverflow.com/users/29788476/himenosena"
+    },
+    "is_answered": false,
+    "view_count": 64,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1757926947,
+    "creation_date": 1756955044,
+    "question_id": 79755252,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79755252/upload-file-throw-io-exception-when-pass-gateway",
+    "title": "upload file throw io exception when pass gateway",
+    "body": "<h2>Access upload file api using RestTemplate throw io exception when pass gateway.</h2>\n<ul>\n<li>When pass gateway it throw exception, just a small file, and its not api server throw</li>\n</ul>\n<pre><code>Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception [Request processing failed; nested exception is org.springframework.web.multipart.MultipartException: Failed to parse multipart servlet request; nested exception is java.io.IOException: org.apache.tomcat.util.http.fileupload.FileUploadException: Connection reset by peer] with root cause\njava.io.IOException: Connection reset by peer\n    at sun.nio.ch.FileDispatcherImpl.read0(Native Method) ~[na:1.8.0_333]\n    at sun.nio.ch.SocketDispatcher.read(SocketDispatcher.java:39) ~[na:1.8.0_333]\n    at sun.nio.ch.IOUtil.readIntoNativeBuffer(IOUtil.java:223) ~[na:1.8.0_333]\n    at sun.nio.ch.IOUtil.read(IOUtil.java:197) ~[na:1.8.0_333]\n    at sun.nio.ch.SocketChannelImpl.read(SocketChannelImpl.java:378) ~[na:1.8.0_333]\n...\n...\n...\nCaused by: java.io.IOException: Broken pipe\n    at sun.nio.ch.FileDispatcherImpl.write0(Native Method) ~[na:1.8.0_333]\n    at sun.nio.ch.SocketDispatcher.write(SocketDispatcher.java:47) ~[na:1.8.0_333]\n    at sun.nio.ch.IOUtil.writeFromNativeBuffer(IOUtil.java:93) ~[na:1.8.0_333]\n    at sun.nio.ch.IOUtil.write(IOUtil.java:65) ~[na:1.8.0_333]\n    at sun.nio.ch.SocketChannelImpl.write(SocketChannelImpl.java:469) ~[na:1.8.0_333]\n</code></pre>\n<h2>Code</h2>\n<pre class=\"lang-java prettyprint-override\"><code>            MultiValueMap&lt;String, Object&gt; dataMap = new LinkedMultiValueMap&lt;&gt;();\n            dataMap.add(&quot;files&quot;, new FileSystemResource(filePath));\n            dataMap.add(&quot;presetfolder&quot;, JSON.parse(&quot;&quot;));\n\n            HttpHeaders headers = new HttpHeaders();\n            headers.setContentType(MediaType.MULTIPART_FORM_DATA);\n            headers.add(&quot;accept&quot;, &quot;*/*&quot;);\n            headers.add(&quot;connection&quot;, &quot;Keep-Alive&quot;);\n            headers.add(&quot;Accept-Charset&quot;, &quot;utf-8&quot;);\n            headers.add(&quot;X-Token&quot;, xToken);\n            headers.add(&quot;Strapp&quot;, &quot;&quot;);\n\n            HttpEntity&lt;MultiValueMap&lt;String, Object&gt;&gt; requestParams = new HttpEntity&lt;&gt;(dataMap, headers);\n            RestTemplate restTemplate = new RestTemplate();\n            ResponseEntity&lt;Object&gt; response = restTemplate.postForEntity(url, requestParams, Object.class);\n            Object body = response.getBody();\n            result = JSONObject.parseObject(JSONObject.toJSONString(body), Result.class);\n</code></pre>\n<h2>config</h2>\n<ul>\n<li>gateway</li>\n</ul>\n<pre><code>spring:\n  application:\n    name: \n  servlet:\n    multipart:\n      max-file-size: 1024MB\n      max-request-size: 1024MB\n      enabled: true\n\nhystrix:\n  command:\n    default:\n      execution:\n        isolation:\n          thread:\n            timeoutInMilliseconds: 2000000\nribbon:\n  ReadTimeout: 2000000\n  ConnectTimeout: 2000000\n  eureka:\n    enabled: true\nzuul:\n  host:\n    socket-timeout-millis: 2000000\n    connect-timeout-millis: 2000000\n  routes:\n    fileweb:\n      path: /fileweb/**\n      serviceId: fileweb\n</code></pre>\n<h2>deploy</h2>\n<ul>\n<li>Gateway and target api on same server, request start on other server</li>\n<li>Host is gateway host</li>\n<li>deploy by docker</li>\n</ul>\n<h2>first try curl and it works good</h2>\n<pre><code>curl -X POST http://${server host and port}/fileweb/upload/uploadFile \\\n  -H &quot;Content-Type: multipart/form-data&quot; \\\n  -H &quot;X-Token:&quot; \\\n  -F &quot;files=@test.txt&quot; \\\n  -F 'presetfolder=[{&quot;name&quot;:&quot;&quot;},{&quot;name&quot;:&quot;&quot;,&quot;parentName&quot;:&quot;&quot;}]'\n</code></pre>\n<h2>then try HttpUrlConnection instead of resttemplate</h2>\n<p>not resolve</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

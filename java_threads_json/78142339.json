@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-cloud-gateway",
+      "spring-resource-server"
+    ],
+    "owner": {
+      "account_id": 24012215,
+      "reputation": 21,
+      "user_id": 17995659,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/3915e4f15dbcab9941f4577ddba43111?s=256&d=identicon&r=PG",
+      "display_name": "Andrei Budevich",
+      "link": "https://stackoverflow.com/users/17995659/andrei-budevich"
+    },
+    "is_answered": false,
+    "view_count": 767,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1738219343,
+    "creation_date": 1710176732,
+    "last_edit_date": 1710409392,
+    "question_id": 78142339,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78142339/an-expected-csrf-token-cannot-be-found-or-no-static-resource-oauth2-authorizatio",
+    "title": "An expected CSRF token cannot be found or No static resource oauth2/authorization/l",
+    "body": "<p>I have</p>\n<p>all project 'org.springframework.boot' version '3.2.3'</p>\n<ol>\n<li>spring authorization Oauth 2.0 server http://auth-server:9000</li>\n<li>User Interface (React JS application)</li>\n<li>Gateway (aka Oauth 2.0 client)</li>\n<li>Resource server</li>\n</ol>\n<p>Below is the configuration of SecurityConfig Resurce - server</p>\n<pre><code>@Configuration\n@EnableWebSecurity\npublic class SecurityConfig {\n\n    public interface Jwt2AuthoritiesConverter extends Converter&lt;Jwt, Collection&lt;? extends GrantedAuthority&gt;&gt; {\n    }\n    \n    @Bean\n    Jwt2AuthoritiesConverter authoritiesConverter() {\n        return jwt -&gt; {\n            @SuppressWarnings(&quot;unchecked&quot;)\n            final Collection&lt;String&gt; roles = (Collection&lt;String&gt;) jwt.getClaims().getOrDefault(&quot;roles&quot;, List.of());\n            return roles.stream().map(role -&gt; new SimpleGrantedAuthority(role)).collect(Collectors.toList());\n        };\n    }\n    \n    public interface Jwt2AuthenticationConverter extends Converter&lt;Jwt, AbstractAuthenticationToken&gt; {\n    }\n    \n    @Bean\n    Jwt2AuthenticationConverter authenticationConverter(Jwt2AuthoritiesConverter authoritiesConverter) {\n        return jwt -&gt; new JwtAuthenticationToken(jwt, authoritiesConverter.convert(jwt));\n    }\n    \n    @Bean\n    SecurityFilterChain securityFilterChain(HttpSecurity http,\n            Converter&lt;Jwt, AbstractAuthenticationToken&gt; authenticationConverter) throws Exception {\n        http.oauth2ResourceServer(oauth2ResourceServer -&gt; oauth2ResourceServer\n                .jwt(jwt -&gt; jwt.jwtAuthenticationConverter(authenticationConverter)));\n        http.csrf(csrf -&gt; csrf.disable());\n        http.securityMatcher(&quot;/&quot;)\n                .authorizeHttpRequests(authorize -&gt; authorize.requestMatchers(HttpMethod.OPTIONS, &quot;/**&quot;).permitAll()\n                        .requestMatchers(&quot;/lot-games/api/autogen/**&quot;).hasRole(&quot;ADMIN&quot;)\n                        .requestMatchers(&quot;/lot-games/api/**&quot;).permitAll().anyRequest().authenticated());\n        return http.build();\n    }\n\n}\n</code></pre>\n<p>I work out the GET methods perfectly well, but as soon as the POST method is used, I get an answer in the browser An expected CSRF token cannot be found, and I understand from the logs that such an answer forms the Gateway, since the logs (even at the springframework: TRACE level) are empty, but on the gateway</p>\n<blockquote>\n<p>[7a7f852d-5] HTTP POST &quot;/lot-games/api/services/v1/games/123&quot;,\nheaders={masked} [7a7f852d-5] Completed 403 FORBIDDEN,\nheaders={masked} [7a7f852d-1, L:/127.0.0.1:8072 ! R:/127.0.0.1:51774]\nHandling completed</p>\n</blockquote>\n<p>I think there's no problem, I'll just add this code to the SecurityConfig gateway - but then everything breaks and I get</p>\n<pre><code>@Configuration\n@EnableWebFluxSecurity\npublic class SecurityConfig {\n\n    @Bean\n    SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {\n        http.csrf(Customizer.withDefaults());\n        return http.build();\n    }\n}\n</code></pre>\n<p>or</p>\n<pre><code>@Bean\n    SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {\n        return http.csrf(CsrfSpec::disable).build();\n\n    } \n</code></pre>\n<p>but, but everything breaks down and I get an error`</p>\n<blockquote>\n<p>This application has no configured error view, so you are seeing this\nas a fallback. Mon Mar 11 19:54:33 MSK 2024 [1dd5aeb3-6] There was an\nunexpected error (type=Not Found, status=404). No static resource\noauth2/authorization/lot-games-client-authorization-code.\norg.springframework.web.reactive.resource.NoResourceFoundException:\n404 NOT_FOUND &quot;No static resource\noauth2/authorization/lot-games-client-authorization-code.&quot;    at\norg.springframework.web.reactive.resource.ResourceWebHandler.lambda$handle$1(ResourceWebHandler.java:431)\nSuppressed: The stacktrace has been enhanced by Reactor, refer to\nadditional information below:  Error has been observed at the\nfollowing site(s):    *__checkpoint ⇢\norg.springframework.cloud.gateway.filter.WeightCalculatorWebFilter\n[DefaultWebFilterChain]   *__checkpoint ⇢ LogoutWebFilter\n[DefaultWebFilterChain]   *__checkpoint ⇢ ServerRequestCacheWebFilter\n[DefaultWebFilterChain]   *__checkpoint ⇢\nSecurityContextServerWebExchangeWebFilter [DefaultWebFilterChain]\n*__checkpoint ⇢ ReactorContextWebFilter [DefaultWebFilterChain]\n*__checkpoint ⇢ CsrfWebFilter [DefaultWebFilterChain]   *__checkpoint\n⇢ HttpHeaderWriterWebFilter [DefaultWebFilterChain]   *__checkpoint ⇢\nServerWebExchangeReactorContextWebFilter [DefaultWebFilterChain]\n*__checkpoint ⇢\norg.springframework.security.web.server.WebFilterChainProxy\n[DefaultWebFilterChain]   *__checkpoint ⇢ HTTP GET\n&quot;/oauth2/authorization/lot-games-client-authorization-code&quot;\n[ExceptionHandlingWebHandler]</p>\n</blockquote>\n<p>Can you help me ?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

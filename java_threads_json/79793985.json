@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-security",
+      "url-rewriting",
+      "spring-saml"
+    ],
+    "owner": {
+      "account_id": 51881,
+      "reputation": 39410,
+      "user_id": 155020,
+      "user_type": "registered",
+      "accept_rate": 80,
+      "profile_image": "https://i.sstatic.net/fEqVo.png?s=256",
+      "display_name": "chubbsondubs",
+      "link": "https://stackoverflow.com/users/155020/chubbsondubs"
+    },
+    "is_answered": false,
+    "view_count": 73,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1760825378,
+    "creation_date": 1760825378,
+    "question_id": 79793985,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79793985/spring-security-saml-in-springboot-3-5-x-not-responding-to-forwarded-requests",
+    "title": "Spring Security SAML in Springboot 3.5.x not responding to forwarded requests",
+    "body": "<p>I have an older version of my app that I upgraded to SpringBoot 3.5.x and the SAML ACS URL changed after upgrading.  So I used urlrewrite to forward the request from the old URL to the new URL.  However, when I do that it doesn't work and I get this error:</p>\n<pre><code>There was an unexpected error (type=Not Found, status=404).\nNo static resource login/saml2/sso/customer.\norg.springframework.web.servlet.resource.NoResourceFoundException: No static resource login/saml2/sso/customer.\n    at org.springframework.web.servlet.resource.ResourceHttpRequestHandler.handleRequest(ResourceHttpRequestHandler.java:585)\n    at org.springframework.web.servlet.mvc.HttpRequestHandlerAdapter.handle(HttpRequestHandlerAdapter.java:52)\n    at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089)\n    at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979)\n    at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014)\n    at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:914)\n    at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:590)\n    at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885)\n    at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658)\n    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:195)\n    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)\n    at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)\n    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)\n    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)\n    at org.springframework.web.filter.AbstractRequestLoggingFilter.doFilterInternal(AbstractRequestLoggingFilter.java:289)\n    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)\n    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164)\n    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140)\n...\n</code></pre>\n<p>You can see in that exception stacktrace that all of the Filters are run through and it makes it's way up to the HttpServlet which throws the error because it can't find that URL with a 404.  Because of the use of <code>OncePerRequestFilter</code> you don't see the instances of the filters because they subclass that, but I've confirmed the filters are on the stack using a debugger.</p>\n<p>The problem is that the <code>Saml2WebSsoAuthenticationFilter</code> should have picked it up, but because urlrewrite forwarded the request <code>Saml2WebSsoAuthenticationFilter</code> is refusing to recognize it should handle it.  I've tested it several times using normal requests (ie non-forwarded) to the new URL (i.e. /login/saml2/sso/customer) and it works just fine.  So I know that the <code>Saml2WebSsoAuthenticationFilter</code> is present on the chain, and that if the request isn't forwarded it WILL handle it.</p>\n<p>By default Springboot 3.x is supposed to handle dispatcher types of forward, request, etc.  But I don't see it happening.  As best as I can tell any request will be sent to the filter chain, but I can't figure out is why <code>Saml2WebSsoAuthenticationFilter</code> continues to ignore forwarded requests.</p>\n<p>Evidence that &quot;any request&quot; will be handled and the matcher is <code>AnyRequestMatcher</code>:</p>\n<pre><code>[DEBUG] 2025-10-17 16:30:06.256 [restartedMain]  o.s.s.w.DefaultSecurityFilterChain - Will secure any request with filters: DisableEncodeUrlFilter, WebAsyncManagerIntegrationFilter, SecurityContextHolderFilter, HeaderWriterFilter, CsrfFilter, LogoutFilter, Saml2WebSsoAuthenticationRequestFilter, Saml2MetadataFilter, Saml2WebSsoAuthenticationFilter, AccountWhiteListFilter, AccountDomainFilter, JsonLoginFilter, Saml2MetadataFilter, RequestCacheAwareFilter, SecurityContextHolderAwareRequestFilter, AnonymousAuthenticationFilter, ExceptionTranslationFilter, AuthorizationFilter\n</code></pre>\n<p>Any ideas?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

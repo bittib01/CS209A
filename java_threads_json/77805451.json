@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "file",
+      "validation",
+      "apache-poi",
+      "apache-tika"
+    ],
+    "owner": {
+      "account_id": 22395059,
+      "reputation": 11,
+      "user_id": 16606454,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/6332a96311f083b4d9472217cc399391?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Gayatri",
+      "link": "https://stackoverflow.com/users/16606454/gayatri"
+    },
+    "is_answered": false,
+    "view_count": 324,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1724246177,
+    "creation_date": 1705050443,
+    "question_id": 77805451,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77805451/validate-if-the-incoming-multipartfile-is-password-protected-or-not-for-the-file",
+    "title": "Validate if the incoming MultipartFile is password protected or not for the file types (.docx, .doc, .ppt, .pptx, .xls, .xlsx) in java",
+    "body": "<p>I have a Java Application wherein my usecase is to detect the uploaded file which can be types (.docx, .doc, .ppt, .pptx, .xls, .xlsx) is password protected or not.</p>\n<p>I got the solution to validate my PDF file using apache pdfbox library</p>\n<pre><code>private boolean isPdfPasswordProtected(InputStream inputStream) {\n        try (PDDocument document = PDDocument.load(inputStream)) {\n            return document.isEncrypted();\n        } catch (InvalidPasswordException e) {\n            return true;\n        } catch (IOException e) {\n            e.printStackTrace();\n            return false;\n        }\n    }\n</code></pre>\n<p>But for these file types (.docx, .doc, .ppt, .pptx, .xls, .xlsx), I got suggestions that we can use apache poi-ooxml but none of the implementations I referred is working for me. They also say Apache Tika metadata can be used to identify if encrypted or not and that as well is not working for me. Please help me with the implementation on validating the files is encrypted or not.</p>\n<p>I tried using Apache POI with the below code and it did not work for encrypted word documents:</p>\n<pre><code>private boolean isWordPasswordProtected(InputStream inputStream, String contentType) {\n        try {\n            if (contentType.equalsIgnoreCase(&quot;application/msword&quot;)) { // Check for DOC files first\n                try (POIFSFileSystem poifs = new POIFSFileSystem(inputStream)) {\n                    HWPFDocument doc = new HWPFDocument(poifs);\n                    // Accessing properties will trigger password check\n                    doc.getSummaryInformation();\n                    return false; // Not password protected\n                } catch (EncryptedDocumentException e) {\n                    return true; // Password protected\n                }\n            } else if (contentType.equalsIgnoreCase(&quot;application/vnd.openxmlformats-officedocument.wordprocessingml.document&quot;)) { // Then handle DOCX files\n                try (XWPFDocument docx = new XWPFDocument(inputStream)) {\n                    // Accessing properties will trigger password check\n                    docx.getProperties().getCoreProperties().getTitle();\n                    return false; // Not password protected\n                } catch (EncryptedDocumentException e) {\n                    return true; // Password protected\n                }\n            } else {\n                // Handle unsupported file formats\n                throw new IllegalArgumentException(&quot;Unsupported file format: &quot; + contentType);\n            }\n        } catch (Exception e) {\n            // Handle exceptions\n            e.printStackTrace();\n            throw new RuntimeException(&quot;Error checking password protection&quot;, e);\n        }\n\n    }\n</code></pre>\n<p>I tried apache tika to get the metadata to verify but did not work. Please find the below code:</p>\n<pre><code>private boolean isWordPasswordProtected(InputStream inputStream, String contentType) {\n        Metadata metadata = new Metadata();\n        Parser parser = new AutoDetectParser();\n\n        // To extract metadata only, we use BodyContentHandler with -1 as the maximum characters\n        BodyContentHandler handler = new BodyContentHandler(1000);\n\n        ParseContext context = new ParseContext();\n        context.set(Parser.class, parser);\n\n        try {\n            parser.parse(inputStream, handler, metadata, context);\n        } catch (IOException e) {\n            throw new RuntimeException(e);\n        } catch (SAXException e) {\n            throw new RuntimeException(e);\n        } catch (TikaException e) {\n            throw new RuntimeException(e);\n        }\n\n        // Check metadata for encryption-related information\n        String encryption = metadata.get(&quot;encryption&quot;);\n        return encryption != null &amp;&amp; !encryption.isEmpty();\n    }\n</code></pre>\n<p>Please help me with the implementation on this.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

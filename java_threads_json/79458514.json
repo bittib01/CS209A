@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "docker",
+      "testcontainers",
+      "docker-java",
+      "spring-boot-testcontainers"
+    ],
+    "owner": {
+      "account_id": 25887700,
+      "reputation": 41,
+      "user_id": 22772492,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AItbvmmgb9O_xSC8NWkLOtq2KREg8wP4DbVSgBRCKgzF=k-s256",
+      "display_name": "twerpiebird",
+      "link": "https://stackoverflow.com/users/22772492/twerpiebird"
+    },
+    "is_answered": true,
+    "view_count": 157,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1740264693,
+    "creation_date": 1740168076,
+    "last_edit_date": 1740207136,
+    "question_id": 79458514,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79458514/why-cant-i-push-an-image-to-a-local-docker-registry-started-with-testcontainers",
+    "title": "Why can&#39;t I push an image to a local Docker registry started with Testcontainers?",
+    "body": "<p>I'm trying to create a local Docker registry using Testcontainers and push an image programatically to it. However, I'm getting a connection refused error when attempting to push the image. The first test which checks if the registry is running works, so i know the registry is running.</p>\n<p>Here’s my test class:</p>\n<pre><code>class DockerRegistryTest {\n\n    @Rule\n    public static GenericContainer registry;\n    private static String registryAddress;\n    private static DockerClient dockerClient;\n\n    @BeforeAll\n    static void startRegistry() {\n        registry = new GenericContainer(DockerImageName.parse(&quot;registry:2&quot;))\n                .withExposedPorts(5000)\n                .waitingFor(Wait.forHttp(&quot;/v2/&quot;).forStatusCode(200));\n\n        registry.start();\n        assertTrue(registry.isRunning(), &quot;Registry is running&quot;);\n\n        registryAddress = registry.getHost() + &quot;:&quot; + registry.getMappedPort(5000);\n        System.out.println(&quot;Registry available at: &quot; + registryAddress);\n\n        DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();\n        dockerClient = DockerClientImpl.getInstance(config, new ApacheDockerHttpClient.Builder()\n                .dockerHost(config.getDockerHost())\n                .sslConfig(config.getSSLConfig())\n                .build());\n    }\n\n    @AfterAll\n    static void tearDown() {\n        if (registry != null) {\n            registry.stop();\n        }\n    }\n\n    @Test\n    void testPushImageToRegistry() throws InterruptedException {\n        String localImage = &quot;busybox:latest&quot;;\n        dockerClient.pullImageCmd(localImage).start().awaitCompletion();\n\n        String registryImageTag = registryAddress + &quot;/busybox:latest&quot;;\n        dockerClient.tagImageCmd(localImage, registryAddress + &quot;/busybox&quot;, &quot;latest&quot;).exec();\n\n        dockerClient.pushImageCmd(registryImageTag)\n                .withAuthConfig(new AuthConfig()) // No authentication needed\n                .start()\n                .awaitCompletion();\n\n        System.out.println(&quot;Successfully pushed image to registry: &quot; + registryImageTag);\n        assertTrue(true);\n    }\n}\n</code></pre>\n<p>However, when I run the test, I get this error:</p>\n<pre><code>com.github.dockerjava.api.exception.DockerClientException: Could not push image: failed to do request: \nHead &quot;https://localhost:57244/v2/busybox/blobs/sha256:31311c5853a22c04d692f6581b4faa25771d915c1ba056c74e5ec82606eefdfa&quot;: \ndial tcp [::1]:57244: connect: connection refused\n</code></pre>\n<p>Things I tried</p>\n<ol>\n<li>manually tag and push an image into the registry, result still connection refused error.</li>\n<li>I ran</li>\n</ol>\n<pre><code>C:\\Users\\codex&gt;curl http://localhost:&lt;mappedPortIgotFromLogs&gt;/v2/_catalog\n{&quot;repositories&quot;:[]}\n</code></pre>\n<p>so I know the repository is up and running</p>\n<p>I also added this in testcontainers.properties\n<code>ryuk.container.image=testcontainersofficial/ryuk</code></p>\n<p>to get my test container to work in the first place.</p>\n<p>And here is a screenshot from my docker desktop</p>\n<p><a href=\"https://i.sstatic.net/JpGfbuG2.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/JpGfbuG2.png\" alt=\"docker desktop\" /></a></p>\n<p>Update 1:</p>\n<p>i changed</p>\n<pre><code>`registryAddress = registry.getHost() + &quot;:&quot; + registry.getMappedPort(5000);`\n</code></pre>\n<p>to <code>registryAddress = &quot;0.0.0.0&quot; + &quot;:&quot; + registry.getMappedPort(5000);</code> but now i get</p>\n<pre><code>`com.github.dockerjava.api.exception.DockerClientException: Could not push image: failed to do request: Head &quot;https://0.0.0.0:60075/v2/busybox/blobs/sha256:9c0abc9c5bd3a7854141800ba1f4a227baa88b11b49d8207eadc483c3f2496de&quot;: http: server gave HTTP response to HTTPS client`\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "angular",
+      "spring-boot",
+      "cors"
+    ],
+    "owner": {
+      "account_id": 23411594,
+      "reputation": 31,
+      "user_id": 17473182,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/b5392feca2516976d275bea33b91665a?s=256&d=identicon&r=PG",
+      "display_name": "marcom966",
+      "link": "https://stackoverflow.com/users/17473182/marcom966"
+    },
+    "is_answered": false,
+    "view_count": 151,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1729666470,
+    "creation_date": 1729609319,
+    "last_edit_date": 1729609777,
+    "question_id": 79114714,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79114714/still-getting-cors-error-after-adding-crossorigin-annotation",
+    "title": "Still getting cors error after adding @CrossOrigin annotation",
+    "body": "<p>I'm having troubles with the CORS error.\nI'm trying to post a file to the database but using another endpoint in the same backend application where I post other data from another endpoint. Here's the error:</p>\n<blockquote>\n<p>CORS Missing Allow Origin</p>\n</blockquote>\n<p>Here's the backend controller for the first endpoint:</p>\n<pre><code>@RestController\n@RequestMapping(path=&quot;api/v1/file&quot;)\n@CrossOrigin(origins = &quot;http://localhost:4200&quot;)\npublic class filecontroller {\n@Autowired\nprivate final FileSystemStorageService filesService;\n\npublic filecontroller(FileSystemStorageService filesService) {\n    this.filesService = filesService;\n}\n\n\n\n@PostMapping(&quot;/upload&quot;)\npublic ResponseEntity&lt;responseMessage&gt; uploadFiles(@RequestParam MultipartFile file){\n    String message = &quot;&quot;;\n    try{\n        filesService.store(file);\n        message = &quot;File Uploaded successfully: &quot;+file.getOriginalFilename();\n        return  ResponseEntity.status(HttpStatus.OK).body(new responseMessage(message));\n    }catch (Exception e){\n        message = &quot;Could not upload the file: &quot;+file.getOriginalFilename() + &quot;!&quot;;\n        return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new responseMessage(message));\n    }\n}\n\n//other methods\n\n\n\n}\n</code></pre>\n<p>Here's the controller for the other endpoint:</p>\n<pre><code>@RestController\n@RequestMapping(value = &quot;api/v1/user&quot;)\n@CrossOrigin(origins = &quot;http://localhost:4200&quot;)\npublic class UserController {\n\nprivate final UserService userService;\n\n@Autowired\npublic UserController(UserService userService) {\n    this.userService = userService;\n}\n\n\n//other methods\n\n\n@PostMapping\npublic void registerNewUser(@RequestBody UserClass user){\n    userService.addNewUser(user);\n}\n//other methods\n\n\n\n}\n</code></pre>\n<p>Here's my upload file component in Angular:</p>\n<pre><code> constructor(private route: Router, private files: PostFileServiceService) { }\n\n  public main(){\n   this.username = localStorage.getItem('user_name');\n   }\n  public onChangeFile(event: any){\n   this.formData = new FormData();\n   this.file = event.target.files[0];\n    if(this.file){\n      this.name = this.file.name;\n      this.size = this.file.size;\n      this.type = this.file.type;\n      this.formData.append('fileSize', this.size);\n      this.formData.append('fileType', this.type);\n      this.userName = this.username;\n      this.formData.append('userName', new Blob([JSON.stringify(this.userName)], {type: 'multipart/form-data'}));\n      this.nameOfficial = this.name;\n      if(this.nameOfficial.includes(&quot; &quot;)){\n        this.nameConcat = this.nameOfficial.split(&quot; &quot;).join(&quot;&quot;);\n      }\n      this.formData.append('fileName', this.nameConcat ? this.nameConcat : this.nameOfficial);\n     }else if(this.file==null){\n      return\n    }    \n  }\n  public onSubmit(){\n     this.requestSub = this.files.postFile(this.formData).subscribe((resp)=&gt;{\n       if(resp==null){\n         this.subscribed = true;\n         this.toCongrats('fileSuccessfull');\n      }\n    })\n  }\n  //other methods\n</code></pre>\n<p>The uploading user component:</p>\n<pre><code>public onSubmit(form: NgForm){\nthis.name = form.value.FullName;\nthis.surname = form.value.Surname;\nthis.birthday = form.value.birthday;\nthis.email = form.value.eMail;\nthis.nickname = form.value.Nickname;\nthis.password = form.value.Password;\nthis.pasDue = form.value.passwordDue;\nif(this.pasDue!=this.password){\n  this.samePassword=true;\n}\nlet user_name = this.nickname;\nif(!user_name){\n  this.notNickname=true;\n}\nlet birth = this.birthday;\nif(!moment(birth).isValid()){\n  this.wrongDate=true;\n}\nlet eMail = this.email;\nif(!eMail.includes('@')){\n  this.fakeEmail=true;\n  return\n}\nlet name = this.name;\nlet surname = this.surname;\nlet password = this.password;\nif(!password){\n  this.notPassword=true;\n}\nthis.requestSub = this.fetchUsers.postUsers(user_name, password, name, surname, birth, eMail)\n.pipe(catchError(err=&gt;{\n  return throwError(()=&gt;{\n    let error = new Error(err).message.toString();\n    if(error.includes('500')){\n      this.emailAlreadyExist=true;\n    }\n  });\n}))\n.subscribe((resp)=&gt;{\n  if(resp==null){\n    this.Destination('subscribed');\n  }\n})\n }\n//other methods\n</code></pre>\n<p>my services, for posting the user:</p>\n<pre><code>public postUsers(user_name: string, password: string, name: string, surname: string, birth: Date, eMail: string): Observable&lt;any&gt;{\nconst body = JSON.stringify({ user_name, password, name, surname, birth, eMail })\nconst httpOtions ={\n  headers: new HttpHeaders({\n    &quot;Content-Type&quot;:&quot;application/json&quot;,\n  })\n};\n const url = `http://localhost:8080/api/v1/user?user_name=${user_name}&amp;password=${password}&amp;name=${name}&amp;surname=${surname}&amp;birth=${birth}&amp;eMail=${eMail}`;\nreturn this.http.post&lt;any&gt;(url, body, httpOtions)\n  .pipe(catchError(this.handleError));\n  }\n</code></pre>\n<p>the file posting method:</p>\n<pre><code>  public postFile(formData: FormData): Observable&lt;any&gt;{\nconst url = `http://localhost:8080/api/v1/file/`;\nreturn this.http.post(url+`/Upload`, formData);\n</code></pre>\n<p>}</p>\n<p>From Postman everything works. I suspect the problem is the two different <code>@CrossOrigin</code> annotations that contains the same URL.\nWhat am I doing wrong?\nCan you please help me?\nIf you need some other piece of code please ask and I'll post it.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

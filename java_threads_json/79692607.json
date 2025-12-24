@@ -1,0 +1,37 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "tomcat",
+      "safari",
+      "http2"
+    ],
+    "owner": {
+      "account_id": 6002443,
+      "reputation": 367,
+      "user_id": 4715273,
+      "user_type": "registered",
+      "accept_rate": 67,
+      "profile_image": "https://www.gravatar.com/avatar/8e653297f4c20c35c56826b8af4438e4?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Clint",
+      "link": "https://stackoverflow.com/users/4715273/clint"
+    },
+    "is_answered": true,
+    "view_count": 137,
+    "accepted_answer_id": 79707868,
+    "answer_count": 2,
+    "score": 1,
+    "last_activity_date": 1753003235,
+    "creation_date": 1751880099,
+    "last_edit_date": 1751939072,
+    "question_id": 79692607,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79692607/safari-corrupts-uploads-when-using-http-2-on-tomcat-server",
+    "title": "Safari corrupts uploads when using HTTP/2 on Tomcat server",
+    "body": "<p>When files are uploaded via a form with Safari (v18.5) and the server (Tomcat v11.0.9) has HTTP/2 enabled, they're being corrupted.</p>\n<ul>\n<li>Success without Safari:<br />When using Chrome (v137.0.7151.122) the files are being uploaded without error.</li>\n<li>Success without HTTP/2: <br /> If I disable HTTP/2 on Tomcat, the files upload without error when using Safari.</li>\n</ul>\n<p>The files I was able to replicate this with weren't small.. or overly large:</p>\n<pre class=\"lang-none prettyprint-override\"><code>1.7M sample.HEIC\n4.1M sample.jpg\n2.1M sample.pdf\n2.0M sample.txt\n1.5M sample.zip\n</code></pre>\n<p>SHA256 Results:</p>\n<pre class=\"lang-none prettyprint-override\"><code>Original Files\n2ee389fa00d2190c5527eeb171c0eb7d8fe5a2f34c972954ba97c9675c4a0c84  sample.HEIC\n8a2479fe45f93ff6901151817f257eccbdf0c673e3660124be90da5344f02958  sample.jpg\na5624f2b47bd8ee257bead36bb32a37ab4b01fa0675f608c1edf9c82c1a9f0f1  sample.pdf\ne061f37ec0d2d64e74675287a9d93f22d7a4090193f60f1fdc5b9961f34b0f43  sample.txt\nda0429d51bb6a11c3154c0d04a5fc3a6dcd902882e6ac9aa24532e1cebcc965c  sample.zip\n\n\nUploaded Files via Chrome HTTP/1.1 \n2ee389fa00d2190c5527eeb171c0eb7d8fe5a2f34c972954ba97c9675c4a0c84  sample.HEIC\n8a2479fe45f93ff6901151817f257eccbdf0c673e3660124be90da5344f02958  sample.jpg\na5624f2b47bd8ee257bead36bb32a37ab4b01fa0675f608c1edf9c82c1a9f0f1  sample.pdf\ne061f37ec0d2d64e74675287a9d93f22d7a4090193f60f1fdc5b9961f34b0f43  sample.txt\nda0429d51bb6a11c3154c0d04a5fc3a6dcd902882e6ac9aa24532e1cebcc965c  sample.zip\n\nUploaded Files via Chrome HTTP/2\n2ee389fa00d2190c5527eeb171c0eb7d8fe5a2f34c972954ba97c9675c4a0c84  sample.HEIC\n8a2479fe45f93ff6901151817f257eccbdf0c673e3660124be90da5344f02958  sample.jpg\na5624f2b47bd8ee257bead36bb32a37ab4b01fa0675f608c1edf9c82c1a9f0f1  sample.pdf\ne061f37ec0d2d64e74675287a9d93f22d7a4090193f60f1fdc5b9961f34b0f43  sample.txt\nda0429d51bb6a11c3154c0d04a5fc3a6dcd902882e6ac9aa24532e1cebcc965c  sample.zip\n\nUploaded Files via Safari HTTP/1.1\n2ee389fa00d2190c5527eeb171c0eb7d8fe5a2f34c972954ba97c9675c4a0c84  sample.HEIC\n8a2479fe45f93ff6901151817f257eccbdf0c673e3660124be90da5344f02958  sample.jpg\na5624f2b47bd8ee257bead36bb32a37ab4b01fa0675f608c1edf9c82c1a9f0f1  sample.pdf\ne061f37ec0d2d64e74675287a9d93f22d7a4090193f60f1fdc5b9961f34b0f43  sample.txt\nda0429d51bb6a11c3154c0d04a5fc3a6dcd902882e6ac9aa24532e1cebcc965c  sample.zip\n\nUploaded Files via Safari HTTP/2\n872ed65f6143e72eb19a2824937f99f4628bc0a369e6b020e9121976104ed0df  sample.HEIC\n34d5395731c764c32493b47f38f914700aaaaaf3b7fb0bce237073fdead8b9ec  sample.jpg\ncda31f8111cd5f4910d1af62a3db1a23720e8a434f2f39e71bc68e95b1d0e817  sample.pdf\n6b63f7c6c77ad89c783558b7ef99228cb4cebd2308a76fbd71c66f439886f12c  sample.txt\nbe9eddc53377cb229e4e78fdc4cd47084fb289e91733ce52e3c9e10a5ea59fdc  sample.zip\n</code></pre>\n<p>Nothing uploaded correctly using Safari when Tomcat was using HTTP/2 (sometimes they did, but very rarely). There were also no errors in the Tomcat logs.</p>\n<p>This occurs on the full application on the production environment with the following versions:</p>\n<pre class=\"lang-none prettyprint-override\"><code>OS: Ubuntu 24.04.2 LTS\nJava: Oracle 21.0.6\nTomcat: 11.0.9 (and version 10.1.28 before updating in an attempt to fix)\n</code></pre>\n<p>Replicated on a local dev environment with the following versions and example minimal code (using Spring Boot 3.5.2 with embedded Tomcat):</p>\n<pre class=\"lang-none prettyprint-override\"><code>OS: macOS 15.5\nJava: Oracle 21.0.6\nTomcat: 10.1.42\n</code></pre>\n<p>FileUploadApp.java</p>\n<pre class=\"lang-java prettyprint-override\"><code>@SpringBootApplication\n@Controller\npublic class FileUploadApp {\n\n    public static void main(String[] args) {\n        SpringApplication.run(FileUploadApp.class, args);\n    }\n\n    public static class UploadForm {\n        private MultipartFile file;\n\n        public MultipartFile getFile() {\n            return file;\n        }\n\n        public void setFile(MultipartFile file) {\n            this.file = file;\n        }\n    }\n\n    @GetMapping(&quot;/&quot;)\n    public String upload() {\n        return &quot;upload&quot;;\n    }\n\n    @PostMapping(&quot;/&quot;)\n    public String upload(UploadForm uploadForm) throws IOException {\n        Path dest = Path.of(&quot;/tmp&quot;, uploadForm.getFile().getOriginalFilename());\n        uploadForm.getFile().transferTo(dest);\n        return &quot;upload&quot;;\n    }\n\n}\n</code></pre>\n<p>upload.html</p>\n<pre class=\"lang-html prettyprint-override\"><code>&lt;form action=&quot;/&quot; enctype=&quot;multipart/form-data&quot; method=&quot;POST&quot;&gt;\n    &lt;input type=&quot;file&quot; name=&quot;file&quot;/&gt;\n    &lt;input type=&quot;submit&quot; title=&quot;Submit&quot;/&gt;\n&lt;/form&gt;\n</code></pre>\n<p>application.properties</p>\n<pre class=\"lang-none prettyprint-override\"><code>spring.servlet.multipart.max-file-size=5MB\nspring.servlet.multipart.max-request-size=5MB\n\nserver.ssl.enabled=true\nserver.ssl.key-store=classpath:keystore.p12\nserver.ssl.key-store-password=somepassword\nserver.ssl.key-store-type=PKCS12\nserver.ssl.key-alias=http2-alias\n\nserver.http2.enabled=true\n</code></pre>\n<p>Are there some other configuration settings in Tomcat, or something else that I missed elsewhere for Safari to work with HTTP/2?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

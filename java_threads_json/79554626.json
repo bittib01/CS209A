@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "hibernate",
+      "spring-data-jpa"
+    ],
+    "owner": {
+      "account_id": 15005142,
+      "reputation": 849,
+      "user_id": 10831461,
+      "user_type": "registered",
+      "profile_image": "https://lh4.googleusercontent.com/-wt0gjQUP3BI/AAAAAAAAAAI/AAAAAAAAAPw/PWUvyJsutXY/s256-rj/photo.jpg",
+      "display_name": "Omer Elkhalifa",
+      "link": "https://stackoverflow.com/users/10831461/omer-elkhalifa"
+    },
+    "is_answered": false,
+    "view_count": 68,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1762070239,
+    "creation_date": 1743748972,
+    "question_id": 79554626,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79554626/when-deleting-the-cart-by-id-all-the-cartitems-get-rovmved-correctly-but-the-c",
+    "title": "When deleting the cart by id, all the cartItems get rovmved correctly, but the cart still holds its data until I add another item to the cart",
+    "body": "<p>I'm working on e-commerce APIs, I have this service that is responsible for the cart operation:</p>\n<pre class=\"lang-java prettyprint-override\"><code>\n@Service\n@AllArgsConstructor\npublic class CartService implements ICartService {\n    private final CartRepository cartRepository;\n    private final CartItemRepository cartItemRepository;\n    private final CartMapper cartMapper;\n...\n    @Transactional\n    @Override\n    public void clearCart(Long id) {\n        // Delete all cart items first\n        cartItemRepository.deleteByCartId(id);\n\n        Optional&lt;Cart&gt; cart = cartRepository.findById(id);\n        if (cart.isPresent()) {\n            cartRepository.deleteById(id);\n        } else {\n            throw new ResourceNotFoundException(&quot;Cart not found for ID: &quot; + id);\n        }\n    }\n\n   ...\n}\n\n</code></pre>\n<p>the <code>cartItemRepository.deleteByCartId(id);</code> works just fine, it deletes all the cart items from the database, but the part responsible for the deletion of the cart itself doesn't work, the cart data still in the database, but when I add a new item to the cart after deletion, the previous data get deleted and the new data replace the old one! <br>\nHere is how my cart entity looks:</p>\n<pre class=\"lang-java prettyprint-override\"><code>\n@Getter\n@Setter\n@AllArgsConstructor\n@NoArgsConstructor\n@Entity\npublic class Cart {\n    @Id\n    @GeneratedValue(\n            strategy = GenerationType.IDENTITY\n    )\n    private Long id;\n    private BigDecimal totalAmount = BigDecimal.ZERO;\n    @OneToMany(\n            mappedBy = &quot;cart&quot;,\n            cascade = CascadeType.ALL,\n            orphanRemoval = true\n    )\n    @JsonManagedReference\n    private Set&lt;CartItem&gt; items = new HashSet&lt;&gt;();\n    @OneToOne\n    @JoinColumn(name = &quot;user_id&quot;)\n    private User user;\n\n\n    public void addItem(CartItem item) {\n        this.items.add(item);\n        item.setCart(this);\n        updateTotalAmount();\n    }\n\n    public void removeItem(CartItem item) {\n        this.items.remove(item);\n        item.setCart(null);\n        updateTotalAmount();\n    }\n\n    private void updateTotalAmount() {\n        this.totalAmount = items.stream().map(item -&gt; {\n            BigDecimal unitPrice = item.getUnitPrice();\n            if (unitPrice == null) {\n                return BigDecimal.ZERO;\n            }\n            return unitPrice.multiply(BigDecimal.valueOf(item.getQuantity()));\n        }).reduce(BigDecimal.ZERO, BigDecimal::add);\n    }\n}\n</code></pre>\n<p>I thought the problem with the relationship with the user entity, here is the user entity:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Getter\n@Setter\n@AllArgsConstructor\n@NoArgsConstructor\n@Builder\n@Entity\npublic class User {\n    @Id\n    @GeneratedValue(\n            strategy = GenerationType.IDENTITY\n    )\n    private Long id;\n    private String firstName;\n    private String lastName;\n    private String email;\n    private String password;\n    @OneToOne(mappedBy = &quot;user&quot;,\n            cascade = CascadeType.ALL,\n            orphanRemoval = true)\n    private Cart cart;\n    @OneToMany(\n            mappedBy = &quot;user&quot;,\n            cascade = CascadeType.ALL,\n            orphanRemoval = true\n    )\n    @JsonManagedReference\n    private List&lt;Order&gt; orders;\n}\n</code></pre>\n<p>I added cascade detach to the user property in the cart entity:</p>\n<pre class=\"lang-java prettyprint-override\"><code>    @OneToOne(\n            cascade = CascadeType.DETACH\n    )\n    @JoinColumn(name = &quot;user_id&quot;)\n    private User user;\n\n</code></pre>\n<p>and also didn't work, I also tried to enforce deletion from the db, but also didn't work:</p>\n<pre class=\"lang-java prettyprint-override\"><code> cartItemRepository.deleteByCartId(id);\n entityManager.remove(cart.get());  // Forces deletion from DB\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

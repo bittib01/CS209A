@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "vert.x"
+    ],
+    "owner": {
+      "account_id": 30252980,
+      "reputation": 1,
+      "user_id": 23184762,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocJ-gAQVqo0hvH13vRGAeK0-a4HARbxjC0FG2FZf9oMErw=k-s256",
+      "display_name": "Даниил Градов",
+      "link": "https://stackoverflow.com/users/23184762/%d0%94%d0%b0%d0%bd%d0%b8%d0%b8%d0%bb-%d0%93%d1%80%d0%b0%d0%b4%d0%be%d0%b2"
+    },
+    "is_answered": false,
+    "view_count": 111,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1726585229,
+    "creation_date": 1714226647,
+    "last_edit_date": 1714241682,
+    "question_id": 78395249,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78395249/the-stream-in-the-vert-x-application-is-blocked",
+    "title": "the stream in the vert.x application is blocked",
+    "body": "<p>vertu.x version 3.5.4\njava 8</p>\n<p>There is a class:</p>\n<pre><code>public class LoaderVerticle extends AbstractVerticle {\n\n    // some code..\n\n    @Override\n    public void start(Future&lt;Void&gt; startFuture) throws Exception {\n        super.start(startFuture);\n        this.client = Utils.createHttpClient(vertx, config());\n\n        vertx.eventBus().consumer(EVENT_LOAD, this::startLoad);\n        vertx.eventBus().consumer(EVENT_LOAD_ALL, this::loadAll);\n        vertx.eventBus().consumer(EVENT_CHUNK, this::loadChunk);\n    }\n\n    // some code..\n}\n</code></pre>\n<p>it accepts events and then starts downloading the file, maybe in whole, or maybe in parts.</p>\n<pre><code>private void loadAll(Message&lt;Object&gt; event) {\n    // some code..\n\n    HttpClientRequest request = client.getAbs(ctx.getUrl(), response -&gt; {\n        // some code..\n\n        response.endHandler(dummy -&gt; {\n            file.flush().close(evt -&gt; {\n                if (evt.succeeded()) {\n                    ctx.setChecksum(downloadPump.getChecksum());\n                    ctx.setCompleted(FileUtils.getFileSize(ctx.getTmpFile()));\n                    loadComplete(ctx);\n                } else {\n                    loadError(String.format(&quot;Unable to close temporary download file (%s)&quot;, evt.cause()));\n                }\n            });\n        });\n    });\n} \n</code></pre>\n<p>and</p>\n<pre><code>private void loadChunk(Message&lt;Object&gt; event) {\n    // some code..\n\n    client.getAbs(ctx.getUrl(), resp -&gt; {\n        vertx.fileSystem().open(ctx.getTmpFile(), fileOpts, future -&gt; {\n            if (future.succeeded()) {\n                AsyncFile file = future.result();\n\n                resp.bodyHandler(buff -&gt; {\n                    ctx.accept(buff.getBytes());\n                    progressJob(ctx, buff.length());\n\n                    file.write(buff).flush(futWrite -&gt; {\n                        if (futWrite.succeeded()) {\n                            file.close(futClose -&gt; {\n                                if (futClose.succeeded()) {\n                                    if (ctx.getLoadedSize() &lt; ctx.getTotalSize()) {\n                                        nextChunk(ctx.resetRetry());\n                                    } else {\n                                        // some code..\n                                    }\n                                } else {\n                                    // some code..\n                                }\n                            });\n                        } else {\n                            // some code..\n                        }\n                    });\n                });\n\n                resp.exceptionHandler(e -&gt; {\n                    // some code..\n                });\n                resp.resume();\n            } else {\n                // some code..\n            }\n        });\n    });\n}\n</code></pre>\n<p>the application works fine, but once a day, it is blocked with this warning :</p>\n<blockquote>\n<p>02:10:10.154 [vertx-blocked-thread-checker] WARN  io.vertx.core.impl.BlockedThreadChecker - Thread Thread[vert.x-internal-blocking-2,5,main] has been blocked for 60248 ms, time limit is 60000\nio.vertx.core.VertxException: Thread blocked\nat sun.nio.ch.FileDispatcherImpl.force0(Native Method) ~[?:1.8.0_111]\nat sun.nio.ch.FileDispatcherImpl.force(FileDispatcherImpl.java:76) ~[?:1.8.0_111]\nat sun.nio.ch.SimpleAsynchronousFileChannelImpl.force(SimpleAsynchronousFileChannelImpl.java:162) ~[?:1.8.0_111]\nat io.vertx.core.file.impl.AsyncFileImpl.lambda$doFlush$3(AsyncFileImpl.java:363) ~[s-app.jar:?]\nat io.vertx.core.file.impl.AsyncFileImpl$$Lambda$256/1218269075.perform(Unknown Source) ~[?:?]\nat io.vertx.core.impl.ContextImpl.lambda$executeBlocking$1(ContextImpl.java:275) ~[s-app.jar:?]\nat io.vertx.core.impl.ContextImpl$$Lambda$59/1267985667.run(Unknown Source) ~[?:?]\nat io.vertx.core.impl.TaskQueue.run(TaskQueue.java:76) ~[scheduler-app.jar:?]\nat io.vertx.core.impl.TaskQueue$$Lambda$43/2067180044.run(Unknown Source) ~[?:?]\nat java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142) ~[?:1.8.0_111]\nat java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617) ~[?:1.8.0_111]\nat io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30) ~[s-app.jar:?]\nat java.lang.Thread.run(Thread.java:745) ~[?:1.8.0_111]</p>\n</blockquote>\n<p>and such a warning is repeated over and over again.\nRestarting the application helps.</p>\n<p>Locally, I am unable to reproduce the issue as it occurs unpredictably, approximately once every one to three days. I have considered removing the flush, but I am unsure if this will resolve the issue. If you are unable to identify the cause of the problem, could you please provide me with information on how I can locate the block causing the issue and what I should be looking for?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

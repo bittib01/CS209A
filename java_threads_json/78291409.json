@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "instrumentation",
+      "byte-buddy"
+    ],
+    "owner": {
+      "account_id": 2784643,
+      "reputation": 409,
+      "user_id": 2396376,
+      "user_type": "registered",
+      "accept_rate": 17,
+      "profile_image": "https://i.sstatic.net/1uz40.jpg?s=256",
+      "display_name": "farzad",
+      "link": "https://stackoverflow.com/users/2396376/farzad"
+    },
+    "is_answered": false,
+    "view_count": 55,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1721818065,
+    "creation_date": 1712567472,
+    "question_id": 78291409,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78291409/how-to-instrument-java-code-to-collect-variable-allocation-data-with-byte-buddy",
+    "title": "How to instrument java code to collect variable allocation data with byte buddy or ASM",
+    "body": "<p>how should I instrument my code to get variables allocation data during program execution?</p>\n<p>consider this code for example:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class Test2 {\n    public boolean isSerialKeyValid(String serial) {\n        if (!serial.toLowerCase().startsWith(&quot;@v3&quot;)) {\n            return isV1V2SerialValid(serial);\n        }\n        return isV3SerialValid(serial);\n    }\n\n    private boolean isV1V2SerialValid(String serial) {\n        if (serial.toLowerCase().startsWith(&quot;@v1&quot;)) {\n            String serialValue = serial.split(&quot;@v1&quot;)[1];\n            return isV1ChecksumValid(serialValue);\n        }\n        String serialValue = serial.split(&quot;@v2&quot;)[1];\n        return isV2ChecksumValid(serialValue);\n    }\n\n    private boolean isV1ChecksumValid(String v1Serial) {\n        if (!v1Serial.matches(&quot;\\\\d+&quot;)) {\n            return false;\n        }\n        String[] items = v1Serial.split(&quot;\\\\d&quot;);\n        int sum = 0;\n        for (String item : items) {\n            sum += Integer.parseInt(item);\n        }\n        return sum % 13 == 0;\n    }\n\n    private boolean isV2ChecksumValid(String v2Serial) {\n        String trimmedSerial = v2Serial.trim();\n        if (trimmedSerial.length() != 8) {\n            return false;\n        }\n        return trimmedSerial.matches(&quot;[^A-Za-z]+\\\\w{3}[^A-Za-z]+&quot;);\n    }\n\n    private boolean isV3SerialValid(String v3Serial) {\n        String serialValue = v3Serial.split(&quot;@v3&quot;)[1];\n        return isV3ChecksumValid(serialValue);\n    }\n\n    private boolean isV3ChecksumValid(String v3Serial) {\n        return v3Serial.length() == 10 &amp;&amp; v3Serial.matches(&quot;.*@!=.*&quot;);\n    }\n}\n\npublic class SampleTestSuit {\n    public static void main(String[] args) {\n        System.out.println(validatedSerialKey(&quot;@v2123ali34&quot;));\n    }\n\n    public static boolean validatedSerialKey (String str) {\n        if (str.startsWith(&quot;@v1&quot;) || str.startsWith(&quot;@v2&quot;) || str.startsWith(&quot;@v1&quot;)) {\n            Test2 test2 = new Test2();\n            return test2.isSerialKeyValid(str);\n        }\n        return false;\n    }\n}\n</code></pre>\n<p>When main method runs, I want the record values passed to functions. For the example above here is some sample output that I like to get:</p>\n<pre><code>{\n              methodName: TestSuit2.Test2#isSerialKeyValid,\n              parametersValue:[\n                  {\n                      paramName: serial,\n                      paramValue: &quot;@v2123ali34&quot;\n                  }\n              ]\n          },\n          {\n              methodName: TestSuit2.Test2#isV1V2SerialValid,\n              parametersValue:[\n                  {\n                      paramName: serial,\n                      paramValue: &quot;@v2123ali34&quot;\n                  }\n              ]\n          },\n          {\n              methodName: Java.Lang.String#toLowerCase,\n              parametersValue:[\n                  {\n                      paramName: ?,\n                      paramValue: &quot;@v2123ali34&quot;\n                  }\n              ],\n          },\n</code></pre>\n<p>I also used google <a href=\"https://github.com/google/allocation-instrumenter\" rel=\"nofollow noreferrer\">allocation-instrumenter</a>.  But that library can not get me variables names and their runtime value(or I didn't find any resource for that purpose)</p>\n<p>Should i use a library like <a href=\"https://bytebuddy.net/\" rel=\"nofollow noreferrer\">byte buddy</a> or <a href=\"https://asm.ow2.io/\" rel=\"nofollow noreferrer\">ASM</a>? My target JDK is 8 FYI.</p>\n<p>Thanks</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

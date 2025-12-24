@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "email",
+      "outlook",
+      "microsoft-graph-api"
+    ],
+    "owner": {
+      "account_id": 55989,
+      "reputation": 19127,
+      "user_id": 167745,
+      "user_type": "registered",
+      "accept_rate": 76,
+      "profile_image": "https://i.sstatic.net/wBebv.jpg?s=256",
+      "display_name": "Stewart",
+      "link": "https://stackoverflow.com/users/167745/stewart"
+    },
+    "is_answered": true,
+    "view_count": 124,
+    "accepted_answer_id": 79783765,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1759758668,
+    "creation_date": 1759754633,
+    "question_id": 79783703,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79783703/getting-message-id-from-ms-graph-api-sendmail",
+    "title": "Getting message Id from MS Graph API sendMail()",
+    "body": "<p>Previously, I was successfully sending emails with this code.</p>\n<pre><code>SendMailPostRequestBody postRequest = new SendMailPostRequestBody();\npostRequest.setMessage(message);\npostRequest.setSaveToSentItems( this.saveToSentItems );\ngraphClient\n    .users().byUserId( this.username )\n    .sendMail()\n    .post( postRequest );\n</code></pre>\n<p>But I wanted a reliable message id. The <a href=\"https://learn.microsoft.com/en-us/graph/outlook-immutable-id#immutable-id-with-sending-mail\" rel=\"nofollow noreferrer\">official documentation says</a></p>\n<blockquote>\n<p>You can use immutable IDs to find a message in the Sent Items folder after it has been sent, using the following steps:</p>\n<ol>\n<li>Create a draft message using the <code>Prefer: IdType=&quot;ImmutableId&quot;</code> header and save the id property of the message in the response.</li>\n<li>Send the message using the ID from the previous step.</li>\n<li>Get the message using the ID from the first step. This is the copy in Sent Items.</li>\n</ol>\n</blockquote>\n<p>So now I have this code, which is missing only the <code>Prefer: IdType=&quot;ImmutableId&quot;</code> part:</p>\n<pre><code>Message posted = graphClient.users().byUserId( this.username )\n                            .messages()\n                            .post( message );\nString postedId = posted.getId();\nif( postedId != null ) {\n    graphClient.users().byUserId( this.username )\n               .messages()\n               .byMessageId( postedId )\n               .send()\n               .post();\n    Message gotten = graphClient.users().byUserId( this.username )\n                                .messages()\n                                .byMessageId( postedId )\n                                .get();\n    return gotten.getId();\n}\n</code></pre>\n<p>This sends correctly, but without the <code>Prefer: IdType=&quot;ImmutableId&quot;</code> it blows up on the line <code>Message gotten = .... .get()</code> with</p>\n<pre><code>com.microsoft.graph.models.odataerrors.ODataError: The specified object was not found in the store., The process failed to get the correct properties.\n    at com.microsoft.graph.models.odataerrors.ODataError.createFromDiscriminatorValue(ODataError.java:36)\n    at com.microsoft.kiota.serialization.JsonParseNode.getObjectValue(JsonParseNode.java:212)\n    at com.microsoft.kiota.http.OkHttpRequestAdapter.lambda$throwIfFailedResponse$0(OkHttpRequestAdapter.java:704)\n    at com.microsoft.kiota.ApiExceptionBuilder.&lt;init&gt;(ApiExceptionBuilder.java:26)\n    at com.microsoft.kiota.http.OkHttpRequestAdapter.throwIfFailedResponse(OkHttpRequestAdapter.java:703)\n    at com.microsoft.kiota.http.OkHttpRequestAdapter.send(OkHttpRequestAdapter.java:307)\n    at com.microsoft.graph.users.item.messages.item.MessageItemRequestBuilder.get(MessageItemRequestBuilder.java:194)\n    at com.microsoft.graph.users.item.messages.item.MessageItemRequestBuilder.get(MessageItemRequestBuilder.java:181)\n</code></pre>\n<p>Again following <a href=\"https://learn.microsoft.com/en-us/graph/api/user-post-messages?view=graph-rest-1.0&amp;tabs=java#example-2-create-message-draft-that-includes-custom-message-headers\" rel=\"nofollow noreferrer\">official docs on how to set headers</a>, I'm doing this:</p>\n<pre><code>ItemBody html = new ItemBody();\nhtml.setContentType( BodyType.Html );\nhtml.setContent( msg.htmlEmail() );\nMessage message = new Message();\nmessage.setSubject( msg.subjectLine() );\nmessage.setBody( html );\n\nLinkedList&lt;InternetMessageHeader&gt; internetMessageHeaders = new LinkedList&lt;InternetMessageHeader&gt;();\nInternetMessageHeader internetMessageHeader = new InternetMessageHeader();\ninternetMessageHeader.setName(&quot;Prefer&quot;); // Also tried with &quot;X&quot;\ninternetMessageHeader.setValue(&quot;IdType=\\&quot;ImmutableId\\&quot;&quot;);\ninternetMessageHeaders.add(internetMessageHeader);\nmessage.setInternetMessageHeaders(internetMessageHeaders);\n\nreturn message;\n</code></pre>\n<p>However, this gives the below exception.</p>\n<pre><code>com.microsoft.graph.models.odataerrors.ODataError: The internet message header name 'Prefer' should start with 'x-' or 'X-'.\n    at com.microsoft.graph.models.odataerrors.ODataError.createFromDiscriminatorValue(ODataError.java:36)\n    at com.microsoft.kiota.serialization.JsonParseNode.getObjectValue(JsonParseNode.java:212)\n    at com.microsoft.kiota.http.OkHttpRequestAdapter.lambda$throwIfFailedResponse$0(OkHttpRequestAdapter.java:704)\n    at com.microsoft.kiota.ApiExceptionBuilder.&lt;init&gt;(ApiExceptionBuilder.java:26)\n    at com.microsoft.kiota.http.OkHttpRequestAdapter.throwIfFailedResponse(OkHttpRequestAdapter.java:703)\n    at com.microsoft.kiota.http.OkHttpRequestAdapter.send(OkHttpRequestAdapter.java:307)\n    at com.microsoft.graph.users.item.messages.MessagesRequestBuilder.post(MessagesRequestBuilder.java:116)\n    at com.microsoft.graph.users.item.messages.MessagesRequestBuilder.post(MessagesRequestBuilder.java:101)\n</code></pre>\n<p>If I include the &quot;X&quot;, it goes back to being unable to find the email again.</p>\n<p>So what am I doing wrong?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

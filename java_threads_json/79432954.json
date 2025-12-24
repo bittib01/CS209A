@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "json-deserialization",
+      "spring-data-elasticsearch"
+    ],
+    "owner": {
+      "account_id": 3832252,
+      "reputation": 1055,
+      "user_id": 3177532,
+      "user_type": "registered",
+      "accept_rate": 91,
+      "profile_image": "https://i.sstatic.net/dZcQS.jpg?s=256",
+      "display_name": "solujic",
+      "link": "https://stackoverflow.com/users/3177532/solujic"
+    },
+    "is_answered": true,
+    "view_count": 78,
+    "accepted_answer_id": 79465902,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1740473114,
+    "creation_date": 1739361140,
+    "question_id": 79432954,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79432954/spring-data-elastic-search-custom-conversions-doesnt-work",
+    "title": "Spring data elastic search custom conversions doesn&#39;t work",
+    "body": "<p>Custom @ReadingConverter isn't being triggered but when I was initially implementing this code it worked normally.</p>\n<p>Configuration class:</p>\n<pre><code>@Configuration\npublic class ElasticsearchConfig {\n\n  @Bean\n  public MappingElasticsearchConverter mappingElasticsearchConverter() {\n    return new MappingElasticsearchConverter(new SimpleElasticsearchMappingContext());\n  }\n\n  @Bean\n  public ElasticsearchCustomConversions elasticsearchCustomConversions(\n      MappingElasticsearchConverter mappingElasticsearchConverter, ObjectMapper objectMapper) {\n    return new ElasticsearchCustomConversions(List.of(\n        new LogEntryReadingConverter(mappingElasticsearchConverter, objectMapper)\n    ));\n  }\n}\n</code></pre>\n<p>Here is the implementation of the converter:</p>\n<pre><code>@Component\n@ReadingConverter\npublic class LogEntryReadingConverter implements Converter&lt;Document, LogEntry&gt; {\n\n  private final MappingElasticsearchConverter elasticsearchConverter;\n  private final ObjectMapper objectMapper;\n\n  public LogEntryReadingConverter(MappingElasticsearchConverter elasticsearchConverter, ObjectMapper objectMapper) {\n    this.elasticsearchConverter = elasticsearchConverter;\n    this.objectMapper = objectMapper;\n  }\n\n  public LogEntry convert(Document source) {\n    // Use Elasticsearch's internal conversion (respects @Field annotations)\n    LogEntry logEntry = elasticsearchConverter.read(LogEntry.class, source);\n\n    // some custom logic is here\n\n    return logEntry;\n  }\n</code></pre>\n<p>My document class:</p>\n<pre><code>@Data\n@JsonIgnoreProperties(ignoreUnknown = true)\n@Document(indexName = &quot;logstash&quot;)\npublic class LogEntry implements ILogModel {\n\n  @Id\n  private String id;\n  // more fields are here\n}\n</code></pre>\n<p>My repository class:</p>\n<pre><code>@Repository\npublic interface HaProxyLogRepository extends ElasticsearchRepository&lt;LogEntry, String&gt; {\n\n    Page&lt;LogEntry&gt; findByTimestampBetween(LocalDateTime from, LocalDateTime to, Pageable pageable);\n\n}\n</code></pre>\n<p>I would expect the convert method to be called before execution of the repository method &quot;findByTimestampBetween&quot; on method call. It worked before, for some odd reason it never triggers now.</p>\n<p>I am using Spring Boot 3.1.2. and Spring Data Elasticsearch 5.1.2.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

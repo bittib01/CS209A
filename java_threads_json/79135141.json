@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot"
+    ],
+    "owner": {
+      "account_id": 4426719,
+      "reputation": 60,
+      "user_id": 3604998,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/KEz0k.jpg?s=256",
+      "display_name": "snej0keee",
+      "link": "https://stackoverflow.com/users/3604998/snej0keee"
+    },
+    "is_answered": true,
+    "view_count": 423,
+    "accepted_answer_id": 79235505,
+    "answer_count": 3,
+    "score": 0,
+    "last_activity_date": 1732836129,
+    "creation_date": 1730150646,
+    "last_edit_date": 1730227045,
+    "question_id": 79135141,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79135141/how-to-get-httprequest-in-exceptionhandler-with-restclientexception",
+    "title": "How to get HttpRequest in @ExceptionHandler with RestClientException?",
+    "body": "<p>I am developing an internal shared library in my company that needs to intercept all exceptions and format them into a single DTO (a bit simplified).</p>\n<pre class=\"lang-json prettyprint-override\"><code>{\n    &quot;serviceName&quot;: &quot;my-service-name&quot;,\n    &quot;errorCode&quot;: &quot;ExternalRequestException&quot;,\n    &quot;externalServiceUrl&quot;: &quot;http://external-service.com:8080/api/method-name?param=1&quot;\n    &quot;externalErrorCode&quot;: &quot;InvalidArgumentException&quot;,\n    &quot;externalErrorMessage&quot;: &quot;Invalid argument param ....&quot;\n    &quot;internalErrors&quot;: [],\n}\n</code></pre>\n<p>I have no problem handling <code>WebClientRequestException</code> or <code>WebClientResponseException</code> in <code>@ExceptionHandler</code> because they contain a requestUrl or a whole <code>HttpRequest</code> to get the target url of the request.\nSo, I can add <code>org.springframework.web.reactive.function.client.Client.ClientResponse#createException</code> to webClient as follows</p>\n<pre class=\"lang-java prettyprint-override\"><code>var response = webClient\n            .get()\n            .uri(“http://external-service.com:8080/api/method-name?param=1”)\n            .retrieve()\n            .onStatus(HttpStatusCode::isError, ClientResponse::createException)\n            .bodyToMono(String.class)\n            .block();\n</code></pre>\n<p>and I will be 100% sure that the <code>WebClientRequestException</code> or <code>WebClientResponseException</code> thrown by this call will contain the request url (<code>http://external-service.com:8080/api/method-name?param=1</code> in this example).</p>\n<p>So, the main question is how to get the request information while <strong>restClient</strong> throws the exception? Maybe I need to develop some restClientInterceptor or something similar to enrich the standard exceptions with request specific information.</p>\n<h4>updates:</h4>\n<ul>\n<li>A little investigation from me: it seems that by default exceptions are created in <code>org.springframework.web.client.StatusHandler#defaultHandler</code> and <code>HttpRequest</code> is available in the context of this handler, but it is not used at all. This confuses me because I think the request information can be useful, especially for 4xx exceptions.</li>\n<li>I have created a issue in a spring-framework project. <a href=\"https://github.com/spring-projects/spring-framework/issues/33814\" rel=\"nofollow noreferrer\">https://github.com/spring-projects/spring-framework/issues/33814</a></li>\n</ul>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

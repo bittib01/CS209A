@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "elasticsearch"
+    ],
+    "owner": {
+      "account_id": 2566818,
+      "reputation": 567,
+      "user_id": 4937528,
+      "user_type": "registered",
+      "accept_rate": 40,
+      "profile_image": "https://www.gravatar.com/avatar/ce27c028b89ae3157b341b7e7fe5680f?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Seanimus",
+      "link": "https://stackoverflow.com/users/4937528/seanimus"
+    },
+    "is_answered": true,
+    "view_count": 544,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1721985956,
+    "creation_date": 1707338168,
+    "last_edit_date": 1707415050,
+    "question_id": 77957769,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77957769/how-to-set-elasticsearch-document-property-to-null-using-the-java-api-client-and",
+    "title": "How to set Elasticsearch document property to null using the Java API Client and Spring Data Elasticsearch",
+    "body": "<p>I have a <code>Schedule</code> document which contains a map of <code>Todo</code>s.\nIt looks something like this:</p>\n<pre class=\"lang-json prettyprint-override\"><code>{\n  &quot;_index&quot;: &quot;schedule-index&quot;,\n  &quot;_id&quot;: &quot;sched-id&quot;,\n  &quot;_source&quot;: {\n    &quot;id&quot;: &quot;sched-id&quot;,\n    &quot;todos&quot;: {\n\n      &quot;todo-id-1&quot;: {\n        &quot;id&quot;: &quot;todo-id-1&quot;\n        &quot;name&quot;: &quot;laundry&quot;\n      },\n    \n      &quot;todo-id-2&quot;: {\n        &quot;id&quot;: &quot;todo-id-2&quot;\n        &quot;name&quot;: &quot;dishes&quot;\n      }\n    }\n  }\n}\n</code></pre>\n<p>Occasionally, I need to set one of the <code>Todo</code>s to null, while retaining the key.\ne.g.</p>\n<pre class=\"lang-json prettyprint-override\"><code>{\n  &quot;_index&quot;: &quot;schedule-index&quot;,\n  &quot;_id&quot;: &quot;sched-id&quot;,\n  &quot;_source&quot;: {\n    &quot;id&quot;: &quot;sched-id&quot;,\n    &quot;todos&quot;: {\n\n      &quot;todo-id-1&quot;: null, &lt;-- SET VALUE TO NULL\n\n      &quot;todo-id-2&quot;: {\n        &quot;id&quot;: &quot;todo-id-2&quot;\n        &quot;name&quot;: &quot;dishes&quot;\n      }\n    }\n  }\n}\n</code></pre>\n<p>I was able to achieve this functionality using the RestHighLevelClient, as shown below:</p>\n<pre class=\"lang-java prettyprint-override\"><code>// using HighLevelRestClient\npublic BulkResponse upsert(List&lt;Schedule&gt; schedules) {\n  // 'schedules' has 1 schedule with id=sched-id\n  // that has 1 Todo with id=todo-id-1 and value=null\n\n  BulkRequest bulkRequest = new BulkRequest();\n\n  schedules.forEach(schedule-&gt; {\n    UpdateRequest updateRequest = new UpdateRequest(&quot;schedule-index&quot;, schedule.getId())\n      .docAsUpsert(true)\n      .doc(asJson(schedule), XContentType.JSON);\n    bulkRequest.add(updateRequst);\n  })\n\n  BulkResponse response = client.bulk(bulkRequest, RequestOptions.DEFAULT);\n}\n\n</code></pre>\n<p>Which produces the query:</p>\n<pre class=\"lang-json prettyprint-override\"><code>{\n  &quot;update&quot;: {\n    &quot;_index&quot;: &quot;schedule-index&quot;,\n    &quot;_id&quot;: &quot;sched-id&quot;\n  }\n}\n{\n  &quot;doc_as_upsert&quot;: true,\n  &quot;doc&quot;: {\n    &quot;id&quot;: &quot;sched-id&quot;\n    &quot;todos&quot;: {\n      &quot;a&quot;: null    &lt;----- SET 'a' TO NULL\n    }\n  }\n}\n</code></pre>\n<p>However, after converting to the new Java API Client (Spring Data Elasticsearch fragment), the client seems to refuse to put a null value in the generated query.</p>\n<pre class=\"lang-java prettyprint-override\"><code>// using Java API Client\npublic BulkResponse upsert(List&lt;Schedule&gt; schedules) {\n  // 'schedules' has 1 schedule with id=sched-id\n  // that has 1 Todo with id=todo-id-1 and value=null\n  BulkRequest.Builder br = new BulkRequest.Builder();\n\n  schedules.forEach(schedule-&gt; {\n    br.operations(op -&gt; op \n      .update(ur -&gt; ur\n        .index(&quot;schedule-index&quot;)\n        .id(todo.getId())\n        .action(a -&gt; a\n          .docAsUpsert(true)\n          .doc(schedule)\n        )))\n  })\n\n  cleint.bulk(br.build());\n}\n</code></pre>\n<p>Which produces the query:</p>\n<pre class=\"lang-json prettyprint-override\"><code>{\n  &quot;update&quot;: {\n    &quot;_index&quot;: &quot;schedule-index&quot;,\n    &quot;_id&quot;: &quot;sched-id&quot;\n  }\n}\n{\n  &quot;doc_as_upsert&quot;: true,\n  &quot;doc&quot;: {\n    &quot;id&quot;: &quot;sched-id&quot;\n    &quot;todos&quot;: {      &lt;----- TODO MAP IS EMPTY\n    }\n  }\n}\n</code></pre>\n<p>How can I tell the Java API Client to upsert null values for map values?</p>\n<p><strong>Edit</strong></p>\n<p>This seems similar to <a href=\"https://stackoverflow.com/questions/63684366/elasticsearchrepository-skip-null-values\">ElasticsearchRepository skip null values</a>, but in that case the root properties were being ignored.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

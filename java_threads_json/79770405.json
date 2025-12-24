@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "android-workmanager"
+    ],
+    "owner": {
+      "account_id": 27431,
+      "reputation": 42880,
+      "user_id": 72437,
+      "user_type": "registered",
+      "accept_rate": 86,
+      "profile_image": "https://i.sstatic.net/ay0Dg.jpg?s=256",
+      "display_name": "Cheok Yan Cheng",
+      "link": "https://stackoverflow.com/users/72437/cheok-yan-cheng"
+    },
+    "is_answered": false,
+    "view_count": 316,
+    "answer_count": 0,
+    "score": 2,
+    "last_activity_date": 1758744635,
+    "creation_date": 1758383586,
+    "last_edit_date": 1758744635,
+    "question_id": 79770405,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79770405/android-15-foreground-service-timeout-how-to-call-service-stopself-when-using",
+    "title": "Android 15 Foreground Service Timeout: How to call Service.stopSelf() when using WorkManager?",
+    "body": "<p>I'm getting the following log message:</p>\n<pre><code>Time limit already exhausted for foreground service type dataSync\n</code></pre>\n<p>This happens due to the new timeout limit introduced in <strong>Android 15</strong>:\n<a href=\"https://developer.android.com/develop/background-work/services/fgs/timeout\" rel=\"nofollow noreferrer\">https://developer.android.com/develop/background-work/services/fgs/timeout</a></p>\n<p>This is surprising because our data-sync foreground service normally completes within 10 minutes, yet some users are still hitting the <strong>6-hour limit</strong>.</p>\n<p>According to the guidelines, to avoid this error we’re supposed to call\n<code>Service.stopSelf()</code> inside <code>Service.onTimeout()</code>.</p>\n<p>However, it’s unclear how to implement this when the foreground service is launched via <strong>WorkManager</strong>.</p>\n<p>Here’s my code snippet:</p>\n<pre><code>&lt;!-- https://developer.android.com/develop/background-work/background-tasks/persistent/how-to/long-running#declare-foreground-service-types-manifest --&gt;\n&lt;service\n    android:name=&quot;androidx.work.impl.foreground.SystemForegroundService&quot;\n    android:foregroundServiceType=&quot;dataSync&quot;\n    tools:node=&quot;merge&quot; /&gt;\n\npublic class MyCloudWorker extends Worker {\n    public Result doWork() {\n        ...\n\n        ForegroundInfo foregroundInfo = createForegroundInfo(\n            0, \n            getString(R.string.auto_sync_with_cloud_in_progress)\n        );\n\n        setForegroundAsync(foregroundInfo);\n\n        ...\n    }\n\n    @NonNull\n    private ForegroundInfo createForegroundInfo(int progress, String content) {\n        Assert(isForegroundServiceAllowable);\n\n        Context context = getApplicationContext();\n\n        String title = context.getString(R.string.auto_sync);\n\n        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, createCloudNotificationChannel())\n                .setSmallIcon(R.drawable.ic_stat_name)\n                .setColorized(false)\n                .setTicker(title)\n                .setContentTitle(title)\n                .setContentText(content)\n                .setProgress(100, progress, false)\n                .setAutoCancel(false)\n                .setOngoing(true)\n                .setSound(null)\n                .setVibrate(null)\n                .setDefaults(Notification.DEFAULT_ALL &amp; ~Notification.DEFAULT_LIGHTS &amp; ~Notification.DEFAULT_VIBRATE &amp; ~Notification.DEFAULT_SOUND);\n\n        Notification notification = builder.build();\n\n        if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.Q) {\n            return new ForegroundInfo(\n                    CLOUD_FOREGROUND_INTENT_SERVICE_ID,\n                    notification,\n                    ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC\n            );\n        } else {\n            return new ForegroundInfo(\n                    CLOUD_FOREGROUND_INTENT_SERVICE_ID,\n                    notification\n            );\n        }\n    }\n}\n</code></pre>\n<p>Any pointers on how to correctly handle this timeout and reduce the error log when using <strong>WorkManager</strong> would be greatly appreciated.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

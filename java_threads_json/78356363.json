@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "sockets"
+    ],
+    "owner": {
+      "account_id": 4544346,
+      "reputation": 95,
+      "user_id": 3691373,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/e2fafbcf6680cb766b1552d26cfdc081?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "fraaanz",
+      "link": "https://stackoverflow.com/users/3691373/fraaanz"
+    },
+    "is_answered": true,
+    "view_count": 139,
+    "answer_count": 2,
+    "score": -1,
+    "last_activity_date": 1714989630,
+    "creation_date": 1713564740,
+    "last_edit_date": 1713728139,
+    "question_id": 78356363,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78356363/socket-connect-even-if-host-unavailable-not-existing",
+    "title": "socket connect even if host unavailable (not existing)",
+    "body": "<p>I'm try to understand why\n<code>socket.connect(new InetSocketAddress(tool.getHost(), tool.getPortTool()), timeout);</code>\ndosn't print an exception if the host dosn't exists.</p>\n<pre><code>package esempioSocket;\n\nimport java.io.IOException;\nimport java.net.InetAddress;\nimport java.net.InetSocketAddress;\nimport java.net.Socket;\nimport java.net.UnknownHostException;\n\nimport esempioSocket.Tool;\n\npublic class Main {\n\n    public static void main(String[] args) throws IOException {\n\n        Tool tool = new Tool(&quot;10.39.188.101&quot;, 6653);\n\n        System.out.println(&quot;reachele 1: &quot; + tool.isReachable() );\n        \n        int timeout = 1500;\n\n        Socket socket = new Socket();\n        System.out.println(&quot;after new: &quot; + socket);\n\n        try {\n            socket.connect(new InetSocketAddress(tool.getHost(), tool.getPortTool()), timeout);\n            System.out.println(&quot;after connect: &quot; + socket);\n        } catch (UnknownHostException e) {\n            System.out.println(&quot;run() - UnknownHostException - tool: &quot; + tool.getHost() + &quot;:&quot; + tool.getPortTool());\n        } catch (IOException e) {\n            System.out.println(&quot;run() - IOException - tool: &quot; + tool.getHost() + &quot;:&quot; + tool.getPortTool());\n        }\n\n        if (socket.isConnected()) {\n            System.out.println(&quot;after isConnect: &quot; + socket);\n            tool.setReachable(true);\n            try {\n                socket.close();\n                System.out.println(&quot;after close: &quot; + socket);\n            } catch (IOException e) {\n                System.out.println(&quot;run() - socket close() &quot; + e);\n            }\n        } else {\n            tool.setReachable(false);\n        }\n        \n        System.out.println(&quot;reachele: &quot; + tool.isReachable() );\n        System.out.println(&quot;last line: &quot; + socket);\n        \n        \n    }\n}   \n</code></pre>\n<p>and the class tools is</p>\n<pre><code>public class Tool {\n\n    private String host;\n    private Integer  portTool;\n    private boolean reachable;\n\n    \n    Tool(String h, Integer port) {\n        this.host=h;\n        this.portTool=port;\n    }\n\n........\nset and getter \n</code></pre>\n<p>And if i run ping, or telnet or tracert from command line I get no success (as it should be) (telnet after some time give back my prompt).\nAlso</p>\n<pre><code>netstat -an | find &quot;10.39.188.101&quot;\n</code></pre>\n<p>and</p>\n<pre><code>netstat -an | find &quot;6653&quot;\n</code></pre>\n<p>give me no result!</p>\n<p>When I run the program I'm expecting that because the host is not existent the socket.connect give me an exception (or a message that the connection can't be established, instead I get the following result:</p>\n<pre><code>reachele 1: false\nafter new: Socket[unconnected]\nafter connect: Socket[addr=/10.39.188.101,port=6653,localport=64473]\nafter isConnect: Socket[addr=/10.39.188.101,port=6653,localport=64473]\nafter close: Socket[addr=/10.39.188.101,port=6653,localport=64473]\nreachele: true\nlast line: Socket[addr=/10.39.188.101,port=6653,localport=64473]\n</code></pre>\n<p>If I change host to 11.39.188.101 i get:</p>\n<pre><code>reachele 1: false\nafter new: Socket[unconnected]\nrun() - IOException - tool: 11.39.188.101:6653\nreachele: false\nlast line: Socket[unconnected]\n</code></pre>\n<p>As it should be!!!! host 11.39.188.101 is not existing but also 10.39.188.101 is not existing.</p>\n<p>If I run netstat while the program is still running and socket.close has not reached:\n<a href=\"https://i.sstatic.net/4RAxL.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/4RAxL.png\" alt=\"enter image description here\" /></a></p>\n<p>arp:\n<a href=\"https://i.sstatic.net/TOSlz.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/TOSlz.png\" alt=\"enter image description here\" /></a></p>\n<p>tracert:\n<a href=\"https://i.sstatic.net/5EIkB.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/5EIkB.png\" alt=\"enter image description here\" /></a></p>\n<p>If I run the same example on a different pc (with different version of java), i get</p>\n<p><a href=\"https://i.sstatic.net/uWaN3.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/uWaN3.png\" alt=\"enter image description here\" /></a></p>\n<p>If I use the same version of java in a different pc i get :</p>\n<p><a href=\"https://i.sstatic.net/LrzT8.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/LrzT8.png\" alt=\"enter image description here\" /></a></p>\n<p>so the problem should be in the other pc, but why????</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

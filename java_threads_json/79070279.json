@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "liquibase"
+    ],
+    "owner": {
+      "account_id": 138790,
+      "reputation": 62853,
+      "user_id": 343955,
+      "user_type": "registered",
+      "accept_rate": 85,
+      "profile_image": "https://www.gravatar.com/avatar/cd79cf00160aef32e8bfa48bcc978b9b?s=256&d=identicon&r=PG",
+      "display_name": "adarshr",
+      "link": "https://stackoverflow.com/users/343955/adarshr"
+    },
+    "is_answered": true,
+    "view_count": 423,
+    "answer_count": 2,
+    "score": 2,
+    "last_activity_date": 1754147445,
+    "creation_date": 1728477847,
+    "last_edit_date": 1729143272,
+    "question_id": 79070279,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79070279/how-can-i-specify-liquibase-command-dropall-requireforce-when-using-liquibase-wi",
+    "title": "How can I specify liquibase.command.dropAll.requireForce when using Liquibase with Spring Boot?",
+    "body": "<p>I'm using Spring Boot <strong>3.3.4</strong> (Liquibase <strong>4.27.0</strong>) and noticed that I get these in the logs:</p>\n<pre><code>13:33:25.739 I - l.ui INFO: The drop-all command may result in unrecoverable destructive changes to objects at 'jdbc:postgresql://localhost:5432/postgres'.\nTo protect against unwanted drops, set --requireForce=true, which will require a --force=true flag on the command.\nLearn more at https://docs.liquibase.com/dropall.\n</code></pre>\n<p>I understand that setting the <code>requireForce</code> would silence this warning (I only need to do a drop all for my tests). But I have been unable to find a way to set this property via Spring Boot.</p>\n<p>The only likely possibility I believe is <a href=\"https://github.com/spring-projects/spring-boot/blob/v3.3.4/spring-boot-project/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/liquibase/LiquibaseProperties.java#L122\" rel=\"nofollow noreferrer\">via the <code>spring.liquibase.parameters</code> group</a> in application.yml. However even this doesn't work:</p>\n<pre class=\"lang-yaml prettyprint-override\"><code>spring:\n    liquibase:\n        parameters:\n            liquibase.command.dropAll.requireForce: true\n            liquibase.command.dropAll.force: true\n</code></pre>\n<p>This is possibly because the <code>Liquibase.dropAll</code> method of Liquibase never accesses any custom parameters and seems to work off a hardcoded list of <em>arguments</em>.</p>\n<pre class=\"lang-java prettyprint-override\"><code>CommandScope dropAll = new CommandScope(&quot;dropAll&quot;)\n                    .addArgumentValue(DbUrlConnectionArgumentsCommandStep.DATABASE_ARG, Liquibase.this.getDatabase())\n                    .addArgumentValue(DropAllCommandStep.CATALOG_AND_SCHEMAS_ARG, finalSchemas)\n                    .addArgumentValue(&quot;dropDbclhistory&quot;, dropDbclhistory);\n</code></pre>\n<p><a href=\"https://github.com/liquibase/liquibase/blob/v4.27.0/liquibase-standard/src/main/java/liquibase/Liquibase.java#L1020-L1023\" rel=\"nofollow noreferrer\">https://github.com/liquibase/liquibase/blob/v4.27.0/liquibase-standard/src/main/java/liquibase/Liquibase.java#L1020-L1023</a></p>\n<p>That means I have no way of specifying this property. What can I do here?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

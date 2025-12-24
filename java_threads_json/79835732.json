@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "mqtt",
+      "paho"
+    ],
+    "owner": {
+      "account_id": 10781545,
+      "reputation": 11,
+      "user_id": 9089026,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/bbc1ae9bf7e2909ee1f83e089b05ef12?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "ves",
+      "link": "https://stackoverflow.com/users/9089026/ves"
+    },
+    "is_answered": false,
+    "view_count": 113,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1764948441,
+    "creation_date": 1764670730,
+    "last_edit_date": 1764948441,
+    "question_id": 79835732,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79835732/paho-android-mqtt-client-does-not-send-pingreq-to-broker-when-phone-screen-is-of",
+    "title": "paho Android MQTT client does not send PINGREQ to broker when phone screen is off",
+    "body": "<p>I have a small android app implementing a foreground service which communicates with mosquito mqtt broker, using paho MQTTClient: <strong>org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5</strong><br>\nEverything is fine except the case when screen is off and charging cable disconnected.<br>\nIn this case, it gets disconnected from broker because “has exceeded timeout”, which is caused by the fact that client doesn’t send any pingreq.<br>\nIf screen is on (locked or not) and no charging cable connected I can see the pingreq every keepalive interval.<br>The same when screen is off with charging cable connected.\nIt’s the same behavior on Android 9 and 14\nRegarding android settings</p>\n<ul>\n<li>on A14 I allowed the app “to use battery in the background without any restrictions” (unrestricted mode), in the app settings.</li>\n<li>on A9 its allowed background activity and no battery optimization</li>\n</ul>\n<p>The service is started in MainActivity in a standard way with</p>\n<pre><code>onCreate (Bundle savedInstanceState)\n  {\n  ...\n  startService(new Intent(this, MQTTService.class));\n  ...\n  }\n\n</code></pre>\n<p>And in MQTTService class</p>\n<pre><code>public int onStartCommand(Intent intent, int flags, int startId)\n        {\n        Intent notIntent = new Intent(this, MainActivity.class);\n        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notIntent, PendingIntent.FLAG_IMMUTABLE);\n        Notification not = new NotificationCompat.Builder(this, CHANNEL_ID)\n                                   .setContentTitle(&quot;MQTT listener&quot;)\n                                   .setContentText(&quot;connecting to broker...&quot;)\n                                   .setSmallIcon(R.drawable.ic_mqtt)\n                                   .setContentIntent(pendingIntent)\n                                   .setColor(getColor(R.color.white))\n                                   .setOngoing(true)\n                                   .setPriority(PRIORITY_MAX)\n                                   .build();\n        not.flags = Notification.FLAG_ONGOING_EVENT;\n        startForeground(NOT_STATE_ID, not);\n        connect2Server();\n        Log.d(TAG, &quot;onStartCommand()&quot;);\n        isRunning = true;\n        return START_STICKY;\n        }\n</code></pre>\n<p>What am I missing here? It doesnt look to be a MQTT clinet issue, but rather android power management.</p>\n<p>[Edit on dec-3]Here are some updates</p>\n<ol>\n<li>as a desperate solution I implemented a dedicated thread  which sends a dumb message to broker every keepalive interval. With this thread the client is no longer disconnected by the broker.</li>\n<li>found I missed a connection parameter: <strong>automaticReconnect</strong>\nwhich default is false. After setting it to true, I start seeing PING messages and the client was no longer disconnected. Thought I can point the culprit, but setting it back to false does not recreate the issue!?! and the client is sending now PING messages no matter automaticReconnect is true or false ….</li>\n</ol>\n<p>Not sure if automaticReconnect has any impact so I will go with the dedicated thread.</p>\n<p>[Edit on dec-5]\nSame behavior for the thread sending the dumb message.Works only if charger cable connected.\nNow i'm pretty sure this is not MQTT client issue but Android power management.\nWill raise another question removing paho mqtt client.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

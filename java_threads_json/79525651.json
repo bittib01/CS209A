@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "azure",
+      "azure-iot-hub"
+    ],
+    "owner": {
+      "account_id": 18772854,
+      "reputation": 9,
+      "user_id": 13689325,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a-/AOh14GgDz-0sW-jsuXSbaugDijxYNh6-hxEV1xd_EfpPbg=k-s256",
+      "display_name": "Christian",
+      "link": "https://stackoverflow.com/users/13689325/christian"
+    },
+    "is_answered": true,
+    "view_count": 40,
+    "accepted_answer_id": 79525768,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1742888094,
+    "creation_date": 1742564958,
+    "question_id": 79525651,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79525651/unable-to-create-a-device-on-azure-iot-hub-using-java-sdk-deviceauthenticatio",
+    "title": "Unable to Create a Device on Azure IoT Hub Using Java SDK – &quot;DeviceAuthenticationNoneInvalid&quot; Error",
+    "body": "<p>I'm trying to create a device on Azure IoT Hub using the Azure IoT Hub Java SDK (version 1.6.23), but I keep getting the following error when calling <code>registryManager.addDevice(device):</code></p>\n<pre><code>com.microsoft.azure.sdk.iot.service.exceptions.IotHubBadFormatException: Bad message format! ErrorCode:ArgumentInvalid;DeviceAuthenticationNoneInvalid ...\n</code></pre>\n<p>My expectation was that passing null for the symmetric key parameter in the Device.createFromId() method would trigger auto-generation of the key (as mentioned in the documentation). However, when I pass null, it seems that the device is created with an invalid authentication type (&quot;None&quot;), which IoT Hub rejects.</p>\n<p>Here's the code snippet I'm using:</p>\n<pre><code>package ch.rfag.Azure;\n\nimport com.microsoft.azure.sdk.iot.service.RegistryManager;\nimport com.microsoft.azure.sdk.iot.service.Device;\nimport com.microsoft.azure.sdk.iot.service.exceptions.IotHubException;\n\nimport java.io.IOException;\nimport java.security.NoSuchAlgorithmException;\n\npublic class CreateDevice {\n    // Replace with your IoT Hub connection string.\n    private static final String IOT_HUB_CONNECTION_STRING =\n            &quot;HostName=your-iothub.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=yourKey&quot;;\n    // Replace with your desired device ID.\n    private static final String DEVICE_ID = &quot;JAVA-CREATED-DEVICE-1&quot;;\n\n    public static void main(String[] args) throws NoSuchAlgorithmException, IOException {\n        RegistryManager registryManager = RegistryManager.createFromConnectionString(IOT_HUB_CONNECTION_STRING);\n        // Expecting auto-generation of keys when passing null\n        Device device = Device.createFromId(DEVICE_ID, null, null);\n\n        try {\n            device = registryManager.addDevice(device);\n        } catch (IotHubException e) {\n            // If the device already exists, retrieve it.\n            System.err.println(&quot;Error creating device (it might already exist): &quot; + e.getMessage());\n            device = registryManager.getDevice(DEVICE_ID);\n        }\n\n        System.out.println(&quot;Device created successfully!&quot;);\n        System.out.println(&quot;Device id: &quot; + device.getDeviceId());\n        System.out.println(&quot;Primary Key: &quot; + device.getPrimaryKey());\n        System.out.println(&quot;Secondary Key: &quot; + device.getSecondaryKey());\n    }\n}\n</code></pre>\n<p>I tried the solutions from here:</p>\n<p><a href=\"https://stackoverflow.com/questions/50271159/create-azure-iot-hub-device-using-net\">create azure IOT hub device using .Net</a> which uses the async version in c# which also exists in java but that just runs forever and never returns.</p>\n<p>What am i missing?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

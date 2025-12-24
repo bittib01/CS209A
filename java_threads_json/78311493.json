@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "postgresql",
+      "jooq"
+    ],
+    "owner": {
+      "account_id": 6428786,
+      "reputation": 288,
+      "user_id": 4982821,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/110d03a50ad12ae29638ff31ee7b158b?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Eli Skoran",
+      "link": "https://stackoverflow.com/users/4982821/eli-skoran"
+    },
+    "is_answered": true,
+    "view_count": 205,
+    "accepted_answer_id": 78418392,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1714644586,
+    "creation_date": 1712849421,
+    "last_edit_date": 1713104603,
+    "question_id": 78311493,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78311493/how-to-configure-jooq-to-pass-hex-strings-instead-of-octal-for-bytea-column-inse",
+    "title": "How to configure JOOQ to pass hex strings instead of octal for bytea column insertion in PostgreSQL?",
+    "body": "<p>We are using JOOQ to insert records into postgresql table with bytea column.</p>\n<p>The byte array we are sending is about 150Mb and we are getting an error from Postgresql server:</p>\n<blockquote>\n<p>ERROR: invalid memory alloc request size 1073741824.</p>\n</blockquote>\n<p>After digging into the code and the query JOOQ is generating, we noticed that the byteArray is converted into octal <code>(org.jooq.util.postgres.PostgresUtils#toPGString(byte[]))</code>\nAnd the query ends up looking something like:</p>\n<pre><code>INSERT INTO test_table (my_data) VALUES (E'\\\\042\\\\145\\\\171...\\\\042'::bytea);\n</code></pre>\n<p>Testing with smaller byte arrays revels that after the data is inserted, its size is indeed the size of the byte array and not the size of the octal string (which is much longer).</p>\n<p>The issue seems to be that the octal string is so long that postgresql server fails on casting it to bytea even before trying to save it to the column.</p>\n<p>Is there a way to configure JOOQ to pass <code>hex</code> string as Value instead of <code>octal</code>?</p>\n<p>We are using JOOQ version <code>3.16.4</code> and postgresql <code>13.9</code></p>\n<h2>Clarification edit:</h2>\n<p>JOOQ is configured with the default <code>DefaultConfiguration</code>. No significant changes are done.</p>\n<p>The sql above is taken from the exception thrown in:\n<code>org.jooq.impl.Tools#translate(java.lang.String, java.lang.RuntimeException)</code></p>\n<p>And the sql that it prints looks like that:</p>\n<p><code>org.jooq.exception.DataAccessException: SQL [insert into &quot;public&quot;.&quot;table_name&quot; (&quot;id&quot;, &quot;name&quot;, &quot;version&quot;, &quot;description&quot;, &quot;archived&quot;, &quot;other_id&quot;, &quot;jws_data&quot;) values (829720463911690240, 'v-0', 'rb-0-6HW7', null, 0, 829720463899107328, E'\\\\042\\\\145\\\\171\\\\112\\\\162\\\\141\\\\127\\\\....\\135\\\\175'::bytea) returning &quot;public&quot;.&quot;table_name&quot;.&quot;id&quot;]; Unspecified RuntimeException</code></p>\n<p>We are not generating the SQL insert, instead we are using <code>org.jooq.impl.DAOImpl#insert(P)</code> and pass a JOOQ generated Record object that holds the byteArray as one of the members (<code>jws_data</code>). this name also corresponds to the column name in the table.</p>\n<p>Note: I changed the SQL a bit to hide the exact column names so please ignore the names and the mismatch to the other SQLs.</p>\n<h2>StackTrace:</h2>\n<pre><code>    toPGString:631, PostgresUtils (org.jooq.util.postgres)\n    sqlInline0:2044, DefaultBinding$DefaultBytesBinding (org.jooq.impl)\n    sqlInline0:1941, DefaultBinding$DefaultBytesBinding (org.jooq.impl)\n    sql:937, DefaultBinding$AbstractBinding (org.jooq.impl)\n    sql:929, DefaultBinding$AbstractBinding (org.jooq.impl)\n    accept:186, Val (org.jooq.impl)\n    visit0:720, DefaultRenderContext (org.jooq.impl)\n    visit:295, AbstractContext (org.jooq.impl)\n    toSQL92Values:326, FieldMapsForInsert (org.jooq.impl)\n    toSQL92Values:278, FieldMapsForInsert (org.jooq.impl)\n    accept:137, FieldMapsForInsert (org.jooq.impl)\n    visit0:720, DefaultRenderContext (org.jooq.impl)\n    visit:295, AbstractContext (org.jooq.impl)\n    toSQLInsert:739, InsertQueryImpl (org.jooq.impl)\n    accept0:624, InsertQueryImpl (org.jooq.impl)\n    accept:642, AbstractDMLQuery (org.jooq.impl)\n    visit0:720, DefaultRenderContext (org.jooq.impl)\n    visit:295, AbstractContext (org.jooq.impl)\n    getSQL0:484, AbstractQuery (org.jooq.impl)\n    execute:287, AbstractQuery (org.jooq.impl)\n    storeInsert0:191, TableRecordImpl (org.jooq.impl)\n    lambda$storeInsert$0:157, TableRecordImpl (org.jooq.impl)\n    apply:-1, TableRecordImpl$$Lambda$2120/0x0000000801a5bef8 (org.jooq.impl)\n    operate:143, RecordDelegate (org.jooq.impl)\n    storeInsert:156, TableRecordImpl (org.jooq.impl)\n    insert:144, TableRecordImpl (org.jooq.impl)\n    insert:139, TableRecordImpl (org.jooq.impl)\n    insert:180, DAOImpl (org.jooq.impl)\n    insert:156, DAOImpl (org.jooq.impl)\n    save:80, RDBDao (org.jfrog.bintray.distribution.rdb)\n\n</code></pre>\n<p>Same behaviour can be reproduced by calling:</p>\n<pre><code>dslContext.insertInto(TEST_TABLE)\n          .set(MY_DATA, jws_data_byte_array)\n          .execute();\n</code></pre>\n<p>Or</p>\n<pre><code>dslContext.execute(&quot;insert into test_table (my_data) values (?)&quot;, jws_data_byte_array);\n</code></pre>\n<p>Same <code>toPGString:631, PostgresUtils (org.jooq.util.postgres)</code> is triggered.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

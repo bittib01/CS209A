@@ -1,0 +1,37 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "amazon-s3",
+      "streaming",
+      "netty",
+      "aws-crt"
+    ],
+    "owner": {
+      "account_id": 3234420,
+      "reputation": 3542,
+      "user_id": 2728956,
+      "user_type": "registered",
+      "accept_rate": 66,
+      "profile_image": "https://www.gravatar.com/avatar/76f4c03480013ef2b4a067577ba13581?s=256&d=identicon&r=PG",
+      "display_name": "Vadim Kirilchuk",
+      "link": "https://stackoverflow.com/users/2728956/vadim-kirilchuk"
+    },
+    "is_answered": true,
+    "view_count": 931,
+    "accepted_answer_id": 78445886,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1715137039,
+    "creation_date": 1712715879,
+    "last_edit_date": 1715137039,
+    "question_id": 78301864,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78301864/s3asyncclient-and-asyncresponsetransformer-maintain-back-pressure-during-downloa",
+    "title": "S3AsyncClient and AsyncResponseTransformer maintain back-pressure during download",
+    "body": "<p>I have built a typical download API using Spring Reactive stack and AWS Java SDK v2.\nBasically, there is a controller which calls s3AsyncClient to download</p>\n<pre><code>@GetMapping(path=&quot;/{filekey}&quot;)\nMono&lt;ResponseEntity&lt;Flux&lt;ByteBuffer&gt;&gt;&gt; downloadFile(@PathVariable(&quot;filekey&quot;) String filekey) {    \n    GetObjectRequest request = GetObjectRequest.builder()\n      .bucket(s3config.getBucket())\n      .key(filekey)\n      .build();\n    \n    return Mono.fromFuture(s3client.getObject(request, AsyncResponseTransformer.toPublisher()))\n      .map(response -&gt; {\n        checkResult(response.response());\n        String filename = getMetadataItem(response.response(),&quot;filename&quot;,filekey);            \n        return ResponseEntity.ok()\n          .header(HttpHeaders.CONTENT_TYPE, response.response().contentType())\n          .header(HttpHeaders.CONTENT_LENGTH, Long.toString(response.response().contentLength()))\n          .header(HttpHeaders.CONTENT_DISPOSITION, &quot;attachment; filename=\\&quot;&quot; + filename + &quot;\\&quot;&quot;)\n          .body(Flux.from(response));\n      });\n}\n</code></pre>\n<p>Javadoc for that <code>AsyncResponseTransformer.toPublisher()</code> publisher interface includes this:</p>\n<blockquote>\n<p>You are responsible for subscribing to this publisher and managing the\nassociated back-pressure. Therefore, this transformer is only\nrecommended for advanced use cases.</p>\n</blockquote>\n<p>Netty is configured to use Direct No Cleaner method, i.e. allocates DirectByteBuffers instead of HeapBuffers, also it uses UNSAFE to allocate/deallocate the buffers.</p>\n<p>-Dio.netty.maxDirectMemory is 2 or 3GB (tested various behavior).</p>\n<p>What I am seeing is that from time to time there are OutOfDirectMemory errors and connection dropped. The client gets Premature End of Content Stream.</p>\n<p>It seems like S3AsyncClient may outperform the consumers of the data and direct buffers overflow, no matter how much memory I give to netty. JVM stays intact at around 300MB.</p>\n<p>I came across this for netty:\n<a href=\"https://stackoverflow.com/questions/67068818/oom-killed-jvm-with-320-x-16mb-netty-directbytebuffer-objects\">OOM killed JVM with 320 x 16MB Netty DirectByteBuffer objects</a></p>\n<p>You cannot control the amount of memory, if not causing OOM as you have done. Netty pooling won't behave like the Java GC vs heap ie increasing some throttling/frequency of its work in order to use resources within specified limits (throwing OOM just under specific circumstances). Netty memory pooling is built to mimic the behaviour of a native allocator eg jemalloc, hence its purpose is to retain as much memory as the application need to work. For this reason, the retained direct memory depends by the allocation pressure that the application code perform ie how many outstanding alloc without release.</p>\n<blockquote>\n<p>I suggest, instead, to embrace its nature, prepare an interesting test\nload on a preprod/test machine and just monitor the Netty direct\nmemory usage of the application you're interested in. I suppose you've\nconfigured -Dio.netty.maxDirectMemory=0 for the purpose of using JMX\nto expose the direct memory used, but Netty can expose it's own\nmetrics as well (saving setting io.netty.maxDirectMemory), just check\nthat the libraries that use it take care of exposing through JMX or\nusing whatever metrics framework. If these applications won't expose\nit, the API is fairly easy to be used, see\n<a href=\"https://netty.io/4.1/api/io/netty/buffer/PooledByteBufAllocatorMetric.html\" rel=\"nofollow noreferrer\">https://netty.io/4.1/api/io/netty/buffer/PooledByteBufAllocatorMetric.html</a></p>\n</blockquote>\n<p>I am using netty 4.1.89 or 4.1.108 (tried to update)\nAWS SDK v2 2.23.21\nAnd AWS CRT client 0.29.14 (latest)</p>\n<p>I tried doing\n<code>Flux.from(response).rateLimit(1)</code> with no luck.</p>\n<p>My performance test is to download 500MB files in parallel with up to 40 users.\nThe node has 8GB of mem total and 1 CPU unit.</p>\n<p>I can understand that this is not enough to handle all users, but was expecting that it will backpressure automatically and keep streaming files just slower, i.e. get next buffer from S3 -&gt; write next buffer to user1, get next buffer from s3 -&gt; write to user2, etc.</p>\n<p>However, even when I am using just 1 slow consumer, I see that Netty reports direct memory consumption up to 500MB and if I stop it drops to 16MB (default PoolArena cache I suppose).\nSo, it sounds like S3 Async Client pushes all 500MB into netty's direct buffers and the client slowly drains these.</p>\n<p>Trying to limit AWS CRT throughput:\n<code>targetThroughputInGbps(0.1)</code> didn't help.</p>\n<p>I have a feeling that S3AsyncClient+CRT+spring boot netty doesn't automatically handle backpressure.\n<a href=\"https://github.com/netty/netty/issues/13751\" rel=\"nofollow noreferrer\">https://github.com/netty/netty/issues/13751</a></p>\n<p>As I can't control the download speed from the client side (might be slow or fast connection), how can I maintain back-pressure to keep direct buffers at a certain limit? Is it possible at all?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

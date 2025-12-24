@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot"
+    ],
+    "owner": {
+      "account_id": 28024845,
+      "reputation": 11,
+      "user_id": 21405043,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/b0fcf126b1bdba09b410194ff1ea15b2?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Chris",
+      "link": "https://stackoverflow.com/users/21405043/chris"
+    },
+    "is_answered": false,
+    "view_count": 552,
+    "answer_count": 2,
+    "score": 1,
+    "last_activity_date": 1743394601,
+    "creation_date": 1737298732,
+    "question_id": 79369165,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79369165/restclient-dosent-handle-trace-id-in-my-spring-boot-3-application",
+    "title": "RestClient dosen&#39;t handle Trace ID in my Spring Boot 3 application",
+    "body": "<p>I migrated from <strong>RestTemplate</strong> to <strong>RestClient</strong> in my Spring Boot 3 application. But now I have a problem with Trace ID: the identifier of the end-to-end operation in which this particular overall operation took place.</p>\n<p>RestTemplate sends the same Trace ID between two services.</p>\n<p>RestClient sends <strong>different Trace ID</strong> between two services.</p>\n<p>Class <strong>RestClientConfig</strong>:</p>\n<pre><code>import org.springframework.beans.factory.annotation.Value;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\nimport org.springframework.web.client.RestClient;\nimport org.springframework.web.client.support.RestClientAdapter;\nimport org.springframework.web.service.invoker.HttpServiceProxyFactory;\n\nimport com.example.clients.BeClient;\n\n@Configuration\npublic class RestClientConfig {\n\n    @Value(&quot;${api.url}&quot;)\n    private String apiUrl;\n\n    @Bean\n    public BeClient beClient() {\n\n        RestClient restClient = RestClient.builder()\n                .baseUrl(apiUrl)\n                .build();\n        var restClientAdapter = RestClientAdapter.create(restClient);\n        var httpServiceProxyFactory = HttpServiceProxyFactory.builderFor(restClientAdapter).build();\n        return httpServiceProxyFactory.createClient(BeClient.class);\n\n    }\n\n}\n</code></pre>\n<p>Class <strong>BeClient</strong>:</p>\n<pre><code>import org.springframework.web.bind.annotation.PathVariable;\nimport org.springframework.web.service.annotation.GetExchange;\nimport org.springframework.web.service.annotation.HttpExchange;\n\nimport com.example.dtos.HelloWorldDto;\n\n@HttpExchange\npublic interface BeClient {\n\n    @GetExchange(&quot;/message/{id}&quot;)\n    HelloWorldDto findById(@PathVariable(&quot;id&quot;) Long id);\n\n}\n</code></pre>\n<p>File <strong>application.properties</strong>:</p>\n<pre><code>logging.pattern.correlation=[${spring.application.name:},%X{traceId:-},%X{spanId:-}]\n</code></pre>\n<p>Logs <strong>FE</strong>:</p>\n<p>For FE service Track Id is <strong>678d0ddf7a804137440ac3007174d797</strong>.</p>\n<pre><code>2025-01-19 15:36:15.397 \n2025-01-19T14:36:15.397Z  INFO 1 --- [fe] [http-nio-8080-exec-1] [fe,678d0ddf7a804137440ac3007174d797,440ac3007174d797]c.e.controllers.HelloWorldController     : Called FE method HelloWorldController.findById()\n2025-01-19 15:35:47.974 \n2025-01-19T14:35:47.974Z  INFO 1 --- [fe] [http-nio-8080-exec-1] [fe,,]o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms\n2025-01-19 15:35:47.972 \n2025-01-19T14:35:47.972Z  INFO 1 --- [fe] [http-nio-8080-exec-1] [fe,,]o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'\n</code></pre>\n<p>Logs <strong>BE</strong>:</p>\n<p>For BE service Track ID is <strong>678d0ddf07b239da05ec3e7febcb5842</strong>.</p>\n<pre><code>2025-01-19 15:36:15.431 \n2025-01-19T14:36:15.431Z  INFO 1 --- [be] [http-nio-8081-exec-4] [be,678d0ddf07b239da05ec3e7febcb5842,05ec3e7febcb5842]c.e.controllers.HelloWorldController     : Called BE method HelloWorldController.helloWorld() for id 1\n2025-01-19 15:35:57.771 \n2025-01-19T14:35:57.771Z  INFO 1 --- [be] [http-nio-8081-exec-1] [be,,]o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms\n2025-01-19 15:35:57.770 \n2025-01-19T14:35:57.770Z  INFO 1 --- [be] [http-nio-8081-exec-1] [be,,]o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'\n</code></pre>\n<p><strong>Source Code</strong></p>\n<p>Link to GIT repository with source code: <a href=\"https://github.com/wisniewskikr/chrisblog-it-cloud/tree/main/spring-cloud/observability/springcloud-springboot3-observability-grafana-stack-restclient\" rel=\"nofollow noreferrer\">https://github.com/wisniewskikr/chrisblog-it-cloud/tree/main/spring-cloud/observability/springcloud-springboot3-observability-grafana-stack-restclient</a></p>\n<p><strong>Summary</strong></p>\n<p>I use Java in version 23 and Spring Boot in version 3.4.1. Any idea how can I resolve this issue?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

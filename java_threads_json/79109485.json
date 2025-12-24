@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-security",
+      "openid-connect",
+      "openid"
+    ],
+    "owner": {
+      "account_id": 11446903,
+      "reputation": 11,
+      "user_id": 8390490,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/BiILI.jpg?s=256",
+      "display_name": "Bam",
+      "link": "https://stackoverflow.com/users/8390490/bam"
+    },
+    "is_answered": true,
+    "view_count": 824,
+    "accepted_answer_id": 79154707,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1730709652,
+    "creation_date": 1729503935,
+    "last_edit_date": 1730709652,
+    "question_id": 79109485,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79109485/redirect-loop-issue-with-openid-authentication-in-spring-boot-3-3",
+    "title": "Redirect Loop Issue with OpenID Authentication in Spring Boot 3.3",
+    "body": "<p>I'm working on a REST API using Java 21 with Spring Boot 3.3, and I'm trying to implement authentication through an external site using OpenID. However, I'm encountering a redirect loop after logging in on the external site.</p>\n<p>Here’s a brief overview of the flow:</p>\n<p>1- I navigate to localhost:41448/schedule/{id}.</p>\n<p>2- I'm redirected to myExternalWebsite.com and successfully log in with my credentials. This part works fine!</p>\n<p>3- The POST on my token-uri with good body is OK and return a Response 200 OK</p>\n<p>4- I'm redirected to my redirect URL (localhost:41448/redirect-uri), but it seems my controller is never reached. Instead, I see multiple redirects in the network tab. I have this error: ERR_TOO_MANY_REDIRECTS</p>\n<p>I’ve been struggling with this for the past week, getting lost in a lot of documentation (some of it outdated).</p>\n<p>If you need any more information or details, please don’t hesitate to ask!</p>\n<p>Thank you in advance for your help!</p>\n<p>Here’s my application.yml configuration:</p>\n<pre class=\"lang-yaml prettyprint-override\"><code>security:\n  oauth2:\n    client:\n      registration:\n        esante:\n          client-id: MyId\n          client-secret: MyClientSecret\n          scope: openid\n          redirect-uri: &quot;https://localhost:41448/redirect-uri&quot;\n          authorization-grant-type: authorization_code\n          client-name: example\n      provider:\n        example:\n          authorization-uri: https://myExternalWebsite.integration.fr/realms/sas/protocol/openid-connect/auth\n          token-uri: https://myExternalWebsite.integration.fr/realms/sas/protocol/openid-connect/token\n          user-info-uri: https://myExternalWebsite.integration.fr/realms/sas/protocol/openid-connect/userinfo\n          issuer-uri: https://myExternalWebsite.integration.fr/realms/sas\n\n</code></pre>\n<p>And here’s my security configuration:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@EnableWebSecurity\npublic class SecurityConfig {\n\n  @Bean\n  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {\n    http.authorizeHttpRequests(\n            authorizeRequests -&gt;\n                authorizeRequests\n                    .requestMatchers(&quot;/redirect-uri&quot;)\n                    .permitAll()\n                    .anyRequest()\n                    .authenticated()\n            )\n        .oauth2Login(\n            oauth2Login -&gt;\n                oauth2Login\n                    .loginPage(&quot;https://myExternalWebsite.integration.fr&quot;) // OAuth2 login page\n                    .defaultSuccessUrl(&quot;/redirect-uri&quot;, true) // Redirect after login\n            )\n        .requiresChannel(\n            channel -&gt;\n                channel.anyRequest().requiresSecure()\n            );\n\n    return http.build();\n  }\n}\n</code></pre>\n<p>Here is my trace (this log repeats many times):</p>\n<pre><code>HTTP POST https://myExternalWebsite.integration.fr/realms/sas/protocol/openid-connect/token\nAccept=[application/json, application/*+json]\nWriting [{grant_type=[authorization_code], code=[{code_generate}], redirect_uri=[https://localhost:41448/redirect-uri]}] as &quot;application/x-www-form-urlencoded;charset=UTF-8&quot;\nResponse 200 OK\nReading to [org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse] as &quot;application/json&quot;\nHTTP POST https://myExternalWebsite.integration.fr/realms/sas/protocol/openid-connect/token\nAccept=[application/json, application/*+json]\nWriting [{grant_type=[authorization_code], code=[{code_generate}], redirect_uri=[https://localhost:41448/redirect-uri]}] as &quot;application/x-www-form-urlencoded;charset=UTF-8&quot;\nResponse 200 OK\nReading to [org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse] as &quot;application/json&quot;\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

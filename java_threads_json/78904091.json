@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "postgresql",
+      "postman"
+    ],
+    "owner": {
+      "account_id": 23395323,
+      "reputation": 13,
+      "user_id": 17459444,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/b277c0a68cfb39ffe45e3163cdd8eb3a?s=256&d=identicon&r=PG",
+      "display_name": "Irfan",
+      "link": "https://stackoverflow.com/users/17459444/irfan"
+    },
+    "is_answered": false,
+    "view_count": 59,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1724394026,
+    "creation_date": 1724378590,
+    "last_edit_date": 1724394026,
+    "question_id": 78904091,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78904091/how-to-test-information-sent-in-method-locally",
+    "title": "How to test information sent in method locally",
+    "body": "<p>I am using Spring Boot for this project. I am trying to see if the <code>update</code> method is sending the correct details or not to the database. This <code>update</code> method is a part of the <code>@PutMapping</code> API. When I try to test the API using Postman, I get this error maybe because it is a remote hosted database:</p>\n<blockquote>\n<p>org.postgresql.util.PSQLException: ERROR: permission denied for table TEST_Company</p>\n</blockquote>\n<p>This is the code of <code>update</code> method:</p>\n<pre><code>public CompanyResponse update(Long companyId, Company company) {\n    CompanyEntity companyEntityToBeUpdated = repository.findById(companyId).orElseThrow();\n    companyEntityToBeUpdated.setName(company.getName());\n    companyEntityToBeUpdated.setCompanyLogo(company.getCompanyLogo());\n    companyEntityToBeUpdated.setFax(company.getFax());\n    companyEntityToBeUpdated.setSupplierIdentificationType(company.getSupplierIdentificationType());\n    companyEntityToBeUpdated.setTourismTaxRegistrationNo(company.getTourismTaxRegistrationNo());\n    companyEntityToBeUpdated.setBankAccountNo(company.getBankAccountNo());\n    companyEntityToBeUpdated.setBusinessActivityDescription(company.getBusinessActivityDescription());\n    companyEntityToBeUpdated.setContactNo(company.getContactNo());\n    companyEntityToBeUpdated.setStatus(company.getStatus());\n    companyEntityToBeUpdated.setCorrespondenceEmailAddress(company.getCorrespondenceEmailAddress());\n    companyEntityToBeUpdated.setEInvoiceEmailAddress(company.getEInvoiceEmailAddress());\n    companyEntityToBeUpdated.setMsicCode(company.getMsicCode());\n    companyEntityToBeUpdated.setCountry(company.getCountry());\n    companyEntityToBeUpdated.setCity(company.getCity());\n    companyEntityToBeUpdated.setState(company.getState());\n    companyEntityToBeUpdated.setAddressLine1(company.getAddressLine1());\n    companyEntityToBeUpdated.setAddressLine2(company.getAddressLine2());\n    companyEntityToBeUpdated.setAddressLine0(company.getAddressLine0());\n    companyEntityToBeUpdated.setPostalCode(company.getPostalCode());\n    companyEntityToBeUpdated.setDescription(company.getDescription());\n    companyEntityToBeUpdated.setTin(company.getTin());\n    companyEntityToBeUpdated.setSstRegistrationNo(company.getSstRegistrationNo());\n    companyEntityToBeUpdated.setRegistrationIdPassportNo(company.getRegistrationIdPassportNo());\n\n    CompanyEntity updatedCompanyEntity = repository.save(companyEntityToBeUpdated);\n    return toCompanyResponse(updatedCompanyEntity);\n}\n</code></pre>\n<p>The <code>update</code> method is calling this <code>toCompanyResponse</code>:</p>\n<pre><code>private CompanyResponse toCompanyResponse(CompanyEntity company) {\n    CompanyResponse companyResponse = modelMapper.map(company, CompanyResponse.class);\n    ;\n    SeedValue statusSeedValue = seedValueRepository.findBySeedCodeAndValueId(Constants.COMPANY_STATUS_SEED_CODE, company.getStatus()).orElse(new SeedValue());\n    StatusResponse status = new StatusResponse(statusSeedValue.getValueId(), statusSeedValue.getDisplayValue());\n    companyResponse.setStatus(status);\n\n    SeedValue countrySeedValue = seedValueRepository.findBySeedCodeAndValueId(Constants.COMPANY_COUNTRY_SEED_CODE, company.getCountry()).orElse(new SeedValue());\n    CountryResponse country = new CountryResponse(countrySeedValue.getValueId(), countrySeedValue.getDisplayValue());\n    companyResponse.setCountry(country);\n\n    SeedValue stateSeedValue = seedValueRepository.findBySeedCodeAndValueId(Constants.COMPANY_STATE_SEED_CODE, company.getState()).orElse(new SeedValue());\n    StateResponse state = new StateResponse(stateSeedValue.getValueId(), stateSeedValue.getDisplayValue());\n    companyResponse.setState(state);\n\n    CityResponse city = new CityResponse(company.getCity(), company.getCity());\n    companyResponse.setCity(city);\n\n    SeedValue msicCodeSeedValue = seedValueRepository.findBySeedCodeAndValueId(Constants.COMPANY_MSIC_CODE_SEED_CODE, company.getMsicCode()).orElse(new SeedValue());\n    MsicCodeResponse msicCode = new MsicCodeResponse(msicCodeSeedValue.getValueId(), msicCodeSeedValue.getDisplayValue());\n    companyResponse.setMsicCode(msicCode);\n\n    return companyResponse;\n}\n</code></pre>\n<p>This is the <code>@PutMapping</code> API code:</p>\n<pre><code>@PutMapping(&quot;{companyId}&quot;)\npublic ResponseEntity&lt;CompanyResponse&gt; update(@PathVariable Long companyId, @RequestBody Company company) {\n    CompanyResponse updatedCompany = companyService.update(companyId, company);\n    return ResponseEntity.ok(updatedCompany);\n}\n</code></pre>\n<p>It looks like everything is correct, but on the website when I try update the information, others are updated except for <code>SstRegistrationNo</code> only is not updated in the database, so I am not sure why. I assume the issue lies in the <code>toCompanyResponse</code> method but still not very sure.</p>\n<p>Is there another way for me to test if the information is sent correctly on my local machine or maybe write a unit testing, I don't know much how to do that.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

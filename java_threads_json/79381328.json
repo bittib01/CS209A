@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-mvc",
+      "spring-data-jpa",
+      "spring-data"
+    ],
+    "owner": {
+      "account_id": 4638791,
+      "reputation": 679,
+      "user_id": 3759227,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/01ecc68c1567f2d1af7d20c8e63c8da2?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Kuldeep",
+      "link": "https://stackoverflow.com/users/3759227/kuldeep"
+    },
+    "is_answered": false,
+    "view_count": 63,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1737640095,
+    "creation_date": 1737640095,
+    "question_id": 79381328,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79381328/spring-data-jpa-one-to-many-bidirectional-selecting-all-the-child-records",
+    "title": "Spring data JPA One to Many Bidirectional selecting all the child records",
+    "body": "<p>Spring data JPA One to Many Bidirectional is selecting all the child records</p>\n<p>Customer Entity</p>\n<pre><code>@Entity\n@Table(name = &quot;customer&quot;)\npublic class Customer {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private int id;\n\n    @Column(name = &quot;name&quot;, length = 100)\n    private String name;\n\n    @OneToMany(mappedBy = &quot;customer&quot;, orphanRemoval = true, cascade = CascadeType.ALL)\n    @Fetch(FetchMode.SELECT)\n    private List&lt;Department&gt; departments;\n}\n</code></pre>\n<p>Department Entity</p>\n<pre><code>@Entity\n@Table(name = &quot;department&quot;)\npublic class Department {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private int id;\n\n    @Column(name = &quot;dept_name&quot;, nullable = false, length = 100)\n    private String deptName;\n\n    @JsonIgnore\n    @ManyToOne\n    @JoinColumn(name = &quot;customer_id&quot;,referencedColumnName = &quot;id&quot;)\n    private Customer customer;\n</code></pre>\n<p>I want to select Customer By Id and by Department Name</p>\n<p>Ex <code>Customer findByIdAndDepartmentsDeptName(int customerId, String deptName);</code></p>\n<p>In this case all the Department are getting fetched</p>\n<p>response is like this</p>\n<pre><code>[\n    {\n        &quot;id&quot;: 1,\n        &quot;name&quot;: &quot;Harry&quot;,\n        &quot;departments&quot;: [\n            {\n                &quot;id&quot;: 1,\n                &quot;deptName&quot;: &quot;HR&quot;\n            },\n            {\n                &quot;id&quot;: 2,\n                &quot;deptName&quot;: &quot;FIn&quot;\n            },\n            {\n                &quot;id&quot;: 3,\n                &quot;deptName&quot;: &quot;IT&quot;\n            }\n        ]\n    }\n]\n</code></pre>\n<p>And Query that is fired are</p>\n<pre><code>select c1_0.id,c1_0.name from customer c1_0 left join department d1_0 on c1_0.id=d1_0.customer_id where c1_0.id=? and d1_0.dept_name=?\n2025-01-23T14:36:45.426+01:00 DEBUG 349733 --- [YourApplicationName] [nio-8081-exec-1] org.hibernate.SQL                        : select d1_0.customer_id,d1_0.id,d1_0.dept_name from department d1_0 where d1_0.customer_id=?\n</code></pre>\n<p>What would be the Ideal Way for this ?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

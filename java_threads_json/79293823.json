@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jms",
+      "activemq-artemis"
+    ],
+    "owner": {
+      "account_id": 6043607,
+      "reputation": 188,
+      "user_id": 8269446,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/4344e237ed8d63cce906bf068ce23beb?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "mamol",
+      "link": "https://stackoverflow.com/users/8269446/mamol"
+    },
+    "is_answered": true,
+    "view_count": 90,
+    "accepted_answer_id": 79294252,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1738654709,
+    "creation_date": 1734602138,
+    "last_edit_date": 1734615780,
+    "question_id": 79293823,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79293823/jakarta-jms-spring-boot-sending-messages-immediately",
+    "title": "Jakarta JMS Spring-boot sending messages immediately",
+    "body": "<p>I need send some messages without waiting transaction ending.\nBut all settings I tried like\n<code> template.setSessionTransacted(false);</code> and setting different acknowledge modes didn't bring any results.</p>\n<p>There is jms libraries I use.\nNow it use all settings default but I tried use all aknowledge mods enable end disable transaction mods</p>\n<pre><code>    implementation 'org.apache.activemq:artemis-jakarta-client:2.38.0'\n    implementation 'org.apache.activemq:artemis-core-client:2.38.0'\n    implementation 'org.apache.activemq:artemis-commons:2.38.0'\n    implementation 'org.springframework:spring-jms:6.1.14'\n</code></pre>\n<p>My JMS Configuration</p>\n<pre><code>@Bean\n    public ConnectionFactory connectionFactory() {\n        ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory();\n        connectionFactory.setBrokerURL(format(&quot;tcp://%s:%s&quot;, host, port));\n        connectionFactory.setUser(user);\n        connectionFactory.setPassword(pass);\n\n        return connectionFactory;\n    }\n\n    @Bean\n    public JmsListenerContainerFactory&lt;?&gt; myFactory(ConnectionFactory connectionFactory,\n                                                    DefaultJmsListenerContainerFactoryConfigurer configurer) {\n\n        Logger logger = (Logger) LoggerFactory.getLogger(&quot;org.springframework.jms&quot;);\n        logger.setLevel(Level.ERROR);\n\n        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();\n        factory.setErrorHandler(new CustomErrorHandler());\n        configurer.configure(factory, connectionFactory);\n\n        return factory;\n    }\n\n    @Bean\n    public JmsTemplate jmsAnycastTemplate(ConnectionFactory connectionFactory) {\n        return new JmsTemplate(connectionFactory);\n    }\n</code></pre>\n<p>Worker client code</p>\n<pre><code>    public static void doAllWork(int moduleId, MqProducer mqProducer, MqMessage message){\n        mqProducer.sendAcceptToWork(moduleId, message);\n\n        Work.doSomeWork(moduleId, mqProducer);\n\n        mqProducer.sendEndWork(moduleId, message, 200L);\n    }\n\n    @SneakyThrows\n    public static void doSomeWork(int moduleId, MqProducer mqProducer){\n\n        int secToWork = ThreadLocalRandom.current().nextInt(1, 10);\n        LocalDateTime workstarted = LocalDateTime.now();\n\n        while (Duration.between(workstarted, LocalDateTime.now()).getSeconds() &lt; secToWork) {\n            Thread.sleep(1000);\n            System.out.printf(&quot;%s [api] WORK_ENDED message received%n&quot;, LocalDateTime.now());\n            mqProducer.sendMessage(&quot;api&quot;, new MqMessage(IN_PROGRESS, moduleId, 200));\n        }\n    }\n</code></pre>\n<p>and there is output from worker client</p>\n<pre><code>sendAcceptToWork 3 0\n2024-12-19T13:03:45.046627435 Working...\n2024-12-19T13:03:46.057809869 Working...\n2024-12-19T13:03:47.065647593 Working...\n2024-12-19T13:03:48.074799444 Working...\n2024-12-19T13:03:49.080706764 Working...\n2024-12-19T13:03:50.088089181 Working...\n2024-12-19T13:03:51.095799844 Working...\n2024-12-19T13:03:52.104492990 Working...\n2024-12-19T13:03:53.113162971 Working...\nWork done\n</code></pre>\n<p>there is code api client</p>\n<pre><code>    @SneakyThrows\n    @Override\n    public void run(MqMessage message) {\n\n        if (message.getMqOperationCode() == MqOperationCode.WORK_STARTED){\n            System.out.println();\n            System.out.printf(&quot;%s [api] WORK_STARTED message received%n&quot;, LocalDateTime.now());\n            return;\n        }\n        if (message.getMqOperationCode() == MqOperationCode.IN_PROGRESS){\n            System.out.printf(&quot;%s [api] IN_PROGRESS message received%n&quot;, LocalDateTime.now());\n            return;\n        }\n        if (message.getMqOperationCode() == MqOperationCode.WORK_ENDED){\n            System.out.printf(&quot;%s [api] WORK_ENDED message received%n&quot;, LocalDateTime.now());\n            return;\n        }\n\n        System.out.printf(&quot;%s [api] message received : \\n%s%n&quot;, LocalDateTime.now(), message);\n    }\n</code></pre>\n<p>and output in same iteration</p>\n<pre><code>2024-12-19T13:03:53.141036336 [api] WORK_STARTED message received\n2024-12-19T13:03:53.146047337 [api] IN_PROGRESS message received\n2024-12-19T13:03:53.150053390 [api] IN_PROGRESS message received\n2024-12-19T13:03:53.153668788 [api] IN_PROGRESS message received\n2024-12-19T13:03:53.157834576 [api] IN_PROGRESS message received\n2024-12-19T13:03:53.161060836 [api] IN_PROGRESS message received\n2024-12-19T13:03:53.163221293 [api] IN_PROGRESS message received\n2024-12-19T13:03:53.165163888 [api] IN_PROGRESS message received\n2024-12-19T13:03:53.166759323 [api] IN_PROGRESS message received\n2024-12-19T13:03:53.168365120 [api] IN_PROGRESS message received\n2024-12-19T13:03:53.169784977 [api] WORK_ENDED message received\n</code></pre>\n<p>As you can see worker client send all messages in one time, but I need to send each message without waiting transaction ending.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

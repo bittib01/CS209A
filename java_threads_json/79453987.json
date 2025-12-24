@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "postgresql",
+      "spring-boot",
+      "hibernate",
+      "isolation-level"
+    ],
+    "owner": {
+      "account_id": 39572876,
+      "reputation": 1,
+      "user_id": 29344760,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/cef3df2b0b68ad7be9189894f21cd300?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Akash E",
+      "link": "https://stackoverflow.com/users/29344760/akash-e"
+    },
+    "is_answered": true,
+    "view_count": 195,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1740128124,
+    "creation_date": 1740044325,
+    "question_id": 79453987,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79453987/postgres-db-throws-max-pred-locks-per-transaction-exceeded",
+    "title": "Postgres DB throws max_pred_locks_per_transaction exceeded",
+    "body": "<p>We are using an Azure postgresql flexible server DB for doing our performance testing. On max load of around 50 tps, all our queries are failing with</p>\n<pre><code>[ERROR: out of shared memory Hint: You might need to increase max_pred_locks_per_transaction.] [n/a]. \n</code></pre>\n<p>I executed the following query to get some insights about the postgres locks.</p>\n<pre><code>SELECT * FROM pg_locks pl LEFT JOIN pg_stat_activity psa\nON pl.pid = psa.pid\nleft join pg_catalog.pg_class pc \non pl.relation = pc.&quot;oid&quot;;\n</code></pre>\n<p><a href=\"https://i.sstatic.net/vnnuZbo7.png\" rel=\"nofollow noreferrer\">Result of the above query</a></p>\n<p>From the above result, note that the pg_locks table has over 57k+ records. Most of it has the mode as <strong>SIReadLock</strong>.</p>\n<p>Our codebase has a lot of complex queries with multiple joins (not written in an optimal way). Also, I am seeing some of the below exception too :</p>\n<pre><code>Hibernate transaction: Unable to commit against JDBC Connection; ERROR: could not serialize access due to read/write dependencies among transactions\n  Detail: Reason code: Canceled on commit attempt with conflict in from prepared pivot.\n  Hint: The transaction might succeed if retried. \n</code></pre>\n<p>I want to understand the root of this problem. I believe this is happening due to long running queries taking up locks on the table and other transactions waiting for the locks to be released. If anyone could help me understand SIReadLocks and why I'm getting the above exceptions in detail, it would be really helpful. Thanks in advance.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

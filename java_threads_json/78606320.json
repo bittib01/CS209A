@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "automated-tests",
+      "testng"
+    ],
+    "owner": {
+      "account_id": 27667436,
+      "reputation": 13,
+      "user_id": 21118980,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AEdFTp48OkFJ5FiZQn2DdLUf1mfxVVEaRv4b0ZWEIl_fqg=k-s256",
+      "display_name": "oskar",
+      "link": "https://stackoverflow.com/users/21118980/oskar"
+    },
+    "is_answered": true,
+    "view_count": 58,
+    "accepted_answer_id": 78606360,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1725578389,
+    "creation_date": 1718095180,
+    "last_edit_date": 1725578389,
+    "question_id": 78606320,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78606320/parallel-tests-failing-in-testng",
+    "title": "Parallel tests failing in TestNG",
+    "body": "<p>I'm working on automation project and I need to run tests in parallel using testNG. When I run only one instance everything is working fine but when ran like this:</p>\n<p><code>@Test(invocationCount = 3, threadPoolSize = 3)</code></p>\n<p>Only one test is going through all the steps, the rest is failing somewhere in the first steps due to not finding elements that are visible.</p>\n<p>Here is my DriverFactory code:</p>\n<pre><code>public class Factory {\n\n    private static ThreadLocal&lt;WebDriver&gt; ThreadDriver = new InheritableThreadLocal&lt;&gt;();\n\n    public static synchronized WebDriver getDriver() {\n        WebDriver driver = ThreadDriver.get();\n\n\n        if (driver==null) {\n            FirefoxBinary binary = new FirefoxBinary(new File(\n                    &quot;path-to-mozilla&quot;));\n            FirefoxOptions options = new FirefoxOptions();\n            options.setBinary(binary);\n            WebDriverManager.firefoxdriver().setup();\n            driver = new FirefoxDriver(options);\n            ThreadDriver.set(driver);\n        }\n\n\n        return driver;\n    }\n\n    public static synchronized void quitDriver() {\n        WebDriver driver = ThreadDriver.get();\n\n        if(driver!=null) {\n            driver.quit();\n            ThreadDriver.remove();\n        }\n    }\n}\n\n</code></pre>\n<p>Then it gets initialised in @BeforeMethod:</p>\n<pre><code>public class UploadPhotoTest {\n    WebDriver driver;\n    static String dateName = new SimpleDateFormat(&quot;yyyyMMddhhmmss&quot;).format(new Date());\n    static String extentReportFile = &quot;./src/main/resources/reports/report_&quot; + dateName + &quot;.html&quot;;\n    public static ExtentReports extent = new ExtentReports(extentReportFile, false);\n    public static ExtentTest test;\n\n    @BeforeMethod\n    public void setUp() {\n        driver = Factory.getDriver();\n        driver.manage().window().maximize();\n        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);\n    }\n</code></pre>\n<p>I tried running it through testng.xml with a copy of the test named differently like this:</p>\n<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;\n&lt;!DOCTYPE suite SYSTEM &quot;http://testng.org/testng-1.0.dtd&quot;&gt;\n&lt;suite name=&quot;Load Tests&quot; parallel=&quot;methods&quot; thread-count=&quot;2&quot;&gt;\n    &lt;test name=&quot;Create video Test&quot;&gt;\n        &lt;classes&gt;\n            &lt;class name=&quot;UploadPhotoTest&quot;&gt;\n\n            &lt;/class&gt;\n        &lt;/classes&gt;\n    &lt;/test&gt;\n&lt;/suite&gt;\n</code></pre>\n<p>But then one test is going through some steps and failing, throwing error about not finding element, and then second one starts working.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

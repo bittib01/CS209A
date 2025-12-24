@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "ssl",
+      "sni"
+    ],
+    "owner": {
+      "account_id": 8866868,
+      "reputation": 654,
+      "user_id": 6621774,
+      "user_type": "registered",
+      "accept_rate": 60,
+      "profile_image": "https://www.gravatar.com/avatar/6d039a85bf7ed098a60f40b585a18fa7?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Harry Developer",
+      "link": "https://stackoverflow.com/users/6621774/harry-developer"
+    },
+    "is_answered": false,
+    "view_count": 98,
+    "answer_count": 2,
+    "score": 2,
+    "last_activity_date": 1753173051,
+    "creation_date": 1752843841,
+    "question_id": 79706211,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79706211/how-to-set-snimatcher-when-using-spring-boot-correctly",
+    "title": "How to set SNIMatcher when using Spring Boot, correctly?",
+    "body": "<p>I'm using Spring Boot 3.3.4 with Tomcat and came across this code inside <code>ServerNameExtension.java</code>:</p>\n<pre><code>            // Does the server match the server name request?\n        SNIServerName sni = null;\n        if (!shc.sslConfig.sniMatchers.isEmpty()) {\n            sni = chooseSni(shc.sslConfig.sniMatchers, spec.serverNames);\n            if (sni != null) {\n                if (SSLLogger.isOn &amp;&amp; SSLLogger.isOn(&quot;ssl,handshake&quot;)) {\n                    SSLLogger.fine(\n                            &quot;server name indication (&quot; +\n                            sni + &quot;) is accepted&quot;);\n                }\n            } else {\n                // We do not reject client without SNI extension currently.\n                throw shc.conContext.fatal(Alert.UNRECOGNIZED_NAME,\n                        &quot;Unrecognized server name indication&quot;);\n            }\n</code></pre>\n<p>This would reflect the behaviour I'd like to have, exactly. However, it relies on having <code>sniMatchers</code> set, which is done by using <code>SSLParameters</code>. Unfortunatelly, I don't find any possible place to do so. I've tried using TomcatServletWebServerFactory, but SSLParameters got ignored.</p>\n<p>This was my most promising approach, but it won't work like documented in the code:</p>\n<pre><code>@Bean\npublic WebServerFactoryCustomizer&lt;TomcatServletWebServerFactory&gt; sslContextCustomizer(final SslServerConfiguration sslServerConfiguration) {\n    return factory -&gt; factory.addContextCustomizers(context -&gt; {\n        for (var connector : Container.getService(context.getParent()).findConnectors()) {\n            for (SSLHostConfig hostConfig : connector.findSslHostConfigs()) {\n                for (SSLHostConfigCertificate certificate : hostConfig.getCertificates()) {\n                    // could be set here, but .getSupportedSSLParameters() is always null\n                    // and setting it with new SSLParameters is getting ignored:\n                    //certificate.getSslContext().getSupportedSSLParameters().setSNIMatchers();\n                }\n            }\n        };\n    });\n}\n</code></pre>\n<p>I would appreciate any hint how to set SNIMatchers.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

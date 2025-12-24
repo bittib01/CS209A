@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "c",
+      "opencl",
+      "raytracing",
+      "jocl"
+    ],
+    "owner": {
+      "account_id": 36190152,
+      "reputation": 21,
+      "user_id": 27612018,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/93b399265db9c8135047e88c41dc66d4?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Anderson Gon&#231;alves",
+      "link": "https://stackoverflow.com/users/27612018/anderson-gon%c3%a7alves"
+    },
+    "is_answered": false,
+    "view_count": 80,
+    "answer_count": 3,
+    "score": 2,
+    "last_activity_date": 1736818498,
+    "creation_date": 1727979680,
+    "last_edit_date": 1727989689,
+    "question_id": 79051761,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79051761/how-do-i-pass-an-java-object-to-my-opencl-kernel",
+    "title": "How do I pass an Java Object to my OpenCL kernel?",
+    "body": "<p>I'm developing a Java RayTracer with OpenCL. Im currently using JOCL to access the API. So, now I'm trying to make the user interact with the camera, and my plan was to make a camera that would be global to the kernel, and if the user interacts with it, the host would update the camera values and send these new values to the kernel. But I'm struggling to make these happen.</p>\n<p>Below is my implementation of the camera, both in Java and C. I tried to match the values to avoid issues with memory alignment:</p>\n<pre><code>public class Camera {\n    public float aspect_ratio;\n    public int image_width;\n    public int image_height;\n    public float view_fov;\n}\n\ntypedef struct {\n    float aspect_ratio;\n    int image_width;\n    int image_height;\n    float view_fov;\n} Camera;\n</code></pre>\n<p>The method to convert the camera into a buffer that contains its attributes:</p>\n<pre><code>public ByteBuffer toByteBuffer(int bufferSize) {\n    ByteBuffer buffer = ByteBuffer.allocateDirect(bufferSize);\n    buffer.putFloat(aspect_ratio);\n    buffer.putInt(image_width);\n    buffer.putInt(image_height);\n    buffer.putFloat(view_fov);\n    buffer.flip();\n    return buffer;\n}\n</code></pre>\n<p>Here is how I create the buffer and send it to the kernel:</p>\n<pre><code>        int cameraBufferSize = camera.getCameraSize();\n        ByteBuffer cameraBuffer = camera.toByteBuffer(cameraBufferSize);\n        cl_mem cameraMem = clCreateBuffer(hostManager.getContext(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, cameraBuffer.capacity(), Pointer.to(cameraBuffer), null);\n\n        long[] globalWorkSize = new long[2];\n        globalWorkSize[0] = width;\n        globalWorkSize[1] = height;\n\n        clSetKernelArg(hostManager.getKernel(), 0, Sizeof.cl_mem, Pointer.to(outputImageMem));\n        cL.clSetKernelArg(hostManager.getKernel(), 1, Sizeof.cl_mem, Pointer.to(cameraMem));\n        clEnqueueNDRangeKernel(hostManager.getCommandQueue(), hostManager.getKernel(), 2, null, globalWorkSize, null, 0, null, null);\n        \n</code></pre>\n<p>Here is my kernel code:</p>\n<pre><code>__kernel void render_kernel(__global uint* output, __global Camera* camera) {\n    printf(&quot;aspect ratio: %f\\n&quot;, camera-&gt;aspect_ratio);\n    printf(&quot;image width: %d\\n&quot;, camera-&gt;image_width);\n    printf(&quot;image height: %d\\n&quot;, camera-&gt;image_height);\n    printf(&quot;view_fov: %f\\n&quot;, camera-&gt;view_fov);\n}\n</code></pre>\n<p>I even used clEnqueueReadBuffer() to read the buffer after sending it to the kernel, and the values appeared correct on the host side.</p>\n<p>So, for a camera initialized with the following atributes:</p>\n<p><code>Camera camera = new Camera(16.0 / 9.0, 800, 450, 90.0);</code></p>\n<p>When executed, the kernel gives the following output:</p>\n<pre><code>aspect ratio: 0.000273 //expected aspect ratio -&gt; 1.7777\nimage width: 327680 //expected width -&gt; 800\nimage height: -805175296 //expected height -&gt; 450\nview_fov: 0.000000 //expected view_fov -&gt; 90 \n</code></pre>\n<p>So, is there a problem with how I'm creating the buffer and sending it, or is it related to the kernel side?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

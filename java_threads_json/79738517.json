@@ -1,0 +1,31 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "model-context-protocol"
+    ],
+    "owner": {
+      "account_id": 43551318,
+      "reputation": 11,
+      "user_id": 31296535,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/3e413ed0a974bfe93243290ed80f8df0?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Deepak s",
+      "link": "https://stackoverflow.com/users/31296535/deepak-s"
+    },
+    "is_answered": false,
+    "view_count": 382,
+    "answer_count": 0,
+    "score": 3,
+    "last_activity_date": 1758018433,
+    "creation_date": 1755509548,
+    "question_id": 79738517,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79738517/io-modelcontextprotocol-spec-mcperror-client-failed-to-initialize-by-explicit-a",
+    "title": "io.modelcontextprotocol.spec.McpError: Client failed to initialize by explicit API call",
+    "body": "<p>I'm working on a chat-based plugin using the MCP Java SDK (<code>io.modelcontextprotocol.sdk:mcp:0.11.0</code>) and getting the error <code>io.modelcontextprotocol.spec.McpError: Client failed to initialize by explicit API call</code> when using HTTPS transport.</p>\n<p>Problem: Client initialization fails with the above error when using HTTPS transport. The same server works perfectly with VS Code (which also uses HTTPS) and with SSE transport from our Java client.</p>\n<p>Context:</p>\n<ul>\n<li>The MCP server is an internal implementation that works perfectly with VS Code via HTTPS</li>\n<li>SSE transport connects successfully with the same server from our Java client</li>\n<li>Only HTTPS transport is failing during the initialization phase in Java SDK</li>\n<li>Server definitely supports MCP-over-HTTP since VS Code connects successfully</li>\n</ul>\n<p>Code snippet:</p>\n<pre><code>if (&quot;http&quot;.equalsIgnoreCase(transportType)) {  // Note: actually using HTTPS URL\n    HttpClientStreamableHttpTransport.Builder builder = HttpClientStreamableHttpTransport.builder(mcpUrl)\n            .customizeRequest(requestBuilder -&gt; {\n                System.out.println(&quot;Customizing request for HTTP MCP client: &quot; + mcpUrl);\n                // Add authentication headers, if available\n                if (authHeader != null &amp;&amp; !authHeader.isEmpty()) {\n                    authHeader.forEach((key, value) -&gt; {\n                        requestBuilder.setHeader(key, value);\n                    });\n                }\n            })\n            .endpoint(URI.create(mcpUrl).getRawPath());\n \n    client = McpClient.async(builder.build()).requestTimeout(Duration.ofSeconds(60)).build();\n}\n \nclient.initialize().block();\n</code></pre>\n<p>Underlying Stack Trace:</p>\n<pre><code>java.lang.RuntimeException: Failed to send message: DummyEvent[responseInfo=jdk.internal.net.http.ResponseInfoImpl@fbe869d]\n    at io.modelcontextprotocol.client.transport.HttpClientStreamableHttpTransport.lambda$sendMessage$27(HttpClientStreamableHttpTransport.java:512)\n    ...\n    at io.modelcontextprotocol.client.transport.ResponseSubscribers$BodilessResponseLineSubscriber.hookOnComplete(ResponseSubscribers.java:287)\n</code></pre>\n<p>Key observations:</p>\n<ol>\n<li>Error occurs during client initialization with <code>client.initialize().block()</code></li>\n<li>Involves <code>BodilessResponseLineSubscriber.hookOnComplete</code> suggesting HTTP response processing issue</li>\n<li>Same server works with VS Code via HTTPS - so server implementation should be correct</li>\n<li>Same server works with SSE transport from Java - so authentication/connectivity is fine</li>\n</ol>\n<p>Questions:</p>\n<ol>\n<li>Has anyone encountered this specific <code>McpError</code> with HTTP transport initialization?</li>\n<li>Are there differences in how the Java SDK's HTTP transport vs VS Code's HTTP client handle MCP initialization?</li>\n<li>Could this be related to HTTP headers, request methods, or connection handling specific to the Java SDK?</li>\n<li>Are there additional configuration options for <code>HttpClientStreamableHttpTransport</code> that might resolve this?</li>\n</ol>\n<p>What works vs what doesn't:</p>\n<ul>\n<li>✅ VS Code → Server via HTTPS</li>\n<li>✅ Java Client → Server via SSE</li>\n<li>❌ Java Client → Server via HTTPS (fails with initialization error)</li>\n</ul>\n<p>This suggests the issue is specifically with how the Java SDK's HTTP transport handles initialization compared to VS Code's implementation.</p>\n<p>Any insights on resolving this initialization error with HTTP transport would be greatly appreciated!</p>\n<p>I'm expecting the MCP client to connect with MCP server using HTTPS transport type</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

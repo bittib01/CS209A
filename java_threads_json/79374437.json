@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "soap",
+      "cxf"
+    ],
+    "owner": {
+      "account_id": 17095522,
+      "reputation": 1,
+      "user_id": 12370602,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/38234f47f356b227e2a97b2a2332c0d7?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Manav",
+      "link": "https://stackoverflow.com/users/12370602/manav"
+    },
+    "is_answered": false,
+    "view_count": 452,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1739440404,
+    "creation_date": 1737462994,
+    "last_edit_date": 1737537268,
+    "question_id": 79374437,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79374437/why-is-my-soap-modification-not-working-after-migrating-from-cxf-3-5-7-to-4-1-0",
+    "title": "Why is my SOAP modification not working after migrating from CXF 3.5.7 to 4.1.0? Getting a cl is null error",
+    "body": "<p>I'm currently migrating a project from Apache CXF version 3.5.7 to 4.1.0, and after the migration, my SOAP message modification logic stopped working. The error I'm encountering is a cl is null exception. The code was working fine in the previous version, but now the cl object seems to be null, and I can't figure out why.</p>\n<p>Has anyone faced this issue when upgrading CXF versions? What changes should I make to ensure that my SOAP modification works correctly in CXF 4.1.0? Any insights or suggestions would be appreciated!</p>\n<pre><code>java.lang.NullPointerException: NullPointerException invoking http://test:4004/se/tm/cc: Cannot invoke &quot;java.net.http.HttpClient.sendAsync(java.net.http.HttpRequest, java.net.http.HttpResponse$BodyHandler)&quot; because &quot;cl&quot; is null\n    at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)\n    at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)\n    at java.base/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)\n    at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)\n    at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:480)\n    at org.apache.cxf.transport.http.HTTPConduit$WrappedOutputStream.mapException(HTTPConduit.java:1452)\n    at org.apache.cxf.transport.http.HTTPConduit$WrappedOutputStream.close(HTTPConduit.java:1438)\n    at org.apache.cxf.transport.http.HttpClientHTTPConduit$HttpClientWrappedOutputStream.close(HttpClientHTTPConduit.java:824)\n    at org.apache.cxf.phase.PhaseInterceptorChain.doIntercept(PhaseInterceptorChain.java:307)\n    at org.apache.cxf.endpoint.ClientImpl.doInvoke(ClientImpl.java:530)\n    at org.apache.cxf.endpoint.ClientImpl.invoke(ClientImpl.java:441)\n    at org.apache.cxf.endpoint.ClientImpl.invoke(ClientImpl.java:356)\n    at org.apache.cxf.endpoint.ClientImpl.invoke(ClientImpl.java:314)\n    at org.apache.cxf.endpoint.ClientImpl.invoke(ClientImpl.java:334)\n    at org.apache.cxf.endpoint.ClientImpl.invoke(ClientImpl.java:320)\n    at org.apache.cxf.phase.PhaseInterceptorChain.doIntercept(PhaseInterceptorChain.java:307)\n    at org.apache.cxf.transport.ChainInitiationObserver.onMessage(ChainInitiationObserver.java:121)\n    at org.apache.cxf.transport.http.AbstractHTTPDestination.invoke(AbstractHTTPDestination.java:265)\n    at org.apache.cxf.transport.servlet.ServletController.invokeDestination(ServletController.java:233)\n    at org.apache.cxf.transport.servlet.ServletController.invoke(ServletController.java:207)\n    at org.apache.cxf.transport.servlet.ServletController.invoke(ServletController.java:159)\n    at org.apache.cxf.transport.servlet.CXFNonSpringServlet.invoke(CXFNonSpringServlet.java:224)\n    at org.apache.cxf.transport.servlet.AbstractHTTPServlet.handleRequest(AbstractHTTPServlet.java:312)\n    at org.apache.cxf.transport.servlet.AbstractHTTPServlet.doPost(AbstractHTTPServlet.java:217)\n    at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:590)\n</code></pre>\n<p>For code:</p>\n<pre><code>public class OutPreStreamInterceptor extends AbstractPhaseInterceptor&lt;Message&gt;{\n\n\n    public OutPreStreamInterceptor(String phase) {\n        super(phase);\n        addBefore(SoapPreProtocolOutInterceptor.class.getName());\n    }\n\n    @Override\n    public void handleMessage(Message message) {\n        OutputStream os = message.getContent(OutputStream.class);\n        boolean isOutbound = message == message.getExchange().getOutMessage()\n                || message == message.getExchange().getOutFaultMessage();\n\n        String content = getRawContent(message);\n        String newContent = content;\n        if (isOutbound) {\n\n            InterceptorUtils.CachedStream cs = new InterceptorUtils.CachedStream();\n            message.setContent(OutputStream.class, cs);\n            String action = retrieveSOAPAction(message);\n            if (action.contains(&quot;test&quot;) ) {\n                newContent = content.replace(&quot;&lt;ns2:deviceType&gt;tt&lt;/ns2:deviceType&gt;&quot;, &quot;&quot;);\n            }\n            if (action.contains(&quot;test2&quot;)) {\n                newContent = changeJobId(newContent);\n            }\n            if (!StringUtils.equalsIgnoreCase(newContent, content)) {\n                log.debug(&quot;0;Outbound message has been changed: &quot; + newContent);\n            }\n            try {\n                replaceContent(message, newContent, os);\n            } catch (IOException e) {\n                log.error(&quot;0;Error while replacing outbound message {}&quot;, e.getMessage());\n                throw new RuntimeException(&quot;Error while replacing outbound message&quot; + e);\n            }\n        } else {\n            // If necessary, in-bound message may be changed here.\n        }\n    }\n\n      public static void replaceContent(Message message, String newContent, OutputStream os) throws IOException {\n        InputStream replaceInStream = new ByteArrayInputStream(newContent.getBytes(StandardCharsets.UTF_8));\n\n        IOUtils.copy(replaceInStream, os);\n        replaceInStream.close();\n\n        os.flush();\n        message.setContent(OutputStream.class, os);\n        os.close();\n}\n</code></pre>\n<p>I tried checking the internal classes and changes but didn't had much luck.</p>\n<p>But if remove this custom interceptor the code is working fine.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

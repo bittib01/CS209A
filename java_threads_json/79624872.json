@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "kotlin",
+      "jdbc",
+      "apache-flink",
+      "flink-streaming"
+    ],
+    "owner": {
+      "account_id": 1193173,
+      "reputation": 4375,
+      "user_id": 1165499,
+      "user_type": "registered",
+      "accept_rate": 76,
+      "profile_image": "https://www.gravatar.com/avatar/6aab23e3285281f6a29c44b6c6257988?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "ashur",
+      "link": "https://stackoverflow.com/users/1165499/ashur"
+    },
+    "is_answered": false,
+    "view_count": 51,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1747387240,
+    "creation_date": 1747387240,
+    "question_id": 79624872,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79624872/flink-jdbcsource-guarantees",
+    "title": "Flink JDBCSource guarantees",
+    "body": "<p>We're using the following <code>JDBCSource</code> within <code>Flink</code> application that connects to <code>Snowflake</code> and retrieves some data.</p>\n<p>So essentialy, after starting the JOB wait for 5 seconds and begin fetching rows every 15 seconds with &quot;tumbling window&quot; interval of 15 seconds from the moment of starting the app.</p>\n<pre><code>    return JdbcSource.builder&lt;TestEntity&gt;()\n        .setSql(&quot;SELECT id, test WHERE ts BETWEEN ? AND ?&quot;)\n        .setDriverName(&quot;net.snowflake.client.jdbc.SnowflakeDriver&quot;)\n        .setDBUrl(config.snowflake.jdbcUrl)\n        .setUsername(config.snowflake.user)\n        .setConnectionProperty(&quot;warehouse&quot;, config.snowflake.warehouse)\n        .setConnectionProperty(&quot;db&quot;, config.snowflake.database)\n        .setConnectionProperty(&quot;role&quot;, config.snowflake.role)\n        .setConnectionProperty(&quot;schema&quot;, config.snowflake.schema)\n        .setConnectionProperty(&quot;private_key_base64&quot;, Base64.getEncoder().encodeToString(privateKeyBytes))\n        .setConnectionProperty(&quot;CLIENT_SESSION_KEEP_ALIVE&quot;, &quot;true&quot;)\n        .setTypeInformation(TypeInformation.of(TestEntity::class.java))\n        .setJdbcParameterValuesProvider(\n            JdbcSlideTimingParameterProvider(\n                System.currentTimeMillis(),\n                15000,\n                15000,\n                0L,\n            ),\n        )\n        .setContinuousUnBoundingSettings(\n            ContinuousUnBoundingSettings(\n                Duration.ofSeconds(5),\n                Duration.ofSeconds(15),\n            ),\n        )\n        .setResultExtractor { TestEntity(it.getString(1), it.getString(2)) }\n        .build()\n</code></pre>\n<p>In a situation where we might have larger number of rows fetched with single query at given moment what are the guarantees that when my application fails the rows that were pushed further to downside operators are checkpointed?</p>\n<p>If I send only a few of them, <code>Flink</code> fails before executing checkpoint, then it will start from the last saved checkpoint. Does <code>JdbcSource</code> fully support checkpointing/fault-tolerance?</p>\n<p>Also why this source is so limited? I'd like to run the query with <code>ContinuousUnBoundingSettings</code> (every given Time) but with custom parameter value provider, not only the  <code>JdbcSlideTimingParameterProvider</code></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "image",
+      "lwjgl"
+    ],
+    "owner": {
+      "account_id": 26921273,
+      "reputation": 1,
+      "user_id": 20495263,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/b424e76c63a633872051d6621838ee11?s=256&d=identicon&r=PG",
+      "display_name": "BliepMonster",
+      "link": "https://stackoverflow.com/users/20495263/bliepmonster"
+    },
+    "is_answered": false,
+    "view_count": 44,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1736431295,
+    "creation_date": 1734885165,
+    "last_edit_date": 1736431295,
+    "question_id": 79301309,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79301309/distorted-pixel-display-in-lwjgl-textures",
+    "title": "Distorted pixel display in LWJGL textures",
+    "body": "<p>I was making a simple game and my pixels appear distorted (image).<a href=\"https://i.sstatic.net/nugVZtqP.png\" rel=\"nofollow noreferrer\">It's not perfect</a>\nI don't have any experience with this library, and I followed two tutorials for texture loading and screen setup. And now I have a problem with this. It does work for zoomed in textures, but with small spaces it does not work.\nTexture drawing method: (below) this is where I think the problem is, but I don't know where. I draw a square with a texture based on aspect ratio and parameters.</p>\n<pre><code>public static void image(DisplayScreen screen, Texture texture, float x1, float y1, float width, float height) {\n        GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);\n        texture.bind();\n        int screenWidth = screen.getWidth();\n        int screenHeight = screen.getHeight();\n        glEnable(GL_TEXTURE);\n        glEnable(GL_TEXTURE_2D);\n        glBegin(GL_QUADS);\n        float extendedX = (x1 * screenHeight) / screenWidth + (width * screenHeight) / screenWidth;\n        glTexCoord2f(0.0f, .0f);\n        GL11.glVertex2f((x1 * screenHeight) / screenWidth, y1+height);\n        GL11.glTexCoord2f(1.0f, 0.0f);\n        GL11.glVertex2f(extendedX, y1+height);\n        GL11.glTexCoord2f(1.0f, 1.0f);\n        GL11.glVertex2f(extendedX, y1);\n        GL11.glTexCoord2f(0.0f, 1.0f);\n        GL11.glVertex2f((x1 * screenHeight) / screenWidth, y1);\n        GL11.glEnd();\n    }\n</code></pre>\n<p>I got this from a tutorial:</p>\n<pre><code>public Texture(String filename) {\n        BufferedImage bi;\n        try {\n            bi = ImageIO.read(new File(filename));\n            width = bi.getWidth();\n            height = bi.getHeight();\n\n            int[] pixels_raw;\n            pixels_raw = bi.getRGB(0, 0, width, height, null, 0, width);\n            ByteBuffer pixels = BufferUtils.createByteBuffer(width*height*4);\n            for (int i = 0; i &lt; width; i++) {\n                for (int j = 0; j &lt; height; j++) {\n                    int pixel = pixels_raw[i * height + j];\n                    pixels.put((byte) ((pixel &gt;&gt; 16) &amp; 0xFF)); //RED\n                    pixels.put((byte) ((pixel &gt;&gt; 8) &amp; 0xFF));  //GREEN\n                    pixels.put((byte) (pixel &amp; 0xFF));         //BLUE\n                    pixels.put((byte) ((pixel &gt;&gt; 24) &amp; 0xFF)); //ALPHA\n                }\n            }\n            glEnable(GL_BLEND);\n            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);\n            pixels.flip();\n            id = glGenTextures();\n            bind();\n            glOrtho(2, 2, 2, 2, 2, 2);\n            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);\n            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);\n            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);\n        } catch(Exception e) {\n            e.printStackTrace();\n        }\n</code></pre>\n<p>I added this because I thought it would do something: (it didn't do much, and the issue is still there)\n<code> glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); glTexParameteri(GL_TEXTURE_2D, GL_UNPACK_ALIGNMENT, GL_CLAMP_TO_EDGE); glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);</code></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

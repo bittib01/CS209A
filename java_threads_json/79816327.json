@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jakarta-ee",
+      "cdi"
+    ],
+    "owner": {
+      "account_id": 11754933,
+      "reputation": 185,
+      "user_id": 8602917,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/C319F.png?s=256",
+      "display_name": "numberfourteen",
+      "link": "https://stackoverflow.com/users/8602917/numberfourteen"
+    },
+    "is_answered": true,
+    "view_count": 107,
+    "answer_count": 5,
+    "score": 0,
+    "last_activity_date": 1762959198,
+    "creation_date": 1762845051,
+    "last_edit_date": 1762849978,
+    "question_id": 79816327,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79816327/jakarta-cdi-two-singletons-of-the-same-class",
+    "title": "Jakarta CDI - Two &quot;Singletons&quot; of the same class",
+    "body": "<p>I'm new to injection frameworks. And my question is a contradiction in itself, but - hypothetically - is it possible to have CDI inject exactly 2 different instances of the same class throughout my code? Two singletons of one class so to speak? And if yes, what would the annotations look like? Producing two different @Named instances with @Produces methods?</p>\n<p>---- edit ----</p>\n<p>Here is what I came up with:</p>\n<pre><code>@Singleton\npublic final class StartupBean {\n  @Inject\n  StartupBean(SomeManager someManager) {\n    // nothing happening here\n  }\n\n  @Produces\n  @Named(&quot;fooObject&quot;)\n  public MyImplementation produceFooObject() {\n    return new MyImplementation();\n  }\n\n  @Produces\n  @Named(&quot;barObject&quot;)\n  public MyImplementation produceBarObject() {\n    return new MyImplementation();\n  }\n}\n\n\n// class implementing two interfaces\nfinal class MyImplementation \n    extends SomethingElse\n    implements MyInterface, MyOtherInterface {\n}\n\n// manager class using both named instances\n@Singleton\nfinal class SomeManager {\n  private final MyInterface foo;\n  private final MyInterface bar;\n\n  @Inject\n  SomeManager(\n      @Named(&quot;fooObject&quot;) MyInterface fooObject,\n      @Named(&quot;barObject&quot;) MyInterface barObject) {\n    this.foo = fooObject;\n    this.bar = barObject;\n    // stuff happening\n  }\n}\n\n// class using one of the object with different type\npublic final class ClassA {\n  private final MyOtherInterface bla;\n\n  @Inject\n  ClassA(@Named(&quot;fooObject&quot;) MyOtherInterface fooObject) {\n    this.bla = fooObject;\n  }\n}\n</code></pre>\n<p>But this causes a StackOverFlowError exception. Any suggestions?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

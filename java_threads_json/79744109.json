@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "concurrency",
+      "structured-concurrency"
+    ],
+    "owner": {
+      "account_id": 2585378,
+      "reputation": 63,
+      "user_id": 2241215,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/acdbc77bffb3ff01997bea959eeb89b0?s=256&d=identicon&r=PG",
+      "display_name": "Mehmet Atakan Serin",
+      "link": "https://stackoverflow.com/users/2241215/mehmet-atakan-serin"
+    },
+    "is_answered": true,
+    "view_count": 321,
+    "answer_count": 3,
+    "score": 4,
+    "last_activity_date": 1760111620,
+    "creation_date": 1755937343,
+    "last_edit_date": 1760111620,
+    "question_id": 79744109,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79744109/how-to-get-partial-results-with-java-structured-concurrency-in-a-timeout-scenari",
+    "title": "How to get partial results with Java structured concurrency in a timeout scenario?",
+    "body": "<p>I have a scenario where I need to send two parallel requests, where they should have a combined timeout of 2 seconds. However if one of the requests times out, I would like to see the partial result of the other request. And partial result can be a result or an exception. So I do not want to shutdown on failures. I had tried to solve it like this with StructuredConcurrency:</p>\n<pre><code>import java.time.Instant;\nimport java.util.concurrent.StructuredTaskScope;\nimport java.util.concurrent.TimeoutException;\n\npublic class Main {\n    public static void main(String[] myData) {\n        try (var scope = new StructuredTaskScope&lt;String&gt;()) {\n\n             var subtask1 = scope.fork(() -&gt; {\n                Thread.sleep(3000);\n                return &quot;slow&quot;;\n            });\n             var subtask2 = scope.fork(() -&gt; {\n                Thread.sleep(1000);\n                return &quot;fast&quot;;\n            });\n\n            try {\n                scope.joinUntil(Instant.now().plusMillis(2000));\n            } catch (TimeoutException te) {\n                System.out.println(&quot;Timeout occurred&quot;);\n            }\n\n            switch (subtask1.state()) {\n                case SUCCESS -&gt; System.out.println(&quot;1s&quot;+subtask1.get());\n                case FAILED -&gt; System.out.println(&quot;1f&quot;);\n                case UNAVAILABLE -&gt; System.out.println(&quot;1u&quot;);\n                case null, default -&gt; System.out.println(&quot;1w&quot;);\n            }\n\n            switch (subtask2.state()) {\n                case SUCCESS -&gt; System.out.println(&quot;2s&quot;+subtask2.get());\n                case FAILED -&gt; System.out.println(&quot;2f&quot;);\n                case UNAVAILABLE -&gt; System.out.println(&quot;2u&quot;);\n                case null, default -&gt; System.out.println(&quot;2w&quot;);\n            }\n\n        } catch (InterruptedException e) {\n            throw new RuntimeException(e);\n        }\n    }\n}\n</code></pre>\n<p>So this is the output:</p>\n<pre><code>Timeout occurred\n1u\nException in thread &quot;main&quot; java.lang.IllegalStateException: Owner did not join after forking subtasks\n    at java.base/java.util.concurrent.StructuredTaskScope.newIllegalStateExceptionNoJoin(StructuredTaskScope.java:439)\n    at java.base/java.util.concurrent.StructuredTaskScope.ensureJoinedIfOwner(StructuredTaskScope.java:477)\n    at java.base/java.util.concurrent.StructuredTaskScope$SubtaskImpl.get(StructuredTaskScope.java:917)\n    at org.example.Main.main(Main.java:34)\n</code></pre>\n<p>So slow task's state is UNAVAILABLE. Fast task's state is SUCCESS, but not able to call get on it. It is throwing IllegalStateException. What is the best way to capture the results that each subtask emits? Updating outer variables from the subtasks?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

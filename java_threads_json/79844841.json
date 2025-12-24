@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "mapstruct"
+    ],
+    "owner": {
+      "account_id": 44990283,
+      "reputation": 1,
+      "user_id": 32041629,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/ac8cdece60d7093fee06eeb37ada0dfe?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Arteilo",
+      "link": "https://stackoverflow.com/users/32041629/arteilo"
+    },
+    "is_answered": false,
+    "view_count": 95,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1765555467,
+    "creation_date": 1765539556,
+    "last_edit_date": 1765541499,
+    "question_id": 79844841,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79844841/mapstruct-not-mapping-nested-fields-without-explicit-mappings-when-multiple-sour",
+    "title": "MapStruct not mapping nested fields without explicit mappings when multiple source parameters are present",
+    "body": "<p>I have two similar DTO classes and a MapStruct mapper. When mapping from one object with additional <code>String</code> parameters, nested fields aren't mapped automatically — they become <code>null</code> unless explicitly defined.</p>\n<p><strong>Important context</strong>: This simplified example illustrates a real problem in my project where I have to write <strong>14 explicit <code>@Mapping</code> annotations</strong> just to map nested fields that should be auto-mapped. I'm looking for a way to avoid this boilerplate.</p>\n<p><strong>Source Classes:</strong></p>\n<pre><code>@Getter\n@Setter\n@AllArgsConstructor\n@NoArgsConstructor\npublic class MyHome {\n    private Bathroom bathroomInfo;\n    private Bedroom bedroomInfo;\n    private Kitchen kitchenInfo;\n\n    @Getter @Setter @AllArgsConstructor @NoArgsConstructor\n    public static class Bathroom { private String shower; }\n\n    @Getter @Setter @AllArgsConstructor @NoArgsConstructor\n    public static class Bedroom { private String bed; }\n\n    @Getter @Setter @AllArgsConstructor @NoArgsConstructor\n    public static class Kitchen { private String diningTable; }\n}\n\n@Getter\n@Setter\n@AllArgsConstructor\n@NoArgsConstructor\npublic class MyFriendHome {\n    private Bathroom bathroomInfo;\n    private Bedroom bedroomInfo;\n    private Kitchen kitchenInfo;\n\n    @Getter @Setter @AllArgsConstructor @NoArgsConstructor\n    public static class Bathroom { \n        private String shower;\n        private String nightstand;\n        private String sink;\n    }\n\n    @Getter @Setter @AllArgsConstructor @NoArgsConstructor\n    public static class Bedroom { private String bed; }\n\n    @Getter @Setter @AllArgsConstructor @NoArgsConstructor\n    public static class Kitchen { private String diningTable; }\n}\n</code></pre>\n<p><strong>Mapper Interface:</strong></p>\n<pre><code>@Mapper(\n    componentModel = MappingConstants.ComponentModel.SPRING,\n    unmappedTargetPolicy = ReportingPolicy.ERROR\n)\npublic interface HomeMapper {\n    \n    @Mapping(target = &quot;bathroomInfo.shower&quot;, source = &quot;myHome.bathroomInfo.shower&quot;)\n    @Mapping(target = &quot;bathroomInfo.nightstand&quot;, source = &quot;nightstand&quot;)\n    @Mapping(target = &quot;bathroomInfo.sink&quot;, source = &quot;sink&quot;)\n    MyFriendHome toMyFriendHome(MyHome myHome, String nightstand, String sink);\n}\n</code></pre>\n<p><strong>Usage:</strong></p>\n<pre><code>@GetMapping\npublic MyFriendHome getMyFriendHome() {\n    MyHome home = new MyHome(\n        new MyHome.Bathroom(&quot;shower&quot;),\n        new MyHome.Bedroom(&quot;bed&quot;),\n        new MyHome.Kitchen(&quot;kitchen&quot;)\n    );\n    return homeMapper.toMyFriendHome(home, &quot;nightstand&quot;, &quot;sink&quot;);\n}\n</code></pre>\n<p><strong>Problem:</strong><br />\nIf I remove the explicit mapping for <code>bathroomInfo.shower</code>:</p>\n<pre><code>// @Mapping(target = &quot;bathroomInfo.shower&quot;, source = &quot;myHome.bathroomInfo.shower&quot;)\n</code></pre>\n<p>The <code>shower</code> field becomes <code>null</code> in the result. Only <code>nightstand</code> and <code>sink</code> get populated. However, <code>bedroomInfo</code> and <code>kitchenInfo</code> (which have matching field names and types) are mapped automatically without any explicit mappings.</p>\n<p><strong>In my actual project</strong>, this forces me to write numerous <code>@Mapping</code> annotations for fields that should be auto-mapped by convention.</p>\n<p><strong>Question:</strong><br />\nWhy doesn't MapStruct automatically map <code>myHome.bathroomInfo.shower</code> to <code>bathroomInfo.shower</code> when there are multiple source parameters, while it successfully maps other nested objects (<code>bedroomInfo</code>, <code>kitchenInfo</code>)?</p>\n<p>Is this expected behavior with multiple source parameters? How can I configure the mapper to handle nested field mappings automatically in this scenario and avoid writing dozens of explicit <code>@Mapping</code> annotations?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-security",
+      "oauth-2.0",
+      "spring-oauth2"
+    ],
+    "owner": {
+      "account_id": 11665302,
+      "reputation": 2061,
+      "user_id": 8542187,
+      "user_type": "registered",
+      "accept_rate": 67,
+      "profile_image": "https://www.gravatar.com/avatar/419ba4174c83bb305fdeafe7f45e68a2?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "xmlParser",
+      "link": "https://stackoverflow.com/users/8542187/xmlparser"
+    },
+    "is_answered": true,
+    "view_count": 2301,
+    "accepted_answer_id": 78480971,
+    "answer_count": 3,
+    "score": 3,
+    "last_activity_date": 1747795587,
+    "creation_date": 1714822140,
+    "question_id": 78428822,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78428822/jwtencoder-failed-to-select-a-jwk-signing-key",
+    "title": "JWTEncoder: Failed to select a JWK signing key",
+    "body": "<p>I have an auth-server + resource server in one app. I've spent a lot of time searching and debugging, but there aren't many updated pages or topics about Spring Boot 3.+ related to this. So, I had this working and wanted to add a custom secret that will be shared between my client and server. And here is where the problems started...</p>\n<p>This is my auth+resource server config:</p>\n<pre><code>@Configuration\n@EnableWebSecurity\npublic class SecurityConfig {\n\n@Value(&quot;${security.jwt.secret}&quot;)\nprivate String jwtSecret;\n\n@Bean\nSecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http,\n                                                           CorsConfigurationSource corsConfigurationSource) throws Exception {\n    OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);\n    http.getConfigurer(OAuth2AuthorizationServerConfigurer.class).oidc(Customizer.withDefaults());\n\n    http.exceptionHandling((exceptions) -&gt; exceptions.defaultAuthenticationEntryPointFor(\n                    new LoginUrlAuthenticationEntryPoint(&quot;/login&quot;), new MediaTypeRequestMatcher(MediaType.TEXT_HTML)))\n            .oauth2ResourceServer((resourceServer) -&gt; resourceServer.jwt(Customizer.withDefaults()));\n\n    http.cors(customizer -&gt; customizer.configurationSource(corsConfigurationSource));\n    return http.build();\n}\n\n@Bean\nSecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {\n    http.authorizeHttpRequests(\n                    authorize -&gt; authorize.requestMatchers(&quot;/oauth2/authorize&quot;).permitAll().anyRequest().authenticated())\n            .formLogin(formLogin -&gt; formLogin.loginPage(&quot;/login&quot;).permitAll())\n            .oauth2ResourceServer(oauth2 -&gt; oauth2.jwt(Customizer.withDefaults()));\n    http.csrf(csrf -&gt; csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()));\n    return http.build();\n}\n\n@Bean\nPasswordEncoder passwordEncoder() {\n    return new BCryptPasswordEncoder();\n}\n\n@Bean\npublic JwtEncoder jwtEncoder() {\n    byte[] keyBytes = Base64.getDecoder().decode(jwtSecret);\n    SecretKeySpec secretKeySpec = new SecretKeySpec(keyBytes, &quot;HmacSHA256&quot;);\n    OctetSequenceKey octetKey = new OctetSequenceKey.Builder(secretKeySpec)\n            .keyID(&quot;customKey&quot;)\n            .build();\n    JWKSet jwkSet = new JWKSet(octetKey);\n    JWKSource&lt;SecurityContext&gt; jwkSource = (jwkSelector, context) -&gt; {\n        List&lt;JWK&gt; keys = jwkSelector.select(jwkSet);\n        if (keys.isEmpty()) {\n            System.out.println(&quot;No keys found matching selection criteria!&quot;);\n        } else {\n            System.out.println(&quot;Keys selected: &quot; + keys.stream().map(JWK::getKeyID).collect(Collectors.joining(&quot;, &quot;)));\n        }\n        return keys;\n    };\n\n    return new NimbusJwtEncoder(jwkSource);\n}\n\n@Bean\nJwtDecoder jwtDecoder() {\n    byte[] keyBytes = Base64.getDecoder().decode(jwtSecret);\n    SecretKeySpec secretKeySpec = new SecretKeySpec(keyBytes, &quot;HmacSHA256&quot;);\n    return NimbusJwtDecoder.withSecretKey(secretKeySpec).build();\n}\n}\n</code></pre>\n<p>And i have in my app.properties:</p>\n<pre><code>security.jwt.secret=r26BoWWyTQMp/8rkD3RnRKsbHkRsmQWjTvJTfmhrQxU=\n</code></pre>\n<p>I had everything working with asymmetric way (private and public key), but I wanted to try this wat too...</p>\n<p>Now, when logging in with the client, I always receive:</p>\n<p>org.springframework.security.oauth2.jwt.JwtEncodingException: An error occurred while attempting to encode the Jwt: Failed to select a JWK signing key</p>\n<ol>\n<li>What am i missing in the server?</li>\n</ol>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

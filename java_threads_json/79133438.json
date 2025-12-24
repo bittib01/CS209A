@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hibernate"
+    ],
+    "owner": {
+      "account_id": 6383695,
+      "reputation": 5871,
+      "user_id": 4952262,
+      "user_type": "registered",
+      "accept_rate": 71,
+      "profile_image": "https://www.gravatar.com/avatar/e8b911e7b5217f8981c31fc7ee8b7806?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Michu93",
+      "link": "https://stackoverflow.com/users/4952262/michu93"
+    },
+    "is_answered": true,
+    "view_count": 128,
+    "accepted_answer_id": 79335709,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1736246938,
+    "creation_date": 1730119192,
+    "last_edit_date": 1731409146,
+    "question_id": 79133438,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79133438/initial-sessionfactory-creation-failed-org-hibernate-mappingexception-an-asso",
+    "title": "Initial SessionFactory creation failed - org.hibernate.MappingException: An association from the table X refers to an unmapped class: Y",
+    "body": "<p>I am migrating application from Hibernate 4 to Hibernate 5.\nI can't win with naming strategy. Of course I have already read:\n<a href=\"https://stackoverflow.com/questions/5050538/hibernate-improvednamingstrategy-overrides-table-name-in-entity\">hibernate ImprovedNamingStrategy overrides Table name in entity</a> and <a href=\"https://stackoverflow.com/questions/32437202/improvednamingstrategy-no-longer-working-in-hibernate-5\">ImprovedNamingStrategy no longer working in Hibernate 5</a></p>\n<p>In <code>hibernate.cfg.xml</code> I have both:</p>\n<pre><code>&lt;mapping resource=&quot;com/ubs/investor/cpss/domain/BonusHis.hbm.xml&quot;/&gt;\n&lt;mapping resource=&quot;com/ubs/investor/cpss/domain/Instrument.hbm.xml&quot;/&gt;\n</code></pre>\n<p>I already changed <code>AnnotationConfiguration</code> to <code>Configuration</code> and now I have:</p>\n<pre><code>private void reloadHibernateSessionFactoryFromConf(Map&lt;String, String&gt; prop) {\n        try {\n            sessionFactory = null;\n            Configuration config = new Configuration(); //hibernate5\n\n            for(Map.Entry&lt;String, String&gt; entry : prop.entrySet()) {\n                config.setProperty(entry.getKey(), entry.getValue());\n            }\n            if(namingStrategy!=null){\n                configuration.setNamingStrategy(namingStrategy); //code which I think spoil application\n            }\n            if(annotatedEntityPackages!=null){\n                addAnnotatedClasses(config);\n            }\n            sessionFactory = config.configure().buildSessionFactory();\n        } catch (final HibernateException e) {\n            LOGGER.error(&quot;SessionFactory creation failed&quot;, e);\n        }\n</code></pre>\n<p>and <code>namingStrategy</code> was put by:</p>\n<pre><code>&lt;property name=&quot;namingStrategy&quot;&gt;\n            &lt;bean class=&quot;org.hibernate.cfg.ImprovedNamingStrategy&quot;/&gt;\n        &lt;/property&gt;\n</code></pre>\n<p>I already tried to comment <code>configuration.setNamingStrategy(namingStrategy);</code> at all. I tried <code>configuration.setPhysicalNamingStrategy(PhysicalNamingStrategyImpl.INSTANCE);</code> but also <code>CamelCase</code>, <code>UpperCase</code> etc. and everytime error is the same. Whatever I do with this <code>namingStrategy</code> class won't be mapped.</p>\n<p>Example class:</p>\n<pre><code>public class UpperCaseNamingStrategy extends PhysicalNamingStrategyStandardImpl {\n\n    @Override\n    public Identifier toPhysicalColumnName(Identifier name, JdbcEnvironment context) {\n        return context.getIdentifierHelper().toIdentifier(\n                StringUtils.upperCase(name.getText(), Locale.ENGLISH));\n    }\n\n    @Override\n    public Identifier toPhysicalCatalogName(final Identifier name, final JdbcEnvironment context) {\n        return context.getIdentifierHelper().toIdentifier(\n                StringUtils.upperCase(name.getText(), Locale.ENGLISH));\n    }\n\n    @Override\n    public Identifier toPhysicalSchemaName(final Identifier name, final JdbcEnvironment context) {\n        return context.getIdentifierHelper().toIdentifier(\n                StringUtils.upperCase(name.getText(), Locale.ENGLISH));\n    }\n\n    @Override\n    public Identifier toPhysicalSequenceName(final Identifier name, final JdbcEnvironment context) {\n        return context.getIdentifierHelper().toIdentifier(\n                StringUtils.upperCase(name.getText(), Locale.ENGLISH));\n    }\n\n    @Override\n    public Identifier toPhysicalTableName(final Identifier name, final JdbcEnvironment context) {\n        return context.getIdentifierHelper().toIdentifier(\n                StringUtils.upperCase(name.getText(), Locale.ENGLISH));\n    }\n\n}\n</code></pre>\n<p>but still I can see in logs:</p>\n<p><strong>org.hibernate.MappingException: An association from the table BONUS_HIS refers to an unmapped class: domain.Instrument</strong>\nat org.hibernate.cfg.Configuration.buildSessionFactory(Configuration.java:709)\nat org.hibernate.cfg.Configuration.buildSessionFactory(Configuration.java:746)\nat repository.legacy.HibernateSessionManager.<strong>reloadHibernateSessionFactoryFromConf</strong></p>\n<p>So what is implementation of <code>org.hibernate.cfg.ImprovedNamingStrategy</code> in hibernate 5?</p>\n<p>@Edit</p>\n<p>Actually I used:</p>\n<pre><code>public class PhysicalNamingStrategyImpl extends PhysicalNamingStrategyStandardImpl implements Serializable {\n\n    public static final PhysicalNamingStrategyImpl INSTANCE = new PhysicalNamingStrategyImpl();\n\n    @Override\n    public Identifier toPhysicalTableName(Identifier name, JdbcEnvironment context) {\n        return new Identifier(addUnderscores(name.getText()), name.isQuoted());\n    }\n   \n    protected static String addUnderscores(String name) {\n        final StringBuilder buf = new StringBuilder( name.replace('.', '_') );\n        for (int i=1; i&lt;buf.length()-1; i++) {\n            if (\n                    Character.isLowerCase( buf.charAt(i-1) ) &amp;&amp;\n                            Character.isUpperCase( buf.charAt(i) ) &amp;&amp;\n                            Character.isLowerCase( buf.charAt(i+1) )\n            ) {\n                buf.insert(i++, '_');\n            }\n        }\n        return buf.toString().toLowerCase(Locale.ROOT);\n    }\n}\n</code></pre>\n<p>and completely removed:</p>\n<pre><code>&lt;property name=&quot;namingStrategy&quot;&gt;\n     &lt;bean class=&quot;org.hibernate.cfg.ImprovedNamingStrategy&quot;/&gt;\n&lt;/property&gt;\n</code></pre>\n<p>but I don't think it's correct solutions because I can still see:\n<strong>org.hibernate.MappingException: An association from the table BONUS_HIS refers to an unmapped class: domain.Instrument</strong></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hibernate",
+      "hibernate-envers"
+    ],
+    "owner": {
+      "account_id": 5882906,
+      "reputation": 61,
+      "user_id": 4631769,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/0a3606d7ca790bc15bb148898a78da62?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Akroma",
+      "link": "https://stackoverflow.com/users/4631769/akroma"
+    },
+    "is_answered": false,
+    "view_count": 304,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1715593447,
+    "creation_date": 1713186186,
+    "last_edit_date": 1713773990,
+    "question_id": 78328588,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78328588/is-there-any-way-to-use-hibernate-envers-with-custom-queries",
+    "title": "Is there any way to use Hibernate Envers with custom queries",
+    "body": "<p>i wanted to ask if there is a way to use custom queries for lookup of revisioned entities.\nThe reason is that i want to be in full control of when my entities are loaded and sometimes i also have some more complex joins which are not that easy to reflect</p>\n<p>Following are my (sample) entities:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Data\n@Entity\n@Audited\n@Table(name = &quot;Product&quot;)\npublic class Product {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n\n    private String name;\n    private BigDecimal price;\n    private Long orderId;\n    @ManyToOne\n    @JoinColumn(name = &quot;ORDER_ID&quot;, insertable = false, updatable = false)\n    private Order order;\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>@Data\n@Entity\n@Audited\n@Table(name = &quot;Order&quot;)\npublic class Order {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n\n    private String text;\n    private BigDecimal amount;\n\n}\n</code></pre>\n<p>I would like to do something like this</p>\n<pre class=\"lang-java prettyprint-override\"><code>    public void findProductByOrderIdAndRevision(Long orderId, Long revisionFromOrder) {\nAuditReader auditReader = AuditReaderFactory.get(entityManager);\n\nreturn auditReader.createQuery().forEntitiesAtRevision(Product.class, revisionFromOrder)\n        .traverseRelation(&quot;order&quot;, JoinType.INNER, &quot;products&quot;, AuditEntity.id().eq(orderId))\n        .getResultList();\n    }\n</code></pre>\n<p>but this also returns old values which were not in the relation at the time of this revision</p>\n<p>Is there any possible way to achieve this?</p>\n<p>Best regards</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

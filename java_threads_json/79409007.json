@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-kafka"
+    ],
+    "owner": {
+      "account_id": 24520392,
+      "reputation": 145,
+      "user_id": 18433524,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/8cd45953ab076bda76f38626062a0dce?s=256&d=identicon&r=PG",
+      "display_name": "Feldmarshall",
+      "link": "https://stackoverflow.com/users/18433524/feldmarshall"
+    },
+    "is_answered": true,
+    "view_count": 154,
+    "accepted_answer_id": 79695391,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1752065630,
+    "creation_date": 1738590373,
+    "question_id": 79409007,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79409007/how-to-stop-kafka-adminclient-reconnect-retries",
+    "title": "How to stop Kafka AdminClient reconnect retries?",
+    "body": "<p>I'm trying to write a health check for kafka, that would run periodically, check connectivity and report any problems through prometheus alerts. My idea on how to do it was to simply make a request to kafka in a try catch block, and treat any exception as lost connectivity, code below.</p>\n<pre><code>@Scheduled(fixedRate = 1000)\nprivate void checkEventHubConnection() {\n    try {\n        System.out.println(&quot;Checking eventHub connection...&quot;);\n        adminClient.listTopics().names().get();\n        eventHubStatus = 1;\n    } catch (ExecutionException ee) {\n        eventHubStatusDown(ee);\n    } catch (InterruptedException ie) {\n        Thread.currentThread().interrupt();\n        eventHubStatusDown(ie);\n    }\n}\n</code></pre>\n<p>My problem is with the unit tests. Checking the positive case is simple enough and works. However, when I want to disable the EmbeddedKafka, it gets stuck in a loop, trying to reconnect for 60 seconds. What I find even weirder, is that during these 60 seconds of reconnecting, my scheduled task <code>checkEventHubConnection</code> doesn't run at all. It only runs once at the beginning, and once at the end, after the 60 seconds. I'm suspecting it's because the retry operation locks the thread where the scheduled task runs?</p>\n<p>Any opinions on if my general approach is correct and if so, how can I fix that? Below is my test setup and the test itself.</p>\n<pre><code>public class TestTest {\n\nprivate EventHubHealthCheck eventHubHealthCheck;\nprivate SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();\nprivate AdminClient adminClient;\n\n@Autowired\nprivate EmbeddedKafkaBroker embeddedKafka;\n\n@Autowired\nprivate MockMvc mockMvc;\n\n@BeforeAll\nvoid beforeAll() {\n    eventHubHealthCheck = new EventHubHealthCheck(meterRegistry);\n    Properties props = new Properties();\n    props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, embeddedKafka.getBrokersAsString());\n    adminClient = AdminClient.create(props);\n}\n\n@AfterAll\nvoid tearDown() {\n    if (adminClient != null) {\n        adminClient.close();\n    }\n}\n\n@Test\nvoid shouldReportEventHubStatusDownWhenKafkaIsStopped() throws Exception {\n    embeddedKafka.destroy();\n    \n    Thread.sleep(60000);\n\n    mockMvc.perform(get(&quot;/actuator/prometheus&quot;))\n            .andExpect(status().isOk())\n            .andExpect(content().string(containsString(&quot;event_hub_connectivity_status 0.0&quot;)));\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

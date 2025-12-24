@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "json",
+      "jackson"
+    ],
+    "owner": {
+      "account_id": 5651142,
+      "reputation": 115,
+      "user_id": 8858422,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/facae071b9ae986a3d732e9af111baf4?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "S Hornby",
+      "link": "https://stackoverflow.com/users/8858422/s-hornby"
+    },
+    "is_answered": false,
+    "view_count": 148,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1749803565,
+    "creation_date": 1749743079,
+    "last_edit_date": 1749803565,
+    "question_id": 79663814,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79663814/jackson-deserializing-how-to-only-deserialize-annotated-properties",
+    "title": "Jackson deserializing - how to only deserialize annotated properties",
+    "body": "<p>I have an application in which we need to send data back and forth via JSON and then map that to various objects in our application. I was able to configure it so that Jackson will only <em>serialize</em> properties with annotations, but I cannot seem to do the same thing for deserializing. The classes in question have extra fields that are not in the JSON. I am currently using Jackson 2.54 (yes, I know, it's old), but I can possibly upgrade to the latest version if I get approval from my superiors.</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class Person extends BaseClass {\n    @JsonProperty(&quot;id&quot;)\n    private String id;\n\n    @JsonProperty(&quot;Email&quot;)\n    private Email email;\n\n    @JsonProperty(&quot;Name&quot;)\n    private PersonNm name;\n\n    private EndDt endDt;\n\n    // Getters and setters for all of the above\n}\n</code></pre>\n<p>As you can see, I have three properties marked with JsonProperty (and the setters and getters are marked as JsonSetter and JsonGetter respectively), but I have an extra property, &quot;endDt&quot;. This property will never appear in the JSON, as it is to be used later. However, it still has two constructors:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public void setEndDt(Date val) {\n    if (endDt == null)\n        endDt = new EndDt();\n    endDt.setValue(val);\n}\n\npublic void setEndDt(EndDt val) {\n    this.endDt = endDt;\n}\n</code></pre>\n<p>The following JSON is sent in:</p>\n<pre class=\"lang-json prettyprint-override\"><code>&quot;Person&quot;: {\n    &quot;id&quot;: &quot;1&quot;,\n    &quot;Email&quot;: {\n        &quot;value&quot;: &quot;email@email.com&quot;\n    },\n    &quot;Name&quot;: {\n        &quot;value&quot;: &quot;Bob Smith&quot;\n    }\n}\n</code></pre>\n<p>Again, endDt is not there at all. But I am still getting the exception <code> com.fasterxml.jackson.databind.exc.InvalidDefinitionException: Conflicting setter definitions for property &quot;endDt&quot;: com.program.company.Person#setEndDt(com.program.company.EndDt) vs com.program.company.Person#setEndDt(java.util.Date)</code>.</p>\n<p>I know that I could just use JsonIgnore, but there are multiple properties throughout many classes and it would be far easier to just have the deserializer ignore everything that isn't marked as &quot;JsonProperty.&quot; I have my ObjectMapper configured as such:</p>\n<pre class=\"lang-java prettyprint-override\"><code>ObjectMapper mapper = new ObjectMapper();\nmapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);\nmapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);\nmapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);\nmapper.disable(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE);\nmapper.disable(MapperFeature.AUTO_DETECT_SETTERS,\n                MapperFeature.AUTO_DETECT_FIELDS,\n                MapperFeature.AUTO_DETECT_CREATORS,\n                MapperFeature.AUTO_DETECT_GETTERS,\n                MapperFeature.AUTO_DETECT_IS_GETTERS);\n</code></pre>\n<p>So my question is, despite the existence of JsonIgnore, is there anything more convenient, a property I could set to just ignore all of the non-annotated fields?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

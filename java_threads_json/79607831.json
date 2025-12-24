@@ -1,0 +1,37 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "sql",
+      "jdbc",
+      "mariadb",
+      "mysql-connector"
+    ],
+    "owner": {
+      "account_id": 2316543,
+      "reputation": 3497,
+      "user_id": 2502360,
+      "user_type": "registered",
+      "accept_rate": 60,
+      "profile_image": "https://i.sstatic.net/l74qm.jpg?s=256",
+      "display_name": "Curtis",
+      "link": "https://stackoverflow.com/users/2502360/curtis"
+    },
+    "is_answered": true,
+    "view_count": 202,
+    "accepted_answer_id": 79609746,
+    "answer_count": 4,
+    "score": 1,
+    "last_activity_date": 1748258548,
+    "creation_date": 1746494276,
+    "last_edit_date": 1746567497,
+    "question_id": 79607831,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79607831/jdbc-is-removing-part-of-my-query-when-i-run-it-in-java-but-it-works-in-my-sql-e",
+    "title": "JDBC is removing part of my query when I run it in Java but it works in my SQL editor",
+    "body": "<p>This is my fairly simple SQL:</p>\n<pre class=\"lang-sql prettyprint-override\"><code>SELECT\n    CONCAT(\n    '{ ',\n        '&quot;test&quot;: ',\n        '{',\n                '&quot;a&quot;: true,',   /* don't set to false  */\n                '&quot;b&quot;: { &quot;t&quot;: true },',\n                '&quot;c&quot;: 2',\n        '},',\n        '&quot;b&quot;: { &quot;t&quot;: true } ',\n    '}'\n    ) AS test\n</code></pre>\n<p>I'm using <code>mysql-connector-java-5.1.7-bin.jar</code> in Java to connect to a <em>MariaDB</em> database.</p>\n<p>In my SQL editor if I run that sql this is what gets returned with no errors:</p>\n<pre class=\"lang-json prettyprint-override\"><code>{ &quot;test&quot;: {&quot;a&quot;: true,&quot;b&quot;: { &quot;t&quot;: true },&quot;c&quot;: 2},&quot;b&quot;: { &quot;t&quot;: true } }\n</code></pre>\n<p>However, for some reason Java returns:</p>\n<pre class=\"lang-json prettyprint-override\"><code>{ &quot;test&quot;: {&quot;a&quot;: true,&quot;b&quot;: ,&quot;c&quot;: 2},&quot;b&quot;: { &quot;t&quot;: true } }\n</code></pre>\n<p>Notice that the first <code>&quot;b&quot;</code> has its value <code>{ &quot;t&quot;: true }</code> completely removed for some reason, but only the first instance of <code>&quot;b&quot;</code>, the second one is fine.</p>\n<p>This is what I'm doing in Java:</p>\n<pre class=\"lang-java prettyprint-override\"><code>import java.sql.Connection;\nimport java.sql.DriverManager;\nimport java.sql.PreparedStatement;\nimport java.sql.ResultSet;\nimport java.sql.SQLException;\n\npublic class testSQL {\n    \n    private static final String DB_URL = &quot;jdbc:mysql://localhost:3306/database?characterEncoding=utf-8&quot;;\n    private static final String DB_USER = &quot;your_username&quot;;\n    private static final String DB_PASSWORD = &quot;your_password&quot;;\n\n    public static void main(String[] args) {\n        String sql = &quot;SELECT\\n\\tCONCAT(\\n\\t'{ ',\\n\\t\\t'\\&quot;test\\&quot;: ',\\n\\t\\t'{',\\n\\t\\t\\t\\t'\\&quot;a\\&quot;: true,',\\t/* don't set to false  */\\n\\t\\t\\t\\t'\\&quot;b\\&quot;: { \\&quot;t\\&quot;: true },',\\n\\t\\t\\t\\t'\\&quot;c\\&quot;: 2',\\n\\t\\t'},',\\n\\t\\t'\\&quot;b\\&quot;: { \\&quot;t\\&quot;: true } ',\\n\\t'}'\\n\\t) AS test&quot;;\n\n        try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);\n                PreparedStatement stmt = conn.prepareStatement(sql);\n                ResultSet rs = stmt.executeQuery()) {\n\n            while (rs.next()) {\n                System.out.println(rs.getObject(1));\n            }\n\n        } catch (SQLException e) {\n            e.printStackTrace();\n        }\n    }\n}\n</code></pre>\n<p>What could be causing this?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

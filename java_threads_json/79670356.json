@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "kotlin",
+      "intellij-idea"
+    ],
+    "owner": {
+      "account_id": 3278108,
+      "reputation": 3485,
+      "user_id": 2759473,
+      "user_type": "registered",
+      "accept_rate": 41,
+      "profile_image": "https://i.sstatic.net/fkdGV.jpg?s=256",
+      "display_name": "Tomas",
+      "link": "https://stackoverflow.com/users/2759473/tomas"
+    },
+    "is_answered": false,
+    "view_count": 34,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1750242462,
+    "creation_date": 1750238781,
+    "last_edit_date": 1750242462,
+    "question_id": 79670356,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79670356/intellij-incompatible-types-error-at-kotlin-exception-classes-usage-in-controlle",
+    "title": "IntelliJ Incompatible types error at Kotlin exception classes usage in ControllerAdvice Spring Boot",
+    "body": "<p>Following code:</p>\n<p>BaseAdvice, whole class skipped for brevity</p>\n<pre class=\"lang-java prettyprint-override\"><code>@ControllerAdvice\npublic class BaseAdvice {\n/*....*/\n    @ResponseBody\n    @ResponseStatus(HttpStatus.UNAUTHORIZED)\n    @ExceptionHandler(UnauthorizedException.class)\n    public void handleUnauthorizedException(UnauthorizedException ex) {\n        LOGGER.error(ex.getMessage());\n    }\n/*....*/\n</code></pre>\n<p>where class itself is defined as:</p>\n<pre class=\"lang-kotlin prettyprint-override\"><code>@ResponseStatus(value = HttpStatus.UNAUTHORIZED)\nclass UnauthorizedException(message: String?) : RuntimeException(message)\n</code></pre>\n<p>gives me error at <code>@ExceptionHandler(UnauthorizedException.class)</code>:</p>\n<blockquote>\n<p>Incompatible types. Found: 'java.lang.Class&lt;{full package path}.UnauthorizedException&gt;', required: 'java.lang.Class&lt;? extends java.lang.Throwable&gt;[]'</p>\n</blockquote>\n<p>On simpler case:</p>\n<pre class=\"lang-java prettyprint-override\"><code>throw new BadRequestException(INVALID_PAYLOAD);\n</code></pre>\n<p>IDE claims that required type is Throwable, but it gets BadRequestException.</p>\n<p>After aligning</p>\n<pre class=\"lang-kotlin prettyprint-override\"><code>class BadRequestException(message: String?) : RuntimeException(message)\n</code></pre>\n<p>to</p>\n<pre class=\"lang-kotlin prettyprint-override\"><code>class BadRequestException(message: String?) : Throwable(message)\n</code></pre>\n<p>Error goes away. Any intermediate class in inheritance chain causes as well issues with types, so only direct inheritance from required class can satisfy the editor for some reason.</p>\n<p>I'm on IntelliJ:</p>\n<pre><code>IntelliJ IDEA 2025.1.1.1 (Ultimate Edition)\nBuild #IU-251.25410.129, built on May 9, 2025\nRuntime version: 21.0.6+9-b895.109 amd64 (JCEF 122.1.9)\nVM: OpenJDK 64-Bit Server VM by JetBrains s.r.o.\nToolkit: sun.awt.windows.WToolkit\nWindows 11.0\nKotlin plugin: K2 mode\nGC: G1 Young Generation, G1 Concurrent GC, G1 Old Generation\nMemory: 2048M\nCores: 12\nRegistry:\n  ide.experimental.ui=true\n  completion.cloud.enableTextCompletion=false\nNon-Bundled Plugins:\n  com.berzanmikaili.intellij.monokai_pro (2.0.2c)\n  com.jetbrains.gerryPurpleTheme (2025.1.0506)\n  com.markskelton.one-dark-theme (5.13.0)\n  com.intellij.ml.llm (251.23774.42.28.7.1)\n  com.intellij.wiremock (251.23774.435)\nKotlin: 251.25410.129-IJ\n</code></pre>\n<p>The project itself compiles, so it's a false positive. Issue is related only with Kotlin classes. I already bomped Kotlin compiler to new version, updated kotlin dependency in project, invalidated cache but all seems to fail.\nWorked well on IntelliJ 2024 version.</p>\n<p>I will appriciate any help on this</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

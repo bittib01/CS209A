@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "grpc",
+      "artifactory",
+      "threadpoolexecutor"
+    ],
+    "owner": {
+      "account_id": 45017769,
+      "reputation": 31,
+      "user_id": 32055689,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/7707f3b2b4900b204566fe2d230fb5fd?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Dominik BOC",
+      "link": "https://stackoverflow.com/users/32055689/dominik-boc"
+    },
+    "is_answered": false,
+    "view_count": 135,
+    "answer_count": 1,
+    "score": 6,
+    "last_activity_date": 1765821562,
+    "creation_date": 1765798644,
+    "last_edit_date": 1765798676,
+    "question_id": 79847637,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79847637/jfrog-artifactory-is-not-accessible-rejectedexecutionexception",
+    "title": "JFrog Artifactory is not accessible; RejectedExecutionException",
+    "body": "<p>From time to time, our production JFrog Artifactory instance becomes partially unavailable. During these incidents, the login page does not load and all user authentication requests fail, although some API endpoints continue to respond. The system does not crash or restart, CPU and memory usage remain within normal ranges, readiness and liveness probes continue to report “OK,” and the <code>/router/api/v1/system/health</code> endpoint reports all microservices as “HEALTHY.”</p>\n<p>We checked the <code>console.log</code> , which repeatedly logs the following error:</p>\n<blockquote>\n<p>2025-12-12T18:39:59.509L [35m[tomct][0m [WARNING] [                ] [io.grpc.netty.NettyServerHandler] [io.grpc.netty.NettyServerHandler onHeadersRead] - Exception in onHeadersRead()</p>\n</blockquote>\n<blockquote>\n<p>java.util.concurrent.RejectedExecutionException: Task io.grpc.internal.SerializingExecutor@6840f075 rejected from java.util.concurrent.ThreadPoolExecutor@f2b035b[Running, pool size = 50, active threads = 50, queued tasks = 0, completed tasks = 611037]</p>\n</blockquote>\n<p>We have created thread dumps at the time of the incident for the jf-access service. One of the 50 blocked threads shows the following stack trace:</p>\n<blockquote>\n<p>&quot;jf-access-grpc-293&quot; #254480 [1695216] daemon prio=5 os_prio=0 cpu=11.66ms elapsed=2323.22s tid=0x00007f2a743b36c0 nid=1695216 waiting on condition  [0x00007f2a3c4fd000]<br />\njava.lang.Thread.State: WAITING (parking)<br />\nat jdk.internal.misc.Unsafe.park(java.base@21.0.8/Native Method)<br />\n- parking to wait for  &lt;0x00000000869680a8&gt; (a java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject)<br />\nat java.util.concurrent.locks.LockSupport.park(java.base@21.0.8/LockSupport.java:371)<br />\nat java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionNode.block(java.base@21.0.8/AbstractQueuedSynchronizer.java:519)<br />\nat java.util.concurrent.ForkJoinPool.unmanagedBlock(java.base@21.0.8/ForkJoinPool.java:3780)<br />\nat java.util.concurrent.ForkJoinPool.managedBlock(java.base@21.0.8/ForkJoinPool.java:3725)<br />\nat java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(java.base@21.0.8/AbstractQueuedSynchronizer.java:1712)<br />\nat java.util.concurrent.ArrayBlockingQueue.take(java.base@21.0.8/ArrayBlockingQueue.java:420)<br />\nat io.grpc.stub.ClientCalls$BlockingResponseStream.waitForNext(ClientCalls.java:690)<br />\nat io.grpc.stub.ClientCalls$BlockingResponseStream.hasNext(ClientCalls.java:709)<br />\nat java.util.Iterator.forEachRemaining(java.base@21.0.8/Iterator.java:132)<br />\nat org.jfrog.access.server.service.jfconfig.client.config.ConfigClient.lambda$getConfigByPatternStream$3(ConfigClient.java:82)<br />\nat org.jfrog.access.server.service.jfconfig.client.config.ConfigClient$$Lambda/0x00007f2ab541a238.accept(Unknown Source)<br />\nat java.util.Optional.ifPresent(java.base@21.0.8/Optional.java:178)<br />\nat org.jfrog.access.server.service.jfconfig.client.config.ConfigClient.getConfigByPatternStream(ConfigClient.java:82)<br />\nat org.jfrog.access.server.service.jfconfig.JFConfigService.getConfigByPattern(JFConfigService.java:108)<br />\nat org.jfrog.access.server.service.auth.ldap.LdapGroupSettingStorage.list(LdapGroupSettingStorage.java:38)</p>\n</blockquote>\n<p>The remaining 49 threads all follow the same execution pattern:</p>\n<blockquote>\n<p>&quot;jf-access-grpc-217&quot; #182116 [1228419] daemon prio=5 os_prio=0 cpu=7111.59ms elapsed=182097.62s tid=0x00007f2a744217e0 nid=1228419 waiting on condition  [0x00007f2a38bfd000]<br />\njava.lang.Thread.State: WAITING (parking)<br />\nat jdk.internal.misc.Unsafe.park(java.base@21.0.8/Native Method)<br />\n- parking to wait for  &lt;0x0000000086bdb448&gt; (a com.google.common.util.concurrent.SettableFuture)<br />\nat java.util.concurrent.locks.LockSupport.park(java.base@21.0.8/LockSupport.java:221)<br />\nat com.google.common.util.concurrent.AbstractFuture.get(AbstractFuture.java:561)<br />\nat com.google.common.util.concurrent.AbstractFuture$TrustedFuture.get(AbstractFuture.java:111)<br />\nat com.google.common.util.concurrent.Uninterruptibles.getUninterruptibly(Uninterruptibles.java:247)<br />\nat com.google.common.cache.LocalCache$LoadingValueReference.waitForValue(LocalCache.java:3628)<br />\nat com.google.common.cache.LocalCache$Segment.waitForLoadingValue(LocalCache.java:2211)<br />\nat com.google.common.cache.LocalCache$Segment.lockedGetOrLoad(LocalCache.java:2198)<br />\nat com.google.common.cache.LocalCache$Segment.get(LocalCache.java:2081)<br />\nat com.google.common.cache.LocalCache.get(LocalCache.java:4019)<br />\nat com.google.common.cache.LocalCache.getOrLoad(LocalCache.java:4042)<br />\nat com.google.common.cache.LocalCache$LocalLoadingCache.get(LocalCache.java:5024)<br />\nat com.google.common.cache.ForwardingLoadingCache.get(ForwardingLoadingCache.java:48)<br />\nat org.jfrog.access.server.service.auth.ldap.LdapGroupServiceImpl.syncPopulatedUserGroups(LdapGroupServiceImpl.java:202)</p>\n</blockquote>\n<p>We suspect that the <code>jf-access</code> service may be experiencing a deadlock or thread-pool starvation involving the <code>jfconfig</code> service.</p>\n<p>Any help or support around this topic would be greatly appreciated!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

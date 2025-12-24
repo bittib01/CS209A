@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "hibernate",
+      "spring-data-jpa"
+    ],
+    "owner": {
+      "account_id": 7712763,
+      "reputation": 958,
+      "user_id": 5841551,
+      "user_type": "registered",
+      "accept_rate": 50,
+      "profile_image": "https://www.gravatar.com/avatar/440a5d12fb94495e5b47fa4db544d6d8?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "kladderradatsch",
+      "link": "https://stackoverflow.com/users/5841551/kladderradatsch"
+    },
+    "is_answered": true,
+    "view_count": 9747,
+    "accepted_answer_id": 79229425,
+    "answer_count": 3,
+    "score": 21,
+    "last_activity_date": 1744837045,
+    "creation_date": 1732653825,
+    "last_edit_date": 1732699740,
+    "question_id": 79228209,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79228209/spring-boot-3-4-0-lets-integration-tests-with-jpa-hibernate-fail",
+    "title": "Spring Boot 3.4.0 lets integration tests with JPA/Hibernate fail",
+    "body": "<p>We have updated from Spring Boot 3.3.6 to version 3.4.0. Now our integrationtests (Annotation <code>@SpringBootTest</code>) with Hibernate/JPA interactions (we're using spring-data-jpa) in it fail suddenly.</p>\n<pre><code>@Test\nvoid retrieveAllFahrzeugbewegungenByMuster() throws Exception {\n    // Given\n    var musterEntity = MusterMetadatenGenerator.createDefaultMuster();\n    var musterEntitySaved = musterMetadatenRepository.saveAndFlush(musterEntity); // crashes here\n...\n}\n</code></pre>\n<p>The creation of the @Entity in <code>createDefaultMuster()</code> is essentially this here:</p>\n<pre><code>static &lt;E extends BaseEntity&gt; E createDefaultValues(\n      @NotNull final E source,\n      @NotNull final LocalDate datumAb,\n      @NotNull final LocalDate datumBis\n) {\n    final Instant now = Instant.now();\n\n    source.setId(UUID.randomUUID());\n    source.setDatumAb(datumAb);\n    source.setDatumBis(datumBis);\n    source.setBearbeitetAm(now);\n    source.setErstelltAm(now);\n\n    return source;\n}\n</code></pre>\n<p>The @Entity itself looks as below:</p>\n<pre><code>@Data\n@NoArgsConstructor\n@AllArgsConstructor\n@MappedSuperclass\npublic class BaseEntity {\n\n  @Id\n  @GeneratedValue(strategy = GenerationType.AUTO)\n  @Column(updatable = false, nullable = false)\n  protected UUID id;\n...\n</code></pre>\n<p>The exception is:</p>\n<blockquote>\n<p>org.springframework.orm.ObjectOptimisticLockingFailureException: Row\nwas updated or deleted by another transaction (or unsaved-value\nmapping was incorrect):\n[de.muster.jpa.entity.MusterMetadaten#40add996-a1f9-43f7-a157-cf5692e5ea65]\nCaused by: org.hibernate.StaleObjectStateException: Row was updated or\ndeleted by another transaction (or unsaved-value mapping was\nincorrect):\n[de.muster.jpa.entity.MusterMetadaten#40add996-a1f9-43f7-a157-cf5692e5ea65]</p>\n</blockquote>\n<p>With Spring Boot 3.4.0 comes Hibernate 6.6.x, before it was Hibernate 6.5.x. Is there maybe a breaking change?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

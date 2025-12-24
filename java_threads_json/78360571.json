@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "decompiler"
+    ],
+    "owner": {
+      "account_id": 109320,
+      "reputation": 5513,
+      "user_id": 289718,
+      "user_type": "registered",
+      "accept_rate": 75,
+      "profile_image": "https://i.sstatic.net/DWUiR.jpg?s=256",
+      "display_name": "Neo",
+      "link": "https://stackoverflow.com/users/289718/neo"
+    },
+    "is_answered": true,
+    "view_count": 174,
+    "accepted_answer_id": 78361796,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1729926629,
+    "creation_date": 1713679531,
+    "question_id": 78360571,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78360571/how-to-identify-ternary-operator-from-javas-bytecode",
+    "title": "how to identify ternary operator from java&#39;s bytecode",
+    "body": "<p>i am working on a java’s bytecode project, and need to identify ternary operator and nested ternary operator.</p>\n<p>I got two questions</p>\n<ol>\n<li>how to determine an if statement is ternary operator?based on stack\nvariables?</li>\n<li>how to determine an if statement’ s consumed value on stack oprand\nis a ternary operator’s result</li>\n</ol>\n<p>example:</p>\n<p><code>((a&gt;b ? 0 : 1 ) &gt; (a &gt; c ? 10 : 20) ? 100 : 101</code></p>\n<p>here is a full example of ternary operator chain:</p>\n<p>source code:</p>\n<pre><code>public void ddddd()\n{\n    int m,k, n, z;\n    Random r = new Random();\n    boolean p = (r.nextInt() &gt; 100 || (30 &gt; r.nextInt() ? (r.nextInt() &gt; 4000 ? 1 : 0) : (r.nextInt() &gt; 2000 ? 100 : 20)) &lt;  (r.nextInt() &gt; 1000 ? 0 : 1));\n}\n</code></pre>\n<p>structed bytecode:</p>\n<p>[</p>\n<pre><code>   7          astore] java/util/Random var1(1) = &lt;init&gt;(v0)\n [   9           aload] java/util/Random var1(1) = (stack_var)var1\n [  11   invokevirtual] I v11 = var1.nextInt()\n [  14          bipush] (I)v14 = 100\n if { // block_id: 16 16 =&gt; 89  parent_id: 0\n    [  16       if_icmpgt] v11 &gt; v14 : goto =&gt; 85\n    if_false_block { // block_id: 15 19 =&gt; 89  parent_id: 16\n        [  19          bipush] (I)v19 = 30\n        [  21           aload] java/util/Random var1(1) = (stack_var)var1\n        [  23   invokevirtual] I v23 = var1.nextInt()\n        if { // block_id: 9 26 =&gt; 64  parent_id: 15\n            [  26       if_icmple] v19 &lt;= v23 : goto =&gt; 48\n            if_false_block { // block_id: 8 29 =&gt; 45  parent_id: 9\n                [  29           aload] java/util/Random var1(1) = (stack_var)var1\n                [  31   invokevirtual] I v31 = var1.nextInt()\n                [  34          sipush] (I)v34 = 4000\n                if { // block_id: 6 37 =&gt; 45  parent_id: 8\n                    [  37       if_icmple] v31 &lt;= v34 : goto =&gt; 44\n                    if_false_block { // block_id: 5 40 =&gt; 41  parent_id: 6\n                        [  40        iconst_1] (I)v40 = 1\n                        [  41            goto] goto: 66\n                    }\n                    if_true_block { // block_id: 4 44 =&gt; 45  parent_id: 6\n                        [  44        iconst_0] (I)v44 = 0\n                        [  45            goto] goto: 66\n                    }\n                }\n            }\n            if_true_block { // block_id: 7 48 =&gt; 64  parent_id: 9\n                [  48           aload] java/util/Random var1(1) = (stack_var)var1\n                [  50   invokevirtual] I v50 = var1.nextInt()\n                [  53          sipush] (I)v53 = 2000\n                if { // block_id: 3 56 =&gt; 64  parent_id: 7\n                    [  56       if_icmple] v50 &lt;= v53 : goto =&gt; 64\n                    if_false_block { // block_id: 2 59 =&gt; 61  parent_id: 3\n                        [  59          bipush] (I)v59 = 100\n                        [  61            goto] goto: 66\n                    }\n                    if_true_block { // block_id: 1 64 =&gt; 64  parent_id: 3\n                        [  64          bipush] (I)v64 = 20\n                    }\n                }\n            }\n        }\n        [  66           aload] java/util/Random var1(1) = (stack_var)var1\n        [  68   invokevirtual] I v68 = var1.nextInt()\n        [  71          sipush] (I)v71 = 1000\n        if { // block_id: 12 74 =&gt; 81  parent_id: 15\n            [  74       if_icmple] v68 &lt;= v71 : goto =&gt; 81\n            if_false_block { // block_id: 11 77 =&gt; 78  parent_id: 12\n                [  77        iconst_0] (I)v77 = 0\n                [  78            goto] goto: 82\n            }\n            if_true_block { // block_id: 10 81 =&gt; 81  parent_id: 12\n                [  81        iconst_1] (I)v81 = 1\n            }\n        }\n        if { // block_id: 14 82 =&gt; 89  parent_id: 15\n            [  82       if_icmpge] v40 &gt;= v77 : goto =&gt; 89\n            [  85        iconst_1] (I)v85 = 1\n            [  86            goto] goto: 90\n            if_true_block { // block_id: 13 89 =&gt; 89  parent_id: 14\n                [  89        iconst_0] (I)v89 = 0\n            }\n        }\n    }\n }\n [  90          istore] I var2(1) = (stack_var)var2\n [  92          return] return\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

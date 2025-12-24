@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "oracle-database",
+      "jdbc",
+      "version",
+      "data-access"
+    ],
+    "owner": {
+      "account_id": 40843842,
+      "reputation": 1,
+      "user_id": 29990216,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/e8827d892a23ce193ac984002033266e?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Pranav Rk",
+      "link": "https://stackoverflow.com/users/29990216/pranav-rk"
+    },
+    "is_answered": false,
+    "view_count": 72,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1742377065,
+    "creation_date": 1742377065,
+    "question_id": 79519759,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79519759/issue-with-simplejdbccall-execute-when-upgrading-java-version-from-8-to-21",
+    "title": "Issue with simpleJdbcCall.execute when upgrading Java version from 8 to 21",
+    "body": "<p>I'm working on upgrading the Java version of a project in my company from java 8 to 21.\nThey have this module which was written years back</p>\n<pre><code>SimpleJdbcCall simpleJdbcCall;\n        simpleJdbcCall = new SimpleJdbcCall(new JdbcTemplate(dataSource))\n            // .withoutProcedureColumnMetaDataAccess()\n            .withProcedureName(spName);\n\n        if (StringUtils.hasText(schema)) {\n            simpleJdbcCall.setSchemaName(schema);\n        }\n\n        if (StringUtils.hasText(catalog)) {\n            simpleJdbcCall.setCatalogName(catalog);\n        }\n\n        for (int i = 0; i &lt; resultJsonArray.length(); i++) {\n            final String resultSetKey = resultJsonArray.getJSONObject(i).getString(RESULTSET);\n            simpleJdbcCall = simpleJdbcCall.returningResultSet(resultSetKey, new BaseDataMapper());\n        }\n\n        SqlParameterSource parameters = new MapSqlParameterSource().addValues(paramMap);\n        LinkedHashMap&lt;String, Object&gt; resultList = null;\n\n        try {\n            log.debug(&quot;Executing Oracle procedure: {}&quot;, parameters);\n            resultList = (LinkedHashMap&lt;String, Object&gt;) simpleJdbcCall.execute(parameters);\n        }\n\n</code></pre>\n<p>So since this is a legacy project, few fields we're passed as, for example\n{\n&quot;aPayinAmount&quot;: &quot;100.0&quot;\n}\nIn Java 8 this did not give issues as the &quot;100.0&quot; was converted to int or the type Java 8 was trying to convert it to.</p>\n<p>But when calling the simpleJdbcCall.execute(parameters); in java 21 I'm getting a type conversion error where that method tries to convert &quot;100.0&quot; to an integer.\nWhen I pass the value of aPayinAmount as &quot;100&quot;, 100 or 100.0 the call to the procedure works.</p>\n<p>This module is the backbone of the company, so all the other projects revolve around this system, which calls the stored procedures. Modifying aPayinAmount and similar fields to pass the correct value is impossible, as is modifying the field types in the Oracle procedures.</p>\n<p>What are my option here to either modify the existing code to something more suitable for java 21 or is there any method I can try to fix this issues.</p>\n<p>I've already tried to get the metadata of the procedures and modify the parameters before calling simpleJdbcCall.execute(parameters); but I'm not able to access the metadata as expected.\nThis is the code I wrote for it.</p>\n<pre><code>private Map&lt;String, Integer&gt; getProcedureParameterTypes(String catalog, String schema, String procedureName) {\n        Map&lt;String, Integer&gt; paramTypes = new HashMap&lt;&gt;();\n        try (Connection conn = dataSource.getConnection()) {\n            DatabaseMetaData metaData = conn.getMetaData();\n            try (ResultSet rs = metaData.getProcedureColumns(catalog, &quot;MAMBO&quot;, procedureName, &quot;%&quot;)) {\n                while (rs.next()) {\n                    String paramName = rs.getString(&quot;COLUMN_NAME&quot;);\n                    int dataType = rs.getInt(&quot;DATA_TYPE&quot;);\n                    paramTypes.put(paramName.toLowerCase(), dataType);\n                }\n            }\n        } catch (SQLException e) {\n            throw new RuntimeException(e);\n        }\n        return paramTypes;\n    }\n</code></pre>\n<p>FYI <strong>NUMBER(15,3)</strong> is the type of the PayinAmount in the table the procedure is referring to.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

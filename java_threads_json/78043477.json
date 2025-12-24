@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "ocr",
+      "cpu-usage",
+      "android-mediaprojection"
+    ],
+    "owner": {
+      "account_id": 13354497,
+      "reputation": 962,
+      "user_id": 15007032,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/857eda54cdf7e2ceacf5fa1d0489c596?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "zaxunobi",
+      "link": "https://stackoverflow.com/users/15007032/zaxunobi"
+    },
+    "is_answered": false,
+    "view_count": 185,
+    "answer_count": 1,
+    "score": 3,
+    "last_activity_date": 1712340025,
+    "creation_date": 1708628677,
+    "last_edit_date": 1708630775,
+    "question_id": 78043477,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78043477/too-much-cpu-usage-of-mediaprojection-leaving-less-for-ocr",
+    "title": "Too much CPU usage of MediaProjection leaving less for OCR?",
+    "body": "<p>I am taking screenshots on Android with two different methods:</p>\n<ol>\n<li>By running <code>/system/bin/screencap -p $path</code>.</li>\n<li>With the <code>MediaProjection</code> API.</li>\n</ol>\n<p>Even though it's the exact same screen, when performing OCR (with the use of <code>Tesseract</code>) I get different results.</p>\n<p>With <code>/system/bin/screencap</code> I get the expected results.\nWith the <code>MediaProjection</code> API is unable to recognise any or all text correctly, hence I need to preprocess the image with a binarization algorithm.</p>\n<p>Why is that? I have checked screencap source code and it seems that is uses PNG compression, config ARGB_8888 and quality 100%.\nAs you can see here: <a href=\"https://android.googlesource.com/platform/frameworks/base/+/master/cmds/screencap/screencap.cpp\" rel=\"nofollow noreferrer\">https://android.googlesource.com/platform/frameworks/base/+/master/cmds/screencap/screencap.cpp</a></p>\n<p>This is how I am creating the bitmap by using the <code>MediaProjection</code> API:</p>\n<pre><code>public class ImageTransmogrifier implements ImageReader.OnImageAvailableListener {\n  private final int width;\n  private final int height;\n  private final ImageReader imageReader;\n  private final ScreenshotService svc;\n  private Bitmap latestBitmap=null;\n\n  ImageTransmogrifier(ScreenshotService svc) {\n    this.svc=svc;\n\n    Display display=svc.getWindowManager().getDefaultDisplay();\n    Point size=new Point();\n\n    display.getRealSize(size);\n\n    int width=size.x;\n    int height=size.y;\n\n    while (width*height &gt; (2&lt;&lt;19)) {\n      width=width&gt;&gt;1;\n      height=height&gt;&gt;1;\n    }\n\n    this.width=width;\n    this.height=height;\n\n    imageReader=ImageReader.newInstance(width, height,\n        PixelFormat.RGBA_8888, 2);\n    imageReader.setOnImageAvailableListener(this, svc.getHandler());\n  }\n\n  @Override\n  public void onImageAvailable(ImageReader reader) {\n    final Image image=imageReader.acquireLatestImage();\n\n    if (image!=null) {\n      Image.Plane[] planes=image.getPlanes();\n      ByteBuffer buffer=planes[0].getBuffer();\n      int pixelStride=planes[0].getPixelStride();\n      int rowStride=planes[0].getRowStride();\n      int rowPadding=rowStride - pixelStride * width;\n      int bitmapWidth=width + rowPadding / pixelStride;\n\n      if (latestBitmap == null ||\n          latestBitmap.getWidth() != bitmapWidth ||\n          latestBitmap.getHeight() != height) {\n        if (latestBitmap != null) {\n          latestBitmap.recycle();\n        }\n\n        latestBitmap=Bitmap.createBitmap(bitmapWidth,\n            height, Bitmap.Config.ARGB_8888);\n      }\n\n      latestBitmap.copyPixelsFromBuffer(buffer);\n      image.close();\n\n      ByteArrayOutputStream baos=new ByteArrayOutputStream();\n      Bitmap cropped=Bitmap.createBitmap(latestBitmap, 0, 0,\n        width, height);\n\n      cropped.compress(Bitmap.CompressFormat.PNG, 100, baos);\n\n      byte[] newPng=baos.toByteArray();\n\n      svc.processImage(newPng);\n    }\n  }\n\n  Surface getSurface() {\n    return(imageReader.getSurface());\n  }\n\n  int getWidth() {\n    return(width);\n  }\n\n  int getHeight() {\n    return(height);\n  }\n\n  void close() {\n    imageReader.close();\n  }\n}\n</code></pre>\n<p>I've been told that basically I am using more of the processor to do the recording leaving less to the OCR. The OCR has less cycles, so the accuracy decreases within a given amount of time.\nAnd that's also the reason I don't need to pre-process the image with screencap. Because chances are a one-time upscale isn't nearly as much as constant streaming through.</p>\n<p>Is there any foundation in this? If so, should I use something else instead of the MediaProjection or simply pre-process the images?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

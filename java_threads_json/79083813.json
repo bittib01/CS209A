@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "pdf",
+      "accessibility",
+      "pdfbox",
+      "tagged-pdf"
+    ],
+    "owner": {
+      "account_id": 5017257,
+      "reputation": 421,
+      "user_id": 4031794,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/a0911f3c8f029759ce41a825ec59533b?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Alexander Dyuzhev",
+      "link": "https://stackoverflow.com/users/4031794/alexander-dyuzhev"
+    },
+    "is_answered": true,
+    "view_count": 538,
+    "accepted_answer_id": 79089172,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1730209555,
+    "creation_date": 1728842534,
+    "last_edit_date": 1730209555,
+    "question_id": 79083813,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79083813/how-to-add-the-annotation-tag-in-tagged-pdf-using-pdfbox",
+    "title": "How to add the annotation tag in tagged PDF using PDFBox",
+    "body": "<p>I have a tagged PDF (PDF-UA compliance) with simple structure:\n<a href=\"https://i.sstatic.net/EDuoCD4Z.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/EDuoCD4Z.png\" alt=\"Tagged PDF\" /></a></p>\n<p>I need to add the annotation:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>    &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;\n    &lt;xfdf xmlns=&quot;http://ns.adobe.com/xfdf/&quot;&gt;\n      &lt;annots&gt;\n        &lt;text color=&quot;#FFC333&quot; date=&quot;D:20240425000000&quot; flags=&quot;print,nozoom,norotate&quot; opacity=&quot;0.600000&quot; page=&quot;0&quot; rect=&quot;43.086,707.79,63.086,732.79&quot; title=&quot;ABC&quot;&gt;\n          &lt;contents-richtext&gt;\n            &lt;body xmlns=&quot;http://www.w3.org/1999/xhtml&quot;&gt;\n              &lt;p dir=&quot;ltr&quot;&gt;Sample comment&lt;/p&gt;\n            &lt;/body&gt;\n          &lt;/contents-richtext&gt;\n          &lt;popup flags=&quot;nozoom,norotate&quot; open=&quot;yes&quot; page=&quot;0&quot; rect=&quot;595.0,507.78998,790.0,632.79&quot;/&gt;\n        &lt;/text&gt;\n      &lt;/annots&gt;\n    &lt;/xfdf&gt;\n\n</code></pre>\n<p>in the nested tag <code>Annot</code> in the tag <code>P</code>. Like this (I've made in manually in the Adobe Acrobat):\n<a href=\"https://i.sstatic.net/TpOtePkJ.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/TpOtePkJ.png\" alt=\"Expected result\" /></a></p>\n<p>I'm able to import the XFDF XML into the PDF:</p>\n<pre class=\"lang-java prettyprint-override\"><code>    PDDocument document = PDDocument.load(new File(&quot;tagged.pdf&quot;));\n    \n    FDFDocument fdfDoc = FDFDocument.loadXFDF(new File(&quot;annotation.xfdf&quot;));\n    List&lt;FDFAnnotation&gt; fdfAnnots = fdfDoc.getCatalog().getFDF().getAnnotations();\n    \n    List&lt;PDAnnotation&gt; pageAnnotations = new ArrayList&lt;&gt;();\n    for (int i=0; i &lt; fdfAnnots.size(); i++) {\n        FDFAnnotation fdfannot = fdfAnnots.get(i);\n        PDAnnotation pdfannot = PDAnnotation.createAnnotation(fdfannot.getCOSObject());\n        pdfannot.constructAppearances();\n        pageAnnotations.add(pdfannot);\n    }\n    document.getPage(0).setAnnotations(pageAnnotations);\n    \n    document.save(new File(&quot;tagged_with_annotation.pdf&quot;));\n</code></pre>\n<p>but the veraPDF checker outputs:</p>\n<blockquote>\n<p>An annotation, excluding annotations of subtype Widget, PrinterMark or Link, shall be nested within an Annot tag</p>\n</blockquote>\n<p>and PDF Accessibility Checker (PAC tool) outputs:</p>\n<blockquote>\n<p>Annotation is not nested inside an &quot;Annot&quot; structure element</p>\n</blockquote>\n<p>as expected, because I didn't set the 'annot' tag (and concrete place) for imported annotation.</p>\n<p>Also, I'm able to obtain the tag <code>P</code> object:</p>\n<pre class=\"lang-java prettyprint-override\"><code>    PDDocumentCatalog pdDocumentCatalog = document.getDocumentCatalog();\n    PDStructureTreeRoot pdStructureTreeRoot = pdDocumentCatalog.getStructureTreeRoot();\n    COSArray aDocument = (COSArray)(pdStructureTreeRoot.getK().getCOSObject());\n    COSObject oDocument = (COSObject) aDocument.get(0);\n    COSArray aPart = (COSArray)oDocument.getItem(COSName.K).getCOSObject();\n    COSObject oPart = (COSObject) aPart.get(0);\n    COSArray aSect = (COSArray)oPart.getItem(COSName.K).getCOSObject();\n    COSObject oSect = (COSObject) aSect.get(0);\n    COSArray aP = (COSArray)oSect.getItem(COSName.K).getCOSObject();\n    COSObject oP= (COSObject) aP.get(0);\n</code></pre>\n<p>But I don't understand how to edit the existing tags tree in the PDF.</p>\n<p>Question: how to add the tag and annotation into the existing tags tree into PDF using PDFBox?</p>\n<p><strong>UPDATE</strong>: the example PDF and XFDF <a href=\"https://drive.google.com/drive/folders/1H5H5vn862k_Oj6bXGZ_cuUTw8nEUVSlO?usp=sharing\" rel=\"nofollow noreferrer\">here</a>.</p>\n<p><strong>UPDATE 2</strong>: I've updated the file tagged_with_annotation_acrobat.pdf on google drive. The previous version was incorrect - missed Annotation tag.</p>\n<p><strong>UPDATE 3</strong>: To select the last P, change:</p>\n<pre class=\"lang-java prettyprint-override\"><code>COSArray aP = oSect.getCOSArray(COSName.K);\n</code></pre>\n<p>to</p>\n<pre class=\"lang-java prettyprint-override\"><code>COSArray aH1P = oSect.getCOSArray(COSName.K);\nCOSDictionary oP = (COSDictionary) aH1P.getObject(1);\nCOSArray aP = oP.getCOSArray(COSName.K);\n</code></pre>\n<p>and for adding the annotation without outer P inside last P</p>\n<pre class=\"lang-java prettyprint-override\"><code>    // add the annotation element\n    COSDictionary anDict = new COSDictionary();\n    anDict.setItem(COSName.S, COSName.ANNOT);\n    anDict.setItem(COSName.P, oP);\n    anDict.setItem(COSName.PG, page);\n    \n    PDObjectReference objRef = new PDObjectReference();\n    anDict.setItem(COSName.K, objRef);\n    \nobjRef.setReferencedObject(page.getAnnotations().get(0));\n    \n    aP.add(anDict);\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

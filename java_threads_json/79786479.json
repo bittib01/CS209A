@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "akka",
+      "akka-stream"
+    ],
+    "owner": {
+      "account_id": 9069472,
+      "reputation": 2560,
+      "user_id": 6753238,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/9f7cfd2519b4afdce861f3631552b3fc?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Nikolas",
+      "link": "https://stackoverflow.com/users/6753238/nikolas"
+    },
+    "is_answered": false,
+    "view_count": 82,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1760350829,
+    "creation_date": 1760016877,
+    "last_edit_date": 1760350829,
+    "question_id": 79786479,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79786479/piping-an-akka-flow-via-java-streams",
+    "title": "Piping an Akka Flow via Java Streams",
+    "body": "<p>I have an Akka <code>Flow&lt;ByteString, ByteString, NotUsed&gt;</code>. My goal is to feed the ByteStrings to an external library and send its result downstream. The external library, however, consumes and outputs Java Streams. I do not want to use <code>Flow.fold()</code>, because the Stream is potentially huge. I want to pipe the Akka Flow to Java Streams, hoping to reduce the memory footprint.</p>\n<p>Input:</p>\n<pre><code>static Source&lt;ByteString, NotUsed&gt; inputData() {\n    final List&lt;Integer&gt; list = IntStream.range(0, 1000).boxed().toList();\n    return Source.from(list).map(i -&gt; ByteString.fromString(i.toString()));\n}\n</code></pre>\n<p>This is my first attempt:</p>\n<pre><code>Flow&lt;ByteString, ByteString, NotUsed&gt; transformFlow() {\n    // access to OutputStream and Source\n    final Pair&lt;OutputStream, Source&lt;ByteString, NotUsed&gt;&gt; pair = StreamConverters.asOutputStream().preMaterialize(actorSystem);\n    final OutputStream outStream = pair.first();\n    final Sink&lt;ByteString, CompletionStage&lt;IOResult&gt;&gt; sink = StreamConverters.fromOutputStream(() -&gt; outStream);\n\n    final int bufferSize = 1024;\n    final Pair&lt;SourceQueueWithComplete&lt;ByteString&gt;, Source&lt;ByteString, NotUsed&gt;&gt; sourcePair = Source\n        .&lt;ByteString&gt;queue(bufferSize, OverflowStrategy.backpressure())\n        .preMaterialize(actorSystem);\n    final SourceQueueWithComplete&lt;ByteString&gt; queue = sourcePair.first();\n    final Source&lt;ByteString, NotUsed&gt; inputSource = sourcePair.second();\n\n    // Copy inputStream to outStream\n    final ExecutorService executorService = Executors.newSingleThreadExecutor();\n    executorService.submit(() -&gt; {\n      try (final InputStream inputStream = inputSource.runWith(StreamConverters.asInputStream(Duration.ofSeconds(10)), actorSystem)) {\n        // do some data manipulation\n        final byte[] buffer = new byte[1];\n        int len;\n        while ((len = inputStream.read(buffer)) != -1) {\n\n          outStream.write(buffer, 0, len);\n          outStream.write((byte) '\\n');\n        }\n        outStream.flush();\n      } catch (final IOException e) {\n        throw new RuntimeException(e);\n      }\n    });\n\n    // Flow to push incoming data into the queue\n    final Flow&lt;ByteString, ByteString, NotUsed&gt; storeIncoming = Flow.of(ByteString.class).map(bs -&gt; {\n      queue.offer(bs);\n      return ByteString.emptyByteString();\n    });\n    \n    return Flow.of(ByteString.class).via(storeIncoming).via(Flow.fromSinkAndSourceCoupled(sink, pair.second()));\n}\n</code></pre>\n<p>Unfortunately, this does not work. In a test, I only receive a chunk of the input data. I think the <code>outStream</code> terminates, while <code>storeIncomming</code> has still more data to write.</p>\n<p>I might need to utilize <code>watchTermination()</code> somehow. My second attempt looks like this:</p>\n<pre><code>Flow&lt;ByteString, ByteString, NotUsed&gt; transformFlow() {\n    final Pair&lt;OutputStream, Source&lt;ByteString, NotUsed&gt;&gt; pair = StreamConverters.asOutputStream().preMaterialize(actorSystem);\n    final OutputStream outStream = pair.first();\n    final Sink&lt;ByteString, CompletionStage&lt;IOResult&gt;&gt; sink = StreamConverters.fromOutputStream(() -&gt; outStream);\n\n    final int bufferSize = 1024;\n    final Pair&lt;SourceQueueWithComplete&lt;ByteString&gt;, Source&lt;ByteString, NotUsed&gt;&gt; sourcePair = Source\n        .&lt;ByteString&gt;queue(bufferSize, OverflowStrategy.backpressure())\n        .preMaterialize(actorSystem);\n    final SourceQueueWithComplete&lt;ByteString&gt; queue = sourcePair.first();\n    final Source&lt;ByteString, NotUsed&gt; inputSource = sourcePair.second();\n\n    final ExecutorService executorService = Executors.newSingleThreadExecutor();\n    final CompletableFuture&lt;Void&gt; copyDone = new CompletableFuture&lt;&gt;();\n    executorService.submit(() -&gt; {\n      try (final InputStream inputStream = inputSource.runWith(StreamConverters.asInputStream(Duration.ofSeconds(10)), actorSystem)) {\n        final byte[] buffer = new byte[1];\n        int len;\n        while ((len = inputStream.read(buffer)) != -1) {\n          outStream.write(buffer, 0, len);\n          outStream.write((byte) '\\n');\n        }\n        outStream.flush();\n        copyDone.complete(null);\n      } catch (final IOException e) {\n        copyDone.completeExceptionally(e);\n      }\n    });\n\n    final Flow&lt;ByteString, ByteString, NotUsed&gt; storeIncoming = Flow\n        .of(ByteString.class)\n        .mapAsync(1, bs -&gt; queue.offer(bs).thenApply(result -&gt; ByteString.emptyByteString()))\n        .watchTermination((notUsed, done) -&gt; {\n          done.whenComplete((ignore, ex) -&gt; queue.complete());\n          return notUsed;\n        });\n\n    return Flow.of(ByteString.class).via(storeIncoming).via(Flow.fromSinkAndSourceCoupled(sink, pair.second())).watchTermination((mat, done) -&gt; {\n      done.whenComplete((ignore, ex) -&gt; {\n        try {\n          copyDone.get();\n        } catch (final Exception ignored) {\n        }\n        executorService.shutdown();\n      });\n      return mat;\n    });\n  }\n</code></pre>\n<p>This appears to work better; I receive more data than I did with the first attempt. But still not everything. Also, does this not &quot;devolve&quot; into a solution where I would basically store the entire stream to memory first, just as I would do calling <code>Flow.fold()</code>, which I would very much want to avoid (footprint concerns)?</p>\n<p>How can I sync reading and writing to the streams? Is there not a more elegant way of achieving this?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

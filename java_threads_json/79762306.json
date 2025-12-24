@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "websocket"
+    ],
+    "owner": {
+      "account_id": 31962108,
+      "reputation": 19,
+      "user_id": 24771318,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/218dec0058d8c0e4d6b705de42b90c52?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "JZARGO",
+      "link": "https://stackoverflow.com/users/24771318/jzargo"
+    },
+    "is_answered": false,
+    "view_count": 87,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1757841098,
+    "creation_date": 1757618995,
+    "last_edit_date": 1757839356,
+    "question_id": 79762306,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79762306/spring-websocket-message-does-not-pass-to-messagemappings-on-stomp-connection",
+    "title": "Spring websocket message does not pass to @messageMappings on STOMP connection",
+    "body": "<p>I'm using Spring Boot with STOMP over WebSocket. The STOMP connection is not established successfully, and messages sent from the client never reach my <code>@MessageMapping</code> methods.</p>\n<p><strong>Controller:</strong></p>\n<pre class=\"lang-java prettyprint-override\"><code>@Controller\n@Slf4j\n@MessageMapping(&quot;/api/v1&quot;)\npublic class LeaderboardController {\n    private final ScoreServiceImpl scoreServiceImpl;\n    private final SimpMessagingTemplate simpMessagingTemplate;\n\n    LeaderboardController(ScoreServiceImpl scoreServiceImpl, SimpMessagingTemplate simpMessagingTemplate) {\n        this.scoreServiceImpl = scoreServiceImpl;\n        this.simpMessagingTemplate = simpMessagingTemplate;\n    }\n\n    @MessageMapping(&quot;/leaderboard/{lb}&quot;)\n    public void changes(@Payload Message&lt;ScoreDto&gt; request, @DestinationVariable String lb, Principal principal){\n        log.info(&quot;Saving scores for {}&quot;, request);\n        ScoreResponse scoreResponse = scoreServiceImpl.saveScore(request.getPayload(), lb);\n        simpMessagingTemplate.convertAndSend(&quot;/topic/leaderboard/&quot; + lb, scoreResponse);\n        simpMessagingTemplate.convertAndSendToUser(principal.getName(), &quot;/queue/my-score/&quot; + lb, scoreResponse);\n        log.info(&quot;pushed messages for {}&quot;, request);\n\n    }\n}\n</code></pre>\n<p><strong>Client using WebSocket King Client:</strong></p>\n<pre class=\"lang-none prettyprint-override\"><code>CONNECT\naccept-version:1.2\nhost:localhost\n\n^@\nSUBSCRIBE\nid:sub-0\ndestination:/topic/update/racers\n\n^@\nSEND\ndestination:/api/v1/leaderboard/racers\ncontent-type:application/json\n\n{&quot;name&quot;:&quot;alex&quot;,&quot;score&quot;:42} ^@\n</code></pre>\n<p><strong>WebSocket configuration:</strong></p>\n<pre class=\"lang-java prettyprint-override\"><code>@Slf4j\n@Configuration\n@EnableWebSocketMessageBroker\npublic class WebSocketConfig implements WebSocketMessageBrokerConfigurer {\n\n    @Override\n    public void configureMessageBroker(MessageBrokerRegistry registry) {\n        registry.setApplicationDestinationPrefixes(&quot;/api/v1&quot;);\n        registry.enableSimpleBroker(&quot;/topic&quot;, &quot;/queue&quot;);\n\n    }\n\n    @Override\n    public void registerStompEndpoints(StompEndpointRegistry registry) {\n        registry.addEndpoint(&quot;/web-socket/connect&quot;)\n                .addInterceptors(new CustomHandshakeInterceptorFromQuery())\n                .setHandshakeHandler(new CustomUsernameFromQueryHandshakeHandler())\n                .setAllowedOriginPatterns(&quot;*&quot;)\n        //        .withSockJS()\n        ;\n    }\n\n    @Bean\n    public SimpMessagingTemplate simpMessagingTemplate(MessageChannel clientOutboundChannel){\n        return new SimpMessagingTemplate(clientOutboundChannel);\n    }\n}\n</code></pre>\n<p>Custom interceptor and handshake handler are registration user without hard security logic and do exactly how they named.</p>\n<p>After connection through uri <code>ws://localhost:8080/web-socket/connect?username=alex</code> and sending connect request, after a few minutes i get log:</p>\n<pre><code>[MessageBroker-1] o.s.w.s.c.WebSocketMessageBrokerStats    : WebSocketSession[0 current WS(0)-HttpStream(0)-HttpPoll(0), 0 total, 0 closed abnormally (0 connect failure, 0 send limit, 0 transport error)], stompSubProtocol[processed CONNECT(0)-CONNECTED(0)-DISCONNECT(0)], stompBrokerRelay[null], inboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], outboundChannel[pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], sockJsScheduler[pool size = 1, active threads = 1, queued tasks = 0, completed tasks = 0]\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

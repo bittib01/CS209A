@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "network-programming",
+      "cloudflare",
+      "p2p"
+    ],
+    "owner": {
+      "account_id": 27112570,
+      "reputation": 23,
+      "user_id": 20657479,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/jS5KD.jpg?s=256",
+      "display_name": "Akash Jain",
+      "link": "https://stackoverflow.com/users/20657479/akash-jain"
+    },
+    "is_answered": false,
+    "view_count": 104,
+    "answer_count": 0,
+    "score": 2,
+    "last_activity_date": 1765921447,
+    "creation_date": 1765048070,
+    "last_edit_date": 1765921447,
+    "question_id": 79839887,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79839887/performing-peer-peer-connection-with-turn-server",
+    "title": "Performing Peer - Peer connection with Turn server",
+    "body": "<p>I'm writing an application for a peer to peer service with a TURN server, but I'm struggling to construct one. If my understanding is correct, there are three steps needed for a successful peer to peer connection with a TURN server.</p>\n<ol>\n<li><p>Get a relay address from the TURN server</p>\n</li>\n<li><p>Establish a handshake with the remote server</p>\n</li>\n<li><p>Start the connection</p>\n</li>\n</ol>\n<p>I'm trying both TCP and UDP (hoping one of them will work), yet I can't seem to get past the relay step. I'm not sure if this is the right approach. Any help is appreciated.</p>\n<p>My TURN server is active, and the credentials are correct and active. Using the ice4j library from Jitsi, I'm creating the allocation request with <code>MessageFactory.createAllocateRequest()</code> and adding the required attributes. After sending the request I keep getting an <code>UNKOWN_MESSAGE</code> response.</p>\n<p>My TCP code is in my repository. Because the files are big, I have added them here in the git. Please find the link:\n<a href=\"https://github.com/crazycatMyopic/issue4/tree/main\" rel=\"nofollow noreferrer\">gitlink</a>.</p>\n<p>Below are smaller snippets to help.</p>\n<p>UDP</p>\n<pre class=\"lang-java prettyprint-override\"><code>Request first = MessageFactory.createAllocateRequest();\nfirst.putAttribute(AttributeFactory.createRequestedTransportAttribute(RequestedTransportAttribute.UDP));\nfirst.putAttribute(AttributeFactory.createUsernameAttribute(USERNAME));\nfirst.putAttribute(AttributeFactory.createRealmAttribute(relam.getBytes(StandardCharsets.UTF_8)));\nfirst.putAttribute(AttributeFactory.createNonceAttribute(nonce.getBytes(StandardCharsets.UTF_8)));\n// first.putAttribute(AttributeFactory.createMessageIntegrityAttribute(USERNAME));\nTransactionID t1 =\n    stack.sendRequest(first, server, local, new AbstractResponseCollector() {\n        @Override\n        protected void processFailure(BaseStunMessageEvent event) {\n            System.out.println(&quot;First ALLOCATE failed: &quot; + event.getMessage());\n        }\n\n        @Override\n        public void processResponse(StunResponseEvent event) {\n            System.out.println(&quot;First ALLOCATE success: &quot; + event.getMessage());\n\n        }\n    });\n</code></pre>\n<p>It never reaches success. It always gives me a failure with a socket timeout exception, even though the server is active and listening. For UDP I'm using the ice4j library.</p>\n<p>TCP</p>\n<pre class=\"lang-java prettyprint-override\"><code>byte[] secondAllocate = buildSecondAllocate(\n        transactionID2,\n        username,\n        challenge.realm,\n        challenge.nonce,\n        password\n);\n\nout.write(secondAllocate);\nout.flush();\n\nbyte[] response2 = readStunMessage(in);\n\nbyte[] relay = extractRelayAddress(response2, transactionID2);\n</code></pre>\n<p>Here as well, I'm not able to extract the relay address.</p>\n<p>Most articles I have come across are mainly about TURN servers or creating your own TURN servers.</p>\n<p>Please help me understand how I can acquire a relay address with Java, or let me know what's wrong with my approach.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

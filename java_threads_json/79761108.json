@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "pattern-matching",
+      "primitive-types",
+      "java-23"
+    ],
+    "owner": {
+      "account_id": 11106749,
+      "reputation": 3510,
+      "user_id": 8153713,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/9e8b92347582eb46c8a3613d6961ea20?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Speakjava",
+      "link": "https://stackoverflow.com/users/8153713/speakjava"
+    },
+    "is_answered": true,
+    "view_count": 155,
+    "answer_count": 1,
+    "score": 9,
+    "last_activity_date": 1757555819,
+    "creation_date": 1757523444,
+    "last_edit_date": 1757544430,
+    "question_id": 79761108,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79761108/primitive-types-in-patterns-why-doesnt-integer-dominate-byte",
+    "title": "Primitive types in patterns: why doesn&#39;t Integer dominate byte?",
+    "body": "<p>JEP 455 introduced Primitive Types in Patterns, instanceof, and switch as a preview feature in JDK 23. It continues as a preview feature in JDK 24 and 25, so the feature is not detailed in the Java Language Specification.</p>\n<p>The JEP describes &quot;safety of conversions&quot;, where certain pairs of types are <em>unconditionally exact</em>, meaning no runtime checks are required.  For other pairs, a runtime test is necessary to determine if a conversion can be made without loss of information.</p>\n<p>For example:</p>\n<pre><code>int x = getValue();  // Which returns 42\n\nswitch (x) {\n  case byte -&gt; System.out.println(&quot;byte&quot;);\n  case int -&gt; System.out.println(&quot;int&quot;);\n}\n</code></pre>\n<p>The runtime check verifies that 42 will fit in a byte and matches, printing 'byte'.</p>\n<p>If we change the order of the cases:</p>\n<pre><code>switch (x) {\n  case int -&gt; System.out.println(&quot;int&quot;);\n  case byte -&gt; System.out.println(&quot;byte&quot;);\n}\n</code></pre>\n<p>This will result in a compiler error because the int case now dominates the byte case.</p>\n<p>Quoting from the Java Language Specification (where pattern dominance is defined),</p>\n<blockquote>\n<p>A switch label in a switch block is said to be dominated if for every value that it\napplies to, it can be determined that one of the preceding switch labels would also\napply.</p>\n</blockquote>\n<p>So far, everything makes sense.</p>\n<p>However, if we change the case for int to use the wrapper class Integer:</p>\n<pre><code>switch (x) {\n  case Integer -&gt; System.out.println(&quot;int&quot;);\n  case byte -&gt; System.out.println(&quot;byte&quot;);\n}\n</code></pre>\n<p>This code will compile without an error, and the result will be 'int'.</p>\n<p>The compiler is clearly autoboxing the int to an Integer and matching the first case.</p>\n<p>What I can't understand is why the compiler allows this, since the Integer case is still dominating the byte case. Any value that will match for a byte will also match for a boxed Integer.</p>\n<p>JEP 507, the latest version states:</p>\n<blockquote>\n<p>Furthermore, boxing conversions and widening reference conversions are unconditionally exact.</p>\n</blockquote>\n<p>However, that still does not explain why the compiler is not rejecting this because of pattern dominance.</p>\n<p>Just to be clear, all the examples use the same line, <code>int x = getValue();</code>, where <code>getValue()</code> returns 42.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

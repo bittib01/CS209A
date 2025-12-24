@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "spring-integration-sftp"
+    ],
+    "owner": {
+      "account_id": 30817340,
+      "reputation": 17,
+      "user_id": 23640628,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/1c4521c86d39059206492a6d9daa3fe8?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Jerrin Paul",
+      "link": "https://stackoverflow.com/users/23640628/jerrin-paul"
+    },
+    "is_answered": true,
+    "view_count": 399,
+    "accepted_answer_id": 78370171,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1739486185,
+    "creation_date": 1712570726,
+    "question_id": 78291729,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78291729/getting-a-password-must-be-configured-on-the-externally-provided-sshclient-inst",
+    "title": "Getting &quot;A password must be configured on the externally provided SshClient instance&quot; While trying to transfer file using &quot;spring-integration-sftp&quot;",
+    "body": "<p>Getting below while trying to transfer file via SFTP using spring-integration-sftp approach.</p>\n<p><strong>Error</strong></p>\n<p>org.apache.sshd.common.SshException: Unable to negotiate key exchange for kex algorithms.</p>\n<p>With other approach(JSch) I'm able to transfer file to remote server.</p>\n<p><strong>SftpConfig.java</strong></p>\n<pre><code>@Configuration\npublic class SftpConfig{\n    @Value(&quot;${sftp.host}&quot;)\n    private String host;\n    @Value(&quot;${sftp.port}&quot;)\n    private int port;\n    @Value(&quot;${sftp.user}&quot;)\n    private String user;\n    @Value(&quot;${sftp.password}&quot;)\n    private String password;\n    @Value(&quot;${sftp.remoteDirectory}&quot;)\n    private String remoteDirectory;\n\n    @Bean\n    public SessionFactory&lt;SftpClient.DirEntry&gt; sftpSessionFactory(){\n    DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(true);\n    factory.setHost(host);\n    factory.setPort(port);\n    factory.setUser(user);\n    HostConfigEntry hostConfigEntry = new HostConfigEntry(&quot;&quot;,host,port,user);\n    hostConfigEntry.setProperty(&quot;StrictHostKeyChecking&quot;,&quot;no&quot;);\n    hostConfigEntry.setProperty(&quot;PreferredAuthentications&quot;,&quot;password&quot;);\n    factory.setHostConfig(hostConfigEntry);\n    factory.setPassword(password);\n    factory.setAllowedUnknownKeys(true);\n    return new CachingSessionFactory(factory,0)\n    }\n\n    @Bean(name=&quot;toSftpChannelTesting&quot;)\n    @ServiceActivator(inputChannel = &quot;toChannelTesting&quot;)\n    public NessageHandler testingMessageHandler(){\n    SftpMessageHandler handlr = new  SftpMessageHandler(sftpSessionFactory());\n    handlr.setRemoteDirectoryExpression(new LiteralExpression(remoteDirectory));\n    handlr.setAutoCreateDirectory(false);\n    handlr.setUseTemproryFileName(false);\n    return handler;\n    }\n}\n    \n</code></pre>\n<p><strong>FileUploadAdapter.java</strong></p>\n<pre><code>@Service\npublic class FileUploadAdapter{\n    @AutoWired private TransferGateway transferGateway;\n    @Retryable(\n    retryFor = RetryException.class, maxAttempts = 2,\n    backoff = @Backoff(delay = 3000))\n    pubic void transferTestFile(File file){\n        transferGateway.transferTestFile(file);\n    }\n}\n</code></pre>\n<p><strong>TransferGateway.java</strong></p>\n<pre><code>@MessagingGateway\npublic interface TransferGateway{\n    @Gateway(requestChannel = &quot;toChannelTesting&quot;)\n    void transferTestFile(File file);\n}\n</code></pre>\n<p>I had tried doing as per the details in below link</p>\n<p><a href=\"https://stackoverflow.com/questions/77143594/spring-integration-sftp-connection-fails-unable-to-negotiate-key-exchange-for\">Spring Integration SFTP connection fails - Unable to negotiate key exchange for kex algorithms</a></p>\n<p>But I'm getting below error\n<strong>java.lang.IllegalStateException: A password must be configured on the externally provided SshClient instance</strong></p>\n<p>I want to use Preferred Authentication as password</p>\n<p>Is there anything wrong I'm doing here.</p>\n<p>Any help with this is much appreciated. Thanks!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

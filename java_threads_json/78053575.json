@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hibernate",
+      "spring-data-jpa",
+      "criteria-api"
+    ],
+    "owner": {
+      "account_id": 22604872,
+      "reputation": 3366,
+      "user_id": 16785907,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/inUGA.jpg?s=256",
+      "display_name": "mipo256",
+      "link": "https://stackoverflow.com/users/16785907/mipo256"
+    },
+    "is_answered": false,
+    "view_count": 286,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1713812714,
+    "creation_date": 1708800410,
+    "question_id": 78053575,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78053575/spring-data-jpa-specification-api-join-by-embedded-property",
+    "title": "Spring Data JPA Specification API join by @Embedded property",
+    "body": "<p>I have the following entities:</p>\n<pre><code>@Getter\n@Setter\n@Entity\n@Table(name = &quot;closing_account&quot;)\npublic class ClosingAccount {\n\n  @Embedded private AccountParams accountParams = new AccountParams();\n}\n\n@Getter\n@Setter\n@Embeddable\npublic class AccountParams {\n\n  @ToString.Exclude\n  @EqualsAndHashCode.Exclude\n  @Fetch(FetchMode.SELECT)\n  @OneToMany(mappedBy = &quot;closingRequestId&quot;, cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)\n  @LazyCollection(LazyCollectionOption.FALSE)\n  private List&lt;CheckBook&gt; checkBooks;\n}\n\n@Getter\n@Setter\n@Entity\n@Table(name = &quot;checkbook&quot;)\npublic class CheckBook {\n\n  @Column(name = &quot;closing_account_id&quot;, nullable = false)\n  private UUID closingRequestId;\n}\n</code></pre>\n<p>And what I want here is to use Spring Data JPA <em><strong>Specification API (it is important)</strong></em> to craete a <code>Specification</code> with the <code>Predicate</code> to filter only those records from <code>closing_account</code> table where there are no corresponding <code>checkBooks</code> entries. Essentially, from the plain SQL perspective, I want something like:</p>\n<pre><code>SELECT ca.* FROM closing_account ca \nLEFT JOIN checkbook cb ON cb.closing_account_id = ca.id\nWHERE cb.id IS NULL\n</code></pre>\n<p>It may of coruse be written i different ways, but I just want to express what I need.</p>\n<p>It would be possible to just issue:</p>\n<pre><code>return (root, query, criteriaBuilder) -&gt; {\n  return criteriaBuilder.isNull(root.join(&quot;checkBooks&quot;, JoinType.LEFT).get(&quot;closingRequestId&quot;));\n};\n</code></pre>\n<p>however, this is not going to work since <code>checkBooks</code> is not a direct property of a <code>ClosingAccount</code>. So I think I just need to adjust my <code>Specification</code> returned <code>Predicate</code> a bit, I just do not know how.</p>\n<p>Any suggestions are welcomed and highly appretiated</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

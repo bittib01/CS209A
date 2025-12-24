@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hibernate",
+      "jpa",
+      "spring-data-jpa",
+      "olingo"
+    ],
+    "owner": {
+      "account_id": 33181831,
+      "reputation": 1,
+      "user_id": 26447144,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/d7958fe29e872e30d4fadb8f807b3e97?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Person",
+      "link": "https://stackoverflow.com/users/26447144/person"
+    },
+    "is_answered": false,
+    "view_count": 174,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1722875255,
+    "creation_date": 1721490615,
+    "question_id": 78773226,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78773226/hibernate-seems-to-ignore-the-dialect-i-specify",
+    "title": "Hibernate seems to ignore the dialect I specify",
+    "body": "<p>I'm using Olingo JPA for producing an OData API.</p>\n<p>The database I'm connecting to doesn't support the 'LOCATE' function; instead it implements 'POSITION'.</p>\n<p>This seems to be true of a few databases: postgres, sqlserver and snowflake.</p>\n<p>I have set the dialect using properties, for example:</p>\n<pre><code>spring.data.jdbc.dialect=postgresql\nspring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect\nspring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect\n</code></pre>\n<p>I can see that <code>org.hibernate.dialect.PostgreSQLDialect</code> calls\n<code>functionFactory.locate_positionSubstring();</code></p>\n<p>I can also see that the SqlServerDialect calls\n<code>functionFactory.locate_charindex();</code></p>\n<p>My understanding of these is that for PostgreSQLDialect it should use the <code>position</code> function, and for SqlServerDialect, it should use the <code>charindex</code> function instead of locate.</p>\n<p>However, when I turn on logging (<code>spring.jpa.show-sql=true</code>), I am seeing logs like:\n<code>SELECT COUNT(E0.id) S0 FROM MY_TABLE E0 WHERE (LOCATE(?, E0.value) &lt;&gt; ?)</code></p>\n<p>This is because the Olingo library v2 uses a criteriabuilder and calls locate on it <a href=\"https://github.com/SAP/olingo-jpa-processor-v4/blob/f8cbf605a8865bba353941128efff18ea3a6fab4/jpa/odata-jpa-processor/src/main/java/com/sap/olingo/jpa/processor/core/filter/JPAOperationConverter.java#L172\" rel=\"nofollow noreferrer\">here</a>.</p>\n<p>Is my expectation that these dialects (or if I implement my own) should cause hibernate to not call the database with a LOCATE function, but instead use charindex or position? Why is it still sending LOCATE queries (Which then fail)?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

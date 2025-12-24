@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-mvc"
+    ],
+    "owner": {
+      "account_id": 38559673,
+      "reputation": 21,
+      "user_id": 30811137,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/7f4878ce45db0e7ae55bba4bdf626b16?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Joseph Wu",
+      "link": "https://stackoverflow.com/users/30811137/joseph-wu"
+    },
+    "is_answered": true,
+    "view_count": 93,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1750256368,
+    "creation_date": 1750061760,
+    "last_edit_date": 1750065835,
+    "question_id": 79667261,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79667261/about-spring-interceptorregistry-addinterceptor-not-working",
+    "title": "About spring InterceptorRegistry.addInterceptor() not working",
+    "body": "<p>I am currently learning about spring and the concept of beans. I learned that in spring project you can configure in 3 ways -- xml, annotation-based and java-based. I am trying to configure my interceptor in all ways but the @Configuration way fails, the interceptor cannot be invoked this way. I don't know why the @Bean MappedInterceptor configuration invoke the interceptor, all I know is that there are probably some auto configuring behind the spring but I can't find any articles about it...</p>\n<p>I've read this <a href=\"https://stackoverflow.com/questions/69816821/mappedinterceptor-bean-vs-webmvcconfigurer-addinterceptors-what-is-the-correct\">article</a>, it says the mappedInterceptor bean won't work in plain spring but it helps me invoke the interceptor here. Although I think I am using plain spring now.</p>\n<p>I've also read this <a href=\"https://stackoverflow.com/questions/22633800/spring-mvc-interceptor-never-called/35948730#35948730\">article</a></p>\n<p>InterceptorConfig:</p>\n<pre><code>@Configuration\n@EnableWebMvc\npublic class InterceptorConfig implements WebMvcConfigurer {\n    \n    private final LoginAnnotationInterceptor loginAnnotationInterceptor;\n    \n    public InterceptorConfig(LoginAnnotationInterceptor loginAnnotationInterceptor) {\n        this.loginAnnotationInterceptor = loginAnnotationInterceptor;\n    }\n\n    // the interceptor added here cannot be invoked\n    @Override\n    public void addInterceptors(InterceptorRegistry registry) {\n        registry.addInterceptor(loginAnnotationInterceptor);\n    }\n    \n    // the interceptor added here is able to be invoked\n    @Bean\n    public MappedInterceptor loginAnnotationInterceptorBean()\n    {\n        return new MappedInterceptor(null, loginAnnotationInterceptor);\n    }\n}\n</code></pre>\n<p>LoginAnnotationInterceptor:</p>\n<pre><code>@Component\npublic class LoginAnnotationInterceptor implements HandlerInterceptor  {\n    \n    @Override\n    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) \n            throws Exception {\n        System.out.println(&quot;It's an interceptor!&quot;);\n\n        // some logic...\n\n        return true;\n    }\n}\n</code></pre>\n<p><a href=\"https://i.sstatic.net/KPczR8HG.png\" rel=\"nofollow noreferrer\">this is my lib...don't know if anything is wrong here</a></p>\n<p>This is my web.xml. The context:component-scan/ part to scan the InterceptorConfig is defined in applicationContext.xml. I believe my configuration is loaded in DispatcherServlet.</p>\n<p>web.xml:</p>\n<pre><code>&lt;!-- Root Context --&gt;\n&lt;context-param&gt;\n    &lt;param-name&gt;contextConfigLocation&lt;/param-name&gt;\n    &lt;param-value&gt;/WEB-INF/root-context.xml&lt;/param-value&gt;\n&lt;/context-param&gt;\n    \n&lt;listener&gt;\n    &lt;listener-class&gt;org.springframework.web.context.ContextLoaderListener&lt;/listener-class&gt;\n&lt;/listener&gt;\n\n&lt;!-- DispatcherServlet --&gt;\n&lt;servlet&gt;\n    &lt;servlet-name&gt;dispatcher&lt;/servlet-name&gt;\n    &lt;servlet-class&gt;org.springframework.web.servlet.DispatcherServlet&lt;/servlet-class&gt;\n    &lt;init-param&gt;\n        &lt;param-name&gt;contextConfigLocation&lt;/param-name&gt;\n        &lt;param-value&gt;/WEB-INF/applicationContext.xml&lt;/param-value&gt;\n    &lt;/init-param&gt;\n    &lt;load-on-startup&gt;1&lt;/load-on-startup&gt;\n&lt;/servlet&gt;\n</code></pre>\n<p>applicationContext.xml:</p>\n<pre><code>&lt;context:component-scan base-package=&quot;org.com.interceptor&quot;/&gt;\n</code></pre>\n<p>I tried to print out the beans in the ApplicationContext but still doesn't help, is there any other way to debug this problem or understand the reason behind it?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

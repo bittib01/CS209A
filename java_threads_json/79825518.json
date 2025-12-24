@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "opc-ua",
+      "opc",
+      "milo"
+    ],
+    "owner": {
+      "account_id": 15934612,
+      "reputation": 11,
+      "user_id": 11498091,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/0b52cea2bb644cd1bd4a2dabccd56a6e?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Mabsito",
+      "link": "https://stackoverflow.com/users/11498091/mabsito"
+    },
+    "is_answered": false,
+    "view_count": 105,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1764313745,
+    "creation_date": 1763641684,
+    "last_edit_date": 1763711899,
+    "question_id": 79825518,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79825518/reading-and-writing-customstructtype-with-eclipse-milo-opc-ua",
+    "title": "Reading and Writing CustomStructType with Eclipse Milo OPC-UA",
+    "body": "<p>I am new to <code>OPC-UA</code> and trying to use Eclipse Milo to read and write Objects but I am getting the following Error:</p>\n<pre class=\"lang-console prettyprint-override\"><code>org.eclipse.milo.opcua.stack.core.UaSerializationException: no codec registered for encodingId=ns=4;i=29\nat org.eclipse.milo.opcua.stack.core.encoding.binary.OpcUaDefaultBinaryEncoding.decode(OpcUaDefaultBinaryEncoding.java:89)\nat org.eclipse.milo.opcua.stack.core.types.builtin.ExtensionObject.lambda$decode$0(ExtensionObject.java:116)\nat org.eclipse.milo.opcua.stack.core.util.Lazy.get(Lazy.java:39)\nat org.eclipse.milo.opcua.stack.core.types.builtin.ExtensionObject.decode(ExtensionObject.java:116)\nat org.eclipse.milo.opcua.stack.core.types.builtin.ExtensionObject.decode(ExtensionObject.java:75)\n</code></pre>\n<p>I've followed the Milo Example to read and write objects to the tee. All I need, is to read some objects with <code>OPC-UA</code> to modify and then write them again.</p>\n<p>Here is my implementation:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public static class Codec extends GenericDataTypeCodec&lt;LoadColli&gt; {\n    @Override\n    public Class&lt;LoadColli&gt; getType() {\n        return LoadColli.class;\n    }\n\n    @Override\n    public LoadColli decodeType(EncodingContext context, UaDecoder decoder) throws UaSerializationException {\n        String id = decoder.decodeString(&quot;ID&quot;);\n        boolean finished = decoder.decodeBoolean(&quot;Finished&quot;);\n        boolean inProgress = decoder.decodeBoolean(&quot;InProgress&quot;);\n        return new LoadColli(finished, inProgress, id);\n    }\n\n    public void encodeType(EncodingContext context, UaEncoder encoder, LoadColli value)\n            throws UaSerializationException {\n        encoder.encodeString(&quot;ID&quot;, value.id);\n        encoder.encodeBoolean(&quot;Finished&quot;, value.isFinished());\n        encoder.encodeBoolean(&quot;InProgress&quot;, value.isInProgress());\n    }\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>private void registerCustomCodec(OpcUaClient client) {\n    NodeId dataTypeId = LoadColli.TYPE_ID\n            .toNodeId(client.getNamespaceTable())\n            .orElseThrow(() -&gt; new IllegalStateException(&quot;namespace not found&quot;));\n    NamespaceTable ns = client.getNamespaceTable();\n    NodeId binaryEncodingId = LoadColli.BINARY_ENCODING_ID\n            .toNodeId(client.getNamespaceTable())\n            .orElseThrow(() -&gt; new IllegalStateException(&quot;namespace not found&quot;));\n\n    // Register codec with the client's DataTypeManager instance.\n    // We need to register it by both its encodingId and its dataTypeId because it\n    // may be\n    // looked up by either depending on the context.\n\n    client\n        .getStaticDataTypeManager()\n        .registerType(dataTypeId, new LoadColli.Codec(), binaryEncodingId, null, null);\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>try {\n    NodeId nodeLoadColliId = NodeId.parse(&quot;ns=4;i=30&quot;);\n    UaVariableNode node = client.getAddressSpace().getVariableNode(nodeLoadColliId);\n    DataValue value = node.readValue();\n    Variant variant = value.value();\n    ExtensionObject xo = (ExtensionObject) variant.value();\n    LoadColli decoded = (LoadColli) xo.decode(client.getStaticEncodingContext());\n\n    ExtensionObject modifiedXo = ExtensionObject\n            .encode(client.getStaticEncodingContext(), loadColli);\n    Variant loadColliVariant = new Variant(modifiedXo);\n    NodeReaderWriter.writeNodeValue(client, NodeId.parse(&quot;ns=4;i=30&quot;),\n            loadColliVariant);\n} catch (UaException e) {\n    log.error(&quot; opc error when writing {}&quot;, e);\n}\n</code></pre>\n<p>Can someone help me to have clean implementation for reading and writing objects with different parameters using <code>OPC-UA</code>? I don't want to read and write every parameter individually.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

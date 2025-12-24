@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-flink",
+      "parquet",
+      "flink-streaming"
+    ],
+    "owner": {
+      "account_id": 27104252,
+      "reputation": 23,
+      "user_id": 20650320,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/ALm5wu3Aep9PbG2TyT-9eE4PxUCSva3VeDv9ljAXY80c=k-s256",
+      "display_name": "Ronmeir",
+      "link": "https://stackoverflow.com/users/20650320/ronmeir"
+    },
+    "is_answered": false,
+    "view_count": 33,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1753263090,
+    "creation_date": 1753263090,
+    "question_id": 79711638,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79711638/compacted-files-are-written-to-the-lowest-datetime-bucket-among-source-part-file",
+    "title": "Compacted files are written to the lowest datetime bucket among source part files instead of original part file system time",
+    "body": "<p>I’m working with Apache Flink 1.16 on an ETL job that reads data from Kafka and writes the output to HDFS in Parquet format. I’m using a FileSink with BulkFormat (ParquetAvroWriters), a DateTimeBucketAssigner, and an OnCheckpointRollingPolicy.</p>\n<p>The goal is to organize files into date-based folders (e.g., yyyy-MM-dd), where each part file is placed in the bucket corresponding to the system time at which it was created or finalized.</p>\n<p>However, I’ve observed that when Flink compacts multiple part files into a single file, the resulting compacted file is written to the bucket corresponding to the lowest bucket datetime among the original part files, rather than the system time or even the latest of the involved buckets.</p>\n<p>This leads to situations where newly compacted files appear under outdated date buckets, which is incorrect for my use case — each file should appear under the directory representing the actual time it was produced or finalized.</p>\n<p>Here’s a simplified version of the sink setup:</p>\n<pre><code>BucketAssigner&lt;GenericRecord, String&gt; customBucketAssigner = new DateTimeBucketAssigner&lt;&gt;(&quot;yyyy-MM-dd&quot;);\n\nOnCheckpointRollingPolicy&lt;GenericRecord, String&gt; rollingPolicy = OnCheckpointRollingPolicy.builder()\n    .withPartSize(100 * 1024 * 1024)  // Max file size before rolling (100 MB)\n    .withInactivityInterval(Time.seconds(30)) // Inactivity timeout before rolling (30 sec)\n    .build();\n\nFileSink&lt;GenericRecord&gt; fileSink = FileSink\n    .forBulkFormat(new Path(&quot;hdfs://path/output/&quot;), ParquetAvroWriters.forReflectRecord(GenericRecord.class))\n    .withBucketAssigner(customBucketAssigner)\n    .withRollingPolicy(rollingPolicy)\n    .build();\n</code></pre>\n<p>Question:\nHow can I make sure that compacted files are written into the bucket that reflects the system time at which they are finalized, rather than inheriting the lowest datetime from the group of part files being compacted?</p>\n<p>Is there a recommended way to override this behavior, or to customize the compaction logic so that bucket placement reflects current time or the latest among the part files?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

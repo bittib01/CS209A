@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "multithreading",
+      "concurrency",
+      "java.util.concurrent"
+    ],
+    "owner": {
+      "account_id": 16418242,
+      "reputation": 19,
+      "user_id": 11860157,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/mLkWgMnD.jpg?s=256",
+      "display_name": "iamzence",
+      "link": "https://stackoverflow.com/users/11860157/iamzence"
+    },
+    "is_answered": true,
+    "view_count": 122,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1747724618,
+    "creation_date": 1747655281,
+    "last_edit_date": 1747724618,
+    "question_id": 79628674,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79628674/concurrent-thread-issues",
+    "title": "Concurrent &amp; Thread issues",
+    "body": "<p>I have a multithreaded program that both produces output via a timer and receives user input. It behaves badly when I want to type in a command such as &quot;pause&quot; or &quot;stop&quot;: anything I type, the letters just vanish. For me to type a complete word, it must be within a second. If I manage to stop or pause the timer, however, then there is no such issue when I type a &quot;resume&quot; command.</p>\n<p>What is wrong, and how can I fix it?</p>\n<pre class=\"lang-java prettyprint-override\"><code>// timer method\nprivate void runTimer() {\n    timer.scheduleAtFixedRate(new TimerTask() {\n        @Override\n        public void run() {\n            if (isPaused.get()) return;\n\n            if (timeleft &gt; 0) {\n                int minutes = timeleft / 60;\n                int seconds = timeleft % 60;\n                // Clear the current line and print the countdown\n                System.out.print(String.format(&quot;\\033[2K\\r%02d:%02d remaining &gt; &quot;, minutes, seconds));\n                System.out.flush();\n                timeleft--;\n            } else {\n                System.out.println(&quot;\\nSession Complete!&quot;);\n                logSession(currentSessionType, Duration.ofMinutes(sessionDurationInMinutes));\n                displayTotalFocusTime(); // Show the total focus time after each session\n                stopSession();\n                focusCount++;\n\n                if (focusCount % 4 == 0){\n                    System.out.println(&quot;Time for a LONG break (15 mins)!&quot;);\n                    startBreak(15, SessionType.WORK);\n                } else {\n                    System.out.println(&quot;Time for a short break (5 mins)!&quot;);\n                    startBreak(5, SessionType.WORK);\n                }\n            }\n        }\n    }, 0, 1000);\n}\n\n// Listen and handle user input Method\nprivate void handleUserInput() {\n    Scanner scanner = new Scanner(System.in);\n    StringBuilder inputBuffer = new StringBuilder();\n\n    while (isRunning.get()) {\n        try {\n            if ( System.in.available() &gt; 0) {\n                char c = (char) System.in.read();\n                if (c == '\\n') {\n                    String input = inputBuffer.toString().trim().toLowerCase();\n                    inputBuffer.setLength(0);\n\n                    switch (input) {\n                        case &quot;pause&quot;:\n                            isPaused.set(true);\n                            System.out.println(&quot;Timer Paused.&quot;);\n                            break;\n                        case &quot;resume&quot;:\n                            isPaused.set(false);\n                            System.out.println(&quot;Timer Resumed&quot;);\n                            break;\n                        case &quot;stop&quot;:\n                            stopSession();\n                            System.out.println(&quot;Timer Stopped.&quot;);\n                            break;\n                        default:\n                            if (!input.isEmpty()) {\n                                System.out.println(&quot;Unknown Command. Use: Pause, Resume, Stop&quot;);\n                            }\n                    }\n                } else {\n                    inputBuffer.append(c);\n                }\n            }\n            Thread.sleep(50);\n        } catch (IOException | InterruptedException e) {\n            System.out.println(&quot;Error Reading Input:&quot;);\n        }\n    }\n}\n</code></pre>\n<p>The results of the code:</p>\n<p><img src=\"https://i.sstatic.net/pzFhpm8f.png\" alt=\"The result of the code\" /></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

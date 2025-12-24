@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "redis",
+      "reactive",
+      "optimistic-locking",
+      "lettuce"
+    ],
+    "owner": {
+      "account_id": 8707851,
+      "reputation": 807,
+      "user_id": 6515166,
+      "user_type": "registered",
+      "accept_rate": 85,
+      "profile_image": "https://i.sstatic.net/yxxFp.jpg?s=256",
+      "display_name": "Mssm",
+      "link": "https://stackoverflow.com/users/6515166/mssm"
+    },
+    "is_answered": false,
+    "view_count": 121,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1740309126,
+    "creation_date": 1740309126,
+    "question_id": 79461129,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79461129/redis-lettuce-optimistic-locking-in-java-reactive",
+    "title": "Redis Lettuce Optimistic Locking in Java Reactive",
+    "body": "<p>I'm trying to implement Optimistic Locking with Redis Lettuce client in Java Reactive according to this article: <a href=\"https://github.com/redis/lettuce/wiki/Reactive-API#other-examples\" rel=\"nofollow noreferrer\">https://github.com/redis/lettuce/wiki/Reactive-API#other-examples</a>.\nI got 2 approaches, V1 and V2. V2 works but not V1. I don't understand why, and V2 doesn't seem very effecient in my opinion.</p>\n<p>This doesn't work:</p>\n<pre><code>public Mono&lt;List&lt;T&gt;&gt; optimisticUpdateAllV1(List&lt;String&gt; ids, Function&lt;T, T&gt; mapper) {\n    // map the ids to redis keys\n    List&lt;String&gt; keys = // ...\n    String[] keysArray = keys.toArray(new String[0]);\n\n    RedisReactiveCommands&lt;String, String&gt; redisReactiveCommands = redisConnection.reactive();\n    return redisReactiveCommands.watch(keysArray)\n        .then(redisReactiveCommands.mget(keysArray).collectList())\n        .map(entries -&gt; {\n            List&lt;T&gt; oldItems = // ...\n\n            return oldItems.stream().map(mapper).toList();\n        })\n        .flatMap(newItems -&gt; {\n            // map the entities back to &lt;key, stringified entity&gt;\n            Map&lt;String, String&gt; newItemsMap = // ...\n\n            return redisReactiveCommands.multi()\n                    .flatMap(multiStatus -&gt; {\n                        return redisReactiveCommands.mset(newItemsMap);\n                    })\n                    .flatMap(mSetStatus -&gt; {\n                        return redisReactiveCommands.exec();\n                    })\n                    .flatMap(executeStatus -&gt; {\n                        if(executeStatus.wasDiscarded() || executeStatus.isEmpty()){\n                            return optimisticUpdateAllV1(ids, mapper);\n                        }\n\n                        return Mono.just(newItems);\n                    });\n        });\n}\n</code></pre>\n<p>And this works by switching to blocking <strong>mset</strong> instruction inside <strong>multi</strong> block by adding an <strong>onSuccess</strong> callback to the <strong>multi</strong> mono.</p>\n<pre><code>public Mono&lt;List&lt;T&gt;&gt; optimisticUpdateAllV2(List&lt;String&gt; ids, Function&lt;T, T&gt; mapper) {\n    // map the ids to redis keys\n    List&lt;String&gt; keys = // ...\n    String[] keysArray = keys.toArray(new String[0]);\n\n    RedisReactiveCommands&lt;String, String&gt; redisReactiveCommands = redisConnection.reactive();\n    return redisReactiveCommands.watch(keysArray)\n        .then(redisReactiveCommands.mget(keysArray).collectList())\n        .map(entries -&gt; {\n            List&lt;T&gt; oldItems = // ...\n\n            return oldItems.stream().map(mapper).toList();\n        })\n        .flatMap(newItems -&gt; {\n            // map the entities back to &lt;key, stringified entity&gt;\n            Map&lt;String, String&gt; newItemsMap = // ...\n\n            return redisReactiveCommands.multi()\n                    .doOnSuccess((e) -&gt; {\n                        redisReactiveCommands.mset(newItemsMap).subscribe();\n                    })\n                    .flatMap(multiStatus -&gt; {\n                        return redisReactiveCommands.exec();\n                    })\n                    .flatMap(executeStatus -&gt; {\n                        if(executeStatus.wasDiscarded() || executeStatus.isEmpty()){\n                            return optimisticUpdateAllV2(ids, mapper);\n                        }\n\n                        return Mono.just(newItems);\n                    });\n            });\n}\n</code></pre>\n<p>First, i don't understand why it doesn't work with the first approach, and secondly, i'm not sure if putting a <code>subscribe()</code> and blocking the flow inside the <strong>mutli</strong> mono block is a wise idea.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

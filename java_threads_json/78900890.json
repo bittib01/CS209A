@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "lombok"
+    ],
+    "owner": {
+      "account_id": 13559787,
+      "reputation": 17,
+      "user_id": 9781956,
+      "user_type": "registered",
+      "profile_image": "https://lh5.googleusercontent.com/-rENqUjEp3Vw/AAAAAAAAAAI/AAAAAAAAADA/PE9wMXq7tck/s256-rj/photo.jpg",
+      "display_name": "Piccolo Namek",
+      "link": "https://stackoverflow.com/users/9781956/piccolo-namek"
+    },
+    "is_answered": true,
+    "view_count": 471,
+    "closed_date": 1724709872,
+    "answer_count": 2,
+    "score": -1,
+    "last_activity_date": 1724326761,
+    "creation_date": 1724320316,
+    "last_edit_date": 1724324923,
+    "question_id": 78900890,
+    "link": "https://stackoverflow.com/questions/78900890/solving-circular-reference-in-spring-boot-with-requiredargsconstructor",
+    "closed_reason": "Opinion-based",
+    "title": "Solving Circular Reference in Spring Boot with RequiredArgsConstructor",
+    "body": "<p>I am trying to create a java spring boot service and I have the following issue. Suppose we have a dating app with a likes and dislikes table. We need to check if the users have interacted in the past and they did we may need to throw an exception. So the classes might have to look like this:</p>\n<pre><code>@Service\n@RequiredArgsConst\npublic class LikeService {\n    private final DislikeService dislikeService;\n    public void method() {\n        // check if dislike exists and save\n    }\n}\n\n\n@Service\n@RequiredArgsConst\npublic class DislikeService {\n    private final LikeService likeService;\n    public void method() {\n        // check if like exists and save\n    }\n}\n</code></pre>\n<p>This will definitely result in a circular reference error. A solution that could probably solve this without changing the design would be:</p>\n<pre><code>@Service\n@RequiredArgsConst\npublic class LikeService {\n    @Lazy\n    private final DislikeService dislikeService;\n}\n</code></pre>\n<p>However, <code>@lazy</code> annotation is ignored. Is there any way I can use the <code>@RequiredArgsConstructor</code> with the <code>@lazy</code> annotation only on specific fields? I want the generated constructor to look something like this for the like service:</p>\n<pre><code>public LikeService(final RandomService randomService, final AnotherService anotherService, @Lazy final DislikeService dislikeService) {\n    this.randomService = randomService;\n    this.anotherService = anotherService;\n    this.dislikeService = dislikeService;\n}\n</code></pre>\n<p><strong>Solutions that sound like bad design to me:</strong> Using a mediator service. Suppose me have an interaction service that includes the like and dislike service. This will solve the circular reference issue, however the like and dislike methods will be accessible from every other service, skipping any checks we might have set in the interaction service (if they are called directly). So I would want to avoid that.</p>\n<p><strong>Recomendations:</strong> You are more than welcome to help me out by giving me examples of alternative design patterns except mediator services or by linking guides for good design principles.</p>\n<p><strong>Note:</strong> I have decided to merge the likes and dislikes table and use an enum to determine the interaction. I am only asking for a solution in case I have to deal with a similar issue in the future and out of pure interest.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

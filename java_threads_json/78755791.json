@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "multithreading",
+      "design-patterns",
+      "completable-future",
+      "java-threads"
+    ],
+    "owner": {
+      "account_id": 16506411,
+      "reputation": 1282,
+      "user_id": 11926338,
+      "user_type": "registered",
+      "profile_image": "https://lh6.googleusercontent.com/-jzyan4-U8NQ/AAAAAAAAAAI/AAAAAAAAAAA/ACHi3rf_QTuXuiTzzFzk624qeDCyrxebsA/s256-rj/photo.jpg",
+      "display_name": "Pavel Petrashov",
+      "link": "https://stackoverflow.com/users/11926338/pavel-petrashov"
+    },
+    "is_answered": false,
+    "view_count": 80,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1721837212,
+    "creation_date": 1721148256,
+    "question_id": 78755791,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78755791/what-problems-can-i-have-with-spawning-a-set-of-new-threads-from-servlet-and-wha",
+    "title": "What problems can I have with spawning a set of new threads from Servlet and what alternatives exist?",
+    "body": "<p>For simplicity, I will omit some details and try to highlight the main point:</p>\n<p>I have a servlet that consumes users' requests, when a user sends a request I need to gather data from many endpoints. One user can have data from many sources, so, I need to get all data from all sources and respond to them to the user. To get data from one endpoint I need to call a HTTP URL. It takes a significant count of time. Let's say from 1 second to 20 minutes.</p>\n<p>So, now, for example, we have a user Jonh and he has 3 sources with documents. He requests his documents from my servlet and I start to gather documents. Sours by source I request data and collect it in a list, then I respond it to John. Obviously, John can wait for a while and he will be angry. Here is an example:</p>\n<pre><code>import org.springframework.web.bind.annotation.GetMapping;\nimport org.springframework.web.bind.annotation.PathVariable;\nimport org.springframework.web.bind.annotation.RestController;\n\nimport java.util.ArrayList;\nimport java.util.List;\nimport java.util.concurrent.TimeUnit;\n\n@RestController\npublic class SearchDocumentsController {\n\n    @GetMapping(&quot;/search/{userId}&quot;)\n    public List&lt;String&gt; searchDocuments(@PathVariable String userId) {\n        List&lt;String&gt; connections = getUserConnections(userId);\n        List&lt;String&gt; documents = syncDocuments(userId, connections);\n        return documents;\n    }\n\n    // Simulate a method that retrieves user connections\n    private List&lt;String&gt; getUserConnections(String userId) {\n        return List.of(&quot;one&quot;, &quot;two&quot;, &quot;three&quot;);\n    }\n\n    // This method is the one that takes a long time to execute\n    public List&lt;String&gt; syncDocuments(String userId, List&lt;String&gt; connections) {\n        List&lt;String&gt; documents = new ArrayList&lt;&gt;();\n        for (String connection : connections) {\n            List&lt;String&gt; documentsFromOneConnection = searchInDataSource(userId, connection);\n            documents.addAll(documentsFromOneConnection);\n        }\n        return documents;\n    }\n\n    // Simulate a slow data source\n    private List&lt;String&gt; searchInDataSource(String userId, String connection) {\n        List&lt;String&gt; documents = new ArrayList&lt;&gt;();\n        for (int i = 0; i &lt; 3; i++) {\n            sleepSeconds(3);\n            documents.add(&quot;doc &quot; + i + &quot; from &quot; + connection + &quot; for &quot; + userId);\n        }\n        return documents;\n    }\n\n    private void sleepSeconds(int seconds) {\n        try {\n            TimeUnit.SECONDS.sleep(seconds);\n        } catch (InterruptedException e) {\n            throw new RuntimeException(e);\n        }\n    }\n\n}\n</code></pre>\n<p>It finishes for 27 seconds. I got a task to switch this process to the parallel. When I get the request I should create 3 threads (or another number) and run them in parallel. It can be look like here:</p>\n<pre><code>    @GetMapping(&quot;/search/{userId}&quot;)\n    public List&lt;String&gt; searchDocuments(@PathVariable String userId) {\n        long start = System.currentTimeMillis();\n        List&lt;String&gt; connections = getUserConnections(userId);\n        List&lt;String&gt; documents = asyncDocuments(userId, connections);\n        long end = System.currentTimeMillis();\n        System.out.println(&quot;Time taken: &quot; + (end - start) / 1000 + &quot; seconds&quot;);\n        return documents;\n    }\n\n    // This method is the one that takes a long time to execute\n    public List&lt;String&gt; asyncDocuments(String userId, List&lt;String&gt; connections) {\n        List&lt;CompletableFuture&lt;List&lt;String&gt;&gt;&gt; futures = new ArrayList&lt;&gt;();\n\n        for (String connection : connections) {\n            futures.add(CompletableFuture.supplyAsync(() -&gt; searchInDataSource(userId, connection)));\n        }\n\n        // Wait for all futures to complete\n        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();//block until all futures are completed\n        //By tis point all futures are completed\n\n        List&lt;String&gt; collectedResults = new ArrayList&lt;&gt;();\n        for (CompletableFuture&lt;List&lt;String&gt;&gt; future : futures) {\n            collectedResults.addAll(future.join()); //join() will return the result of the future without blocking\n        }\n\n        return collectedResults;\n    }\n</code></pre>\n<p>And it tasks 9 seconds. In the real project I use my executor service in the CompletableFuture and it is not spring boot but a simple servlet.</p>\n<p><strong>QUESTION:</strong> Is this ok to spawn a set of threads from the servlet? Is there any better way to have that same result? The main concern is resources. I use a global thread pool, so there is a boundary, I have a timeout after that I need to return all documents that I had found at that point but anyway it looks wrong. I read in the Java concurrency in practice that is wrong (I don't remember the chapter), I saw some SO questions that it is not a good approach but I am looking for a good explanation, references to a book, article, etc and also, if somebody knows an alternative pattern/approach/architecture how to solve this task I would hear that and appreciate that.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

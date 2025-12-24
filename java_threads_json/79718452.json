@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "swing"
+    ],
+    "owner": {
+      "account_id": 43277388,
+      "reputation": 1,
+      "user_id": 31168765,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/76c46082b5b69451a564b01390156184?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "jona vonk",
+      "link": "https://stackoverflow.com/users/31168765/jona-vonk"
+    },
+    "is_answered": true,
+    "view_count": 94,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1754916346,
+    "creation_date": 1753784403,
+    "last_edit_date": 1753784876,
+    "question_id": 79718452,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79718452/why-does-my-image-not-resize-after-clicking-maximize-restore-down",
+    "title": "Why does my image not resize after clicking maximize/restore down",
+    "body": "<p>I want to display an IconImage, on a JLabel, on a JPanel, in a JLayeredPane, in a JFrame. I've written a subclass for the JLayeredPane (shown below) in which I add the panel with the label with the image icon to it. I overrode the doLayout function of the JLabel, so the image retains its ration while it is resized.</p>\n<p>The code seems to work fine when I simply drag the sides of the JFrame, but when I click the maximize button in the top right corner of the JFrame, the image does not resize, it is displayed in the top left corner of the frame with the same size as before I clicked maximize. Then when I click it again (now it is the restore button though), the frame gets smaller again, but the image appears to take the size of the maximized frame. When I just drag the side of the frame again it immediately changes the image size to a seemingly correct size. I say seem and seemingly because I believe the image size lags one 'resize event' (not sure if that is the right terminology) behind.</p>\n<p>I've written the following code:</p>\n<pre class=\"lang-java prettyprint-override\"><code>package myPackage;\n\nimport java.awt.Color;\nimport java.awt.Graphics;\nimport java.awt.Graphics2D;\nimport java.awt.Image;\nimport java.awt.RenderingHints;\nimport java.awt.image.BufferedImage;\nimport java.io.File;\nimport java.io.IOException;\n\nimport javax.imageio.ImageIO;\nimport javax.swing.ImageIcon;\nimport javax.swing.JLabel;\nimport javax.swing.JLayeredPane;\nimport javax.swing.JPanel;\nimport javax.swing.SpringLayout;\n\npublic class GamePane extends JLayeredPane{\n    \n    private BufferedImage worldImage = null;\n    private Image scaledWorldImage = null;\n    private ImageIcon worldIcon = new ImageIcon();\n    private final JLabel mapLabel;\n    private final JPanel bgPanel = new JPanel();\n    private final SpringLayout bgPanelLayout = new SpringLayout();\n\n    public GamePane() {\n        this.setBackground(Color.BLUE);\n        this.setOpaque(true);\n        bgPanel.setLayout(bgPanelLayout);\n        bgPanel.setOpaque(true);\n        \n        try {\n            worldImage = ImageIO.read(new File(&quot;src/assets/world_map.png&quot;));\n            //worldIcon = new ImageIcon(worldImage);\n        } catch (IOException e) {\n            e.printStackTrace();\n        }\n        \n        int imHeight = worldImage.getHeight();\n        int imWidth = worldImage.getWidth();\n        double imRatio = (double) imHeight/ (double) imWidth;\n        \n        \n        mapLabel = new JLabel(worldIcon) {\n            private final double ratio = imRatio;\n            \n            @Override\n            public void doLayout() {\n                super.doLayout();\n                if(getWidth() &gt; 0 &amp;&amp; getHeight() &gt; 0) {\n                    double height;\n                    double width;\n                    if(getHeight() &lt; ratio*getWidth()) {\n                        height = (double) getHeight();\n                        width = height/ratio;\n                    } else {\n                        width = (double) getWidth();\n                        height = width*ratio;\n                    }\n                    scaledWorldImage = worldImage.getScaledInstance(\n                            (int) width, \n                            (int) height,\n                            Image.SCALE_DEFAULT);\n                    worldIcon.setImage(scaledWorldImage);   \n                    revalidate();\n                    repaint();\n                }\n            }\n        };\n        \n\n        bgPanel.add(mapLabel);\n        bgPanelLayout.putConstraint(SpringLayout.NORTH, mapLabel, 0, SpringLayout.NORTH, bgPanel);\n        bgPanelLayout.putConstraint(SpringLayout.SOUTH, mapLabel, 0, SpringLayout.SOUTH, bgPanel);  \n        bgPanelLayout.putConstraint(SpringLayout.EAST, mapLabel, 0, SpringLayout.EAST, bgPanel);    \n        bgPanelLayout.putConstraint(SpringLayout.WEST, mapLabel, 0, SpringLayout.WEST, bgPanel);    \n        \n        this.add(bgPanel, JLayeredPane.DEFAULT_LAYER);\n        \n    }\n    \n    @Override\n    public void doLayout() {\n        super.doLayout();\n        bgPanel.setBounds(0, 0, this.getWidth(), this.getHeight());\n    }\n}\n</code></pre>\n<p>I have some basic Java experience, but I know very little about JFrames and the like (but would like to learn, this is a hobby project), so I've used a lot of ChatGPT to come to this code. If I am doing anything really strange here (related or not related to the problem that I described) please let me know.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

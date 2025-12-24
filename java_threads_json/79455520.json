@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "gradle",
+      "annotations"
+    ],
+    "owner": {
+      "account_id": 14838274,
+      "reputation": 430,
+      "user_id": 10715700,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/ilY1b.jpg?s=256",
+      "display_name": "BBloggsbott",
+      "link": "https://stackoverflow.com/users/10715700/bbloggsbott"
+    },
+    "is_answered": true,
+    "view_count": 101,
+    "accepted_answer_id": 79459158,
+    "answer_count": 3,
+    "score": 0,
+    "last_activity_date": 1740685546,
+    "creation_date": 1740076549,
+    "last_edit_date": 1740077295,
+    "question_id": 79455520,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79455520/using-annotation-processors-to-check-for-other-annotations",
+    "title": "Using annotation processors to check for other annotations",
+    "body": "<p>I have an abstract class <code>A</code> with a function <code>funcA</code>, implemented. I want to enforce that the classes that extend class <code>A</code> override <code>funcA</code> to add an annotation <code>@SampleAnnotation</code>.</p>\n<p>To achieve this, I tried using annotation processors. But I am unable to get the desired result. When my child classes override <code>funcA</code> without the <code>@SampleAnnotation</code>, I do not see an error during compilation.</p>\n<p>I am not able to figure out what I am missing.</p>\n<p>Definition of the Annotation Processor: <a href=\"https://github.com/BBloggsbott/annotation-enforcer/\" rel=\"nofollow noreferrer\">https://github.com/BBloggsbott/annotation-enforcer/</a></p>\n<p><code>EnforceAnnotation.java</code></p>\n<pre class=\"lang-java prettyprint-override\"><code>@Target(ElementType.METHOD)\n@Retention(RetentionPolicy.SOURCE)\npublic @interface EnforceAnnotation {\n\n    Class value();\n\n}\n</code></pre>\n<p><code>EnforceAnnotationProcessor.java</code></p>\n<pre class=\"lang-java prettyprint-override\"><code>@SupportedAnnotationTypes(&quot;org.bbloggsbott.annotationenforcer.EnforceAnnotation&quot;)\n@SupportedSourceVersion(SourceVersion.RELEASE_21)\npublic class EnforceAnnotationProcessor extends AbstractProcessor {\n\n    @Override\n    public boolean process(Set&lt;? extends TypeElement&gt; annotations, RoundEnvironment roundEnv) {\n        processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, &quot;Starting EnforceAnnotationProcessor&quot;);\n        StringBuilder errorMessageBuilder = new StringBuilder();\n        for (final Element element: roundEnv.getElementsAnnotatedWith(EnforceAnnotation.class)){\n            if (element instanceof VariableElement variableElement){\n                EnforceAnnotation enforce = variableElement.getAnnotation(EnforceAnnotation.class);\n                Class enforcedAnnotationClass = enforce.value();\n                Annotation enforcedAnnotation = variableElement.getAnnotation(enforcedAnnotationClass);\n                if (enforcedAnnotation == null){\n                    processingEnv.getMessager().printMessage(\n                            Diagnostic.Kind.ERROR,\n                            String.format(\n                                    &quot;%s.%s does not have the necessary annotation %s&quot;,\n                                    variableElement.getEnclosingElement().getClass().getName(),\n                                    variableElement.getSimpleName(),\n                                    enforcedAnnotationClass.getSimpleName()\n                            )\n                    );\n                }\n            }\n        }\n        return true;\n    }\n}\n</code></pre>\n<p>Sample app that uses the Annotation: <a href=\"https://github.com/BBloggsbott/sample-annotation-processor-example\" rel=\"nofollow noreferrer\">https://github.com/BBloggsbott/sample-annotation-processor-example</a>\n<code>build.gradle</code></p>\n<pre class=\"lang-none prettyprint-override\"><code>plugins {\n    id 'java'\n}\n\ngroup = 'org.bbloggsbott'\nversion = '1.0-SNAPSHOT'\n\nrepositories {\n    mavenCentral()\n    flatDir {\n        dirs '&lt;path to the annotation-enforcer jar&gt;'\n    }\n}\n\ndependencies {\n    compileOnly 'com.bbloggsbott:annotation-enforcer-1.0-SNAPSHOT'\n\n    testImplementation platform('org.junit:junit-bom:5.10.0')\n    testImplementation 'org.junit.jupiter:junit-jupiter'\n}\n\n\ntest {\n    useJUnitPlatform()\n}\n</code></pre>\n<p><code>SampleClass.java</code></p>\n<pre class=\"lang-java prettyprint-override\"><code>public abstract class SampleClass {\n\n    @EnforceAnnotation(SampleAnnotation.class)\n    public boolean isSample(){\n        return true;\n    }\n\n}\n</code></pre>\n<p><code>SampleClassExtended.java</code></p>\n<pre class=\"lang-java prettyprint-override\"><code>public class SampleClassExtended extends SampleClass{\n\n    @Override\n    // Compilation should fail since the annotation is not present\n    public boolean isSample() {\n        return super.isSample();\n    }\n}\n</code></pre>\n<p>In <code>sample-annotation-processor-example</code>, I have added the annotation processor Jar as a <code>compileOnly</code> dependency in <code>build.gradle</code></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

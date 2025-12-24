@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "performance",
+      "android-mediaprojection",
+      "image-reader"
+    ],
+    "owner": {
+      "account_id": 35495580,
+      "reputation": 13,
+      "user_id": 27242445,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/18879d75ac241a04ab7e4cd935cf443e?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Arrgina 2657",
+      "link": "https://stackoverflow.com/users/27242445/arrgina-2657"
+    },
+    "is_answered": false,
+    "view_count": 50,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1758000027,
+    "creation_date": 1758000027,
+    "question_id": 79765802,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79765802/alternative-to-imagereader-for-mediaprojection-frame-capture-on-android",
+    "title": "Alternative to ImageReader for MediaProjection frame capture on Android",
+    "body": "<p>Currently I'm using ImageReader to listen to MediaProjection's virtual display through a surface:</p>\n<pre><code>    public void initRecorder() {\n    setupDynamicOverlay();\n    MediaProjection.Callback callback = new MediaProjection.Callback() {\n        @Override\n        public void onStop() {\n            super.onStop();\n            stopScreenCapture();\n        }\n    };\n    mediaProjection.registerCallback(callback, null);\n    if (mVirtualDisplay != null) {\n        mVirtualDisplay.release();\n        mVirtualDisplay = null;\n    }\n\n    int[] boundsRes = getBounds();\n    int width = boundsRes[0];\n    int height = boundsRes[1];\n\n    mVirtualDisplay = mediaProjection.createVirtualDisplay(\n            &quot;ScreenCapture&quot;,\n            width == 0 ? DisplayMetrics.DENSITY_DEFAULT : width,\n            height == 0 ? DisplayMetrics.DENSITY_DEFAULT : height,\n            dpi,\n            DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,\n            surface,\n            null,\n            handler\n    );\n\n}\n\n\npublic void initImageReader() {\n    handlerThread = new HandlerThread(&quot;ImageProcessor&quot;);\n    handlerThread.start();\n    handler = new Handler(handlerThread.getLooper());\n\n    int[] boundsRes = getBounds();\n    imageReader = ImageReader.newInstance(\n            boundsRes[0],\n            boundsRes[1],\n            PixelFormat.RGBA_8888,\n            2\n    );\n\n    imageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {\n        @Override\n        public void onImageAvailable(ImageReader reader) {\n            Image image = reader.acquireLatestImage();\n            if (image != null) {\n                Bitmap bitmap = imageToBitmap(image);\n                processImage(bitmap);\n                image.close();\n                bitmap.recycle();\n                // optional\n                saveToGalleryBitmap(bitmap);\n            }\n        }\n    }, handler);\n    surface = imageReader.getSurface();\n    initRecorder();\n}\n</code></pre>\n<p>The problem is ImageReader is slow on listening the latest image. The reason I'm doing this is to use a ML model on predicting images from the user's screen (in the processImage() ). However, I want the imagelistener to output images in real-time so that some frames would not be skipped as the listener runs.</p>\n<p>I tried replacing the <code>PixelFormat.RGBA_8888</code> to <code>ImageFormat.YUV_420_888</code> but there is a compatibility issue. I tried <code>TextureView</code> as an alternative but I got a warning saying that it is not currently supported on Android 15+ and might cause delay/performance issue.</p>\n<p>How can I optimize this further? Are there alternatives to ImageReader and TextureView that can listen to a surface that also has a callback for latest frames?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

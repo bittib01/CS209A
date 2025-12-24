@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "freeswitch"
+    ],
+    "owner": {
+      "account_id": 22649518,
+      "reputation": 53,
+      "user_id": 16824403,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocIygKPAxKceSRJ7RIw4awJl8lWOzV_ip0kDwxulVoDi=k-s256",
+      "display_name": "Ubuntu Learner",
+      "link": "https://stackoverflow.com/users/16824403/ubuntu-learner"
+    },
+    "is_answered": true,
+    "view_count": 80,
+    "accepted_answer_id": 79612687,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1746717006,
+    "creation_date": 1739341930,
+    "question_id": 79432149,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79432149/npe-when-sending-sendbackgroundapicommand-to-freeswitch-client",
+    "title": "NPE when sending sendBackgroundApiCommand to FreeSwitch Client",
+    "body": "<p>I downloaded Freeswitch client from <a href=\"https://github.com/fivetime/esl-client-netty4\" rel=\"nofollow noreferrer\">https://github.com/fivetime/esl-client-netty4</a> and I was able to build it with no errors using Java 17. However, I receive NPE each time I'm trying to execute <code>sendBackgroundApiCommand()</code>.</p>\n<p>What might be the cause of NPE? Did I miss anything in my Client initialization?</p>\n<p>The minimum reproducible example is below:</p>\n<pre><code>public class Main {\n    private static final Logger log = LoggerFactory.getLogger(Main.class);\n\n    private static class DemoEventListener implements IEslEventListener {\n        @Override\n        public void onEslEvent(Context ctx, EslEvent eslEvent) {\n            log.info(&quot;Event Name : {}&quot;, eslEvent.getEventName());\n        }\n    }\n\n    public static void main(String[] args) {\n        SocketAddress host = new InetSocketAddress(&quot;freeswitch&quot;, 19601);\n        String password = &quot;fsevent&quot;;\n        int timeoutSeconds = 10;\n        Client inboundClient = new Client();\n        try {\n            inboundClient.connect(host, password, timeoutSeconds);\n            inboundClient.addEventListener(new DemoEventListener());\n            inboundClient.setEventSubscriptions(IModEslApi.EventFormat.PLAIN, &quot;all&quot;);\n            \n            // sendApiCommand() works fine\n            EslMessage response = inboundClient.sendApiCommand( &quot;show&quot;, &quot;registrations&quot;);\n            log.info(&quot;Registrations total : {}&quot;, response.getBodyLines().size());\n\n            // it throws NPE\n            inboundClient.sendBackgroundApiCommand(&quot;chat&quot;, &quot;sip|1000@172.16.1.114|1001@172.16.1.114|Test case message|text/html&quot;);\n        } catch (Exception e) {\n            log.error(&quot;ERROR: &quot;, e);\n        } finally {\n            inboundClient.close();\n        }\n    }\n} \n</code></pre>\n<p>The full log inluding stacktrace is below:</p>\n<pre><code>17:27:50.493 [main] INFO  org.freeswitch.esl.client.inbound.Client - Connecting to freeswitch/172.16.2.161:19601 ...\n17:27:50.888 [main] INFO  org.freeswitch.esl.client.inbound.Client - Connected to freeswitch/172.16.2.161:19601\n17:27:50.910 [nioEventLoopGroup-2-1] INFO  org.freeswitch.esl.client.inbound.InboundClientHandler - Received message: [EslMessage{contentType=auth/request, headers=1, body=0 lines}]\n17:27:50.916 [nioEventLoopGroup-2-1] INFO  org.freeswitch.esl.client.inbound.InboundClientHandler - Received message: [EslMessage{contentType=command/reply, headers=2, body=0 lines}]\n17:27:51.152 [main] INFO  org.freeswitch.esl.client.inbound.Client - Authenticated\n17:27:51.158 [nioEventLoopGroup-2-1] INFO  org.freeswitch.esl.client.inbound.InboundClientHandler - Received message: [EslMessage{contentType=command/reply, headers=2, body=0 lines}]\n17:27:51.161 [nioEventLoopGroup-2-1] INFO  org.freeswitch.esl.client.inbound.InboundClientHandler - Received message: [EslMessage{contentType=api/response, headers=2, body=2 lines}]\n17:27:51.162 [main] INFO  org.my_test.netty.Main - Registrations total : 2\n17:27:51.166 [nioEventLoopGroup-2-1] INFO  org.freeswitch.esl.client.inbound.InboundClientHandler - Received message: [EslMessage{contentType=command/reply, headers=3, body=0 lines}]\n17:27:51.166 [pool-2-thread-1] INFO  org.my_test.netty.Main - Event Name : API\n17:27:51.167 [pool-2-thread-1] INFO  org.my_test.netty.Main - Event Name : API\n17:27:51.163 [main] ERROR org.my_test.netty.Main - ERROR: \njava.lang.NullPointerException: null\n    at java.base/java.util.concurrent.CompletableFuture.screenExecutor(CompletableFuture.java:455) ~[?:?]\n    at java.base/java.util.concurrent.CompletableFuture.thenComposeAsync(CompletableFuture.java:2320) ~[?:?]\n    at org.freeswitch.esl.client.internal.AbstractEslClientHandler.sendBackgroundApiCommand(AbstractEslClientHandler.java:222) ~[esl-client-netty4-0.9.2.jar:?]\n    at org.freeswitch.esl.client.internal.Context.sendBackgroundApiCommand(Context.java:106) ~[esl-client-netty4-0.9.2.jar:?]\n    at org.freeswitch.esl.client.inbound.Client.sendBackgroundApiCommand(Client.java:183) ~[esl-client-netty4-0.9.2.jar:?]\n    at org.my_test.netty.Main.main(Main.java:38) [classes/:?]\n17:27:51.182 [nioEventLoopGroup-2-1] INFO  org.freeswitch.esl.client.inbound.InboundClientHandler - Received message: [EslMessage{contentType=command/reply, headers=2, body=0 lines}]\n17:27:51.182 [nioEventLoopGroup-2-1] INFO  org.freeswitch.esl.client.inbound.InboundClientHandler - Received message: [EslMessage{contentType=text/disconnect-notice, headers=2, body=2 lines}]\n17:27:51.183 [nioEventLoopGroup-2-1] INFO  org.freeswitch.esl.client.inbound.Client - Disconnected ...\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

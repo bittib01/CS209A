@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "sockets",
+      "io",
+      "stream"
+    ],
+    "owner": {
+      "account_id": 38567018,
+      "reputation": 3,
+      "user_id": 28839922,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/691900fbb895e4e9456657e3b0b81d8e?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Turtle",
+      "link": "https://stackoverflow.com/users/28839922/turtle"
+    },
+    "is_answered": true,
+    "view_count": 76,
+    "accepted_answer_id": 79292102,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1736186667,
+    "creation_date": 1734533860,
+    "last_edit_date": 1734540428,
+    "question_id": 79291535,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79291535/java-socket-client-server-connection-why-does-the-server-read-from-the-clients",
+    "title": "Java socket client-server connection. Why does the server read from the client&#39;s input and not from the output stream?",
+    "body": "<p>I'm really confused about how and why this example of client-server connection works.</p>\n<p>I have two classes, <code>NetworkClient</code> and <code>NetworkServer</code>.</p>\n<p><code>NetworkClient</code> creates a socket and connects it to the server:</p>\n<pre class=\"lang-java prettyprint-override\"><code>class NetworkClient {\n    public static void main(String[] args) {\n        Socket socket = null;\n        try {\n            socket = new Socket(&quot;localhost&quot;, 3141);\n\n            OutputStream out = socket.getOutputStream();\n            PrintStream ps = new PrintStream(out, true);\n            InputStream in = socket.getInputStream();\n            BufferedReader reader = new BufferedReader(new InputStreamReader(in));\n\n            ps.println(&quot;Es begab sich aber zu der Zeit,&quot;);\n            System.out.println(&quot;client sent: Es begab sich aber zu der Zeit,&quot;);\n\n            System.out.println(&quot;client received: &quot;+reader.readLine());\n        }\n        //some other code\n    }\n} \n</code></pre>\n<p>And <code>NetworkServer</code> accepts that socket:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class NetworkServer {\n    private final ServerSocket srv;\n    public NetworkServer(int port) throws IOException {\n        srv = new ServerSocket(port);\n    }\n\n    private void connectAndTalk() {\n        Socket socket = null;\n        try {\n            socket = srv.accept();\n            communicate(socket);\n        }\n        // some code\n    }\n\n    private void communicate(Socket socket) throws IOException, InterruptedException {\n        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));\n        PrintStream out = new PrintStream(socket.getOutputStream());\n        String s;\n\n        do {\n            s = in.readLine();\n            System.out.println(&quot;server received: &quot;+s);\n\n            if(s.equals(&quot;Es begab sich aber zu der Zeit,&quot;)) {\n                TimeUnit.SECONDS.sleep(4);\n                out.println(&quot;dass ein Gebot ausging vom Kaiser Augustus,&quot;);\n            }\n            // some code\n\n</code></pre>\n<p>The client writes to his output stream and reads from his input.</p>\n<p>Why does the server read from the client's input and not from the output stream? And, analogously, why does the server write to the client's output stream? Why doesn't it look like this?</p>\n<pre class=\"lang-java prettyprint-override\"><code>    private void communicate(Socket socket) throws IOException, InterruptedException {\n        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getOutputStream()));\n        PrintStream out = new PrintStream(socket.getInputStream());\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

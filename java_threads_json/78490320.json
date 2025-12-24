@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "multithreading"
+    ],
+    "owner": {
+      "account_id": 24029209,
+      "reputation": 15,
+      "user_id": 18010405,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/50ae082ad0f22f26afe42db2e9d13030?s=256&d=identicon&r=PG",
+      "display_name": "CodingPandaBear",
+      "link": "https://stackoverflow.com/users/18010405/codingpandabear"
+    },
+    "is_answered": false,
+    "view_count": 80,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1717021232,
+    "creation_date": 1715866908,
+    "last_edit_date": 1715872282,
+    "question_id": 78490320,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78490320/handling-interruptedexception-inside-a-loop-loop-should-finish",
+    "title": "Handling InterruptedException inside a loop - Loop should finish",
+    "body": "<p>I am writing a program that copies files from A to B. Due to outside constraints, we cannot copy all files at once or can use any Java file copying mechanism (constraints like copy with different dates, use files rights of goal directory, etc.).</p>\n<p>Instead, we have to use robocopy as a command line tool for each file individually and then write a report for each file if copying was a success or a failure. If the robocopy call takes too long, we kill the process that runs it, which throws a InterruptedException that needs to be handled.</p>\n<p>We use a ProcessBuilder to create a Process object.</p>\n<p>Here, the waitFor(timoutTime, timeUnit) call throws the InterruptedException(), since it interrupts the process once time ran out.</p>\n<pre><code>// Wait for the process to complete\nif (!process.waitFor(timeoutTime, timeUnit)) {\n    // If time has passed, kill it.\n    process.destroy();\n    // If it is not killed in 1 minute again with more force.\n    process.waitFor(1, TimeUnit.MINUTES);\n    process.destroyForcibly();\n}\n</code></pre>\n<p>Even though we call a new process for copying, we want to have a single-threaded like performance, where each File is copied one after another. This is by choice and should remain that way.</p>\n<p>Since we want the loop to finish, the first idea was to catch the exception, write an error report and deal with the next file. However, this is bad practice and Sonar recommends either rethrowing the exception or interrupting the current Thread.</p>\n<p>Problem is:</p>\n<ol>\n<li>We do not want to interrupt the current thread, only the process, which is already killed. The current Thread should keep on running until all files are worked through, so it can return a report like this:</li>\n</ol>\n<ul>\n<li>File A success</li>\n<li>File B failure</li>\n<li>File C success</li>\n<li>...</li>\n</ul>\n<ol start=\"2\">\n<li>Re-throwing the failure will also abort the loop. A idea I had was to consume the exception, set a flag and after all is done, re-throw it, but this also does not comply with best practice.</li>\n</ol>\n<p>So here is the question:\nHow do I handle InterruptedException in an application that needs to perform multiple action that can throw the exception after one another, but need to perform each action?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

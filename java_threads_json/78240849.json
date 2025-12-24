@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "mockito"
+    ],
+    "owner": {
+      "account_id": 4391031,
+      "reputation": 5,
+      "user_id": 3579402,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/b7c8b7775d738e4dfc2bd7bd11138cdb?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "janimationd",
+      "link": "https://stackoverflow.com/users/3579402/janimationd"
+    },
+    "is_answered": true,
+    "view_count": 1233,
+    "accepted_answer_id": 78241403,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1714582328,
+    "creation_date": 1711659539,
+    "last_edit_date": 1711667511,
+    "question_id": 78240849,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78240849/how-to-return-a-real-object-from-a-mocked-construction-with-mockito",
+    "title": "How to return a real object from a mocked construction with Mockito",
+    "body": "<p>I want to return a real object from a mocked construction using Mockito 5.9, but nothing I've tried is working.</p>\n<p>I first tried this:</p>\n<pre><code>    private static class Foo {\n        private final int field;\n\n        Foo(int field) {\n            this.field = field;\n        }\n\n        int getField() {\n            return field;\n        }\n    }\n\n    @Test\n    public void test() {\n        Foo spy = new Foo(5);\n        try (var ignored = mockConstruction(Foo.class, withSettings()\n                .spiedInstance(spy))) {\n            Foo foo = new Foo(0);\n            int field = foo.getField();\n            Assert.assertEquals(5, field);\n        }\n    }\n</code></pre>\n<p>But the test fails when I run it, saying:</p>\n<pre><code>java.lang.AssertionError: \nExpected :5\nActual   :0\n</code></pre>\n<p>Which is the opposite of what I need.</p>\n<p>I also tried this for the test code:</p>\n<pre><code>    @Test\n    public void test() {\n        try (var ignored = mockConstruction(Foo.class, withSettings()\n                .useConstructor(5)\n                .defaultAnswer(CALLS_REAL_METHODS))) {\n            Foo foo = new Foo(0);\n            int field = foo.getField();\n            Assert.assertEquals(5, field);\n        }\n    }\n</code></pre>\n<p>But it fails with the same problem. I can understand why this specific option might not work, because calling the constructor might trigger the stubbed behavior, which wouldn't make sense.</p>\n<p>A third thing I tried was this, but same problem:</p>\n<pre><code>    @Test\n    public void test() {\n        Foo spy = mock(Foo.class, withSettings()\n                .useConstructor(5)\n                .defaultAnswer(CALLS_REAL_METHODS));\n        try (var ignored = mockConstruction(Foo.class, withSettings()\n                .spiedInstance(spy))) {\n            Foo foo = new Foo(0);\n            int field = foo.getField();\n            Assert.assertEquals(5, field);\n        }\n    }\n</code></pre>\n<p>It seems the <code>mockConstruction()</code> call is ignoring the settings I'm configuring, which seems like a bug. Any idea if this is a bug or if there's another way to do this?</p>\n<p>There are definitely design problems with the real code I'm testing, but I'm checking to see if Mockito has a bug regardless.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

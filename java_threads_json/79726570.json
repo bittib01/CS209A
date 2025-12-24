@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "automated-tests",
+      "cucumber",
+      "rest-assured"
+    ],
+    "owner": {
+      "account_id": 35171655,
+      "reputation": 1,
+      "user_id": 27027580,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/0c69f37a224af71ed995f25ef8774097?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Furkan &#214;zmen",
+      "link": "https://stackoverflow.com/users/27027580/furkan-%c3%96zmen"
+    },
+    "is_answered": false,
+    "view_count": 52,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1754423974,
+    "creation_date": 1754423974,
+    "question_id": 79726570,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79726570/restassured-throws-httpresponseexception-on-422-unprocessable-entity-instead-of",
+    "title": "RestAssured throws HttpResponseException on 422 Unprocessable Entity instead of allowing assertions",
+    "body": "<p>I'm facing a persistent issue with RestAssured where it throws an io.restassured.internal.http.HttpResponseException for a 422 Unprocessable Entity response, preventing my test from reaching the assertion steps. My goal is to handle the 422 response gracefully, extract the Response object, and validate its status code and body.\nThe Scenario:\nI have a test case written with Cucumber and Java. The test attempts to update a resource that doesn't exist, which correctly triggers a 422 response from my API. However, my test code fails with an exception instead of proceeding to the validation steps.</p>\n<p>Feature File (.feature):</p>\n<pre><code>@enrollment @progress @negative\nScenario: Attempt to track progress for non-enrolled course\nGiven a student is not enrolled in the course\nWhen the student attempts to update lecture progress\nThen the progress update should fail with status code 422\nAnd the error message should contain &quot;ENROLLMENT_NOT_FOUND&quot;\n</code></pre>\n<p>Step Definitions (.java):\nThe test fails inside the theStudentUpdatesLectureProgressToPercent method, which sends a PUT request.</p>\n<pre><code>import static io.restassured.RestAssured.given;\nimport io.restassured.response.Response;\nimport io.restassured.specification.RequestSpecification;\nimport java.util.UUID;\n\n// Class-level fields\nprivate Response response;\nprivate RequestSpecification trainingRequestSpec;\n\n@When(&quot;the student updates lecture progress to {double} percent&quot;)\npublic void theStudentUpdatesLectureProgressToPercent(double percentage) {\n    var progressRequest = TestDataFactory.createProgressUpdateRequest(percentage);\n    String nonExistentEnrollmentId = UUID.randomUUID().toString();\n\n    // ❌ Throws HttpResponseException: 422 Unprocessable Entity\n    response = given()\n            .spec(trainingRequestSpec)\n            .body(progressRequest)\n        .when()\n            .put(&quot;/api/v1/enrollments/&quot; + nonExistentEnrollmentId + &quot;/progress&quot;);\n}\n\n@Then(&quot;the progress update should fail with status code {int}&quot;)\npublic void theProgressUpdateShouldFailWithStatusCode(int expectedStatusCode) {\n    response.then().statusCode(expectedStatusCode);\n}\n</code></pre>\n<p>What I've Tried (but didn't work):</p>\n<p>Using .then().extract().response(): This is the most common solution recommended for this problem, but it does not work for me. The exception is thrown before the .then() block is ever executed.</p>\n<pre><code>response = given()\n            // ...\n        .when()\n            .put(...)\n        .then()\n            .extract().response(); // The exception still occurs\n</code></pre>\n<p>2- Using .log().all() for debugging: This confirms that the issue happens immediately after the request is sent. The request log is printed successfully, but no response log is ever printed, as the test crashes before that.</p>\n<pre><code>Request method: PUT\nRequest URI:    http://localhost:8080/api/v1/enrollments/...\n...\nHeaders:        Accept=*/*\n                Content-Type=application/json\nBody:\n{ ... }\n\n// NO RESPONSE LOG IS PRINTED HERE\n\nio.restassured.internal.http.HttpResponseException: status code: 422\n    at io.restassured.internal.RequestSpecificationImpl.put(RequestSpecificationImpl.groovy:...)\n    ...\n</code></pre>\n<p>Using try-catch blocks: I was able to catch the HttpResponseException. However, attempting to reconstruct a usable Response object from the exception to allow jsonPath() to work in subsequent steps resulted in a NullPointerException, as the reconstructed object lacks the necessary internal configuration (like ObjectMapperConfig).\nChecking BaseTest configuration: My base RequestSpecification is very simple, containing only the base URI and content type. It does not include any expectStatusCode() or ResponseSpecification that could interfere with the response validation.</p>\n<pre><code>My pom.xml Dependencies:\nrest-assured: 5.3.2\ncucumber-java: 7.14.0\njunit-jupiter-api: 5.10.0\n</code></pre>\n<p>My Core Question:\nWhat is the definitive, robust way to prevent RestAssured from throwing an HttpResponseException on a 4xx/5xx response, allowing the code to proceed to the then() block for validation? Why might the standard .then().extract().response() solution not be working in this specific case, and what alternative strategy should I use?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

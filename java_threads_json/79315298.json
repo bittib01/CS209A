@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "java-11"
+    ],
+    "owner": {
+      "account_id": 25384262,
+      "reputation": 385,
+      "user_id": 19196249,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/ZS6HU9mS.jpg?s=256",
+      "display_name": "Lorenzo Yang",
+      "link": "https://stackoverflow.com/users/19196249/lorenzo-yang"
+    },
+    "is_answered": true,
+    "view_count": 1338,
+    "accepted_answer_id": 79315593,
+    "answer_count": 2,
+    "score": 8,
+    "last_activity_date": 1749316381,
+    "creation_date": 1735464000,
+    "last_edit_date": 1749316381,
+    "question_id": 79315298,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79315298/why-does-var-in-java-11-bypass-the-protected-access-restriction",
+    "title": "Why does “var” in Java 11 bypass the “protected” access restriction?",
+    "body": "<p>Today, while working on a project for a college “Design Patterns” course (Java 11 required), I discovered a problem with the access restriction of the access modifier that can be bypassed by declaring var. I know how var is used, it's just a syntactic sugar that leaves the type inference to the compiler.</p>\n<p>I can't figure out what type of alias the var is actually here:</p>\n<ul>\n<li>is it &quot;Child.InnerChild&quot;? Wouldn't that be a type mismatch?</li>\n<li>&quot;InnerParent&quot;? Doesn't this bypass the protected access restrictor?</li>\n</ul>\n<p>Here is my simplified code:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public abstract class Parent {\n    protected abstract static class InnerParent {\n        public InnerParent self() {\n            return this;\n        }\n    }\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>public class Child extends Parent {\n    public static class InnerChild extends InnerParent {}\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>import anotherpackage.Child;\n\n/**\n * Compiling with Java 11:\n */\npublic class Main {\n    public static void main(String[] args) {\n        // As we expected a compilation error: The returned static type does not match the expected type\n        // Child.InnerChild innerChild = new Child.InnerChild().self();\n\n        // As we expected a compilation error: Parent.InnerParent is package visible (protected)\n        // Parent.InnerParent innerChild = new Child.InnerChild().self();\n\n        // Why does it compile and run correctly here?\n        // var is just syntactic sugar for the compiler type, it should be a Parent.InnerParent alias here,\n        // why is var allowed to transgress the protected access restriction?\n        var innerChild = new Child.InnerChild().self();\n        System.out.println(innerChild);\n        System.out.println(innerChild.getClass().getName());\n    }\n}\n</code></pre>\n<p>I've also asked ChatGPT, but it's not responding as well as I'd like, and I'm not sure it's correct:</p>\n<blockquote>\n<p>Why <code>var</code> Works</p>\n<ul>\n<li><strong>Inferred Type</strong>: The inferred type for <code>var innerChild</code> is <code>Parent.InnerParent</code>.</li>\n<li><strong>Access Rules</strong>: Since the type is inferred and not explicitly written in the code, the compiler doesn't enforce access restrictions for the declared variable.</li>\n</ul>\n</blockquote>\n<p>I found a new problem: why can't I access <code>getClass()</code>?</p>\n<p><a href=\"https://i.sstatic.net/gYAxY4dI.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/gYAxY4dI.png\" alt=\"Unable to access getClass() issue\" /></a></p>\n<p>However it is possible to compile this way.</p>\n<pre class=\"lang-java prettyprint-override\"><code>System.out.println(((Object) innerChild).getClass().getName());\n// OUTPUT: com.github.lorenzoyang.anotherpackage.Child$InnerChild\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

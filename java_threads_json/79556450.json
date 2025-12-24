@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "volatile",
+      "atomicreference",
+      "varhandle"
+    ],
+    "owner": {
+      "account_id": 32812647,
+      "reputation": 29,
+      "user_id": 25499090,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/21cfaad28296fcd89d2789ba39795524?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Photon",
+      "link": "https://stackoverflow.com/users/25499090/photon"
+    },
+    "is_answered": true,
+    "view_count": 218,
+    "answer_count": 3,
+    "score": 2,
+    "last_activity_date": 1758910333,
+    "creation_date": 1743816138,
+    "last_edit_date": 1743817148,
+    "question_id": 79556450,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79556450/the-difference-between-set-and-setvolatile-of-varhandle",
+    "title": "The difference between set() and setVolatile of VarHandle",
+    "body": "<pre class=\"lang-java prettyprint-override\"><code>public class MyClass {\n\n    private volatile Object refValue;\n\n    private static final VarHandle REF_VALUE_HANDLE;\n\n    static {\n        try {\n            REF_VALUE_HANDLE = MethodHandles.lookup()\n                    .findVarHandle(MyClass.class, &quot;refValue&quot;, Object.class);\n        } catch (ReflectiveOperationException e) {\n            throw new Error(e);\n        }\n    }\n\n    public Object get1() {\n        return this.refValue;\n    }\n\n    public Object get2() {\n        return REF_VALUE_HANDLE.get(this);\n    }\n\n    public Object get3() {\n        return REF_VALUE_HANDLE.getVolatile(this);\n    }\n\n    public void set1(Object newValue) {\n        this.refValue = newValue;\n    }\n\n    public void set2(Object newValue) {\n        REF_VALUE_HANDLE.set(this, newValue);\n    }\n\n    public void set3(Object newValue) {\n        REF_VALUE_HANDLE.setVolatile(this, newValue);\n    }\n}\n</code></pre>\n<p>If the variable has been declared volatile, is there any difference between the different set and get methods above?</p>\n<p>My confusion comes from the comment of java.util.concurrent.atomic.AtomicReference#get\nand java.util.concurrent.atomic.AtomicReference#set</p>\n<blockquote>\n<p>Returns the current value, with memory effects as specified by VarHandle. getVolatile.</p>\n</blockquote>\n<blockquote>\n<p>Sets the value to newValue, with memory effects as specified by VarHandle. setVolatile.</p>\n</blockquote>\n<pre class=\"lang-java prettyprint-override\"><code>public class AtomicReference&lt;V&gt; implements java.io.Serializable {\n    private static final long serialVersionUID = -1848883965231344442L;\n    private static final VarHandle VALUE;\n    static {\n        try {\n            MethodHandles.Lookup l = MethodHandles.lookup();\n            VALUE = l.findVarHandle(AtomicReference.class, &quot;value&quot;, Object.class);\n        } catch (ReflectiveOperationException e) {\n            throw new ExceptionInInitializerError(e);\n        }\n    }\n\n    @SuppressWarnings(&quot;serial&quot;) // Conditionally serializable\n    private volatile V value;\n\n    /**\n     * Creates a new AtomicReference with the given initial value.\n     *\n     * @param initialValue the initial value\n     */\n    public AtomicReference(V initialValue) {\n        value = initialValue;\n    }\n\n    /**\n     * Creates a new AtomicReference with null initial value.\n     */\n    public AtomicReference() {\n    }\n\n    /**\n     * Returns the current value,\n     * with memory effects as specified by {@link VarHandle#getVolatile}.\n     *\n     * @return the current value\n     */\n    public final V get() {\n        return value;\n    }\n\n    /**\n     * Sets the value to {@code newValue},\n     * with memory effects as specified by {@link VarHandle#setVolatile}.\n     *\n     * @param newValue the new value\n     */\n    public final void set(V newValue) {\n        value = newValue;\n    }\n}\n</code></pre>\n<p>The JDK version is 21</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

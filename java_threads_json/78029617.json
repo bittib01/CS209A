@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "multithreading"
+    ],
+    "owner": {
+      "account_id": 28924890,
+      "reputation": 121,
+      "user_id": 22154996,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AAcHTtf3J8v5O2yQ99WRIL1FefS16MJVT3t3jE5YKONvuIU=k-s256",
+      "display_name": "iexav",
+      "link": "https://stackoverflow.com/users/22154996/iexav"
+    },
+    "is_answered": true,
+    "view_count": 361,
+    "answer_count": 4,
+    "score": 4,
+    "last_activity_date": 1736703215,
+    "creation_date": 1708453955,
+    "last_edit_date": 1736670700,
+    "question_id": 78029617,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78029617/volatile-variable-visibility-guarantees-in-java",
+    "title": "Volatile variable visibility guarantees in Java",
+    "body": "<p>I have checked out some posts about <code>volatile</code> variables in Java. But I am still a bit confused, not to mention some of them contradict each other.</p>\n<p>Here is an example I would like to ask about:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class Main {\n\n    static  ArrayList&lt;Integer&gt; list = new ArrayList&lt;&gt;();\n    static volatile int listSize = 0;\n\n    public static void main(String[] args) {\n        Thread writer = new Thread(Main::write);\n        Thread reader = new Thread(Main::read);\n        writer.start();\n        reader.start();\n    }\n\n    public static void write() {\n        while (true) {\n            try {\n                Thread.sleep(10000);\n            } catch (InterruptedException e) {\n                return;\n            }\n            list.add(1);\n            listSize++;\n            System.out.println(&quot;Added an element.&quot;);\n\n        }\n    }\n\n    public static void read() {\n        int currentIndex = 0;\n        while (true) {\n            if(currentIndex&gt;=listSize) {\n                continue;\n            }\n            System.out.println(&quot;Read an element.&quot;);\n            int element = list.get(currentIndex);\n            currentIndex++;\n            // do stuff with element...\n        }\n    }\n}\n</code></pre>\n<p>So in this example a writer thread writes to an <code>ArrayList</code> and a reader thread reads the elements from that list. According to some answers on this topic even if I made the list itself <em>volatile</em> it  would have no <em>visibility guarantees</em> between threads for the contents of the list, only for the list object itself. In other words if the writer thread would do this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>list = new ArrayList&lt;&gt;();\n</code></pre>\n<p>The reader thread would know about it. But if the writer thread is adding/removing/modifying the list, like in the example above, there are no guarantees the reader thread would ever see it.</p>\n<p>And here is a quote from a book called <a href=\"https://jcip.net/\" rel=\"nofollow noreferrer\"><em>Java Concurrency in Practice</em></a> by Brian Goetz et al.</p>\n<blockquote>\n<p>The visibility effects of volatile variables extend beyond the value of the volatile variable itself. When thread A writes to a volatile variable and subsequently thread B reads that same variable, the values of all variables that were visible to A prior to writing to the volatile variable become visible to B after reading the volatile variable. So from a memory visibility perspective, writing a volatile variable is like exiting a synchronized block and reading a volatile variable is like entering a synchronized block.</p>\n</blockquote>\n<p>This quote is also the reason I made a <code>volatile int</code> that the writer thread increments whenever it writes to the list instead of making the list itself <em>volatile</em>.</p>\n<p>So I tested this example with and without the volatile variable (replacing <code>currentIndex &gt;= listSize</code> with <code>currentIndex &gt;= list.size()</code> ), and without the volatile variable the reader thread blocks completely, never actually seeing the added elements to the list. With the volatile variable though the reader thread instantly sees the change to the list. Seemingly the quote from the book is correct but I would like to be sure since the example I wrote is based on something else I am writing, and it wouldn't be great if the reader thread blocks indefinitely.</p>\n<hr />\n<p><strong>Edit:</strong> The thread spin is to get a better chance at caching.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

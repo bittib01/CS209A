@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "ssl",
+      "jetty",
+      "sni",
+      "end-of-life"
+    ],
+    "owner": {
+      "account_id": 7713711,
+      "reputation": 23,
+      "user_id": 5842203,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/db717a1b7a6cf5d5fc2c509b6800a673?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "RBK",
+      "link": "https://stackoverflow.com/users/5842203/rbk"
+    },
+    "is_answered": true,
+    "view_count": 2274,
+    "accepted_answer_id": 78693385,
+    "answer_count": 2,
+    "score": 1,
+    "last_activity_date": 1719852133,
+    "creation_date": 1718425168,
+    "last_edit_date": 1719259253,
+    "question_id": 78625621,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78625621/jetty-invalid-sni-issue-even-when-certificate-is-correct",
+    "title": "Jetty Invalid SNI issue even when certificate is correct",
+    "body": "<p>Our product has a server that uses embedded Jetty (version 11.0.11) providing functionality with clients connecting through HTTP calls. It can be configured for HTTPS and a lot of our customers use it with this configuration. Recently we came across an issue from one of our customers where they see a strange issue with the https configuration. The request sometimes works correctly and sometimes throws an Invalid SNI error from Jetty. We are aware that this type of issue usually happens when the SNI sent in the request does not match what is in the certificate. So in this case, as part of the troubleshooting exercises, we collected wireshark captures to look at what is being sent and compare with what is on the certificate.</p>\n<p>The certificate itself has the server in the subject alternate name as something like &quot;server.xyz.abc.com&quot;. We are seeing from wireshark logs that the TLS layer is sometimes sending the SNI as &quot;server.xyz.abc.com&quot; while some other times it sends it as &quot;SERVER.xyz.abc.com&quot;. Notice the server name portion in uppercase.</p>\n<p>The request is succeeding when the TLS layer is sending the SNI as &quot;server.xyz.abc.com&quot;, and the request seems to fail when the SNI comes in &quot;SERVER.xyz.abc.com&quot;.</p>\n<p>We get the message &quot;org.eclipse.jetty.http.BadMessageException: 400: Invalid SNI&quot;.</p>\n<p>To fix this, we then had the customer fix the certificate to add &quot;SERVER.xyz.abc.com&quot; in the subject alternate name as well, and deployed this certificate on the server. So the certificate now contains:</p>\n<p>server.xyz.abc.com</p>\n<p>SERVER.xyz.abc.com</p>\n<p>However this still hasn't fixed the issue and the Invalid SNI message still keeps coming intermittently even though wireshark shows the Client Hello SNI coming in exactly as it is in the certificate. One thing we noticed is that the failure still happens when the uppercase name comes in as the SNI in the Client Hello request.</p>\n<p>I have the following questions:</p>\n<ul>\n<li>Is there any known issue with Jetty with the case sensitivity of SNI, and is it the right thing to add the uppercase server name to the certificate?</li>\n<li>Why does the TLS layer alternate between sending an uppercase and lowercase name, and is there any type of setting somewhere to force it to send it in say, lowercase?</li>\n<li>As a worst case, we may need to disable the SNI check to fix this. Is that the only way to do this, as this would require us to supply code changes to disable this check. From looking at other posts, I think there is no configurable parameter to disable this check in Jetty.</li>\n</ul>\n<p>Please help with any ideas you may have, as we are not sure how to proceed with helping our customer.</p>\n<p>[UPDATE]:\nOn further digging by enabling Jetty debug logging, we found that the SNI host is coming in as null. So this call inside the Jetty code (SecureRequestCustomizer.java) to get the value of the SNI host is getting back a null for &quot;sniHost&quot; and causing the exception. Any ideas why this would be null and what we can do about this?</p>\n<pre><code>protected void checkSni(Request request, SSLSession session)\n{\n    if (isSniRequired() || isSniHostCheck())\n    {\n        String sniHost = (String)session.getValue(SslContextFactory.Server.SNI_HOST);\n\n        X509 x509 = getX509(session);\n        if (x509 == null)\n            throw new BadMessageException(400, &quot;Invalid SNI&quot;);\n        String serverName = Request.getServerName(request);\n        if (LOG.isDebugEnabled())\n            LOG.debug(&quot;Host={}, SNI={}, SNI Certificate={}&quot;, serverName, sniHost, x509);\n\n        if (isSniRequired() &amp;&amp; (sniHost == null || !x509.matches(sniHost)))\n            throw new BadMessageException(400, &quot;Invalid SNI&quot;);\n\n        if (isSniHostCheck() &amp;&amp; !x509.matches(serverName))\n            throw new BadMessageException(400, &quot;Invalid SNI&quot;);\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

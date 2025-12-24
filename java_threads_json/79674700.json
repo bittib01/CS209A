@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "floating-point",
+      "numerical-methods",
+      "approximation",
+      "taylor-series"
+    ],
+    "owner": {
+      "account_id": 42654570,
+      "reputation": 19,
+      "user_id": 30858651,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/900927d77a370d93cf49396868012615?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Andre",
+      "link": "https://stackoverflow.com/users/30858651/andre"
+    },
+    "is_answered": true,
+    "view_count": 277,
+    "closed_date": 1765121483,
+    "answer_count": 3,
+    "score": -3,
+    "last_activity_date": 1765050792,
+    "creation_date": 1750533260,
+    "last_edit_date": 1751147155,
+    "question_id": 79674700,
+    "link": "https://stackoverflow.com/questions/79674700/taylor-series-in-java-using-float",
+    "closed_reason": "Needs more focus",
+    "title": "Taylor Series in Java using float",
+    "body": "<p>I am implementing a method <code>berechneCosinus(float x, int ordnung)</code> in Java that should approximate the cosine of x using the Taylor series up to the specified order.</p>\n<p>My questions:</p>\n<p>Can I optimize the computation inside the method, without changing the signatures, in order to exactly match the given test results?</p>\n<p>Here is what I have so far:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class Taylor {\n\n    public float berechneFak(float x) {\n        if (x &lt;= 1) return 1.0f;\n        int n = Math.round(x);\n        float fak = 1.0f;\n        for (int i = 2; i &lt;= n; i++) {\n            fak *= i;\n        }\n        return fak;\n    }\n\n    public float berechneCosinus(float x, int ordnung) {\n        float pi = 3.14159265f;\n        float zweiPi = 2.0f * pi;\n\n        x = x % zweiPi;\n        if (x &gt; pi) x -= zweiPi;\n        else if (x &lt; -pi) x += zweiPi;\n\n        if (ordnung == 0) return 0.0f;\n\n        int anzahlTerme = (ordnung + 1) / 2;\n\n        float summe = 0.0f;\n        float term = 1.0f;  \n\n        for (int i = 0; i &lt; anzahlTerme; i++) {\n            int n = i * 2; \n            if (i &gt; 0) {\n                term *= -x * x / ((n - 1) * n);  \n            }\n            summe += term;\n        }\n        return summe;\n    }\n}\n</code></pre>\n<p>This is the assignment:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class Taylor {\n\n\n  public float berechneFak(float x) {\n    // insert code here!\n    // drandenken: Vorlesung!\n    return 0.0f;\n  }\n\n\n  public float berechneCosinus(float x, int ordnung) {\n    float acc = 0.0f;\n    // Ihr Code hierher!\n    return acc;\n  }\n\n}\n</code></pre>\n<p>Test case:</p>\n<p><img src=\"https://i.sstatic.net/4MW8WiLj.png\" alt=\"Testfälle\" /></p>\n<p>Expected / received result:</p>\n<p><img src=\"https://i.sstatic.net/oqtJlMA4.png\" alt=\"Erwartet / Erhaltenes Ergebnis\" /></p>\n<p>I implemented the cosine calculation method using the Taylor series and normalized x to the interval [−π,π]. However, the results slightly differ from the expected values in some test cases. Since I’m not allowed to change the method signatures and can only work with floats, I’m looking for tips on how to improve the accuracy.</p>\n<p>Here is a minimal reproducible example:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class Taylor {\n    public float berechneCosinus(float x, int ordnung) {\n        if (ordnung == 0) return 0.0f;\n\n        float sum = 0.0f;\n        float term = 1.0f;\n        for (int i = 0; i &lt; (ordnung + 1) / 2; i++) {\n            int n = 2 * i;\n            if (i &gt; 0)\n                term *= -x * x / ((n - 1) * n);\n            sum += term;\n        }\n        return sum;\n    }\n\n    public static void main(String[] args) {\n        Taylor t = new Taylor();\n        float x = 3.14159265f; // approx. PI\n        System.out.printf(&quot;%.6f\\n&quot;, t.berechneCosinus(x, 13));\n        System.out.printf(&quot;%.6f\\n&quot;, t.berechneCosinus(x, 14));\n    }\n}\n</code></pre>\n<p>The actual output is:</p>\n<pre class=\"lang-none prettyprint-override\"><code>-0.999900  \n-0.999900  \n</code></pre>\n<p>The expected output should be:</p>\n<pre class=\"lang-none prettyprint-override\"><code>-0.999899  \n-0.999899\n</code></pre>\n<p>I'm aware of the limitations with floating point; the problem is that the tests check for exactly -0.999899. I'm wondering if it's possible to restructure the calculation to get the expected result. Nonetheless I'm going to ask my prof. Could be also possible that there is an error/mistake in the testing code.</p>\n<h2>Solution</h2>\n<p>Thanks for all the comments and suggestions; I appreciate all the efforts you guys made so far. I asked my prof today and he gave me a hint so I got the answer now.</p>\n<p>I can't say why we should do it like the way he wants it but here is the final code:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class Taylor {\n\n    public float berechneFak(float x) {\n        float produkt = 1.0f;\n        for (int i = 2; i &lt;= x; i++) {\n            produkt *= i;\n        }\n        return produkt;\n    }\n\n    public float berechneCosinus(float x, int ordnung) {\n        float acc = 0.0f;\n        float a = 1.0f;\n        for (int i = 0; i &lt; ordnung; i += 2) {\n            acc += (a / berechneFak(i)) * Math.pow(x, i);\n            a *= (-1);\n        }\n        return acc;\n    }\n    public static void main(String[] args) {\n        Taylor t = new Taylor();\n        float x = 3.14159265f;\n        for (int ordnung = 0; ordnung &lt; 15; ordnung++) {\n            System.out.printf(&quot;%.6f%n&quot;, t.berechneCosinus(x, ordnung));\n        }\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

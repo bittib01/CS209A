@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "graphql",
+      "graphql-java"
+    ],
+    "owner": {
+      "account_id": 1453728,
+      "reputation": 186,
+      "user_id": 1369927,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/44556a2f12ae113b8ec2d18884baa6b0?s=256&d=identicon&r=PG",
+      "display_name": "Teoni Valois",
+      "link": "https://stackoverflow.com/users/1369927/teoni-valois"
+    },
+    "is_answered": false,
+    "view_count": 61,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1722591464,
+    "creation_date": 1721233663,
+    "last_edit_date": 1722591464,
+    "question_id": 78760661,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78760661/how-to-properly-perform-dynamic-filtering-using-graphql-java",
+    "title": "How to properly perform dynamic filtering using graphql-java?",
+    "body": "<p>Assume that using the schema below, both the <code>teams</code> query and the <code>members</code> collection (from the <code>Team</code> type) are bound to data served by different services using <code>BatchLoaders</code>. Also, let's assume that these services do not offer any mechanism and the GraphQL layer just stiches the two datasets.</p>\n<pre><code>type Query {\n  teams(teamID:Int, namePrefix:String):[Team]\n}\n\ntype Team {\n  id: Int\n  name: String!\n  members: [User]\n}\n\ntype User {\n  id: ID!\n  name: String!\n  teamId: Int!\n  team: [Team]\n}\n</code></pre>\n<p>The goal is to only retrieve teams and members that have the name equal to &quot;John&quot; when running the following query:</p>\n<pre><code>query {\n    teams {\n        id\n        name\n        members {\n            id\n            name\n        }\n    }\n}\n</code></pre>\n<p>teams data:</p>\n<pre class=\"lang-json prettyprint-override\"><code>[\n    {\n        &quot;id&quot;: 1,\n        &quot;name&quot;: &quot;Team A&quot;,\n    },\n    {\n        &quot;id&quot;: 2,\n        &quot;name&quot;: &quot;Team B&quot;,\n    }\n]\n</code></pre>\n<p>users data:</p>\n<pre class=\"lang-json prettyprint-override\"><code>[\n    {\n        &quot;id&quot;: 10,\n        &quot;name&quot;: &quot;John&quot;,\n        &quot;teamId&quot;: 1\n    },\n    {\n        &quot;id&quot;: 20,\n        &quot;name&quot;: &quot;Dave&quot;,\n        &quot;teamId&quot;: 1\n    },\n    {\n        &quot;id&quot;: 30,\n        &quot;name&quot;: &quot;Bob&quot;,\n        &quot;teamId&quot;: 2\n    }\n]\n</code></pre>\n<p>expected result:</p>\n<pre class=\"lang-json prettyprint-override\"><code>{\n    &quot;data&quot;: {\n        &quot;teams&quot;: [\n            {\n                &quot;id&quot;: 1,\n                &quot;name&quot;: &quot;Team A&quot;,\n                &quot;members&quot;: [\n                    {\n                        &quot;id&quot;: 10,\n                        &quot;name&quot;: &quot;John&quot;\n                    },\n                ]\n            }\n        ]\n    }\n}\n</code></pre>\n<p>Question: Is there any standardized way to approach this problem? If not, what would be the most advisable approach?</p>\n<p>I do understand that for that we can use runtime directives for that and currently I have evaluated two approaches using <code>graphql-java</code>:</p>\n<ol>\n<li>Use a <code>DirectiveWiring</code> and wrap the datafetcher with code that performs the filtering;</li>\n<li>Use a <code>SimplePerformantInstrumentation</code> and manipulate the result using the <code>instrumentExecutionResult</code>;</li>\n</ol>\n<p>On option 1 there's a problem that the members collection would not yet be resolved given that the <code>BatchLoader</code> did not execute yet, and on option 2 the only way I found to perform the filtering was to revisit the data from the <code>ExecutionResult</code> and by doing a depth-first-search filter out unnecessary elements from the response.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

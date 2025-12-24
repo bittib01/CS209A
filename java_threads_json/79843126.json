@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-poi"
+    ],
+    "owner": {
+      "account_id": 4783898,
+      "reputation": 404,
+      "user_id": 5974641,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/b5f80fe429f34693b9fef5079753f127?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Lars Marius Garshol",
+      "link": "https://stackoverflow.com/users/5974641/lars-marius-garshol"
+    },
+    "is_answered": true,
+    "view_count": 75,
+    "accepted_answer_id": 79843463,
+    "answer_count": 1,
+    "score": 3,
+    "last_activity_date": 1765404566,
+    "creation_date": 1765380154,
+    "last_edit_date": 1765395187,
+    "question_id": 79843126,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79843126/how-to-generate-a-link-inside-a-footnote-with-apache-poi",
+    "title": "How to generate a link inside a footnote with Apache POI?",
+    "body": "<p>I am able to create footnotes, and I'm able to make links, but when I try to make a link inside a footnote Word refuses to open the resulting document.</p>\n<p>Here's a minimal example that reproduces the problem:</p>\n<pre><code>import java.io.File;\nimport java.io.FileOutputStream;\n\nimport org.apache.poi.xwpf.usermodel.XWPFAbstractFootnoteEndnote;\nimport org.apache.poi.xwpf.usermodel.XWPFDocument;\nimport org.apache.poi.xwpf.usermodel.XWPFHyperlinkRun;\nimport org.apache.poi.xwpf.usermodel.XWPFParagraph;\nimport org.apache.poi.xwpf.usermodel.XWPFRelation;\nimport org.apache.poi.xwpf.usermodel.XWPFRun;\nimport org.openxmlformats.schemas.wordprocessingml.x2006.main.CTHyperlink;\nimport org.openxmlformats.schemas.wordprocessingml.x2006.main.CTR;\n\npublic class Test {\n  public static void main(String[] argv) throws Exception {\n    XWPFDocument document = new XWPFDocument();\n    XWPFParagraph para = document.createParagraph();\n\n    XWPFRun tmpRun = para.createRun();\n    tmpRun.setText(&quot;LALALALAALALAAAA&quot;);\n\n    XWPFAbstractFootnoteEndnote note = para.getDocument().createFootnote();\n\n    XWPFParagraph ipara = note.createParagraph();\n    XWPFRun irun = ipara.createRun();\n    irun.setText(&quot;In the footnote&quot;);\n\n    String href = &quot;https://www.garshol.priv.no&quot;;\n    CTHyperlink hyperlink = ipara.getCTP().addNewHyperlink();\n    String rId = ipara.getDocument().getPackagePart().addExternalRelationship(href, XWPFRelation.HYPERLINK.getRelation()).getId();\n    hyperlink.setId(rId);\n\n    XWPFHyperlinkRun hyperlinkRun = new XWPFHyperlinkRun(\n      hyperlink, CTR.Factory.newInstance(), ipara);\n    CTR run = hyperlink.addNewR();\n    run.addNewT().setStringValue(&quot;And here is a link&quot;);\n\n    ipara.addRun(hyperlinkRun);\n\n    para.addFootnoteReference(note);\n\n    document.write(new FileOutputStream(new File(&quot;fuck.docx&quot;)));\n    document.close();\n  }\n}\n</code></pre>\n<p>We've figured out that the problem is that this file is missing inside the <code>.docx</code>: <code>word/_rels/footnotes.xml.rels</code>. It should contain this XML:</p>\n<pre><code>&lt;Relationships xmlns=&quot;http://schemas.openxmlformats.org/package/2006/relationships&quot;&gt;\n  &lt;Relationship Id=&quot;rId3&quot;\n    Type=&quot;http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink&quot;\n    Target=&quot;https://www.garshol.priv.no&quot;\n    TargetMode=&quot;External&quot;/&gt;\n&lt;/Relationships&gt;\n</code></pre>\n<p>If I add that, Word will open the document.</p>\n<p>The big question is ... why doesn't Apache POI add this file? What can I do to make it add the file with the correct content? (I've tried Apache POI 5.2.5 and 5.5.1, same result.)</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,37 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "unit-testing",
+      "apache-kafka",
+      "blockingqueue"
+    ],
+    "owner": {
+      "account_id": 1622089,
+      "reputation": 18758,
+      "user_id": 1498427,
+      "user_type": "registered",
+      "accept_rate": 89,
+      "profile_image": "https://i.sstatic.net/cNxIm.png?s=256",
+      "display_name": "catch32",
+      "link": "https://stackoverflow.com/users/1498427/catch32"
+    },
+    "is_answered": true,
+    "view_count": 53,
+    "accepted_answer_id": 79703598,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1752676809,
+    "creation_date": 1752542844,
+    "last_edit_date": 1752676613,
+    "question_id": 79701469,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79701469/implementing-custom-kafka-consumer-based-on-linkedblockingqueue-can-not-return-s",
+    "title": "Implementing Custom Kafka Consumer based on LinkedBlockingQueue can not return size",
+    "body": "<p>Found that <a href=\"https://kafka.apache.org/25/javadoc/org/apache/kafka/clients/consumer/KafkaConsumer.html\" rel=\"nofollow noreferrer\">KafkaConsumer</a> is quite inconvenient for testing, tried to implement it myself based on <a href=\"https://download.java.net/java/early_access/valhalla/docs/api/java.base/java/util/concurrent/LinkedBlockingQueue.html\" rel=\"nofollow noreferrer\">LinkedBlockingQueue</a>.</p>\n<p>Using Spring Boot, Java 21, Guava and Kafka Testcontainers <code>7.8.2</code>.</p>\n<p>Here is what it looks like:</p>\n<pre><code>@Slf4j\n@Component\npublic class KafkaConsumerCashOut&lt;K, V&gt; {\n    private final BlockingQueue&lt;KeyValue&lt;K, V&gt;&gt; queue = new LinkedBlockingQueue&lt;&gt;();\n\n    private final KafkaConsumer&lt;K, V&gt; consumer;\n    private final String topic;\n\n    private final AtomicBoolean isShutdown = new AtomicBoolean(false);\n    private final ExecutorService poller = Executors.newSingleThreadExecutor();\n\n    public KafkaConsumerCashOut(TestKafkaConsumerProperties kafkaStreamProperties, CashOutTopicProperties cashOutTopicProperties) {\n        this.topic = cashOutTopicProperties.getTopic();\n        this.consumer = new KafkaConsumer&lt;&gt;(new HashMap&lt;&gt;(kafkaStreamProperties.getProperties()));\n    }\n\n    @SneakyThrows\n    public KeyValue&lt;K, V&gt; take() {\n        return queue.take();\n    }\n\n    @SneakyThrows\n    public @Nullable KeyValue&lt;K, V&gt; poll(Duration timeout) {\n        return queue.poll(timeout.toMillis(), TimeUnit.MILLISECONDS);\n    }\n\n    public int size() {\n        return queue.size();\n    }\n\n    @PreDestroy\n    public void destroy() throws InterruptedException {\n        log.info(&quot;Closing consumer ...&quot;);\n        isShutdown.compareAndSet(false, true);\n        poller.awaitTermination(5, TimeUnit.SECONDS);\n    }\n\n    @PostConstruct\n    void init() {\n        poller.submit(() -&gt; {\n            try {\n                consumer.subscribe(Collections.singleton(topic));\n                while (!isShutdown.get()) {\n                    var polled = consumer.poll(Duration.ofMillis(100));\n                    if (!polled.isEmpty()) {\n                        log.info(&quot;Kafka consumer is polled records {}&quot;, polled.count());\n                        for (var record : polled) {\n                            Preconditions.checkState(queue.offer(KeyValue.of(record.key(), record.value())));\n                        }\n                    }\n                }\n            } catch (Throwable th) {\n                log.warn(&quot;Error in consumer&quot;, th);\n            } finally {\n                log.info(&quot;Consumer loop terminated&quot;);\n                try {\n                    consumer.close();\n                } catch (Throwable th) {\n                    log.warn(&quot;Error closing consumer&quot;, th);\n                }\n            }\n        });\n    }\n}\n</code></pre>\n<p>I am using two different properties: one for getting the consumer configuration and another for taking the topic name.</p>\n<p>Where <code>KeyValue</code> is just a wrapper for key, message and has a look:</p>\n<pre><code>@Data\n@RequiredArgsConstructor(staticName = &quot;of&quot;)\npublic class KeyValue&lt;K, V&gt; {\n    private final K key;\n    private final V message;\n}\n</code></pre>\n<p>And the main functionality works fine.<br />\nFollowing, you could see the snippet from the test:</p>\n<pre><code>@Autowired\nKafkaConsumerCashOut&lt;String, WatchResult&gt; cashOut;\n\n//...\nvar result = cashOut.take();\nassertThat(result.getKey()).isEqualTo(OUTCOME_ID_STRING);\nassertThat(result.getMessage()).isEqualTo(expectedResult);\n</code></pre>\n<p>And it works fine. Assertions are passed fine. Even if you add some log information like:</p>\n<pre><code>@SneakyThrows\npublic KeyValue&lt;K, V&gt; take() {\n    KeyValue&lt;K, V&gt; element = queue.take();\n    log.debug(&quot;take element: {}&quot;, element);\n    return element;\n}\n</code></pre>\n<p>It will be printed to the console:</p>\n<pre><code>take element: KeyMessage(key=241389702681395312, message={&quot;outcomeId&quot;: 241389702681395312, &quot;drawResult&quot;: true})\n</code></pre>\n<p>One point that I couldn't make work is just adding one more assertion before taking the element with <code>take()</code>:</p>\n<pre><code>assertThat(watchResultCashOut.size()).isEqualTo(1);\n</code></pre>\n<p>Although the element is indeed retrieved fine, this assertion fails. Can not find what is missing.</p>\n<p><em><strong>How to solve this issue?</strong></em></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

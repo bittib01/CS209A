@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "kotlin",
+      "spring-security",
+      "single-sign-on",
+      "react-typescript"
+    ],
+    "owner": {
+      "account_id": 29974299,
+      "reputation": 11,
+      "user_id": 22970905,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocIrzVwsj8gulw0X2TjGJmBlsPxMZDnLhbgKxdMW1EJp=k-s256",
+      "display_name": "Belury",
+      "link": "https://stackoverflow.com/users/22970905/belury"
+    },
+    "is_answered": false,
+    "view_count": 102,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1742485472,
+    "creation_date": 1707206332,
+    "last_edit_date": 1707301951,
+    "question_id": 77946071,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77946071/cant-redirect-correctly-after-azure-ad-sso-kotlinreact",
+    "title": "Can&#39;t redirect correctly after Azure AD SSO (Kotlin+React)",
+    "body": "<p>Hi i'm currently trying to setup SSO with the Azure AD for my application.</p>\n<p>It seem to almost fully work as i can see log from the server that indicate that the authentication is successfull, i can even see the authentication being valid on the azure ad panel and after authenticating i can see the session being stored in the cookie, the only problem is that i'm not getting redirected correctly.</p>\n<p>The flow is the following :</p>\n<p>The SSO button send the user to the azure ad page by calling the specific endpoint :</p>\n<p><code>window.location.href = </code>YOUR_URL_HERE /oauth2/authorization/azure-dev<code>;</code></p>\n<p>It trigger a redirect to another request :</p>\n<p><code>MICROSOFT_URL_HERE + ID + /oauth2/v2.0/authorize?</code></p>\n<p>This last request is getting 200, i can see the authentication being valid but then it try to redirect to this :</p>\n<p><code> YOUR_URL_HERE + central-api/login/oauth2/code/azure-dev</code></p>\n<p>but this one is getting 404, i've checked the redirectURI and they are the same in my properties and in the azure AD config so i'm really lost to why it's not redirecting correctly since the authentication itself is working.</p>\n<p>I'm using React Typescript for the Frontend and Kotlin (Spring Boot + Spring Security + Spring JPA).</p>\n<p>This is my SecurityConfig :</p>\n<pre><code>@Configuration\nclass SecurityConfig {\n\n    private val logger: org.slf4j.Logger = LoggerFactory.getLogger(SecurityConfig::class.java)\n    @Bean\n    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {\n        http\n                .cors().configurationSource(corsConfigurationSource())\n                .and()\n                .authorizeHttpRequests { authorize -&gt;\n                    authorize\n                            .requestMatchers(&quot;/public/**&quot;).permitAll()\n                            .anyRequest().authenticated()\n                }\n                .oauth2Login { oauth2Login -&gt; oauth2Login\n                        .defaultSuccessUrl(&quot;YOUR_URL_HERE&quot;, true)\n                }\n                .sessionManagement { session -&gt;\n                    session\n                            .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)\n                            .maximumSessions(1)\n                            .maxSessionsPreventsLogin(true)\n                            .expiredUrl(&quot;YOUR_URL_HERE&quot;)\n                }\n                .logout { logout -&gt;\n                    logout\n                            .logoutUrl(&quot;YOUR_URL_HERE&quot;)\n                            .logoutSuccessHandler(customLogoutSuccessHandler())\n                            .invalidateHttpSession(true)\n                            .deleteCookies(&quot;JSESSIONID&quot;)\n                            .clearAuthentication(true)\n                }\n                .requiresChannel { channel -&gt; channel.anyRequest().requiresSecure() }\n                .csrf().disable()\n\n        return http.build()\n    }\n\n    fun customLogoutSuccessHandler(): LogoutSuccessHandler {\n        return LogoutSuccessHandler { request, response, authentication -&gt;\n            val redirectUrl = &quot;YOUR_URL_HERE&quot;\n            response.sendRedirect(redirectUrl)\n        }\n    }\n    @Bean\n    fun corsConfigurationSource(): CorsConfigurationSource {\n        val configuration = CorsConfiguration()\n        configuration.allowedOrigins = listOf(&quot;YOUR_URL_HERE&quot;, &quot;YOUR_URL_HERE&quot;, &quot;YOUR_URL_HERE&quot;)\n        configuration.allowedMethods = listOf(&quot;GET&quot;, &quot;POST&quot;, &quot;PUT&quot;, &quot;DELETE&quot;, &quot;OPTIONS&quot;, &quot;PATCH&quot;)\n        configuration.allowedHeaders = listOf(&quot;*&quot;)\n        configuration.allowCredentials = true\n        configuration.maxAge = 3600L // Cache duration\n\n        val source = UrlBasedCorsConfigurationSource()\n        source.registerCorsConfiguration(&quot;/**&quot;, configuration)\n        return source\n    }\n\n    fun customAuthenticationSuccessHandler(): AuthenticationSuccessHandler {\n\n        return AuthenticationSuccessHandler { request, response, authentication -&gt;\n            logger.info(&quot;AZURE LOG &amp; SESSION DONE NOW REDIRECTING&quot;)\n            val redirectUrl = &quot;YOUR_URL_HERE&quot;\n            response.sendRedirect(redirectUrl)\n        }\n    }\n</code></pre>\n<p>Other than that i have a simple endpoint that check if the user is auth or not so that the frontend can verify the state of the user.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

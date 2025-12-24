@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "model-context-protocol",
+      "spring-ai"
+    ],
+    "owner": {
+      "account_id": 4171143,
+      "reputation": 141,
+      "user_id": 3418882,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/35da37715b3ce57f296478693686accf?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "rsenden",
+      "link": "https://stackoverflow.com/users/3418882/rsenden"
+    },
+    "is_answered": false,
+    "view_count": 222,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1758210424,
+    "creation_date": 1758209358,
+    "question_id": 79768641,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79768641/java-mcp-server-sdk-stdio-server-lifecycle",
+    "title": "Java MCP Server SDK: stdio server lifecycle",
+    "body": "<p>I'm trying to implement a simple MCP Server like this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>McpServer.sync(new StdioServerTransportProvider())\n    .serverInfo(&quot;test&quot;, &quot;1.0.0&quot;)\n    .requestTimeout(Duration.ofSeconds(120))\n    .capabilities(getServerCapabilities())\n    .tools(createTestToolSpecs())\n    .build();\n</code></pre>\n<p>When invoked from a <code>main</code> method, this works just fine and I can for example use an MCP client to list &amp; invoke tools. As <code>build()</code> is a non-blocking call, which causes the <code>main</code> method to return immediately, I guess this code snippet starts one or more non-daemon threads that cause the JVM to keep running until those threads terminate. When an MCP client requests server termination, my MCP server process successfully terminates.</p>\n<p>However, I need to integrate this into a larger Picocli-based CLI application, where the MCP server needs to be started from a <code>Callable::call</code> method, with the return value of that method being passed to <code>System::exit</code>. This causes the MCP server to be terminated immediately, which I'd obviously like to avoid.</p>\n<p>I tried adding a simple <code>while (true) { sleep(); }</code> loop after building the MCP server instance, and this successfully allows MCP clients to interact with the MCP server. However, now the MCP server is no longer being properly terminated when the MCP client exits or otherwise requests server termination.</p>\n<p>This causes many MCP server processes to remain running when they are no longer needed. I tried adding a shutdown handler to explicitly call <code>McpServer::closeGracefully</code>, but that doesn't help; MCP server processes are not being terminated.</p>\n<p>I couldn't find any methods that allow for explicitly blocking until server termination, so how do I properly handle MCP Server lifecycle in this scenario?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "events",
+      "apache-flink",
+      "stream-processing"
+    ],
+    "owner": {
+      "account_id": 16501325,
+      "reputation": 1,
+      "user_id": 11922563,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/541aae0042f89392d204991740aaa2d9?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Kvn",
+      "link": "https://stackoverflow.com/users/11922563/kvn"
+    },
+    "is_answered": true,
+    "view_count": 115,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1762624703,
+    "creation_date": 1762516181,
+    "last_edit_date": 1762516245,
+    "question_id": 79812300,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79812300/is-it-safe-to-mutate-emit-and-snapshot-the-same-operator-state-instance-in-apa",
+    "title": "Is it safe to mutate, emit, and snapshot the same operator-state instance in Apache Flink?",
+    "body": "<p>I'm building a single global Topology object in a non-keyed ProcessFunction with parallelism = 1. I keep it as a local mutable object and update it for every input event using <code>topology.apply(GnmiEvent)</code>. After updating the local topology I call <code>out.collect(topology)</code> to emit the current view. I broadcast that output downstream.</p>\n<ol>\n<li>If I call <code>out.collect(topology)</code> and later mutate the same topology instance for subsequent events (via the <code>apply</code> method), can downstream (chained) operators or sinks observe those later mutations for the previously emitted object? I guess it should be okay in this case because I broadcast it directly? But what would happen if I added another operator that doesn't imply a network shuffle? Under which conditions does that happen (chaining vs network boundaries / parallelism)? Do I need to deep-copy the state before emitting?</li>\n<li>Does <code>topologyState.add(topology)</code> in <code>snapshotState()</code> create a safe deep copy for common backends (HashMapStateBackend/Heap vs RocksDB)? Should I defensively copy when snapshotting or when emitting?</li>\n</ol>\n<pre class=\"lang-java prettyprint-override\"><code>public class TopologyProcessFunction\n        extends ProcessFunction&lt;GnmiEvent, Topology&gt;\n        implements CheckpointedFunction {\n\n    private Topology topology;\n    private transient ListState&lt;Topology&gt; topologyState;\n\n    @Override\n    public void initializeState(FunctionInitializationContext context) throws Exception {\n        ListStateDescriptor&lt;Topology&gt; descriptor =\n            new ListStateDescriptor&lt;&gt;(&quot;topology-state&quot;, Topology.class);\n        topologyState = context.getOperatorStateStore().getListState(descriptor);\n        if (context.isRestored()) {\n            topology = getTopologyFromState();\n        }\n    }\n\n    @Override\n    public void processElement(GnmiEvent gnmiEvent,\n                               Context ctx,\n                               Collector&lt;Topology&gt; out) {\n        if (topology == null) {\n            topology = new Topology();\n        }\n        topology.apply(gnmiEvent);\n        out.collect(topology);\n    }\n\n    @Override\n    public void snapshotState(FunctionSnapshotContext context) throws Exception {\n        if (topology != null) {\n            topologyState.clear();\n            topologyState.add(topology);\n        }\n    }\n\n    private Topology getTopologyFromState() throws Exception {\n        Iterator&lt;Topology&gt; it = topologyState.get().iterator();\n        return it.hasNext() ? it.next() : null;\n    }\n}\n</code></pre>\n<p>The only thing I found is this: <a href=\"https://stackoverflow.com/a/66597952/11922563\">https://stackoverflow.com/a/66597952/11922563</a>\nBut as a Flink novice I couldn't quite understand if this actually answers/applies to my question.</p>\n<p>Thank you in advance!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

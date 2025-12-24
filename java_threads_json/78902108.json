@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "amazon-web-services",
+      "deployment",
+      "https"
+    ],
+    "owner": {
+      "account_id": 12517320,
+      "reputation": 79,
+      "user_id": 9343948,
+      "user_type": "registered",
+      "profile_image": "https://lh5.googleusercontent.com/-fMiUNdzNUAU/AAAAAAAAAAI/AAAAAAAAANw/HzKSgLycrEE/s256-rj/photo.jpg",
+      "display_name": "BR4TO92",
+      "link": "https://stackoverflow.com/users/9343948/br4to92"
+    },
+    "is_answered": true,
+    "view_count": 55,
+    "accepted_answer_id": 79011531,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1727004840,
+    "creation_date": 1724337036,
+    "last_edit_date": 1724693325,
+    "question_id": 78902108,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78902108/https-not-workin-on-aws-elastic-beanstalk-single-instance-java-platform",
+    "title": "HTTPS not workin on AWS Elastic BeanStalk single instance Java platform",
+    "body": "<p>I configured my AWS Elastic BeanStalk single instance to use the HTTPS protocol for my custom domain attached to it, using the official documentation provided by AWS for the JAVA SE platform (<a href=\"https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/https-singleinstance-java.html\" rel=\"nofollow noreferrer\">Terminating HTTPS on EC2 instances running Java SE</a>). However, when I access the domain the browser still says it's not secure.</p>\n<p>In order to make it HTTPS I created a new .ebextensions folder inside the root directory of my project and added the following files:</p>\n<p><strong>.ebextensions/nginx/conf.d/https.conf:</strong></p>\n<pre><code># HTTPS server\n\nserver {\n    listen       443;\n    server_name  localhost;\n\n    ssl                  on;\n    ssl_certificate      /etc/pki/tls/certs/server.crt;\n    ssl_certificate_key  /etc/pki/tls/certs/server.key;\n\n    ssl_session_timeout  5m;\n\n    ssl_protocols  TLSv1 TLSv1.1 TLSv1.2;\n    ssl_prefer_server_ciphers   on;\n\n    location / {\n        proxy_pass  http://localhost:5000;\n        proxy_set_header   Connection &quot;&quot;;\n        proxy_http_version 1.1;\n        proxy_set_header        Host            $host;\n        proxy_set_header        X-Real-IP       $remote_addr;\n        proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;\n        proxy_set_header        X-Forwarded-Proto https;\n    }\n}\n</code></pre>\n<p>with the <strong>proxy_pass</strong> being set to <strong>localhost:5000</strong> as I configured it on my instance using the <strong>SERVER_PORT 5000</strong> parameter.</p>\n<p><strong>.ebextensions/https-instance.config:</strong></p>\n<pre><code>files:\n  /etc/pki/tls/certs/server.crt:\n    content: |\n      -----BEGIN CERTIFICATE-----\n      certificate file contents (certificate.crt)\n      -----END CERTIFICATE-----\n      -----BEGIN CERTIFICATE-----\n      intermediate certificate (ca_bundle.crt)\n      -----END CERTIFICATE-----\n      \n  /etc/pki/tls/certs/server.key:\n    content: |\n      -----BEGIN RSA PRIVATE KEY-----\n      private key contents (private.key)\n      -----END RSA PRIVATE KEY-----\n\ncontainer_commands:\n  01restart_nginx:\n    command: &quot;service nginx restart&quot;\n</code></pre>\n<p>where I generated a 90 days period certificate for my custom domain (<a href=\"http://www.my-custom-domain.com\" rel=\"nofollow noreferrer\">www.my-custom-domain.com</a>) using <a href=\"https://app.zerossl.com/login\" rel=\"nofollow noreferrer\">ZeroSSL</a> which generated the following files: <strong>ca_bundle.crt</strong>, <strong>certificate.crt</strong> and <strong>private.key</strong>.</p>\n<p><strong>.ebextensions/https-instance-single.config:</strong></p>\n<pre><code>Resources:\n  sslSecurityGroupIngress: \n    Type: AWS::EC2::SecurityGroupIngress\n    Properties:\n      GroupId: {&quot;Fn::GetAtt&quot; : [&quot;AWSEBSecurityGroup&quot;, &quot;GroupId&quot;]}\n      IpProtocol: tcp\n      ToPort: 443\n      FromPort: 443\n      CidrIp: 0.0.0.0/0\n</code></pre>\n<p>I created this files in IntelliJ using spaces as indentation just like the AWS documentation says and also added the .ebextensions folder on the root of my .war archive which I deployed to my Elastic BeanStalk instance.</p>\n<p>Do you have any idea why it's not working?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

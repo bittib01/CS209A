@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "vaadin-flow",
+      "spring-session",
+      "vaadin23"
+    ],
+    "owner": {
+      "account_id": 28712267,
+      "reputation": 23,
+      "user_id": 21987550,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AAcHTtfD5VHQPsJAdYYyrCENDAmfCG2fsqnkXivwuRywOw=k-s256",
+      "display_name": "K G S Varun Teja",
+      "link": "https://stackoverflow.com/users/21987550/k-g-s-varun-teja"
+    },
+    "is_answered": true,
+    "view_count": 77,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1750347288,
+    "creation_date": 1750309629,
+    "last_edit_date": 1750347288,
+    "question_id": 79671549,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79671549/vaadin23-app-keeps-refreshing-repeatedly-when-using-spring-session-jdbc",
+    "title": "Vaadin23 app keeps refreshing repeatedly when using Spring Session JDBC",
+    "body": "<p>I'm building a Vaadin 23 + Spring Boot 2.7 application and trying to integrate Spring Session JDBC to expire sessions after 1 minute of inactivity.</p>\n<p><strong>Problem:</strong>\nWhen I start the app, the browser (localhost:8080) keeps refreshing extremely fast. If I comment out the Spring Session dependency, the app works normally.</p>\n<p><strong>Here's what I have done so far:</strong></p>\n<ul>\n<li><p>Added <code>spring-session-jdbc</code> dependency</p>\n</li>\n<li><p>Enabled it via <code>@EnableJdbcHttpSession(maxInactiveIntervalInSeconds = 60</code>)</p>\n</li>\n<li><p>Created the required tables (<code>SPRING_SESSION</code>, <code>SPRING_SESSION_ATTRIBUTES</code>)</p>\n</li>\n<li><p>Verified session entries are created in the DB</p>\n</li>\n<li><p>Set <code>spring.session.store-type=jdbc</code> and <code>server.servlet.session.timeout=1m</code></p>\n</li>\n<li><p>Disabled <code>spring.session.jdbc.cleanup-cron</code> temporarily</p>\n</li>\n</ul>\n<p><strong>My code:</strong></p>\n<p>SessionConfig.java</p>\n<pre><code>import org.springframework.context.annotation.Configuration;\nimport org.springframework.session.jdbc.config.annotation.web.http.EnableJdbcHttpSession;\n\n@Configuration\n@EnableJdbcHttpSession(maxInactiveIntervalInSeconds = 60) // 1 minute for now\npublic class SessionConfig {\n}\n</code></pre>\n<p>Application.properties:</p>\n<pre><code># MySQL connection\nspring.datasource.url=jdbc:mysql://localhost:3306/session\nspring.datasource.username=root\nspring.datasource.password=MyPassword\n\n# Optional Hibernate tuning\nspring.jpa.hibernate.ddl-auto=update\nspring.jpa.show-sql=true\nspring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect\n\n# Session timeout (server-managed, complements JDBC)\nserver.servlet.session.timeout=1m\n\n# Disable aggressive cleanup for now\nspring.session.jdbc.cleanup-cron=0 */30 * * * * # every 30 mins\n</code></pre>\n<p>MainView.java:</p>\n<pre><code>\nimport com.vaadin.flow.component.button.Button;\nimport com.vaadin.flow.component.grid.Grid;\nimport com.vaadin.flow.component.orderedlayout.VerticalLayout;\nimport com.vaadin.flow.component.textfield.TextField;\nimport com.vaadin.flow.router.Route;\nimport org.springframework.beans.factory.annotation.Autowired;\nimport com.vaadin.flow.component.UI;\n\n\n@Route(&quot;&quot;)\npublic class MainView extends VerticalLayout {\n\n    private final PersonRepository personRepository;\n    private final Grid&lt;Person&gt; grid = new Grid&lt;&gt;(Person.class);\n\n    public MainView(@Autowired PersonRepository personRepository) {\n\n        UI.getCurrent().setPollInterval(10000); // 10 seconds\n\n        this.personRepository = personRepository;\n\n        TextField firstNameField = new TextField(&quot;First Name&quot;);\n        TextField lastNameField = new TextField(&quot;Last Name&quot;);\n\n        Button addButton = new Button(&quot;Add&quot;, event -&gt; {\n            Person person = new Person(firstNameField.getValue(), lastNameField.getValue());\n            personRepository.save(person);\n            updateGrid();\n            firstNameField.clear();\n            lastNameField.clear();\n        });\n\n        add(firstNameField, lastNameField, addButton, grid);\n\n        grid.setColumns(&quot;firstName&quot;, &quot;lastName&quot;);\n        updateGrid();\n    }\n\n    private void updateGrid() {\n        grid.setItems(personRepository.findAll());\n    }\n}\n</code></pre>\n<p>Why does Vaadin keep refreshing when Spring Session is enabled?\nHow can I properly integrate Spring Session JDBC with Vaadin 23?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

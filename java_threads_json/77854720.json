@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "jpa",
+      "spring-data-jpa",
+      "jpql"
+    ],
+    "owner": {
+      "account_id": 7088270,
+      "reputation": 509,
+      "user_id": 5424502,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/PNljE.png?s=256",
+      "display_name": "Mohsen",
+      "link": "https://stackoverflow.com/users/5424502/mohsen"
+    },
+    "is_answered": true,
+    "view_count": 355,
+    "accepted_answer_id": 78705027,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1720066871,
+    "creation_date": 1705838898,
+    "question_id": 77854720,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77854720/namedbasictypeimpl-entityvaluedmodelpart-are-in-unnamed-module-of-loader-app",
+    "title": "NamedBasicTypeImpl EntityValuedModelPart are in unnamed module of loader &#39;app&#39;",
+    "body": "<p>I have code like this in JPQL and Spring Data JPA</p>\n<pre><code>    @Query(&quot;SELECT bt FROM Textmessage t &quot; +\n           &quot;JOIN bt.hashtags h &quot; +\n           &quot;JOIN h.tag t &quot; +\n           &quot;JOIN t.type tt &quot; +\n           &quot;WHERE t= :mainTag &quot; +\n           &quot;GROUP BY bt &quot; +\n           &quot;ORDER BY &quot; +\n           &quot;   SUM(CASE WHEN t IN :questionTags THEN tt.weight ELSE 0 END) DESC&quot;)\n    List&lt;BotreaderTextmessage&gt; findAnswers(\n            @Param(&quot;mainTag&quot;) Tag mainTag,\n            @Param(&quot;questionTags&quot;) List&lt;Tag&gt; questionTags\n    );\n</code></pre>\n<p>but when i run the query this exception has happend</p>\n<blockquote>\n<p>class org.hibernate.type.internal.NamedBasicTypeImpl cannot be cast to class org.hibernate.metamodel.mapping.EntityValuedModelPart (org.hibernate.type.internal.NamedBasicTypeImpl and org.hibernate.metamodel.mapping.EntityValuedModelPart are in unnamed module of loader 'app')</p>\n</blockquote>\n<p>I tested the code without the 'order by' condition and without 'case,' and it works well. However, when I add this code, the above error is displayed to me.</p>\n<p>I even wrote the query as follows, which might result in different output and query, but it still gave me the above error.</p>\n<pre><code>    @Query(&quot;SELECT bt, &quot; +\n           &quot;CASE WHEN bttag IN :tags THEN (SELECT SUM(bttagtype.weight) FROM Textmessage btq &quot; +\n                                         &quot;JOIN btq.Hashtags bthq &quot; +\n                                         &quot;JOIN bthq.tag bttagq &quot; +\n                                         &quot;JOIN bttagq.type bttagtype &quot; +\n                                         &quot;WHERE btq.id = bt.id) ELSE 0 END AS tagWeight &quot; +\n           &quot;FROM Textmessage bt &quot; +\n           &quot;LEFT JOIN bt.hashtags bth &quot; +\n           &quot;LEFT JOIN bth.tag bttag &quot; +\n           &quot;ORDER BY tagWeight DESC&quot;)\n    List&lt;Object[]&gt; findAnswerMessagesByChatIdOrderedByTagWeight(\n            @Param(&quot;tags&quot;) List&lt;BotreaderTag&gt; tags);\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

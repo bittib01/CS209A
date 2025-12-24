@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jackson",
+      "quarkus",
+      "jackson-databind"
+    ],
+    "owner": {
+      "account_id": 5297359,
+      "reputation": 513,
+      "user_id": 4784969,
+      "user_type": "registered",
+      "accept_rate": 17,
+      "profile_image": "https://i.sstatic.net/lBsP2.png?s=256",
+      "display_name": "Politechniczny",
+      "link": "https://stackoverflow.com/users/4784969/politechniczny"
+    },
+    "is_answered": true,
+    "view_count": 223,
+    "accepted_answer_id": 78668627,
+    "answer_count": 1,
+    "score": -2,
+    "last_activity_date": 1719333911,
+    "creation_date": 1718783008,
+    "question_id": 78641114,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78641114/jackson-uses-instantdeserializer-instead-of-registered-customdeserializer-to-des",
+    "title": "Jackson uses InstantDeserializer instead of registered CustomDeserializer to deserialize OffsetDateTime in Quarkus",
+    "body": "<p>Front-end sends dates in format: <code>2024-06-01T05:55:04</code> from <code>datetime-local</code> control.</p>\n<p>Example REST controller:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Produces(MediaType.APPLICATION_JSON)\n@Consumes(MediaType.APPLICATION_JSON)\npublic class ExampleResource {\n  @POST\n  public RestResponse&lt;Example&gt; create(Example example) {\n    return RestResponse.ok(exampleService.create(example));\n  }\n}\n\n@Data\npublic class Example {\n    @JsonProperty(&quot;creationTime&quot;)\n    private OffsetDateTime creationTime;  // from front-end comes 2024-06-01T05:55:04\n}\n</code></pre>\n<p>Custom deserializer for <code>OffsetDateTime</code> is added here:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Singleton\npublic class ObjectMapperConfig implements ObjectMapperCustomizer {\n\n  public void customize(ObjectMapper mapper) {\n    var module = new SimpleModule();\n    module.addDeserializer(OffsetDateTime.class, new CustomOffsetDateTimeDeserializer());\n    mapper.registerModule(module);\n  }\n\n  static class CustomOffsetDateTimeDeserializer extends JsonDeserializer&lt;OffsetDateTime&gt; {\n\n    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd'T'HH:mm:ss&quot;);\n\n    // figured out that this method is not called during deserialization\n    @Override\n    public OffsetDateTime deserialize(JsonParser p, DeserializationContext ctx) throws IOException {\n      String dateString = p.getText();\n      try {\n        return OffsetDateTime.parse(dateString);\n      } catch (Exception e) {\n        var localDateTime = LocalDateTime.parse(dateString, FORMATTER);\n        return localDateTime.atOffset(ZoneOffset.systemDefault().getRules().getOffset(localDateTime));\n      }\n    }\n\n  }\n\n}\n\n</code></pre>\n<p>I tried another approach - override default ObjectMapper bean:</p>\n<pre class=\"lang-java prettyprint-override\"><code>  @Produces\n  @Singleton\n  public ObjectMapper objectMapper() {\n    var module = new SimpleModule();\n    module.addDeserializer(OffsetDateTime.class, new CustomOffsetDateTimeDeserializer());\n    var objectMapper = new ObjectMapper();\n    objectMapper.registerModule(module);\n    return objectMapper;\n  }\n</code></pre>\n<p>None of the above works and Quarkus fails to deserialize dates. Browser gets HTTP 400 Bad Request response without body.</p>\n<p>I ran debugger and figured out that the default InstantDeserializer is used to deserialize OffsetDateTime.</p>\n<p>How to properly configure custom deserializer for OffsetDateTime?</p>\n<p>Should I use another approach to parse dates like <code>2024-06-01T05:55:04</code> to <code>OffsetDateTime</code>?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "graalvm",
+      "graaljs"
+    ],
+    "owner": {
+      "account_id": 4073503,
+      "reputation": 48,
+      "user_id": 3345744,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/84b34745e0d48a09e1244f4dcb6be50c?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Bala Kalyan",
+      "link": "https://stackoverflow.com/users/3345744/bala-kalyan"
+    },
+    "is_answered": false,
+    "view_count": 44,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1747394071,
+    "creation_date": 1747394071,
+    "question_id": 79625047,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79625047/multiple-functional-interface-sam-types-not-automatically-resolved-like-nashorn",
+    "title": "Multiple Functional Interface SAM Types Not Automatically Resolved Like Nashorn (When using as callable function in JS)",
+    "body": "<p>Posting the issue rasied in graaljs repo here\nto get insights -&gt; <a href=\"https://github.com/oracle/graaljs/issues/911\" rel=\"nofollow noreferrer\">https://github.com/oracle/graaljs/issues/911</a></p>\n<p>When a Java class implements multiple functional interfaces with different arities, and used as callable function in Javascript,</p>\n<p>GraalJS doesn't automatically resolve the appropriate method based on the number of arguments passed from JavaScript, unlike Nashorn.</p>\n<p>It always resolves to the first implemented interface in the source code regardless of number of method args.</p>\n<p>This creates migration challenges for existing Nashorn applications and reduces the ease of Java-JavaScript interoperability.</p>\n<p>This functionality worked seamlessly in Nashorn, and while we understand GraalJS might have different design goals regarding JavaScript compliance, this automatic resolution of multiple functional interfaces was a useful feature for Java-JavaScript interoperability. The current behavior requires explicit handling which adds complexity to the codebase</p>\n<p>GraalJS.version =&gt; 23.1.2\nJDK version - 21</p>\n<p>Sample code below.</p>\n<pre><code>    // Functional Interfaces\n@FunctionalInterface\npublic interface OneArgFunction {\n    public String apply(String arg);\n}\n\n@FunctionalInterface\npublic interface TwoArgFunction {\n    public String apply(String arg1, Number arg2);\n}\n\n// Concrete class\n\npublic class MultiFunctionAdapter implements OneArgFunction, TwoArgFunction {\n    @Override\n    public String apply(String arg) {\n        return &quot;Hello &quot; + arg;\n    }\n\n    @Override\n    public String apply(String arg1, Number arg2) {\n        return &quot;Hello &quot; + arg1 + &quot; &quot; + arg2;\n    }\n}\n\n//Test class\npublic class MultipleInterfaceTest {\n    \n    public static void main(String[] args) throws Exception {\n        Context context = Context.newBuilder(&quot;js&quot;)\n                .allowAllAccess(true)\n                .allowHostClassLookup(classname -&gt; true)\n                .build();\n        context.getBindings(&quot;js&quot;).putMember(&quot;adapter&quot;, new MultiFunctionAdapter());\n\n        // One arg works fine as it is the first implemented interface in order\n        String jscript1 = &quot;adapter('world')&quot;; // works fine\n        Value result1 = context.eval(&quot;js&quot;, jscript1); // prints &quot;Hello world&quot;\n        System.out.println(&quot;Result: &quot; + result1.asString());\n\n        //Below script throws TypeError: execute onMultiFunctionAdapter failed due to: Arity error - expected: 1 actual: 2\n        String jscript2 = &quot;adapter('world', 60.5)&quot;;\n        Value result2 = context.eval(&quot;js&quot;, jscript2); // Arity error - expected: 1 actual: 2\n        System.out.println(&quot;Result: &quot; + result2.asString());\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

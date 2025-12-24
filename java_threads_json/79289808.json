@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "pdf",
+      "encryption",
+      "digital-signature",
+      "itext7"
+    ],
+    "owner": {
+      "account_id": 35649081,
+      "reputation": 45,
+      "user_id": 27326776,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/b352c9c00a78621641777b7315f5ff49?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "user27326776",
+      "link": "https://stackoverflow.com/users/27326776/user27326776"
+    },
+    "is_answered": true,
+    "view_count": 179,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1734914332,
+    "creation_date": 1734488026,
+    "last_edit_date": 1734914332,
+    "question_id": 79289808,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79289808/how-to-preserve-permissions-when-digitally-signing-an-encrypted-pdf-file-using-i",
+    "title": "How to preserve permissions when digitally signing an encrypted PDF file using iText Java?",
+    "body": "<p>I'd like to digitally sign an encrypted PDF file. The original PDF is protected by password that you can't modify it or copy texts from it without providing the owner's password. However, I found I can modify it and copy texts from it with ONLY user's password after stamping a digital signature! So, how do I correct the code to preserve permissions when signing the PDF? The code I used is showing below, where <code>encryptPdf()</code> is a method to encrypt PDF files and <code>sign()</code> is a method to sign the PDF files. I have wrote <code>stampingProperties.preserveEncryption();</code> inside the  <code>sign()</code> method, but it still can't preserve permissions.</p>\n<pre><code>    &lt;dependencies&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;com.itextpdf&lt;/groupId&gt;\n            &lt;artifactId&gt;itext-core&lt;/artifactId&gt;\n            &lt;version&gt;9.0.0&lt;/version&gt;\n            &lt;type&gt;pom&lt;/type&gt;\n        &lt;/dependency&gt;\n    &lt;/dependencies&gt;\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>package net.opho.olympiad.util;\nimport com.itextpdf.bouncycastleconnector.BouncyCastleFactoryCreator;\nimport com.itextpdf.kernel.crypto.DigestAlgorithms;\nimport com.itextpdf.kernel.font.PdfFontFactory;\nimport com.itextpdf.kernel.geom.PageSize;\nimport com.itextpdf.kernel.geom.Rectangle;\nimport com.itextpdf.kernel.mac.MacProperties;\nimport com.itextpdf.kernel.mac.MacProperties.MacDigestAlgorithm;\nimport com.itextpdf.kernel.pdf.*;\nimport com.itextpdf.kernel.pdf.canvas.PdfCanvas;\nimport com.itextpdf.kernel.pdf.xobject.PdfXObject;\nimport com.itextpdf.layout.Document;\nimport com.itextpdf.layout.element.Paragraph;\nimport com.itextpdf.layout.properties.TextAlignment;\nimport com.itextpdf.signatures.*;\nimport lombok.extern.slf4j.Slf4j;\nimport net.opho.olympiad.entity.PdfResource;\nimport net.opho.olympiad.entity.Signature;\nimport org.bouncycastle.jce.provider.BouncyCastleProvider;\nimport java.io.ByteArrayInputStream;\nimport java.io.ByteArrayOutputStream;\nimport java.io.FileInputStream;\nimport java.io.IOException;\nimport java.security.GeneralSecurityException;\nimport java.security.KeyStore;\nimport java.security.PrivateKey;\nimport java.security.Security;\nimport java.time.LocalDateTime;\n@Slf4j\npublic class PdfUtil {\n    public static byte[] encryptPdf(String pdfPath, String userPassword, String ownerPassword) throws IOException {\n        Security.addProvider(BouncyCastleFactoryCreator.getFactory().getProvider());\n        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();\n        WriterProperties writerProperties = new WriterProperties();\n        writerProperties.setPdfVersion(PdfVersion.PDF_2_0).setStandardEncryption(\n                userPassword.getBytes(),\n                ownerPassword.getBytes(),\n                EncryptionConstants.ALLOW_PRINTING,\n                EncryptionConstants.ENCRYPTION_AES_256,\n                new MacProperties(MacDigestAlgorithm.SHA_256));\n        PdfDocument pdfDocument = new PdfDocument(new PdfReader(pdfPath), new PdfWriter(byteArrayOutputStream, writerProperties));\n        pdfDocument.close();\n        byte[] output = byteArrayOutputStream.toByteArray();\n        log.info(pdfPath + &quot; encrypted, byte length: &quot; + output.length);\n        return output;\n    }\n    public static byte[] sign(byte[] pdfFileContent, String ownerPassword, Signature signature, String username) throws IOException, GeneralSecurityException {\n        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();\n        PdfReader reader = ownerPassword == null ? new PdfReader(new ByteArrayInputStream(pdfFileContent)) : new PdfReader(new ByteArrayInputStream(pdfFileContent), (new ReaderProperties()).setPassword(ownerPassword.getBytes()));\n        StampingProperties stampingProperties = new StampingProperties();\n        stampingProperties.preserveEncryption();\n        PdfSigner signer = new PdfSigner(reader, byteArrayOutputStream, stampingProperties);\n        SignerProperties signerProperties = new SignerProperties();\n        signerProperties.setReason(&quot;Document for OPhO user &quot; + username).setLocation(&quot;OPhO Official Website&quot;);\n        signer.setSignerProperties(signerProperties);\n        BouncyCastleProvider provider = new BouncyCastleProvider();\n        Security.addProvider(provider);\n        KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());\n        ks.load(new FileInputStream(signature.getKeyStorage()), signature.getKeyStoragePassword().toCharArray());\n        String alias = ks.aliases().nextElement();\n        PrivateKey pk = (PrivateKey) ks.getKey(alias, signature.getKeyStoragePassword().toCharArray());\n        IExternalSignature pks = new PrivateKeySignature(pk, DigestAlgorithms.SHA256, provider.getName());\n        IExternalDigest digest = new BouncyCastleDigest();\n        signer.signDetached(digest, pks, ks.getCertificateChain(alias), null, null, null, 0, PdfSigner.CryptoStandard.CMS);\n        byte[] output = byteArrayOutputStream.toByteArray();\n        log.info(&quot;Signed, byte length: &quot; + output.length);\n        return output;\n    }\n}\n\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

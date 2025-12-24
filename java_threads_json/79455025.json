@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hibernate",
+      "jpa",
+      "entity"
+    ],
+    "owner": {
+      "account_id": 6488524,
+      "reputation": 1127,
+      "user_id": 5023303,
+      "user_type": "registered",
+      "accept_rate": 40,
+      "profile_image": "https://www.gravatar.com/avatar/e1c27c8cbdcb6e4d62e7beca6c8f6fbc?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "ivoronline",
+      "link": "https://stackoverflow.com/users/5023303/ivoronline"
+    },
+    "is_answered": true,
+    "view_count": 78,
+    "accepted_answer_id": 79455203,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1740132975,
+    "creation_date": 1740065557,
+    "last_edit_date": 1740132975,
+    "question_id": 79455025,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79455025/spring-boot-copy-parent-and-children",
+    "title": "Spring Boot Copy Parent and Children",
+    "body": "<p>How can I  use (Spring Boot / Hibernate / JPA) to create a Copy of Parent Entity and also to copy all the Children Entities.</p>\n<p>After multiple versions I came up with following procedure.</p>\n<ul>\n<li>Inside the Controller I get Parent with all the Children. Children are EAGER loaded since this is not done under @Transactional and therefore LAZY wouldn't work. Not using @Transacional allows me to set ID = null to all the Entities so that when I later save them they will be inserted as new Records</li>\n<li>Then I call @Transactional Service Method</li>\n<li>Save Parent so that ID gets populated</li>\n<li>set Child.PARENT_ID = (parent's id)</li>\n<li>Save Children</li>\n</ul>\n<p>I need this part to be @Transactional in case Parent is saved but children are not so that in that case transaction rolls back.</p>\n<p>One problem is that this way I can't use LAZY loading.</p>\n<p>Another problem is that I need to have the code that gets the Parent and the Children inside Controller since it can't be under @Transactional because then I can't use ID = null.</p>\n<p>I also can't move this code into Service Method that is not @Transactional and then call another Service Method that is @Transactional to do the saving because when @Transactional Method is called within the Service Method then @Transactional Annotation is ignored.</p>\n<p>So I got it to work and it looks kind of straight forward but not ideal and a bit complicated at the same time having to be aware of all these considerations.</p>\n<p>CopyController.java</p>\n<pre><code>@GetMapping(path = &quot;/{schemaId}/copyEntityList&quot;, produces = &quot;application/json&quot;)\npublic void copyEntityList(@RequestBody List&lt;Long&gt; ids) throws RuntimeException {\n\n    //GET ENTITIES\n    List&lt;Entity2&gt; entities = entityRepository.findAllById(ids);\n\n    //INSERT ENTITIES\n    copyService.insertEntities(entities);\n\n}\n</code></pre>\n<p>CopyService2.java</p>\n<pre><code>@Transactional\npublic void insertEntities(List&lt;Entity2&gt; entities) throws RuntimeException {\n\n    //REMOVE IDS, CHANGE NAME &amp; CODE\n    DateTimeFormatter formatter = DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd HH:mm:ss&quot;);\n    for(Entity2 entity : entities) {\n        entity.setName(entity.getName() + &quot; - COPY (&quot; + LocalDateTime.now().format(formatter) + &quot;)&quot;);\n        entity.setCode(entity.getCode() +        &quot; (&quot; + LocalDateTime.now().format(formatter) + &quot;)&quot;);\n        entity.setId  (null);\n    }\n\n    //INSERT PARENTS (to get IDs)\n    entityRepository.saveAll(entities);\n\n    if (false) { throw new RuntimeException(&quot;Error&quot;); }\n\n    //UPDATE CHILDREN (with PARENT_ID)\n    List&lt;Entity2&gt; clonedChildEntities = new ArrayList&lt;&gt;();\n    for(Entity2 parentEntity : entities) {\n        for(Entity2 childEntity : parentEntity.getChildEntities()) {\n            childEntity.setId      (null);\n            childEntity.setParentId(parentEntity.getId());\n            childEntity.setName    (childEntity.getName() + &quot; - COPY (&quot; + LocalDateTime.now().format(formatter) + &quot;)&quot;);\n            childEntity.setCode    (childEntity.getCode() +        &quot; (&quot; + LocalDateTime.now().format(formatter) + &quot;)&quot;);\n            clonedChildEntities.add(childEntity);\n        }\n    }\n\n    //INSERT CHILDREN\n    entityRepository.saveAll(clonedChildEntities);\n\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "vault",
+      "hashicorp"
+    ],
+    "owner": {
+      "account_id": 27793189,
+      "reputation": 5,
+      "user_id": 21219271,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/509b15cda1a84c3176352fe1cbd49b96?s=256&d=identicon&r=PG",
+      "display_name": "IgorPiven",
+      "link": "https://stackoverflow.com/users/21219271/igorpiven"
+    },
+    "is_answered": false,
+    "view_count": 559,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1729787386,
+    "creation_date": 1728464598,
+    "last_edit_date": 1728471773,
+    "question_id": 79069415,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79069415/cant-get-secrets-from-vault-with-hashicorp-in-java",
+    "title": "Can&#39;t get secrets from Vault with Hashicorp in Java",
+    "body": "<p>I'm using Hashicorp plugin to get secrets from Vault but without success. I have looked through all similar questions here and also in Internet but still haven't solved my issue.</p>\n<p>I copied code from Github, set all necessary variables as follows:</p>\n<pre><code>            &lt;!-- Read secrets from HashiCorp Vault and assign it to Maven properties --&gt;\n            &lt;plugin&gt;\n                &lt;groupId&gt;io.github.schereradi&lt;/groupId&gt;\n                &lt;artifactId&gt;vault-maven-plugin&lt;/artifactId&gt;\n                &lt;version&gt;1.1.3&lt;/version&gt;\n\n                &lt;executions&gt;\n                    &lt;execution&gt;\n                        &lt;id&gt;pull&lt;/id&gt;\n                        &lt;phase&gt;validate&lt;/phase&gt;\n                        &lt;goals&gt;\n                            &lt;goal&gt;pull&lt;/goal&gt;\n                        &lt;/goals&gt;\n                        &lt;configuration&gt;\n                            &lt;servers&gt;\n                                &lt;server&gt;\n                                    &lt;!-- Update vault server URL with your own URL --&gt;\n                                    &lt;url&gt;https://**myVaulUrlHere:8200**&lt;/url&gt;\n                                    &lt;!-- Token to authenticate with Vault server. Do not hardcode the vault token --&gt;\n                                    &lt;token&gt;**myTokenHere**&lt;/token&gt;\n                                    &lt;paths&gt;\n                                        &lt;path&gt;\n                                            &lt;!-- Vault path can be hardcoded completely or it can be made dynamic like shown below --&gt;\n                                            &lt;name&gt;**myVaultPathHere**&lt;/name&gt;\n                                            &lt;mappings&gt;\n                                                &lt;mapping&gt;\n                                                    &lt;!-- key - name of the key stored in vault --\n                                                    &lt;key&gt;testUser&lt;/key&gt;\n                                                    &lt;!-- property - to whom you want to assign the value after reading it from the Vault --&gt;\n                                                    &lt;property&gt;username&lt;/property&gt;\n                                                &lt;/mapping&gt;\n                                                &lt;mapping&gt;\n                                                    &lt;!-- key - name of the key stored in vault --&gt;\n                                                    &lt;key&gt;testPassword&lt;/key&gt;\n                                                    &lt;!-- property - to whom you want to assign the value after reading it from the Vault --&gt;\n                                                    &lt;property&gt;password&lt;/property&gt;\n                                                &lt;/mapping&gt;\n                                            &lt;/mappings&gt;\n                                        &lt;/path&gt;\n                                    &lt;/paths&gt;\n                                &lt;/server&gt;\n                            &lt;/servers&gt;\n                        &lt;/configuration&gt;\n                    &lt;/execution&gt;\n                &lt;/executions&gt;\n            &lt;/plugin&gt;\n</code></pre>\n<p>and trying to get username and password values from pom in application properties:</p>\n<pre><code>prop.username=@username@\nprop.password=@password@\n</code></pre>\n<p>Spring boot class:</p>\n<pre><code>@RestController\npublic class ReadSecretsController {\n\n    @Value(&quot;${prop.username}&quot;)\n    private String username;\n\n    @Value(&quot;${prop.password}&quot;)\n    private String password;\n\n\n    @GetMapping(&quot;/getSecretsFromVault&quot;)\n    public String getSecretsFromVault() {\n        return &quot;Username: &quot; + username + &quot; Password: &quot; + password;\n    }\n}\n</code></pre>\n<p>The only thing I see when started &quot;localhost:8080/getSecretsFromVault&quot; is\nUsername: @username@\nPassword: @password@</p>\n<p>I made curl query from localhost to check whether credentials are being pulled properly using token and vault path and it returns JSON with all required info.</p>\n<p>I see 2 options here:</p>\n<ol>\n<li>Plugin doesn't work properly.</li>\n<li>The values aren't passed from pom.xml to application.properties. I have tried some hints such as filtering and delimiter config in pom.xml but with the same result.</li>\n</ol>\n<pre><code>    &lt;build&gt;\n\n        &lt;resources&gt;\n            &lt;resource&gt;\n                &lt;directory&gt;src/main/resources&lt;/directory&gt;\n                &lt;filtering&gt;true&lt;/filtering&gt;\n            &lt;/resource&gt;\n        &lt;/resources&gt;\n...\n            &lt;plugin&gt;\n                &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;\n                &lt;artifactId&gt;maven-resources-plugin&lt;/artifactId&gt;\n            &lt;version&gt;2.7&lt;/version&gt;\n\n                &lt;configuration&gt;\n                    &lt;delimiters&gt;\n                        &lt;delimiter&gt;@&lt;/delimiter&gt;\n                    &lt;/delimiters&gt;\n                    &lt;useDefaultDelimiters&gt;false&lt;/useDefaultDelimiters&gt;\n                &lt;/configuration&gt;\n            &lt;/plugin&gt;\n</code></pre>\n<p>Will be gratheful for any piece of advice!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

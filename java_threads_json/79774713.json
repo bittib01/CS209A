@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "image",
+      "opencv",
+      "javafx"
+    ],
+    "owner": {
+      "account_id": 12506291,
+      "reputation": 821,
+      "user_id": 9103039,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/TqlDK.jpg?s=256",
+      "display_name": "Starnec",
+      "link": "https://stackoverflow.com/users/9103039/starnec"
+    },
+    "is_answered": true,
+    "view_count": 197,
+    "closed_date": 1759153640,
+    "accepted_answer_id": 79775390,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1760503168,
+    "creation_date": 1758797708,
+    "last_edit_date": 1759063419,
+    "question_id": 79774713,
+    "link": "https://stackoverflow.com/questions/79774713/converting-an-opencv-mat-to-a-javafx-image-not-working-when-using-bytebuffer-and",
+    "closed_reason": "Needs details or clarity",
+    "title": "Converting an OpenCV mat to a JavaFX image not working when using ByteBuffer and PixelFormat",
+    "body": "<p>I have posted a <a href=\"http://stackoverflow.com/questions/79771565/bufferedimage-vs-matofbyte-for-converting-an-opencv-matrix-to-a-javafx-image\">question</a> on which of two approaches is more efficient for converting an OpenCV <a href=\"https://docs.opencv.org/3.4/d3/d63/classcv_1_1Mat.html\" rel=\"nofollow noreferrer\">mat</a> object to a JavaFXML <a href=\"https://openjfx.io/javadoc/25/javafx.graphics/javafx/scene/image/Image.html\" rel=\"nofollow noreferrer\">Image</a> so it can be displayed later in the application.</p>\n<p>Most of the comments suggested to use <a href=\"https://openjfx.io/javadoc/25/javafx.graphics/javafx/scene/image/PixelBuffer.html\" rel=\"nofollow noreferrer\">PixelBuffer</a> to construct a <a href=\"https://openjfx.io/javadoc/25/javafx.graphics/javafx/scene/image/WritableImage.html#%3Cinit%3E(javafx.scene.image.PixelBuffer)\" rel=\"nofollow noreferrer\">WritableImage</a>.</p>\n<p>For this purpose I have chosen @James_D proposition which is:</p>\n<blockquote>\n<p>Mat -&gt; MatOfByte -&gt; byte[] -&gt; ByteBuffer -&gt; PixelBuffer -&gt; WritableImage</p>\n</blockquote>\n<p>This what the code looks like:</p>\n<pre><code>import java.awt.image.BufferedImage;\nimport java.awt.image.DataBufferByte;\nimport java.awt.image.WritableRaster;\nimport java.nio.ByteBuffer;\n\nimport javafx.concurrent.Task;\nimport javafx.embed.swing.SwingFXUtils;\nimport javafx.scene.image.Image;\nimport javafx.scene.image.PixelBuffer;\nimport javafx.scene.image.PixelFormat;\nimport javafx.scene.image.WritableImage;\nimport org.opencv.core.CvType;\nimport org.opencv.core.Mat;\n\npublic class MatToFXImage extends Task&lt;Image&gt; {\n    private final Mat mat;\n\n    public MatToFXImage(Mat mat) {\n        if (mat == null)\n            throw new IllegalArgumentException(&quot;Mat object can't be null&quot;);\n\n        this.mat = mat;\n    }\n\n    private int determineImageType(int matType) {\n        if (matType == CvType.CV_8UC1)\n            return BufferedImage.TYPE_BYTE_GRAY;\n        else if (matType == CvType.CV_8UC3)\n            return BufferedImage.TYPE_3BYTE_BGR;\n        else\n            throw new IllegalArgumentException(&quot;Unsupported Mat type: &quot; + matType);\n    }\n\n    @Override\n    protected Image call() {\n        // MatOfByte byteMat = new MatOfByte();\n        // Imgcodecs.imencode(&quot;.bmp&quot;, mat, byteMat);\n        // return new Image(new ByteArrayInputStream(byteMat.toArray()));\n\n        int size = (int) (mat.total() * mat.channels());\n        byte[] byteArray = new byte[size];\n\n        mat.get(0, 0, byteArray);\n\n        ByteBuffer buffer = ByteBuffer.wrap(byteArray);\n        PixelFormat&lt;ByteBuffer&gt; pixelFormat = PixelFormat.getByteBgraPreInstance();\n        PixelBuffer&lt;ByteBuffer&gt; pixelBuffer = new PixelBuffer&lt;&gt;(mat.width(), mat.height(), buffer, pixelFormat);\n\n        return new WritableImage(pixelBuffer);\n\n        // int type;\n\n        // type = determineImageType(mat.type());\n\n        // BufferedImage image = new BufferedImage(mat.width(), mat.height(), type);\n        // WritableRaster raster = image.getRaster();\n        // DataBufferByte dataBuffer = (DataBufferByte) raster.getDataBuffer();\n\n        // // byte[] data = dataBuffer.getData();\n\n        // mat.get(0, 0, dataBuffer.getData());\n        // return SwingFXUtils.toFXImage(image, null);\n    }\n}\n</code></pre>\n<p>I would like to know why it is not working as supposed to do</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

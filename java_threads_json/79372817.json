@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "hibernate",
+      "jpa",
+      "spring-data-jpa"
+    ],
+    "owner": {
+      "account_id": 32299308,
+      "reputation": 51,
+      "user_id": 25084330,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/7c03e892eb099c970ad8e9bc741df910?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Caffadras",
+      "link": "https://stackoverflow.com/users/25084330/caffadras"
+    },
+    "is_answered": true,
+    "view_count": 86,
+    "accepted_answer_id": 79483560,
+    "answer_count": 1,
+    "score": 3,
+    "last_activity_date": 1741108475,
+    "creation_date": 1737412851,
+    "question_id": 79372817,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79372817/spring-data-version-property-inspection-does-not-work-with-primitives-for-entit",
+    "title": "Spring-Data @Version-Property inspection does not work with primitives for Entity State Detection",
+    "body": "<p>From the <a href=\"https://docs.spring.io/spring-data/jpa/reference/data-commons/is-new-state-detection.html#:%7E:text=By%20default%2C%20Spring%20Data%20inspects,assumed%20to%20not%20be%20new.\" rel=\"nofollow noreferrer\">official docs</a>:</p>\n<blockquote>\n<p>If a property annotated with @Version is present and null, <strong>or in case of a version property of primitive type 0</strong> the entity is considered new. If the version property is present but has a different value, the entity is considered to not be new.\nFrom my understanding, spring will use even primitive verion field to check if entity is new or not.</p>\n</blockquote>\n<p>However, in my testing, if I create an entity with a primitive version field, manually set <code>Id</code>, and try to save (JpaRepository.save()), spring still calls <code>em.merge()</code> (and not simply persist), which causes an additional select query.<br />\nChanging the type to <code>Integer</code> resolves the issue.</p>\n<p>Sample entity:</p>\n<pre class=\"lang-java prettyprint-override\"><code>//...other imports\nimport javax.persistence.Version;\n\n@Entity\n@Table(name = &quot;test&quot;)\npublic class Test implements Serializable {\n    @Serial\n    private static final long serialVersionUID = 1L;\n\n    @Id\n    private Long id;\n\n    @Version\n    @NotNull\n    @Column(name = &quot;entity_version&quot;)\n    private int entityVersion;\n}\n</code></pre>\n<p>Moreoever, looking at the <a href=\"https://github.com/spring-projects/spring-data-jpa/blob/4.0.x/spring-data-jpa/src/main/java/org/springframework/data/jpa/repository/support/JpaMetamodelEntityInformation.java\" rel=\"nofollow noreferrer\">sources</a> I find this block of code:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Override\npublic boolean isNew(T entity) {\n\n    if (versionAttribute.isEmpty() ||\nversionAttribute.map(Attribute::getJavaType).map(Class::isPrimitive).orElse(false)) {\n            return super.isNew(entity);\n    }\n\n    BeanWrapper wrapper = new DirectFieldAccessFallbackBeanWrapper(entity);\n\n    return versionAttribute.map(it -&gt; wrapper.getPropertyValue(it.getName()) == null).orElse(true);\n    }\n</code></pre>\n<p>If I understand correctly, it check if the version field has primitive type, and if yes, simply calls <code>super.isNew()</code> method, which checks only Id.</p>\n<p>Am I missing something?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

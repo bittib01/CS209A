@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "wildfly",
+      "eclipselink",
+      "java-17"
+    ],
+    "owner": {
+      "account_id": 25641201,
+      "reputation": 11,
+      "user_id": 19410069,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AATXAJzHOt9SlGf8-j_xr9WcPDSPEXuNFli6Hc--M-FD=k-s256",
+      "display_name": "Aldo Laiseca",
+      "link": "https://stackoverflow.com/users/19410069/aldo-laiseca"
+    },
+    "is_answered": false,
+    "view_count": 140,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1756368193,
+    "creation_date": 1748385331,
+    "last_edit_date": 1748401434,
+    "question_id": 79641283,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79641283/problem-with-weaving-trying-to-use-spring-6-2-7-eclipselink-4-0-6-wildfly-36-0",
+    "title": "Problem with weaving trying to use Spring 6.2.7, EclipseLink 4.0.6, Wildfly 36.0.1 and JDK 17.0.2",
+    "body": "<p>I am trying to deploy an ear application that uses Spring Framework 6.2.7 (not Spring Boot) and EclipseLink 4.0.6 inside a Wildly 36 application server configured to use OpenJDK 17.0.2. The problem has to do with weaving:</p>\n<pre><code>Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'loadTimeWeaver': ClassLoader [org.jboss.modules.ModuleClassLoader] does NOT provide an 'addTransformer(ClassFileTransformer)' method. Specify a custom LoadTimeWeaver or start your Java virtual machine with Spring's agent: -javaagent:spring-instrument-{version}.jar\n</code></pre>\n<p>In my Spring XML configuration file, I have the following relevant parts:</p>\n<pre><code>&lt;context:load-time-weaver aspectj-weaving=&quot;autodetect&quot;/&gt;\n\n&lt;bean id=&quot;entityManagerFactory&quot;\n            class=&quot;org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean&quot;&gt;\n            &lt;property name=&quot;persistenceUnitName&quot; value=&quot;MyPU&quot; /&gt;\n            &lt;property name=&quot;dataSource&quot; ref=&quot;dataSource&quot; /&gt;\n            &lt;property name=&quot;persistenceXmlLocation&quot;\n                    value=&quot;${config.persistence.location}&quot; /&gt;\n            &lt;property name=&quot;jpaVendorAdapter&quot;&gt;\n                    &lt;bean\n                            class=&quot;org.springframework.orm.jpa.vendor.EclipseLinkJpaVendorAdapter&quot;&gt;\n                            &lt;property name=&quot;generateDdl&quot; value=&quot;false&quot; /&gt;\n                            &lt;property name=&quot;databasePlatform&quot;\n                                    value=&quot;org.eclipse.persistence.platform.database.PostgreSQLPlatform&quot; /&gt;                  \n                    &lt;/bean&gt;\n            &lt;/property&gt;\n            &lt;property name=&quot;jpaDialect&quot;&gt;\n                    &lt;bean class=&quot;org.springframework.orm.jpa.vendor.EclipseLinkJpaDialect&quot;/&gt;\n            &lt;/property&gt;\n            &lt;property name=&quot;jpaProperties&quot;&gt;\n                    &lt;props&gt;\n                            &lt;prop key=&quot;eclipselink.weaving&quot;&gt;true&lt;/prop&gt;\n                            &lt;prop key=&quot;eclipselink.cache.shared.default&quot;&gt;true&lt;/prop&gt;\n                    &lt;/props&gt;\n            &lt;/property&gt;\n            &lt;property name=&quot;loadTimeWeaver&quot;&gt;\n                    &lt;bean class=&quot;org.springframework.instrument.classloading.InstrumentationLoadTimeWeaver&quot;/&gt;\n\n            &lt;/property&gt;\n&lt;/bean&gt;\n</code></pre>\n<p>In standalone.conf in Wildfly, I tried both to add the -javaagent:/pathto/spring-instrument-6.2.7.jar as JDK parameter, as well as uncomment the following line, as per directions I found at the bottom of the conf file:</p>\n<blockquote>\n<p>Blockquote\nUncomment to add a Java agent. If an agent is added to the module options, then jboss-modules.jar is added as an agent on the JVM. This allows things like the log manager or security manager to be configured before the agent is invoked.\nBlockquote</p>\n</blockquote>\n<p>MODULE_OPTS=&quot;-javaagent:/pathto/spring-instrument-6.2.7.jar&quot;</p>\n<p>I also tried to use the JBossLoadTimeWeaver class provided with Spring by changing the loadTimeWeaver property in the Spring XML file shown above as follows:</p>\n<pre><code> &lt;property name=&quot;loadTimeWeaver&quot;&gt;\n     &lt;bean class=&quot;org.springframework.instrument.classloading.jboss.JBossLoadTimeWeaver&quot;/&gt;\n &lt;/property&gt;\n</code></pre>\n<p>In that case, Wildfly now complains with the following:</p>\n<p>Cannot create inner bean 'org.springframework.instrument.classloading.jboss.JBossLoadTimeWeaver#55b7d1bf' of type [org.springframework.instrument.classloading.jboss.JBossLoadTimeWeaver] while setting bean property 'loadTimeWeaver'\n...\nCaused by: java.lang.ClassNotFoundException: org.jboss.modules.ClassTransformer from [MyDeployment]</p>\n<p>I found out that the missing class is part of the jboss-modules.jar file, which happens to be at the JBOSS_HOME root directory. So I added the following line to the JVM options with no luck either (same ClassNotFoundError as above):</p>\n<p>JAVA_OPTS=&quot;$JAVA_OPTS -Xbootclasspath/a:../jboss-modules.jar&quot;</p>\n<p>My ear application contains only a web module and many required dependencies in ear/lib directory.</p>\n<p>I have this same structure working fine with JVM 1.8, Wildfly 15, Spring 5.3.19 and EclipseLink 2.7.7. No special configuration needed in standalone.conf file (agent, Jboss-modules.jar, etc), neither loadTimeWeaver property configured at all in my Spring XML file. The application deploys and starts just fine. Unfortunately I need to migrate the ear application to a more modern environment and this is why I am trying to use this new set of components.</p>\n<p>So any help to make this configuration work will be greatly appreciated. Thanks!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

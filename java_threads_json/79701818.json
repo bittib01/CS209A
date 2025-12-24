@@ -1,0 +1,37 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-batch",
+      "batch-processing",
+      "spring-jdbc"
+    ],
+    "owner": {
+      "account_id": 4587976,
+      "reputation": 141,
+      "user_id": 3722099,
+      "user_type": "registered",
+      "accept_rate": 33,
+      "profile_image": "https://www.gravatar.com/avatar/635478b4ee070d99924b47dcb7c6842c?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "RafalQA",
+      "link": "https://stackoverflow.com/users/3722099/rafalqa"
+    },
+    "is_answered": true,
+    "view_count": 120,
+    "accepted_answer_id": 79701837,
+    "answer_count": 2,
+    "score": 1,
+    "last_activity_date": 1753079570,
+    "creation_date": 1752571103,
+    "last_edit_date": 1752573734,
+    "question_id": 79701818,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79701818/int-range-in-spring-boot-batch",
+    "title": "Int range in Spring Boot Batch",
+    "body": "<p>I have a Spring Batch application, where I transfer data from one database to another (the target DB is PostgreSQL, with enough space).</p>\n<p>I'm executing the following query:</p>\n<pre><code>SELECT s.name, s.brand  \nFROM shop s  \nORDER BY s.name, s.brand;\n</code></pre>\n<p>I'm using JdbcCursorItemReader.</p>\n<p>The size of my source data is larger than the Java int range.</p>\n<p>When I check the results in the target database, it turns out that there are only records up to the int limit.</p>\n<p>I don't see any error messages in the logs.</p>\n<p><strong>My questions</strong>:</p>\n<p>Does Spring Batch internally impose any int-based limit?</p>\n<p>Does anyone know whether JdbcPagingItemReader is able to handle a fixed dataset where the number of rows exceeds the int range?</p>\n<pre><code>@Configuration\n</code></pre>\n<p>public class DataToGroupInitialFlowConfig {</p>\n<pre><code>public final String INIT_READ_DATATOGROUP_TO_DATE_SQL = &quot;select dg.groupid, dg.datagroupid from WI_DATATOGROUP_BKP dg order by dg.groupid, dg.datagroupid&quot;;\n\npublic final String WRITE_DATATOGROUP_SQL = &quot;INSERT INTO \\&quot;DATATOGROUP\\&quot; (\\&quot;groupid\\&quot;, \\&quot;datagroupid\\&quot;) VALUES (:groupid, :datagroupid)&quot;;\n\n@Autowired\n@Qualifier(&quot;dataSource&quot;)\nprivate DataSource postgresqlDatasource;\n\n@Autowired\n@Qualifier(&quot;oracleDataSource&quot;)\nprivate DataSource oracleDataSource;\n\n@Autowired\nprivate JobRepository jobRepository;\n\n@Autowired\nprivate PlatformTransactionManager transactionManager;\n\n@Bean\npublic Flow getDataToGroupInitialFlow() {\n    log.info(&quot;Is new group flow&quot;);\n    return new FlowBuilder&lt;SimpleFlow&gt;(&quot;getDataInitialToGroup&quot;)\n            .start(getDataToGroupInitStep())\n            .on(&quot;COMPLETED&quot;).end()\n            .on(&quot;FAILED&quot;).fail()\n            .build();\n}\n\n@Bean\npublic Step getDataToGroupInitStep() {\n    return new StepBuilder(&quot;getDataToGroupInitStep&quot;, jobRepository)\n            .&lt;DataToGroup, DataToGroup&gt;chunk(300_000, transactionManager)\n            .listener(new ItemWriteListener&lt;&gt;() {\n                @Override\n                public void onWriteError(Exception ex, Chunk&lt;? extends DataToGroup&gt; items) {\n                    log.error(&quot;Error during writing data to group - chunk level: {} &quot;,\n                            items.getItems().stream().map(DataToGroup::toString)\n                                    .collect(Collectors.joining(&quot;|&quot;)));\n                    log.error(&quot;Error during writing data to group - chunk level - exception: &quot;, ex);\n                    ItemWriteListener.super.onWriteError(ex, items);\n                }\n            })\n            .listener(new ItemReadListener&lt;&gt;() {\n                @Override\n                public void onReadError(Exception ex) {\n                    log.error(&quot;Error during reading data to group - chunk level - exception: &quot;, ex);\n                    ItemReadListener.super.onReadError(ex);\n                }\n            })\n            .listener(new RetryListener() {\n                @Override\n                public &lt;T, E extends Throwable&gt; void close(RetryContext context, RetryCallback&lt;T, E&gt; callback, Throwable throwable) {\n                    log.error(&quot;Occurred error during last retry: &quot;, throwable);\n                    RetryListener.super.close(context, callback, throwable);\n                }\n\n                @Override\n                public &lt;T, E extends Throwable&gt; void onError(RetryContext context, RetryCallback&lt;T, E&gt; callback, Throwable throwable) {\n                    log.error(&quot;Occurred error during retry: &quot;, throwable);\n                    RetryListener.super.onError(context, callback, throwable);\n                }\n            })\n            .reader(getDataToGroupInitialReader())\n            .writer(getDataToGroupInitialWriter())\n            .build();\n}\n\n@Bean\n@StepScope\npublic JdbcCursorItemReader&lt;DataToGroup&gt; getDataToGroupInitialReader() {\n    JdbcCursorItemReader&lt;DataToGroup&gt; reader = new LoggingJdbcCursorItemReader&lt;&gt;();\n    reader.setSql(INIT_READ_DATATOGROUP_TO_DATE_SQL);\n    reader.setDataSource(oracleDataSource);\n    reader.setRowMapper((ResultSet rs, int rowNum) -&gt; DataToGroup.builder()\n            .groupid(rs.getString(&quot;groupid&quot;))\n            .datagroupid(rs.getString(&quot;datagroupid&quot;))\n            .build());\n    return reader;\n}\n\n@Bean\npublic JdbcBatchItemWriter&lt;DataToGroup&gt; getDataToGroupInitialWriter() {\n    JdbcBatchItemWriter&lt;DataToGroup&gt; writer = new JdbcBatchItemWriter&lt;&gt;();\n    writer.setDataSource(postgresqlDatasource);\n    writer.setSql(WRITE_DATATOGROUP_SQL);\n    writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider&lt;&gt;());\n    return writer;\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

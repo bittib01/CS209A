@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "apache-kafka-streams",
+      "spring-cloud-stream"
+    ],
+    "owner": {
+      "account_id": 10629426,
+      "reputation": 1044,
+      "user_id": 7828101,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/8ed4dc2a412b6e7a43d634f2769041db?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "manaclan",
+      "link": "https://stackoverflow.com/users/7828101/manaclan"
+    },
+    "is_answered": true,
+    "view_count": 72,
+    "accepted_answer_id": 79763592,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1757848404,
+    "creation_date": 1757553708,
+    "last_edit_date": 1757848251,
+    "question_id": 79761409,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79761409/unknown-magic-byte-with-spring-cloud-stream-aggregation",
+    "title": "Unknown magic byte with spring cloud stream aggregation",
+    "body": "<p>I'm developing a Spring Cloud Stream app that accepts messages in Avro format. After setting up everything, I start my app, then get an Unknown magic byte error. I'm thinking this is because I'm using SpecificAvroSerde.</p>\n<p>Here's my code:</p>\n<p><strong>application.yml</strong>:</p>\n<pre class=\"lang-yaml prettyprint-override\"><code>spring:\n  cloud:\n    function:\n      definition: employeeSalaryUpdateFlow\n    stream:\n      bindings:\n        employeeSalaryUpdateFlow-in-0:\n          destination: employee-topic\n      kafka:\n        streams:\n          binder:\n            applicationId: kafka-streams-app\n            brokers: localhost:9092\n            configuration:\n              schema.registry.url: http://localhost:8081\n              processing.guarantee: exactly_once\n              commit.interval.ms: 10000\n              default:\n                key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde\n          bindings:\n            employeeSalaryUpdateFlow-in-0:\n              consumer:\n                materializedAs: employeeSalaryUpdateFlow-store\n                value-serde: io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde\n</code></pre>\n<p><strong>Processor.java</strong></p>\n<pre class=\"lang-java prettyprint-override\"><code>@Bean\npublic Consumer&lt;KStream&lt;String, Employee&gt;&gt; employeeSalaryUpdateFlow() {\n    SpecificAvroSerde&lt;Employee&gt; avroSerde = new SpecificAvroSerde&lt;&gt;();\n    Map&lt;String, String&gt; serdeConfig = new HashMap&lt;&gt;();\n    serdeConfig.put(&quot;schema.registry.url&quot;, &quot;http://localhost:8081&quot;); // Set your schema registry URL\n    avroSerde.configure(serdeConfig, false);\n    return input -&gt; {\n        input\n                .map((k, v) -&gt; {\n                    log.info(&quot;Hey&quot;);\n                    return KeyValue.pair(v.getId(), v);\n                })\n                .toTable()\n                .groupBy((k, v) -&gt; KeyValue.pair(v.getDepartment(), v), Grouped.with(Serdes.String(), avroSerde))\n                .aggregate(() -&gt; employeeSalaryRecordBuilder.init(),\n                        (k, v, agg) -&gt; employeeSalaryRecordBuilder.aggregate(v, agg),\n                        (k, v, agg) -&gt; employeeSalaryRecordBuilder.substract(v, agg))\n                .toStream()\n                .foreach((k, v) -&gt; log.info(String.format(&quot;Department: %s, Total Salary: %f&quot;, k, v.getTotalSalary())));\n    };\n}\n</code></pre>\n<p><strong>Employee.avro</strong></p>\n<pre class=\"lang-json prettyprint-override\"><code>{\n  &quot;namespace&quot;: &quot;me.model&quot;,\n  &quot;type&quot;: &quot;record&quot;,\n  &quot;name&quot;: &quot;Employee&quot;,\n  &quot;fields&quot;: [\n    {&quot;name&quot;: &quot;id&quot;,&quot;type&quot;: [&quot;null&quot;,&quot;string&quot;]},\n    {&quot;name&quot;: &quot;name&quot;,&quot;type&quot;: [&quot;null&quot;,&quot;string&quot;]},\n    {&quot;name&quot;: &quot;department&quot;,&quot;type&quot;: [&quot;null&quot;,&quot;string&quot;]},\n    {&quot;name&quot;: &quot;salary&quot;,&quot;type&quot;: [&quot;null&quot;,&quot;int&quot;]}\n  ]\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

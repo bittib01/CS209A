@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-security"
+    ],
+    "owner": {
+      "account_id": 1979243,
+      "reputation": 5421,
+      "user_id": 1817435,
+      "user_type": "registered",
+      "accept_rate": 67,
+      "profile_image": "https://i.sstatic.net/3JaIM.jpg?s=256",
+      "display_name": "Viraj",
+      "link": "https://stackoverflow.com/users/1817435/viraj"
+    },
+    "is_answered": true,
+    "view_count": 1150,
+    "accepted_answer_id": 78377365,
+    "answer_count": 1,
+    "score": -2,
+    "last_activity_date": 1722590989,
+    "creation_date": 1713942378,
+    "last_edit_date": 1722590989,
+    "question_id": 78376534,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78376534/how-to-get-spring-custom-authentication-provider-to-work",
+    "title": "How to get spring custom authentication provider to work",
+    "body": "<p>I'm using spring-security 6 to implement custom authentication. Actual authentication is based on signature which is sent in a header. Therefore I have tried to implement a sample to get the structure working. Below are my code.</p>\n<p>AuthenticatoinProvider:</p>\n<pre><code>@Component\npublic class CustomAuthenticationProvider implements AuthenticationProvider {\n\n@Override\npublic Authentication authenticate(final Authentication authentication) throws AuthenticationException {\n    final String name = authentication.getName();\n    final String password = authentication.getCredentials().toString();\n    if (!&quot;admin&quot;.equals(name) || !&quot;system&quot;.equals(password)) {\n        return null;\n    }\n    return authenticateAgainstThirdPartyAndGetAuthentication(name, password);\n}\n\n@Override\npublic boolean supports(Class&lt;?&gt; authentication) {\n    return true;\n}\n\nprivate static UsernamePasswordAuthenticationToken authenticateAgainstThirdPartyAndGetAuthentication(String name, String password) {\n    final List&lt;GrantedAuthority&gt; grantedAuths = new ArrayList&lt;&gt;();\n    final UserDetails principal = new User(name, password, grantedAuths);\n    return new UsernamePasswordAuthenticationToken(principal, password, grantedAuths);\n  }\n}\n</code></pre>\n<p>Fitler:</p>\n<pre><code>@Component\npublic class EverybodyAuthenticationFilter extends OncePerRequestFilter {\n    @Autowired\n    private CustomAuthenticationProvider customAuthenticationProvider;\n    @Override\n    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,\n                                    FilterChain filterChain) throws ServletException, IOException {\n        SecurityContextHolder.createEmptyContext();\n        // THIS IS ONLY FOR TESTS. TO GET THIS WORK SENDING HARD CODED TOKEN. THIS SHOULD BE\n        // CREATED FROM HEADER VALUES.\n        customAuthenticationProvider.authenticate(new UsernamePasswordAuthenticationToken(&quot;admin&quot;,\n                &quot;system&quot;));\n        filterChain.doFilter(request, response);\n    }\n}\n</code></pre>\n<p>Security Config:</p>\n<pre><code>@EnableWebSecurity\n@Configuration\n@ComponentScan(&quot;com.example.demo&quot;)\npublic class SecurityConfig{\n\n    @Autowired\n    private CustomAuthenticationProvider authProvider;\n\n    @Bean\n    public AuthenticationManager authManager(HttpSecurity http) throws Exception {\n        AuthenticationManagerBuilder authenticationManagerBuilder =\n                http.getSharedObject(AuthenticationManagerBuilder.class);\n        authenticationManagerBuilder.authenticationProvider(authProvider);\n        return authenticationManagerBuilder.build();\n    }\n\n    @Bean\n    public SecurityFilterChain filterChain(HttpSecurity http,\n                                           AuthenticationManager authenticationManager,\n                                           EverybodyAuthenticationFilter every) throws Exception {\n        return http.authorizeHttpRequests(expressionInterceptUrlRegistry -&gt;\n                        expressionInterceptUrlRegistry.anyRequest().authenticated())\n            .addFilterBefore(every, BasicAuthenticationFilter.class)\n                .authenticationManager(authenticationManager)\n            .build();\n    }\n}\n</code></pre>\n<p>Controller:</p>\n<pre><code>@Controller\npublic class HomeController {\n    private static final String HOME_VIEW = &quot;home/index&quot;;\n\n    @GetMapping(&quot;/home&quot;)\n    public String home(HttpServletRequest request){\n        return HOME_VIEW;\n    }\n}\n</code></pre>\n<p>In this code <code>EverybodyAuthenticationFilter</code> send hardcoded token just for testing. Therefore my understanding is this should work for all the requests. However I get 403 error. I came across following discussion where it says with spring-security 6 custome authentication provider works differently.</p>\n<p><a href=\"https://github.com/spring-projects/spring-security/issues/12602\" rel=\"nofollow noreferrer\">https://github.com/spring-projects/spring-security/issues/12602</a></p>\n<p>How can i get this to work ?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "react-native",
+      "mms",
+      "smsmanager",
+      "android-mms"
+    ],
+    "owner": {
+      "account_id": 35425629,
+      "reputation": 1,
+      "user_id": 27195723,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/3297f8b94e2d9c04a90a53a137ef6a13?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "이제준",
+      "link": "https://stackoverflow.com/users/27195723/%ec%9d%b4%ec%a0%9c%ec%a4%80"
+    },
+    "is_answered": false,
+    "view_count": 304,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1737876278,
+    "creation_date": 1725472221,
+    "last_edit_date": 1725472299,
+    "question_id": 78949971,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78949971/how-to-use-sendmultimediamessage-in-smsmanager",
+    "title": "how to use sendMultimediaMessage in SmsManager?",
+    "body": "<p>I am currently developing a React Native app to send text messages. I successfully sent messages using smsManager.sendMultipartTextMessage(), but encountered an issue where some devices receive the messages as split parts. This seems to be a problem related to the carrier or the device itself, which I am unable to resolve. Therefore, I am looking to switch to sending MMS instead.</p>\n<p>I tried using smsManager.sendMultimediaMessage() as described on this page: <a href=\"https://developer.android.com/reference/android/telephony/SmsManager#sendMultimediaMessage(android.content.Context,%20android.net.Uri,%20java.lang.String,%20android.os.Bundle,%20android.app.PendingIntent,%20long)\" rel=\"nofollow noreferrer\">sendMultimediaMessage</a></p>\n<p>However, I keep encountering failures, and I believe the issue might be related to creating the PDU file.</p>\n<p>I referenced this site for the data format:\n<a href=\"https://developer.android.com/reference/android/provider/Telephony.Mms\" rel=\"nofollow noreferrer\">dataFormat</a></p>\n<p>Despite numerous attempts, I haven't been able to make it work, so I'm seeking help. How can I properly create the contentUri, which is the second parameter for smsManager.sendMultimediaMessage()?</p>\n<p>The message should be sent in the background without opening the default messaging app.</p>\n<p>my code is this</p>\n<pre><code>@ReactMethod\n  public void sendDirectSms(String phoneNumber, String msg) {\n    try {\n      SmsManager smsManager = SmsManager.getDefault();\n      // create MMS \n      ContentValues mmsValues = new ContentValues();\n      mmsValues.put(Telephony.Mms.SUBJECT, &quot;Subject&quot;);\n\n      Uri mmsUri = this.context.getApplicationContext().getContentResolver().insert(Telephony.Mms.CONTENT_URI, mmsValues);\n      if (mmsUri == null) {\n        Log.e(&quot;SendDirectSms&quot;, &quot;Failed to create MMS message.&quot;);\n        return;\n      }\n\n      String messageId = mmsUri.getLastPathSegment();\n\n      // add adress\n      Uri addrUri = Uri.withAppendedPath(mmsUri, &quot;addr&quot;);\n      ContentValues addrValues = new ContentValues();\n      addrValues.put(Telephony.Mms.Addr.MSG_ID, messageId);\n      addrValues.put(Telephony.Mms.Addr.ADDRESS, phoneNumber);\n      addrValues.put(Telephony.Mms.Addr.TYPE, 137);\n      // addrValues.put(Telephony.Mms.Addr.TYPE, PduHeaders.TO);\n      Uri insertedAddrUri = this.context.getApplicationContext().getContentResolver().insert(addrUri, addrValues);\n\n      // // 3. add text part\n      Uri partUri = Uri.withAppendedPath(mmsUri, &quot;part&quot;);\n      ContentValues partValues = new ContentValues();\n      partValues.put(Telephony.Mms.Part.MSG_ID, messageId);\n      partValues.put(Telephony.Mms.Part.CONTENT_TYPE, &quot;text/plain&quot;);\n      partValues.put(Telephony.Mms.Part.TEXT, msg);\n      Uri insertedPartUri = context.getApplicationContext().getContentResolver().insert(partUri, partValues);\n\n      smsManager.sendMultimediaMessage(this.context.getApplicationContext(), mmsUri, null, null, null);\n    } catch (Exception ex) {\n      System.out.println(&quot;couldn't send message.&quot;);\n    }\n  }\n</code></pre>\n<p>Whenever I attempt to send the MMS, no error messages appear, but when I check the default messaging app, the MMS is not sent.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "tomcat",
+      "vaadin23",
+      "vaadin-session"
+    ],
+    "owner": {
+      "account_id": 28712267,
+      "reputation": 23,
+      "user_id": 21987550,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AAcHTtfD5VHQPsJAdYYyrCENDAmfCG2fsqnkXivwuRywOw=k-s256",
+      "display_name": "K G S Varun Teja",
+      "link": "https://stackoverflow.com/users/21987550/k-g-s-varun-teja"
+    },
+    "is_answered": true,
+    "view_count": 77,
+    "accepted_answer_id": 79703098,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1753035298,
+    "creation_date": 1752649667,
+    "question_id": 79703036,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79703036/does-vaadinsession-automatically-start-a-session-after-entering-the-url-in-the-b",
+    "title": "Does VaadinSession automatically start a session after entering the url in the browser?",
+    "body": "<p><strong>Context:</strong>\nI'm trying to start a session using VaadinSession component.\nI'm showing a login page in which I'm entering username and password and after hitting the login button, I'll be redirected to another UI page called &quot;/dashboard&quot;. In this UI, I can validate a session(using a validation login inside a button), and a logout button.</p>\n<p><strong>Problem:</strong>\nWhat I'm experiencing is that, as soon as I deploy the .war file in tomcat and I paste the url in the browser and hit enter, the session is automatically starting.</p>\n<p><strong>What I want:</strong>\nI want the session to start after I enter my credentials and hit the login button. And the session should only end if I hit logout button or if the Session timeout is reached(session expiry).</p>\n<p><strong>Techstack used:</strong></p>\n<ul>\n<li>Java 11</li>\n<li>Vaadin 23.3.11</li>\n<li>Tomcat 9.0.106</li>\n<li>Spring 5.3.30</li>\n</ul>\n<p><strong>My code:</strong></p>\n<p><strong>LoginView.java</strong></p>\n<pre><code> public LoginView() {\n        this.userRepository = SpringContext.getBean(UserRepository.class); // manual injection\n\n        TextField username = new TextField(&quot;Username&quot;);\n        PasswordField password = new PasswordField(&quot;Password&quot;);\n\n        Button loginButton = new Button(&quot;Login&quot;, e -&gt; {\n            logger.info(&quot;Inside LoginView.class. Clicked login Button after entering username and password.&quot;);\n            String u = username.getValue();\n            String p = password.getValue();\n\n            logger.info(&quot;Username is: {}&quot;, u);\n            logger.info(&quot;Password is: {}&quot;, p);\n\n            if (userRepository.validateUser(u, p)) {\n                logger.info(&quot;Valid credentials&quot;);\n\n                VaadinSession.getCurrent().setAttribute(&quot;user&quot;, u);\n                String sessionId = VaadinSession.getCurrent().getSession().getId();\n                logger.info(&quot;Session Id is: {}&quot;, sessionId);\n                \n                getUI().ifPresent(ui -&gt; ui.navigate(&quot;dashboard&quot;));\n            } else {\n                logger.info(&quot;Invalid credentials&quot;);\n                Notification.show(&quot;Invalid credentials&quot;);\n            }\n        });\n        add(username, password, loginButton);\n    }\n</code></pre>\n<p>** Dashboard.java**</p>\n<pre><code>public Dashboard(){\n        logger.info(&quot;Entered Dashboard View.&quot;);\n\n        String user = (String) VaadinSession.getCurrent().getAttribute(&quot;user&quot;);\n        if (user == null) {\n            logger.info(&quot;Session missing or expired. Redirecting to login.&quot;);\n            UI.getCurrent().getPage().setLocation(&quot;login&quot;);\n            return;\n        }\n\n        VaadinSession session = VaadinSession.getCurrent();\n        String sessionId = session.getSession().getId();\n        logger.info(&quot;Session ID: {}&quot;, sessionId);\n\n        Button validateButton = new Button(&quot;Validate&quot;, e-&gt;{\n            logger.info(&quot;Clicked Validate button.&quot;);\n            String currentUserSessionId = VaadinSession.getCurrent().getSession().getId();\n\n            if(currentUserSessionId != null){\n                Notification.show(&quot;Session is valid &quot; + currentUserSessionId);\n            }else{\n                Notification.show(&quot;No session found.&quot;);\n            }\n        });\n\n        Button logoutButton = new Button(&quot;Logout&quot;, e-&gt;{\n            logger.info(&quot;Clicked logout button.&quot;);\n            session.getSession().invalidate();\n            session.close();\n            getUI().ifPresent(ui -&gt; ui.getPage().setLocation(&quot;login&quot;));\n\n        });\n        add(validateButton, logoutButton);\n    }\n</code></pre>\n<p><strong>SessionConfigListener.java</strong></p>\n<pre><code>public class SessionConfigListener implements HttpSessionListener {\n\n    private static final Logger logger = LoggerFactory.getLogger(SessionConfigListener.class);\n\n    @Override\n    public void sessionCreated(HttpSessionEvent se) {\n        se.getSession().setMaxInactiveInterval(30); // 30 seconds\n        logger.info(&quot;Session created: &quot; + se.getSession().getId());\n    }\n\n    @Override\n    public void sessionDestroyed(HttpSessionEvent se) {\n        logger.info(&quot;Session expired: &quot; + se.getSession().getId());\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-data-jpa",
+      "spring-data"
+    ],
+    "owner": {
+      "account_id": 16167609,
+      "reputation": 579,
+      "user_id": 11672206,
+      "user_type": "registered",
+      "profile_image": "https://lh5.googleusercontent.com/-vFBbgBuuZZA/AAAAAAAAAAI/AAAAAAAAGvI/CE0Fg_UnmRo/s256-rj/photo.jpg",
+      "display_name": "Ballazx",
+      "link": "https://stackoverflow.com/users/11672206/ballazx"
+    },
+    "is_answered": true,
+    "view_count": 40,
+    "accepted_answer_id": 79212131,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1732206748,
+    "creation_date": 1732205134,
+    "question_id": 79212017,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79212017/spring-data-jpa-foreign-key-constraint-violation-on-delete",
+    "title": "Spring Data JPA: Foreign Key Constraint Violation on Delete",
+    "body": "<p>I have a <code>Company</code> entity that is related to a <code>User</code> entity, and the <code>Users</code> are linked to one or more <code>LeaveDay</code> entities. When I try to delete a <code>Company</code> entity, I get the following error message:</p>\n<blockquote>\n<p>ERROR 7300 --- [leave_tracker_postg] [nio-8080-exec-2]\no.a.c.c.C.[.[.[/].[dispatcherServlet]    : Servlet.service() for\nservlet [dispatcherServlet] in context with path [] threw exception\n[Request processing failed:\norg.springframework.dao.DataIntegrityViolationException: could not\nexecute statement [ERROR: update or delete on table &quot;companies&quot;\nviolates foreign key constraint &quot;fkin8gn4o1hpiwe6qe4ey7ykwq7&quot; on table\n&quot;users&quot;   Detail: Key (id)=(1) is still referenced from table\n&quot;users&quot;.] [delete from companies where id=?]; SQL [delete from\ncompanies where id=?]; constraint [fkin8gn4o1hpiwe6qe4ey7ykwq7]] with\nroot cause</p>\n</blockquote>\n<p>I’m trying to delete the <code>Company</code> entity and remove all related data like the <code>User</code> and <code>LeaveDay</code> records. Below are the entities and relationships in my application:</p>\n<p>Company entity:</p>\n<pre><code>@Data\n@Entity\n@Table(name = &quot;companies&quot;)\n@EntityListeners(AuditingEntityListener.class)\npublic class Company {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.SEQUENCE)\n    private Long id;\n\n    @NotEmpty\n    private String companyName;\n\n    @NotEmpty\n    private String country;\n\n    private String state;\n\n    private String zip;\n\n    @NotEmpty\n    private String address;\n\n    private String phone;\n\n    @Enumerated(EnumType.ORDINAL)\n    private PackageType packageType;\n\n    @OneToMany(mappedBy = &quot;company&quot;, cascade = CascadeType.ALL, orphanRemoval = true)\n    @JsonManagedReference\n    private Set&lt;User&gt; users = new HashSet&lt;&gt;();\n\n    @CreatedDate\n    @Column(updatable = false)\n    private LocalDateTime createdTimeStamp;\n\n    @LastModifiedDate\n    @Column(insertable = false)\n    private LocalDateTime updatedTimeStamp;\n}\n</code></pre>\n<p>User entity:</p>\n<pre><code>@Data\n@Entity\n@Table(name = &quot;users&quot;)\n@EntityListeners(AuditingEntityListener.class)\npublic class User {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.SEQUENCE)\n    private Long id;\n\n    @Column(nullable = false)\n    private String email;\n\n    @Column(nullable = false)\n    private String password;\n\n    @Column(nullable = false)\n    private String firstName;\n\n    @Column(nullable = false)\n    private String lastName;\n\n    private String middleName;\n\n    private String position;\n\n    @ManyToMany(fetch = FetchType.EAGER)\n    @Enumerated(EnumType.STRING)\n    private Set&lt;Role&gt; roles = new HashSet&lt;&gt;();\n\n    private Date birthDate;\n\n    @ManyToOne\n    @JoinColumn(name = &quot;company_id&quot;, nullable = false)\n    @JsonBackReference\n    private Company company;\n\n    @OneToMany(mappedBy = &quot;user&quot;, cascade = CascadeType.ALL, orphanRemoval = true)\n    @JsonManagedReference\n    private Set&lt;LeaveDay&gt; leaveDays = new LinkedHashSet&lt;&gt;();\n\n    @ManyToMany(cascade = CascadeType.ALL)\n    @JoinTable(\n            name = &quot;user_approvers&quot;,\n            joinColumns = @JoinColumn(name = &quot;user_id&quot;),\n            inverseJoinColumns = @JoinColumn(name = &quot;approver_id&quot;)\n    )\n    private Set&lt;User&gt; approvers = new HashSet&lt;&gt;();\n\n    @CreatedDate\n    @Column(updatable = false, nullable = false)\n    private LocalDateTime createdTimeStamp;\n\n    @LastModifiedDate\n    @Column(insertable = false)\n    private LocalDateTime updatedTimeStamp;\n}\n</code></pre>\n<p>LeaveDay entity:</p>\n<pre><code>@Data\n@Entity\n@Table(name = &quot;leave_days&quot;)\n@EntityListeners(AuditingEntityListener.class)\npublic class LeaveDay {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.SEQUENCE)\n    private Long id;\n\n    @Column(nullable = false)\n    private LocalDate date;\n\n    @ManyToOne\n    @JoinColumn(name = &quot;user_id&quot;, nullable = false)\n    @JsonBackReference\n    private User user;\n\n    @ManyToOne\n    @JoinColumn(name = &quot;approved_by_user_id&quot;)\n    private User approvedBy;\n\n    private String comment;\n\n    @Enumerated(EnumType.ORDINAL)\n    @Column(nullable = false)\n    private LeaveDayType leaveDayType;\n\n    @Enumerated(EnumType.ORDINAL)\n    @Column(nullable = false)\n    private LeaveDayStatus leaveDayStatus = LeaveDayStatus.PENDING;\n\n    @CreatedDate\n    @Column(name = &quot;created_timestamp&quot;, updatable = false, nullable = false)\n    private LocalDateTime createdTimeStamp;\n\n    @LastModifiedDate\n    @Column(name = &quot;updated_timestamp&quot;, insertable = false)\n    private LocalDateTime updatedTimeStamp;\n}\n</code></pre>\n<p>What’s the best way to ensure that when a <code>Company</code> is deleted, the associated <code>User</code> records and their <code>LeaveDay</code> records are also deleted?\nI’ve tried using <code>CascadeType.ALL</code> and set <code>orphanRemoval = true</code> on the relationships, but the problem persists. How can I ensure the related records are properly deleted when deleting a <code>Company</code>?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

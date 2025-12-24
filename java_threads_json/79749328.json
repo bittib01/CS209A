@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "jackson"
+    ],
+    "owner": {
+      "account_id": 14482834,
+      "reputation": 5478,
+      "user_id": 10461625,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/fgo5D.jpg?s=256",
+      "display_name": "PatPanda",
+      "link": "https://stackoverflow.com/users/10461625/patpanda"
+    },
+    "is_answered": false,
+    "view_count": 202,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1758339855,
+    "creation_date": 1756395957,
+    "last_edit_date": 1756399464,
+    "question_id": 79749328,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79749328/spring-restclient-to-deserialize-retrieve-between-two-completely-different-typ",
+    "title": "Spring RestClient to deserialize (retrieve) between two completely different types",
+    "body": "<p>There is a third-party REST API, which I have no control over, that exposes an endpoint.</p>\n<p>The endpoint would return either a good response, with HTTP 200, which is an object that looks like:</p>\n<pre><code>{\n  &quot;device&quot;: &quot;sensor-01&quot;,\n  &quot;temperature&quot;: 23.5\n}\n</code></pre>\n<p>However, if there is an error on the API side, it would still return HTTP 200, with a body like this:</p>\n<pre><code>{\n  &quot;message&quot;: &quot;An error occurred&quot;,\n  &quot;code&quot;: 400\n}\n</code></pre>\n<p>Again, I have no control over this API and cannot change this behavior.</p>\n<p>To map the response with Spring, I created the two objects:</p>\n<pre><code>public record GoodPojo(String device, float temperature) {\n}\n</code></pre>\n<pre><code>public record BadPojo(String message, int code) {\n}\n</code></pre>\n<p>However, it seems there is nothing common between the two objects.  It is hard to find a common object, a common parent between the two.</p>\n<p>And for the REST call, I am doing this.</p>\n<pre><code>    public String question() {\n        var result = restClient.get()\n                .uri(&quot;https://the-api.com&quot;)\n                .retrieve()\n                .body(GoodPojo.class);\n\n        return result.toString();\n    }\n</code></pre>\n<p>This works for the good object, but the bad object cannot be converted like this.</p>\n<p>Is there a way in Spring to do something like:</p>\n<pre><code>    public String question() {\n        var result = restClient.get()\n                .uri(&quot;https://the-api.com&quot;)\n                .retrieve()\n                .body(GoodPojo.class | BadPojo.class); //convert into the first one, and if you cannot, convert into the second one\n\n        return result.toString();\n    }\n</code></pre>\n<p>Without having to try to convert this into a good object, and catch the exception, if it fails, to convert to the other object manually?</p>\n<p>Basically, how to convert the HTTP response into different types possible?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

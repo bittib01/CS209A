@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "excel",
+      "finance"
+    ],
+    "owner": {
+      "account_id": 25654509,
+      "reputation": 9,
+      "user_id": 19421186,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/3f8046eb7f344531ae5b01cd05770b8b?s=256&d=identicon&r=PG",
+      "display_name": "Cheikh Ibra YADE",
+      "link": "https://stackoverflow.com/users/19421186/cheikh-ibra-yade"
+    },
+    "is_answered": false,
+    "view_count": 117,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1745256247,
+    "creation_date": 1745250590,
+    "last_edit_date": 1745256247,
+    "question_id": 79584912,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79584912/java-implementation-that-matches-excels-yield-function-results",
+    "title": "Java implementation that matches Excel&#39;s YIELD() function results",
+    "body": "<p>How can I implement a function in Java that performs the exact same calculation as Excel's YIELD function ( <a href=\"https://support.microsoft.com/en-us/office/yield-function-f5f5ca43-c4bd-434f-8bd2-ed3c9727a4fe\" rel=\"nofollow noreferrer\">the docs</a>). I looked at the specification of the YIELD function and tried to implement it myself, but I get different results when using the following inputs:</p>\n<p><strong>Settlement: 21/04/2025</strong></p>\n<p><strong>Maturity: 08/12/2027</strong></p>\n<p><strong>Rate: 0.06875</strong></p>\n<p><strong>Price: 94.28</strong></p>\n<p><strong>Redemption: 100</strong></p>\n<p><strong>Frequency: 1</strong></p>\n<p>Gives <strong>9.499084%</strong>  but I expected <strong>9.723637 %</strong></p>\n<p>Here is <strong>MY</strong> code:</p>\n<pre><code>import java.math.BigDecimal;\nimport java.math.MathContext;\nimport java.math.RoundingMode;\nimport java.time.LocalDate;\nimport java.time.temporal.ChronoUnit;\n\npublic static BigDecimal rendementTitre(\n            LocalDate settlementDate,\n            LocalDate maturityDate,\n            BigDecimal taux,\n            BigDecimal prix,\n            BigDecimal valeurNominale,\n            int frequence,\n            MathContext mc,\n            BigDecimal tol,\n            int maxIter\n    ) {\n        long daysBetween = ChronoUnit.DAYS.between(settlementDate, maturityDate);\n        BigDecimal years = new BigDecimal(daysBetween).divide(BigDecimal.valueOf(365), mc);\n        int n = years.multiply(BigDecimal.valueOf(frequence)).setScale(0, RoundingMode.HALF_UP).intValue();\n        BigDecimal coupon = valeurNominale.multiply(taux).divide(BigDecimal.valueOf(frequence), mc);\n\n        // Initial guess\n        BigDecimal y = taux;\n\n        for (int iter = 0; iter &lt; maxIter; iter++) {\n            BigDecimal f = bondPrice(y, n, coupon, valeurNominale, frequence, mc).subtract(prix, mc);\n            BigDecimal fPrime = bondPriceDerivative(y, n, coupon, valeurNominale, frequence, mc);\n\n            if (fPrime.abs().compareTo(new BigDecimal(&quot;1E-10&quot;)) &lt; 0) break;\n\n            BigDecimal yNew = y.subtract(f.divide(fPrime, mc), mc);\n\n            if (y.subtract(yNew).abs().compareTo(tol) &lt; 0) {\n                System.out.println(&quot;Rendement : &quot; + yNew + &quot; YY%&quot;);\n                return yNew.multiply(BigDecimal.valueOf(100)).setScale(6, RoundingMode.HALF_UP); // % avec 6 décimales\n            }\n\n            y = yNew;\n        }\n\n        throw new RuntimeException(&quot;La convergence n'a pas été atteinte&quot;);\n    }\n\n    private static BigDecimal bondPrice(BigDecimal y, int n, BigDecimal C, BigDecimal V, int f, MathContext mc) {\n        BigDecimal total = BigDecimal.ZERO;\n        BigDecimal onePlusRate = BigDecimal.ONE.add(y.divide(BigDecimal.valueOf(f), mc));\n\n        for (int i = 1; i &lt;= n; i++) {\n            BigDecimal denom = onePlusRate.pow(i, mc);\n            total = total.add(C.divide(denom, mc), mc);\n        }\n\n        BigDecimal lastDenom = onePlusRate.pow(n, mc);\n        total = total.add(V.divide(lastDenom, mc), mc);\n        return total;\n    }\n\n    private static BigDecimal bondPriceDerivative(BigDecimal y, int n, BigDecimal C, BigDecimal V, int f, MathContext mc) {\n        BigDecimal total = BigDecimal.ZERO;\n        BigDecimal onePlusRate = BigDecimal.ONE.add(y.divide(BigDecimal.valueOf(f), mc));\n\n        for (int i = 1; i &lt;= n; i++) {\n            BigDecimal denom = onePlusRate.pow(i + 1, mc);\n            BigDecimal term = BigDecimal.valueOf(-i).multiply(C).divide(BigDecimal.valueOf(f), mc).divide(denom, mc);\n            total = total.add(term, mc);\n        }\n\n        BigDecimal lastTerm = BigDecimal.valueOf(-n).multiply(V).divide(BigDecimal.valueOf(f), mc)\n                .divide(onePlusRate.pow(n + 1, mc), mc);\n        total = total.add(lastTerm, mc);\n\n        return total;\n    }\n\npublic static void main(String[] args) {\n        LocalDate settlement = LocalDate.now();\n        LocalDate maturity = LocalDate.of(2027, 12, 8);\n\n        BigDecimal taux = new BigDecimal(&quot;0.06875&quot;);\n        BigDecimal prix = new BigDecimal(&quot;94.28&quot;);\n        BigDecimal valeurNominale = new BigDecimal(&quot;100&quot;);\n\n        MathContext mc = new MathContext(20, RoundingMode.HALF_UP);\n        BigDecimal tol = new BigDecimal(&quot;1E-8&quot;);\n\n        BigDecimal rendement = rendementTitre(\n                settlement,\n                maturity,\n                taux,\n                prix,\n                valeurNominale,\n                2,  // Semestriel\n                mc,\n                tol,\n                100\n        );\n\n        System.out.println(&quot;Rendement : &quot; + rendement + &quot; %&quot;);\n}\n}\n</code></pre>\n<p>with this exemple the consol print 9.499084 %<br />\nbut the Excel show 9.723637%</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

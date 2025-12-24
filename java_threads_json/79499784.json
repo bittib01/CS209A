@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "h2"
+    ],
+    "owner": {
+      "account_id": 40805448,
+      "reputation": 11,
+      "user_id": 29962937,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/d7b3cc25c2e0a5cfb8a6b706a75b6c2f?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Vinars Patel",
+      "link": "https://stackoverflow.com/users/29962937/vinars-patel"
+    },
+    "is_answered": false,
+    "view_count": 161,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1748252588,
+    "creation_date": 1741673062,
+    "last_edit_date": 1741682236,
+    "question_id": 79499784,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79499784/h2-in-memory-database-issue-entity-id-set-on-persist-but-table-not-found-on-s",
+    "title": "H2 in-memory database issue: entity ID set on persist but &quot;Table not found&quot; on select",
+    "body": "<p>I'm experiencing a strange issue with H2 in-memory database in my Spring JUnit tests. When I persist an entity, the ID is successfully set (indicating the persist operation worked), but when I try to retrieve the entity immediately afterward, I get a &quot;Table not found&quot; error.\nHere's a simplified version of my test:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Test\npublic void testEntityPersistence() {\n    Long entityId = 1L;\n    String category = &quot;category1&quot;;\n    \n    // This works - entity is persisted and ID is set\n    MyEntity entity = repo.saveEntity(entityId, category, 1,\n            LocalTime.now().minusMinutes(10), LocalTime.now().plusHours(2), &quot;Asia/Kolkata&quot;);\n    \n    // This fails with &quot;Table not found&quot; error\n    List&lt;MyEntity&gt; entities = entityService.getEntities(entityId, category);\n}\n</code></pre>\n<p>Environment details</p>\n<pre class=\"lang-ini prettyprint-override\"><code>app.datasource.driverClassName = org.h2.Driver\napp.datasource.url = jdbc:h2:mem:test;DB_CLOSE_DELAY=-1\napp.datasource.username = sa\napp.datasource.password =\n\napp.hibernate.database = H2\napp.hibernate.dialect = org.hibernate.dialect.H2Dialect\napp.hibernate.hbm2ddl.auto = update\napp.hibernate.jdbc.time_zone = UTC\napp.hibernate.show_sql=false\n</code></pre>\n<p>What I've tried:</p>\n<ul>\n<li>Adding DB_CLOSE_DELAY=-1 to the H2 URL (already present)</li>\n<li>Setting hibernate.hbm2ddl.auto = create-drop instead of update</li>\n<li>Ensuring the test is running in a transaction</li>\n</ul>\n<p>Logs:</p>\n<pre class=\"lang-none prettyprint-override\"><code>Hibernate: drop table if exists my_entity CASCADE \nHibernate: create table my_entity (id bigint not null, created_at timestamp, updated_at timestamp, version integer, category varchar(255) not null, day integer not null, from_time time not null, to_time time not null, entity_id bigint not null, zone_id varchar(255) not null, primary key (id))\nHibernate: create index entityCategoryIndex on my_entity (entity_id, category)\nHibernate: insert into my_entity (created_at, updated_at, version, category, day, from_time, to_time, entity_id, zone_id, id) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)\nERROR SqlExceptionHelper Table &quot;MY_ENTITY&quot; not found; SQL statement:\ninsert into my_entity (created_at, updated_at, version, category, day, from_time, to_time, entity_id, zone_id, id) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) [42102-220]\nHibernate: drop table if exists my_entity CASCADE\n</code></pre>\n<p>If I use the 1.4.x version, then this error is not coming, but for versions 2. x.y it's there.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

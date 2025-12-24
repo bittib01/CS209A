@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "authentication",
+      "spring-security",
+      "configuration"
+    ],
+    "owner": {
+      "account_id": 34226537,
+      "reputation": 61,
+      "user_id": 26453048,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/2fmBW1sM.jpg?s=256",
+      "display_name": "Hyusein Lesho",
+      "link": "https://stackoverflow.com/users/26453048/hyusein-lesho"
+    },
+    "is_answered": true,
+    "view_count": 8422,
+    "answer_count": 3,
+    "score": 4,
+    "last_activity_date": 1732183410,
+    "creation_date": 1721557688,
+    "question_id": 78774925,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78774925/spring-security-warning-how-to-fix-authenticationprovider-vs-userdetailsservic",
+    "title": "Spring Security Warning: How to Fix AuthenticationProvider vs. UserDetailsService Configuration?",
+    "body": "<p>I’m encountering a warning when starting my Spring Boot application with Spring Security configuration. The warning message is:</p>\n<pre><code>WARN [  restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used for username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider.\n</code></pre>\n<p>I’ve configured JWT-based authentication in my Spring Boot application. Here are the relevant parts of my configuration:</p>\n<p>SecurityFilterChain:</p>\n<pre><code>@Bean\n    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {\n        http\n                .csrf(AbstractHttpConfigurer::disable)\n                .authorizeHttpRequests(authorize -&gt;\n                        authorize\n                                .requestMatchers(&quot;/assets/**&quot;, &quot;/css/**&quot;, &quot;/images/**&quot;, &quot;/js/**&quot;).permitAll()\n                                .requestMatchers(&quot;/&quot;, &quot;/about&quot;, &quot;/contact&quot;).permitAll()\n                                .requestMatchers(&quot;/auth/**&quot;).permitAll()\n                                .anyRequest().authenticated()\n                )\n                .sessionManagement(session -&gt; session.sessionCreationPolicy(STATELESS))\n                .authenticationProvider(authenticationProvider)\n                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);\n\n        return http.build();\n    }\n</code></pre>\n<p>Relevant part of ApplicationBeanConfiguration:</p>\n<pre><code>@Configuration\npublic class ApplicationBeanConfiguration {\n\n    private final UserRepository userRepository;\n\n    public ApplicationBeanConfiguration(UserRepository userRepository) {\n        this.userRepository = userRepository;\n    }\n\n    @Bean\n    public UserDetailsService userDetailsService() {\n        return username -&gt; userRepository.findByUsername(username)\n                .orElseThrow(() -&gt; new UsernameNotFoundException(&quot;User not found&quot;));\n    }\n\n    @Bean\n    public PasswordEncoder passwordEncoder() {\n        return new BCryptPasswordEncoder();\n    }\n\n    @Bean\n    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {\n        return config.getAuthenticationManager();\n    }\n\n    @Bean\n    public AuthenticationProvider authenticationProvider() {\n        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();\n\n        authProvider.setUserDetailsService(userDetailsService());\n        authProvider.setPasswordEncoder(passwordEncoder());\n\n        return authProvider;\n    }\n}\n</code></pre>\n<p>The warning persists regardless of whether I include or exclude the AuthenticationProvider bean. The application starts with the warning, indicating that the AuthenticationProvider configuration might be conflicting with UserDetailsService.</p>\n<p>The warning suggests that my setup might be incorrectly configured. Specifically, it indicates that the AuthenticationProvider bean is overriding the UserDetailsService, which could lead to issues with username/password authentication.</p>\n<p>How should I correctly configure Spring Security to avoid this warning?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

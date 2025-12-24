@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-kafka",
+      "axon"
+    ],
+    "owner": {
+      "account_id": 19115546,
+      "reputation": 37,
+      "user_id": 13960581,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/s9cy5.gif?s=256",
+      "display_name": "CronixZero",
+      "link": "https://stackoverflow.com/users/13960581/cronixzero"
+    },
+    "is_answered": true,
+    "view_count": 81,
+    "accepted_answer_id": 79525270,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1742555252,
+    "creation_date": 1742517865,
+    "question_id": 79524365,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79524365/using-axonframework-without-spring-and-with-kafka-postgresql",
+    "title": "Using AxonFramework without Spring and with Kafka + PostgreSQL",
+    "body": "<p>I'm trying to access the events of my Spring instance that publishes Axon events to Kafka and stores them in PostgreSQL. To accomplish this we created the following interface:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public interface AxonConnector extends AutoCloseable {\n\n  /**\n   * Starts the Axon connector and establishes a connection to the Axon server.\n   */\n  void start();\n\n  /**\n   * Closes the Axon connector and releases any resources it holds.\n   */\n  void registerEventHandler(Object eventHandler);\n\n  /**\n   * Registers an aggregate with the Axon server.\n   *\n   * @param aggregateType the class of the aggregate to register\n   * @param &lt;T&gt;           the type of the aggregate\n   */\n  &lt;T&gt; void registerAggregate(Class&lt;T&gt; aggregate);\n\n  /**\n   * Sends a command to the Axon server.\n   *\n   * @param command the command to send\n   */\n  void sendCommand(Object command);\n\n  /**\n   * Sends a query to the Axon server and returns the result.\n   *\n   * @param query the query to send\n   * @return the result of the query\n   */\n  &lt;R&gt; R sendQuery(Object query);\n}\n</code></pre>\n<p>Implementing this using the AxonServer works flawlessly:</p>\n<pre class=\"lang-java prettyprint-override\"><code>// Configure connection to Axon Server\nAxonServerConfiguration serverConfig = AxonServerConfiguration.builder()\n    .servers(host + &quot;:&quot; + port)\n    .componentName(componentName)\n    .build();\n\nAxonServerConnectionManager connectionManager = AxonServerConnectionManager.builder()\n    .axonServerConfiguration(serverConfig)\n    .build();\n\n// Create event store\nAxonServerEventStore eventStore = AxonServerEventStore.builder()\n    .configuration(serverConfig)\n    .platformConnectionManager(connectionManager)\n    .snapshotFilter(SnapshotFilter.allowAll())\n    .build();\n\n// Build Axon configuration\nconfigurer = DefaultConfigurer.defaultConfiguration();\nconfigurer.configureEventStore(config -&gt; eventStore)\n    .configureSerializer(config -&gt; JacksonSerializer.defaultSerializer())\n    .configureEventSerializer(config -&gt; JacksonSerializer.defaultSerializer())\n    .configureMessageSerializer(config -&gt; JacksonSerializer.defaultSerializer());\n</code></pre>\n<p>But when it comes to doing it without Spring Dependencies, with Kafka and with PostgreSQL, the documentation thins out a lot and I'm not able to find a point where I should even begin.</p>\n<p>So far, I've been able to create the EventStore with PostgreSQL (at least I hope that it is correct since I haven't been able to actually test it)</p>\n<pre class=\"lang-java prettyprint-override\"><code>...\n\nHikariConfig config = new HikariConfig();\nconfig.setJdbcUrl(postgresUrl);\nconfig.setUsername(postgresUser);\nconfig.setPassword(postgresPassword);\nconfig.addDataSourceProperty(&quot;cachePrepStmts&quot;, &quot;true&quot;);\nconfig.addDataSourceProperty(&quot;prepStmtCacheSize&quot;, &quot;250&quot;);\nconfig.addDataSourceProperty(&quot;prepStmtCacheSqlLimit&quot;, &quot;2048&quot;);\n\nDataSource dataSource = new HikariDataSource(config);\n\nConnectionProvider connectionProvider = new UnitOfWorkAwareConnectionProviderWrapper(\n    new DataSourceConnectionProvider(dataSource)\n);\nEventStorageEngine eventStorageEngine = JdbcEventStorageEngine.builder()\n    .connectionProvider(connectionProvider)\n    .snapshotFilter(SnapshotFilter.allowAll())\n    .eventSerializer(serializer)\n    .snapshotSerializer(serializer)\n    .build();\nEmbeddedEventStore eventStore = EmbeddedEventStore.builder()\n    .storageEngine(eventStorageEngine)\n    .build();\nConfigurer configurer = DefaultConfigurer.defaultConfiguration()\n    .configureEventStore(c -&gt; eventStore)\n    .configureSerializer(c -&gt; serializer)\n    .configureEventSerializer(c -&gt; serializer)\n    .configureMessageSerializer(c -&gt; serializer);\n\naxonConfig = configurer.start();\n</code></pre>\n<p>Then I tried to create a KafkaProducer and a KafkaConsumer:</p>\n<pre class=\"lang-java prettyprint-override\"><code>private void initializeKafka() {\n  Properties producerProps = new Properties();\n  producerProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBootstrapServers);\n  producerProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());\n  producerProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,\n      StringSerializer.class.getName());\n  producer = new KafkaProducer&lt;&gt;(producerProps);\n\n  Properties consumerProps = new Properties();\n  consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBootstrapServers);\n  consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, &quot;axon-connector-group&quot;);\n  consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,\n      StringDeserializer.class.getName());\n  consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,\n      StringDeserializer.class.getName());\n  consumer = new KafkaConsumer&lt;&gt;(consumerProps);\n  consumer.subscribe(Collections.singletonList(&quot;axon-commands&quot;));\n}\n</code></pre>\n<p>But after that I just can't figure out how to further configure Axon to use Kafka</p>\n<p>I'd gladly appreciate any help here</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

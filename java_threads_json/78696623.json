@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "amazon-web-services",
+      "amazon-ec2",
+      "github-actions",
+      "amazon-ecs"
+    ],
+    "owner": {
+      "account_id": 28709548,
+      "reputation": 21,
+      "user_id": 21985291,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AAcHTtfkrzI81ihw3AOwovdHPppmUsY1cjM-FKQ8S1Tf=k-s256",
+      "display_name": "Maksym Matveichuk",
+      "link": "https://stackoverflow.com/users/21985291/maksym-matveichuk"
+    },
+    "is_answered": true,
+    "view_count": 105,
+    "accepted_answer_id": 78801819,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1722095254,
+    "creation_date": 1719918212,
+    "question_id": 78696623,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78696623/the-service-and-task-in-aws-are-not-created-and-always-have-the-status-provisio",
+    "title": "The service and task in aws are not created and always have the status &quot;Provisioning&quot;",
+    "body": "<p>Help me please solve the problem of deploying my spring java application to AWS (EC2, ECS) using GitHub Action.</p>\n<p>So, I am following the recommendations provided in the default workflow file for &quot;Deploy to Amazon ECS&quot; on GitHub Actions.</p>\n<p>First, I created a private repository on AWS and built an image using the &quot;View push commands&quot; in AWS.\n<a href=\"https://i.sstatic.net/fw8aaQ6t.png\" rel=\"nofollow noreferrer\">enter image description here</a>\n<a href=\"https://i.sstatic.net/tWI5xYyf.png\" rel=\"nofollow noreferrer\">enter image description here</a></p>\n<p>Also, I created the Task definition and claster. You can see that the next.</p>\n<p><a href=\"https://i.sstatic.net/T3TZTaJj.png\" rel=\"nofollow noreferrer\">enter image description here</a>\n<a href=\"https://i.sstatic.net/O9X66W01.png\" rel=\"nofollow noreferrer\">enter image description here</a></p>\n<p>My docker file:\n<a href=\"https://i.sstatic.net/zOyntOf5.png\" rel=\"nofollow noreferrer\">enter image description here</a></p>\n<p>My workflow life:</p>\n<pre><code>name: Deploy to Amazon ECS\n\non:\npush:\nbranches: \\[ &quot;master&quot; \\]\npull_request:\nbranches: \\[ &quot;master&quot; \\]\n\nenv:\nAWS_REGION: eu-north-1                   # set this to your preferred AWS region, e.g. us-west-1\nECR_REPOSITORY: techtask           # set this to your Amazon ECR repository name\nECS_SERVICE: techtaskservice               # set this to your Amazon ECS service name\nECS_CLUSTER: techtask-claster               # set this to your Amazon ECS cluster name\nECS_TASK_DEFINITION: ./td-test.json # set this to the path to your Amazon ECS task definition\n\\# file, e.g. .aws/task-definition.json\nCONTAINER_NAME: container           # set this to the name of the container in the\n\\# containerDefinitions section of your task definition\n\npermissions:\ncontents: read\n\njobs:\ndeploy:\nname: Deploy\nruns-on: ubuntu-latest\nenvironment: production\n\n    steps:\n    - name: Checkout\n      uses: actions/checkout@v4\n    - name: Set up JDK 21\n      uses: actions/setup-java@v3\n      with:\n        java-version: '21'\n        distribution: 'temurin'\n        cache: maven\n    \n    - name: run compile\n      run: mvn clean install -DskipTests\n    \n    - name: Configure AWS credentials\n      uses: aws-actions/configure-aws-credentials@v1\n      with:\n        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}\n        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}\n        aws-region: ${{ env.AWS_REGION }}\n    \n    - name: Login to Amazon ECR\n      id: login-ecr\n      uses: aws-actions/amazon-ecr-login@v1\n    \n    - name: Build, tag, and push image to Amazon ECR\n      id: build-image\n      env:\n        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}\n        IMAGE_TAG: ${{ github.sha }}\n      run: |\n        # Build a docker container and\n        # push it to ECR so that it can\n        # be deployed to ECS.\n        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .\n        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG\n        echo &quot;image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG&quot; &gt;&gt; $GITHUB_OUTPUT\n    \n    - name: Fill in the new image ID in the Amazon ECS task definition\n      id: task-def\n      uses: aws-actions/amazon-ecs-render-task-definition@v1\n      with:\n        task-definition: ${{ env.ECS_TASK_DEFINITION }}\n        container-name: ${{ env.CONTAINER_NAME }}\n        image: ${{ steps.build-image.outputs.image }}\n    \n    - name: Deploy Amazon ECS task definition\n      uses: aws-actions/amazon-ecs-deploy-task-definition@v1\n      with:\n        task-definition: ${{ steps.task-def.outputs.task-definition }}\n        service: ${{ env.ECS_SERVICE }}\n        cluster: ${{ env.ECS_CLUSTER }}\n        wait-for-service-stability: true\n</code></pre>\n<p>However, when I tried to create the service, I encountered a problem. The task and service are not created and always have the status &quot;Provisioning&quot; (for the task) and &quot;CREATE_IN_PROGRESS&quot; (for the service).</p>\n<p>My user and roles have next permissions:</p>\n<pre><code>AdministratorAccess\nAmazonEC2ContainerRegistryFullAccess\nAmazonEC2ContainerServiceRole\nAmazonEC2FullAccess\nAmazonEC2RoleforAWSCodeDeploy\nAmazonECS_FullAccess\nAWSCodeDeployRoleForECS\nEC2InstanceConnect\n</code></pre>\n<p>And, when I run workflow file in Hithub Action (deploy my app to the AWS), process stops at the step &quot;Deploy Amazon ECS task definition&quot; and does not complete.</p>\n<p>Also I can not connect to Instance:</p>\n<pre><code>Failed to connect to your instance\nEC2 Instance Connect is unable to connect to your instance. Ensure your instance network settings are configured correctly for EC2 Instance Connect. For more information, see EC2 Instance Connect Prerequisites at https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-connect-prerequisites.html.\n</code></pre>\n<pre><code>I tried setting a HEALTHCHECK in the Dockerfile with:\nHEALTHCHECK --interval=5s --timeout=10s --retries=3 \nCMD curl --silent --fail http://localhost:8080 || exit 1\n</code></pre>\n<p>I also tried creating the HEALTHCHECK when I created the task definition file, but it is not working.\nI tried creating the repository without using the &quot;View push commands&quot; (manual build and push image), but it is not working either.</p>\n<p>Please help me find the problem.</p>\n<pre><code></code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

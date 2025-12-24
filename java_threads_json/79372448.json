@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "pdfbox",
+      "emoji"
+    ],
+    "owner": {
+      "account_id": 6920893,
+      "reputation": 182,
+      "user_id": 5313603,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/xjH6m.jpg?s=256",
+      "display_name": "Sudeepa Nadeeshan",
+      "link": "https://stackoverflow.com/users/5313603/sudeepa-nadeeshan"
+    },
+    "is_answered": true,
+    "view_count": 255,
+    "accepted_answer_id": 79374336,
+    "answer_count": 1,
+    "score": 3,
+    "last_activity_date": 1738135473,
+    "creation_date": 1737401402,
+    "question_id": 79372448,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79372448/rendering-emojis-using-pdfbox-does-not-work",
+    "title": "Rendering Emojis using PDFBox Does Not Work",
+    "body": "<p>I attempted to render emojis using the emoji-supported font Noto Color Emoji (<a href=\"https://fonts.google.com/noto/specimen/Noto+Color+Emoji\" rel=\"nofollow noreferrer\">https://fonts.google.com/noto/specimen/Noto+Color+Emoji</a>) with the PDFBox 3.0.3 Java library. However, the font.hasGlyph(codePoint) method consistently returns false for all codepoint availability checks. Despite this, the emojis in question are clearly supported by the specified Google font. I have included the code below. Could someone kindly guide me in identifying the cause of this issue?</p>\n<pre class=\"lang-none prettyprint-override\"><code>import org.apache.pdfbox.pdmodel.PDPage;\nimport org.apache.pdfbox.pdmodel.PDPageContentStream;\nimport org.apache.pdfbox.pdmodel.font.PDType0Font;\n\nimport java.io.File;\nimport java.io.IOException;\n\npublic class EmojiPdfExample {\n    public static void main(String[] args) {\n        try (PDDocument doc = new PDDocument()) {\n\n            File fontFile = new File(&quot;NotoColorEmoji-Regular.ttf&quot;);\n            var font = PDType0Font.load(doc, fontFile);\n\n            // Add a page\n            PDPage page = new PDPage();\n            doc.addPage(page);\n\n            try (PDPageContentStream cs = new PDPageContentStream(doc, page)) {\n                cs.beginText();\n                cs.setFont(font, 20);\n                cs.newLineAtOffset(50, 700);\n\n                // Emoji string\n                String text = &quot;\\uD83D\\uDE00 \\uD83D\\uDE09&quot;;\n\n                for (int i = 0; i &lt; text.length(); ) {\n                    int codePoint = Character.codePointAt(text, i);\n                    i += Character.charCount(codePoint);\n\n                    String glyph;\n                    try {\n                        glyph = new String(Character.toChars(codePoint));\n                    } catch (IllegalArgumentException e) {\n                        System.err.println(&quot;Invalid code point: U+&quot; + Integer.toHexString(codePoint));\n                        continue; // Skip invalid code points\n                    }\n\n                    try {\n                        if (font.hasGlyph(codePoint)) {\n                            cs.showText(glyph);\n                        } else {\n                            // Handle unsupported glyphs \n                            System.out.println(&quot;Unsupported glyph,&quot; + glyph);\n                        }\n                    } catch (IOException e) {\n                        System.err.println(&quot;IOException while showing glyph: U+&quot; + Integer.toHexString(codePoint));\n                    }\n                }\n                cs.endText();\n            }\n\n            doc.save(&quot;emojis.pdf&quot;);\n            System.out.println(&quot;PDF created: emojis.pdf&quot;);\n\n        } catch (IOException e) {\n            e.printStackTrace();\n        }\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

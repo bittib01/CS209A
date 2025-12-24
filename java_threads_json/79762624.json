@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "xml",
+      "jackson",
+      "jackson-databind",
+      "jackson-dataformat-xml"
+    ],
+    "owner": {
+      "account_id": 216793,
+      "reputation": 22471,
+      "user_id": 472245,
+      "user_type": "registered",
+      "accept_rate": 83,
+      "profile_image": "https://www.gravatar.com/avatar/395b65e986e8aca7c1af4643d162012e?s=256&d=identicon&r=PG",
+      "display_name": "towi",
+      "link": "https://stackoverflow.com/users/472245/towi"
+    },
+    "is_answered": false,
+    "view_count": 106,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1757936489,
+    "creation_date": 1757661501,
+    "last_edit_date": 1757666517,
+    "question_id": 79762624,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79762624/deserialize-xml-with-jackson-polymorphically-also-using-an-external-element",
+    "title": "Deserialize XML with Jackson polymorphically also using an external element",
+    "body": "<p>I need to deserialize XML into polymorphic Java classes where the subtype is determined not just by a type attribute on <code>&lt;component&gt;</code>, but also by a sibling <code>&lt;version&gt;</code> element. For example, <code>&lt;component type=&quot;chair&quot;&gt;</code> with <code>&lt;version&gt;2</code> should map to <code>Chair2</code>, while with <code>&lt;version&gt;3</code> it should map to <code>Chair3</code>. Standard Jackson annotations like <code>@JsonTypeInfo</code> and custom <code>TypeIdResolver</code> don’t directly support combining multiple properties for type resolution. Is there a clean way (ideally with annotations, avoiding a giant switch statement) to make Jackson handle this two-key polymorphic deserialization?</p>\n<hr />\n<h2>Specifics</h2>\n<p>I have XMLs with a polymorphic <code>&lt;component&gt;</code> that has a <code>type=</code> <strong>and</strong> a sibling <code>&lt;version&gt;</code>-Element, which <strong>in combination</strong> decide which subtype of <code>Component</code> I have to deserialize into.</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;desk&gt;\n  &lt;version&gt;3&lt;/version&gt;\n  &lt;component type=&quot;chair&quot;&gt;\n    &lt;seat&gt;...&lt;/seat&gt;\n  &lt;/component&gt;\n&lt;/desk&gt;\n</code></pre>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;desk&gt;\n  &lt;version&gt;2&lt;/version&gt;\n  &lt;component type=&quot;chair&quot;&gt;\n    &lt;backrest&gt;...&lt;/backrest&gt;\n  &lt;/component&gt;\n&lt;/desk&gt;\n</code></pre>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;desk&gt;\n  &lt;version&gt;2&lt;/version&gt;\n  &lt;component type=&quot;table&quot;&gt;\n    &lt;leg&gt;...&lt;/leg&gt;\n  &lt;/component&gt;\n&lt;/desk&gt;\n</code></pre>\n<p>And in Java something like this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Data\npublic abstract class Component {\n   @JacksonXmlProperty(isAttribute = true) \n   private String type;\n}\n@Data public class Chair3 extends Component { String seat; }     // type=chair &lt;version&gt;3\n@Data public class Chair2 extends Component { String backrest; } // type=chair &lt;version&gt;2\n@Data public class Table  extends Component { String leg; }      // type=table &lt;version&gt;*\n\n@Data\npublic class Desk {\n   private String version;\n\n   @JacksonXmlElementWrapper(useWrapping = false)\n   private List&lt;Component&gt; component;\n}\n</code></pre>\n<p>I did experiment with</p>\n<pre class=\"lang-java prettyprint-override\"><code>@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = &quot;type&quot;)\n@JsonSubTypes({\n    @JsonSubTypes.Type(value = Chair3.class, name = &quot;chair&quot;), // version ???\n    @JsonSubTypes.Type(value = Table.class, name = &quot;table&quot;)\n})\n</code></pre>\n<p>as well as a custom <code>TypeIdResolver</code> using the <code>EXTERNAL_PROPERTY</code>. But that one does not work for types, so it didn't work. Also, I need to combine <code>version</code> and <code>type</code> somehow.</p>\n<p>I thought if I can inject the <code>version</code> element into the <code>DeserializationContext</code> somehow via <code>setAttribute(&quot;version&quot;, version)</code> I could possibly access that when deserializing the <code>Component</code>, but I could not bring that together.</p>\n<p>And also, it would require a huge <code>switch</code> statement.</p>\n<p>The optimal solution would be to craft a custom annotation, like:</p>\n<pre><code>@MyComponent(version=&quot;3&quot;, type=&quot;chair&quot;)\npublic class Char3 { ... }\n</code></pre>\n<p>that could be evaluated during deseriliazation?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "integration-testing",
+      "spring-webmvc"
+    ],
+    "owner": {
+      "account_id": 27555288,
+      "reputation": 29,
+      "user_id": 21029624,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/1aa05dfc98fed0758dea31cce416c341?s=256&d=identicon&r=PG",
+      "display_name": "BonBonn",
+      "link": "https://stackoverflow.com/users/21029624/bonbonn"
+    },
+    "is_answered": true,
+    "view_count": 81,
+    "accepted_answer_id": 79510197,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1744971134,
+    "creation_date": 1741984392,
+    "last_edit_date": 1744971134,
+    "question_id": 79510164,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79510164/mockmvc-test-doesnt-work-when-internal-api-is-called",
+    "title": "MockMvc Test doesnt work when internal API is called",
+    "body": "<p>I am developing a Spring Boot application/library where i have a Service that sends a request to a an API. When in integration Test the Entry Point into the Service is an /integration Endpoint. The following Code is the mvp to reproduce the error</p>\n<p>Main Service:</p>\n<pre><code>@Service\n@RequiredArgsConstructor\npublic class CalculationService {\n\n  private final RestClient restClient;\n\n  public CalculationResponse calculate(CalculationRequest request){\n    return restClient.post().uri(&quot;/service/calculate&quot;)\n        .body(request)\n        .retrieve()\n        .toEntity(CalculationResponse.class).getBody();\n\n  }\n}\n</code></pre>\n<p>Main Controller</p>\n<pre><code>@RestController\n@RequestMapping(&quot;/service&quot;)\npublic class MockApi {\n\n\n  @PostMapping(&quot;/calculate&quot;)\n  public CalculationResponse calculate(@RequestBody CalculationRequest calculationRequest) {\n    CalculationResponse calculationResponse = new CalculationResponse();\n    calculationResponse.setSummary(calculationRequest.getName()+ &quot;----&quot; + calculationRequest.getValue());\n    return calculationResponse;\n  }\n}\n</code></pre>\n<p>The Entry Point for my Integration Test</p>\n<pre><code>@RestController\n@RequestMapping\n@RequiredArgsConstructor\npublic class TestController {\n\n  private final CalculationService calculationService;\n\n  @PostMapping(&quot;/integration&quot;)\n  public CalculationResponse integration(@RequestBody CalculationRequest request) {\n    return calculationService.calculate(request);\n  }\n\n}\n\n</code></pre>\n<p>RestClient Configuration</p>\n<pre><code>@Configuration\npublic class CalculationConfiguration {\n\n\n  @Bean\n  public RestClient restClient() {\n    return RestClient.builder()\n        .baseUrl(&quot;http://localhost:8080&quot;)\n        .build();\n  }\n\n}\n\n</code></pre>\n<p>Integration Test</p>\n<pre><code>@AutoConfigureMockMvc\n@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)\n@ExtendWith(SpringExtension.class)\npublic class IntegrationTest {\n\n  @Autowired\n  private MockMvc mockMvc;\n\n  @Autowired\n  private ObjectMapper objectMapper;\n\n  @Test\n  public void thatSummaryIsReturned() throws Exception {\n\n    CalculationRequest request = new CalculationRequest(&quot;Test&quot;, &quot;Value&quot;);\n    mockMvc.perform(MockMvcRequestBuilders.post(&quot;/integration&quot;)\n            .contentType(MediaType.APPLICATION_JSON)\n            .content(objectMapper.writeValueAsString(request)))\n        .andExpect(status().isOk())\n        .andReturn();\n  }\n\n}\n</code></pre>\n<p>When running the test i receive following error:</p>\n<p>Request processing failed: org.springframework.web.client.ResourceAccessException: I/O error on POST request for &quot;http://localhost:8080/service/calculate&quot;: null\njakarta.servlet.ServletException: Request processing failed: org.springframework.web.client.ResourceAccessException: I/O error on POST request for &quot;http://localhost:8080/service/calculate&quot;: null\nat org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1022)\nat org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:914)\nat jakarta.servlet.http.HttpServlet.service(HttpServlet.java:590)\nat org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885)\nat org.springframework.test.web.servlet.TestDispatcherServlet.service(TestDispatcherServlet.java:72)\nat jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658)</p>\n<p>When i change the endpoint in my integration test directly to /service/calculate it works.\nI tried to debug but when having /integration as path in the test i dont even react the other endpoint. Has anyone an idea why this is the case ?</p>\n<p>Edit: When the Application runs in the Background it works. So it seems that there is something missing in my TestContext ...</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

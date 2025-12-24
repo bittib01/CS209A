@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-websocket",
+      "stomp"
+    ],
+    "owner": {
+      "account_id": 42855635,
+      "reputation": 13,
+      "user_id": 30956973,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/pB1QZQjf.jpg?s=256",
+      "display_name": "Kvanzi",
+      "link": "https://stackoverflow.com/users/30956973/kvanzi"
+    },
+    "is_answered": true,
+    "view_count": 87,
+    "accepted_answer_id": 79702942,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1752645612,
+    "creation_date": 1752624887,
+    "last_edit_date": 1752629332,
+    "question_id": 79702785,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79702785/how-to-access-authenticated-user-principal-in-sessionconnectedevent-when-using-a",
+    "title": "How to access authenticated user principal in SessionConnectedEvent when using a ChannelInterceptor for JWT authentication?",
+    "body": "<p>I’m using a custom WebSocketChannelInterceptor (implements ChannelInterceptor) to handle authentication during the CONNECT STOMP command. The interceptor extracts and validates a JWT token from the Authorization header like this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Override\npublic Message&lt;?&gt; preSend(@NonNull Message&lt;?&gt; message, @NonNull MessageChannel channel) {\n    var accessor = StompHeaderAccessor.wrap(message);\n    StompCommand command = accessor.getCommand();\n    if (command == null) {\n        return null;\n    }\n\n    return switch (command) {\n        case CONNECT -&gt; handleConnect(message, accessor);\n        case SEND -&gt; handleSend(message, accessor);\n        default -&gt; message;\n    };\n}\n\nprivate Message&lt;?&gt; handleConnect(Message&lt;?&gt; message, StompHeaderAccessor accessor) {\n    String authorizationHeader = accessor.getFirstNativeHeader(HttpHeaders.AUTHORIZATION);\n    if (authorizationHeader == null || !authorizationHeader.startsWith(JwtService.BEARER_PREFIX)) {\n        throw new MessageHandlingException(message, &quot;Missing or invalid authorization header&quot;);\n    }\n\n    String token = authorizationHeader.substring(JwtService.BEARER_PREFIX.length()).trim();\n    try {\n        var jwtAuthToken = new JwtAuthenticationToken(token);\n        authManager.authenticate(jwtAuthToken);\n        return message;\n    } catch (BadCredentialsException e) {\n        throw new MessageHandlingException(message, e.getMessage());\n    } catch (RuntimeException e) {\n        throw new MessageHandlingException(message, &quot;Internal server error&quot;);\n    }\n}\n</code></pre>\n<p>My question is: How can I access the authenticated user's Principal inside the SessionConnectedEvent handler?</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Slf4j\n@Component\n@RequiredArgsConstructor\npublic class WebSocketEventListener {\n\n    @EventListener\n    public void sessionConnectedEvent(SessionConnectedEvent event) {\n        // How to get Principal here?\n    }\n}\n</code></pre>\n<p>I’m not interested in SessionConnectEvent — I specifically want to get the user from SessionConnectedEvent after the handshake and connection are completed.</p>\n<p>Thanks in advance!</p>\n<p>I've tried many different approaches, but none of them worked for my case. The token is sent during the initial WebSocket connection using STOMP headers like this:</p>\n<pre class=\"lang-js prettyprint-override\"><code>const client = new Client({\n    brokerURL: 'ws://localhost:8080/ws',\n    connectHeaders: {\n        &quot;Authorization&quot;: `Bearer ${accessToken}`,\n    },\n    onStompError: await onStompError,\n    onConnect: () =&gt; {\n        console.log(&quot;Successfully connected&quot;);\n    },\n    debug: console.debug\n});\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-mvc",
+      "asynchronous",
+      "tomcat",
+      "server-sent-events"
+    ],
+    "owner": {
+      "account_id": 7469635,
+      "reputation": 1,
+      "user_id": 5678032,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/07b94892217f342ea6f5efc36448aa24?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "chetan madnaik",
+      "link": "https://stackoverflow.com/users/5678032/chetan-madnaik"
+    },
+    "is_answered": false,
+    "view_count": 136,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1751376739,
+    "creation_date": 1734094905,
+    "question_id": 79278415,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79278415/sse-async-api-in-spring-mvc-throws-error-illegalstateexception-cannot-call-send",
+    "title": "SSE Async API in Spring MVC throws Error IllegalStateException: Cannot call sendError() after the response has been committed",
+    "body": "<p>I have Spring MVC Service with SSE API having controller return type ResponseEntity&lt;SseEmitter&gt;.<br />\nand in background Async thread, we send continuous data messages to the client over SseEmitter</p>\n<p>@controller method</p>\n<pre><code> @PostMapping(value = &quot;/sse&quot;, consumes = { &quot;application/json&quot;},produces = {&quot;text/event-stream&quot;})\n    public ResponseEntity&lt;SseEmitter&gt; executeSseStreaming(\n            HttpServletRequest request, final @Valid @RequestBody ApiRequestDto apiRequestDto) throws JsonProcessingException {\n        String commandWithArgs = apiRequestDto.getCommand();\n        return new ResponseEntity&lt;&gt;(Service.executeServiceStreaming(commandWithArgs),\n                HttpStatus.OK);\n    }\n</code></pre>\n<p>@service method</p>\n<pre><code>@Override\n    public SseEmitter executeServiceStreaming(String command) {\n        SseEmitter sseEmitter = new SseEmitter(15 * 60 * 1000L);\n        commandInvoker.invokeAsyncMethodStreaming(command, sseEmitter);// background async task \n        return sseContext.getSseEmitter();\n    }\n</code></pre>\n<p>@component method</p>\n<pre><code>@Async(&quot;cmdAsyncCall&quot;)\n    public void invokeAsyncMethodStreaming(String cliBuff,  SseEmitter sseEmitter) {\n        sock = connectionManagerFactory.getCommandExecConnection(cliBuff);\n         try (BufferedReader reader = new BufferedReader(new InputStreamReader(sock.getInputStream()))) {\n            String line;\n            while ((line = reader.readLine()) != null) {\n                sseEmitter().send(line); \n            }\n            sseContext.getSseEmitter().complete();    \n        }  catch (Exception e) {  \n            sseContext.getSseEmitter().completeWithError(e);\n            throw new CustomException(ErrorConstants.EC_SOCKET_READ_FAILED, e);\n        }          \n    }\n</code></pre>\n<p>Async config bean</p>\n<pre><code>@Configuration\n@EnableAsync(proxyTargetClass = true)\npublic class CustomeAsyncCallConfig {\n    @Bean(name = &quot;cmdAsyncCall&quot;)\n    public Executor asyncExecutor() {\n        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();\n        executor.setCorePoolSize(5);\n        executor.setMaxPoolSize(10);\n        executor.setQueueCapacity(100);\n        executor.setThreadNamePrefix(&quot;SSE Thread: AsyncCall -&quot;);\n        executor.initialize();\n        return executor;\n    }\n}   \n</code></pre>\n<p>after all data has been sent, Async thread calls SseEmmiter.complete() and that trigers below error in catalina.log</p>\n<p><code>12-Dec-2024 14:16:03.364 SEVERE [catalina-exec-7] org.apache.catalina.connector.CoyoteAdapter.asyncDispatch Exception while processing an asynchronous request         java.lang.IllegalStateException: Cannot call sendError() after the response has been committed                 at org.apache.catalina.connector.Response.sendError(Response.java:1110)                 at org.apache.catalina.connector.Response.sendError(Response.java:1092)                 at org.apache.catalina.valves.RequestFilterValve.denyRequest(RequestFilterValve.java:394)                 at org.apache.catalina.valves.RequestFilterValve.process(RequestFilterValve.java:364)                 at org.apache.catalina.valves.RemoteAddrValve.invoke(RemoteAddrValve.java:54)                 at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)                 at org.apache.catalina.connector.CoyoteAdapter.asyncDispatch(CoyoteAdapter.java:239)                 at org.apache.coyote.AbstractProcessor.dispatch(AbstractProcessor.java:243)                 at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:57)                 at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:905)                 at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1741)                 at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)                 at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1190)                 at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)                 at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)                 at java.base/java.lang.Thread.run(Unknown Source)</code></p>\n<p>tried  below things for this issue</p>\n<ol>\n<li><p>Returning SseEmmiter object directly from Controller API method,</p>\n</li>\n<li><p>Using custom Executor service for async processing work and removing @async.\nbut that also causing same issue. Client able to get all data , connection also gets closed at client side after receiving all data in postman . but on server this Error happens at very end in both.</p>\n</li>\n</ol>\n<p>when debuged I could see error happening just after emitter.complete() method call in Async thread.<br />\ntried executing API also from custom java client, but same behaviour observed. I am able to get all data at client side with connection close at the end. but server side have this specific exception in catalina logs. thread name in stacktrace denotes its different than Async threadname, and might be triggered by spring itself.<br />\nI am new to Server Sent Events . any help will be greatly appreciated. Thanks in advance.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

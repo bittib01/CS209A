@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "docker",
+      "keycloak"
+    ],
+    "owner": {
+      "account_id": 41044978,
+      "reputation": 15,
+      "user_id": 30092693,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/457db6dd9eb6241beb9ad03a7f9ccb4a?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "joshSP95",
+      "link": "https://stackoverflow.com/users/30092693/joshsp95"
+    },
+    "is_answered": true,
+    "view_count": 202,
+    "accepted_answer_id": 79541801,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1753900709,
+    "creation_date": 1743166620,
+    "question_id": 79541485,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79541485/keycloak-java-app-redirect-within-docker",
+    "title": "Keycloak - Java App Redirect within Docker",
+    "body": "<p>I have a java web application with tomcat and keycloak for authentication. Both services (the app and Keycloak) are running in separate Docker containers, connected through a docker bridge network</p>\n<ul>\n<li><code>keycloak</code> service runs at <code>http://keycloak:8080/auth</code> inside Docker.</li>\n<li>My java app with tomcat exposing ports internal and host on 8090</li>\n<li>The frontend is JS</li>\n</ul>\n<p>In my app profile was configured with keycloak.json as:</p>\n<pre class=\"lang-json prettyprint-override\"><code>{\n  &quot;realm&quot;: &quot;${realm}&quot;,\n  &quot;auth-server-url&quot;: &quot;http://keycloak:8080/auth&quot;,\n  &quot;ssl-required&quot;: &quot;none&quot;,\n  &quot;resource&quot;: &quot;${client_id}&quot;,\n  &quot;public-client&quot;: true,\n  &quot;confidential-port&quot;: 0\n}\n</code></pre>\n<hr />\n<p>I had a problem when trying to access <code>http://localhost:8090/system</code>, the app redirected the browser to this Keycloak URL:</p>\n<pre><code>http://keycloak:8080/auth/realms/tdoc-api/protocol/openid-connect/auth...\n</code></pre>\n<p>Which failed on browser showing<code>ERR_CONNECTION_REFUSED</code>, cause I understand this service can not be resolved externally from the host.</p>\n<p>Also I tried changing keycloak.json to:</p>\n<pre class=\"lang-json prettyprint-override\"><code>{\n  &quot;realm&quot;: &quot;${realm}&quot;,\n  &quot;auth-server-url&quot;: &quot;http://localhost:8012/auth&quot;,\n  &quot;ssl-required&quot;: &quot;none&quot;,\n  &quot;resource&quot;: &quot;${client_id}&quot;,\n  &quot;public-client&quot;: true,\n  &quot;confidential-port&quot;: 0\n}\n</code></pre>\n<p>But my app failed when trying to log in showing a 500 internal server error:</p>\n<pre><code>[WARN ] 12:08:46.150 org.keycloak.adapters.KeycloakDeployment.resolveUrls() - Failed to load URLs from http://localhost:8012/auth/realms/${realm}/.well-known/openid-configuration\njava.net.ConnectException: Connection refused (Connection refused)\n</code></pre>\n<p>Because it can not resolve from inside the container my service exposed locally in 8012 port. Which I think was the answer provided in this post: <a href=\"https://stackoverflow.com/a/74929659\">https://stackoverflow.com/a/74929659</a></p>\n<p>Does anyone know why didnt work for me this solution?</p>\n<p>I was able to fix it setting a environment in docker-compose.yml:</p>\n<ul>\n<li>KEYCLOAK_FRONTEND_URL=http://localhost:8012/auth</li>\n</ul>\n<p>More context of my docker environment:</p>\n<pre><code>version: '3'\nservices:\n  app-db:\n    image: mysql:5.7\n    ports:\n      - &quot;3309:3306&quot;\n    environment:\n      MYSQL_ROOT_PASSWORD: example\n    networks:\n      - my-network\n\n  my-app:\n    build: .\n    ports:\n      - &quot;8090:8080&quot;\n      - &quot;8000:8000&quot;\n    environment:\n      - JAVA_OPTS=...\n    volumes:\n      - ./app:/usr/local/tomcat/webapps/my-app\n    depends_on:\n      - app-db\n    networks:\n      - my-network\n\n  keycloak:\n    image: quay.io/keycloak/keycloak:16.1.1\n    ports:\n      - &quot;8012:8080&quot;\n    environment:\n      - DB_VENDOR=mysql\n      - DB_ADDR=keycloak-db\n      - DB_PORT=3306\n      - DB_USER=keycloak_user\n      - DB_PASSWORD=keycloak_pass\n      - DB_DATABASE=keycloak\n      - PROXY_ADDRESS_FORWARDING=true\n      - KEYCLOAK_FRONTEND_URL=http://localhost:8012/auth\n    volumes:\n      - ./themes:/opt/jboss/keycloak/themes\n    depends_on:\n      - keycloak-db\n    networks:\n      - my-network\n\n  keycloak-db:\n    image: mysql:5.7\n    ports:\n      - &quot;3307:3306&quot;\n    environment:\n      - MYSQL_ROOT_PASSWORD=keycloak_pass\n      - MYSQL_DATABASE=keycloak\n      - MYSQL_USER=keycloak_user\n      - MYSQL_PASSWORD=keycloak_pass\n    volumes:\n      - ./volumes/mysql:/var/lib/mysql\n    networks:\n      - my-network\n\nnetworks:\n  my-network:\n    external: true\n    name: my-network\n\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

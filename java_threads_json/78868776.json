@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "geometry",
+      "polygon",
+      "jts"
+    ],
+    "owner": {
+      "account_id": 23208149,
+      "reputation": 19,
+      "user_id": 17302045,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AATXAJyTt-d5mwxrnvUENXTk0NULCJWLwp20olaWg3bs=k-s256",
+      "display_name": "mezza00",
+      "link": "https://stackoverflow.com/users/17302045/mezza00"
+    },
+    "is_answered": false,
+    "view_count": 114,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1725133259,
+    "creation_date": 1723598322,
+    "last_edit_date": 1723598737,
+    "question_id": 78868776,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78868776/how-to-merge-and-simplify-a-list-of-2d-polygons",
+    "title": "How to merge and simplify a list of 2D polygons?",
+    "body": "<p>I have a list of 2D polygons represented as List&lt;double[]&gt; in Java defining gemetries of streets. Each array represents a polygon with coordinates in pairs (x1, y1, x2, y2, ...). For example, a polygon might be represented as {x1, y1, x2, y2, x3, y3, x1, y1}.</p>\n<p>I want to obtain a simplified list of polygons by merging polygons that can be combined into a single polygon. All polygons in the list are simple, with no oriented rings or self-intersections.</p>\n<p>I've tried using <a href=\"https://en.wikipedia.org/wiki/JTS_Topology_Suite\" rel=\"nofollow noreferrer\"><em>JTS (Java Topology Suite)</em></a>, but the results are not as expected. Here are the images</p>\n<p><strong>Before polygon merging</strong>\n<a href=\"https://i.sstatic.net/mddp4E6D.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/mddp4E6D.png\" alt=\"Before polygon merging\" /></a></p>\n<p><strong>After polygon merging</strong>\n<a href=\"https://i.sstatic.net/JpeWf1W2.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/JpeWf1W2.png\" alt=\"After polygon merginig\" /></a></p>\n<p>I've ensured the polygons are correctly defined multiple times, but as shown in the images, the merging produces unexpected results.</p>\n<p>**Here's the code I've tried: **</p>\n<pre><code>public class PolygonMerger {\n    \n    public static List&lt;double[]&gt; mergePolygons(List&lt;double[]&gt; polygons) {\n        List&lt;Geometry&gt; jtsPolygons = new ArrayList&lt;&gt;();\n        GeometryFactory factory = new GeometryFactory();\n\n        for (double[] coords : polygons) {\n            Coordinate[] coordinates = new Coordinate[coords.length / 2];\n            for (int i = 0; i &lt; coords.length; i += 2) {\n                coordinates[i / 2] = new Coordinate(coords[i], coords[i + 1]);\n            }\n            \n            // Ensure the polygon is closed\n            if (!coordinates[0].equals(coordinates[coordinates.length - 1])) {\n                Coordinate[] closedCoordinates = new Coordinate[coordinates.length + 1];\n                System.arraycopy(coordinates, 0, closedCoordinates, 0, coordinates.length);\n                closedCoordinates[coordinates.length] = coordinates[0]; // Close the polygon\n                coordinates = closedCoordinates;\n            }\n\n            // Create the polygon\n            Polygon polygon = factory.createPolygon(coordinates);\n            \n            // Validate and repair the polygon if needed\n            if (!new IsValidOp(polygon).isValid()) {\n                polygon = (Polygon) polygon.buffer(0); // Repair polygon\n            }\n            \n            jtsPolygons.add(polygon);\n        }\n        \n        // Union all polygons\n        Geometry mergedGeometry = CascadedPolygonUnion.union(jtsPolygons);\n        List&lt;Polygon&gt; mergedPolygons = new ArrayList&lt;&gt;();\n        \n        if (mergedGeometry instanceof Polygon) {\n            mergedPolygons.add((Polygon) mergedGeometry);\n        } else if (mergedGeometry instanceof MultiPolygon) {\n            for (int i = 0; i &lt; mergedGeometry.getNumGeometries(); i++) {\n                mergedPolygons.add((Polygon) mergedGeometry.getGeometryN(i));\n            }\n        }\n        \n        return convertToDoubleArrays(mergedPolygons);\n    }\n    \n    private static List&lt;double[]&gt; convertToDoubleArrays(List&lt;Polygon&gt; polygons) {\n        List&lt;double[]&gt; polygonCoordsList = new ArrayList&lt;&gt;();\n        \n        for (Polygon polygon : polygons) {\n            Coordinate[] coordinates = polygon.getExteriorRing().getCoordinates();\n            double[] coordsArray = new double[coordinates.length * 2];\n            for (int i = 0; i &lt; coordinates.length; i++) {\n                coordsArray[i * 2] = coordinates[i].x;\n                coordsArray[i * 2 + 1] = coordinates[i].y;\n            }\n            \n            polygonCoordsList.add(coordsArray);\n        }\n        \n        return polygonCoordsList;\n    }\n}\n</code></pre>\n<p>What could be causing the unexpected results, and how can I fix them? Are there potential issues with the merging process or the polygon definitions that I might have overlooked?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

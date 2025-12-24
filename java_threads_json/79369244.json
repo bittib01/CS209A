@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "winapi",
+      "com",
+      "taskbar",
+      "java-ffm"
+    ],
+    "owner": {
+      "account_id": 8877206,
+      "reputation": 241,
+      "user_id": 6628911,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/4076075907310368328fd2750c80d99f?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Petr Štechm&#252;ller",
+      "link": "https://stackoverflow.com/users/6628911/petr-%c5%a0techm%c3%bcller"
+    },
+    "is_answered": false,
+    "view_count": 125,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1761676808,
+    "creation_date": 1737301587,
+    "last_edit_date": 1737306613,
+    "question_id": 79369244,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79369244/fail-to-create-instance-of-itaskbarlist3",
+    "title": "Fail to create instance of ITaskbarList3",
+    "body": "<p>I'm learning the new Java FFM API.\nDuring the learning, I decided to use Windows SDK to control <code>Taskbar</code>.</p>\n<p>The interface <code>ITtaskbarList3</code> represents the <code>Taskbar</code> and provides functions to control it.</p>\n<p>I used the <code>jextract</code> tool to generate necessary classes:</p>\n<pre><code>jextract --output target/generated-sources/jextract -t &quot;taskbar_test.gen&quot; -l :shell32 -l :Explorerframe -l :ole32 -I &quot;C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.26100.0\\shared&quot; -I &quot;C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.26100.0\\um&quot; -I &quot;C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.26100.0\\km&quot; -I &quot;C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.26100.0\\km\\crt&quot; &quot;C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.26100.0\\um\\ShObjIdl_core.h&quot;\n</code></pre>\n<p>In the code below, I'm trying to obtain <code>CLSID</code> and <code>IID</code> from <code>string</code> and use them to obtain an instance of <code>ITaskbarList3</code>:</p>\n<pre class=\"lang-java prettyprint-override\"><code>\npackage taskbar_test;\n\nimport taskbar_test.gen.CLSID;\nimport taskbar_test.gen.ShObjIdl_core_h;\n\nimport java.lang.foreign.Arena;\nimport java.lang.foreign.MemorySegment;\n\npublic class ComStart {\n\n    public static final String GUID_FORMAT = &quot;{%s}&quot;;\n    \n    // CLSID of ITaskbarList3\n    public static final String CLSID_CONST = &quot;56FDF344-FD6D-11d0-958A-006097C9A090&quot;;\n    // IID of ITaskbarList3\n    public static final String IID_CONST = &quot;EA1AFB91-9E28-4B86-90E9-9E9F8A5EEFAF&quot;;\n\n    public static void main(String[] args) {\n\n            try (var arena = Arena.ofConfined()) {\n                // https://learn.microsoft.com/en-us/windows/win32/api/combaseapi/nf-combaseapi-clsidfromstring#remarks\n                // The CLSID format is {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}.\n                var clsidString = arena.allocateFrom(GUID_FORMAT.formatted(CLSID_CONST));\n                var iidString = arena.allocateFrom(GUID_FORMAT.formatted(IID_CONST));\n                var clsid = arena.allocate(CLSID.layout());\n                var iid = arena.allocate(CLSID.layout());\n                var taskbarPtr = arena.allocate(ShObjIdl_core_h.C_POINTER);\n\n                int hr = ShObjIdl_core_h.CoInitializeEx(MemorySegment.NULL, ShObjIdl_core_h.COINIT_MULTITHREADED());\n                if (hr != ShObjIdl_core_h.S_OK()) {\n                    throw new RuntimeException(&quot;CoInitialize failed with error code: &quot; + hr);\n                }\n\n                hr = ShObjIdl_core_h.CLSIDFromString(clsidString, clsid);\n                if (hr != ShObjIdl_core_h.S_OK()) {\n                    throw new RuntimeException(&quot;CLSIDFromString failed with error code: &quot; + hr);\n                }\n                \n                hr = ShObjIdl_core_h.IIDFromString(iidString, iid);\n                if (hr != ShObjIdl_core_h.S_OK()) {\n                    throw new RuntimeException(&quot;IIDFromString failed with error code: &quot; + hr);\n                }\n\n                hr = ShObjIdl_core_h.CoCreateInstance(clsid, MemorySegment.NULL, ShObjIdl_core_h.CLSCTX_REMOTE_SERVER(), iid, taskbarPtr);\n                if (hr != ShObjIdl_core_h.S_OK()) {\n                    if (hr == ShObjIdl_core_h.REGDB_E_CLASSNOTREG()) {\n                        System.out.println(&quot;COM class is not registered!&quot;);\n                    }\n                    throw new RuntimeException(&quot;CoCreateInstance failed with error code: &quot; + hr);\n                }\n\n            } finally {\n                ShObjIdl_core_h.CoUninitialize();\n            }\n    }\n\n}\n</code></pre>\n<p>I expect to get the instance, but instead I get error from function <code>CLSIDFromString</code> that the string does not have correct format. I do not understand why, because the format is following documentation.</p>\n<p>How the code should look like to be able to obtain instance correctly so I can manage taskbar, namely set progress value.</p>\n<p>Thank you.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-webflux"
+    ],
+    "owner": {
+      "account_id": 3624611,
+      "reputation": 493,
+      "user_id": 3022586,
+      "user_type": "registered",
+      "accept_rate": 100,
+      "profile_image": "https://www.gravatar.com/avatar/402cc8ea9c0f928e6cd95ee4a631392b?s=256&d=identicon&r=PG",
+      "display_name": "CptWasp",
+      "link": "https://stackoverflow.com/users/3022586/cptwasp"
+    },
+    "is_answered": false,
+    "view_count": 89,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1715011400,
+    "creation_date": 1709712231,
+    "last_edit_date": 1715011400,
+    "question_id": 78112687,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78112687/getting-the-principal-inside-an-errorwebexceptionhandler-using-webflux",
+    "title": "Getting the Principal inside an ErrorWebExceptionHandler using Webflux",
+    "body": "<p>I wrote a working error handler for my webflux application.\nThe problem arose when I tried to add the username of the logged Principal to exceptions... I see using the debugger that no context is found inside the ReactiveSecurityContextHolder, so &quot;N/A&quot; is always used as username value...</p>\n<p>Note that:</p>\n<ol>\n<li>If you remove the call to restPrincipalService.getPrincipalUsername() the handler works as expected</li>\n<li>The method restPrincipalUsername.getPrincipalUsername() when called in a Controller or Service works just well, and authentication is working</li>\n</ol>\n<p>Here the code:</p>\n<pre><code>@Component\n@Order(-2)\n@SuppressWarnings(&quot;unused&quot;)\n@Slf4j\npublic class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHandler {\n\n    @Autowired\n    private RestPrincipalService principalService;\n\n    public GlobalErrorWebExceptionHandler(ErrorAttributes errorAttributes, ApplicationContext applicationContext, ServerCodecConfigurer serverCodecConfigurer) {\n        super(errorAttributes, new WebProperties.Resources(), applicationContext);\n        super.setMessageWriters(serverCodecConfigurer.getWriters());\n        super.setMessageReaders(serverCodecConfigurer.getReaders());\n    }\n\n    @Override\n    protected RouterFunction&lt;ServerResponse&gt; getRoutingFunction(\n      ErrorAttributes errorAttributes) {\n\n        return RouterFunctions.route(\n          RequestPredicates.all(), this::renderErrorResponse);\n    }\n\n    private Mono&lt;ServerResponse&gt; renderErrorResponse(ServerRequest request) {\n\n        Map&lt;String, Object&gt; errorPropertiesMap = getErrorAttributes(request,\n           ErrorAttributeOptions.of(ErrorAttributeOptions.Include.EXCEPTION, ErrorAttributeOptions.Include.MESSAGE));\n\n        return principalService.getPrincipalUsername().flatMap(username -&gt; {\n            errorPropertiesMap.put(&quot;username&quot;, username);\n            String exception= errorPropertiesMap.get(&quot;exception&quot;).toString();\n            //...business logic on exception and properties, using username\n            return ServerResponse.status(HttpStatus.valueOf((Integer) errorPropertiesMap.get(&quot;status&quot;)))\n                .contentType(MediaType.APPLICATION_JSON)\n                .body(BodyInserters.fromValue(errorPropertiesMap));\n        });\n\n    }\n}\n</code></pre>\n<p>The getPrincipalUsername() implementation:</p>\n<pre><code>public Mono&lt;String&gt; getPrincipalUsername() {\n    return ReactiveSecurityContextHolder.getContext()\n            .map(ctx-&gt;\n                    ctx.getAuthentication())\n            .filter(authentication -&gt;\n                    authentication != null &amp;&amp; authentication.isAuthenticated())\n            .map(authentication -&gt;\n                    ((Principal)authentication.getPrincipal()).getUsername())\n            .switchIfEmpty(Mono.just(&quot;N/A&quot;)); //No user authenticated\n}\n</code></pre>\n<p>So the question is: why is the getPrincipalUsername working only in services and controllers, and not there? And how can I achieve the expected result?</p>\n<p>Edit: I know, the request has a method getPrincipal, but it doesn't work either... I see using the debugger that the default implementation is:</p>\n<p>(org/springframework/web/server/adapter/DefaultServerWebExchange.java)</p>\n<pre><code>@Override\npublic &lt;T extends Principal&gt; Mono&lt;T&gt; getPrincipal() {\n    return Mono.empty();\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-spark",
+      "parquet"
+    ],
+    "owner": {
+      "account_id": 9942478,
+      "reputation": 305,
+      "user_id": 7358562,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/c62529b214fedd81ca99a292d7d7cb22?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Anshul Dubey",
+      "link": "https://stackoverflow.com/users/7358562/anshul-dubey"
+    },
+    "is_answered": true,
+    "view_count": 85,
+    "answer_count": 2,
+    "score": 4,
+    "last_activity_date": 1754196360,
+    "creation_date": 1752132900,
+    "last_edit_date": 1752231472,
+    "question_id": 79696666,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79696666/parquet-schema-for-map-type-changes-after-spark2-to-3-migration",
+    "title": "Parquet schema for Map type changes after spark2 to 3 migration",
+    "body": "<p>We are migrating from spark 2 to 3 in our workflows and one issue we notice is that the parquet files are having schema mismatch for MapType. Here's a simple example to illustrate the case</p>\n<pre><code>        SparkSession sparkSession = SparkSession\n                .builder()\n                .master(&quot;local[*]&quot;)\n                .config(&quot;spark.sql.parquet.writeLegacyFormat&quot;, true)\n                .getOrCreate();\n\n        //Create struct\n        StructType schema = DataTypes.createStructType(new StructField[]{\n                DataTypes.createStructField(&quot;id&quot;, DataTypes.IntegerType, true),\n                DataTypes.createStructField(&quot;my_map_data&quot;, DataTypes.createMapType(DataTypes.StringType, DataTypes.StringType, Boolean.TRUE), true)\n        });\n\n        //Create sample data\n        List&lt;Row&gt; listRows = new ArrayList&lt;&gt;();\n        listRows.add(RowFactory.create(1, new HashMap&lt;String, String&gt;() {{\n            put(&quot;key&quot;, &quot;value&quot;);\n        }}));\n\n        //Create dataset\n        Dataset&lt;Row&gt; dataset = sparkSession.createDataFrame(listRows, schema);\n\n        //Write to parquet\n        dataset\n                .write()\n                .mode(SaveMode.Overwrite)\n                .parquet(&quot;spark_all_legacy_write_enabled&quot;);\n</code></pre>\n<p>We run the above code with spark 2.4 and then in 3.5. The schema for Map type in spark 2.4 is</p>\n<pre><code>############ Column(key) ############\nname: key\npath: my_map_data.map.key\n\n############ Column(value) ############\nname: value\npath: my_map_data.map.value\n</code></pre>\n<p>But in 3.5, it's</p>\n<pre><code>############ Column(key) ############\nname: key\npath: my_map_data.key_value.key\n\n############ Column(value) ############\nname: value\npath: my_map_data.key_value.value\n</code></pre>\n<p>In spark 2.4, the schema has &quot;map&quot; but in 3.5, the schema has &quot;key_value&quot;. This is causing our schema to mismatch. Is there a way we can resolve it? I am not able to find any help on this</p>\n<p>Edit : Schema for both spark versions is same</p>\n<pre><code>root\n |-- id: integer (nullable = true)\n |-- my_map_data: map (nullable = true)\n |    |-- key: string\n |    |-- value: string (valueContainsNull = true)\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

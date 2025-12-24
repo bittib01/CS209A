@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "jackson",
+      "jaxb"
+    ],
+    "owner": {
+      "account_id": 20513250,
+      "reputation": 19,
+      "user_id": 20846747,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/b49f597d592c73ac37808c95e5774c95?s=256&d=identicon&r=PG",
+      "display_name": "Randall Stephens",
+      "link": "https://stackoverflow.com/users/20846747/randall-stephens"
+    },
+    "is_answered": false,
+    "view_count": 77,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1760967757,
+    "creation_date": 1760620582,
+    "last_edit_date": 1760967757,
+    "question_id": 79792184,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79792184/spring-boot-ignores-xmljavatypeadapter",
+    "title": "Spring Boot ignores @XmlJavaTypeAdapter",
+    "body": "<p>I have a date member with Annotation jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter</p>\n<pre><code>@XmlJavaTypeAdapter(LocalDateTimeAdapter.class)\nprivate LocalDateTime mydate;\n</code></pre>\n<p>When i send xml body to my service</p>\n<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;\n...\n&lt;mydate&gt;2025-10-15 09:49:54&lt;/mydate&gt;\n...\n</code></pre>\n<p>i got an error:</p>\n<pre><code>Resolved [org.springframework.http.converter.HttpMessageNotReadableException: JSON parse error: Cannot deserialize value of type `java.time.LocalDateTime` from String &quot;2025-10-15 09:49:54&quot;\n</code></pre>\n<p>This is because Spring Boot use Jackson and not my JaxB Adapter.</p>\n<p>How can i configure Spring Boot to use my JaxB Adapter?</p>\n<p>Here is my Adapter:</p>\n<pre><code>public class LocalDateTimeAdapter extends XmlAdapter&lt;String, LocalDateTime&gt; {\n\n    private static final DateTimeFormatter STANDARD_DATETIME_PATTERN = DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd HH:mm:ss&quot;);\n\n    public LocalDateTime unmarshal(String value) {\n        try {\n            return LocalDateTime.parse(value, STANDARD_DATETIME_PATTERN);\n        } catch (Exception e) {\n            throw new MyException(e.getMessage(), e);\n        }\n    }\n\n    public String marshal(LocalDateTime localDateTime) {\n        try {\n            return localDateTime.format(STANDARD_DATETIME_PATTERN);\n        } catch (Exception e) {\n            throw new MyException(e.getMessage(), e);\n        }\n    }\n}\n</code></pre>\n<p>Do you have any ideas? Thanks a lot</p>\n<p>EDIT:\nI found the reason but no solution. The “net.sf.jasperreports” library comes with jackson-dataformat-xml as a dependency, and SpringBoot picks the XML parser from jackson-xml instead of jaxb.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

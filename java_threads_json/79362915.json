@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "servlet-filters"
+    ],
+    "owner": {
+      "account_id": 13890676,
+      "reputation": 21,
+      "user_id": 10028747,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/IxR6NBhW.png?s=256",
+      "display_name": "Steve Gazzo",
+      "link": "https://stackoverflow.com/users/10028747/steve-gazzo"
+    },
+    "is_answered": true,
+    "view_count": 67,
+    "accepted_answer_id": 79440419,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1739561815,
+    "creation_date": 1737057398,
+    "question_id": 79362915,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79362915/after-filter-fails-all-further-requests-to-that-endpoint-are-returning-connect",
+    "title": "After filter fails, all further requests to that endpoint are returning &quot;connection refused&quot;",
+    "body": "<p>spring boot 3.4.1, java 21</p>\n<p>I've written a filter that does nothing more than check the request size against a configurable maximum and return 413 if the request is too large.</p>\n<pre><code>@Component\n@Order(Ordered.HIGHEST_PRECEDENCE)\n@Slf4j\npublic class RequestSizeFilter implements Filter {\n\n    @Value(&quot;${fam.max_request_size:10485760}&quot;)\n    private int maxContentBytes;\n\n    @Override\n    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException {\n        try {\n            if (request.getContentLength() &gt; maxContentBytes) {\n                throw new RuntimeException();\n            } else {\n                chain.doFilter(request, response);\n            }\n        } catch (Exception e) {\n            log.error(&quot;Detected overlarge request of %s bytes. Rejecting.&quot;.formatted(request.getContentLength()));\n            HttpServletResponse httpResponse = (HttpServletResponse) response;\n            httpResponse.setStatus(HttpServletResponse.SC_REQUEST_ENTITY_TOO_LARGE);\n            httpResponse.getWriter().println(&quot;Request exceeds maximum size of %s bytes&quot;.formatted(maxContentBytes));\n        }\n\n    }\n}\n\n</code></pre>\n<p>When I run my automated tests against the endpoint this protects, the filter picks up the overlarge request correctly and rejects it with the appropriate status and error message. The problem seems to be that after that rejection, every other test that tries to hit that endpoint fails with</p>\n<pre><code>org.springframework.web.reactive.function.client.WebClientRequestException: Connection refused: localhost/[0:0:0:0:0:0:0:1]:8080\n        at app//org.springframework.web.reactive.function.client.ExchangeFunctions$DefaultExchangeFunction.lambda$wrapException$9(ExchangeFunctions.java:137)\n\n        Caused by:\n        io.netty.channel.AbstractChannel$AnnotatedConnectException: Connection refused: localhost/[0:0:0:0:0:0:0:1]:8080\n\n            Caused by:\n            java.net.ConnectException: Connection refused\n                at java.base/sun.nio.ch.Net.pollConnect(Native Method)\n                at java.base/sun.nio.ch.Net.pollConnectNow(Net.java:682)\n                at java.base/sun.nio.ch.SocketChannelImpl.finishConnect(SocketChannelImpl.java:973)\n                at io.netty.channel.socket.nio.NioSocketChannel.doFinishConnect(NioSocketChannel.java:336)\n                at io.netty.channel.nio.AbstractNioChannel$AbstractNioUnsafe.finishConnect(AbstractNioChannel.java:339)\n                at io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:776)\n                at io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:724)\n                at io.netty.channel.nio.NioEventLoop.processSelectedKeys(NioEventLoop.java:650)\n                at io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:562)\n                at io.netty.util.concurrent.SingleThreadEventExecutor$4.run(SingleThreadEventExecutor.java:997)\n                at io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)\n                at io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)\n                at java.base/java.lang.Thread.run(Thread.java:1583)\n\n</code></pre>\n<p>These are full end to end integration tests, so the context in which the app is running is the same as it would in production. The client we use to hit these endpoints is a custom extension of spring's built-in WebTestClient class with nothing more than a base url and a default authorization header being set for all requests.</p>\n<p>The interesting thing is that if I disable the test that triggers this filter, all my other tests pass. Also, because test ordering is not guaranteed, I know that the same test that passes before the test that triggers this filter will fail if it runs after. The filter has to be leaving the server in some sort of unstable state, but I can't determine how or why. Is there some call I need in order to reset the service to a state where it's ready to accept incoming connections again?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

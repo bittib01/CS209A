@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "kotlin",
+      "ssl",
+      "connection-pooling",
+      "unboundid-ldap-sdk"
+    ],
+    "owner": {
+      "account_id": 3163862,
+      "reputation": 36864,
+      "user_id": 2674303,
+      "user_type": "registered",
+      "accept_rate": 62,
+      "profile_image": "https://www.gravatar.com/avatar/411d782b77899035a96abb71b64e062a?s=256&d=identicon&r=PG",
+      "display_name": "gstackoverflow",
+      "link": "https://stackoverflow.com/users/2674303/gstackoverflow"
+    },
+    "is_answered": true,
+    "view_count": 112,
+    "accepted_answer_id": 79303053,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1734956447,
+    "creation_date": 1734953974,
+    "question_id": 79302955,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79302955/ldapexceptionresultcode-8-strong-auth-required-diagnosticmessage-bindsimple",
+    "title": "LDAPException(resultCode=8 (strong auth required), diagnosticMessage=&#39;BindSimple: Transport encryption required",
+    "body": "<p>Now I have following code to create a new connection:</p>\n<pre><code>        return LDAPConnection(opts, host, port).apply {\n            connectionName = &quot;foo-$userDn-$host-$port&quot;\n            processExtendedOperation(StartTLSExtendedRequest(SSLUtil(TrustAllTrustManager()).createSSLContext()))\n            bind(userDn, password)\n        }      \n</code></pre>\n<p>Now I want to switch to use <code>LDAPConnectionPool</code>.</p>\n<p>I tried to do this:</p>\n<pre><code>        val simpleBindRequest = SimpleBindRequest(userDn, password)\n        val exampleConnection = LDAPConnection(opts, host, port).apply {\n            connectionName = &quot;foo-$userDn-$host-$port&quot;\n            processExtendedOperation(StartTLSExtendedRequest(SSLUtil(TrustAllTrustManager()).createSSLContext()))\n            bind(simpleBindRequest )\n        }      \n        val ldapConnectionPool = LDAPConnectionPool(exampleConnection , 1, 10)\n        ldapConnectionPool.setBindRequest(simpleBindRequest)           \n</code></pre>\n<p>later in some piece of code I do the call fir the first time</p>\n<p><code>connectionPool.getConnection()</code></p>\n<p>and it works because it returns initially passed connection (<code>exampleConnection</code> )</p>\n<p>but when I do a call</p>\n<pre><code>connectionPool.getConnection()\n</code></pre>\n<p>for the second time I get LDAPException:</p>\n<blockquote>\n<p>LDAPException(resultCode=8 (strong auth required), diagnosticMessage='BindSimple: Transport encryption required.\n', ldapSDKVersion=6.0.11, revision=8b21d0a4c6eb8b5c3e60a96fc3e9e13b9c2f650f)\nat com.unboundid.ldap.sdk.LDAPConnectionPool.createConnection(LDAPConnectionPool.java:1388)\nat com.unboundid.ldap.sdk.LDAPConnectionPool.createConnection(LDAPConnectionPool.java:1269)\nat com.unboundid.ldap.sdk.LDAPConnectionPool.getConnection(LDAPConnectionPool.java:1866)</p>\n</blockquote>\n<p>I suppose that it is because of</p>\n<pre><code> processExtendedOperation(StartTLSExtendedRequest(SSLUtil(TrustAllTrustManager()).createSSLContext()))\n</code></pre>\n<p>is not called</p>\n<p>Is there way to fix it ?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

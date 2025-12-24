@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android"
+    ],
+    "owner": {
+      "account_id": 3506277,
+      "reputation": 1062,
+      "user_id": 2931762,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/55f5ec3a5ba563d16b3f8d2d16d43672?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "PrfctByDsgn",
+      "link": "https://stackoverflow.com/users/2931762/prfctbydsgn"
+    },
+    "is_answered": true,
+    "view_count": 97,
+    "accepted_answer_id": 79815178,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1762747700,
+    "creation_date": 1760541738,
+    "last_edit_date": 1762720128,
+    "question_id": 79791333,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79791333/howto-add-ssl-support-for-simple-android-web-server-written-in-java",
+    "title": "Howto add SSL support for simple Android web server written in Java",
+    "body": "<p>I have written a minimalistic HTTP web server in Java. The app works fine for example on my Android phone. When my phone is connected to my local network I can just start the app and use a browser running on my computer to connect to it. Depending on the Ip address of my phone the Url might for example be <a href=\"http://192.168.1.100:8082/test\" rel=\"nofollow noreferrer\">http://192.168.1.100:8082/test</a>.\nThe code consists mainly of two classes. One that is is waiting for connections:</p>\n<pre><code>public class ListenerThread extends Thread\n{\n    public void run()\n    {\n        try\n        {\n            ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(8082);\n            for (;;)\n            {\n                Socket connected = serverSocket.accept();\n                new ClientThread(connected).start();\n            }\n\n        } catch (IOException e)\n        {\n        }\n    }\n}\n</code></pre>\n<p>And another class that handles these connections:</p>\n<pre><code>public class ClientThread extends Thread\n{\n    private final Socket socket;\n\n    public ClientThread(Socket socket)\n    {\n        this.socket = socket;\n    }\n\n    @Override\n    public void run()\n    {\n        try\n        {\n            DataInputStream in = new DataInputStream(socket.getInputStream());\n            DataOutputStream out = new DataOutputStream(socket.getOutputStream());\n\n            byte[] buffer = new byte[2000];\n\n            for(;;)\n            {\n                int read = in.read(buffer, 0, buffer.length);\n                if (read &lt;= 0) break;\n\n                String recData = new String(buffer, 0, read, StandardCharsets.UTF_8);\n                if (recData.length() &gt;= 4 &amp;&amp; recData.substring(0, 4).compareToIgnoreCase(&quot;GET &quot;) == 0)\n                {\n                    reply(out,&quot;Moin Moin&quot;);\n                }\n            }\n\n            in.close();\n            out.close();\n            socket.close();\n\n        } catch (IOException e)\n        {\n        }\n    }\n\n    private void reply(DataOutputStream output, String content)\n    {\n        SimpleDateFormat gmtFormat = new SimpleDateFormat(&quot;E, d MMM yyyy HH:mm:ss 'GMT'&quot;, Locale.getDefault());\n        gmtFormat.setTimeZone(TimeZone.getTimeZone(&quot;GMT&quot;));\n        PrintWriter pw = new PrintWriter(new OutputStreamWriter(output, StandardCharsets.UTF_8), false);\n        pw.append(&quot;HTTP/1.1 200\\r\\n&quot;);\n\n        pw.append(&quot;Content-Type: text/plain; charset=utf-8\\r\\n&quot;);\n        pw.append(&quot;Access-Control-Allow-Origin: *\\r\\n&quot;);\n        pw.append(&quot;Date: &quot;).append(gmtFormat.format(new Date())).append(&quot;\\r\\n&quot;);\n        pw.append(&quot;Connection: keep-alive\\r\\n&quot;);\n        byte[] bytes = content.getBytes(StandardCharsets.UTF_8);\n        pw.append(&quot;Content-Length: &quot;).append(String.valueOf(bytes.length)).append(&quot;\\r\\n&quot;);\n        pw.append(&quot;Server: MoinMoin\\r\\n&quot;);\n        pw.append(&quot;\\r\\n&quot;);\n        pw.flush();\n\n        try\n        {\n            output.write(bytes);\n\n        } catch (IOException e)\n        {\n        }\n    }\n}\n</code></pre>\n<p>To start the listener all I have to do is:</p>\n<pre><code>    private ListenerThread listener = null;\n\n    [..]\n\n    listener = new ListenerThread();\n    listener.start();\n</code></pre>\n<p>So far so good.</p>\n<p>But now I want to upgrade this to https because browsers don't like unencrypted connections these days. Just using <code>SSLServerSocketFactory</code> instead of <code>ServerSocketFactory</code> and so on doesn't do the trick. There must be more. The browser tells me that the connection is not secure. I guess he's right. I need to provide a certificate somehow. Maybe a self signed certificate is sufficient for playing. But how am I supposed to apply it? Every hint is very welcome.</p>\n<p>Please don't worry about the fact that the code presented answers every get request with the same phrase, that doesn't matter for my question about enabling https requests.</p>\n<p>Update: So it seems nobody thinks having a thread offering a https server could be useful ... although other environments support this more or less out-of-the-box (python) or have project templates for similar thinks included (Visual Studio) ...</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

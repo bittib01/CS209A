@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "ehcache",
+      "kryo"
+    ],
+    "owner": {
+      "account_id": 5987208,
+      "reputation": 95,
+      "user_id": 4704423,
+      "user_type": "registered",
+      "accept_rate": 60,
+      "profile_image": "https://i.sstatic.net/7CiRD.jpg?s=256",
+      "display_name": "Oskar Woźniak",
+      "link": "https://stackoverflow.com/users/4704423/oskar-wo%c5%baniak"
+    },
+    "is_answered": false,
+    "view_count": 54,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1747590235,
+    "creation_date": 1747590235,
+    "question_id": 79627689,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79627689/ehcache-3-java-config-for-spring-boot-with-kryo-persistence",
+    "title": "ehcache 3 - Java config for spring boot with Kryo &amp; Persistence",
+    "body": "<p>I tried different approaches but each time getting new errors. I'm trying to</p>\n<ol>\n<li>Configure Encache via java</li>\n<li>have disk persistance</li>\n<li>Effcient serializer like Kryo</li>\n</ol>\n<p>Any help appreciated</p>\n<p>EhcacheConfig.java</p>\n<pre><code>package com.owozniak.tradingplugin.configs;\n\nimport com.owozniak.tradingplugin.controllers.OhlcCandleResponse;\nimport com.owozniak.tradingplugin.controllers.OhlcCandleResult;\nimport org.ehcache.Cache;\nimport org.ehcache.PersistentCacheManager;\nimport org.ehcache.config.CacheConfiguration;\nimport org.ehcache.config.builders.*;\nimport org.ehcache.config.units.*;\nimport org.ehcache.jsr107.Eh107Configuration;\nimport org.springframework.cache.annotation.EnableCaching;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\n\nimport javax.cache.Caching;\nimport javax.cache.spi.CachingProvider;\nimport java.io.File;\nimport java.time.LocalDate;\nimport java.util.List;\nimport java.util.Set;\n\n@Configuration\n@EnableCaching\npublic class EhcacheConfig {\n\n    private static final File PERSISTENCE_DIR = new File(&quot;spring-boot-ehcache/cache&quot;);\n\n    @Bean\n    public PersistentCacheManager ehCacheNativeManager() {\n        return CacheManagerBuilder.newCacheManagerBuilder()\n                .with(CacheManagerBuilder.persistence(PERSISTENCE_DIR)) // Register persistence service\n                .withCache(&quot;lastTradingDay&quot;, getConfig(String.class, LocalDate.class))\n                .withCache(&quot;nextTradingDay&quot;, getConfig(String.class, LocalDate.class))\n                .withCache(&quot;getOhlc&quot;, getConfig(String.class, OhlcCandleResponse.class))\n                .withCache(&quot;getOhlcAll&quot;, getConfig(String.class, (Class&lt;List&lt;OhlcCandleResult&gt;&gt;) (Class&lt;?&gt;) List.class))\n                .withCache(&quot;getTodaySymbols&quot;, getConfig(String.class, (Class&lt;Set&lt;String&gt;&gt;) (Class&lt;?&gt;) Set.class))\n                .build(true);\n    }\n\n    private static &lt;K, V&gt; CacheConfiguration&lt;K, V&gt; getConfig(Class&lt;K&gt; keyType, Class&lt;V&gt; valueType) {\n        return CacheConfigurationBuilder.newCacheConfigurationBuilder(\n                        keyType,\n                        valueType,\n                        ResourcePoolsBuilder.newResourcePoolsBuilder()\n                                .heap(10_000, EntryUnit.ENTRIES)\n                                .offheap(1, MemoryUnit.GB)\n                                .disk(10, MemoryUnit.GB, true)) // disk requires persistence config\n                .withExpiry(ExpiryPolicyBuilder.noExpiration())\n                .build();\n    }\n\n    @Bean\n    public javax.cache.CacheManager jCacheManager(PersistentCacheManager ehCacheNativeManager) {\n        CachingProvider provider = Caching.getCachingProvider();\n        javax.cache.CacheManager jCacheManager = provider.getCacheManager();\n\n        // Register each cache with the JSR-107 manager\n        ehCacheNativeManager.getRuntimeConfiguration().getCacheConfigurations().forEach((name, config) -&gt; {\n\n            javax.cache.configuration.Configuration&lt;?, ?&gt; configuration = Eh107Configuration.fromEhcacheCacheConfiguration(config);\n            jCacheManager.createCache(name, configuration);\n        });\n\n        return jCacheManager;\n    }\n\n    @Bean\n    public org.springframework.cache.CacheManager cacheManager(javax.cache.CacheManager jCacheManager) {\n        return new org.springframework.cache.jcache.JCacheCacheManager(jCacheManager);\n    }\n}\n\n</code></pre>\n<p>I tried different configurations over the internet and reselve the issues, but none works with persistence and serialization</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

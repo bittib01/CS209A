@@ -1,0 +1,31 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-cloud-gateway"
+    ],
+    "owner": {
+      "account_id": 44400986,
+      "reputation": 1,
+      "user_id": 31733309,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/93fdb33a5f27dfb07b5aeec085f11f3b?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Илья",
+      "link": "https://stackoverflow.com/users/31733309/%d0%98%d0%bb%d1%8c%d1%8f"
+    },
+    "is_answered": false,
+    "view_count": 43,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1761121838,
+    "creation_date": 1761121838,
+    "question_id": 79796559,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79796559/validating-files-in-spring-cloud-gateway-mvc",
+    "title": "Validating files in Spring Cloud Gateway MVC",
+    "body": "<p>everyone!\nI'm using Spring Cloud Gateway MVC 4.1.2\nI need to validate incoming file in multipart request by checking his magic bytes.\nStraight approach doesn't work because after opening a stream from a file it becomes unavailable for further filters. I tried to use caching but it doesn't work either, request body is missing downstream. Is there a workaround or maybe a right approach to do this kind of validation with Spring Cloud Gateway MVC?</p>\n<p>Here's my code snippet:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Bean\npublic RouterFunction\\&lt;ServerResponse\\&gt; myRoute() {\n    return route(&quot;gateway&quot;).POST(path(&quot;/upload&quot;), http(&quot;http://localhost:8081&quot;)).before(request -&gt; {\n       var clonedInputStream = cacheBody(request);\n       var clonedRequest = adaptCachedBody().apply(request);\n       clonedInputStream.reset();\n\n            try {\n                byte[] pdfSignature = {0x25, 0x50, 0x44, 0x46, 0x2D};\n                byte[] actualSignature = new byte[pdfSignature.length];\n                HttpServletRequest httpServletRequest = request.servletRequest();\n                Part file = httpServletRequest.getPart(&quot;file&quot;);\n                file.getInputStream().read(actualSignature);\n                if (!Arrays.equals(pdfSignature, actualSignature)) {\n                    throw new RuntimeException(&quot;Not PDF&quot;);\n                }\n            } catch (IOException | ServletException e) {\n                throw new RuntimeException(e);\n            }\n            return clonedRequest;\n        }).build();\n    }\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

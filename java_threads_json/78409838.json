@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "2d",
+      "game-development"
+    ],
+    "owner": {
+      "account_id": 31998582,
+      "reputation": 1,
+      "user_id": 24806651,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/dce4c27d4d498d0745865020b433fd78?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "XN 2X",
+      "link": "https://stackoverflow.com/users/24806651/xn-2x"
+    },
+    "is_answered": false,
+    "view_count": 36,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1720406422,
+    "creation_date": 1714493740,
+    "last_edit_date": 1714493839,
+    "question_id": 78409838,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78409838/player-movement-problem-java-graphics-2d",
+    "title": "Player Movement Problem (Java Graphics 2D)",
+    "body": "<p>I can't make the character do what he was doing before jumping, after jumping.\nThere is a keyReleased method to receive the last released key that was pressed, and this method means that, for example, I am pressing D and SPACE to jump to the right, then I release SPACE and D is forgotten by the program. So, I can't know what the character was doing before releasing the key to resume that action.</p>\n<p>Im brazillian so some variables will be in portuguese</p>\n<p>pula: jump</p>\n<p>pulou: jumped</p>\n<p>imagem: image</p>\n<p>botaoPressionado: keyPressed</p>\n<p>moveParaADireita: moveToTheRight</p>\n<p>moveParaAEsquerda: moveToTheLeft</p>\n<p>agacha: crouch</p>\n<p>comeceEsseMovimento: initThisMove</p>\n<p>Here is the code:</p>\n<pre><code>    private boolean blocked = false;\n\n    private Player player;\n    private int x, y, dx, dy;\n    Image imagem;\n    private int altura, largura;\n    private boolean direita = false;\n    private boolean esquerda = false;\n    private final int GRAVITY = 1;\n    private final int JUMP_FORCE = -20;\n    private final int GROUND_Y = 750;\n    private int yVel;\n\n    boolean moving = false;\n\n    public Player2() {\n        x = 100;\n        y = GROUND_Y;\n        yVel = 0;\n\n    }\n\n    public void update() {\n        x += dx;\n        yVel += GRAVITY;\n        y += yVel;\n\n        if (y &gt;= GROUND_Y) {\n            y = GROUND_Y;\n            yVel = 0;\n        }\n    }\n\n    public void jump() {\n        if (y == GROUND_Y) {\n            yVel = JUMP_FORCE;\n        }\n    }\n\n    public String listaDeMoves = null;\n    private boolean movendo;\n    private boolean block;\n    private ArrayList&lt;Movimento&gt; listMoves = new ArrayList&lt;&gt;();\n\n\n    void keyPressed(KeyEvent botaoPressionado) {\n\n        switch (botaoPressionado.getKeyCode()) {\n            case KeyEvent.VK_D:\n                moveParaADireita();\n                listMoves.add(new Movimento(&quot;andouParaADireita&quot;));\n                break;\n            case KeyEvent.VK_A:\n                moveParaAEsquerda();\n                listMoves.add(new Movimento(&quot;andouParaAEsquerda&quot;));\n                break;\n            case KeyEvent.VK_S:\n                listMoves.add(new Movimento(&quot;agachou&quot;));\n                agacha();\n                break;\n            case KeyEvent.VK_W:\n                nadaAinda();\n                break;\n            case KeyEvent.VK_SPACE:\n                listMoves.add(new Movimento(&quot;pulou&quot;));\n                pula();\n                break;\n            case KeyEvent.VK_ESCAPE:\n                Menu menu = new Menu();\n                menu.setVisible(true);\n                break;\n        }\n\n    }\n\n    private void menu() {\n        Menu menu = new Menu();\n        menu.setVisible(true);\n    }\n\n    private void pula() {\n        jump();\n        moving = true;\n        ImageIcon referencia = new ImageIcon(&quot;res\\\\Colour2//player//120x80_gifs//__Jump.gif&quot;);\n        imagem = referencia.getImage();\n    }\n\n    private void agacha() {\n        if (!moving) {\n            ImageIcon referencia = new ImageIcon(&quot;res\\\\Colour2//player//120x80_gifs//__Crouch.gif&quot;);\n            imagem = referencia.getImage();\n            blocked = true;\n        }\n    }\n\n    private void moveParaAEsquerda() {\n        dx = -5;\n        moving = true;\n        ImageIcon referencia = new ImageIcon(&quot;res\\\\Colour2//player//120x80_gifs//__RunBehind.gif&quot;);\n        imagem = referencia.getImage();\n        direita = false;\n        esquerda = true;\n    }\n\n    private void moveParaADireita() {\n        dx = 5;\n        moving = true;\n        ImageIcon referencia = new ImageIcon(&quot;res\\\\Colour2//player//120x80_gifs//__RunNormal.gif&quot;);\n        imagem = referencia.getImage();\n        direita = true;\n        esquerda = false;\n    }\n\n\n    public void keyReleased(KeyEvent botaoSoltado) {\n        int tecla = botaoSoltado.getKeyCode();\n//        ImageIcon referencia = new //ImageIcon(&quot;res\\\\Colour2//player//120x80_gifs//__Idle.gif&quot;);\n//        imagem = referencia.getImage();\n        blocked = false;\n        moving = false;\n        if(tecla == KeyEvent.VK_SPACE) {\n\n        }else{\n            dx = 0;\n        }\n    }\n\n    private void comeceEsseMovimento(String movimentoAtual) {\n        switch (movimentoAtual){\n            case &quot;andouParaADireita&quot;:\n                moveParaADireita();\n                break;\n            case &quot;andouParaAEsquerda&quot;:\n                moveParaAEsquerda();\n                break;\n            case &quot;pulou&quot;:\n                pula();\n                break;\n            case &quot;agachou&quot;:\n                agacha();\n                break;\n        }\n    }\n\n\n    void load() {\n        ImageIcon referencia = new ImageIcon(&quot;res\\\\Colour2//player//120x80_gifs//__Idle.gif&quot;);\n        imagem = referencia.getImage();\n        altura = imagem.getHeight(null);\n        largura = imagem.getWidth(null);\n    }\n</code></pre>\n<p>I tried several validations but none worked. I tried to create an arrayList that receives all the movements made and when the KeyReleased method runs, it sees what the last movement was other than the jump and runs that movement, but it didn't work because it ran this every time the method ran and it wasn't well validated, so any previous movement was repeated when releasing any key. Example: I'm jumping so I stop jumping and start walking. So when I release the walk button, the character jumps because that's what he was doing before he walked.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "kotlin",
+      "jvm",
+      "bytecode",
+      "java-bytecode-asm"
+    ],
+    "owner": {
+      "account_id": 10443944,
+      "reputation": 258,
+      "user_id": 7802769,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/x8ITi.jpg?s=256",
+      "display_name": "Gleb",
+      "link": "https://stackoverflow.com/users/7802769/gleb"
+    },
+    "is_answered": true,
+    "view_count": 100,
+    "accepted_answer_id": 79708441,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1753055462,
+    "creation_date": 1753002155,
+    "question_id": 79707876,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79707876/how-to-use-visitlocalvariable-in-asm-correctly",
+    "title": "How to use visitLocalVariable in ASM correctly?",
+    "body": "<p>So I am trying to add information about locals I use. The current way I am trying to achieve it - is:</p>\n<pre class=\"lang-java prettyprint-override\"><code>methodVisitor = classWriter.visitMethod(ACC_PUBLIC | ACC_STATIC, &quot;something&quot;, &quot;()V&quot;, null, null);\nmethodVisitor.visitCode();\nLabel label0 = new Label();\nmethodVisitor.visitLabel(label0);\nmethodVisitor.visitInsn(ICONST_1);\nLabel label1 = new Label();\nmethodVisitor.visitJumpInsn(IFEQ, label1);\nmethodVisitor.visitLdcInsn(&quot;number&quot;);\nmethodVisitor.visitVarInsn(ASTORE, 0);\nmethodVisitor.visitVarInsn(ALOAD, 0);\nmethodVisitor.visitMethodInsn(INVOKESTATIC, &quot;org/bezsahara/minikotlin/NamingTests&quot;, &quot;accept&quot;, &quot;(Ljava/lang/Object;)V&quot;, false);\nmethodVisitor.visitInsn(RETURN);\nmethodVisitor.visitLabel(label1);\nmethodVisitor.visitIntInsn(BIPUSH, 21);\nmethodVisitor.visitMethodInsn(INVOKESTATIC, &quot;java/lang/Integer&quot;, &quot;valueOf&quot;, &quot;(I)Ljava/lang/Integer;&quot;, false);\nmethodVisitor.visitVarInsn(ASTORE, 0);\nmethodVisitor.visitVarInsn(ALOAD, 0);\nmethodVisitor.visitMethodInsn(INVOKESTATIC, &quot;org/bezsahara/minikotlin/NamingTests&quot;, &quot;accept&quot;, &quot;(Ljava/lang/Object;)V&quot;, false);\nmethodVisitor.visitInsn(RETURN);\nLabel label2 = new Label();\nmethodVisitor.visitLabel(label2);\nmethodVisitor.visitLocalVariable(&quot;hello&quot;, &quot;Ljava/lang/String;&quot;, null, label0, label1, 0);\nmethodVisitor.visitLocalVariable(&quot;goodbye&quot;, &quot;Ljava/lang/Integer;&quot;, null, label1, label2, 0);\nmethodVisitor.visitMaxs(0, 0);\nmethodVisitor.visitEnd();\n</code></pre>\n<p>However, when using Intellij decompiler (I think it uses FernFlower). Variable names are incorrect:</p>\n<pre><code>public static void something() {\n    if (true) {\n        String goodbye = &quot;number&quot;;\n        NamingTests.accept(goodbye);\n    } else {\n        Integer hello = 21;\n        NamingTests.accept(hello);\n    }\n}\n</code></pre>\n<p>After examining compiler outputs. It seems they indicate only LOAD kind of operations on variables. But it seems unreasonable. I mean if I just assign a variable to something it will loose all naming information then.</p>\n<p>So, I would appreciate it if you can help me understand:</p>\n<ol>\n<li>Only LOAD should be marked in visitLocalVariable?</li>\n<li>If so, why is it reasonable? Why can't I also mark STORE?</li>\n</ol>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "multithreading",
+      "quarkus",
+      "reactive",
+      "vertex"
+    ],
+    "owner": {
+      "account_id": 26323032,
+      "reputation": 21,
+      "user_id": 19984776,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/268aa1cf27a6aa87146e83c96d2b150f?s=256&d=identicon&r=PG",
+      "display_name": "SilverLuke",
+      "link": "https://stackoverflow.com/users/19984776/silverluke"
+    },
+    "is_answered": true,
+    "view_count": 293,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1715685168,
+    "creation_date": 1709803284,
+    "question_id": 78120108,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78120108/quarkus-multi-multithreading",
+    "title": "Quarkus Multi&lt;&gt; multithreading",
+    "body": "<p>I can't understand how the items produced by a Multi are handled. In my understanding of Quarkus, they should (at best) be executed asynchronously, so the order, in some cases, should not be preserved.</p>\n<p>I have created a small program to test my knowledge of Quarkus:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Path(&quot;/test&quot;)\n@Slf4j\npublic class Test {\n    \n    public void wait(boolean type) {\n        if (type)\n            return;\n        try {\n            sleep( 10000 );\n        } catch (InterruptedException e) {\n            throw new RuntimeException(e);\n        }\n    }\n\n    public Multi&lt;Integer&gt; generateStream(boolean[] type) {\n        return Multi.createFrom()\n                .emitter(emitter -&gt; {\n                    for(int i = 0; i &lt; type.length; i++) {\n                        emitter.emit(i);\n                    }\n                    emitter.complete();\n                }, BackPressureStrategy.IGNORE\n                );\n    }\n\n    public String intensiveComputation(Integer data, boolean[] type) {\n        boolean isFast = type[data];\n        wait(isFast);\n        String ret = &quot;&quot;;\n        if (isFast) {\n            ret = data + &quot; FAST -&gt; DONE&quot;;\n        }\n        else {\n            ret = data + &quot; SLOW -&gt; DONE&quot;;\n        }\n        return ret + &quot; on &quot; + Thread.currentThread().getName() + &quot;\\n&quot;;\n    }\n\n    public Multi&lt;String&gt; quarkusTest(boolean[] type) {\n        return generateStream(type)\n                .onItem().transform(item -&gt; this.intensiveComputation(item, type))\n                .onItem().invoke(item -&gt; log.info(item));\n    }\n    \n    @GET()\n    @Produces(MediaType.APPLICATION_JSON)\n    public Multi&lt;String&gt; test() {\n        boolean[] type = new boolean[5];\n        type[0] = false;  // SLOW\n        type[1] = false;  // SLOW\n        type[2] = false;  // SLOW\n        type[3] = true;   // FAST\n        type[4] = false;  // SLOW\n        return quarkusTest(type);\n    }\n}\n</code></pre>\n<p>When I call <code>curl &quot;http://localhost:8080/test&quot;</code>, I get the following output:</p>\n<pre><code>[0 SLOW -&gt; DONE on vert.x-eventloop-thread-0\n,1 SLOW -&gt; DONE on vert.x-eventloop-thread-0\n,2 SLOW -&gt; DONE on vert.x-eventloop-thread-0\n,3 FAST -&gt; DONE on vert.x-eventloop-thread-0\n,4 SLOW -&gt; DONE on vert.x-eventloop-thread-0\n]\n</code></pre>\n<p>However, I would have expected something like this:</p>\n<pre><code>[3 FAST -&gt; DONE on vert.x-eventloop-thread-3\n,0 SLOW -&gt; DONE on vert.x-eventloop-thread-0\n,1 SLOW -&gt; DONE on vert.x-eventloop-thread-1\n,2 SLOW -&gt; DONE on vert.x-eventloop-thread-2\n,4 SLOW -&gt; DONE on vert.x-eventloop-thread-3\n]\n</code></pre>\n<p>I have also tried the <code>.runSubscriptionOn(executor)</code> and I get some threading with it but not as expected.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "performance",
+      "file-io",
+      "stream",
+      "benchmarking"
+    ],
+    "owner": {
+      "account_id": 20205266,
+      "reputation": 19,
+      "user_id": 14819876,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/5498b2fe60e758c7f44020b3d78b4e3e?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "sebkaminski16",
+      "link": "https://stackoverflow.com/users/14819876/sebkaminski16"
+    },
+    "is_answered": true,
+    "view_count": 132,
+    "answer_count": 6,
+    "score": 0,
+    "last_activity_date": 1764853568,
+    "creation_date": 1763796572,
+    "last_edit_date": 1763803889,
+    "question_id": 79827180,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79827180/why-is-filereader-as-efficient-as-bufferedreader-in-reading-1kb-chunks-of-data",
+    "title": "Why is FileReader as efficient as BufferedReader in reading 1KB chunks of data?",
+    "body": "<p>I was trying to read data (chars) from a large text file (~250MB) in 1KB chunks and was very surprised that reading that file using either FileReader or BufferedReader takes exactly the same time, even though the BufferedReader has an internal 8KB character buffer, while FileReader doesn't.</p>\n<p>FileReader code:</p>\n<pre><code>File file = new File(&quot;250mbfile.txt&quot;);\nFileReader fileReader = new FileReader(file);\n\nchar[] charBuffer = new char[1024];\nwhile(fileReader.read(charBuffer, 0, 1024) != -1) {//...};\n</code></pre>\n<p>BufferedReader code:</p>\n<pre><code>File file = new File(&quot;250mbfile.txt&quot;);\nFileReader fileReader = new FileReader(file);\nBufferedReader  bufferedReader = new BufferedReader(fileReader);\n\nchar[] charBuffer = new char[1024];\nwhile(bufferedReader.read(charBuffer, 0, 1024) != -1) {//...};\n</code></pre>\n<p>JMH benchmark:</p>\n<pre><code>Benchmark                           Mode  Cnt     Score     Error  Units\nBenchmark.bufferedReaderCHARBUFFER  avgt    5  3878.794 ± 145.105  ms/op\nBenchmark.fileReaderCHARBUFFER      avgt    5  3968.835 ± 160.128  ms/op\n</code></pre>\n<p>Why do they both take the same time to complete the task? Since BufferedReader has an 8K character buffer, as I understand, it has to invoke underlaying InputStreamReader's decoding operations once per 8K bytes (it always fills the buffer fully). FileReader has to do the same once per 1K bytes (as specified in the snippets). Therefore, FileReader should be slower as more decoding operations have to be invoked. My only guess would be that the difference in the speeds of repeatedly  decoding 1K blocks of bytes and decoding 8K blocks of bytes is so extremely tiny that it's basically impossible to notice. To support this claim, I've made two additional JMH measurements:</p>\n<p>From the test &quot;CHARBUFFER_1K&quot;:</p>\n<pre><code>File file = new File(&quot;250mbfile.txt&quot;);\nFileReader fileReader = new FileReader(file);\n\nchar[] charBuffer = new char[1024];\nwhile(fileReader.read(charBuffer, 0, 1024) != -1) {//...};\n</code></pre>\n<p>From the test &quot;CHARBUFFER_8K&quot;:</p>\n<pre><code>File file = new File(&quot;250mbfile.txt&quot;);\nFileReader fileReader = new FileReader(file);\nBufferedReader bufferedReader = new BufferedReader(fileReader);\n\nchar[] charBuffer = new char[8192];\nwhile(bufferedReader.read(charBuffer, 0, 8192) != -1) {//...};\n</code></pre>\n<p>JMH:</p>\n<pre><code>Benchmark                  Mode  Cnt     Score     Error  Units\nBenchmark.CHARBUFFER_8K    avgt    5  3778.331 ± 143.736  ms/op\nBenchmark.CHARBUFFER_1K    avgt    5  3778.793 ± 134.118  ms/op\n\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

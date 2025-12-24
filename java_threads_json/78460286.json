@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "slack-api"
+    ],
+    "owner": {
+      "account_id": 32014480,
+      "reputation": 21,
+      "user_id": 24821461,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/f8a2cd75d2a9a85d09b7acca345b0970?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Franco DeAmicis",
+      "link": "https://stackoverflow.com/users/24821461/franco-deamicis"
+    },
+    "is_answered": true,
+    "view_count": 802,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1722009770,
+    "creation_date": 1715346067,
+    "last_edit_date": 1715350362,
+    "question_id": 78460286,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78460286/files-upload-api-method-being-deprecated-for-uploading-test-results-to-slack-via",
+    "title": "files.upload API method being deprecated for uploading test results to Slack via Selenium WebDriver 4.0",
+    "body": "<p>I'm using Selenium WebDriver 4.19 with Java and I upload my test results to Slack. Slack notified me the other day that the files.upload web API method I use to do that is being deprecated.</p>\n<pre><code>Updates required for apps still using the files.upload API \n\nA workspace that you administer contains apps or integrations that recently used the files.upload web API method. We want to inform you about two important changes coming to support for the files.upload API.\n \nMay 8, 2024 \nNewly created Slack apps will no longer be able to access the files.upload API. Existing applications will be able to continue using files.upload until support is discontinued. \n \nMarch 11, 2025 \nSupport for the files.upload API for all apps will be discontinued. \n\nTo prepare for this change, we recommend that app owners migrate away from files.upload and instead use the combination of files.getUploadURLExternal(https://api.slack.com/methods/files.getUploadURLExternal) and files.completeUploadExternal(https://api.slack.com/methods/files.getUploadURLExternal). You can also leverage Slack's SDKs to help transition to this new way of uploading files by visiting our api.slack page(https://api.slack.com/messaging/files#uploading_files). \n</code></pre>\n<p>According to the api.slack page, these are the instructions to solve the problem</p>\n<ol>\n<li>Call <code>files.getUploadURLExternal</code>. The response will contain a URL that you can POST the contents of your file to.</li>\n<li>POST the contents of your file to the URL returned in step 1. This can be done by sending the raw bytes, or can be a multipart form ended request. If all went well, Slack will respond with an HTTP 200.</li>\n<li>Call <code>files.completeUploadExternal</code>. You can optionally specify a sharing destination for your file or files using this API's arguments. This finalizes the file upload started in step 1.</li>\n</ol>\n<p>Here is the existing code that I use with files.upload. The code takes care of posting the contents to Java.  I'm new/very green to Java. I don't understand what they mean by Call files.getUploadURLExternal and Call files.completeUploadExternal. Does anybody have sample Java code which explains how these call statements work.</p>\n<pre><code>// This method sends the test execution results report to Slack\npublic void sendTestExecutionReportToSlack() throws Exception {\n    String url = &quot;https://slack.com/api/files.upload&quot;; // This is the Slack url to upload the test execution results report to\n\n    try {\n        // This is the code to send the test execution report to Slack\n        HttpClient httpclient = HttpClientBuilder.create().disableContentCompression().build(); // Initiate the HttpClient to send the test execution results report to\n        HttpPost httppost = new HttpPost(url); // Post the Slack url\n        MultipartEntityBuilder builder = MultipartEntityBuilder.create(); // Build the builder entity to host the test execution results report\n        FileBody fileBody = new FileBody(new File(PathToReport)); // Add the path of the test execution results report to the file body\n        builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE); // Set up the builder structure to send the test execution results report and make sure it is browser compatible\n        builder.addPart(&quot;file&quot;, fileBody); // Add the file containing the test execution results report to the builder structure\n        builder.addTextBody(&quot;channels&quot;, channelName); // Add the channelName to the builder TextBody\n        builder.addTextBody(&quot;token&quot;, botUserOAuthAccessToken); // Add the token to the builder TextBody\n        httppost.setEntity(builder.build()); // Set the Entity for builder, post the test execution results report with all the builder components including file, channels and token\n        HttpResponse response = null; // Set the HTTPResponse to null\n        response = httpclient.execute(httppost); // The response is equal to the result of httppost\n        HttpEntity result = response.getEntity(); // HTTPEntity Result equals the response of getEntity\n\n    } catch (Exception e) {\n        // If the code to send the test execution results report fails, print the associated stack trace\n        e.printStackTrace(); // Print the Stack Trace\n    }\n}\n</code></pre>\n<p>Also, <a href=\"https://api.slack.com/methods/files.getUploadURLExternal\" rel=\"nofollow noreferrer\">https://api.slack.com/methods/files.getUploadURLExternal</a> requires a mandatory integer/length argument (Size in bytes of the file being uploaded.) Can that be accomplished with builder.addPart()</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

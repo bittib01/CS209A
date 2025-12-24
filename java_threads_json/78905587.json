@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "spring-security"
+    ],
+    "owner": {
+      "account_id": 1923767,
+      "reputation": 845,
+      "user_id": 1734688,
+      "user_type": "registered",
+      "accept_rate": 83,
+      "profile_image": "https://www.gravatar.com/avatar/67a22b508682c4d509c1b891fe462ee4?s=256&d=identicon&r=PG",
+      "display_name": "vratojr",
+      "link": "https://stackoverflow.com/users/1734688/vratojr"
+    },
+    "is_answered": false,
+    "view_count": 79,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1724411072,
+    "creation_date": 1724411072,
+    "question_id": 78905587,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78905587/preauthorize-on-meta-annotation-with-custom-converter",
+    "title": "PreAuthorize on meta annotation with custom converter",
+    "body": "<p>I have an annotation like:</p>\n<pre><code>@Documented\n@Target({ METHOD, TYPE })\n@Retention(RUNTIME)\n@PreAuthorize(&quot;@accessControlManager.hasAuthorization(#id)&quot;)\n@Inherited\npublic @interface RestrictedAccess {\n\n  AccessRight access();\n\n  Functionality functionality();\n\n  Class&lt;?&gt; entityClass();\n\n  String[] recipes() default {};\n}\n</code></pre>\n<p>That always pick the 'id' param of the annotated method. Now I need to make it more generic, in case the id is 'hidden' somewhere else, so following the <a href=\"https://docs.spring.io/spring-security/reference/servlet/authorization/method-security.html#meta-annotations\" rel=\"nofollow noreferrer\">guide</a>\nI updated to this version:</p>\n<pre><code>@Documented\n@Target({ METHOD, TYPE })\n@Retention(RUNTIME)\n@PreAuthorize(&quot;@accessControlManager.hasAuthorization({idPath})&quot;)\n@Inherited\npublic @interface RestrictedAccess {\n\n  /* SPEL expression that return the id of the concerned entity. By default it corresponds to a parameter named 'id' */\n  String idPath() default &quot;#id&quot;;\n\n  AccessRight access();\n\n  Functionality functionality();\n\n  Class&lt;?&gt; entityClass();\n\n  String[] recipes() default {};\n}\n</code></pre>\n<p>And I had to add:</p>\n<pre><code>  @Bean\n  public PrePostTemplateDefaults prePostTemplateDefaults() {\n    return new PrePostTemplateDefaults();\n  }\n</code></pre>\n<p>In my configuration.\nThe problem is that this last bean activates the AuthorizationAnnotationUtils and this, in turn performs a type check on the parameters of mine annotation and crashes when testing the 'entityClass' attribute since a converter from Class to String is missing.\nOk, this is already suspect to me but I started the journey to add a Converter. So I tried to just declare a bean like:</p>\n<pre><code>   @Bean\n   public ClassToStringConverter classToStringConverter() {\n     return new ClassToStringConverter();\n   }\n</code></pre>\n<p>The problem is that the bean is picked up by the WebConverter that's not the same instance that's used by the AuthorizationAnnotationUtils. In fact if we look at the code over there we see something like:</p>\n<pre><code>String asString = (value instanceof String) ? (String) value\n                        : DefaultConversionService.getSharedInstance().convert(value, String.class);\n</code></pre>\n<p>So I had to force my converter over there with:</p>\n<pre><code>  @PostConstruct\n  public void setUp() {\n    ((GenericConversionService)DefaultConversionService.getSharedInstance()).addConverter(new ClassToStringConverter());\n  }\n</code></pre>\n<p>That seems kind of a hack.\nI'm wondering if anyone knows a better solution or if I should fill a bug to spring security to use a proper bean instead of a static access.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

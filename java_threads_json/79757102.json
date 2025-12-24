@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "thymeleaf"
+    ],
+    "owner": {
+      "account_id": 12405064,
+      "reputation": 133,
+      "user_id": 9040433,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/7083395cfda3c16ddc8be94ca94a5308?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "dietzi96",
+      "link": "https://stackoverflow.com/users/9040433/dietzi96"
+    },
+    "is_answered": false,
+    "view_count": 57,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1757100672,
+    "creation_date": 1757100672,
+    "question_id": 79757102,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79757102/how-to-use-model-getattribute-with-thymeleaf-in-spring-boot-controller",
+    "title": "How to use Model.getAttribute with thymeleaf in spring (boot) controller",
+    "body": "<p>I have a Many-to-Many relationship (train line and train station) and want to - when adding a new object (train station) - pass the via dropdown selected mapped entity (train line) id to the spring controller (in order to add the line to the lines of that train station). However none of the attempts I tried worked.</p>\n<p>TrainStation2 entity</p>\n<pre><code>@Entity\n@Table(name = &quot;trainstation2&quot;)\npublic class TrainStation2 {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n    private String ds100;\n    private String name;\n    @ManyToMany(mappedBy = &quot;stations&quot;)\n    private Set&lt;TrainLine&gt; lines = new HashSet&lt;&gt;();\n    \n    //constructor and getters &amp; setters omited\n\n    public void addLine(TrainLine line) {\n        this.lines.add(line);\n        line.getStations().add(this);\n    }\n\n    public void removeLine(TrainLine line) {\n        this.lines.remove(line);\n        line.getStations().remove(this);\n    }\n\n\n</code></pre>\n<p>Spring Controller:</p>\n<pre><code>    @GetMapping(&quot;/add-trainstation2&quot;)\n    public String addTrainStation2(@RequestParam(required = false) Long id, Model model) {\n        model.addAttribute(&quot;trainstation&quot;, new TrainStation2());\n        model.addAttribute(&quot;lineId&quot;, 0);\n        model.addAttribute(&quot;lines&quot;, lineRepo.findAll());\n        return &quot;add-trainstation2&quot;;\n    }\n    \n    @PostMapping(&quot;/add-trainstation2&quot;)\n    public String submitTrainStation2(@ModelAttribute TrainStation2 ts, Model model) {\n        model.addAttribute(&quot;stations&quot;, stationRepo.findAll());\n        model.addAttribute(&quot;lines&quot;, lineRepo.findAll());\n        Long lineId = (Long) model.getAttribute(&quot;lineId&quot;);\n        log.warn(String.format(&quot;lineId: %d&quot;, lineId));\n        ts.addLine(lineRepo.getById(lineId));\n        stationRepo.save(ts);\n        model.addAttribute(&quot;trainstation&quot;, ts);\n        return &quot;add-trainstation2&quot;;\n    }\n</code></pre>\n<p>template add-trainstation2.html</p>\n<pre><code>&lt;!DOCTYPE HTML&gt;\n&lt;html xmlns:th=&quot;https://www.thymeleaf.org&quot;&gt;\n&lt;body&gt;\n    &lt;form action=&quot;#&quot; th:action=&quot;@{/add-trainstation2}&quot; th:object=&quot;${trainstation}&quot;\n        method=&quot;post&quot;&gt;\n        &lt;input type=&quot;hidden&quot; id=&quot;lineId&quot; value=0 th:value=&quot;${lineId}&quot;/&gt;\n        &lt;p&gt;\n            &lt;select class=&quot;form-select&quot; name=&quot;selectLine&quot;\n                onchange=&quot;updateId(this)&quot;&gt;\n                &lt;option th:each=&quot;l : ${lines}&quot; th:value=&quot;${l.id}&quot;\n                    th:text=&quot;${l.name + ' - ' + l.description}&quot; th:selected=&quot;${lineId}&quot;&gt;&lt;/option&gt;\n            &lt;/select&gt;\n        &lt;p&gt;\n        &lt;p&gt;\n            ds100: &lt;input type=&quot;text&quot; th:field=&quot;*{ds100}&quot; /&gt;\n        &lt;/p&gt;\n        &lt;p&gt;\n            name: &lt;input type=&quot;text&quot; th:field=&quot;*{name}&quot; /&gt;\n        &lt;/p&gt;\n        &lt;p&gt;\n            &lt;button type=&quot;submit&quot; class=&quot;btn btn-primary&quot;&gt;Submit&lt;/button&gt;\n            &lt;button type=&quot;reset&quot; class=&quot;btn btn-secondary&quot;&gt;Reset&lt;/button&gt;\n        &lt;/p&gt;\n    &lt;/form&gt;\n&lt;script&gt;\nfunction updateId (objDropDown) {\n    var objHidden = document.getElementById(&quot;lineId&quot;);\n    console.log(objHidden.value);\n    console.log(objDropDown.value);\n    objHidden.value = objDropDown.value; \n}\n&lt;/script&gt;\n&lt;/body&gt;\n&lt;/html&gt;\n</code></pre>\n<p>Neither using <a href=\"https://stackoverflow.com/questions/32206849/spring-mvc-thymeleaf-thselected-not-working\">th:selected</a> nor using a hidden input and th:value did work. Also setting the selected dropdown entry via javascript did not work. How do I set a spring model attribute in thymeleaf to read it via Model.getAttribute() in the spring controller?</p>\n<p>For sake of completeness:</p>\n<pre><code>@Entity\n@Table(name = &quot;trainline&quot;)\npublic class TrainLine {\n    \n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n    private String name;\n    private String description; //to distinguish lines with the same name\n    @ManyToMany\n    @JoinTable(name = &quot;line_station&quot;, joinColumns = @JoinColumn(name = &quot;line_id&quot;), inverseJoinColumns = @JoinColumn(name = &quot;station_id&quot;))\n    private Set&lt;TrainStation2&gt; stations = new HashSet&lt;&gt;();\n    // constructor and getters &amp; setters omited\n}\n</code></pre>\n<p>db schema</p>\n<pre><code>CREATE TABLE trainline(id BIGSERIAL PRIMARY KEY, name TEXT, description TEXT);\nCREATE TABLE trainstation2(id BIGSERIAL PRIMARY KEY, ds100 TEXT, name TEXT);\nCREATE TABLE line_station(line_id BIGINT NOT NULL REFERENCES trainline(id), station_id BIGINT NOT NULL REFERENCES trainstation2(id));\n</code></pre>\n<p>I maybe could use a DTO (data transfer object), but I would rely on that option as last resort only.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

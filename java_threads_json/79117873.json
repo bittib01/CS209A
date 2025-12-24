@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-mvc",
+      "controller",
+      "integration-testing"
+    ],
+    "owner": {
+      "account_id": 20430170,
+      "reputation": 3,
+      "user_id": 14989197,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/021f15d8186b8a009d9bbdf6e87dfe86?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Bahar",
+      "link": "https://stackoverflow.com/users/14989197/bahar"
+    },
+    "is_answered": false,
+    "view_count": 117,
+    "answer_count": 3,
+    "score": 0,
+    "last_activity_date": 1729696951,
+    "creation_date": 1729686154,
+    "last_edit_date": 1729696951,
+    "question_id": 79117873,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79117873/integration-test-java-spring-expected-at-least-1-bean-which-qualifies-as-autowi",
+    "title": "Integration test java spring: expected at least 1 bean which qualifies as autowire candidate",
+    "body": "<p>I want to write Integration logic and endpoints and doesn't want to mock any class, but the program doesn't get into service layer, and gives the error of :</p>\n<pre><code>Caused by: org.springframework.beans.factory.NoSuchBeanDefinitionException: No qualifying bean of type 'service.index.service.IndexService' available: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {}\n</code></pre>\n<p>if I mockBean the service class, it gives 200 status code. while I need to also test the service layer as well and not mock it away. if it gets into service and do all the logic part, it should gives out 201 status code.\nHow can I make it so it test the whole part from controller and the service layer as well?</p>\n<p>This is the Test:</p>\n<pre><code>@WebMvcTest(controllers = Controller.class)\nclass ControllerTest {\n\n@Autowired\nprivate WebApplicationContext webApplicationContext;\n\n@Autowired\nprivate MockMvc mockMvc;\n\n@Autowired\nprivate ObjectMapper mapper;\n\n@Autowired\nprivate IndexService indexService;\n\nprivate String baseUrl = &quot;https://localhost/&quot;;\n\n@Test\nvoid createIndex() throws Exception {\n\n    CreationInputDto input = new CreationInputDto();\n\n    MvcResult result = mockMvc.perform(\n            post(baseUrl+&quot;/create&quot;)\n                    .contentType(MediaType.APPLICATION_JSON)\n                    .content(mapper.writeValueAsString(input))\n            )\n            .andExpect(status().is(201))\n            .andReturn();\n\n\n    String content = result.getResponse().getContentAsString();\n}}\n</code></pre>\n<p>My IndexService has several autowired parameters which several of them are interfaces and can't be initiated easily.</p>\n<p>Update: Thanks everyone. I tried SpringBootTest and WebTestClient instead and it was successful. I put the code, in case in future someone had the same problem and wanted to use the WebTestClient:</p>\n<pre><code>@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)\nclass ControllerTest {\n\n@Autowired\nprivate WebTestClient webTestClient;\n\n@Test\nvoid createIndex() {\n    \n    CreationInputDto input = new CreationInputDto();\n\n    WebTestClient.ResponseSpec result = webTestClient\n            .post()\n            .uri(&quot;/create&quot;)\n            .body(Mono.just(input), CreationInputDto.class)\n            .exchange()\n            .expectStatus().isEqualTo(201);\n}}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

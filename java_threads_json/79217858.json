@@ -1,0 +1,31 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "griddb"
+    ],
+    "owner": {
+      "account_id": 35586054,
+      "reputation": 71,
+      "user_id": 27291830,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/7d2617894fac9a89260b73e1765334c5?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Samar Mohamed",
+      "link": "https://stackoverflow.com/users/27291830/samar-mohamed"
+    },
+    "is_answered": false,
+    "view_count": 44,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1732365838,
+    "creation_date": 1732365838,
+    "question_id": 79217858,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79217858/title-griddb-error-10905-txn-wait-for-transaction-end-while-executing-multiple",
+    "title": "Title: GridDB Error: 10905 TXN_WAIT_FOR_TRANSACTION_END while Executing Multiple Transactions",
+    "body": "<p>I am currently working with GridDB, and I've encountered the following error:</p>\n<pre><code>10905 TXN_WAIT_FOR_TRANSACTION_END ERROR Processing of transaction event\ncontinued to be in standby status. Other transactions may be under execution.\nMultiple clients are executing transactions in the same container at the same time.\nTransactions on standby will be executed when the earlier transactions end.\n</code></pre>\n<p>I have a scenario where I need to perform multiple transactions concurrently in GridDB using different client instances. The container I am accessing is shared between these transactions. However, it seems like transactions are not being executed as expected, leading to the aforementioned error.</p>\n<p>Below is a simplified example of how I'm trying to execute multiple transactions concurrently in Java:</p>\n<pre class=\"lang-java prettyprint-override\"><code>import com.toshiba.mwcloud.gs.Container;\nimport com.toshiba.mwcloud.gs.GridStore;\nimport com.toshiba.mwcloud.gs.GridStoreFactory;\nimport com.toshiba.mwcloud.gs.Row;\nimport com.toshiba.mwcloud.gs.GSException;\nimport java.util.concurrent.Executors;\nimport java.util.concurrent.ExecutorService;\n\npublic class GridDBTransactionTest {\n    public static void main(String[] args) {\n        try {\n            GridStore store = GridStoreFactory.getInstance().getGridStore();\n            Container&lt;Row&gt; container = store.getContainer(&quot;SampleContainer&quot;);\n            ExecutorService executorService = Executors.newFixedThreadPool(3);\n\n            for (int i = 0; i &lt; 3; i++) {\n                executorService.submit(() -&gt; {\n                    try {\n                        store.setAutoCommit(false);\n                        container.put(new Row(1, &quot;Sample Data&quot;)); // Sample operation\n                        store.commit();\n                    } catch (GSException e) {\n                        e.printStackTrace();\n                    }\n                });\n            }\n\n            executorService.shutdown();\n        } catch (Exception e) {\n            e.printStackTrace();\n        }\n    }\n}\n</code></pre>\n<p>In the above code, I am attempting to execute multiple transactions concurrently on the same container. However, I consistently receive the error 10905 TXN_WAIT_FOR_TRANSACTION_END, which indicates that the transaction is waiting for other transactions to end before proceeding.</p>\n<p>How can I handle or avoid this error while executing multiple transactions on the same container in GridDB?</p>\n<p>Is there a way to safely manage concurrent transactions in GridDB to ensure no deadlock or wait conditions arise?</p>\n<p>Should I adjust my use of the transaction model or implement some synchronization mechanism for better concurrency control?</p>\n<p>Any guidance on how to solve or mitigate this problem would be greatly appreciated!</p>\n<p>Thank you in advance!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

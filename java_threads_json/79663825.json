@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-validator",
+      "distributed-tracing",
+      "micrometer-tracing",
+      "spring-validation"
+    ],
+    "owner": {
+      "account_id": 14482834,
+      "reputation": 5478,
+      "user_id": 10461625,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/fgo5D.jpg?s=256",
+      "display_name": "PatPanda",
+      "link": "https://stackoverflow.com/users/10461625/patpanda"
+    },
+    "is_answered": false,
+    "view_count": 48,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1749766818,
+    "creation_date": 1749743828,
+    "last_edit_date": 1749766818,
+    "question_id": 79663825,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79663825/how-to-fail-a-trace-when-valid-fails-in-spring-boot",
+    "title": "How to fail a trace when @Valid fails in Spring Boot",
+    "body": "<p>I would like to fail a trace when the validation <code>@Valid</code> of the request payload fails.</p>\n<pre class=\"lang-java prettyprint-override\"><code>    @Autowired MyService myService;\n\n    @PostMapping(&quot;/validate&quot;)\n    String question(@Valid @RequestBody SomeRequest someRequest) {\n        System.out.println(someRequest);\n        myService.business(someRequest);\n        return &quot;foo&quot;;\n    }\n</code></pre>\n<p>Please note the <code>@Valid</code> annotation, with the following:</p>\n<pre class=\"lang-java prettyprint-override\"><code>import jakarta.validation.constraints.Email;\n\n@ValidSomeRequest\npublic record SomeRequest(@Email String email, int score, String fieldPositive, String fieldZeroAndNegative) { }\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>    @Override\n    @Observed(name = &quot;Validate.timed&quot;, contextualName = &quot;Validate.span&quot;, lowCardinalityKeyValues = {&quot;getValidation&quot;, &quot;getValidation&quot;})\n    public boolean isValid(SomeRequest request, ConstraintValidatorContext context) {\n        if (request == null) {\n            return true; // Let @NotNull handle null cases\n        }\n\n        boolean isValid = true;\n        context.disableDefaultConstraintViolation(); // Prevent default message\n\n        try {\n            Thread.sleep(1000);\n        } catch (InterruptedException e) {\n            throw new RuntimeException(e);\n        }\n\n        if (request.score() &gt; 0) {\n            // If score is positive, fieldPositive must be non-empty, and fieldZeroAndNegative must be null\n            if (request.fieldPositive() == null || request.fieldPositive().isEmpty()) {\n                isValid = false;\n                context.buildConstraintViolationWithTemplate(&quot;fieldPositive must not be empty when score is positive&quot;)\n                        .addPropertyNode(&quot;fieldPositive&quot;)\n                        .addConstraintViolation();\n            }\n            if (request.fieldZeroAndNegative() != null) {\n                isValid = false;\n                context.buildConstraintViolationWithTemplate(&quot;fieldZeroAndNegative must be null when score is positive&quot;)\n                        .addPropertyNode(&quot;fieldZeroAndNegative&quot;)\n                        .addConstraintViolation();\n            }\n        }\n\n        return isValid;\n    }\n}\n</code></pre>\n<p>When the validation passes, I see this, which is good:</p>\n<p><a href=\"https://i.sstatic.net/F0ksGQhV.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/F0ksGQhV.png\" alt=\"enter image description here\" /></a></p>\n<p>However, when the validation fails, I see this instead: there is no error.</p>\n<p><a href=\"https://i.sstatic.net/ju1OBoFd.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/ju1OBoFd.png\" alt=\"enter image description here\" /></a></p>\n<p>I would like to see the error trace when the validation fails. Something like this:</p>\n<p><a href=\"https://i.sstatic.net/4agwmxcL.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/4agwmxcL.png\" alt=\"enter image description here\" /></a></p>\n<p>What am I missing so that I can see a failed trace when the validation fails?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

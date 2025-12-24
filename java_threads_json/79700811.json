@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "hibernate",
+      "spring-data-jpa",
+      "quarkus"
+    ],
+    "owner": {
+      "account_id": 43024933,
+      "reputation": 1,
+      "user_id": 31036842,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/3j23rtlD.jpg?s=256",
+      "display_name": "Roman",
+      "link": "https://stackoverflow.com/users/31036842/roman"
+    },
+    "is_answered": true,
+    "view_count": 79,
+    "accepted_answer_id": 79701648,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1752560865,
+    "creation_date": 1752492423,
+    "last_edit_date": 1752495826,
+    "question_id": 79700811,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79700811/spring-data-jpa-interface-projection-returns-null-values",
+    "title": "Spring Data JPA Interface Projection returns null values",
+    "body": "<p>I'm trying to get aggregated data using Spring Data JPA projection\nI have two entities — UserEntity (with accountNumber and customerID) and RecordEntity, which has a composite key (accountNumber, amountThreshold). I want to sum up amount grouped by customerID and amountThreshold, and map it to a projection interface.</p>\n<p>However, even though the SQL query works fine in the database, my projection fields return null (e.g., customerID = null, amountThreshold = 0, amount = null).</p>\n<p>Entity example:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@AllArgsConstructor\n@NoArgsConstructor\n@Data\n@Entity\n@Table(name = &quot;USER&quot;)\npublic class UserEntity implements Serializable {\n    ...\n    @Column(name = &quot;ACCOUNTT_NUMBER&quot;, nullable = false, length = 20)\n    private String accountNumber;\n    @Column(name = &quot;CUSTOMER_ID&quot;, nullable = true, length = 30)\n    private String customerId;\n    ...\n}\n\n@AllArgsConstructor\n@NoArgsConstructor\n@Data\n@Entity\n@Table(name = &quot;RECORD&quot;)\npublic class RecordEntity implements Serializable {\n    @EmbeddedId\n    private RecordEntityPK id;\n    @Column(name = &quot;AMOUNT&quot;, nullable = false)\n    private BigDecimal amount;\n    ...\n}\n\n@AllArgsConstructor\n@NoArgsConstructor\n@EqualsAndHashCode\n@Data\n@Embeddable\npublic class RecordEntityPK implements Serializable {\n    @Column(name = &quot;ACCOUNTT_NUMBER&quot;, nullable = false, length = 20)\n    private String accountNumber;\n    @Column(name = &quot;AMOUNT_THRESHOLD&quot;, nullable = false)\n    private Long amountThreshold;\n    ...\n}\n</code></pre>\n<p>Projection:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public interface UserAmountProjection {\n    String getCustomerId();\n    Long getAmountThreshold();\n    BigDecimal getAmount();\n}\n</code></pre>\n<p>Repository:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public interface RecordEntityRepository extends CrudRepository&lt;RecordEntity, RecordEntityPK&gt; {\n    @Query(&quot;&quot;&quot;\n    SELECT\n        u.customerId AS customerId,\n        r.id.amountThreshold AS amountThreshold,\n        SUM(r.amount) AS amount\n    FROM RecordEntity r\n    JOIN UserEntity u ON r.id.accountNumber = u.accountNumber\n    WHERE u.customerId IN ?1\n    GROUP BY u.customerId, r.id.amountThreshold\n    ORDER BY u.customerId, r.id.amountThreshold\n&quot;&quot;&quot;)\n    List&lt;UserAmountProjection&gt; findAmountByCustomerID(List&lt;String&gt; CustomerID);\n}\n</code></pre>\n<p>Also, I tried changing the query to return simple values like String and BigDecimal, and it worked — so it looks like the problem is related to projection mapping.</p>\n<p>What am I doing wrong?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

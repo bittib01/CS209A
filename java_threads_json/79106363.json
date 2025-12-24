@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "mongodb-atlas",
+      "spring-ai"
+    ],
+    "owner": {
+      "account_id": 42916,
+      "reputation": 24001,
+      "user_id": 125212,
+      "user_type": "registered",
+      "accept_rate": 52,
+      "profile_image": "https://www.gravatar.com/avatar/cc4c37d7b7bdfa395b2fcdad7aa86125?s=256&d=identicon&r=PG",
+      "display_name": "Jackie",
+      "link": "https://stackoverflow.com/users/125212/jackie"
+    },
+    "is_answered": false,
+    "view_count": 226,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1730569223,
+    "creation_date": 1729398257,
+    "last_edit_date": 1730569223,
+    "question_id": 79106363,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79106363/why-is-mongodb-atlas-vector-store-not-returning-records-when-doing-a-similarity",
+    "title": "Why is MongoDB Atlas Vector Store not returning records when doing a similarity search while running locally?",
+    "body": "<p>I am working on a simple RAG using Spring AI and my MQTT server project <a href=\"https://github.com/jrgleason/spring-ai-example/tree/ADD_MQTT_SUPPORT\" rel=\"nofollow noreferrer\">available here</a>. I swear I had it working once but I didn't commit and now it isn't working again. Basically I think this issue is with the vectorstore. I say that because here</p>\n<pre class=\"lang-java prettyprint-override\"><code>public void updateSmartHomeVectors() throws JsonProcessingException {\n        String smartHomeJson = haNetworkCache.getSmartHomeJson();\n        List&lt;Document&gt; documents = tokenizeSmartHomeStatus(smartHomeJson);\n        vectorStore.add(documents);\n        logger.warn(&quot;Smart Home Vectors Updated&quot;);\n}\n</code></pre>\n<p>When I break point on the last line I see</p>\n<p><a href=\"https://i.sstatic.net/nK32dzPN.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/nK32dzPN.png\" alt=\"enter image description here\" /></a></p>\n<p>But when I try to confirm they were added using <code>vectorStore.similaritySearch(SearchRequest.query(&quot;door&quot;).withTopK(5))</code> I get a result of 0 even though I see things like</p>\n<p><a href=\"https://i.sstatic.net/1k7Ksx3L.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/1k7Ksx3L.png\" alt=\"enter image description here\" /></a></p>\n<p>in mongo. And when I try to ask it a question I get</p>\n<blockquote>\n<p>I'm sorry, but I can't determine what devices are available without additional context or &gt;specific information about your setup. Please provide more details or check your smart &gt;home app or hub for a list of connected devices.</p>\n</blockquote>\n<p>What am I missing why is it not seeing the rag info</p>\n<p><strong>Update</strong></p>\n<p>I did notice <a href=\"https://github.com/spring-projects/spring-ai/blob/1252216f3a6ee27c5cee79194eb76f6abf63764a/vector-stores/spring-ai-mongodb-atlas-store/src/test/java/org/springframework/ai/vectorstore/MongoDBAtlasVectorStoreIT.java#L90\" rel=\"nofollow noreferrer\">this thread wait</a> but when I tried to copy and paste the exact code from the test...</p>\n<pre class=\"lang-java prettyprint-override\"><code>List&lt;Document&gt; documents = List.of(\n    new Document(\n        &quot;Spring AI rocks!! Spring AI rocks!! Spring AI rocks!! Spring AI rocks!! Spring AI rocks!!&quot;,\n        Collections.singletonMap(&quot;meta1&quot;, &quot;meta1&quot;)),\n    new Document(&quot;Hello World Hello World Hello World Hello World Hello World Hello World Hello World&quot;),\n    new Document(\n        &quot;Great Depression Great Depression Great Depression Great Depression Great Depression Great Depression&quot;,\n        Collections.singletonMap(&quot;meta2&quot;, &quot;meta2&quot;)));\n\nvectorStore.add(documents);\nThread.sleep(5000); // Await a second for the document to be indexed\n\nList&lt;Document&gt; results = vectorStore.similaritySearch(SearchRequest.query(&quot;Great&quot;).withTopK(1));\n</code></pre>\n<p>the results are still empty</p>\n<p>So I tried adding the sources to debug</p>\n<pre class=\"lang-none prettyprint-override\"><code>plugins {\n    id 'java'\n    id 'org.springframework.boot' version '3.3.4' // Use the latest stable version\n    id 'io.spring.dependency-management' version '1.1.6'\n    id 'idea'\n}\n\nidea {\n    module {\n        downloadJavadoc = true\n        downloadSources = true\n    }\n}\n</code></pre>\n<p>Ok I got the aggregate query from adding debug logging and create <a href=\"https://github.com/jrgleason/spring-ai-example/blob/ADD_MQTT_SUPPORT/app/debug/mongodb/test-count.js\" rel=\"nofollow noreferrer\">this script</a></p>\n<p>And it appears to be something from the Mongo side because I get</p>\n<pre><code>jgleason@BigBoy ~/code/spring-ai-example -  (ADD_MQTT_SUPPORT) $ mongosh &quot;mongodb://admin:password@10.0.0.58:30087/wiki?authSource=admin&quot; app/debug/mongodb/test-count.js\nConnected to database: wiki\nCollections in this database: [&quot;vector_store&quot;]\nDocument count in vector_store: 12295\nNo matches found\n</code></pre>\n<h1>Update 2</h1>\n<p>I tried to make a minimalist example based <a href=\"https://www.mongodb.com/docs/atlas/atlas-vector-search/ai-integrations/spring-ai/\" rel=\"nofollow noreferrer\">on this</a> <a href=\"https://github.com/jrgleason/spring-ai-example/tree/MIN\" rel=\"nofollow noreferrer\">available here</a> but it still won't return the documents properly.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

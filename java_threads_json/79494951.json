@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "mockito",
+      "junit5",
+      "spring-hateoas"
+    ],
+    "owner": {
+      "account_id": 965625,
+      "reputation": 904,
+      "user_id": 1103606,
+      "user_type": "registered",
+      "accept_rate": 51,
+      "profile_image": "https://www.gravatar.com/avatar/0d93cc650b93939ea91066fcb5aefae0?s=256&d=identicon&r=PG",
+      "display_name": "Peter Penzov",
+      "link": "https://stackoverflow.com/users/1103606/peter-penzov"
+    },
+    "is_answered": true,
+    "view_count": 221,
+    "accepted_answer_id": 79515987,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1742408312,
+    "creation_date": 1741463437,
+    "last_edit_date": 1742408312,
+    "question_id": 79494951,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79494951/cannot-invoke-java-lang-reflect-method-getdeclaringclass-because-method-is",
+    "title": "Cannot invoke &quot;java.lang.reflect.Method.getDeclaringClass()&quot; because &quot;method&quot; is null in Junit 5",
+    "body": "<p>I want to mock a complex case of Java method response into JUnit 5 test which is using hateoas. <br />\nThe JUnit 5 test:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@ExtendWith(MockitoExtension.class)\npublic class ReportingATest {\n\n  @Spy\n  protected StaticPathLinkBuilder staticPathLinkBuilder =\n          new StaticPathLinkBuilder(UriComponentsBuilder.fromHttpUrl(&quot;http://localhost&quot;));\n\n  @Test\n  public void testSuccessfully() throws NoSuchMethodException {\n\n    // Stub with the real method\n    when(staticPathLinkBuilder.linkTo(any(), any()))\n            .thenReturn(mock(LinkBuilder.class));\n\n    ReportingResource reportingResource = reportingAssembler.mergeReturnReversal(returnReversalReport,\n        this.reportingResource);\n    assertNotNull(reportingResource.getReturnReversal());\n  }\n}\n</code></pre>\n<p><code>mergeReturnReversal</code> calls :</p>\n<pre class=\"lang-java prettyprint-override\"><code>Link link = staticPathLinkBuilder.linkTo(\n    methodOn(ReturnReversalController.class).getReturnReversalById(\n        returnReversalReport.getAccount().getId(),\n        returnReversalReport.getReturnReversal().getId())\n).withSelfRel();\n</code></pre>\n<p><code>staticPathLinkBuilder</code> is instance of <code>StaticPathLinkBuilder</code>:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class StaticPathLinkBuilder extends LinkBuilderSupport&lt;StaticPathLinkBuilder&gt; {\n\n  private static final AnnotationMappingDiscoverer ANNOTATION_MAPPING_DISCOVERER =\n      new AnnotationMappingDiscoverer(RequestMapping.class);\n\n  public StaticPathLinkBuilder(UriComponentsBuilder builder) {\n    super(builder.build());\n  }\n\n  public LinkBuilder linkTo(Method method, Object... parameters) {\n    URI relativeUri = createRelativeUri(method, parameters);\n    return slash(UriComponentsBuilder.fromUri(relativeUri).build(), true);\n  }\n\n  private URI createRelativeUri(Method method, Object... parameters) {\n    String mapping = ANNOTATION_MAPPING_DISCOVERER.getMapping(method.getDeclaringClass(), method);\n    UriTemplate template = new UriTemplate(mapping);\n    return template.expand(parameters);\n  }\n\n  public LinkBuilder linkTo(Object dummyInvocation) {\n    if (!(dummyInvocation instanceof LastInvocationAware)) {\n      IllegalArgumentException cause =\n              new IllegalArgumentException(&quot;linkTo(Object) must be call with a dummyInvocation&quot;);\n      throw InternalErrorException.builder()\n              .cause(cause)\n              .build();\n    }\n\n    LastInvocationAware lastInvocationAware = (LastInvocationAware) dummyInvocation;\n\n    MethodInvocation methodInvocation = lastInvocationAware.getLastInvocation();\n\n    StaticPathLinkBuilder staticPathLinkBuilder = getThis();\n    return staticPathLinkBuilder.linkTo(methodInvocation.getMethod(), methodInvocation.getArguments());\n  }\n}\n</code></pre>\n<p>When I run <code>testSuccessfully</code> , <code>ANNOTATION_MAPPING_DISCOVERER.getMapping(method.getDeclaringClass(), method)</code> throws an exception:</p>\n<pre class=\"lang-java prettyprint-override\"><code>Cannot invoke &quot;java.lang.reflect.Method.getDeclaringClass()&quot; because &quot;method&quot; is null\njava.lang.NullPointerException: Cannot invoke &quot;java.lang.reflect.Method.getDeclaringClass()&quot; because &quot;method&quot; is null\n    at com.util.StaticPathLinkBuilder.createRelativeUri(StaticPathLinkBuilder.java:74)\n</code></pre>\n<p>What is the proper way to mock the code so that the JUnit test should pass?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

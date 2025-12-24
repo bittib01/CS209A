@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "openai-api",
+      "spring-ai"
+    ],
+    "owner": {
+      "account_id": 28584981,
+      "reputation": 11,
+      "user_id": 21885399,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AGNmyxYZd2WD5dYR7eQM6_Yyv6VwW5e4IjxakYU1p7DeYQ=k-s256",
+      "display_name": "SirBillyBobJoe",
+      "link": "https://stackoverflow.com/users/21885399/sirbillybobjoe"
+    },
+    "is_answered": false,
+    "view_count": 93,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1752159549,
+    "creation_date": 1752159549,
+    "question_id": 79697256,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79697256/error-when-deserialising-an-array-as-a-stringified-json-into-an-array-of-objects",
+    "title": "Error when Deserialising an Array as a stringified json into an Array of Objects with SpringAI",
+    "body": "<p>I'm using Spring.AI and using the structured outputs, and currently it outputs for me an array of objects in string form, but I'm getting the below error, and I'm not too sure why. I've tried converting the string to the object that matches it, but it's not working.</p>\n<p><strong>Error Message</strong></p>\n<pre><code> Resolved [org.springframework.http.converter.HttpMessageNotReadableException: JSON parse error: Cannot deserialize value of type `java.util.ArrayList&lt;akl.p4p.uoa.data.Test&gt;` from String value (token `JsonToken.VALUE_STRING`)]\n</code></pre>\n<p>What the test Suite stringified json prints out:</p>\n<pre><code>{&quot;tests&quot;:[{&quot;code&quot;:&quot;int arr[] = {0, 5, 10, 15};\\nint result = CountBetween(arr, 4, 3, 12);\\nprintf(\\&quot;%d\\&quot;, result);&quot;,&quot;expectedStdOut&quot;:&quot;2&quot;},{&quot;code&quot;:&quot;int arr[] = {0, 5, 10, 15};\\nint result = CountBetween(arr, 4, 12, 3);\\nprintf(\\&quot;%d\\&quot;, result);&quot;,&quot;expectedStdOut&quot;:&quot;2&quot;},{&quot;code&quot;:&quot;int arr[] = {3, 12, 6, 9};\\nint result = CountBetween(arr, 4, 3, 12);\\nprintf(\\&quot;%d\\&quot;, result);&quot;,&quot;expectedStdOut&quot;:&quot;2&quot;},{&quot;code&quot;:&quot;int arr[] = {4, 4, 4, 4};\\nint result = CountBetween(arr, 4, 1, 5);\\nprintf(\\&quot;%d\\&quot;, result);&quot;,&quot;expectedStdOut&quot;:&quot;4&quot;},{&quot;code&quot;:&quot;int arr[] = {1, 2, 3};\\nint result = CountBetween(arr, 0, 0, 10);\\nprintf(\\&quot;%d\\&quot;, result);&quot;,&quot;expectedStdOut&quot;:&quot;0&quot;},{&quot;code&quot;:&quot;int arr[] = {1, 2, 3};\\nint result = CountBetween(arr, -5, 0, 10);\\nprintf(\\&quot;%d\\&quot;, result);&quot;,&quot;expectedStdOut&quot;:&quot;0&quot;},{&quot;code&quot;:&quot;int arr[] = {1, 2, 3};\\nint result = CountBetween(arr, 3, 5, 5);\\nprintf(\\&quot;%d\\&quot;, result);&quot;,&quot;expectedStdOut&quot;:&quot;0&quot;},{&quot;code&quot;:&quot;int arr[] = {INT_MIN, INT_MIN + 1, 0, INT_MAX - 1, INT_MAX};\\nint result = CountBetween(arr, 5, INT_MIN, INT_MAX);\\nprintf(\\&quot;%d\\&quot;, result);&quot;,&quot;expectedStdOut&quot;:&quot;3&quot;},{&quot;code&quot;:&quot;int result = CountBetween(NULL, 0, 0, 10);\\nprintf(\\&quot;%d\\&quot;, result);&quot;,&quot;expectedStdOut&quot;:&quot;0&quot;},{&quot;code&quot;:&quot;int result = CountBetween(NULL, 5, 0, 10);\\nprintf(\\&quot;%d\\&quot;, result);&quot;,&quot;expectedStdOut&quot;:&quot;0&quot;}]}\n</code></pre>\n<p><strong>The Classes</strong></p>\n<pre><code>@Data\n@Builder\n@NoArgsConstructor\n@AllArgsConstructor\npublic class Test {\n    String code;\n    String expectedStdOut;\n}\n\n@Data\n@Builder\n@NoArgsConstructor\n@AllArgsConstructor\npublic class TestResponse {\n    List&lt;Test&gt; tests;\n}\n\n@Data\n@Document(&quot;problems&quot;)\npublic class Problem {\n\n    @Id private String id;\n\n    private String problemStatement;\n\n    private String modelAnswer;\n\n    private String constraints;\n\n    private List&lt;Test&gt; testSuite;\n\n    private ProgramLanguage programLanguage;\n\n    private ProblemType problemType;\n\n    private String defaultProbe;\n}\n</code></pre>\n<p><strong>The Controller</strong></p>\n<pre><code>@PostMapping(&quot;test-suite&quot;)\npublic ResponseEntity&lt;Problem&gt; generateProblemTestSuite(@RequestBody Problem problem) throws JsonMappingException, JsonProcessingException {\n    String modelAnswer = problem.getModelAnswer();\n    String constraints = problem.getConstraints();\n\n    String basePrompt = Prompts.getTestSuiteGenerationPrompt();\n    String sysPrompt = basePrompt.replace(&quot;//VAR_MODEL_SOLUTION&quot;, modelAnswer)\n            .replace(&quot;//VAR_CONSTRAINTS&quot;, constraints);\n\n    String testSuite = aiService.executeOneTimeLLMCall(sysPrompt, JsonSchemaDefinition.getTestCaseSchema());\n    System.out.println(testSuite);\n    \n    ObjectMapper objectMapper = new ObjectMapper();\n    TestResponse testResponse =  objectMapper.readValue(testSuite, TestResponse.class);\n\n    problem.setTestSuite(testResponse.getTests());\n    return ResponseEntity.ok(problem);\n}\n</code></pre>\n<p><strong>JSON SCHEMA</strong></p>\n<pre><code>    private static final String TEST_CASE_SCHEMA = &quot;&quot;&quot;\n      {\n        &quot;type&quot;: &quot;object&quot;,\n        &quot;properties&quot;: {\n          &quot;tests&quot;: {\n            &quot;type&quot;: &quot;array&quot;,\n            &quot;items&quot;: {\n              &quot;type&quot;: &quot;object&quot;,\n              &quot;properties&quot;: {\n                &quot;code&quot;: { &quot;type&quot;: &quot;string&quot; },\n                &quot;expectedStdOut&quot;: { &quot;type&quot;: &quot;string&quot; }\n              },\n              &quot;required&quot;: [&quot;code&quot;, &quot;expectedStdOut&quot;],\n              &quot;additionalProperties&quot;: false\n            }\n          }\n        },\n        &quot;required&quot;: [&quot;tests&quot;],\n        &quot;additionalProperties&quot;: false\n      }\n      &quot;&quot;&quot;;\n  public static String getTestCaseSchema() {\n    return TEST_CASE_SCHEMA;\n  }\n</code></pre>\n<p><strong>Helper Function With OpenAI</strong></p>\n<pre><code>public String executeOneTimeLLMCall(String systemPrompt, @Nullable String responseSchema) {\n\n    var responseFormat = getResponseType(responseSchema);\n\n    List&lt;Message&gt; history = new ArrayList&lt;&gt;();\n    history.add(new SystemMessage(systemPrompt));\n    OpenAiChatOptions options = OpenAiChatOptions.builder()\n        .model(OpenAiApi.ChatModel.O3)\n        .temperature(1D)\n        .responseFormat(responseFormat)\n        .build();\n    String assistantReply = chatClient.prompt().options(options).messages(history).call().content();\n\n    return assistantReply;\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "shedlock"
+    ],
+    "owner": {
+      "account_id": 10422490,
+      "reputation": 569,
+      "user_id": 7684768,
+      "user_type": "registered",
+      "accept_rate": 87,
+      "profile_image": "https://lh3.googleusercontent.com/-4MZXw5eRzS4/AAAAAAAAAAI/AAAAAAAAAFU/3HT7VCRnHi0/s256-rj/photo.jpg",
+      "display_name": "Natty",
+      "link": "https://stackoverflow.com/users/7684768/natty"
+    },
+    "is_answered": true,
+    "view_count": 716,
+    "accepted_answer_id": 79352159,
+    "answer_count": 2,
+    "score": 2,
+    "last_activity_date": 1752070111,
+    "creation_date": 1736761325,
+    "question_id": 79351744,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79351744/how-can-i-configure-multiple-lockprovider-for-scheduled-tasks-in-spring",
+    "title": "How can I configure multiple LockProvider for scheduled tasks in Spring?",
+    "body": "<p>I'm trying to create two shedlock configuration in Springboot to be able to lock my scheduled tasks using different tables</p>\n<pre class=\"lang-java prettyprint-override\"><code>// Main lock provider\n@Bean(&quot;mainLockProvider&quot;)\npublic LockProvider mainLockProvider(DataSource dataSource) {\n    return new JdbcTemplateLockProvider(\n            JdbcTemplateLockProvider.Configuration.builder()\n                    .withJdbcTemplate(new JdbcTemplate(dataSource))\n                    .usingDbTime()\n                    .withTableName(&quot;main_shedlock_table&quot;)\n                    .build());\n}\n\n// Secondary lock provider\n@Bean(&quot;secondaryLockProvider&quot;)\npublic LockProvider secondaryLockProvider(DataSource dataSource) {\n    return new JdbcTemplateLockProvider(\n            JdbcTemplateLockProvider.Configuration.builder()\n                    .withJdbcTemplate(new JdbcTemplate(dataSource))\n                    .usingDbTime()\n                    .withTableName(&quot;secondary_shedlock_table&quot;)\n                    .build());\n}\n</code></pre>\n<p>But it seems like it's not possible to specify which lock provider to use when defining my scheduled tasks, the <code>@SchedulerLock</code> annotation does not accept a LockProvider in it's parameter</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Scheduled(cron = &quot;*/5 * * * *&quot;)\n@SchedulerLock(name = &quot;some_scheduled_task&quot;, lockAtLeastFor = &quot;PT15S&quot;, lockAtMostFor = &quot;PT1M&quot;)\npublic void scheduledTaskUsingMainLockProvider() {\n  // Should have created a lock entry in table &quot;main_shedlock_table&quot;\n}\n\n@Scheduled(cron = &quot;*/5 * * * *&quot;)\n@SchedulerLock(name = &quot;some_other_scheduled_task&quot;, lockAtLeastFor = &quot;PT15S&quot;, lockAtMostFor = &quot;PT1M&quot;)\npublic void scheduledTaskUsingSecondaryLockProvider() {\n  // Should have created a lock entry in table &quot;secondary_shedlock_table&quot;\n}\n</code></pre>\n<p>Is it possible to achieve what I'm trying to do ?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

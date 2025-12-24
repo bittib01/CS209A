@@ -1,0 +1,31 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "mapstruct"
+    ],
+    "owner": {
+      "account_id": 22567698,
+      "reputation": 37,
+      "user_id": 16754423,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/b6b418573f85d35a8c5d337eaa2a6af5?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "bkqdad",
+      "link": "https://stackoverflow.com/users/16754423/bkqdad"
+    },
+    "is_answered": false,
+    "view_count": 25,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1766445593,
+    "creation_date": 1766445593,
+    "question_id": 79853283,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79853283/mapstruct-inherit-uses",
+    "title": "Mapstruct inherit &#39;uses&#39;",
+    "body": "<p>Given the following classes:</p>\n<pre><code>public abstract class MyAbstractB {\n  private B b;\n}\n\n\npublic abstract class MyAbstractBDto {\n  private BDto bDto;\n}\n\n\npublic class ItemWithB extends MyAbstractB {\n  private C c;\n}\n\n\n\npublic class ItemWithBDto extends MyAbstractBDto {\n  private CDto cDto\n}\n</code></pre>\n<p>And the following mappers:</p>\n<pre><code>@Mapper\npublic abstract class BMapper {\n  @Autowired Converter converter;\n  \n  public abstract BDto map(B b);\n  \n  @AfterMapping\n  public void convert(B src, @MappingTarget BDto dest) {\n    converter.convert(src,dest);\n  }\n}\n\n@Mapper(uses = BMapper.class)\npublic abstract class MyAbstractMapper {\n}\n\n@Mapper(uses = MyAbstractMapper.class) \npublic abstract class ItemWithBMapper {\n  BDto map(B b);\n}\n</code></pre>\n<p>I was expecting ItemWithBMapperImpl to look something like:</p>\n<pre><code>@Component\npublic class ItemWithBMapperImpl extends ItemWithBMapper {\n  @Autowired BMapper bMapper;\n  \n  @Override\n  public ItemWithBDto map(ItemWithB itemWithB) {\n    ItemWithBDto itemWithBDto = new ItemWithBDto();\n    itemWithBDto.setBDto( bMapper.map(itemWithB.getB()));\n    }\n}\n</code></pre>\n<p>Instead, it is:</p>\n<pre><code>@Component\npublic class ItemWithBMapperImpl extends ItemWithBMapper {\n  \n  @Override\n  public ItemWithBDto map(ItemWithB itemWithB) {\n    ItemWithBDto itemWithBDto = new ItemWithBDto();\n    itemWithBDto.setBDto( localmapper(itemWithB.getB()));\n  }\n  \n  public BDto bDtomapper(B b) {\n    // copies fields from b to BDto\n  }\n}\n</code></pre>\n<p>which will not perform the AfterMapping convert.</p>\n<p>If I change ItemWithBMapper to:</p>\n<pre><code>@Mapper(uses = BMapper.class) \npublic abstract class ItemWithBMapper {\n  BDto map(B b);\n}\n</code></pre>\n<p>It works as expected.</p>\n<p>Am I misunderstanding how 'uses' works / is inherited? Or did I do something wrong?</p>\n<p>Thanks</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "scala",
+      "vert.x",
+      "vertx-httpclient",
+      "java-vertx-web"
+    ],
+    "owner": {
+      "account_id": 18204642,
+      "reputation": 1,
+      "user_id": 13248210,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/0f4732893349ac0895a643ebdd59c0cf?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Andr&#233; Schmidt",
+      "link": "https://stackoverflow.com/users/13248210/andr%c3%a9-schmidt"
+    },
+    "is_answered": false,
+    "view_count": 86,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1762982175,
+    "creation_date": 1757531505,
+    "last_edit_date": 1762981533,
+    "question_id": 79761213,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79761213/java-vertx-webclient-stream-from-server-with-chunked-messages",
+    "title": "java vertx webclient stream from server with chunked messages",
+    "body": "<p>I have a vertx server which sends on events to all streamers an information.\nUsing a console all working as wished.\nBut if I use a vertx webclient the client is connected but did not receive anything.</p>\n<p>the web client</p>\n<pre><code>val webClientOpt = WebClientOptions()\n      .setKeepAlive(true)\n      .setUserAgent(&quot;Client/2.0&quot;)\n      .setFollowRedirects(true)\n      .setShared(true)\n</code></pre>\n<p>the client call</p>\n<pre><code>client\n      .get(port, host, UriTemplate.of(s&quot;${path}event-bus/&quot;))\n      .putHeader(&quot;content-type&quot;, &quot;application/json&quot;)\n      .bearerTokenAuthentication(UserBuffer.loggedInUser().jwtToken())\n      .as(BodyCodec.pipe(writeBuffer)).send()\n</code></pre>\n<p>now the writeBuffer and reader</p>\n<pre><code>val writeBuffer = ReactiveWriteStream.writeStream[Buffer](vertx)\nval readStream = ReactiveReadStream.readStream[Buffer]()\n</code></pre>\n<p>Also the stuff to get the data</p>\n<pre><code>readStream.handler(j =&gt; {\n          println(&quot;CONSUMING!!!!&quot;)\n          println(j.toString(&quot;UTF-8&quot;))\n        })\n        writeBuffer.subscribe(readStream)\n</code></pre>\n<p>I know I have to use the BodyCodec.pipe but I think here is my problem. I think I don't use it correctly.</p>\n<hr />\n<p>It was not clearly to me how to use the WriteStream correctly.\nNow I use</p>\n<pre><code>new WriteStream[Buffer]() {\n    override def write(buffer: Buffer): io.vertx.core.Future[Void] = {\n      println(buffer.toString())\n      Future.successful(null).asVertx\n    }\n    override def end(): io.vertx.core.Future[Void] = {\n      Future.successful(null).asVertx\n    }\n    override def setWriteQueueMaxSize(maxSize: Int): WriteStream[Buffer] = this\n    override def writeQueueFull(): Boolean = false\n    override def drainHandler(handler: Handler[Void]): WriteStream[Buffer] = this\n    override def exceptionHandler(handler: Handler[Throwable]): WriteStream[Buffer] = this\n  }\n</code></pre>\n<p>That is what I was looking for.</p>\n<hr />\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

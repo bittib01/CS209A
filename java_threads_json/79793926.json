@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-kafka",
+      "java-stream"
+    ],
+    "owner": {
+      "account_id": 5606695,
+      "reputation": 173,
+      "user_id": 4441019,
+      "user_type": "registered",
+      "accept_rate": 62,
+      "profile_image": "https://www.gravatar.com/avatar/143e3e91ffa7c14cf1eeca5f33ac679b?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Don Woodward",
+      "link": "https://stackoverflow.com/users/4441019/don-woodward"
+    },
+    "is_answered": false,
+    "view_count": 124,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1761671035,
+    "creation_date": 1760814092,
+    "last_edit_date": 1761671035,
+    "question_id": 79793926,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79793926/best-way-to-flatmap-before-sending-to-a-producer-stream",
+    "title": "Best way to flatmap before sending to a producer stream?",
+    "body": "<p>I have a serialized object similar to classA like below:</p>\n<pre><code>public ClassA {\n  String prop1;\n  List&lt;ClassB&gt; classBList;\n}\n\npublic ClassB {\n  String prop2;\n  List&lt;Integer&gt; indexList;\n  List&lt;Integer&gt; valueList;\n}\n\npublic ClassC{\n  String prop1;\n  String prop2;\n  Integer index;\n  Integer value;\n}\n</code></pre>\n<p>We get millions of objects of classA in a Kafka stream. I want to convert that classA into a classC list and send each of the classC back to a Kafka stream.</p>\n<p>Say I have a nobject of ClassA</p>\n<pre><code>List&lt;ClassC&gt; flattenedList = classA.getClassBList().stream()\n            .flatMap(e-&gt;{\n       List&lt;ClassC&gt; tempList = new ArrayList&lt;&gt;();\n       for(int i=0;i&lt;e.getIndexList().size();i++)\n       {\n          ClassC temp = new ClassC(classA.getProp1(),e.getProp2(),e.getIndexList().get(i),e.getValueList().get(i));\n          tempList.add(temp);\n       }\n     return tempList;\n}).collect(Collectors.toList());\n</code></pre>\n<p>Now, I have to send this list of classC to a producer. At a given point of time, there can be close to 10-20 million of classA objects which need flatmapping.  Is a stream's flatMap inefficient in this way?</p>\n<p>I want to improve the performance time of the above operation. The order of flatmapping should be in the range of millions per second (running on AWS or Azure).</p>\n<p>I'm open to custom serialization and deserialization as well. The app is a Spring application.</p>\n<p>Processing one million of the above classA objects which translate to close to 860 million classC objects (ratio of 1:860) is taking close to 1 hour [64 consumer threads and partitions on a 128Vcpu machine]. I need to improve this. Increasing the number of partitions is not helping for some reason.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

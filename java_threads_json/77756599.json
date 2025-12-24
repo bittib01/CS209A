@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "open-telemetry",
+      "javaagents"
+    ],
+    "owner": {
+      "account_id": 30264909,
+      "reputation": 31,
+      "user_id": 23193993,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/de6acc9500c95d8ec99e46065c3fdc72?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Surabhi Patel",
+      "link": "https://stackoverflow.com/users/23193993/surabhi-patel"
+    },
+    "is_answered": false,
+    "view_count": 3966,
+    "answer_count": 2,
+    "score": 3,
+    "last_activity_date": 1760958261,
+    "creation_date": 1704354301,
+    "question_id": 77756599,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77756599/how-to-use-extensions-in-opentelemetry-java-for-auto-instrumentation",
+    "title": "How to use extensions in OpenTelemetry java for auto-instrumentation",
+    "body": "<p>I have created a my custom extension with below custom spanProcessor with customizerProvider. I am providing my custom span processor in my tracerProvider.</p>\n<p>I am running my extensions and java-agent with below cmd:</p>\n<pre><code>java -javaagent:C:/Users/abc/Desktop/auto-instrumentation/src/opentelemetry-javaagent.jar \\\n-Dotel.javaagent.extensions=C:/Users/abc/Desktop/auto-instrumentation/src/extension_example-1.0-SNAPSHOT.jar \\\n-Dotel.exporter.jaeger.endpoint=http://localhost:4317 \\\n-Dotel.traces.exporter=otlp \\\n-Dotel.metrics.exporter=none \\\n-Dotel.resource.attributes=&quot;service.name=MyApp&quot; \\\n-jar MyApp-0.0.1-SNAPSHOT.jar \\\n</code></pre>\n<p>my jaeger backend is not showing my spanProcessor attribute. It is only showing default span attributes. I even don't see any indication that my extension is loaded. can any body help me?</p>\n<p>SpanProcessor class:</p>\n<pre><code>package org.example.javaagent;\n\nimport io.opentelemetry.context.Context;\nimport io.opentelemetry.sdk.common.CompletableResultCode;\nimport io.opentelemetry.sdk.trace.ReadWriteSpan;\nimport io.opentelemetry.sdk.trace.ReadableSpan;\nimport io.opentelemetry.sdk.trace.SpanProcessor;\n\npublic class ExampleSpanProcessor implements SpanProcessor {\n    \n    @Override\n        public void onStart(Context parentContext, ReadWriteSpan span) {\n            span.setAttribute(&quot;customAttribute&quot;, &quot;customValue&quot;);\n        }\n\n        @Override\n        public boolean isStartRequired() {\n            return true;\n        }\n\n        @Override\n        public void onEnd(ReadableSpan span) {}\n\n        @Override\n        public boolean isEndRequired() {\n            return false;\n        }\n\n        @Override\n        public CompletableResultCode shutdown() {\n            return CompletableResultCode.ofSuccess();\n        }\n\n        @Override\n        public CompletableResultCode forceFlush() {\n            return CompletableResultCode.ofSuccess();\n        }\n}\n</code></pre>\n<p>CustomizerProvider class:</p>\n<pre><code>package org.example.javaagent;\n\nimport com.google.auto.service.AutoService;\nimport io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;\nimport io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;\nimport io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;\nimport io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;\nimport io.opentelemetry.sdk.trace.SpanLimits;\n\nimport java.util.HashMap;\nimport java.util.Map;\n\n@AutoService(AutoConfigurationCustomizerProvider.class)\npublic class ExampleAutoConfigurationCustomizerProvider implements AutoConfigurationCustomizerProvider {\n\n    @Override\n    public void customize(AutoConfigurationCustomizer autoConfiguration) {\n        System.out.printf(&quot;Called customize extension method&quot;);\n\n        autoConfiguration\n                .addTracerProviderCustomizer(this::configureSdkTracerProvider)\n                .addPropertiesSupplier(this::getDefaultProperties);\n    }\n\n    private SdkTracerProviderBuilder configureSdkTracerProvider(\n            SdkTracerProviderBuilder tracerProvider, ConfigProperties config) {\n\n        return tracerProvider\n                .setSpanLimits(SpanLimits.builder().setMaxNumberOfAttributes(1024).build())\n                .addSpanProcessor(new ExampleSpanProcessor());\n    }\n\n    private Map&lt;String, String&gt; getDefaultProperties() {\n        Map&lt;String, String&gt; properties = new HashMap&lt;&gt;();\n        properties.put(&quot;otel.exporter.otlp.endpoint&quot;, &quot;http://backend:8080&quot;);\n        properties.put(&quot;otel.exporter.otlp.insecure&quot;, &quot;true&quot;);\n        properties.put(&quot;otel.config.max.attrs&quot;, &quot;16&quot;);\n        return properties;\n    }\n}\n</code></pre>\n<p>I hit the <code>http://localhost:8080/myapp</code>, but it is showing span which was collectedby javaagent and not my custome span which is <code>customeAttribute: customeValue</code>. It is not showing my print statement in console that my extension is called. So How do I get to know whether my extension is executed or not</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

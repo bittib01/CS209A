@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "graphql",
+      "completable-future",
+      "java.util.concurrent"
+    ],
+    "owner": {
+      "account_id": 1667328,
+      "reputation": 2224,
+      "user_id": 1534482,
+      "user_type": "registered",
+      "accept_rate": 67,
+      "profile_image": "https://i.sstatic.net/XKKj6.jpg?s=256",
+      "display_name": "maxs87",
+      "link": "https://stackoverflow.com/users/1534482/maxs87"
+    },
+    "is_answered": true,
+    "view_count": 216,
+    "answer_count": 1,
+    "score": 4,
+    "last_activity_date": 1749681467,
+    "creation_date": 1744745711,
+    "last_edit_date": 1749681467,
+    "question_id": 79575915,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79575915/thencompose-hangs-timeout-web-graphql-application",
+    "title": "thenCompose hangs/timeout web graphql application",
+    "body": "<p>Im trying to create a <code>Java App</code> using <code>SpringBoot 3 framework</code> and <code>GraphQL</code>. I'm trying to resolve a field which depends on several <code>dataLoaders</code> within my App however, I seem to be running into an issue where my app just hangs for while then completely timeouts when I try combining them using <code>thenCompose</code> method.</p>\n<p>Curiously, when I use one dependent <code>data loaded</code> in conjunction with <code>thenCompose</code> method, it works fine, however, when I'm trying to add more it breaks.</p>\n<p>Ive added some example code below:</p>\n<pre><code> @Component\n    public class ListDataLoader implements BiFunction&lt;Set&lt;Page&gt;, BatchLoaderEnvironment, Mono&lt;Map&lt;Page, List&gt;&gt;&gt; {\n    \n        @Override\n        public Mono&lt;Map&lt;Page, List&gt;&gt; apply(Set&lt;Page&gt; page, BatchLoaderEnvironment batchLoaderEnvironment) {\n            return Flux.fromStream(page.stream())\n                    .filter(page -&gt; page.getProperty() != null)\n                    .map(page -&gt;\n                            {\n                              return   Map.entry(page, List.of(1, 2, 3));\n                            }\n                    )\n                    .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));\n        }\n    }\n\n    @Component\n    public class NameDataLoader implements BiFunction&lt;Set&lt;Page&gt;, BatchLoaderEnvironment, Mono&lt;Map&lt;Page, String&gt;&gt;&gt; {\n    \n        @Override\n        public Mono&lt;Map&lt;Page, String&gt;&gt; apply(Set&lt;Page&gt; page, BatchLoaderEnvironment batchLoaderEnvironment) {\n            return Flux.fromStream(page.stream())\n                    .filter(page -&gt; page.getProperty() != null)\n                    .map(page -&gt;\n                            {\n                                return   Map.entry(page, &quot;true&quot;);\n                            }\n                    )\n                    .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));\n        }\n    }\n</code></pre>\n<p>In the resolver:</p>\n<pre><code>@Controller\npublic class FilterController {\n\n    @SchemaMapping(typeName = &quot;Page&quot;, field = &quot;filter&quot;)\n    public CompletableFuture&lt;Filter&gt; filter(\n            Page page,\n            DataFetchingEnvironment env,\n            DataLoader&lt;Page, List&lt;Integer&gt;&gt; list,\n            DataLoader&lt;Page, Filter&gt; filter,\n            DataLoader&lt;Page, String&gt; name\n    ) {\n        return list.load(page, env)\n                .thenCompose(x -&gt; filter.load(page, env));\n    }\n}\n</code></pre>\n<p>However, when I am trying to add one more data loader it breaks.</p>\n<pre><code>return list.load(page, env)\n        .thenCompose(y -&gt; name.load(page, env)\n        .thenCompose(x -&gt; filter.load(page, env)));\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

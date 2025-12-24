@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "navigation",
+      "lifecycle",
+      "back"
+    ],
+    "owner": {
+      "account_id": 44216959,
+      "reputation": 1,
+      "user_id": 31637909,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/xVjxOSGi.png?s=256",
+      "display_name": "Voxel",
+      "link": "https://stackoverflow.com/users/31637909/voxel"
+    },
+    "is_answered": false,
+    "view_count": 35,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1759767473,
+    "creation_date": 1759767473,
+    "question_id": 79783878,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79783878/back-button-callback-not-re-triggered-after-fragment-recreation-rotation",
+    "title": "Back button callback not re-triggered after fragment recreation (rotation)",
+    "body": "<h1>Context</h1>\n<p>I'm trying to intercept the default behavior of the back button to be able to add confirmation messages (&quot;Are you sure you want to exit? [Save And Exit] [Cancel] [Exit]&quot;) on multiple life cycles (<code>Activity</code> and its <code>Fragment</code>).</p>\n<p>I'm setting a callback on an <code>Activity</code>. When there is nothing in the back stack and the app would close, a dialog pops up to confirm that you want to logout.</p>\n<p>There is also a callback in the <code>ProfileFragment</code> which is inside of this <code>Activity</code>. That callback makes sure that if there are unapplied changes to the profile you apply them or cancel.</p>\n<h1>More information</h1>\n<ul>\n<li>I'm using <code>Java</code></li>\n<li>I'm using <code>nav controller</code>.</li>\n<li>I'm using <code>view binding</code> and <code>view model</code>.</li>\n<li>The callback of the activity is in the <code>onCreate</code> method.</li>\n<li>The callback of the fragment is in the <code>onViewCreated</code> method.</li>\n</ul>\n<h1>Problem</h1>\n<p>The main problem is that when going in the <code>ProfileFragment</code>, make a change (so the dialogue actually gets shown), <strong>rotate the device (causing a destroy and re-create)</strong>, and then press back, it just performs the default behavior of the back pressed: it goes back to the previous fragment (which is the user home). It's as if the callback isn't added again.</p>\n<p>When I don't rotate the device it does work as expected.</p>\n<p>Furthermore, after pressing back once inside the <code>Activity</code> then going in the <code>ProfileFragment</code> and pressing back, it does the <code>Activity</code>'s back pressed callback. It also actually breaks the <code>up</code> button of the <code>toolbar</code>; it no longer does anything. It's good to note that the behavior of the <code>up</code> button hasn't yet been modified at all.</p>\n<p>Also, I start my <code>Activity</code> with an <code>extra</code> storing the userUId to load. Occasionally when I mess around with pressing back and rotating the device, the app crashes saying that it could not find the extra. It's most likely related since I didn't have that problem before I added the back pressed callbacks.</p>\n<h1>Hypotheses</h1>\n<ul>\n<li><p>Could it have to do with the order in which code gets called?</p>\n</li>\n<li><p>Could it have to do with <code>savedInstanceState</code>?</p>\n</li>\n<li><p>Could it have to do with my navigation setup?</p>\n</li>\n</ul>\n<h1>Relevant code</h1>\n<p><strong>Inside of <code>Activity</code>:</strong></p>\n<pre class=\"lang-java prettyprint-override\"><code>private void showLogoutConfirmationDialog() {\n    AlertDialog dialog = new AlertDialog.Builder(this)\n            .setTitle(&quot;Logout&quot;)\n            .setMessage(&quot;Going back will log you out of the app. Are you sure you want to continue?&quot;)\n            .setPositiveButton(&quot;Logout&quot;, (dialogInterface, which) -&gt; {\n                dialogInterface.dismiss();\n                UserLaunchNavigationHelper.logout(this);\n            })\n            .setNegativeButton(&quot;Cancel&quot;, (dialogInterface, which) -&gt; dialogInterface.dismiss())\n            .create();\n\n    dialog.show();\n}\n</code></pre>\n<p>In <code>onCreate</code>:</p>\n<pre class=\"lang-java prettyprint-override\"><code>getOnBackPressedDispatcher().addCallback(this,\n        new OnBackPressedCallback(true) {\n            @Override\n            public void handleOnBackPressed() {\n                if (!navController.popBackStack()) {\n                    showLogoutConfirmationDialog();\n                }\n\n        }\n});\n</code></pre>\n<p><strong>Inside of <code>ProfileFragment</code>:</strong></p>\n<pre class=\"lang-java prettyprint-override\"><code>private void attemptExit(Runnable proceedAction) {\n    if (Boolean.TRUE.equals(profileViewModel.hasAnyChanges.getValue())) {\n        showConfirmDialog(proceedAction);\n    } else {\n        proceedAction.run();\n    }\n}\n\n\nprivate void showConfirmDialog(Runnable proceedAction) {\n    new AlertDialog.Builder(requireContext())\n            .setTitle(&quot;Discard changes?&quot;)\n            .setMessage(&quot;You have unsaved changes. Do you want to save or discard?&quot;)\n            .setPositiveButton(&quot;Save&quot;, (d, w) -&gt; {\n                applyChanges();\n                proceedAction.run();\n            })\n            .setNegativeButton(&quot;Discard&quot;, (d, w) -&gt; {\n                profileViewModel.resetChanges();\n                proceedAction.run();\n            })\n            .setNeutralButton(&quot;Cancel&quot;, null)\n            .show();\n}\n</code></pre>\n<p>In <code>onViewCreated</code>:</p>\n<pre class=\"lang-java prettyprint-override\"><code>requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(),\n        new OnBackPressedCallback(true) {\n    @Override\n    public void handleOnBackPressed() {\n        attemptExit(() -&gt; {\n\n            setEnabled(false);\n            requireActivity().getOnBackPressedDispatcher().onBackPressed();\n            setEnabled(true);\n        });\n    }\n});\n</code></pre>\n<h1>What I've Tried</h1>\n<ul>\n<li>I attempted to change where the callbacks were added which didn't help.</li>\n<li>I looked into life cycles to no avail.</li>\n<li>Android Studio docs didn't seem to help either.</li>\n<li>Using logs to try and understand better the flow of the app.</li>\n</ul>\n<h1>Thank you!</h1>\n<p>I've been researching on how to solve this issue for some time now without success.</p>\n<p>Thanks for the help!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

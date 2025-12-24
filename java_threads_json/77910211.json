@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "spring-retry"
+    ],
+    "owner": {
+      "account_id": 24553342,
+      "reputation": 27,
+      "user_id": 18462267,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a-/AOh14Gj78YkmDUfXKRKM3hkXDf98eX2tqMYxFmG_Z1Fu5Q=k-s256",
+      "display_name": "ArneVC",
+      "link": "https://stackoverflow.com/users/18462267/arnevc"
+    },
+    "is_answered": true,
+    "view_count": 1687,
+    "accepted_answer_id": 77910449,
+    "answer_count": 3,
+    "score": 1,
+    "last_activity_date": 1716982648,
+    "creation_date": 1706661810,
+    "question_id": 77910211,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77910211/spring-boot-retry-connecting-to-database-untill-connection-works",
+    "title": "spring boot retry connecting to database untill connection works",
+    "body": "<p>I'm trying to have a spring boot app retry to connect to a database when a connection fails and currently have this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>package backend.configuration.dbconnection;\n\nimport lombok.extern.java.Log;\nimport org.springframework.beans.factory.annotation.Autowired;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\nimport org.springframework.jdbc.datasource.DriverManagerDataSource;\nimport org.springframework.retry.annotation.EnableRetry;\nimport org.springframework.retry.support.RetryTemplate;\n\nimport javax.sql.DataSource;\n\n@Log\n@Configuration\n@EnableRetry\npublic class CustomDataSourceConfiguration {\n    @Autowired\n    private RetryTemplate retryTemplate;\n\n    @Bean\n    public DataSource dataSource() {\n        DriverManagerDataSource dataSource = new DriverManagerDataSource();\n        dataSource.setDriverClassName(&quot;com.mysql.cj.jdbc.Driver&quot;);\n        //dataSource.setUrl(&quot;jdbc:mysql://localhost:3306/db&quot;);\n        dataSource.setUrl(&quot;jdbc:mysql://localhost:3307/db&quot;);\n        dataSource.setUsername(&quot;user&quot;);\n        dataSource.setPassword(&quot;password&quot;);\n        retryTemplate.execute(context -&gt; {\n            try {\n                dataSource.getConnection();\n                return dataSource;\n            } catch (Exception e) {\n                return null;\n            }\n        });\n        return dataSource;\n    }\n}\n\n</code></pre>\n<p>and this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>package backend.configuration.dbconnection;\n\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\nimport org.springframework.retry.annotation.EnableRetry;\nimport org.springframework.retry.backoff.FixedBackOffPolicy;\nimport org.springframework.retry.policy.SimpleRetryPolicy;\nimport org.springframework.retry.support.RetryTemplate;\n\n@Configuration\n@EnableRetry\npublic class RetryConfiguration {\n    @Bean\n    public RetryTemplate retryTemplate() {\n        RetryTemplate retryTemplate = new RetryTemplate();\n        SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();\n        retryPolicy.setMaxAttempts(5);\n        retryTemplate.setRetryPolicy(retryPolicy);\n        FixedBackOffPolicy backOffPolicy = new FixedBackOffPolicy();\n        backOffPolicy.setBackOffPeriod(1000);\n        retryTemplate.setBackOffPolicy(backOffPolicy);\n        return retryTemplate;\n    }\n}\n</code></pre>\n<p>returning null upon not being able to connect, so that the retry will kick in. This seems to not be the case. How can I fix this?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

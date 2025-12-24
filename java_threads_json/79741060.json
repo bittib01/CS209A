@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "aws-sdk",
+      "quarkus",
+      "aws-sdk-java-2.0",
+      "aws-sdk-java"
+    ],
+    "owner": {
+      "account_id": 7523407,
+      "reputation": 113,
+      "user_id": 5714534,
+      "user_type": "registered",
+      "accept_rate": 75,
+      "profile_image": "https://www.gravatar.com/avatar/60cd9efffe39bff166a919f4f36482f8?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Michiel",
+      "link": "https://stackoverflow.com/users/5714534/michiel"
+    },
+    "is_answered": false,
+    "view_count": 69,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1755757097,
+    "creation_date": 1755692248,
+    "question_id": 79741060,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79741060/quarkus-logging-json-wraps-aws-sdk-emfmetricloggingpublisher-logs",
+    "title": "quarkus-logging-json wraps AWS SDK EmfMetricLoggingPublisher logs",
+    "body": "<p>I'm using quarkus-logging-json in my project and want to add automatic EMF logs to my Lambda clients like this:</p>\n<pre><code>LambdaAsyncClient.builder()\n        .httpClient(NettyNioAsyncHttpClient.create())\n        .credentialsProvider(() -&gt; AwsSessionCredentials.builder()\n                .accessKeyId(&quot;accessKey&quot;)\n                .secretAccessKey(&quot;secretKey&quot;)\n                .sessionToken(&quot;sessionToken&quot;)\n                .build())\n        .overrideConfiguration(config -&gt; {\n           EmfMetricLoggingPublisher.builder()\n                .namespace(&quot;namespace&quot;)\n                .build()\n        })\n</code></pre>\n<p>The EmfMetricLoggingPublisher correctly &quot;publishes&quot; logs to the console, but quarkus-logging-json wraps this to:</p>\n<pre><code>{\n    &quot;timestamp&quot;: &quot;2025-08-20T06:56:35.053949Z&quot;,\n    &quot;sequence&quot;: 1,\n    &quot;loggerClassName&quot;: &quot;org.slf4j.impl.Slf4jLogger&quot;,\n    &quot;loggerName&quot;: &quot;software.amazon.awssdk.metrics.publishers.emf.EmfMetricLoggingPublisher&quot;,\n    &quot;level&quot;: &quot;INFO&quot;,\n    &quot;message&quot;: &quot;{\\&quot;_aws\\&quot;:{\\&quot;Timestamp\\&quot;:1755672995053,\\&quot;LogGroupName\\&quot;:\\&quot;/aws/lambda/LogGroup\\&quot;,\\&quot;CloudWatchMetrics\\&quot;:[{\\&quot;Namespace\\&quot;:\\&quot;namespace\\&quot;,\\&quot;Dimensions\\&quot;:[[\\&quot;OperationName\\&quot;,\\&quot;ServiceId\\&quot;]],\\&quot;Metrics\\&quot;:[{\\&quot;Name\\&quot;:\\&quot;AvailableConcurrency\\&quot;},{\\&quot;Name\\&quot;:\\&quot;PendingConcurrencyAcquires\\&quot;},{\\&quot;Name\\&quot;:\\&quot;ServiceCallDuration\\&quot;,\\&quot;Unit\\&quot;:\\&quot;Milliseconds\\&quot;},{\\&quot;Name\\&quot;:\\&quot;EndpointResolveDuration\\&quot;,\\&quot;Unit\\&quot;:\\&quot;Milliseconds\\&quot;},{\\&quot;Name\\&quot;:\\&quot;MaxConcurrency\\&quot;},{\\&quot;Name\\&quot;:\\&quot;BackoffDelayDuration\\&quot;,\\&quot;Unit\\&quot;:\\&quot;Milliseconds\\&quot;},{\\&quot;Name\\&quot;:\\&quot;MarshallingDuration\\&quot;,\\&quot;Unit\\&quot;:\\&quot;Milliseconds\\&quot;},{\\&quot;Name\\&quot;:\\&quot;LeasedConcurrency\\&quot;},{\\&quot;Name\\&quot;:\\&quot;SigningDuration\\&quot;,\\&quot;Unit\\&quot;:\\&quot;Milliseconds\\&quot;},{\\&quot;Name\\&quot;:\\&quot;ConcurrencyAcquireDuration\\&quot;,\\&quot;Unit\\&quot;:\\&quot;Milliseconds\\&quot;},{\\&quot;Name\\&quot;:\\&quot;ApiCallSuccessful\\&quot;},{\\&quot;Name\\&quot;:\\&quot;RetryCount\\&quot;},{\\&quot;Name\\&quot;:\\&quot;UnmarshallingDuration\\&quot;,\\&quot;Unit\\&quot;:\\&quot;Milliseconds\\&quot;},{\\&quot;Name\\&quot;:\\&quot;ApiCallDuration\\&quot;,\\&quot;Unit\\&quot;:\\&quot;Milliseconds\\&quot;},{\\&quot;Name\\&quot;:\\&quot;CredentialsFetchDuration\\&quot;,\\&quot;Unit\\&quot;:\\&quot;Milliseconds\\&quot;}]}]},\\&quot;AvailableConcurrency\\&quot;:0,\\&quot;PendingConcurrencyAcquires\\&quot;:0,\\&quot;OperationName\\&quot;:\\&quot;Invoke\\&quot;,\\&quot;ServiceCallDuration\\&quot;:51.0,\\&quot;EndpointResolveDuration\\&quot;:0.0,\\&quot;MaxConcurrency\\&quot;:50,\\&quot;BackoffDelayDuration\\&quot;:0.0,\\&quot;ServiceId\\&quot;:\\&quot;Lambda\\&quot;,\\&quot;MarshallingDuration\\&quot;:0.0,\\&quot;LeasedConcurrency\\&quot;:0,\\&quot;SigningDuration\\&quot;:0.0,\\&quot;ConcurrencyAcquireDuration\\&quot;:19.0,\\&quot;ApiCallSuccessful\\&quot;:1.0,\\&quot;RetryCount\\&quot;:0,\\&quot;UnmarshallingDuration\\&quot;:0.0,\\&quot;ApiCallDuration\\&quot;:51.0,\\&quot;CredentialsFetchDuration\\&quot;:0.0}&quot;,\n    &quot;threadName&quot;: &quot;sdk-async-response-1-0&quot;,\n    &quot;threadId&quot;: 1,\n    &quot;mdc&quot;: {},\n    &quot;ndc&quot;: &quot;&quot;,\n    &quot;hostName&quot;: &quot;unknown-host.unknown-domain&quot;,\n    &quot;processName&quot;: &quot;/var/task/bootstrap&quot;,\n    &quot;processId&quot;: 1\n}\n</code></pre>\n<p>Is there a way to disable this wrapping for a specific handler?</p>\n<p>For example:</p>\n<pre><code>quarkus.log.category.&quot;software.amazon.awssdk.metrics.publishers.emf.EmfMetricLoggingPublisher&quot;.handlers=EMF_CONSOLE\nquarkus.log.category.&quot;software.amazon.awssdk.metrics.publishers.emf.EmfMetricLoggingPublisher&quot;.use-parent-handlers=false\nquarkus.log.handler.console.EMF_CONSOLE.level=INFO\nquarkus.log.handler.console.EMF_CONSOLE.format=%m%n\n# This would then disable the wrapping\nquarkus.log.handler.console.EMF_CONSOLE.json=false\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

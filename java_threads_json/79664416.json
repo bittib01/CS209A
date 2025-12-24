@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "serialization",
+      "google-cloud-dataflow",
+      "apache-beam",
+      "avro"
+    ],
+    "owner": {
+      "account_id": 12943706,
+      "reputation": 37,
+      "user_id": 9358657,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/-QYOoctbX4Jo/AAAAAAAAAAI/AAAAAAAAABM/c55AcJhlWaU/s256-rj/photo.jpg",
+      "display_name": "Nihal sharma",
+      "link": "https://stackoverflow.com/users/9358657/nihal-sharma"
+    },
+    "is_answered": false,
+    "view_count": 54,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1751030928,
+    "creation_date": 1749795067,
+    "question_id": 79664416,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79664416/avrocoder-requires-default-constructor-in-directrunner-locally-but-works-on-gcp",
+    "title": "AvroCoder requires default constructor in DirectRunner locally but works on GCP Dataflow - Why?",
+    "body": "<p>I'm experiencing <strong>inconsistent behavior</strong> between Apache Beam's <code>DirectRunner</code> (local) and <code>DataflowRunner</code> (GCP) when using <strong><code>AvroCoder</code> with an immutable class</strong>.</p>\n<h3>Problem</h3>\n<p>I have an immutable class defined using Lombok:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Builder\n@Value\npublic class EventWrapper {\n    private final byte[] inputPayload;\n    private final Map&lt;String, String&gt; attributes;\n\n    // No default constructor - class is immutable\n}\n</code></pre>\n<p>In my Beam pipeline test:</p>\n<pre class=\"lang-java prettyprint-override\"><code>AvroCoder&lt;EventWrapper&gt; coder = AvroCoder.of(EventWrapper.class);\n\nPCollection&lt;EventWrapper&gt; input = pipeline.apply(\n    Create.of(TestUtil.buildEventWrapper()).withCoder(coder)\n);\n\nPCollection&lt;OutputEvent&gt; result = input.apply(\n    &quot;Process Events&quot;, \n    ParDo.of(new EventProcessorDoFn())\n);\n// Assertions...\npipeline.run().waitUntilFinish();\n</code></pre>\n<p>This same AvroCoder works fine when deployed to <strong>Google Cloud Dataflow</strong>, but the test case <strong>fails locally with DirectRunner</strong> with the following exception:</p>\n<h3>Error on DirectRunner</h3>\n<pre><code>java.lang.RuntimeException: java.lang.NoSuchMethodException: EventWrapper.&lt;init&gt;()\n    at org.apache.avro.specific.SpecificData.newInstance(SpecificData.java:493)\n    ...\n    at org.apache.beam.sdk.transforms.Create$Values$2.apply(Create.java:430)\n</code></pre>\n<h3>Environment</h3>\n<ul>\n<li><strong>Apache Beam</strong>: 2.64.0</li>\n<li><strong>Java</strong>: 17</li>\n<li><strong>Local</strong>: macOS, DirectRunner</li>\n<li><strong>Remote</strong>: GCP Dataflow</li>\n</ul>\n<hr />\n<h3>My Questions:</h3>\n<ol>\n<li><strong>Why does <code>AvroCoder.of(EventWrapper.class)</code> work on GCP Dataflow but fail locally with DirectRunner?</strong></li>\n<li><strong>Are there differences in how serialization is handled between DirectRunner and Dataflow?</strong></li>\n<li><strong>What’s the recommended way to use <code>AvroCoder</code> with immutable classes (no default constructor)?</strong></li>\n</ol>\n<p>Any guidance would be appreciated.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "thread-local",
+      "java-21",
+      "virtual-threads",
+      "scoped-value"
+    ],
+    "owner": {
+      "account_id": 24768228,
+      "reputation": 41,
+      "user_id": 18651992,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/w82n0.png?s=256",
+      "display_name": "magical1989",
+      "link": "https://stackoverflow.com/users/18651992/magical1989"
+    },
+    "is_answered": true,
+    "view_count": 1785,
+    "answer_count": 1,
+    "score": 4,
+    "last_activity_date": 1711888495,
+    "creation_date": 1703578208,
+    "last_edit_date": 1703644777,
+    "question_id": 77716273,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77716273/how-to-propagating-context-through-structuredtaskscope-by-scopedvalue-by-the-wa",
+    "title": "How to propagating context through StructuredTaskScope by ScopedValue, by the way, how about the MDC ThreadContextMap in StructuredTaskScope?",
+    "body": "<p>In this case, i need to propagating some state like tracer/span or request context per request.\nThe jdk env is 21.0.1-preview.</p>\n<p>I try to propagate any state between thread and virtual thread by a common way.</p>\n<p>Also, the full implementation will be compatible with ThreadLocal scenarios\nlike:<br />\n[context-propagation]: (<a href=\"https://github.com/micrometer-metrics/context-propagation%EF%BC%89\" rel=\"nofollow noreferrer\">https://github.com/micrometer-metrics/context-propagation）</a>\n[TransmittableThreadLocal]: <a href=\"https://github.com/alibaba/transmittable-thread-local/blob/master/README-EN.md\" rel=\"nofollow noreferrer\">https://github.com/alibaba/transmittable-thread-local/blob/master/README-EN.md</a>)</p>\n<p>In jdk 21, Thread is defined as Platform Thread, and the following three scenarios are my targets this time around</p>\n<ol>\n<li>virtual threads -&gt; platform threads</li>\n<li>platform threads -&gt; virtual threads</li>\n<li>virtual threads -&gt; virtual threads</li>\n</ol>\n<p>Below is my specific code and includes some key ideas without platform threads cases.</p>\n<p>Like:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@SuppressWarnings({&quot;unchecked&quot;, &quot;rawtypes&quot;})\nstatic class PropagatingTaskDecorator implements TaskDecorator {\n\n\n    public record Tracer(String traceId, String spanId, String parentId) {\n\n    }\n\n    private final ScopedValue[] keys;\n\n    public PropagatingTaskDecorator(ScopedValue&lt;?&gt;... keys) {\n        this.keys = keys;\n    }\n\n    static class ScopedValueMap {\n\n        public static final ScopedValue&lt;Tracer&gt; TRACER_SCOPED_VALUE = ScopedValue.newInstance();\n        private final Map&lt;ScopedValue&lt;?&gt;, Object&gt; bindingsSnapshot;\n\n        public ScopedValueMap() {\n            bindingsSnapshot = Maps.newHashMap();\n            if (TRACER_SCOPED_VALUE.isBound()) {\n                var latestTracer = TRACER_SCOPED_VALUE.get();\n                bindingsSnapshot.put(TRACER_SCOPED_VALUE, new Tracer(latestTracer.traceId(), UUID.randomUUID().toString(), latestTracer.spanId()));\n            } else {\n                bindingsSnapshot.put(TRACER_SCOPED_VALUE, new Tracer(UUID.randomUUID().toString(), UUID.randomUUID().toString(), null));\n            }\n        }\n\n        /**\n         * here is a function that can be used to capture the current bindings of a set of ScopedValues\n         * @param scopedValue scopedValue\n         * @param &lt;T&gt; T\n         */\n        &lt;T&gt; void put(ScopedValue&lt;T&gt; scopedValue) {\n            if (scopedValue.isBound()) {\n                bindingsSnapshot.put(scopedValue, scopedValue.get());\n            }\n        }\n\n        &lt;T&gt; T get(ScopedValue&lt;T&gt; scopedValue) {\n            if (bindingsSnapshot.containsKey(scopedValue)) {\n                return (T) bindingsSnapshot.get(scopedValue);\n            }\n            throw new RuntimeException(STR.&quot;ScopedValue not found: \\{scopedValue}&quot;);\n        }\n    }\n\n    @Nonnull\n    @Override\n    public Runnable decorate(@Nonnull Runnable runnable) {\n        // capture the current bindings of a set of ScopedValues\n        var bindingsSnapshot = new ScopedValueMap();\n        for (var key : keys) {\n            bindingsSnapshot.put(key);\n        }\n        /*\n         * Here's the key, propagating snapshot state between virtual threads via bindingsSnapshot,\n         * which bypasses the StructuredTaskScope limitation.\n         *\n         * Also, the full implementation will be compatible with ThreadLocal scenarios\n         * (like https://github.com/micrometer-metrics/context-propagation or https://github.com/oldratlee/log4j2-ttl-thread-context-map/blob/ master/src/main/java/com/alibaba/ttl/log4j2/TtlThreadContextMap.java)\n         *\n         * In jdk 21, Thread is defined as Platform Thread, and the following three scenarios are my targets this time around\n         * 1. virtual threads -&gt; platform threads\n         * 2. platform threads -&gt; virtual threads\n         * 3. virtual threads -&gt; virtual threads\n         */\n        return () -&gt; {\n            ScopedValue.Carrier carrier = ScopedValue.where(TRACER_SCOPED_VALUE, bindingsSnapshot.get(TRACER_SCOPED_VALUE));\n            for (var key : keys) {\n                carrier = carrier.where(key, bindingsSnapshot.get(key));\n            }\n            carrier.run(runnable);\n        };\n    }\n}\n\n@Slf4j\nclass ServiceImpl {\n    public void xxx() {\n        try (var executor = new SimpleAsyncTaskExecutor(&quot;pg-&quot;)) {\n            executor.setVirtualThreads(true);\n            var decorator = new PropagatingTaskDecorator();\n            executor.setTaskDecorator(decorator);\n            executor.setThreadFactory(Thread.ofVirtual().name(&quot;v-&quot;).factory());\n\n            executor.submit(() -&gt; {\n                log.info(&quot;{}&quot;, xxx); // here log4j2 need print trace info by %X{traceId}\n                                     // but how count MDC work for ScopedValue\n                                     // up to now, i overwrite the ThreadContextMap and \n                                     // try to split virtual/platform thread for different\n                                     // way.\n            });\n        }\n    }\n}\n</code></pre>\n<p>Can someone do me a fovor ?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

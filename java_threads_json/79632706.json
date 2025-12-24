@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-flink",
+      "flink-streaming"
+    ],
+    "owner": {
+      "account_id": 5556872,
+      "reputation": 1020,
+      "user_id": 4557607,
+      "user_type": "registered",
+      "accept_rate": 65,
+      "profile_image": "https://graph.facebook.com/679173583/picture?type=large",
+      "display_name": "Edv Beq",
+      "link": "https://stackoverflow.com/users/4557607/edv-beq"
+    },
+    "is_answered": false,
+    "view_count": 389,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1748206014,
+    "creation_date": 1747858668,
+    "last_edit_date": 1748206014,
+    "question_id": 79632706,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79632706/how-to-write-a-postgres-sink-with-apache-flink-2-0",
+    "title": "How to write a Postgres sink with Apache Flink 2.0",
+    "body": "<p>I been spinning my wheels for a couple days. I think the documentation does not match the api from what I see - and the java doc links appear to be broken.</p>\n<p><strong>I want to make a sink that saves json coming from stream to postgres db.</strong></p>\n<p>Here is the link to the docs: <a href=\"https://nightlies.apache.org/flink/flink-docs-release-2.0/docs/connectors/datastream/jdbc/\" rel=\"nofollow noreferrer\">https://nightlies.apache.org/flink/flink-docs-release-2.0/docs/connectors/datastream/jdbc/</a></p>\n<p>I have the following relevant dependencies on my pom file:</p>\n<pre><code>&lt;!-- https://mvnrepository.com/artifact/org.apache.flink/flink-connector-jdbc-core --&gt;\n&lt;dependency&gt;\n    &lt;groupId&gt;org.apache.flink&lt;/groupId&gt;\n    &lt;artifactId&gt;flink-connector-jdbc-core&lt;/artifactId&gt;\n    &lt;version&gt;4.0.0-2.0&lt;/version&gt;\n&lt;/dependency&gt;\n\n&lt;!-- https://mvnrepository.com/artifact/org.apache.flink/flink-connector-jdbc-postgres --&gt;\n&lt;dependency&gt;\n    &lt;groupId&gt;org.apache.flink&lt;/groupId&gt;\n    &lt;artifactId&gt;flink-connector-jdbc-postgres&lt;/artifactId&gt;\n    &lt;version&gt;4.0.0-2.0&lt;/version&gt;\n&lt;/dependency&gt;\n</code></pre>\n<p>And just to show that I have been trying stuff myself here is my attempt:</p>\n<pre><code>package com.ragdist;\n\nimport org.apache.flink.api.connector.sink2.Sink;\nimport org.apache.flink.connector.jdbc.JdbcConnectionOptions;\nimport org.apache.flink.connector.jdbc.JdbcExactlyOnceOptions;\nimport org.apache.flink.connector.jdbc.JdbcExecutionOptions;\nimport org.apache.flink.connector.jdbc.JdbcStatementBuilder;\nimport org.apache.flink.connector.jdbc.core.datastream.sink.JdbcSink;\nimport org.apache.flink.streaming.api.datastream.DataStream;\nimport org.json.JSONObject;\n\npublic class PgDocSink {\n    private final String jdbcUrl;\n    private final String username;\n    private final String password;\n    private final String tableName;\n\n    public PgDocSink(String jdbcUrl, String username, String password, String tableName) {\n        this.jdbcUrl = jdbcUrl;\n        this.username = username;\n        this.password = password;\n        this.tableName = tableName;\n    }\n\n    public &lt;T&gt; void addSinkToStream(DataStream&lt;T&gt; stream, JdbcStatementBuilder&lt;T&gt; statementBuilder) {\n        // Create execution options\n        JdbcExecutionOptions executionOptions = JdbcExecutionOptions.builder()\n                .withBatchSize(1000)\n                .withBatchIntervalMs(200)\n                .withMaxRetries(5)\n                .build();\n\n        // Connection options\n        JdbcConnectionOptions connectionOptions = new JdbcConnectionOptions.JdbcConnectionOptionsBuilder()\n                .withUrl(jdbcUrl)\n                .withDriverName(&quot;org.postgresql.Driver&quot;)\n                .withUsername(username)\n                .withPassword(password)\n                .build();\n\n        JdbcExactlyOnceOptions exactlyOnceOptions = JdbcExactlyOnceOptions.builder()\n                .withTransactionPerConnection(true)\n                .build();\n\n        // ---------- problem area - don't know what the right api ---------\n        // Use the non-deprecated JdbcSink from the recommended package\n        Sink&lt;T&gt; sink = JdbcSink.builder().buildExactlyOnce(exactlyOnceOptions, null)\n\n                // .sink(\n                //         String.format(&quot;INSERT INTO %s VALUES (?)&quot;, tableName),\n                //         statementBuilder,\n                //         executionOptions,\n                //         connectionOptions);\n\n        // ---------- -------------------------------------------- ---------\n\n        // Add sink to the stream\n        stream.sinkTo(sink);\n    }\n\n    public void addJsonSinkToStream(DataStream&lt;JSONObject&gt; stream) {\n        addSinkToStream(stream, (preparedStatement, jsonObject) -&gt; {\n            // Customize this based on your table schema and JSON structure\n            preparedStatement.setObject(1, jsonObject.toString());\n        });\n    }\n}\n</code></pre>\n<p>Any help would be very much appreciated.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

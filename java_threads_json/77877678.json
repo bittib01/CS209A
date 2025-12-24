@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "r2dbc",
+      "r2dbc-postgresql",
+      "r2dbc-mssql"
+    ],
+    "owner": {
+      "account_id": 13208519,
+      "reputation": 33,
+      "user_id": 21591122,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/a70f5f9afeecf8130f433163c48b395c?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Арчи",
+      "link": "https://stackoverflow.com/users/21591122/%d0%90%d1%80%d1%87%d0%b8"
+    },
+    "is_answered": true,
+    "view_count": 181,
+    "accepted_answer_id": 78535192,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1716724810,
+    "creation_date": 1706160008,
+    "last_edit_date": 1706160161,
+    "question_id": 77877678,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77877678/cant-set-the-list-parameter-in-the-query",
+    "title": "Can&#39;t set the List&lt;...&gt; parameter in the query",
+    "body": "<p>I can't add the List&lt;...&gt; parameter, or rather ArrayList ($2).</p>\n<p>If I just put List&lt;...&gt; listId, I get the error: Cannot encode parameter of type java.util.ArrayList ([192, 193, 194, ....</p>\n<p>If I set listId.toArray(), then there is no error, but the query is not executed, and nothing is even written in the logs.</p>\n<p>The request is simple, there is no error in it:\n<em>&quot;update &quot;schema&quot;.&quot;table&quot; SET &quot;column&quot; = $1 where &quot;id&quot; in ( $2 )&quot;</em></p>\n<p>The question is relevant for both postgres and mssql, my drivers and query forms in runtime are changing.</p>\n<p>Please help me solve the problem...</p>\n<pre><code>    public &lt;S, T&gt; Mono&lt;Boolean&gt; update(ConnectionFactory connectionFactory, String query, S param, List&lt;T&gt; listId) {\n        return Mono.usingWhen(connectionFactory.create(),\n                        connection -&gt; {\n                            Statement statement = connection.createStatement(query);\n                            statement.bind(&quot;$1&quot;, param);\n                            statement.bind(&quot;$2&quot;, listId);\n\n                            return Mono.from(statement.execute());\n                        },\n                        Connection::close)\n                .map(el -&gt; true)\n                .doOnSuccess((a) -&gt; log.info(&quot;Update Success!&quot;))\n                .onErrorResume(e -&gt; {\n                    log.error(&quot;ERROR update : \\n{}&quot;, e.getMessage());\n                    return Mono.just(false);\n                });\n    }\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

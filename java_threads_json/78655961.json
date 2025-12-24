@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "kotlin",
+      "spring-webflux",
+      "project-reactor"
+    ],
+    "owner": {
+      "account_id": 3101372,
+      "reputation": 161,
+      "user_id": 2625402,
+      "user_type": "registered",
+      "accept_rate": 20,
+      "profile_image": "https://www.gravatar.com/avatar/79ee8e93bc02028037ff2fef88429999?s=256&d=identicon&r=PG",
+      "display_name": "user2625402",
+      "link": "https://stackoverflow.com/users/2625402/user2625402"
+    },
+    "is_answered": false,
+    "view_count": 99,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1719172873,
+    "creation_date": 1719057353,
+    "question_id": 78655961,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78655961/flux-groupby-and-new-traceid-for-every-new-portion-of-data",
+    "title": "Flux groupBy and new traceId for every new portion of data",
+    "body": "<p>I want to implement reactive kafka consumer like that:\n<a href=\"https://projectreactor.io/docs/kafka/release/reference/%5B6.8\" rel=\"nofollow noreferrer\">https://projectreactor.io/docs/kafka/release/reference/[6.8</a>. Concurrent Processing with Partition-Based Ordering\n][1]</p>\n<pre><code>Scheduler scheduler = Schedulers.newElastic(&quot;sample&quot;, 60, true);\nKafkaReceiver.create(receiverOptions)\n         .receive()\n         .groupBy(m -&gt; m.receiverOffset().topicPartition())\n         .flatMap(partitionFlux -&gt;\n             partitionFlux.publishOn(scheduler)\n                          .map(r -&gt; processRecord(partitionFlux.key(), r))\n                          .sample(Duration.ofMillis(5000))\n                          .concatMap(offset -&gt; offset.commit()));\n</code></pre>\n<p>And I want to trace every poll. The problem is that with groupBy I can have only one assignment of traceId per group just once.</p>\n<p>I simplified code without kafka:</p>\n<pre><code>Flux\n    .interval(Duration.ofMillis(100)) // kafka messages\n    .filter {\n        it % 2L == 0L // for simplicity, we will leave only one group\n    }\n    .groupBy {\n        it % 2L\n    }\n//    .windowTimeout(2, Duration.ofMillis(10))\n    .flatMap { group -&gt;\n        val traceId1 = UUID.randomUUID().toString() // for clarity, two traceId\n        Flux.deferContextual {\n            Mono.just(it.get&lt;String&gt;(&quot;traceId2&quot;)) //for clarity, two traceId\n        }.flatMap { traceId2 -&gt;\n            group.bufferTimeout(2, Duration.ofMillis(10))\n                .concatMap {\n                    // here I handle my batch\n                    Mono.just(it).delayElement(Duration.ofMillis(50))\n                }.flatMap {\n                    // and here I will commit\n                    println(&quot;$it - $traceId1 - $traceId2&quot;)\n                    Mono.just(it)\n                }\n        }\n            .contextWrite {\n                it.put(&quot;traceId2&quot;, UUID.randomUUID().toString())\n            }\n    }\n    .blockLast()\n</code></pre>\n<p>and the output is:</p>\n<pre><code>[0] - d69da7b2-205b-4742-b538-308192af29d6 - 529c50a5-4966-4b52-bd63-18d4b879d8d4\n[2] - d69da7b2-205b-4742-b538-308192af29d6 - 529c50a5-4966-4b52-bd63-18d4b879d8d4\n[4] - d69da7b2-205b-4742-b538-308192af29d6 - 529c50a5-4966-4b52-bd63-18d4b879d8d4\n[6] - d69da7b2-205b-4742-b538-308192af29d6 - 529c50a5-4966-4b52-bd63-18d4b879d8d4\n[8] - d69da7b2-205b-4742-b538-308192af29d6 - 529c50a5-4966-4b52-bd63-18d4b879d8d4\n[10] - d69da7b2-205b-4742-b538-308192af29d6 - 529c50a5-4966-4b52-bd63-18d4b879d8d4\n</code></pre>\n<p>The same traceId1 and the same traceId2.</p>\n<p>But if we imagine that the grouping performing with windowTimeout - then everything will be fine:</p>\n<pre><code>Flux\n    .interval(Duration.ofMillis(100)) // kafka messages\n    .filter {\n        it % 2L == 0L // for simplicity, we will leave only one group\n    }\n/*\n    .groupBy {\n        it % 2L\n    }\n*/\n    .windowTimeout(2, Duration.ofMillis(10))\n    .flatMap { group -&gt;\n        val traceId1 = UUID.randomUUID().toString() // for clarity, two traceId\n        Flux.deferContextual {\n            Mono.just(it.get&lt;String&gt;(&quot;traceId2&quot;)) //for clarity, two traceId\n        }.flatMap { traceId2 -&gt;\n            group.bufferTimeout(2, Duration.ofMillis(10))\n                .concatMap {\n                    // here I handle my batch\n                    Mono.just(it).delayElement(Duration.ofMillis(50))\n                }.flatMap {\n                    // and here I will commit\n                    println(&quot;$it - $traceId1 - $traceId2&quot;)\n                    Mono.just(it)\n                }\n        }\n            .contextWrite {\n                it.put(&quot;traceId2&quot;, UUID.randomUUID().toString())\n            }\n    }\n    .blockLast()\n</code></pre>\n<p>and we have the following result:</p>\n<pre><code>[0] - d571b08e-d14c-425e-9062-49de555b6b6e - edef203f-4727-4b9b-bc27-82743e8c16f3\n[2] - 8b1b2998-ff83-4b09-990c-93b3ad8e386b - e4b00092-e4b7-4f54-aa8a-90ac4882dea3\n[4] - 323450bf-6d2c-4e39-8534-7d7ea63fbc31 - 1be0022c-88f4-4339-a00f-7e9f4f5ed45d\n[6] - 8db7d902-5047-4772-9ebb-9b8bef983126 - ce92b804-ac72-4af1-b353-5c7576d71a01\n[8] - 838e230c-fdb2-4e33-901e-96b7cbf2543e - f355382e-54ef-4a02-b2ed-a32bf855563c\n[10] - d8bfc951-98a1-428a-b697-ebc447a78a40 - 916d2824-4e76-47fb-8573-653e954841eb\n</code></pre>\n<p>Different traceId1 and different traceId2.</p>\n<p>How to acheive that using groupBy or maybe there is a replacement for groupBy in this case?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

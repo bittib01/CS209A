@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jpa"
+    ],
+    "owner": {
+      "account_id": 14571259,
+      "reputation": 1196,
+      "user_id": 10524503,
+      "user_type": "registered",
+      "profile_image": "https://lh4.googleusercontent.com/-TTMbFydM2wc/AAAAAAAAAAI/AAAAAAAAIbU/tMY5KezwBbg/s256-rj/photo.jpg",
+      "display_name": "MarekChr",
+      "link": "https://stackoverflow.com/users/10524503/marekchr"
+    },
+    "is_answered": true,
+    "view_count": 73,
+    "accepted_answer_id": 79811371,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1762522252,
+    "creation_date": 1762426709,
+    "question_id": 79811184,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79811184/how-to-implement-post-remove-behavior-on-a-jointable-using-eclipselink-jpa",
+    "title": "How to implement post remove behavior on a JoinTable using EclipseLink jpa?",
+    "body": "<p>Having unidirectional <code>ManyToMany</code> mapping in an entity called <code>A</code> to entity called <code>B</code> on field called <code>files</code>:</p>\n<pre><code>@ManyToMany(fetch = FetchType.LAZY)\n@JoinTable(name = JOIN_TABLE_NAME)\nprivate List&lt;B&gt; files = new ArrayList&lt;&gt;();\n</code></pre>\n<p>, which creates a join table with ids of each entity as composite primary key.</p>\n<p>Automatically, when an item is removed from files list and A entity is saved, a row is also removed from join table.</p>\n<p>I would like to implement this behavior:</p>\n<p>Whenever a row is removed from this join table, check if there are no more rows with B-id as removed row B-id, if so, remove rows from B table matching that B-id.</p>\n<p>There might be several ways to implement this. Some of which i have tought, but are unsatisfactory or do not work:</p>\n<p>Create join table as separate entity and add a post remove method. However this method is not called:</p>\n<pre><code>@Entity\n@PrimaryKeyJoinColumns(\n    @PrimaryKeyJoinColumn(name = &quot;a_id&quot;),\n    @PrimaryKeyJoinColumn(name = &quot;b_id&quot;)\n)\n@Table(name = JOIN_TABLE_NAME)\npublic class ABjoinTable {\n    \n    @EmbeddedId\n    private ABId abid;\n    \n    @Embeddable\n    public static final class ABId {\n    \n        @Column(name = &quot;a_id);\n        public long aid;\n    \n        @Column(name = &quot;b_id);\n        public long bid;\n    }\n    \n    @PostRemove\n    public void removeDanglingFiles() {\n            // not called\n    }\n}\n</code></pre>\n<p>Create a remove trigger on join table, however <code>B</code> entity has\n<code>PostRemove</code> method already implemented, which in this solution will\nnot be called (trigger is on db level).</p>\n<p>Use <code>PostUpdate</code> method on <code>A</code> entity and remove dangling rows manually, however rows are not yet removed from join table in post update context:</p>\n<pre><code>@PostLoad\npublic void createFilesSnapshot() {\n    filesSnapshot = new ArrayList&lt;&gt;(this.files);\n}\n\n@PostUpdate\npublic void removeDanglingFiles() {\n    // if there are no more references to other Bids, delete that B\n    val removed = filesSnapshot.stream()\n            .filter(b -&gt; !this.files.contains(b))\n            .map(PersistentObject::getId)\n            .collect(Collectors.toSet());\n    try (val em = JPAutil.getEntityManager()) {\n        val tx = em.getTransaction();\n        tx.begin();\n        for (val rId : removed) {\n            val q = em.createQuery(&quot;SELECT a&quot; +\n                    &quot; FROM A a JOIN a.files b&quot; +\n                    &quot; WHERE b.id = :bId&quot;, B.class);\n            q.setParameter(&quot;bId&quot;, rId);\n            val result = q.getResultList();\n            if (result.size() == 0) { // at this point in post load, join table row is not yet removed, so size is &gt;= 1\n                em.remove(...);\n            }\n        }\n        tx.commit();\n    } catch (final Exception e) {\n    }\n}\n</code></pre>\n<p>Using EclipseLink jpa provider and MySql db.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "android-audiomanager",
+      "contentobserver"
+    ],
+    "owner": {
+      "account_id": 3525574,
+      "reputation": 883,
+      "user_id": 2946787,
+      "user_type": "registered",
+      "accept_rate": 80,
+      "profile_image": "https://i.sstatic.net/82Qt1Y1T.jpg?s=256",
+      "display_name": "sfinja",
+      "link": "https://stackoverflow.com/users/2946787/sfinja"
+    },
+    "is_answered": false,
+    "view_count": 220,
+    "answer_count": 0,
+    "score": 3,
+    "last_activity_date": 1724832046,
+    "creation_date": 1723984947,
+    "last_edit_date": 1724832046,
+    "question_id": 78884611,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78884611/listen-to-ring-notification-volume-change-events-on-android",
+    "title": "Listen to &#39;Ring &amp; notification volume&#39; change events on Android",
+    "body": "<p>Listening to MEDIA volume changes has been working for me perfectly.</p>\n<p>But now, I need to detect when a user adjusts the <code>Ring &amp; notification volume</code> via <code>Sound &amp; vibration</code> touch sliders on the smartphone's screen.</p>\n<p>For that, I resorted to <a href=\"https://stackoverflow.com/a/30441548\">ContentObserver</a> and implemented:</p>\n<pre><code>import android.content.Context;\nimport android.database.ContentObserver;\nimport android.media.AudioManager;\nimport android.net.Uri;\nimport android.os.Handler;\n\npublic class VolumeObserver extends ContentObserver {\n    private final Context context;\n    private int lastRingVolume, lastNotificationVolume;\n\n    public VolumeObserver(Handler handler, Context context) {\n        super(handler);\n        this.context = context;\n        AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);\n        lastRingVolume = audioManager.getStreamVolume(AudioManager.STREAM_RING);\n        lastNotificationVolume = audioManager.getStreamVolume(AudioManager.STREAM_NOTIFICATION);\n    }\n\n    @Override\n    public void onChange(boolean selfChange, Uri uri) {\n        super.onChange(selfChange);\n        if (uri != null &amp;&amp; uri.toString().contains(&quot;volume&quot;)) {\n            AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);\n            int currentRingVolume = audioManager.getStreamVolume(AudioManager.STREAM_RING);\n            int currentNotificationVolume = audioManager.getStreamVolume(AudioManager.STREAM_NOTIFICATION);\n\n            if (currentRingVolume != lastRingVolume || currentNotificationVolume != lastNotificationVolume) {\n                Log.v(&quot;TAG&quot;, &quot;ringVolume: &quot; + lastRingVolume + &quot;--&gt;&quot; + currentRingVolume + &quot;, notificationVolume: &quot; + lastNotificationVolume + &quot;--&gt;&quot;  + currentNotificationVolume);\n                lastRingVolume = currentRingVolume;\n                lastNotificationVolume = currentNotificationVolume;\n            }\n            else {\n                Log.w(&quot;TAG&quot;, &quot;ringVolume: &quot; + lastRingVolume + &quot;===&quot; + currentRingVolume + &quot;, notificationVolume: &quot; + lastNotificationVolume + &quot;===&quot;  + currentNotificationVolume);\n            }\n        }\n    }\n}\n</code></pre>\n<p>Including the proper register/unregister in the app's main activity.</p>\n<p>The problem with my implementation is those events are only received when I press the volume UP/DOWN buttons (correspond to <code>KEYCODE_VOLUME_UP</code> and `KEYCODE_VOLUME_DOWN). That is, at that point there is no chance for the RING volume to change, because it can only change later, when the Sound &amp; vibration settings screen is displayed:</p>\n<p><a href=\"https://i.sstatic.net/8KIdEBTK.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/8KIdEBTK.png\" alt=\"Sound &amp; vibration settings\" /></a></p>\n<p>I tried to resort to a <a href=\"https://stackoverflow.com/a/76700581\">BroadcastReceiver</a> based implementation, but I am getting the same behavior: Events are only received on the hardware key press.</p>\n<p>I am therefore out of ideas, other then inefficiently polling <code>AudioManager.getStreamVolume(AudioManager.STREAM_RING)</code> ...</p>\n<p>Am I missing something? Is polling really the only way to monitor <code>Ring &amp; notification volume</code> slider changes?</p>\n<hr />\n<p>UPDATE (9 days later): I haven't found (yet) a way to monitor <code>Ring &amp; notification volume</code> changes in a way similar to what can be done with music. I am giving up, for now, the idea of using a VolumeObserver for STREAM_RING.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

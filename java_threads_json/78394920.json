@@ -1,0 +1,37 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "mysql",
+      "spring-boot",
+      "junit",
+      "junit5"
+    ],
+    "owner": {
+      "account_id": 9268161,
+      "reputation": 1477,
+      "user_id": 6892471,
+      "user_type": "registered",
+      "accept_rate": 100,
+      "profile_image": "https://lh6.googleusercontent.com/-sfqx_AiUzy0/AAAAAAAAAAI/AAAAAAAAAaA/RYfTw5tOw-Q/s256-rj/photo.jpg",
+      "display_name": "Ulises CT",
+      "link": "https://stackoverflow.com/users/6892471/ulises-ct"
+    },
+    "is_answered": true,
+    "view_count": 184,
+    "accepted_answer_id": 78398620,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1718894771,
+    "creation_date": 1714220028,
+    "last_edit_date": 1718894771,
+    "question_id": 78394920,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78394920/how-can-i-delete-all-database-entities-after-the-tests-are-completed",
+    "title": "How can I delete all database entities after the tests are completed?",
+    "body": "<p>I was looking if there is a way with some kind of annotation rather than with code to clean the database after a test generated registries in it. I found about <code>@Dirtiescontext</code> but it doesn't seem to be working. I don't know if I'm not using it right or what the problem is. I am using Spring Boot 3 and MySQL 8.</p>\n<p>This is my test code:</p>\n<pre><code>@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)\n@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)\n@DisplayName(&quot;Articles Integration Tests&quot;)\npublic class ArticlesControllerIT {\n    @Autowired\n    private TestRestTemplate restTemplate;\n    @Autowired\n    private ArticlesService articlesService;\n    @Autowired\n    private ModelMapper modelMapper;\n    @Autowired\n    private ArticleRepository articleRepository;\n\n    @Test\n    @Sql(&quot;/create_suppliers.sql&quot;)\n    @DisplayName(&quot;Happy path: Create articles&quot;)\n    void WHEN_calling_create_articles_THEN_status_is_200() {\n        final List&lt;ArticleDTO&gt; articleDTOS = Instancio.ofList(ArticleDTO.class).size(3)\n                .ignore(field(ArticleDTO::getId))\n                .ignore(field(ArticleDTO::getCategory))\n                .supply(all(SupplierDTO.class), random -&gt; SupplierDTO.builder()\n                        .id(random.intRange(1, 10))\n                        .build())\n                .create();\n        final CreateArticlesRequest createArticlesRequest = CreateArticlesRequest.builder()\n                .articles(articleDTOS)\n                .user(Instancio.create(String.class))\n                .build();\n        final ResponseEntity&lt;CreateArticlesResponse&gt; response = restTemplate.exchange(restTemplate.getRootUri() + URIConstants.ARTICLES_URI,\n                HttpMethod.POST, new HttpEntity&lt;&gt;(createArticlesRequest), new ParameterizedTypeReference&lt;&gt;() {});\n        final List&lt;ArticleDTO&gt; articles = Objects.requireNonNull(response.getBody()).getArticles();\n\n        //Remove ID from the response articicles to check that content is the same as the articles to be created\n        articles.forEach(article -&gt; article.setId(null));\n\n        assertEquals(articles.size(), articleDTOS.size() , &quot;articles.size() should be &quot; + articleDTOS.size());\n        assertTrue(articles.containsAll(articleDTOS), &quot;articles should contain the same elements as articulosDTOS&quot;);\n        assertEquals(HttpStatus.OK, response.getStatusCode(), &quot;Status Code should be &quot; + HttpStatus.OK);\n    }\n}\n</code></pre>\n<p>My service method that creates the registries:</p>\n<pre><code>@Service\npublic class ArticlesServiceImpl implements ArticlesService {\n    private final ArticleRepository articleRepository;\n    private final ModelMapper modelMapper;\n    private final SuppliersService suppliersService;\n\n    @Autowired\n    ArticlesServiceImpl(final ArticleRepository articleRepository, final ModelMapper modelMapper, final SuppliersService suppliersService) {\n        this.articleRepository = articleRepository;\n        this.modelMapper = modelMapper;\n        this.suppliersService = suppliersService;\n    }\n\n    @Override\n    public List&lt;Article&gt; createArticles(final List&lt;Article&gt; articles, final String usuario) {\n        final List&lt;ArticleDAO&gt; articleDAOS;\n\n        this.suppliersService.checkSuppliersExist(articles\n                .stream()\n                .map(Article::getSupplier)\n                .filter(Objects::nonNull)\n                .collect(Collectors.toList()));\n        this.checkArticlesDontExistByName(articles);\n        articles.forEach(article -&gt; article.setUser(usuario));\n        articleDAOS = this.modelMapper.map(articles, new TypeToken&lt;List&lt;ArticleDAO&gt;&gt;(){}.getType());\n        this.articleRepository.saveAll(articleDAOS);\n        return this.modelMapper.map(articleDAOS, new TypeToken&lt;List&lt;Article&gt;&gt;(){}.getType());\n    }\n}\n</code></pre>\n<p>My repository:</p>\n<pre><code>@Repository\npublic interface ArticleRepository extends JpaRepository&lt;ArticleDAO, Integer&gt; {\n    boolean existsByName(final String name);\n}\n</code></pre>\n<p>My entity:</p>\n<pre><code>@Getter\n@Setter\n@NoArgsConstructor\n@Entity\n@EqualsAndHashCode\n@Table(name = &quot;article&quot;)\npublic class ArticleDAO {\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    @Column(name = &quot;id&quot;)\n    private Integer id;\n\n    @Column(name = &quot;name&quot;)\n    private String name;\n\n    @Column(name = &quot;selling_price&quot;)\n    private BigDecimal sellingPrice;\n\n    @Column(name = &quot;supplier_price&quot;)\n    private BigDecimal supplierPrice;\n\n    @Column(name = &quot;user&quot;)\n    private String user;\n\n    @Column(name = &quot;selling_unit_type&quot;)\n    private String sellingUnitType;\n\n    @Column(name = &quot;inventory_amount&quot;)\n    private Integer inventoryAmount;\n\n    @Column(name = &quot;picture&quot;)\n    private String picture;\n\n    @Column(name = &quot;color&quot;)\n    private String color;\n\n    @Column(name = &quot;reference&quot;)\n    private String reference;\n\n    @Column(name = &quot;bar_code&quot;)\n    private String barCode;\n\n    @OneToOne(cascade = CascadeType.ALL)\n    @JoinColumn(name = &quot;category_id&quot;, referencedColumnName = &quot;id&quot;)\n    private CategoryDAO category;\n\n    @OneToOne(cascade = CascadeType.ALL)\n    @JoinColumn(name = &quot;supplier_id&quot;, referencedColumnName = &quot;id&quot;)\n    private SupplierDAO supplier;\n}\n</code></pre>\n<p>Am I using <code>@DirtiesContext</code> wrong, or this is just not the way?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

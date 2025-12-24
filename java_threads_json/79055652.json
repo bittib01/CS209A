@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-data-jpa",
+      "spring-batch",
+      "lazy-loading"
+    ],
+    "owner": {
+      "account_id": 14179476,
+      "reputation": 2743,
+      "user_id": 10243634,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/BXR2N.png?s=256",
+      "display_name": "Oboe",
+      "link": "https://stackoverflow.com/users/10243634/oboe"
+    },
+    "is_answered": true,
+    "view_count": 200,
+    "accepted_answer_id": 79593151,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1745607537,
+    "creation_date": 1728071181,
+    "last_edit_date": 1745606367,
+    "question_id": 79055652,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79055652/how-to-avoid-lazyinitializationexception-when-accessing-nested-lazy-collections",
+    "title": "How to avoid LazyInitializationException when accessing nested lazy collections in Spring Batch with parallel chunk processing?",
+    "body": "<p>I’m working on a Spring Batch job with parallel chunk processing. The problem I’m facing is a <code>LazyInitializationException</code> due to nested lazy-loaded collections in my JPA entities.</p>\n<p>I’m using <code>JpaPagingItemReader</code> for reading, <code>JpaTransactionManager</code> for managing transactions, and <code>SimpleAsyncTaskExecutor</code> for parallel processing.</p>\n<p><strong>Setup:</strong></p>\n<ul>\n<li>Spring Boot: 3.3.4</li>\n<li>Spring Batch: 5.1.2</li>\n<li>Transaction Manager: <code>JpaTransactionManager</code></li>\n<li>Task Executor: <code>SimpleAsyncTaskExecutor</code></li>\n</ul>\n<p><strong>Simple example:</strong></p>\n<p><strong>Customer entity:</strong></p>\n<pre class=\"lang-java prettyprint-override\"><code>@Entity\npublic class Customer {\n    \n    @Id\n    private Long id;\n    \n    @ManyToOne\n    @JoinColumn(name = &quot;order_id&quot;)\n    private Order order;\n}\n</code></pre>\n<p><strong>Order entity:</strong></p>\n<p>The <code>@OneToMany</code> relation is <code>FetchType.LAZY</code> by default.</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Entity\npublic class Order {\n\n    @Id\n    private Long id;\n\n    @OneToMany(mappedBy = &quot;order&quot;, cascade = CascadeType.ALL, orphanRemoval = true)\n    private List&lt;Type&gt; types;\n\n    // Other @OneToMany collection fields...\n\n}\n</code></pre>\n<p><strong>Spring Batch Step Configuration:</strong></p>\n<p>I’m using a <code>JpaPagingItemReader</code> and an <code>ItemProcessor</code>. The step is parallelized using a <code>SimpleAsyncTaskExecutor</code>.</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Bean\npublic JpaPagingItemReader&lt;Customer&gt; customerItemReader(EntityManagerFactory entityManagerFactory) {\n    return new JpaPagingItemReaderBuilder&lt;Customer&gt;()\n            .name(&quot;customerItemReader&quot;)\n            .entityManagerFactory(entityManagerFactory)\n            .queryString(&quot;SELECT c FROM Customer c&quot;)\n            .pageSize(100)\n            .build();\n}\n\n@Bean\npublic Step processCustomersStep(JobRepository jobRepository,\n                         PlatformTransactionManager transactionManager,\n                         JpaPagingItemReader&lt;Customer&gt; customerItemReader,\n                         ItemProcessor&lt;Customer, Customer&gt; customerItemProcessor,\n                         ItemWriter&lt;Customer&gt; customerItemWriter,\n                         TaskExecutor taskExecutor) {\n    return new StepBuilder(&quot;processCustomersStep&quot;, jobRepository)\n            .&lt;Customer, Customer&gt;chunk(100, transactionManager)\n            .reader(customerItemReader)\n            .processor(customerItemProcessor)\n            .writer(customerItemWriter)\n            .taskExecutor(taskExecutor)\n            .build();\n}\n</code></pre>\n<p>When running the batch job, I get the following error when accessing the lazy-loaded order or its nested types collection in the <code>ItemProcessor</code>:</p>\n<pre><code>org.hibernate.LazyInitializationException: failed to lazily initialize a collection of role: com.myapp.Order.types: could not initialize proxy - no Session\n</code></pre>\n<p><strong>What I’ve tried:</strong></p>\n<ol>\n<li>Fetching with <code>JOIN FETCH</code>: I can’t use <code>JOIN FETCH</code> because the\n<code>Order</code> entity contains multiple nested lazy-loaded collections,\nleading to large, inefficient queries.</li>\n<li>Since I am using <code>JpaTransactionManager</code>, I assumed it would manage\nthe transaction scope properly, but the <code>LazyInitializationException</code>\nstill occurs when accessing the nested lazy-loaded collections in\nthe <code>ItemProcessor</code>.</li>\n</ol>\n<p><strong>Question:</strong></p>\n<p>How can I prevent the <code>LazyInitializationException</code> in a Spring Batch step with parallel chunks when using <code>JpaPagingItemReader</code> and <code>JpaTransactionManager</code>?</p>\n<p>Should I handle the <code>EntityManager</code> differently, or is there another pattern to process entities with nested lazy-loaded collections in parallel?</p>\n<p><strong>UPDATE (processor, writter and JPA transaction manager)</strong></p>\n<p><strong>Item processor:</strong></p>\n<p>In the ItemProcessor, I’m creating a new Customer instance and copying the nested Order and its associated Types. This requires accessing the lazy-loaded collections in the ItemProcessor, which is where the LazyInitializationException occurs.</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Component\npublic class CustomerItemProcessor implements ItemProcessor&lt;Customer, Customer&gt; {\n\n    @Override\n    public Customer process(Customer customer) throws Exception {\n        Customer newCustomer = new Customer();\n        Order order = new Order();\n        order.setTypes(customer.getOrder().getTypes()));\n        newCustomer.setOrder(order);\n        return newCustomer; \n    }\n\n}\n</code></pre>\n<p><strong>Item writer:</strong></p>\n<p>The ItemWriter uses the injected EntityManager to persist the processed entities.</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Bean\npublic JpaItemWriter&lt;Customer&gt; customerItemWriter(EntityManagerFactory entityManagerFactory) {\n    return new JpaItemWriterBuilder&lt;Customer&gt;()\n        .entityManagerFactory(entityManagerFactory)\n        .build();\n}\n</code></pre>\n<p><strong>JPA transaction manager:</strong></p>\n<p>The JpaTransactionManager is used to manage the transaction scope within the batch job.</p>\n<pre class=\"lang-java prettyprint-override\"><code>    @Bean\n    public PlatformTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {\n        return new JpaTransactionManager(entityManagerFactory);\n    }\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

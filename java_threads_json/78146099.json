@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-mvc"
+    ],
+    "owner": {
+      "account_id": 435987,
+      "reputation": 1537,
+      "user_id": 822870,
+      "user_type": "registered",
+      "accept_rate": 33,
+      "profile_image": "https://www.gravatar.com/avatar/199bae89f505ebcbc26a8a013b0325e7?s=256&d=identicon&r=PG",
+      "display_name": "David Balažic",
+      "link": "https://stackoverflow.com/users/822870/david-bala%c5%beic"
+    },
+    "is_answered": false,
+    "view_count": 216,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1749283754,
+    "creation_date": 1710237135,
+    "last_edit_date": 1710837445,
+    "question_id": 78146099,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78146099/custom-conversion-service-not-used-for-data-binding",
+    "title": "Custom conversion service not used for data binding",
+    "body": "<p>Using Spring 3.0.5 (spring-core-3.0.5.RELEASE.jar) I configured a custom converter and added it to the <code>conversionService</code>, like this:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;bean id=&quot;conversionService&quot;\n    class=&quot;org.springframework.context.support.ConversionServiceFactoryBean&quot;&gt;\n    &lt;property name=&quot;converters&quot;&gt;\n        &lt;set&gt;\n            &lt;bean class=&quot;org.example.impl.StringToMYTypeConverter&quot; /&gt;\n        &lt;/set&gt;\n    &lt;/property&gt;\n&lt;/bean&gt;\n</code></pre>\n<p>This works fine in the spring-jdbc with <code>BeanPropertyRowMapper</code> (I have to add the <code>conversionService</code> to it by <code>setConversionService()</code>).</p>\n<p>But for controllers it does not work.</p>\n<p>I tried adding</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;mvc:annotation-driven conversion-service=&quot;conversionService&quot; /&gt; \n</code></pre>\n<p>But it makes no difference.</p>\n<p>Apparently, controller/binders use a separate instance of <code>conversionService</code>, as shown by this code:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Controller\npublic class MyController\n{\n\n    @Autowired\n    private ConversionService conversionService;\n\n    @InitBinder\n    protected void initBinder(WebDataBinder binder)\n    {\n        System.out.println(&quot;conversionService=&quot;+conversionService.getClass());\n        System.out.println(&quot;conversionService=&quot;+conversionService);\n        System.out.println(&quot;binder.getConversionService=&quot;+binder.getConversionService().getClass());\n        System.out.println(&quot;binder.getConversionService=&quot;+binder.getConversionService());\n    }\n</code></pre>\n<p>The autowired object is of type <code>org.springframework.core.convert.support.GenericConversionService</code> while the binder.conversionService is of type <code>org.springframework.format.support.FormattingConversionService</code>.\nThe second line of output confirms that the first bean contains my custom converter, while the second one does not.</p>\n<p>Changing the bean class in the XML above to <code>org.springframework.format.support.FormattingConversionServiceFactoryBean</code> does not help either.</p>\n<p>The question is: how to add my converter (StringToMYTypeConverter) to be used by (all, not just by one) controllers?</p>\n<p>I tried to implement my converter as a <code>ProperytEditor</code> which works if I add it to the binder in the initBinder() method (via <code>binder.registerCustomEditor(MYType.class, new org.example.impl.StringToMYTypeConverter());</code>). Is there a way to add it to all binders/controllers in one place? That would be an acceptable solution.</p>\n<p><strong>Note:</strong> Most documentation and web content suggests that the above should work, but it doesn't. Maybe there is some small detail that I must change. Maybe tracing execution in debugger will give a clue.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

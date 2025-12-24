@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "media-player",
+      "android-auto"
+    ],
+    "owner": {
+      "account_id": 4382459,
+      "reputation": 113,
+      "user_id": 3573712,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/92f445b7d63b8092a656f6c86fa6001d?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "user3573712",
+      "link": "https://stackoverflow.com/users/3573712/user3573712"
+    },
+    "is_answered": true,
+    "view_count": 141,
+    "accepted_answer_id": 79376054,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1737938827,
+    "creation_date": 1736980327,
+    "last_edit_date": 1737568481,
+    "question_id": 79359894,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79359894/android-auto-app-doesnt-call-onplay-and-no-album-art-appears",
+    "title": "Android Auto app doesn&#39;t call onPlay, and no album art appears",
+    "body": "<p>I wrote an mp3 player (called DJ) and I want to add compatibility with Android Auto. I wrote the service and everything seems to work, except no album art appears on the Windows Desktop Head Unit, and no sound plays (doesn't even call onPlay). Clicking on a song in the head unit, it displays &quot;Getting your selection...&quot; - then seems to hang there.  Should there be a play button? <a href=\"https://i.sstatic.net/0lGVvzCY.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/0lGVvzCY.png\" alt=\"enter image description here\" /></a><a href=\"https://i.sstatic.net/WiDtprGw.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/WiDtprGw.png\" alt=\"enter image description here\" /></a></p>\n<p>The songs are in an ArrayList called songItemList. Here's the code creating the MediaItems. I confirm that the album art file exists, then do Uri.parse on the file path. I also tried a fromFile with the same result. I do the same thing for the mp3 file. I must be missing something.</p>\n<pre><code>for (SongItem songItem:songItemList) {\n    String id = SONG + &quot;_&quot; + songItem.getTrackid();\n    Uri uri = null;\n    Uri mediaUri = null;\n    if (songItem.getArtLocation() != null) {\n        File f = new File(songItem.getArtLocation());\n        if (f.exists()) {\n            //uri = Uri.fromFile(f);\n            uri = Uri.parse(songItem.getArtLocation());\n        } else {\n            Log.d(TAG,&quot;File doesn't exist:&quot; + songItem.getArtLocation());\n        }\n        f = new File(songItem.getLocation());\n        if (f.exists()) {\n            //mediaUri = Uri.fromFile(f);\n            mediaUri = Uri.parse(songItem.getLocation());\n        } else {\n            Log.d(TAG, &quot;File doesn't exist: &quot; + songItem.getLocation());\n        }\n    }\n    Bundle extras = new Bundle();\n    MediaBrowserCompat.MediaItem item =\n            new MediaBrowserCompat.MediaItem(descBuilder.setMediaId(id)\n                    .setDescription(songItem.getName())\n                    .setSubtitle(songItem.getArtist())\n                    .setIconUri(uri)\n                    .setMediaUri(mediaUri)\n                    .setMediaId(id)\n                    .setTitle(songItem.getName())\n                    .setExtras(extras)\n                    .build(),MediaBrowserCompat.MediaItem.FLAG_PLAYABLE);\n    mediaItems.add(item);\n}\n\nsaveResult.sendResult(mediaItems);\n</code></pre>\n<p>Additional info:\nWhen I use the Uri.parse, I get uri's like this:</p>\n<p>/data/data/com.emrick.dj/albumart/Judy Collins/Fires Of Eden/Fires Of Eden.jpg\n/data/data/com.emrick.dj/audio/Judy Collins/Fires Of Eden/From A Distance.mp3</p>\n<p>When I use the Uri.fromFile call, I get uri's like this:\nfile:///data/data/com.emrick.dj/albumart/Judy%20Collins/Fires%20Of%20Eden/Fires%20Of%20Eden.jpg\nfile:///data/data/com.emrick.dj/audio/Judy%20Collins/Fires%20Of%20Eden/From%20A%20Distance.mp3</p>\n<p>Also, running the mp3 player app (that this is based on) on my phone, I see all the album art and the mp3 files play, so I believe my music database is good.</p>\n<p><strong>Update:</strong>\nI tried using .setIconBitmap instead of .setIconUri, creating a bitmap instead of a Uri for the album art. If I limit the number of songs to 200 or less, then the album art appears. Somewhere between 200 and 390 songs apparently causes a problem, the head unit spins for a few seconds and then says the app isn't working.\nThen I tried going back to the .setIconUri and limited the songs to 200, that still doesn't work (gives blank album art like below). Still hangs on &quot;Getting your selection....&quot; if I click on a song.</p>\n<p><strong>Update (answer from Ben Sagmoe)</strong></p>\n<p>I'll put my follow up questions here - they don't show up well as a comment. Still not clear about implementing/accessing the ContentProvider.</p>\n<p>I tried this: using uri = Uri.parse(&quot;content://&quot; + songItem.getArtLocation());\nuri = albumArtContent(uri);</p>\n<pre><code>public static Uri albumArtContent(Uri uri) {\n        String path = uri.getEncodedPath() != null ? uri.getEncodedPath().substring(1).replace('/', ':') : Uri.EMPTY.toString();\n\n        Uri contentUri = new Uri.Builder()\n                .scheme(ContentResolver.SCHEME_CONTENT)\n                .authority(&quot;com.emrick.dj&quot;)\n                .path(path)\n                .build();\n\n        return contentUri;\n    }\n</code></pre>\n<p>Still not working. Do I need to create a class that extends ContentProvider? I don't see any methods that return a Uri in the required methods for ContentProvider though... openFile and copy look promising, but how do I get a Uri from either of those?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

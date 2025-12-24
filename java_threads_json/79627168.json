@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-boot-autoconfiguration"
+    ],
+    "owner": {
+      "account_id": 20612750,
+      "reputation": 33,
+      "user_id": 15131555,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/515004b42de8591b080899d99eede859?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "joshuasalcedo-dev",
+      "link": "https://stackoverflow.com/users/15131555/joshuasalcedo-dev"
+    },
+    "is_answered": true,
+    "view_count": 119,
+    "accepted_answer_id": 79627182,
+    "answer_count": 1,
+    "score": 3,
+    "last_activity_date": 1747553321,
+    "creation_date": 1747545445,
+    "last_edit_date": 1747553321,
+    "question_id": 79627168,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79627168/how-to-dynamically-find-an-available-port-in-spring-boot-when-the-configured-por",
+    "title": "How to dynamically find an available port in Spring Boot when the configured port is already in use?",
+    "body": "<p>I'm building a Spring Boot starter and want it to automatically try ports sequentially (8080, 8081, etc.) when the default port is already in use, instead of crashing.</p>\n<p>I know <code>server.port=0</code> selects a random port, but this is inconvenient for development.</p>\n<p>My current code logs the server URL on startup:</p>\n<pre class=\"lang-java prettyprint-override\"><code>\n@Bean\n\npublic ApplicationListener&lt;ApplicationReadyEvent&gt; logWhenReadyEvent(LoggingProperties properties, Environment environment) {\n\n    return event -&gt; {\n\n        String port = environment.getProperty(&quot;server.port&quot;, &quot;8080&quot;);\n\n        // Log server URL\n\n    };\n\n}\n\n</code></pre>\n<h2>Tried to do it this way</h2>\n<pre class=\"lang-java prettyprint-override\"><code>\n@Component\n\npublic class PortFinder implements ApplicationListener&lt;ApplicationEnvironmentPreparedEvent&gt; {\n\n    @Override\n\n    public void onApplicationEvent(ApplicationEnvironmentPreparedEvent event) {\n\n        // Try to set available port - doesn't work\n\n    }\n\n}\n\n</code></pre>\n<p>Thanks for the suggestion. I need to catch the <code>BindException</code>\nAdd it as a bean. My applications are now autoconfigured to change their ports dynamically.</p>\n<p>I don't have to put the <code>server.port</code> every time! Thanks! <a href=\"https://stackoverflow.com/users/16769477/jay-yadav\">credits</a></p>\n<h3>Working solution</h3>\n<pre><code>@Bean\npublic WebServerFactoryCustomizer&lt;ConfigurableWebServerFactory&gt; webServerFactoryCustomizer() {\n    return new SpringPortSolver();\n}\n\npublic static class SpringPortSolver implements WebServerFactoryCustomizer&lt;ConfigurableWebServerFactory&gt; {\n    private static final Logger logger = LoggerFactory.getLogger(SpringPortSolver.class);\n    \n    @Value(&quot;${server.port:8080}&quot;)\n    String serverPort;\n    \n    @Override\n    public void customize(ConfigurableWebServerFactory factory) {\n        int port;\n        try {\n            port = Integer.parseInt(serverPort);\n        } catch (NumberFormatException e) {\n            logger.error(&quot;Invalid server.port value: {}. Using default port 8080 instead.&quot;, serverPort);\n            port = 8080;\n        }\n        \n        int originalPort = port;\n        int maxPortToTry = port + 100; // Limit how far we'll search to avoid infinite loops\n        \n        logger.info(&quot;Attempting to find available port starting from {}&quot;, port);\n        \n        while (port &lt; maxPortToTry) {\n            try (ServerSocket socket = new ServerSocket()) {\n                // Use bind with InetSocketAddress to better handle binding issues\n                socket.setReuseAddress(true);\n                socket.bind(new InetSocketAddress(&quot;localhost&quot;, port));\n                \n                int availablePort = socket.getLocalPort();\n                logger.info(&quot;Port {} is available. Using port {} for server.&quot;, availablePort, availablePort);\n                factory.setPort(availablePort);\n                return;\n            } catch (BindException e) {\n                logger.warn(&quot;Port {} is already in use. Trying port {} instead.&quot;, port, port + 1);\n                port += 1;\n            } catch (IOException e) {\n                logger.error(&quot;Failed to test port {}: {}&quot;, port, e.getMessage());\n                // Try next port anyway\n                port += 1;\n            }\n        }\n        \n        // If we've exhausted all ports in our range, use a random port\n        logger.warn(&quot;Unable to find available port in range {}-{}. Using random port instead.&quot;, originalPort, maxPortToTry);\n        factory.setPort(0);\n    }\n}\n</code></pre>\n<p><a href=\"https://i.sstatic.net/cWfctUPg.png\" rel=\"nofollow noreferrer\">Log</a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

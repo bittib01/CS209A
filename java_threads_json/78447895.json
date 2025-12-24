@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "maven",
+      "lucene",
+      "nexus"
+    ],
+    "owner": {
+      "account_id": 11342171,
+      "reputation": 1770,
+      "user_id": 8315843,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/c355a6bc9f775ba7e74329d02984e52f?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Sybuser",
+      "link": "https://stackoverflow.com/users/8315843/sybuser"
+    },
+    "is_answered": true,
+    "view_count": 86,
+    "accepted_answer_id": 78633747,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1718641838,
+    "creation_date": 1715165025,
+    "last_edit_date": 1715509973,
+    "question_id": 78447895,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78447895/searching-an-artifact-on-nexus",
+    "title": "Searching an artifact on nexus",
+    "body": "<p>I'm using the following code to search an artifact on Nexus. Although the URL returns a result in XML if I open it in a browser, the result as an object is not properly mapped and has empty data.</p>\n<pre class=\"lang-java prettyprint-override\"><code>import java.net.URL;\nimport java.net.URLConnection;\n\nimport javax.xml.bind.JAXBContext;\nimport javax.xml.bind.Unmarshaller;\n\nimport org.sonatype.nexus.rest.model.NexusNGArtifact;\nimport org.sonatype.nexus.rest.model.SearchNGResponse;\nimport org.sonatype.nexus.rest.model.SearchResponse;\n\npublic class TestNexus {\n\n    public static void main(String[] args) throws Exception {\n        JAXBContext context = JAXBContext.newInstance(SearchResponse.class, SearchNGResponse.class);\n        Unmarshaller unmarshaller = context.createUnmarshaller();\n        URLConnection connection = new URL(&quot;https://oss.sonatype.org/service/local/lucene/search?sha1=4a7b16bae95be72f7d591a517bd03e1172ede7ee&quot;).openConnection();\n        connection.setConnectTimeout(5000);\n        connection.setReadTimeout(10000);\n        Object resp = unmarshaller.unmarshal(connection.getInputStream());\n        if (resp instanceof SearchNGResponse) {\n            SearchNGResponse srsp = (SearchNGResponse) resp;\n            for (NexusNGArtifact ar : srsp.getData()) {\n                System.out.println(&quot;group:&quot; + ar.getGroupId());\n                System.out.println(&quot;artifact:&quot; + ar.getArtifactId());\n                System.out.println(&quot;version:&quot; + ar.getVersion());\n            }\n        }\n    }\n}\n</code></pre>\n<p>I use the following pom:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot;\n    xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;\n    xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&gt;\n    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;\n    &lt;groupId&gt;nexus&lt;/groupId&gt;\n    &lt;artifactId&gt;nexus&lt;/artifactId&gt;\n    &lt;version&gt;0.0.1-SNAPSHOT&lt;/version&gt;\n    &lt;properties&gt;\n        &lt;maven.compiler.version&gt;17&lt;/maven.compiler.version&gt;\n        &lt;maven.compiler.target&gt;17&lt;/maven.compiler.target&gt;\n    &lt;/properties&gt;\n    &lt;dependencies&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;com.sun.xml.bind&lt;/groupId&gt;\n            &lt;artifactId&gt;jaxb-impl&lt;/artifactId&gt;\n            &lt;version&gt;2.3.8&lt;/version&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;javax.xml.bind&lt;/groupId&gt;\n            &lt;artifactId&gt;jaxb-api&lt;/artifactId&gt;\n            &lt;version&gt;2.3.1&lt;/version&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.glassfish.jaxb&lt;/groupId&gt;\n            &lt;artifactId&gt;jaxb-runtime&lt;/artifactId&gt;\n            &lt;version&gt;2.3.3&lt;/version&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.sonatype.nexus.plugins&lt;/groupId&gt;\n            &lt;artifactId&gt;nexus-indexer-lucene-model&lt;/artifactId&gt;\n            &lt;version&gt;2.15.1-02&lt;/version&gt;\n        &lt;/dependency&gt;\n    &lt;/dependencies&gt;\n&lt;/project&gt;\n</code></pre>\n<p>The XML response is the following:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;searchNGResponse&gt;\n  &lt;totalCount&gt;1&lt;/totalCount&gt;\n  &lt;from&gt;-1&lt;/from&gt;\n  &lt;count&gt;-1&lt;/count&gt;\n  &lt;tooManyResults&gt;false&lt;/tooManyResults&gt;\n  &lt;collapsed&gt;false&lt;/collapsed&gt;\n  &lt;repoDetails&gt;\n    &lt;org.sonatype.nexus.rest.model.NexusNGRepositoryDetail&gt;\n      &lt;repositoryId&gt;releases&lt;/repositoryId&gt;\n      &lt;repositoryName&gt;Releases&lt;/repositoryName&gt;\n      &lt;repositoryContentClass&gt;maven2&lt;/repositoryContentClass&gt;\n      &lt;repositoryKind&gt;hosted&lt;/repositoryKind&gt;\n      &lt;repositoryPolicy&gt;RELEASE&lt;/repositoryPolicy&gt;\n      &lt;repositoryURL&gt;https://oss.sonatype.org/service/local/repositories/releases&lt;/repositoryURL&gt;\n    &lt;/org.sonatype.nexus.rest.model.NexusNGRepositoryDetail&gt;\n  &lt;/repoDetails&gt;\n  &lt;data&gt;\n    &lt;artifact&gt;\n      &lt;groupId&gt;org.slf4j&lt;/groupId&gt;\n      &lt;artifactId&gt;slf4j-nop&lt;/artifactId&gt;\n      &lt;version&gt;2.1.0-alpha1&lt;/version&gt;\n      &lt;latestRelease&gt;2.1.0-alpha1&lt;/latestRelease&gt;\n      &lt;latestReleaseRepositoryId&gt;releases&lt;/latestReleaseRepositoryId&gt;\n      &lt;artifactHits&gt;\n        &lt;artifactHit&gt;\n          &lt;repositoryId&gt;releases&lt;/repositoryId&gt;\n          &lt;artifactLinks&gt;\n            &lt;artifactLink&gt;\n              &lt;extension&gt;pom&lt;/extension&gt;\n            &lt;/artifactLink&gt;\n            &lt;artifactLink&gt;\n              &lt;extension&gt;jar&lt;/extension&gt;\n            &lt;/artifactLink&gt;\n          &lt;/artifactLinks&gt;\n        &lt;/artifactHit&gt;\n      &lt;/artifactHits&gt;\n    &lt;/artifact&gt;\n  &lt;/data&gt;\n&lt;/searchNGResponse&gt;\n</code></pre>\n<p>But the JAVA program finds no <code>&lt;data&gt;</code> element.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

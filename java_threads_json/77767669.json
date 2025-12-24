@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-mvc",
+      "spring-data-jpa",
+      "spring-restcontroller"
+    ],
+    "owner": {
+      "account_id": 23494843,
+      "reputation": 25,
+      "user_id": 17545414,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/88b61e978404aabec7c8544510ed8685?s=256&d=identicon&r=PG",
+      "display_name": "Cyclone",
+      "link": "https://stackoverflow.com/users/17545414/cyclone"
+    },
+    "is_answered": false,
+    "view_count": 3340,
+    "answer_count": 3,
+    "score": 0,
+    "last_activity_date": 1708556036,
+    "creation_date": 1704497137,
+    "last_edit_date": 1704527814,
+    "question_id": 77767669,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77767669/manytoone-and-onetomany-adding-and-retrieving-problem-in-springboot",
+    "title": "@ManyToOne and @OneToMany adding and retrieving problem in springboot",
+    "body": "<p>I am encountering a problem in my Spring Boot JPA application related to relationships between the Owner and Car entities. The issue arises when attempting to associate a new Car with an existing Owner or when adding a new Owner with a set of Cars. While the owner and cars are added successfully to the database, the owner_id in the Car table is set to null and when trying to retrieve an owner I get no response.</p>\n<p>Could anyone help to find a solution : My objective is adding owner with sets of cars, retrieving owners with their cars and while inserting a car with an existing owner it will be retrieved also.</p>\n<p>these are my classes and json payloads:</p>\n<p><em><strong>Car.java class</strong></em></p>\n<pre><code>@Entity\n@Table(name=&quot;Car&quot;)\n@Data\npublic class Car {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    @Column(name = &quot;car_id&quot;)\n    private Long id;\n\n    @Column(name = &quot;name&quot;)\n    private String car_name;\n\n    @Column(name = &quot;model&quot;)\n    private String Lmodel;\n\n    @Column(name = &quot;firstY&quot;)\n    private String firsty;\n\n    @ManyToOne()\n    @JoinColumn(name=&quot;owner_id&quot;, referencedColumnName = &quot;owner_id&quot;)        \n    private Owner owner;\n</code></pre>\n<p><em><strong>Owner.java Class</strong></em></p>\n<pre><code>@Entity\n@Table(name=&quot;Owner&quot;)\n@Data\npublic class Owner {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    @Column(name = &quot;owner_id&quot;, nullable = false)\n    private Long id;\n\n    @Column(name = &quot;first_name&quot;)\n    private String first_name;\n\n    @Column(name = &quot;last_name&quot;)\n    private String last_name;\n\n    @Column(name = &quot;address&quot;)\n    private String address;\n\n    @OneToMany(targetEntity = Car.class, mappedBy = &quot;owner&quot;, cascade = CascadeType.ALL, orphanRemoval = true)\n    private List&lt;Car&gt; car;\n\n}\n</code></pre>\n<p><em><strong>Main Controller</strong></em></p>\n<pre><code>package com.example.product.controllers;\n\nimport com.example.product.model.Car;\nimport com.example.product.model.CarService;\nimport com.example.product.model.Owner;\nimport com.example.product.model.OwnerService;\nimport jakarta.transaction.Transactional;\nimport lombok.AllArgsConstructor;\nimport org.springframework.beans.factory.annotation.Autowired;\nimport org.springframework.http.HttpStatus;\nimport org.springframework.web.bind.annotation.*;\n\nimport java.util.List;\n\n@AllArgsConstructor\n@RestController\npublic class MainController {\n\n    @Autowired\n    private CarService carService;\n\n    @Autowired\n    private  OwnerService ownerService;\n\n    @Transactional\n    @DeleteMapping(value = &quot;/Owner/{id}&quot;)\n    public void deleteOwner(@PathVariable Long id){\n        ownerService.deleteOwnerById(id);\n    }\n\n    @PostMapping(value = &quot;/Owner&quot;)\n    public void addOwner(@RequestBody Owner owner){\n        ownerService.addOwner(owner);\n    }\n\n    @GetMapping(value = &quot;/Owner/{id}&quot;)\n    public Owner getOwner(@PathVariable Long id){\n        return  ownerService.findOwnerById(id);\n    }\n\n    @PutMapping(value = &quot;/Owner&quot;)\n    public void updateOwner(Long id, String firstName, String lastName, String email, Car car){\n        ownerService.updateOwner(id,firstName,lastName,email,car);\n    }\n\n    @GetMapping(value = &quot;/Owners&quot;)\n    public List&lt;Owner&gt; getAllOwners(){ return ownerService.getAllOwners();}\n\n    @Transactional\n    @DeleteMapping (value = &quot;/Car/{id}&quot;)\n    public void deleteCar(@PathVariable Long id){\n        carService.deleteCarById(id);\n    }\n\n    @PostMapping(value = &quot;/Car&quot;)\n    @ResponseStatus(HttpStatus.CREATED)\n    public void addCar(@RequestBody  Car car){\n        carService.addCar(car);\n    }\n\n    @GetMapping(value = &quot;/Car/{id}&quot;)\n    public Car getCar(@PathVariable Long id){\n        return  carService.getCarById(id);\n    }\n\n    @PutMapping(value = &quot;/Car&quot;)\n    public void updateCar (Long id,String firsty,String name,String model){\n        carService.updateCarById(firsty,name,model,id);\n    }\n\n    @GetMapping(value=&quot;/Cars&quot;)\n    public List&lt;Car&gt; getAllCars(){\n        return carService.getAllCars();\n    }\n}\n</code></pre>\n<p><em><strong>Json payload to add a car into the database</strong></em></p>\n<pre><code>{\n&quot;car_name&quot;: &quot;Toyota&quot;,\n&quot;lmodel&quot;: &quot;Camry&quot;,\n&quot;firsty&quot;: &quot;2023&quot;,\n&quot;owner&quot;: {\n  &quot;id&quot;: 1\n    }\n}\n</code></pre>\n<p><em><strong>Json payload to add an owner into the database</strong></em></p>\n<pre><code>{\n  &quot;first_name&quot;: &quot;John&quot;,\n  &quot;last_name&quot;: &quot;Doe&quot;,\n    &quot;address&quot;: &quot;123 Main Street&quot;,\n  &quot;car&quot;: [\n    {\n      &quot;car_name&quot;: &quot;BMW&quot;,\n      &quot;lmodel&quot;: &quot;Model 3&quot;,\n      &quot;firsty&quot;: &quot;2022&quot;            },\n    {\n      &quot;car_name&quot;: &quot;Mercedes&quot;,\n      &quot;lmodel&quot;: &quot;C-Class&quot;,\n      &quot;firsty&quot;: &quot;2021&quot;      \n        }\n  ]\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "hibernate",
+      "junit"
+    ],
+    "owner": {
+      "account_id": 10667628,
+      "reputation": 1,
+      "user_id": 7853649,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/-aPpIjWHp7Z4/AAAAAAAAAAI/AAAAAAAAAaM/OzB5rFQVtd0/s256-rj/photo.jpg",
+      "display_name": "Igor Dutra",
+      "link": "https://stackoverflow.com/users/7853649/igor-dutra"
+    },
+    "is_answered": false,
+    "view_count": 56,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1747835948,
+    "creation_date": 1747752889,
+    "last_edit_date": 1747835948,
+    "question_id": 79630686,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79630686/hibernate-shared-sessions",
+    "title": "Hibernate Shared Sessions",
+    "body": "<p>Since I migrated to Hibernate 6.x+ I started having problems with shared sessions in unit sessions.</p>\n<p>I have a problem where I have the following structure:</p>\n<p>I have a test that first creates a record (banana).</p>\n<p>After that, I have a concurrency test that triggers 10 threads in 15 iterations that try to delete the record (banana), but I am receiving the message:</p>\n<pre><code>Caused by: org.hibernate.NonUniqueObjectException: A different object with the same identifier value was already associated with the session : [banana#123]\n</code></pre>\n<p>This behavior did not occur in version 5.x of Hibernate, it only started in version 6.x.</p>\n<p>Below is an example of how I set up my test:</p>\n<pre><code>@SpringBootTest\n@RunWith(SpringRunner.class)\npublic class BananaConcurrentDeletedTest {\n\n    private static final int THREADS = 10;\n    private static final int ITERATIONS = 15;\n    private static final String BANANA_ID = &quot;123&quot;;\n    \n    @Autowired\n    private BananaConcurrentDeletedFixture fixture;\n    \n    @Test\n    public void ensureConcurrentBananaIsCorrect() throws Exception {\n        createBanana();\n    \n        Set&lt;String&gt; bananaIds = new HashSet&lt;&gt;();\n        ids.add(BANANA_ID);\n\n        Target target = new Target(ids);\n\n        for (int i=0; i&lt;THREADS; i++) {\n            Thread thread = new Thread(target);\n            thread.start();\n        }\n\n        target.endLatch.await();\n    }\n    \n    private void createBanana() throws Exception {\n        this.fixture.createBanana(BANANA_ID);\n    }\n\n    private void deleteBanana() throws Exception {\n        this.fixture.deleteBanana(BANANA_ID);\n    }\n}\n</code></pre>\n<p>My Target implementation:</p>\n<pre><code>private class Target implements Runnable {\n\n    private final CountDownLatch startLatch = new CountDownLatch(THREADS);\n    private final CountDownLatch endLatch = new CountDownLatch(THREADS);\n\n    private final Set&lt;String&gt; ids;\n\n    public Target(Set&lt;String&gt; ids) {\n        this.ids = ids;\n    }\n\n    @Override\n    public void run() {\n        try {\n            startLatch.countDown();\n            startLatch.await();\n\n            for (int i=0; i&lt;ITERATIONS; i++) {\n               deleteBanana(this.ids);\n            }\n        } catch (Exception ex) {\n            throw new RuntimeException(ex);\n        } finally {\n            endLatch.countDown();\n        }\n    }\n}\n</code></pre>\n<p>Fixture methods:</p>\n<pre><code>void createBanana(String BANANA_ID){\n  Banana banana = new Banana(BANANA_ID);\n  createBananaService.save(banana);\n}\n\n\nvoid deleteBanana(String BANANA_ID){\n  bananaService.deleteBananaById(BANANA_ID);\n}\n\n</code></pre>\n<p>The problem occurs when I create the object before initializing the Threads. I have already tried to isolate it with <code>@Transactional(propagation = REQUIRES_NEW)</code> but without success.\nI have also tried using ThreadLocal, and it had no effect.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

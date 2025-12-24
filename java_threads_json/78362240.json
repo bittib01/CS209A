@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jvm",
+      "jacoco",
+      "jvm-bytecode"
+    ],
+    "owner": {
+      "account_id": 31728716,
+      "reputation": 1,
+      "user_id": 24544920,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/fb120123e04fe2b02e3aaa4cfd7a980a?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "April Hou",
+      "link": "https://stackoverflow.com/users/24544920/april-hou"
+    },
+    "is_answered": false,
+    "view_count": 53,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1715695472,
+    "creation_date": 1713715238,
+    "last_edit_date": 1715695472,
+    "question_id": 78362240,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78362240/how-to-add-an-arraylist-field-in-a-class-file-using-asm",
+    "title": "How to add an arrayList field in a class file using ASM",
+    "body": "<p>I am doing changes to re-develop Jacoco.\nExcept for the existing boolean[], I want to add a new field (ArrayList) to store function name.\nI have already create the init method and add it to 'addMember' like following</p>\n<pre><code>public Test() {\n        boolean[] var2 = $jacocoInit();\n        ArrayList var3 = $jacocoListInit();\n        super();\n        var2[0] = true;\n        var3.add(&quot;&lt;init&gt;&quot;);\n        Long a = 1L;\n        var2[1] = true;\n        var3.add(&quot;&lt;init&gt;&quot;);\n        Long b = 2L;\n        this.a = a;\n        this.b = b;\n        var2[2] = true;\n        var3.add(&quot;&lt;init&gt;&quot;);\n    }\n</code></pre>\n<p>But when i run the test</p>\n<pre><code>    @Test\n    public void testInstrumentClass() throws Exception {\n        byte[] bytes = instrumenter.instrument(\n                TargetLoader.getClassDataAsBytes(InstrumenterTest.class),\n                &quot;Test&quot;);\n        TargetLoader loader = new TargetLoader();\n        Class&lt;?&gt; clazz = loader.add(InstrumenterTest.class, bytes);\n        assertEquals(&quot;org.jacoco.core.instr.InstrumenterTest&quot;, clazz.getName());\n    }\n</code></pre>\n<p>It will throw <code>java.lang.ClassFormatError: Illegal class name &quot;Ljava/util/List;&quot; in class file org/jacoco/core/instr/InstrumenterTest</code></p>\n<p>What's the root cause and how to solve it?</p>\n<p>The codes i made changes are as follows.</p>\n<pre><code>public void addMembers(final ClassVisitor cv, final int probeCount) {\n        createBooleanDataField(cv);\n        createArrayListDataField(cv);\n        createBooleanArrayInitMethod(cv, probeCount);\n        createArrayListInitMethod(cv);\n    }\n</code></pre>\n<pre><code>private void createArrayListDataField(final ClassVisitor cv) {\n        // declare an arrayList\n        cv.visitField(InstrSupport.DATAFIELD_ACC,\n                InstrSupport.METHOD_FIELD_NAME, InstrSupport.METHOD_FIELD_DESC,\n                &quot;Ljava/util/ArrayList&lt;Ljava/lang/String;&gt;;&quot;, null);\n    }\n</code></pre>\n<pre><code>private void createArrayListInitMethod(ClassVisitor cv) {\n        // declare jacocoInit method\n        final MethodVisitor mv = cv.visitMethod(InstrSupport.INITMETHOD_ACC,\n                InstrSupport.INIT_ARRAYLIST_METHOD_NAME,\n                InstrSupport.INIT_ARRAYLIST_METHOD_DESC,\n                null, null);\n        // edit the content of the method\n        mv.visitCode();\n        mv.visitTypeInsn(Opcodes.NEW, &quot;java/util/ArrayList&quot;);\n        mv.visitInsn(Opcodes.DUP);\n        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, &quot;java/util/ArrayList&quot;,\n                &quot;&lt;init&gt;&quot;, &quot;()V&quot;, false);\n        if (withFrames) {\n            mv.visitFrame(Opcodes.F_NEW, 0, FRAME_LOCALS_EMPTY, 1,\n                    STRING_FRAME_STACK_ARRZ);\n        }\n        mv.visitInsn(Opcodes.ARETURN);\n\n        mv.visitMaxs(2, 0); // Maximum local stack size is 3,\n        mv.visitEnd();\n    }\n</code></pre>\n<pre><code>@Override\n    public void insertProbe(final int id) {\n\n        // For a probe we set the corresponding position in the boolean[] array\n        // to true.\n\n        mv.visitVarInsn(Opcodes.ALOAD, variable);\n\n        // Stack[0]: [Z\n\n        InstrSupport.push(mv, id);\n\n        // Stack[1]: I\n        // Stack[0]: [Z\n\n        mv.visitInsn(Opcodes.ICONST_1);\n\n        // Stack[2]: I\n        // Stack[1]: I\n        // Stack[0]: [Z\n\n        mv.visitInsn(Opcodes.BASTORE);\n\n        mv.visitVarInsn(Opcodes.ALOAD, variable + 1);\n        mv.visitLdcInsn(methodName);\n        mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, &quot;java/util/List&quot;, &quot;add&quot;,\n                &quot;(Ljava/lang/Object;)Z&quot;, true);\n        mv.visitInsn(Opcodes.POP);\n\n    }```\n\n\npublic static final String INIT_ARRAYLIST_METHOD_NAME = &quot;$jacocoListInit&quot;;\npublic static final String METHOD_FIELD_DESC = &quot;Ljava/util/List;&quot;;\npublic static final String INIT_ARRAYLIST_METHOD_DESC = &quot;()Ljava/util/ArrayList;&quot;;\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

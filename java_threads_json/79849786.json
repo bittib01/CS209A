@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "csrf"
+    ],
+    "owner": {
+      "account_id": 15394903,
+      "reputation": 1,
+      "user_id": 11106370,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/7123b36f42e232106cc9b245db3920c6?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Robert Wilcox",
+      "link": "https://stackoverflow.com/users/11106370/robert-wilcox"
+    },
+    "is_answered": false,
+    "view_count": 56,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1766313132,
+    "creation_date": 1766001714,
+    "last_edit_date": 1766313132,
+    "question_id": 79849786,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79849786/why-would-spring-generate-a-new-csrf-during-processing-of-a-post",
+    "title": "Why would Spring generate a new CSRF during processing of a POST",
+    "body": "<p>I have a Spring app with form-based authentication and a Restcontroller for my API. I am using Spring Boot 3.5.4 and Spring Security 6. If CSRF is disabled in the security configuration, everything works fine. With CSRF enabled, I can authenticate fine, The GETs work for my API when I pass in the JSESSIONID cookie (csrf token not required for GET). But the POST API call is failing with a 403 Access denied. I've added debug code and found that the csrfilter has an expected token that does not match the token that was passed in the request. I fetch the token(csrf token changes each request) before I make the POST call, which is the same process I used before calling login. Here is my security chain and customauthenticationhandler(to add XSRF-TOKEN to successful authentication response):</p>\n<pre><code>&quot;@&quot;Bean\npublic SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {\n\nu/Bean\npublic AuthenticationSuccessHandler customAuthenticationSuccessHandler() {\n    return (request, response, authentication) -&gt; {\n        // Retrieve the CSRF token that was generated and stored in the new session/cookie\n        System.out.println(&quot;CustomAuthenticationSuccessHandler&quot;);\n        CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());\n\n        if (csrfToken != null) {\n            // Set the token in the response header so the client can access it\n            response.setHeader(csrfToken.getHeaderName(), csrfToken.getToken());\n        }\n\n        // Continue with default behavior (e.g., redirecting to the original URL)\n        new SavedRequestAwareAuthenticationSuccessHandler().onAuthenticationSuccess(request, response, authentication);\n    };\n}\n\nhttp\n        .exceptionHandling(exceptionHandling -&gt; exceptionHandling\n        .accessDeniedHandler(accessDeniedHandler()))\n\n        // Force Csrf token into header\n        .csrf(csrf -&gt; csrf\n           .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())\n           .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))\n\n        .addFilterAfter(new CsrfLoggerFilter(), CsrfFilter.class)\n        .authorizeHttpRequests((requests) -&gt; requests\n        .requestMatchers(&quot;/&quot;,&quot;/index&quot;).permitAll()\n        .anyRequest().authenticated()\n        )\n        .formLogin((form) -&gt; form\n                .successHandler(customAuthenticationSuccessHandler())\n                .loginPage(&quot;/login&quot;)\n                .permitAll()\n        )\n        .logout((logout) -&gt; logout.permitAll()\n        );\nreturn http.build();\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

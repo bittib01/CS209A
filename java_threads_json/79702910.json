@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "jackson",
+      "spring-webflux"
+    ],
+    "owner": {
+      "account_id": 3710550,
+      "reputation": 1108,
+      "user_id": 3087999,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/22b7d15478863b6ed0d4ad28634b961a?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "vipcxj",
+      "link": "https://stackoverflow.com/users/3087999/vipcxj"
+    },
+    "is_answered": true,
+    "view_count": 104,
+    "accepted_answer_id": 79702920,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1752641562,
+    "creation_date": 1752640279,
+    "last_edit_date": 1752641023,
+    "question_id": 79702910,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79702910/why-does-spring-boot-insist-on-serializing-my-zoneddatetime-type-data-as-a-float",
+    "title": "Why does Spring Boot insist on serializing my ZonedDateTime type data as a floating-point timestamp in seconds?",
+    "body": "<p>The Spring Boot insist on serializing my <code>ZonedDateTime</code> type data as a floating-point timestamp in seconds. I have tried all the methods online, but none of them could make it give up.\nTo be precise, the rest controller always serializes <code>ZonedDateTime</code> type fields as floating-point timestamps in seconds.</p>\n<p>I have tried most of the solutions available online, which do allow me to manually inject <code>ObjectMapper</code> and manually serialize to get my custom result, but none of this works for the rest controller. My custom serialization code is not even executed.</p>\n<p>I have tried <code>@JsonComponent</code>, custom <code>ObjectMapper</code>, and <code>Jackson2ObjectMapperBuilderCustomizer</code>, but Spring Boot always insists on its own way. It’s really a framework that’s hard to control.</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Configuration\npublic class JacksonConfig {\n  // The code was indeed executed, but it didn't work; at least the rest controller ignored me\n  @Bean\n  @Primary\n  public ObjectMapper objectMapper(Jackson2ObjectMapperBuilder builder) {\n    var objectMapper = builder.build();\n    SimpleModule module = new SimpleModule(&quot;CustomZonedDateTimeModule&quot;);\n    module.addSerializer(ZonedDateTime.class, new ZonedDateTimeTimestampSerializer());\n    objectMapper.registerModule(module);\n    return objectMapper;\n  }\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>@JsonComponent // I have tried @JsonComponent, not work.\npublic class ZonedDateTimeTimestampSerializer extends JsonSerializer&lt;ZonedDateTime&gt; {\n    \n    @Override\n    public void serialize(ZonedDateTime value, JsonGenerator gen, SerializerProvider serializers) \n            throws IOException {\n        if (value != null) {\n            gen.writeNumber(value.toInstant().toEpochMilli());\n        }\n    }\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>@Configuration\npublic class JacksonConfig implements Jackson2ObjectMapperBuilderCustomizer {\n  // The code was indeed executed, but it didn't work; at least the rest controller ignored me\n\n  public void customize(Jackson2ObjectMapperBuilder builder) {\n    SimpleModule module = new SimpleModule(&quot;CustomZonedDateTimeModule&quot;);\n    module.addSerializer(ZonedDateTime.class, new ZonedDateTimeTimestampSerializer());\n    builder.modules(module);\n  }\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>@Configuration\npublic class JacksonConfig {\n  // The code was indeed executed, but it didn't work; at least the rest controller ignored me\n  @Bean\n  @Primary\n  public JavaTimeModule javaTimeModule() {\n    var module = new JavaTimeModule();\n    module.addSerializer(ZonedDateTime.class, new ZonedDateTimeTimestampSerializer());\n    return module;\n  }\n}\n</code></pre>\n<p>Also, just to mention, I am using WebFlux, not sure if that makes a difference. It's hard to believe that such a seemingly simple issue has stumped me; Spring's black box nature is too severe, and the configuration is overly opaque.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

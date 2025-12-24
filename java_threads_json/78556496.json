@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "interface",
+      "junit5",
+      "multiple-inheritance",
+      "google-truth"
+    ],
+    "owner": {
+      "account_id": 16769505,
+      "reputation": 13,
+      "user_id": 12122285,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/c3ced523922181049c598ce435d192a8?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "GeenDutchman",
+      "link": "https://stackoverflow.com/users/12122285/geendutchman"
+    },
+    "is_answered": true,
+    "view_count": 144,
+    "accepted_answer_id": 78684023,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1719599934,
+    "creation_date": 1717090381,
+    "last_edit_date": 1717092119,
+    "question_id": 78556496,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78556496/how-should-i-write-google-truth-subjects-for-an-object-heirarchy-that-uses-inter",
+    "title": "How should I write Google-Truth Subjects for an object heirarchy that uses interfaces for multiple-inheritance?",
+    "body": "<h2>The situation</h2>\n<p>I'm writing tests for a personal project (in Java17 using JUnit5/Jupiter and <a href=\"https://truth.dev\" rel=\"nofollow noreferrer\">Google Truth</a> ) where I use the multiple-inheritance of interfaces to define classes.  For example:</p>\n<h3>Example</h3>\n<pre><code>public interface Taggable {\n    public String getTagName();\n\n    public String getSimpleContent();\n    \n    // ... and more\n}\n\n\npublic interface CreatureContainer {\n    public Collection&lt;Creature&gt; getCreatures();\n\n    public boolean addCreature(Creature c);\n\n    public void announce(String message);\n\n    // ... and more\n}\n\npublic class Area implements Taggable, CreatureContainer { // possibly more\n   private String name;\n   private Set&lt;Creature&gt; creatures;\n\n   // Constructor etc\n\n   @Override\n   public String getTagName() {\n        return this.getClass().getName();\n   }\n\n   @Override\n   public String getSimpleContent() {\n        return this.name;\n   }\n\n   @Override\n   public Collection&lt;Creature&gt; getCreatures() {\n      return creatures;\n   }\n\n   // ...etc\n\n}\n</code></pre>\n<h2>Options</h2>\n<p>As the <a href=\"https://truth.dev/api/latest/com/google/common/truth/Subject.html\" rel=\"nofollow noreferrer\">Google Truth Subject</a> class is a CLASS and there's no interfaces to use to mirror my structure, I cannot write something like:</p>\n<pre><code>public class TaggableSubject extends Subject {};\npublic class CreatureContainerSubject extends Subject {};\npublic class AreaSubject extends TaggableSubject, CreatureContainerSubject {}; // ERROR!!\n</code></pre>\n<p>I can see a few options:</p>\n<h3>Option 1</h3>\n<p>I write one <code>Subject</code> for each of <code>Taggable</code>, <code>CreatureContainer</code>, and <code>Area</code>.  In the <code>AreaSubject</code> I include methods such as</p>\n<pre><code>public TaggableSubject asTaggable() {\n    return check(&quot;this&quot;).that(actual); // just give it a raw actual?\n}\n\n\npublic CreatureContainerSubject asCreatureContainer() {\n   return check(&quot;this&quot;).that(actual);\n}\n</code></pre>\n<h3>Option 2</h3>\n<p>I only write the <code>AreaSubject</code>, and include a method for each thing in from the inherited interfaces.</p>\n<p>Such as:</p>\n<pre><code>\npublic StringSubject tagName() {\n   return check(&quot;getTagName()&quot;).that(actual.getTagName());\n}\n\n// or similarly\npublic void hasTagName(String tagName) {\n    this.tagName().isEqualTo(tagName);\n}\n\npublic void hasCreature(Creature c) {\n    check(&quot;getCreatures()&quot;).that(actual.getCreatures()).contains(c);\n}\n</code></pre>\n<h2>The Question</h2>\n<p>To keep moving forward, I'm going to go with the first option, but I'd still like to know:</p>\n<p>Which of the options is more true to the <a href=\"https://truth.dev\" rel=\"nofollow noreferrer\">Google Truth</a> paradigm?  Or is there a better option?</p>\n<p>Thank you.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

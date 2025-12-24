@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-security",
+      "thymeleaf"
+    ],
+    "owner": {
+      "account_id": 15229691,
+      "reputation": 25,
+      "user_id": 10989168,
+      "user_type": "registered",
+      "profile_image": "https://graph.facebook.com/2315454558684041/picture?type=large",
+      "display_name": "James Pollard",
+      "link": "https://stackoverflow.com/users/10989168/james-pollard"
+    },
+    "is_answered": false,
+    "view_count": 245,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1750442869,
+    "creation_date": 1748925626,
+    "last_edit_date": 1750442869,
+    "question_id": 79650629,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79650629/cant-get-spring-boot-to-use-a-custom-login-page",
+    "title": "Can&#39;t get Spring Boot to use a custom login page",
+    "body": "<p>I'm trying to get Spring Boot to use a custom login page. I appear to have done everything required but the desired behaviour doesn't happen. The spring-boot-starter-parent version is 3.4.5 and the Java version is 17.</p>\n<p>Dependencies from the POM file and contents of the security config file:</p>\n<pre><code>&lt;dependencies&gt;\n    &lt;dependency&gt;\n        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n        &lt;artifactId&gt;spring-boot-starter-thymeleaf&lt;/artifactId&gt;\n    &lt;/dependency&gt;\n    &lt;dependency&gt;\n        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n        &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;\n    &lt;/dependency&gt;\n    &lt;dependency&gt;\n        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n        &lt;artifactId&gt;spring-boot-starter-tomcat&lt;/artifactId&gt;\n        &lt;scope&gt;provided&lt;/scope&gt;\n    &lt;/dependency&gt;\n    &lt;dependency&gt;\n        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n        &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;\n        &lt;scope&gt;test&lt;/scope&gt;\n    &lt;/dependency&gt;\n    &lt;dependency&gt;\n        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n        &lt;artifactId&gt;spring-boot-starter-data-jpa&lt;/artifactId&gt;\n        &lt;type&gt;jar&lt;/type&gt;\n    &lt;/dependency&gt;\n    &lt;dependency&gt;\n        &lt;groupId&gt;org.springframework.security&lt;/groupId&gt;\n        &lt;artifactId&gt;spring-security-config&lt;/artifactId&gt;\n        &lt;type&gt;jar&lt;/type&gt;\n    &lt;/dependency&gt;\n    &lt;dependency&gt;\n        &lt;groupId&gt;org.springframework.security&lt;/groupId&gt;\n        &lt;artifactId&gt;spring-security-web&lt;/artifactId&gt;\n        &lt;type&gt;jar&lt;/type&gt;\n    &lt;/dependency&gt;\n    &lt;dependency&gt;\n        &lt;groupId&gt;org.springframework.data&lt;/groupId&gt;\n        &lt;artifactId&gt;spring-data-jpa&lt;/artifactId&gt;\n        &lt;type&gt;jar&lt;/type&gt;\n    &lt;/dependency&gt;\n    &lt;dependency&gt;\n        &lt;groupId&gt;jakarta.persistence&lt;/groupId&gt;\n        &lt;artifactId&gt;jakarta.persistence-api&lt;/artifactId&gt;\n        &lt;type&gt;jar&lt;/type&gt;\n    &lt;/dependency&gt;\n    &lt;dependency&gt;\n        &lt;groupId&gt;org.mariadb.jdbc&lt;/groupId&gt;\n        &lt;artifactId&gt;mariadb-java-client&lt;/artifactId&gt;\n        &lt;version&gt;3.5.3&lt;/version&gt;\n    &lt;/dependency&gt;\n    &lt;dependency&gt;\n        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n        &lt;artifactId&gt;spring-boot-starter-security&lt;/artifactId&gt;\n  &lt;/dependency&gt;\n  &lt;dependency&gt;\n        &lt;groupId&gt;org.thymeleaf.extras&lt;/groupId&gt;\n        &lt;artifactId&gt;thymeleaf-extras-springsecurity6&lt;/artifactId&gt;\n        &lt;version&gt;3.1.3.RELEASE&lt;/version&gt;\n&lt;/dependency&gt;\n&lt;/dependencies&gt;\n</code></pre>\n<pre><code>import PollardCreations.Tjabal.Services.StudentDetailsService;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\nimport org.springframework.security.authentication.dao.DaoAuthenticationProvider;\nimport org.springframework.security.config.Customizer;\nimport org.springframework.security.config.annotation.web.builders.HttpSecurity;\nimport org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;\nimport org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;\nimport org.springframework.security.crypto.password.PasswordEncoder;\nimport org.springframework.security.web.SecurityFilterChain;\n\n/**\n *\n * @author\n */\n@Configuration\n@EnableWebSecurity\npublic class SecurityConfig\n{\n    @Bean\n    public PasswordEncoder passwordEncoder()\n    {\n        return new BCryptPasswordEncoder();\n    }\n\n    @Bean\n    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception\n    {\n        return http\n                .cors(Customizer.withDefaults())\n                .authorizeHttpRequests\n                    (auth -&gt; auth\n                        .requestMatchers(&quot;style.css&quot;).permitAll()\n                        .requestMatchers(&quot;/signInPage.html&quot;).permitAll()\n                        .requestMatchers(&quot;/error.html&quot;).permitAll()\n                        .anyRequest().authenticated()\n                    )\n                .formLogin(form -&gt; form\n                        .loginPage(&quot;/signInPage.html&quot;).permitAll()\n//                        .loginProcessingUrl(&quot;/SignInPage&quot;)\n                        .defaultSuccessUrl(&quot;/signedInStudentAddSession.html&quot;, true)\n                        .permitAll()\n//                        .failureUrl(&quot;/SignInPage?error=true&quot;)\n                )\n                .logout(logout -&gt; logout\n                        .logoutSuccessUrl(&quot;/SignInPage?logout&quot;)\n                )\n                .build();\n    }\n\n    @Bean\n    public DaoAuthenticationProvider authenticationProvider\n        (StudentDetailsService userDetailsService, PasswordEncoder passwordEncoder)\n    {\n        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();\n        provider.setUserDetailsService(userDetailsService);\n        provider.setPasswordEncoder(passwordEncoder);\n        return provider;\n    }\n}\n</code></pre>\n<p><a href=\"https://github.com/dragonsKnight5/Tjabal-ITP/tree/database_2\" rel=\"nofollow noreferrer\">Full code</a>.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "postgresql",
+      "flyway"
+    ],
+    "owner": {
+      "account_id": 3200499,
+      "reputation": 367,
+      "user_id": 2702630,
+      "user_type": "registered",
+      "accept_rate": 70,
+      "profile_image": "https://www.gravatar.com/avatar/e5145152190567a45c0ec0c6d3af3835?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Michael90",
+      "link": "https://stackoverflow.com/users/2702630/michael90"
+    },
+    "is_answered": false,
+    "view_count": 77,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1758118856,
+    "creation_date": 1758114736,
+    "question_id": 79767372,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79767372/flywaydb-doesnt-create-tables-in-specified-schema",
+    "title": "FlywayDB doesn&#39;t create tables in specified schema",
+    "body": "<p>I'm using FlywayDB v11.13.0 (latest as from now) and am targeting it against a PostgreSQL 17.6 database. I specify a schema like this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>String connectionUrl = UriBuilder.fromUri(connectionUrl).replaceQueryParam(&quot;currentSchema&quot;, dbSchema).build().toString();\n\nFlyway.configure()\n            .cleanDisabled(false)\n            .validateMigrationNaming(true)\n            .dataSource(connectionUrl, databaseUsername, databasePassword)\n            .defaultSchema(schemaName)\n            .schemas(schemas.toArray(new String[0]))\n            .locations(locations.toArray(new String[0]))\n            .initSql(initSql.toString())\n            .baselineOnMigrate(true)\n            .outOfOrder(outOfOrder)\n            .load();\n</code></pre>\n<p>And this is a piece of a migration script:</p>\n<pre class=\"lang-sql prettyprint-override\"><code>create table ASSET (\n  ID                 varchar(22)              not null,\n  ATTRIBUTES         jsonb,\n  CREATED_ON         timestamp with time zone not null,\n  NAME               varchar(1023)            not null,\n  PARENT_ID          varchar(22),\n  PATH               ltree,\n  REALM              varchar(255)             not null,\n  TYPE               varchar(500)             not null,\n  ACCESS_PUBLIC_READ boolean                  not null,\n  VERSION            int8                     not null,\n  primary key (ID),\n  check (ID != PARENT_ID)\n);\n</code></pre>\n<p>But the table is created in the <code>public</code> schema instead of my specific schema. Ive also tried adding to use the schema in the initSQL:</p>\n<pre class=\"lang-java prettyprint-override\"><code>initSql.append(&quot;CREATE SCHEMA IF NOT EXISTS &quot;).append(schemaName).append(&quot;;&quot;);\ninitSql.append(&quot;SET search_path TO &quot;).append(schemaName).append(&quot;, public;&quot;);\n\n</code></pre>\n<p>But that doesn't help either.</p>\n<p>The only thing what works is adding the <code>SET search_path TO </code> statement in the migration script itself, something which I don't prefer, specially if FlywayDB seems to support specifying schema's.</p>\n<p>My question am I missing something here or is there a bug in FlywayDB?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

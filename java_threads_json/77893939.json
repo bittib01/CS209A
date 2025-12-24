@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-spark"
+    ],
+    "owner": {
+      "account_id": 14790822,
+      "reputation": 2282,
+      "user_id": 10681828,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/1bfe1da30a93984174c2414d6da0dbf6?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Pavel Orekhov",
+      "link": "https://stackoverflow.com/users/10681828/pavel-orekhov"
+    },
+    "is_answered": true,
+    "view_count": 287,
+    "answer_count": 1,
+    "score": 3,
+    "last_activity_date": 1726154056,
+    "creation_date": 1706426137,
+    "last_edit_date": 1706463243,
+    "question_id": 77893939,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77893939/how-does-starttimestamp-option-work-for-the-rate-micro-batch-format",
+    "title": "How does &quot;startTimestamp&quot; option work for the rate-micro-batch format?",
+    "body": "<p>This is for Spark 3.5.0, haven't tried other versions.</p>\n<p>I wrote a simple Spark streaming app, using the <code>rate-micro-batch</code> format, which is used for generating test data.</p>\n<p>According to <a href=\"https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html#creating-streaming-dataframes-and-streaming-datasets\" rel=\"nofollow noreferrer\">this guide</a> it has an option <code>startTimestamp</code>, which is the starting value of generated time. But changing this option doesn't seem to do anything, I tried setting it to different values, and the starting time is always around <code>1970-01-01</code>.</p>\n<p>Am I not understanding something, or is this a bug?</p>\n<pre class=\"lang-java prettyprint-override\"><code>package org.example;\n\nimport org.apache.spark.sql.Column;\nimport org.apache.spark.sql.SparkSession;\nimport org.apache.spark.sql.streaming.DataStreamWriter;\nimport org.apache.spark.sql.streaming.OutputMode;\nimport org.apache.spark.sql.streaming.StreamingQueryException;\nimport org.apache.spark.sql.streaming.Trigger;\nimport static org.apache.spark.sql.functions.*;\n\nimport java.util.concurrent.TimeUnit;\nimport java.util.concurrent.TimeoutException;\n\npublic class StreamingSparkPartitioned {\n   public static void main(String[] args) throws TimeoutException, StreamingQueryException {\n      SparkSession spark = SparkSession.builder()\n         .master(&quot;local[*]&quot;)\n         .getOrCreate();\n\n      Column expression =  when(expr(&quot;value % 3 = 1&quot;), &quot;stupid_event&quot;).otherwise(\n         when(expr(&quot;value % 3 = 2&quot;), &quot;smart_event&quot;)\n            .otherwise(&quot;neutral_event&quot;));\n\n      DataStreamWriter streamingDF = spark.readStream()\n         .format(&quot;rate-micro-batch&quot;)\n         .option(&quot;rowsPerBatch&quot;, &quot;100&quot;)\n         .option(&quot;startTimestamp&quot;, &quot;10000&quot;)\n         .load()\n         .withColumn(&quot;event_type&quot;, expression)\n         .writeStream()\n         .option(&quot;checkpointLocation&quot;, &quot;C:\\\\Users\\\\wnwnn\\\\Desktop\\\\checkpoint&quot;);\n\n      streamingDF.outputMode(OutputMode.Append())\n         .format(&quot;console&quot;)\n         .trigger(Trigger.ProcessingTime(1, TimeUnit.SECONDS))\n         .start()\n         .awaitTermination();\n   }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

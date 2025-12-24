@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "postgresql",
+      "docker",
+      "gitlab-ci",
+      "payara"
+    ],
+    "owner": {
+      "account_id": 19626826,
+      "reputation": 11,
+      "user_id": 14365967,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/8cc21dc2a0987d35434db0c39af7937c?s=256&d=identicon&r=PG",
+      "display_name": "Dumcore",
+      "link": "https://stackoverflow.com/users/14365967/dumcore"
+    },
+    "is_answered": false,
+    "view_count": 44,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1757083322,
+    "creation_date": 1757083322,
+    "question_id": 79756911,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79756911/docker-in-docker-unable-to-connect-payara-server-to-postgres-docker-instance-o",
+    "title": "Docker-in-Docker - Unable to connect payara server to postgres docker instance on GitLab CI/CD Pipeline",
+    "body": "<p>In order to improve the testing process for my Java application I want to introduce postgres as the database for integration tests.</p>\n<p>In my current approach I am utilizing the <code>maven-docker-plugin</code> to startup and initialize a <code>postgres:16</code>  container. The integration tests run on a arquillian payara embedded server and connect via JDBC to the postgres instance.</p>\n<p>This setup works effortlessly with local executions on Linux and WSL environments with docker, but executions on the GitLab pipelines fail due to connection issues, while I still see the logs of postgres, waiting for connections.</p>\n<p>My build runs on an alpine based maven 3.8.8-jdk21 image with docker accessibility.</p>\n<p>Actual error:\n<code>org.postgresql.util.PSQLException: Connection to localhost:5455 refused. Check that the hostname and port are correct and that the postmaster is accepting TCP/IP connections.</code></p>\n<p>Configuration:</p>\n<p>pom.xml (docker-maven-plugin config)</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;plugin&gt;\n        &lt;groupId&gt;io.fabric8&lt;/groupId&gt;\n        &lt;artifactId&gt;docker-maven-plugin&lt;/artifactId&gt;\n        &lt;version&gt;0.38.1&lt;/version&gt;\n        &lt;configuration&gt;\n          &lt;images&gt;\n            &lt;image&gt;\n              &lt;name&gt;postgres:16&lt;/name&gt;\n              &lt;alias&gt;postgres&lt;/alias&gt;\n              &lt;run&gt;\n                &lt;env&gt;\n                  &lt;POSTGRES_DB&gt;postgres&lt;/POSTGRES_DB&gt;\n                  &lt;POSTGRES_USER&gt;postgres&lt;/POSTGRES_USER&gt;\n                  &lt;POSTGRES_PASSWORD&gt;integPass&lt;/POSTGRES_PASSWORD&gt;\n                &lt;/env&gt;\n                &lt;ports&gt;\n                  &lt;port&gt;0.0.0.0:5455:5432&lt;/port&gt;\n                &lt;/ports&gt;\n                &lt;volumes&gt;\n                  &lt;bind&gt;\n                    &lt;volume&gt;${project.basedir}/src/test/resources/sqlImports/default/:/docker-entrypoint-initdb.d/&lt;/volume&gt;\n                  &lt;/bind&gt;\n                &lt;/volumes&gt;\n                &lt;wait&gt;\n                  &lt;log&gt;ready to accept connections&lt;/log&gt;\n                  &lt;time&gt;5000&lt;/time&gt;\n                &lt;/wait&gt;\n              &lt;/run&gt;\n            &lt;/image&gt;\n          &lt;/images&gt;\n        &lt;/configuration&gt;\n      &lt;/plugin&gt;\n</code></pre>\n<p>payara-resource.xml</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;resources&gt;\n\n  &lt;!-- addition resources --&gt;\n  &lt;jdbc-resource pool-name=&quot;DefaultPool&quot; jndi-name=&quot;DefaultDS&quot; /&gt;\n  &lt;jdbc-connection-pool name=&quot;DefaultPool&quot; res-type=&quot;javax.sql.XADataSource&quot;\n    datasource-classname=&quot;org.postgresql.xa.PGXADataSource&quot;&gt;\n    &lt;property name=&quot;URL&quot; value=&quot;jdbc:postgresql://127.0.0.1:5455/postgres&quot; /&gt;\n    &lt;property name=&quot;User&quot; value=&quot;postgres&quot; /&gt;\n    &lt;property name=&quot;Password&quot; value=&quot;integPass&quot; /&gt;\n  &lt;/jdbc-connection-pool&gt;\n\n&lt;/resources&gt;\n</code></pre>\n<p>Note: Based on further investiations I also tried to utilize the docker alias instead of 127.0.0.1 in the JDBC url (jdbc:postgresql://postgres:5455/postgres), but ended up with <code>java.net.UnknownHostException: postgres</code></p>\n<p>I expected docker to either create a subcontainer in my build container, making it available via localhost:5455 or to utilize the docker deamon of the host (GitLab runner) and create the container &quot;next to&quot; the build container with a network bridge, making it available via it's alias.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

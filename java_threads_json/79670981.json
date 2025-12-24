@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "javasound"
+    ],
+    "owner": {
+      "account_id": 3941375,
+      "reputation": 45,
+      "user_id": 3255637,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/e0tZ7.jpg?s=256",
+      "display_name": "NicholasLupo",
+      "link": "https://stackoverflow.com/users/3255637/nicholaslupo"
+    },
+    "is_answered": false,
+    "view_count": 47,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1750476855,
+    "creation_date": 1750263102,
+    "last_edit_date": 1750411033,
+    "question_id": 79670981,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79670981/closeallclips-isnt-stopping-the-clips-from-playing",
+    "title": "closeallclips isn&#39;t stopping the clips from playing",
+    "body": "<p>I'm working on a custom AudioManager class in Java using javax.sound.sampled.Clip to manage and play sound effects for a game.</p>\n<p>I have a method called closeAllClips() that is supposed to stop all active clips and clean up their resources. However, when I call closeAllClips(), the sound still plays.</p>\n<pre><code>import javax.sound.sampled.*;\nimport javax.swing.*;\nimport java.awt.*;\nimport java.util.ArrayList;\nimport java.util.List;\n\npublic final class AudioManager {\n    private static final List&lt;Clip&gt; clips = new ArrayList&lt;&gt;();\n    private static boolean isMuted = false;\n    private static boolean isLocked = false;\n\n    // Play a sound clip by index, creating it if necessary\n    public static void playLine(String lineName, int index, Component window) {\n        if (isMuted || isLocked) return;\n\n        synchronized (clips) {\n            try {\n                while (clips.size() &lt;= index) {\n                    clips.add(null);\n                }\n\n                Clip clip = clips.get(index);\n                if (clip == null || !clip.isOpen()) {\n                    clip = AudioSystem.getClip();\n                    clips.set(index, clip);\n                }\n\n                if (!clip.isRunning()) {\n                    if (clip.isOpen()) clip.close();\n\n                    AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(\n                        ClassLoader.getSystemResource(&quot;Wavs/&quot; + lineName + &quot;.wav&quot;)\n                    );\n                    clip.open(audioInputStream);\n                    audioInputStream.close();\n                    clip.start();\n                }\n            } catch (Exception e) {\n                JOptionPane.showMessageDialog(window, &quot;Audio error: &quot; + e.getMessage());\n            }\n        }\n    }\n\n    // Stop and free all sounds\n    public static void closeAllClips() {\n    synchronized (clips) {\n        for (int i = 0; i &lt; clips.size(); i++) {\n        Clip clip = clips.get(i);\n            if (clip != null) {\n                try {\n                    if (clip.isRunning()) {\n                        clip.stop();\n                            }\n                    clip.flush();\n                    clip.close(); // &lt;-- this is missing in your current code\n                    } catch (Exception e) {\n                        System.err.println(&quot;Error closing clip: &quot; + e.getMessage());\n                    }\n                    clips.set(i, null); // &lt;-- free memory and prevent reuse\n                }\n            }\n        }\n    }\n\n// Toggle muting\npublic static void setMuted(boolean mute) {\n    isMuted = mute;\n}\n//check if muted\npublic static boolean isMuted() {\n    return isMuted;\n}\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

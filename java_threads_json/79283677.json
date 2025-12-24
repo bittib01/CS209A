@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "performance",
+      "scheduled-tasks",
+      "quartz-scheduler"
+    ],
+    "owner": {
+      "account_id": 3340239,
+      "reputation": 773,
+      "user_id": 2806673,
+      "user_type": "registered",
+      "accept_rate": 61,
+      "profile_image": "https://www.gravatar.com/avatar/945dd95b130feca79957d3cdf36f6c19?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "KaustubhK",
+      "link": "https://stackoverflow.com/users/2806673/kaustubhk"
+    },
+    "is_answered": false,
+    "view_count": 291,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1735447828,
+    "creation_date": 1734324637,
+    "question_id": 79283677,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79283677/quartz-scheduler-performance-tuning-overhead",
+    "title": "Quartz scheduler performance tuning/overhead",
+    "body": "<p>I am new to Quartz Scheduler Framework. We are using quartz 2.3.2 for scheduling jobs. I have around million scheduled jobs, which has different frequencies. But mostly I get 6000-7000 triggers every minute. These jobs are very light on computation side, they just publish message over rabbit. I am using postgres database to persist these jobs. I have a cluster of scheduler service instances to handle the scale.</p>\n<p>I have all schedules as crontriggers with misfire policy as &quot;MISFIRE_INSTRUCTION_IGNORE_MISFIRE_POLICY&quot;.</p>\n<p><strong>Quartz configuration:</strong></p>\n<p><div class=\"snippet\" data-lang=\"js\" data-hide=\"false\" data-console=\"true\" data-babel=\"false\" data-babel-preset-react=\"false\" data-babel-preset-ts=\"false\">\r\n<div class=\"snippet-code\">\r\n<pre class=\"snippet-code-html lang-html prettyprint-override\"><code> spring:\n  application:\n    name: my-scheduler-service\n  quartz:\n    job-store-type: jdbc\n    jdbc:\n      initialize-schema: never # Let Flyway handle initialization\n    properties.org.quartz:\n      scheduler:\n        batchTriggerAcquisitionMaxCount: 600\n        instanceName: JobScheduler\n        instanceId: AUTO\n      threadPool:\n        class: org.quartz.simpl.SimpleThreadPool\n        threadCount: 600 # Todo: determine appropriate size here\n        threadPriority: 5\n      jobStore:\n        maxMisfiresToHandleAtATime: 400\n        acquireTriggersWithinLock: true\n        isClustered: true\n        driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate\n  resources:\n    global:\n      enabled: true\n      url:\n      hikari:\n        poolName: GlobalDBPool\n        minimumIdle: 20\n        maximumPoolSize: 50</code></pre>\r\n</div>\r\n</div>\r\n</p>\n<p><strong>Problems</strong></p>\n<ol>\n<li>We have deployed the service on Kubernetes with 4 pods. Unfortunately, we are seeing huge delay in task executing. Resulting in huge number of misfires. We are not able to catchup to this misfires and live jobs are not getting triggered.</li>\n<li>We also observed that quartz locking was taking time (70-74 sec's). Mostly this is for &quot;SELECT * FROM QRTZ_LOCKS WHERE SCHED_NAME = ? AND LOCK_NAME = $1 FOR UPDATE&quot; query.</li>\n</ol>\n<p><strong>What are the things I can do to improve the quartz performance?</strong></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

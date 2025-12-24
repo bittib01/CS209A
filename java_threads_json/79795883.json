@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "azure",
+      "azure-data-lake-gen2"
+    ],
+    "owner": {
+      "account_id": 26646142,
+      "reputation": 43,
+      "user_id": 20261048,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/c102ba35dd9101c1ed104fb4604f6635?s=256&d=identicon&r=PG",
+      "display_name": "zacthebigkub",
+      "link": "https://stackoverflow.com/users/20261048/zacthebigkub"
+    },
+    "is_answered": false,
+    "view_count": 25,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1761053654,
+    "creation_date": 1761053654,
+    "question_id": 79795883,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79795883/springboot-azure-datalake-connection-nested-exception-is-java-lang-illegalsta",
+    "title": "Springboot + azure datalake connection: nested exception is java.lang.IllegalStateException: block()/blockFirst()/blockLast() are blocking",
+    "body": "<p>I am trying to copy a file in the datalake from a path to another.\nMy previous code which is</p>\n<pre><code>        public void enableFileSelected (String sourcePath, String destPath, String fileSystemName) throws IOException {\n        log.debug(&quot;enableFileSelected&quot;);\n        log.debug(&quot;enableFileSelected sourcePath : {}&quot;, sourcePath);\n        log.debug(&quot;enableFileSelected destPath : {}&quot;, destPath);\n        log.debug(&quot;enableFileSelected containerName : {}&quot;, fileSystemName);\n        DataLakeFileSystemClient fileSystemClient = serviceClient.getFileSystemClient(fileSystemName);\n        log.debug(&quot;fileSystemClient1 : {}&quot;, fileSystemClient);\n\n\n        DataLakeFileClient sourcefileClient = fileSystemClient.getFileClient(sourcePath);\n        log.debug(&quot;sourcefileClient : {}&quot;, sourcefileClient);\n        InputStream inputStream = sourcefileClient.openInputStream().getInputStream();\n\n\n        DataLakeFileClient destfileClient = fileSystemClient.getFileClient(destPath);\n        log.debug(&quot;destfileClient : {}&quot;, destfileClient);\n\n        byte[] content = StreamUtils.copyToByteArray(inputStream);\n        ByteArrayInputStream contentStream = new ByteArrayInputStream(content);\n        destfileClient.upload(contentStream, content.length,true);\n    }\n</code></pre>\n<p>worked fine, the only problem is that the heap may get full and the app crashes.\nTo fix that I have tried using streams and temp files.\nTemp files are blocked due to security reasons. With streams I am receiving error nested exception is java.lang.IllegalStateException: block()/blockFirst()/blockLast() are blocking, which is not supported in thread reactor-html\nMy current code is</p>\n<pre><code>    public void enableFileSelected (String sourcePath, String destPath, String fileSystemName) throws IOException {\n        log.debug(&quot;enableFileSelected&quot;);\n        log.debug(&quot;enableFileSelected sourcePath : {}&quot;, sourcePath);\n        log.debug(&quot;enableFileSelected destPath : {}&quot;, destPath);\n        log.debug(&quot;enableFileSelected containerName : {}&quot;, fileSystemName);\n        DataLakeFileSystemClient fileSystemClient = serviceClient.getFileSystemClient(fileSystemName);\n        log.debug(&quot;fileSystemClient1 : {}&quot;, fileSystemClient);\n        DataLakeFileClient sourcefileClient = fileSystemClient.getFileClient(sourcePath);\n        log.debug(&quot;sourcefileClient : {}&quot;, sourcefileClient);\n        DataLakeFileClient destfileClient = fileSystemClient.getFileClient(destPath);\n        try (InputStream inputStream = sourcefileClient.openInputStream().getInputStream()) {\n            long fileLength = sourcefileClient.getProperties().getFileSize();\n            log.debug(&quot;sourcefileClientLength : {}&quot;, fileLength);\n            log.debug(&quot;destfileClient : {}&quot;, destfileClient);\n            destfileClient.upload(inputStream, fileLength, true);\n        }\n    }\n</code></pre>\n<p>I do have some workarounds but I would rather fix this function if possible</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

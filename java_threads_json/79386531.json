@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hibernate"
+    ],
+    "owner": {
+      "account_id": 27532966,
+      "reputation": 25,
+      "user_id": 22127981,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AEdFTp4_N8rAFb_06XFv6XxoC5jM24XNEvV9RL-oc4h7=k-s256",
+      "display_name": "Asya",
+      "link": "https://stackoverflow.com/users/22127981/asya"
+    },
+    "is_answered": true,
+    "view_count": 44,
+    "accepted_answer_id": 79470711,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1740593770,
+    "creation_date": 1737800706,
+    "question_id": 79386531,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79386531/when-i-use-module-info-with-hibernate-initial-sessionfactory-creation-failed",
+    "title": "When i use module-info with Hibernate Initial SessionFactory creation failed",
+    "body": "<p>I don't understand what the problem is. In a normal project the entity loads fine, but when I add a file module-info.java I see the following error:</p>\n<blockquote>\n<p>Could not instantiate persister org.hibernate.persister.entity.SingleTableEntityPersister</p>\n</blockquote>\n<p>module-info.java looks like this:</p>\n<pre><code>module crud.organization {\nrequires jakarta.persistence;\nrequires jakarta.validation;\nrequires org.hibernate.orm.core;\nrequires org.slf4j;\nrequires java.naming;}\n</code></pre>\n<p>In class Main i load one entity:</p>\n<pre><code>public static void main(String[] args) {\n    OrgCategoryDao orgCategoryDao = new OrgCategoryDao();\n    Optional&lt;OrgCategory&gt; category = orgCategoryDao.getById(2);\n\n    if(category.isPresent())\n        System.err.println(&quot;present &quot; + category.get());\n    else System.err.println(&quot;not present&quot;);}\n</code></pre>\n<p>HibernateUtil.java:</p>\n<pre><code>public class HibernateUtil {\n\nprivate final static Logger logger = LoggerFactory.getLogger(HibernateUtil.class);\n\n\nprivate static StandardServiceRegistry registry = null;\nprivate static @NotNull Optional&lt;SessionFactory&gt; sessionFactory = Optional.empty();\n\nprivate synchronized static @NotNull Optional&lt;SessionFactory&gt; buildSessionFactory() {\n    try {\n        if (registry != null) shutdown();\n        registry = new StandardServiceRegistryBuilder().configure().build();\n        MetadataSources sources = new MetadataSources(registry);\n        Metadata metadata = sources.getMetadataBuilder().build();\n        return Optional.ofNullable(metadata.getSessionFactoryBuilder().build());\n    } catch (Throwable ex) {\n        System.err.println(ex.getMessage());\n        shutdown();\n    }\n    return Optional.empty();\n}\n\n\n\npublic synchronized static @NotNull Optional&lt;SessionFactory&gt; getSessionFactory() {\n    if (sessionFactory.isPresent()) return sessionFactory;\n    sessionFactory = buildSessionFactory();\n    return sessionFactory;\n}\n\npublic synchronized static void shutdown() {\n    if(registry != null) {\n        StandardServiceRegistryBuilder.destroy(registry);\n    }\n}}\n</code></pre>\n<p>OrgCategoryDao:</p>\n<pre><code>public class OrgCategoryDao {\n    public @NotNull Optional&lt;OrgCategory&gt; getById(int id) {\n        final Optional&lt;SessionFactory&gt; factory = HibernateUtil.getSessionFactory();\n        if(factory.isEmpty()) return Optional.empty();\n        Session session = null;\n        Transaction transaction = null;\n        try{\n            session = factory.get().openSession();\n            transaction = session.beginTransaction();\n            OrgCategory category = session.get(OrgCategory.class, id);\n            transaction.commit();\n            return Optional.ofNullable(category);\n        }catch (Exception e){\n            if(transaction != null){\n                transaction.rollback();\n            }\n            logger.error(e.getMessage());\n        }finally {\n            if(session != null) session.close();\n        }\n        return Optional.empty();\n    }\n}\n</code></pre>\n<p>OrgCategory:</p>\n<pre><code>@Entity\n@Table(name = &quot;organization_category&quot;)\n@NamedQuery(name = &quot;getAllWithSortByName&quot;, query = &quot;select oc from OrgCategory oc order by name&quot;)\npublic class OrgCategory {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    @Column(name = &quot;id_category&quot;)\n    private int id;\n\n    @Column(name = &quot;name_category&quot;)\n    private String name;\n\n    @Column(name = &quot;promt_for_text&quot;)\n    private String promtForText;\n\n    protected OrgCategory() {}\n    public OrgCategory(@NotNull String name,\n                       @NotNull String promtForText) {\n        this.name = name;\n        this.promtForText = promtForText;\n    }\n\n    @Override\n    public String toString() {\n        return &quot;OrganizationCategory{&quot; +\n                &quot;id=&quot; + id +\n                &quot;, name='&quot; + name + '\\'' +\n                &quot;, promtForText='&quot; + promtForText + '\\'' +\n                '}';\n    }\n\n    public int getId() {\n        return id;\n    }\n\n    public void setId(int id) {\n        this.id = id;\n    }\n\n    public String getName() {\n        return name;\n    }\n\n    public void setName(String name) {\n        this.name = name;\n    }\n\n    public String getPromtForText() {\n        return promtForText;\n    }\n\n    public void setPromtForText(String promtForText) {\n        this.promtForText = promtForText;\n    }\n}\n</code></pre>\n<p>Dependencies:</p>\n<pre><code> &lt;dependency&gt;\n            &lt;groupId&gt;jakarta.persistence&lt;/groupId&gt;\n            &lt;artifactId&gt;jakarta.persistence-api&lt;/artifactId&gt;\n            &lt;version&gt;3.1.0&lt;/version&gt;\n        &lt;/dependency&gt;\n\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.hibernate&lt;/groupId&gt;\n            &lt;artifactId&gt;hibernate-core&lt;/artifactId&gt;\n            &lt;version&gt;6.5.2.Final&lt;/version&gt;\n        &lt;/dependency&gt;\n</code></pre>\n<p>I want to work with modules, but I can't, I don't understand anything in the hibernate logs</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

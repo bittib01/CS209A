@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "amazon-web-services",
+      "spring-boot",
+      "hadoop"
+    ],
+    "owner": {
+      "account_id": 9041643,
+      "reputation": 409,
+      "user_id": 6735683,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/32a8de8fd0f0893a1512046459a8abce?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Timbuck",
+      "link": "https://stackoverflow.com/users/6735683/timbuck"
+    },
+    "is_answered": false,
+    "view_count": 130,
+    "answer_count": 0,
+    "score": -1,
+    "last_activity_date": 1752683762,
+    "creation_date": 1752672400,
+    "question_id": 79703482,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79703482/how-to-prevent-expired-token-on-aws-s3-credentials-provider",
+    "title": "How to prevent expired token on AWS S3 credentials provider?",
+    "body": "<p>I am building a Spring Boot 3.2.5 application that retrieves data from Parquet files on an AWS S3 bucket. This data is then converted into CSV and loaded into a Postgres database.</p>\n<p>This operation works fine for a while after the application is built. However, after about an hour I receive an exception <code>software.amazon.awssdk.services.s3.model.S3Exception: The provided token has expired.</code></p>\n<p>I am using Hadoop libraries to read the Parquet file as that had proven to be the most conducive to the &quot;read and convert&quot; steps.</p>\n<p>The Configuration class is org.apache.hadoop.conf.Configuration and is set up as follows:</p>\n<pre><code>        Configuration configuration = new Configuration();\n        configuration.set(&quot;fs.s3a.endpoint&quot;, filesystemEndpoint);\n\n        configuration.set(&quot;fs.defaultFS&quot;, filesystemType + s3BucketName + s3BucketSubdirectoryPath);\n\n        DefaultCredentialsProvider credentialsProvider = DefaultCredentialsProvider.builder().reuseLastProviderEnabled(Boolean.FALSE).build();\n        AwsCredentials awsCredentials = credentialsProvider.resolveCredentials();\n\n        if (ControllerUtils.isRunningOnK8s()) {\n            configuration.set(&quot;fs.s3a.assumed.role.arn&quot;, eksRoleArn);\n        }\n\n        configuration.set(&quot;fs.s3a.access.key&quot;, awsCredentials.accessKeyId());\n        configuration.set(&quot;fs.s3a.secret.key&quot;, awsCredentials.secretAccessKey());\n\n        if (awsCredentials instanceof AwsSessionCredentials) {\n            AwsSessionCredentials sessionCredentials = (AwsSessionCredentials) awsCredentials;\n            configuration.set(&quot;fs.s3a.session.token&quot;, sessionCredentials.sessionToken());\n        }\n</code></pre>\n<p>The class in which this code resides is annotated with:</p>\n<pre><code>@Service\n@Scope(&quot;prototype&quot;) \n</code></pre>\n<p>The &quot;prototype&quot; is an attempt to ensure a new instance gets created with each run. My searches to this point noted that a credentials provider may be cached otherwise, resulting in the token being expired. The @Service annotation is there because this class has a @Scheduled (cron) component.</p>\n<p>I have tried other credentials providers, without positive result. This includes <code>ProfileCredentialsProvider</code> and <code>StsAssumeRoleCredentialsProvider</code>.</p>\n<p>How can I ensure my application doesn't retain an expired token?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

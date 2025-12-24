@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "next.js",
+      "socket.io",
+      "netty-socketio"
+    ],
+    "owner": {
+      "account_id": 13227889,
+      "reputation": 63,
+      "user_id": 9552485,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/e10df32fda26641244edcd0f1fcc529d?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "BraveEvidence",
+      "link": "https://stackoverflow.com/users/9552485/braveevidence"
+    },
+    "is_answered": true,
+    "view_count": 465,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1715110687,
+    "creation_date": 1712717121,
+    "last_edit_date": 1714571658,
+    "question_id": 78301904,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78301904/connecting-react-client-to-netty-socketio-spring-boot-backend-results-in-core-is",
+    "title": "Connecting React Client to Netty SocketIO Spring Boot Backend results in Core issue",
+    "body": "<p>I am trying to connect my <code>Next.js</code> frontend to <code>Spring boot</code> backend in which I am using <code>netty socketio</code> server.</p>\n<p>I get 404 error in browser console.</p>\n<p><a href=\"https://i.sstatic.net/PRlFO.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/PRlFO.png\" alt=\"enter image description here\" /></a></p>\n<p>This is my backend code:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Configuration\npublic class SocketIOConfig {\n    @Bean\n    public SocketIOServer socketIOServer() {\n        com.corundumstudio.socketio.Configuration config = new com.corundumstudio.socketio.Configuration();\n        config.setPort(8081);\n        config.setOrigin(&quot;*&quot;);\n        return new SocketIOServer(config);\n    }\n}\n</code></pre>\n<p>I also added <code>cors</code> in my main application class:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Bean\n    public FilterRegistrationBean&lt;CorsFilter&gt; corsFilter() {\n        FilterRegistrationBean&lt;CorsFilter&gt; registrationBean = new FilterRegistrationBean&lt;&gt;();\n        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();\n        CorsConfiguration config = new CorsConfiguration();\n        config.addAllowedOrigin(&quot;*&quot;);\n        config.addAllowedHeader(&quot;*&quot;);\n        source.registerCorsConfiguration(&quot;/**&quot;, config);\n        registrationBean.setFilter(new CorsFilter(source));\n        registrationBean.setOrder(0);\n        return registrationBean;\n    }\n\n@Component\npublic class SocketIOServerRunner implements CommandLineRunner {\n    private final SocketIOEvents socketIOEvents;\n\n    @Autowired\n    public SocketIOServerRunner(SocketIOEvents socketIOEvents) {\n        this.socketIOEvents = socketIOEvents;\n    }\n\n    @Override\n    public void run(String... args) {\n        socketIOEvents.init();\n    }\n}\n\n@Component\npublic class SocketIOEvents {\n    private final SocketIOServer server;\n\n    @Autowired\n    public SocketIOEvents(SocketIOServer server) {\n        this.server = server;\n    }\n\n    public void init() {\n        server.addConnectListener(client -&gt; {\n            System.out.println(&quot;Client connected: &quot; + client.getSessionId());\n            server.getBroadcastOperations().sendEvent(&quot;messageFromServer&quot;, &quot;Client connected: &quot; + client.getSessionId());\n        });\n\n        server.addDisconnectListener(client -&gt; {\n            System.out.println(&quot;Client disconnected: &quot; + client.getSessionId());\n        });\n\n        server.addEventListener(&quot;messageFromClient&quot;, String.class, (client, data, ackSender) -&gt; {\n            System.out.println(&quot;Received message: &quot; + data);\n            server.getBroadcastOperations().sendEvent(&quot;messageFromServer&quot;, data);\n        });\n    }\n}\n</code></pre>\n<p>This is my frontend <code>Next.js</code> code:</p>\n<pre class=\"lang-js prettyprint-override\"><code>&quot;use client&quot;;\n\nimport { useEffect, useState } from &quot;react&quot;;\nimport { io } from &quot;socket.io-client&quot;;\n\nexport default function Home() {\n  const [input, setInput] = useState(&quot;&quot;);\n  const [messages, setMessage] = useState&lt;string[]&gt;([]);\n\n  const socket = io(&quot;http://localhost:8080&quot;);\n\n  useEffect(() =&gt; {\n    socket.on(&quot;connect&quot;, () =&gt; {\n      console.log(socket.id);\n    });\n\n    socket.on(&quot;messageFromServer&quot;, (data) =&gt; {\n      console.log(data);\n      setMessage((oldArray) =&gt; [...oldArray, data.data]);\n    });\n\n    socket.io.on(&quot;reconnect&quot;, (data) =&gt; {\n      console.log(&quot;reconnect event&quot;);\n      console.log(data);\n    });\n  }, []);\n\n  const onChangeHandler = (event: any) =&gt; {\n    setInput(event.target.value);\n  };\n\n  return (\n    &lt;div style={{ display: &quot;flex&quot;, flexDirection: &quot;column&quot; }}&gt;\n      &lt;input type=&quot;text&quot; onChange={onChangeHandler} value={input} /&gt;\n      &lt;button\n        onClick={() =&gt; {\n          console.log(&quot;here&quot;);\n          socket.emit(&quot;messageFromClient&quot;, { data: input });\n        }}&gt;\n        Submit\n      &lt;/button&gt;\n      {messages.map((item, index) =&gt; {\n        return &lt;h5 key={`${index}`}&gt;{item}&lt;/h5&gt;;\n      })}\n    &lt;/div&gt;\n  );\n}\n</code></pre>\n<p>Complete source code <a href=\"https://github.com/BraveEvidence/DemoNeetyV2\" rel=\"nofollow noreferrer\">here</a>.</p>\n<p>Encountering a 404 error in the browser console when trying to connect your <code>Next.js</code> frontend to your <code>Spring Boot</code> backend using <code>Netty Socket.IO</code> server.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

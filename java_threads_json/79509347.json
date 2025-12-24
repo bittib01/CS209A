@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "apache-kafka",
+      "testcontainers"
+    ],
+    "owner": {
+      "account_id": 3584155,
+      "reputation": 15,
+      "user_id": 2991680,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/a1da8540c60c18cc8cd625a547388513?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Pabloch",
+      "link": "https://stackoverflow.com/users/2991680/pabloch"
+    },
+    "is_answered": true,
+    "view_count": 157,
+    "answer_count": 1,
+    "score": -2,
+    "last_activity_date": 1742918307,
+    "creation_date": 1741962383,
+    "last_edit_date": 1742200302,
+    "question_id": 79509347,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79509347/how-to-bind-ports-in-kafka-configuration-and-test-container",
+    "title": "How to bind ports in kafka configuration and test container",
+    "body": "<p>First, if this question is duplicated, please forgive me.</p>\n<p>I'm trying to create an integration test with kafka and testcontainers, and i'm facing the problem that my kafka config (i suspect) is not pointing to my testcontainer.</p>\n<p>My testcontainer is exposing the port 9093 and 2181 for zookeeper. Internally, they have random ports.\nI've created manually a topic. But when in my execution, i try to publish anything, i get a timeout with message &quot;Topic XXX not present..&quot;. I've checked that the topic is well created, so i assume i'm not pointing to the testcontainer.</p>\n<p>My question is: There is some way to overwrite my kafka port after start my testcontainer ?</p>\n<p>Editing adding my code:</p>\n<p>This is my test container</p>\n<pre><code>@SpringBootTest\npublic class KafkaTestContainer {\n\n@Autowired\nDefaultKafkaProducerFactory defaultKafkaProducerFactory;\n\n\n@Container\n@ServiceConnection\npublic static KafkaContainer kafkaContainer = new KafkaContainer(\n        DockerImageName.parse(&quot;confluentinc/cp-kafka:6.2.1:arm64&quot;))\n        .withEnv(&quot;KAFKA_AUTO_CREATE_TOPICS_ENABLE&quot;, &quot;false&quot;)\n        .withNetwork(Network.newNetwork())\n        .withEmbeddedZookeeper();\n\n//This property is my real kafka property, but it seems not working.\n@DynamicPropertySource\nstatic void kafkaProperties(DynamicPropertyRegistry registry) {\n    registry.add(&quot;spring.kafka.bootstrap-servers&quot;, kafkaContainer::getBootstrapServers);\n}\n</code></pre>\n<p>I also have an initializer, trying to set the port from the container into my kafka bootstrap server, but again, it seems not working:</p>\n<pre><code>@Configuration\npublic class KafkaInitializer implements\n    ApplicationContextInitializer&lt;ConfigurableApplicationContext&gt; {\n@Override\npublic void initialize(ConfigurableApplicationContext applicationContext) {\n\n    KafkaContainer kafkaContainer = KafkaTestContainer.getContainer();\n\n    ConfigurableEnvironment environment = applicationContext.getEnvironment();\n\n    setProperties(environment, &quot;kafka.config.bootstrap-server&quot;, kafkaContainer.getBootstrapServers());\n\n}\n\nprivate void setProperties(ConfigurableEnvironment environment, String name, Object value) {\n    MutablePropertySources sources = environment.getPropertySources();\n    PropertySource&lt;?&gt; source = sources.get(name);\n    if (source == null) {\n        source = new MapPropertySource(name, new HashMap&lt;&gt;());\n        sources.addFirst(source);\n    }\n    ((Map&lt;String, Object&gt;) source.getSource()).put(name, value);\n}\n}\n</code></pre>\n<p>In my properties, my kafka config is pointing to localhost:9093. This is the value i see in metadata when i try to publish, and i would like to override with my container's server.</p>\n<pre><code>spring:\n    kafka:\n       bootstrap-servers: &quot;localhost:9093&quot;\n</code></pre>\n<p>Thanks in advance.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

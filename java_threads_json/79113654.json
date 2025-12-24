@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "apache-camel"
+    ],
+    "owner": {
+      "account_id": 24182486,
+      "reputation": 367,
+      "user_id": 18142927,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/3c697c7fe3ecf61c37633257211d0f8d?s=256&d=identicon&r=PG",
+      "display_name": "u4963840",
+      "link": "https://stackoverflow.com/users/18142927/u4963840"
+    },
+    "is_answered": true,
+    "view_count": 64,
+    "accepted_answer_id": 79121153,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1729760521,
+    "creation_date": 1729593677,
+    "question_id": 79113654,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79113654/how-to-return-different-http-response-code-when-camel-idempotent-consumer-detect",
+    "title": "How to return different http response code when Camel idempotent consumer detects duplicate message?",
+    "body": "<p>I want to use camel idempotent consumer to ensure that message is consumed only once. I want to return status 409 if message is duplicate and 204 otherwise.</p>\n<p>My problem is that while the code works correctly when it comes to running <code>direct:hello</code> route only once which suggests that <code>MemoryIdempotentRepository</code> is working. But it does not give me 409 response code.</p>\n<p>When message is sent for the first time it correctly logs <code>Exchange Properties: ${exchange.properties}</code> and <code>Hello World!&quot;</code>. When same message arrives for 2nd time it does not even log <code>Exchange Properties: ${exchange.properties}</code> or <code>Duplicate message detected!</code>. Nor does it throw any exceptions.</p>\n<p>How can I make it return different http status code in case when message is already consumed?</p>\n<pre class=\"lang-java prettyprint-override\"><code>  @Override\n  public void configure() {\n\n    onException(Exception.class)\n      .log(&quot;Exception occurred: ${exception.message}&quot;)\n      .handled(true);\n\n    from(&quot;platform-http:/api/hello?httpMethodRestrict=PUT&quot;)\n      .idempotentConsumer(header(&quot;MessageId&quot;))\n        .idempotentRepository(new MemoryIdempotentRepository())\n      .log(&quot;Exchange Properties: ${exchange.properties}&quot;)\n      .choice()\n        .when(exchangeProperty(Exchange.DUPLICATE_MESSAGE).isEqualTo(Boolean.TRUE))\n          .log(&quot;Duplicate message detected!&quot;)\n          .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(HttpServletResponse.SC_CONFLICT))\n        .otherwise()\n          .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(HttpServletResponse.SC_NO_CONTENT))\n          .to(&quot;direct:hello&quot;)\n      .end();\n\n    from(&quot;direct:hello&quot;)\n      .log(&quot;Hello World!&quot;);\n  }\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "hibernate",
+      "grails-orm"
+    ],
+    "owner": {
+      "account_id": 1857554,
+      "reputation": 20801,
+      "user_id": 1682820,
+      "user_type": "registered",
+      "accept_rate": 70,
+      "profile_image": "https://i.sstatic.net/z9bzH.png?s=256",
+      "display_name": "injecteer",
+      "link": "https://stackoverflow.com/users/1682820/injecteer"
+    },
+    "is_answered": true,
+    "view_count": 421,
+    "accepted_answer_id": 78000324,
+    "answer_count": 3,
+    "score": 1,
+    "last_activity_date": 1707995699,
+    "creation_date": 1705938512,
+    "question_id": 77861090,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77861090/spring-transactional-not-applied-for-gorm-methods-in-java",
+    "title": "Spring @Transactional not applied for GORM methods in java",
+    "body": "<p>In my Spring-Boot app I'm using GORM via:</p>\n<pre><code>implementation 'org.grails:gorm-hibernate5-spring-boot:8.0.3'\n</code></pre>\n<p>All domain classes are annotated with GORM <code>@Entity</code> and are initialized with <code>new HibernateDatastore( cfg, classes )</code> and work like a charm.</p>\n<p>I also created a delegating helper class to call dynamic GORM methods from java:</p>\n<pre><code>class JavaGORMHelper {\n  \n  static &lt;T extends GormEntity&gt; void withTransaction( Class&lt;T&gt; clazz, Consumer&lt;TransactionStatus&gt; action ) {\n    clazz.withTransaction{ action it }\n  }\n  \n  static &lt;T extends GormEntity&gt; T findBy( Class&lt;T&gt; clazz, String what, Object... args ) {\n    clazz.&quot;findBy$what&quot;( *args )\n  }\n\n  // other 40 methods\n}\n</code></pre>\n<p>Now I want to call those GORM methods from java service and for that I would use Spring's <code>@Transactional</code>:</p>\n<pre><code>import org.springframework.transaction.annotation.Transactional;\n\n@Service\npublic class JobService {\n\n  @PostConstruct\n  @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)\n  public void init() {  \n    JavaGORMHelper.list(Job.class).forEach(job -&gt; foo( job ));\n  }\n}\n</code></pre>\n<p>The code is throwing a <code>No Session found for current thread</code> exception:</p>\n<pre><code>[main] 16:23:37.303 ERROR o.s.boot.SpringApplication - Application run failed\norg.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'jobController': Unsatisfied dependency expressed through field 'jobService'; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'jobService': Invocation of init method failed; nested exception is org.springframework.dao.DataAccessResourceFailureException: Could not obtain current Hibernate Session; nested exception is org.hibernate.HibernateException: No Session found for current thread\n    at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredFieldElement.resolveFieldValue(AutowiredAnnotationBeanPostProcessor.java:659)\n    ... 20++ common frames omitted\nCaused by: org.springframework.dao.DataAccessResourceFailureException: Could not obtain current Hibernate Session; nested exception is org.hibernate.HibernateException: No Session found for current thread\n    at org.grails.orm.hibernate.GrailsHibernateTemplate.getSession(GrailsHibernateTemplate.java:335)\n    at org.grails.orm.hibernate.GrailsHibernateTemplate.doExecute(GrailsHibernateTemplate.java:284)\n    at org.grails.orm.hibernate.GrailsHibernateTemplate.execute(GrailsHibernateTemplate.java:241)\n    at org.grails.orm.hibernate.GrailsHibernateTemplate.execute(GrailsHibernateTemplate.java:120)\n    ... 32++ common frames omitted\nCaused by: org.hibernate.HibernateException: No Session found for current thread\n    at org.grails.orm.hibernate.GrailsSessionContext.currentSession(GrailsSessionContext.java:112)\n    at org.hibernate.internal.SessionFactoryImpl.getCurrentSession(SessionFactoryImpl.java:508)\n    at org.grails.orm.hibernate.GrailsHibernateTemplate.getSession(GrailsHibernateTemplate.java:333)\n    ... 56 common frames omitted\n</code></pre>\n<p>I tried exposing <code>transactionManager</code> and <code>sessionFactory</code> from <code>HibernateDatastore</code> as spring beans with no success.</p>\n<p>If I wrap the method call into <code>JavaGORMHelper.withTransaction(Job.class, tx -&gt; {..});</code> it works fine.</p>\n<p>Also it works fine if I convert the java service to groovy and use <code>@grails.gorm.transactions.Transactional</code>.</p>\n<p>How to make the <code>@Transactional</code> work for GORM invocations from java? What am I missing?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

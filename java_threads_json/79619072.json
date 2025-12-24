@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "spring-security"
+    ],
+    "owner": {
+      "account_id": 29335954,
+      "reputation": 1,
+      "user_id": 22476332,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/5ArPz.jpg?s=256",
+      "display_name": "Progress",
+      "link": "https://stackoverflow.com/users/22476332/progress"
+    },
+    "is_answered": false,
+    "view_count": 66,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1747673525,
+    "creation_date": 1747118173,
+    "last_edit_date": 1747421996,
+    "question_id": 79619072,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79619072/what-needs-to-be-done-so-that-in-exceptionhandling-in-class-securityconfig-the-h",
+    "title": "what needs to be done so that in exceptionHandling in class securityConfig the HttpServletResponse code is returned depending on the error",
+    "body": "<p>How can I return different <code>HttpServletResponse</code> status codes based on the type of error, not just <code>SC_UNAUTHORIZED</code>? For example, return <code>SC_UNAUTHORIZED</code> for token-related errors and <code>SC_SERVICE_UNAVAILABLE</code> for other types of errors</p>\n<pre><code>@Configuration\n@EnableWebSecurity\n@RequiredArgsConstructor\npublic class SecurityConfig{\n\n    private final JwtTokenFilter jwtTokenFilter;\n    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;\n\n    @Bean\n    protected SecurityFilterChain configure(HttpSecurity http) throws Exception {\n        return http\n            .csrf(AbstractHttpConfigurer::disable)\n            .authorizeHttpRequests(auth -&gt; auth\n                .requestMatchers(antMatcher(&quot;/**/actuator/**&quot;)).permitAll()\n                .requestMatchers(antMatcher(&quot;/**/check/**&quot;)).permitAll()\n                .anyRequest().hasAuthority(&quot;PERMISSION&quot;)\n            )\n            .sessionManagement(\n                config -&gt; config.sessionCreationPolicy(SessionCreationPolicy.STATELESS)\n            )\n            .exceptionHandling(exception -&gt;\n                exception.authenticationEntryPoint((request, response, ex) -&gt;\n                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, ex.getMessage())//so that, depending on the error, different HttpServletResponse are returned, not only SC_UNAUTHORIZED, but also SC_SERVICE_UNAVAILABLE, how do I do this? \n                ))\n            .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)\n            .build();\n    }\n}\n</code></pre>\n<p>here is the class that works with the token:</p>\n<pre><code>@Component\n@Slf4j\n@RequiredArgsConstructor\npublic class JwtTokenFilter extends OncePerRequestFilter {\n\n    private final JwtTokenParser jwtTokenParser;\n\n    @Value(&quot;${sppi.security.enabled}&quot;)\n    private boolean securityEnabled;\n\n    @Override\n    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {\n        String token = getTokenFromHeader(request);\n\n        if (Objects.isNull(token) &amp;&amp; securityEnabled) {\n            chain.doFilter(request, response);\n            return;\n        }\n\n        try {\n            UserDetails userDetails = getUsernameFromTokenAndAddHeaderIfExpired(token, response);\n            if (Objects.isNull(userDetails)) {\n                chain.doFilter(request, response);\n                return;\n            }\n\n\n            response.setHeader(&quot;username&quot;, userDetails.getUsername());\n            chain.doFilter(request, response);\n\n        } catch (RestClientException e) {\n            e.printStackTrace();\n            response.sendError(HttpServletResponse.SC_BAD_GATEWAY);\n        }\n    }\n\n    private String getTokenFromHeader(HttpServletRequest request) {\n        String header = request.getHeader(HttpHeaders.AUTHORIZATION);\n        if (Objects.isNull(header) || !header.startsWith(&quot;Bearer &quot;))\n            return null;\n        else {\n            return header.split(&quot; &quot;)[1].trim();\n        }\n    }\n\n    public UserDetails getUsernameFromTokenAndAddHeaderIfExpired(String token, HttpServletResponse response) {\n        UserDetails userDetails = null;\n        try {\n            userDetails = jwtTokenParser.getUserFromToken(token);\n        } catch (SignatureException ex) {\n            log.info(&quot;Invalid JWT signature - {}&quot;, ex.getMessage());\n        } catch (MalformedJwtException ex) {\n            log.info(&quot;Invalid JWT token - {}&quot;, ex.getMessage());\n        } catch (ExpiredJwtException ex) {\n            log.info(&quot;Expired JWT token - {}&quot;, ex.getMessage());\n            response.setHeader(&quot;is-token-expired&quot;, String.valueOf(true));\n        } catch (UnsupportedJwtException ex) {\n            log.info(&quot;Unsupported JWT token - {}&quot;, ex.getMessage());\n        } catch (IllegalArgumentException ex) {\n            log.info(&quot;JWT claims string is empty - {}&quot;, ex.getMessage());\n        } catch (CertificateException ex) {\n            log.info(&quot;Certificate factory not available - {}&quot;, ex.getMessage());\n        }\n\n        return userDetails;\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

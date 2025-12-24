@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "docker",
+      "docker-compose"
+    ],
+    "owner": {
+      "account_id": 27307066,
+      "reputation": 65,
+      "user_id": 20822851,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AEdFTp5Nv92_-0JJ3OC450tfJAoHpyIqCvQnqRIAgn1V=k-s256",
+      "display_name": "juanl4zy",
+      "link": "https://stackoverflow.com/users/20822851/juanl4zy"
+    },
+    "is_answered": false,
+    "view_count": 84,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1727093803,
+    "creation_date": 1727021374,
+    "question_id": 79012066,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79012066/docker-compose-successfully-executed-and-no-warning-but-table-doesnt-exist-in-t",
+    "title": "Docker compose successfully executed and no warning but table doesn&#39;t exist in the database",
+    "body": "<p>During the development process, I am struggling to create a working Docker Compose file that can successfully connect the MySQL container and the Spring Boot container.</p>\n<p><strong>docker-compose.yml</strong></p>\n<pre><code>services:\n  backend:\n    build:\n      context: ./backend/\n      dockerfile: Dockerfile\n    ports:\n      - &quot;8080:8080&quot;\n    depends_on:\n      db:\n        condition: service_healthy\n    environment:\n      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/${MYSQL_DATABASE}\n      - SPRING_DATASOURCE_USERNAME=root\n      - SPRING_DATASOURCE_PASSWORD=${MYSQL_ROOT_PASSWORD}\n    networks:\n      - springboot-mysql-network\n  db:\n    image: mysql:8.0.36\n    ports:\n      - &quot;3306:3306&quot;\n    environment:\n      - MYSQL_DATABASE=${MYSQL_DATABASE}\n      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}\n    volumes:\n      - mysql-data:/var/lib/mysql\n    networks:\n      - springboot-mysql-network\n    healthcheck:\n      test: [&quot;CMD&quot;, &quot;mysqladmin&quot;, &quot;ping&quot;, &quot;-h&quot;, &quot;localhost&quot;]\n      interval: 3s\n      timeout: 30s\n      retries: 10\n\nvolumes:\n  mysql-data:\nnetworks:\n  springboot-mysql-network:\n    name: springboot-mysql-network\n</code></pre>\n<p><strong>application.properties</strong></p>\n<pre><code>spring.application.name=backend\n\n# Datasource connection\nspring.datasource.url=${SPRING_DATASOURCE_URL}\nspring.datasource.username=${SPRING_DATASOURCE_USERNAME}\nspring.datasource.password=${SPRING_DATASOURCE_PASSWORD}\nspring.datasource.driver-class-name=com.mysql.jdbc.Driver\n\n# Hibernate\nspring.jpa.hibernate.ddl-auto=create\nspring.jpa.generate-ddl=true\n</code></pre>\n<p><strong>build.gradle</strong></p>\n<pre><code>plugins {\n    id 'java'\n    id 'org.springframework.boot' version '3.2.8'\n    id 'io.spring.dependency-management' version '1.1.6'\n}\n\ngroup = 'com.example'\nversion = '0.0.1-SNAPSHOT'\n\njava {\n    toolchain {\n        languageVersion = JavaLanguageVersion.of(17)\n    }\n}\n\nrepositories {\n    mavenCentral()\n}\n\ndependencies {\n    implementation 'org.springframework.boot:spring-boot-devtools:3.2.0'\n    implementation 'mysql:mysql-connector-java:8.0.28'\n    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'\n    implementation 'org.springframework.boot:spring-boot-starter-web'\n    testImplementation 'org.springframework.boot:spring-boot-starter-test'\n    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'\n}\n\ntasks.named('test') {\n    useJUnitPlatform()\n}\n</code></pre>\n<p><strong>backend/Dockerfile</strong></p>\n<pre><code>FROM openjdk:17-alpine\nRUN addgroup -S appuser &amp;&amp; adduser -S appuser -G appuser\nUSER appuser:appuser\nARG JAR_FILE=target/*.jar\nCOPY ${JAR_FILE} app.jar\nEXPOSE 8080\nENTRYPOINT [&quot;java&quot;,&quot;-jar&quot;,&quot;/app.jar&quot;]\n</code></pre>\n<p>When I'm not using a MySQL container and instead use a MySQL instance running on your host machine, the table is created successfully. However, when you try to use a MySQL container, the table creation seems to be failing.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "asynchronous"
+    ],
+    "owner": {
+      "account_id": 16725808,
+      "reputation": 3,
+      "user_id": 12089459,
+      "user_type": "registered",
+      "profile_image": "https://lh6.googleusercontent.com/-a_hGRZ135Kc/AAAAAAAAAAI/AAAAAAAAAAA/ACHi3re-IBDqeLxluskwCzhb1kvDdrAgdQ/s256-rj/photo.jpg",
+      "display_name": "Shardic",
+      "link": "https://stackoverflow.com/users/12089459/shardic"
+    },
+    "is_answered": true,
+    "view_count": 53,
+    "accepted_answer_id": 79804619,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1762521690,
+    "creation_date": 1761752064,
+    "last_edit_date": 1762521690,
+    "question_id": 79803967,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79803967/while-task-inside-async-cannot-be-stopped-with-predestroy-in-spring-boot",
+    "title": "while task inside @Async cannot be stopped with @PreDestroy in Spring Boot",
+    "body": "<p>I have a Problem with asynchronous methods that run on a customTaskExecutors. In the run method I never reach the last log.info that the thread is finished running (where I would usualy put other cleanup code). I would like to stop that thread in the PreDestroy method with setting the boolean to false, but pre destroy only gets called when spring has ended all his threads, which includes the customTaskExecutor. I already have put the custom Exectur with a short awaitTermination time, didn't change anything. I also made a class, where I wire all taskExecutors in and shut them down externaly. That all stops the ThreadExecutor but never in a way where I can have code after the while loop running.</p>\n<p>Does anybody have a best practice for what i want to do (basically change the boolean for the while loop on sigterm signal)? Or am I bound to use PreDestroy for all cleanup stuff when I want to use TaskExecutors of Spring Boot?</p>\n<pre><code>@PreDestroy\npublic void shutDown() {\n    log.info(&quot;Shutting down AsyncRunner...&quot;);\n    printingRunning = false;\n}\n\n@Override\n@Async(&quot;customTaskExecutor&quot;)  // Using the custom executor from AsyncConfig\npublic void run(String... args) throws Exception {\n    log.info(&quot;AsyncRunner starting on thread: {}&quot;, Thread.currentThread().getName());\n\n    try {\n        while(printingRunning &amp;&amp; !Thread.currentThread().isInterrupted()) {\n            Thread.sleep(1000);\n            this.printWorkOut();\n        }\n    } catch (InterruptedException e) {\n        Thread.currentThread().interrupt(); // Restore interrupted status\n        log.info(&quot;AsyncRunner was interrupted.&quot;);\n    }\n\n    log.info(&quot;AsyncRunner finished on thread: {}&quot;, Thread.currentThread().getName());\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "google-cloud-platform",
+      "google-cloud-storage",
+      "proxy-authentication"
+    ],
+    "owner": {
+      "account_id": 20332408,
+      "reputation": 47,
+      "user_id": 14914062,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a-/AOh14Gh12VwLNox4FxGsvOInVU-6dBFuer-CRiHw8RwJ=k-s256",
+      "display_name": "Kumaran",
+      "link": "https://stackoverflow.com/users/14914062/kumaran"
+    },
+    "is_answered": true,
+    "view_count": 394,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1717744262,
+    "creation_date": 1715264084,
+    "question_id": 78455047,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78455047/407-proxy-authentication-required-error-for-gcp-java-sdk-calls",
+    "title": "407 Proxy Authentication Required Error for GCP Java SDK calls",
+    "body": "<p>I'm trying to build an application which uses GCP's buckets in the backend. I'm using Java SDK to build the application. I'm using Access Credential JSON file to authenticate the request.</p>\n<p>GCP calls made from the code throws the error <code>com.google.cloud.storage.StorageException: Unable to tunnel through proxy. Proxy returns &quot;HTTP/1.1 407 Proxy Authentication Required&quot;</code></p>\n<p>Exception Trace:</p>\n<pre><code>com.google.cloud.storage.StorageException: Unable to tunnel through proxy. Proxy returns &quot;HTTP/1.1 407 Proxy Authentication Required&quot;\n    at com.google.cloud.storage.StorageException.translate(StorageException.java:170)\n    at com.google.cloud.storage.spi.v1.HttpStorageRpc.translate(HttpStorageRpc.java:313)\n    at com.google.cloud.storage.spi.v1.HttpStorageRpc.get(HttpStorageRpc.java:504)\n    at com.google.cloud.storage.StorageImpl.lambda$internalBucketGet$65(StorageImpl.java:1589)\n    at com.google.api.gax.retrying.DirectRetryingExecutor.submit(DirectRetryingExecutor.java:103)\n    at com.google.cloud.RetryHelper.run(RetryHelper.java:76)\n    at com.google.cloud.RetryHelper.runWithRetries(RetryHelper.java:50)\n    at com.google.cloud.storage.Retrying.run(Retrying.java:65)\n    at com.google.cloud.storage.StorageImpl.run(StorageImpl.java:1514)\n    at com.google.cloud.storage.StorageImpl.internalBucketGet(StorageImpl.java:1587)\n    at com.google.cloud.storage.StorageImpl.get(StorageImpl.java:316)\n    at com.application.DataHandler.getData(DataHandler.java:310)\n</code></pre>\n<p>But I have set the correct proxy credentials via HttpTransportFactory, in the GoogleCredentials object.</p>\n<p>Code snippet:</p>\n<pre><code>import java.io.InputStream;\nimport java.net.Authenticator;\nimport java.net.PasswordAuthentication;\nimport java.nio.channels.Channels;\n\nimport org.apache.http.HttpHost;\nimport org.apache.http.auth.AuthScope;\nimport org.apache.http.auth.UsernamePasswordCredentials;\nimport org.apache.http.client.CredentialsProvider;\nimport org.apache.http.client.HttpClient;\nimport org.apache.http.conn.routing.HttpRoutePlanner;\nimport org.apache.http.impl.client.BasicCredentialsProvider;\nimport org.apache.http.impl.client.ProxyAuthenticationStrategy;\nimport org.apache.http.impl.conn.DefaultProxyRoutePlanner;\n\nimport com.google.api.client.http.HttpTransport;\nimport com.google.api.client.http.apache.v2.ApacheHttpTransport;\nimport com.google.auth.http.HttpTransportFactory;\nimport com.google.auth.oauth2.GoogleCredentials;\nimport com.google.cloud.storage.Bucket;\nimport com.google.cloud.storage.Storage;\n\nprivate static void queryBucket(InputStream accessCredentialJson) {\n\n        GoogleCredentials googleCredentials = GoogleCredentials.fromStream(accessCredentialJson, getHttpTransportFactory());\n        Storage storage = StorageOptions.newBuilder().setCredentials(googleCredentials).build().getService();\n        Bucket gcpBucketObj = storage.get(&quot;gcpBucket&quot;); // --&gt; Throws 407 Proxy Auth Reqd. Error\n\n}\n\npublic HttpTransportFactory getHttpTransportFactory() {\n        HttpHost proxyHostDetails = new HttpHost(PROXY_HOST, PROXY_PORT);\n        HttpRoutePlanner httpRoutePlanner = new DefaultProxyRoutePlanner(proxyHostDetails);\n\n        CredentialsProvider credentialsProvider = new BasicCredentialsProvider();\n        credentialsProvider.setCredentials(\n            new AuthScope(proxyHostDetails.getHostName(), proxyHostDetails.getPort()),\n            new UsernamePasswordCredentials(PROXY_USERNAME, PROXY_PASSWORD)\n        );\n\n        HttpClient httpClient = ApacheHttpTransport.newDefaultHttpClientBuilder()\n            .setRoutePlanner(httpRoutePlanner)\n            .setProxyAuthenticationStrategy(ProxyAuthenticationStrategy.INSTANCE)\n            .setDefaultCredentialsProvider(credentialsProvider)\n            .build();\n\n        final HttpTransport httpTransport = new ApacheHttpTransport(httpClient);\n        return new HttpTransportFactory() {\n          @Override\n          public HttpTransport create() {\n            return httpTransport;\n          }\n        };\n    }\n</code></pre>\n<p>I have verified that my proxy credentials are correct.</p>\n<p>When I tried connecting google servers from my machine directly using curl request with proxy credentials, the connection was established, meaning proxy credentials are correct. <strong>Only when request is made via Google Cloud SDK, i'm facing this error</strong>.</p>\n<p>I have even tried setting the Proxy in System environment variables, like</p>\n<pre><code>System.setProperty(&quot;https.proxyHost&quot;, PROXY_HOST);\nSystem.setProperty(&quot;https.proxyPort&quot;, PROXY_PORT);\n</code></pre>\n<p>It didn't help too.</p>\n<p>Please let me know what I'm doing wrong and help me resolve this issue.</p>\n<p>Dependency Jars used: (with version)</p>\n<pre><code>google-cloud-storage-2.29.1.jar\ngoogle-cloud-core-2.21.0.jar\ngoogle-cloud-core-http-2.21.0.jar\ngoogle-auth-library-oauth2-http-1.19.0.jar\ngoogle-auth-library-credentials-1.19.0.jar\ngax-2.31.0.jar\nguava-30.1-jre.jar\ngson-2.10.jar\nthreetenbp-1.6.8.jar\napi-common-2.14.1.jar\ngoogle-http-client-gson-1.42.3.jar\ngoogle-http-client-1.42.3.jar\ngoogle-http-client-apache-v2-1.43.3.jar\ngoogle-http-client-appengine-1.43.3.jar\ngoogle-http-client-jackson2-1.42.3.jar\ngoogle-api-client-1.34.0.jar\nopencensus-api-0.31.1.jar\nopencensus-contrib-http-util-0.31.1.jar\ngoogle-api-services-storage-v1-rev20231028-2.0.0.jar\ngax-httpjson-2.31.0.jar\nhttpclient-4.5.14.jar\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

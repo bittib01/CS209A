@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "apk",
+      "hook",
+      "termux"
+    ],
+    "owner": {
+      "account_id": 41507147,
+      "reputation": 1,
+      "user_id": 30321499,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/8db61457b0e3a9ccc4511767d53edae7?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "user30321499",
+      "link": "https://stackoverflow.com/users/30321499/user30321499"
+    },
+    "is_answered": false,
+    "view_count": 135,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1745454789,
+    "creation_date": 1745408605,
+    "last_edit_date": 1745454789,
+    "question_id": 79588536,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79588536/how-to-modify-an-android-app-open-source-java-without-rebuilding-an-apk",
+    "title": "How to modify an Android app (open source, Java) without rebuilding an APK?",
+    "body": "<p>I use <a href=\"https://github.com/termux/termux-app\" rel=\"nofollow noreferrer\">Termux</a> on Android to automate some tasks, specifically using <a href=\"https://wiki.termux.com/wiki/Intents_and_Hooks\" rel=\"nofollow noreferrer\">file sharing with termux</a>.</p>\n<p>Currently, when I share a file with Termux, a dialog appears with various options (save, edit, etc.) that have to be selected. While this is generally useful, it doesn't suit my needs and leads to many extra clicks every day. I ALWAYS need the 'edit' option.</p>\n<p>So, I’d like to modify the behavior of this feature of Termux. This functionality is handled by <code>app/src/main/java/com/termux/app/api/file/FileReceiverActivity.java</code> and it was quite straightforward to modify the relevant function:</p>\n<p>Original version:</p>\n<pre><code>    void promptNameAndSave(final InputStream in, final String attachmentFileName) {\n        TextInputDialogUtils.textInput(this, R.string.title_file_received, attachmentFileName,\n            R.string.action_file_received_edit, text -&gt; {\n                File outFile = saveStreamWithName(in, text);\n                if (outFile == null) return;\n\n                final File editorProgramFile = new File(EDITOR_PROGRAM);\n                if (!editorProgramFile.isFile()) {\n                    showErrorDialogAndQuit(&quot;The following file does not exist:\\n$HOME/bin/termux-file-editor\\n\\n&quot;\n                        + &quot;Create this file as a script or a symlink - it will be called with the received file as only argument.&quot;);\n                    return;\n                }\n\n                // Do this for the user if necessary:\n                //noinspection ResultOfMethodCallIgnored\n                editorProgramFile.setExecutable(true);\n\n                final Uri scriptUri = UriUtils.getFileUri(EDITOR_PROGRAM);\n\n                Intent executeIntent = new Intent(TERMUX_SERVICE.ACTION_SERVICE_EXECUTE, scriptUri);\n                executeIntent.setClass(FileReceiverActivity.this, TermuxService.class);\n                executeIntent.putExtra(TERMUX_SERVICE.EXTRA_ARGUMENTS, new String[]{outFile.getAbsolutePath()});\n                startService(executeIntent);\n                finish();\n            },\n            R.string.action_file_received_open_directory, text -&gt; {\n                if (saveStreamWithName(in, text) == null) return;\n\n                Intent executeIntent = new Intent(TERMUX_SERVICE.ACTION_SERVICE_EXECUTE);\n                executeIntent.putExtra(TERMUX_SERVICE.EXTRA_WORKDIR, TERMUX_RECEIVEDIR);\n                executeIntent.setClass(FileReceiverActivity.this, TermuxService.class);\n                startService(executeIntent);\n                finish();\n            },\n            android.R.string.cancel, text -&gt; finish(), dialog -&gt; {\n                if (mFinishOnDismissNameDialog) finish();\n            });\n    }\n\n    public File saveStreamWithName(InputStream in, String attachmentFileName) {\n        File receiveDir = new File(TERMUX_RECEIVEDIR);\n\n        if (DataUtils.isNullOrEmpty(attachmentFileName)) {\n            showErrorDialogAndQuit(&quot;File name cannot be null or empty&quot;);\n            return null;\n        }\n\n        if (!receiveDir.isDirectory() &amp;&amp; !receiveDir.mkdirs()) {\n            showErrorDialogAndQuit(&quot;Cannot create directory: &quot; + receiveDir.getAbsolutePath());\n            return null;\n        }\n\n        try {\n            final File outFile = new File(receiveDir, attachmentFileName);\n            try (FileOutputStream f = new FileOutputStream(outFile)) {\n                byte[] buffer = new byte[4096];\n                int readBytes;\n                while ((readBytes = in.read(buffer)) &gt; 0) {\n                    f.write(buffer, 0, readBytes);\n                }\n            }\n            return outFile;\n        } catch (IOException e) {\n            showErrorDialogAndQuit(&quot;Error saving file:\\n\\n&quot; + e);\n            Logger.logStackTraceWithMessage(LOG_TAG, &quot;Error saving file&quot;, e);\n            return null;\n        }\n    }\n</code></pre>\n<p>My version (leaves only the branch where the user selected <code>action_file_received_edit</code>):</p>\n<pre><code>void promptNameAndSave(final InputStream in, final String attachmentFileName) {\n    File outFile = saveStreamWithName(in, attachmentFileName);\n    if (outFile == null) return;\n\n    final File editorProgramFile = new File(EDITOR_PROGRAM);\n    if (!editorProgramFile.isFile()) {\n        showErrorDialogAndQuit(&quot;The following file does not exist:\\n$HOME/bin/termux-file-editor\\n\\n&quot;\n            + &quot;Create this file as a script or a symlink - it will be called with the received file as only argument.&quot;);\n        return;\n    }\n\n    // Ensure it's executable\n    editorProgramFile.setExecutable(true);\n\n    final Uri scriptUri = UriUtils.getFileUri(EDITOR_PROGRAM);\n\n    Intent executeIntent = new Intent(TERMUX_SERVICE.ACTION_SERVICE_EXECUTE, scriptUri);\n    executeIntent.setClass(FileReceiverActivity.this, TermuxService.class);\n    executeIntent.putExtra(TERMUX_SERVICE.EXTRA_ARGUMENTS, new String[]{outFile.getAbsolutePath()});\n    startService(executeIntent);\n    finish();\n}\n</code></pre>\n<p>As you can see, this change only suits my needs. It should NOT be merged into Termux code.</p>\n<p>So I am looking for a way to have this behavior for my instance of Termux without forking the repo, creating a new APK etc. Is there a way that would let me keep using the official, continuously-updated Termux version, while only changing the specific function in hand?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

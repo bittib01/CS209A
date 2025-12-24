@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "mocking",
+      "mockito",
+      "keycloak",
+      "stubbing"
+    ],
+    "owner": {
+      "account_id": 6776292,
+      "reputation": 305,
+      "user_id": 5217951,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/0d2e3a5c679856fe534452fc9737cd12?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "blinkThrice",
+      "link": "https://stackoverflow.com/users/5217951/blinkthrice"
+    },
+    "is_answered": true,
+    "view_count": 132,
+    "accepted_answer_id": 79457116,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1740134862,
+    "creation_date": 1738913424,
+    "last_edit_date": 1739161728,
+    "question_id": 79420056,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79420056/stubbing-keycloak-simplehttp-response-asjsonclasst-type",
+    "title": "Stubbing Keycloak SimpleHttp.Response.asJson​(Class&lt;T&gt; type)",
+    "body": "<p>I am having trouble stubbing the SimpleHttp.Response.asJson(Class&lt;T&gt; type) method. Here is the doc: <a href=\"https://www.keycloak.org/docs-api/21.1.2/javadocs/org/keycloak/broker/provider/util/SimpleHttp.html\" rel=\"nofollow noreferrer\">keycloak simplehttp</a></p>\n<p>Here is the sample code that I would like to stub:</p>\n<pre><code>SampleResponse sampleResp = response.asJson(SampleResponse.class);\n</code></pre>\n<p>Here is the method I am trying to test:</p>\n<pre><code>    public SampleResponse getCustomer(String clientID) throws ResponseFailureException {\n\n        String url = String.format(&quot;%s/customer&quot;, this.baseUrl);\n        Instant start = Instant.now();\n        try {\n            // Build request\n            // \n            SimpleHttp req = SimpleHttp\n                .doGet(url, httpClient)\n                .param(&quot;client_id&quot;, clientID)\n                .json(null);\n\n            // Fire the request\n            // \n            SimpleHttp.Response response = req.asResponse();\n            if (response.getStatus() != HttpStatus.SC_OK) {\n                throw new ResponseFailureException(&quot;Fail&quot;);\n            }\n\n            // Parse response\n            // Target code to stub\n            SampleResponse sampleResp = response.asJson(SampleResponse.class);\n\n            return sampleResp;\n        } catch (Exception e) {\n            throw new ResponseFailureException(&quot;Fail&quot;, e);\n        }\n    }\n</code></pre>\n<p>Here is the test:</p>\n<pre><code>class ClientTest {\n\n    @Mock\n    private KeycloakSession keycloakSession;\n    \n    @Mock\n    private HttpClientProvider httpClientProvider;\n    \n    @Mock\n    private CloseableHttpClient httpClient;\n    \n    @Mock\n    private SimpleHttp simpleHttp;\n    \n    @Mock\n    private SimpleHttp.Response response;\n    \n    private Client testClient;\n\n    @BeforeEach\n    void setUp() {\n        when(keycloakSession.getProvider(HttpClientProvider.class)).thenReturn(httpClientProvider);\n        when(httpClientProvider.getHttpClient()).thenReturn(httpClient);\n        testClient = new Client(keycloakSession, &quot;https://api.example.com&quot;, &quot;BASIC&quot;, &quot;user&quot;, &quot;pass&quot;);\n    }\n\n    @Test\n    void getCustomer_shouldReturnResponse_whenValidInputsProvided() throws Exception {\n        // Mock `SimpleHttp.doGet()` correctly with KeycloakSession\n\n        try (MockedStatic&lt;SimpleHttp&gt; mockedSimpleHttp = mockStatic(SimpleHttp.class)) {\n            mockedSimpleHttp.when(() -&gt; SimpleHttp.doGet(eq(&quot;https://api.example.com/customer&quot;), eq(httpClient)))\n                    .thenReturn(simpleHttp);\n\n            // Mock behavior of the SimpleHttp instance\n            when(simpleHttp.header(anyString(), anyString())).thenReturn(simpleHttp);\n            when(simpleHttp.param(anyString(), anyString())).thenReturn(simpleHttp);\n            when(simpleHttp.json(null)).thenReturn(simpleHttp);\n            when(simpleHttp.asResponse()).thenReturn(response);\n\n            String jsonResponse = &quot;{\\&quot;customerInfo\\&quot;: {\\&quot;name\\&quot;: \\&quot;testName\\&quot;, \\&quot;permissions\\&quot;: \\&quot;admin\\&quot;}}&quot;;\n\n            ObjectMapper mapper = new ObjectMapper();\n            JsonNode node = mapper.readTree(jsonResponse);\n\n            // Mock the response\n            when(response.getStatus()).thenReturn(200);\n            when(response.asJson()).thenReturn(node);\n            SampleResponse sampleResponse = new SampleResponse();\n\n            // Stub the asJson method\n            // Errors in this line of code\n            when(response.asJson(any(SampleResponse.class))).thenReturn(sampleResponse);\n\n            // Call the actual method\n            SampleResponse result = testClient.getCustomer(&quot;client123&quot;);\n\n            // Verify the expected result\n            assertNotNull(result);\n        }\n    }\n}\n</code></pre>\n<p>I have tried asking ChatGPT for solutions however the solution provided still fails. Here is a sample solution:</p>\n<pre><code>SampleResponse sampleResponse = new SampleResponse();\nwhen(response.asJson(SampleResponse.class)).thenReturn(sampleResponse);\n</code></pre>\n<p>It returns this error:</p>\n<pre><code>org.mockito.exceptions.misusing.NotAMockException: Argument passed to Mockito.mockingDetails() should be a mock, but is an instance of class java.lang.Class!\n</code></pre>\n<p>I have also tried this solution:</p>\n<pre><code>when(response.asJson(any(SampleResponse.class))).thenReturn(sampleResponse);\n</code></pre>\n<p>It still fails and returns this error:</p>\n<pre><code>no suitable method found for asJson(sampleResponse)\n    method org.keycloak.broker.provider.util.SimpleHttp.Response.&lt;T&gt;asJson(java.lang.Class&lt;T&gt;) is not applicable\n      (inference variable T has incompatible bounds\n        equality constraints: sampleResponse\n        lower bounds: java.lang.Object,java.lang.Class&lt;T&gt;)\n    method org.keycloak.broker.provider.util.SimpleHttp.Response.&lt;T&gt;asJson(com.fasterxml.jackson.core.type.TypeReference&lt;T&gt;) is not applicable\n      (inference variable T has incompatible bounds\n        equality constraints: sampleResponse\n        lower bounds: java.lang.Object,com.fasterxml.jackson.core.type.TypeReference&lt;T&gt;\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

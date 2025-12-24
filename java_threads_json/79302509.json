@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "file",
+      "gzip",
+      "fileoutputstream"
+    ],
+    "owner": {
+      "account_id": 2829539,
+      "reputation": 99,
+      "user_id": 2431392,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/vCa0eDo7.jpg?s=256",
+      "display_name": "Kailash",
+      "link": "https://stackoverflow.com/users/2431392/kailash"
+    },
+    "is_answered": true,
+    "view_count": 74,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1735202711,
+    "creation_date": 1734941167,
+    "question_id": 79302509,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79302509/java-gzip-file-contains-another-gzip-file-when-saving-logs-in-windows",
+    "title": "Java: GZIP file contains another GZIP file when saving logs in Windows",
+    "body": "<p>I'm working on a Spring Boot application where I need to download log files from a mock service and save them as GZIP files on a Windows system. However, I've encountered an issue where the saved <code>.gz</code> file contains another <code>.gz</code> file inside it, which is not the intended behavior.</p>\n<h3>Problem Description</h3>\n<p>When I retrieve the log data from the service and save it as a <code>.gz</code> file, the resulting file at <code>C:\\sgtw\\downInternal\\system.log-2024-07-21-1721500200.gz</code> contains another GZIP file with the same name inside it. This inner GZIP file, when extracted, contains the actual log data.</p>\n<h3>Expected Behavior</h3>\n<p>I want the log data to be saved directly in the GZIP file without any nested structure. The final output should be a single <code>.gz</code> file containing the log data directly.</p>\n<h3>Code Snippet</h3>\n<p>Here’s the relevant part of my controller code:</p>\n<pre><code>    @Controller \n   public class MyController {\n    \n    @PostMapping(&quot;/download-logs&quot;)\n    public String downloadLogs(@RequestParam List&lt;String&gt; entryCheckbox,\n                                @RequestParam String token,\n                                @RequestParam Map&lt;String, String&gt; allRequestParams,\n                                Model model) {\n    \n        System.out.println(&quot;Inside downloadLogs method of controller&quot;);\n        System.out.println(&quot;Token value is: &quot; + token);\n    \n        List&lt;String&gt; successfullyDownloadedFiles = new ArrayList&lt;&gt;();\n    \n        // Check if any log files are selected\n        if (entryCheckbox.isEmpty()) {\n            model.addAttribute(&quot;errorMessage&quot;, &quot;No log files selected for download.&quot;);\n            return &quot;downloaded_sgtw&quot;; // Redirect to a result page with an error\n        }\n    \n        try {\n            String ids = String.join(&quot;,&quot;, entryCheckbox);\n            byte[] logData = sgtwService.fetchLogsFromMockService(ids, token.replace(&quot;Bearer &quot;, &quot;&quot;));\n    \n            // Check if the fetched log data is valid\n            if (logData == null || logData.length == 0) {\n                model.addAttribute(&quot;errorMessage&quot;, &quot;No log data retrieved. Please check the selected log files.&quot;);\n                return &quot;downloaded_sgtw&quot;; // Redirect to a result page with an error\n            }\n    \n            // Retrieve the log name from the request parameters which should include the .gz extension\n            String logName = allRequestParams.get(&quot;logName_&quot; + entryCheckbox.get(0));\n            if (logName == null || !logName.endsWith(&quot;.gz&quot;)) {\n                model.addAttribute(&quot;errorMessage&quot;, &quot;Invalid log name. Ensure it includes the .gz extension.&quot;);\n                return &quot;downloaded_sgtw&quot;; // Redirect to a result page with an error\n            }\n    \n            // Specify the directory where you want to save the file\n            String destinationDir = &quot;C:\\\\sgtw\\\\downInternal&quot;;\n            String destinationPath = Paths.get(destinationDir, logName).toString(); // Use the log name directly\n    \n            System.out.println(&quot;Destination Path: &quot; + destinationPath);\n            System.out.println(&quot;Log data byte array length: &quot; + logData.length);\n    \n            // Write the log data directly to the file\n            try (FileOutputStream fileOutputStream = new FileOutputStream(destinationPath)) {\n                fileOutputStream.write(logData); // Write the byte array directly\n            } // Automatically closes the stream here\n    \n            successfullyDownloadedFiles.add(logName);\n            // Processing for success messages\n            model.addAttribute(&quot;successMessage&quot;, &quot;Logs saved successfully at: &quot; + destinationPath);\n        } catch (IOException e) {\n            e.printStackTrace();\n            model.addAttribute(&quot;errorMessage&quot;, &quot;Error occurred while downloading logs: &quot; + e.getMessage());\n        }\n    \n        return &quot;downloaded_sgtw&quot;; // Redirect to the result page\n    }\n    }\n</code></pre>\n<h3>Additional Information</h3>\n<ul>\n<li>I'm running the application on a Windows environment.</li>\n<li>The expected output is a single <code>.gz</code> file containing the log data, but instead, I receive a nested <code>.gz</code> file structure.</li>\n</ul>\n<h3>Question</h3>\n<p>How can I modify my implementation to ensure that the log data is saved directly in the GZIP file without any nested GZIP files? Any help would be greatly appreciated!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

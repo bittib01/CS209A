@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hibernate",
+      "jpa",
+      "optimistic-locking"
+    ],
+    "owner": {
+      "account_id": 29075771,
+      "reputation": 143,
+      "user_id": 22272977,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AAcHTte84Ivji8PRE1ZJ4PbrT8hScfiqYc2zV3zX5YpeaOwC=k-s256",
+      "display_name": "Роман Григорьев",
+      "link": "https://stackoverflow.com/users/22272977/%d0%a0%d0%be%d0%bc%d0%b0%d0%bd-%d0%93%d1%80%d0%b8%d0%b3%d0%be%d1%80%d1%8c%d0%b5%d0%b2"
+    },
+    "is_answered": false,
+    "view_count": 147,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1747567811,
+    "creation_date": 1747411527,
+    "last_edit_date": 1747477483,
+    "question_id": 79625563,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79625563/jpa-optimistic-lock-for-associations",
+    "title": "JPA Optimistic lock for associations",
+    "body": "<p>I'm trying to solve a problem with optimistic locks in jpa and hibernate for parent entity with associations. I need to increment the version of parent when child entity is changed or a new child entity is saved. I can't use OPTIMISTIC_FORCE_INCREMENT as in that transaction the parent entity also could be changed so the version will increment twice.</p>\n<pre><code>Parent {\n    \n    // The version of parent should be incremented if children list or children entity is modified\n    @OneToMany(\n        mappedBy = &quot;parent&quot;,\n        cascade = CascadeType.ALL\n    )\n    List&lt;Child&gt; children;\n    ...\n\n    @Version\n    Long version;\n\n}\n\nChild {\n    \n    @ManyToOne(fetch = FetchType.LAZY)\n    @JoinColumn(name = &quot;parent_id&quot;, nullable = false)\n    private Parent parent;\n    ...\n\n}\n</code></pre>\n<p>How can I achieve incrementing the parent version once if children or children list is changed or only parent is changed or both?\nI've read this article <a href=\"https://vladmihalcea.com/how-to-increment-the-parent-entity-version-whenever-a-child-entity-gets-modified-with-jpa-and-hibernate/\" rel=\"nofollow noreferrer\">vlad example</a> but can't implement his approach with RootAware interface. Ideal solution for me would be to check whether the parent has changed and if not to use force version increment lock otherwise not to lock the parent as it is already changed.</p>\n<p>Update:\nAlso I found out such a strange situation.\nIf I have a bidirectional relation between child and parent(like in the example above), when I change the children list the Parent's version is not incremented:D. The solution for that case for incrementing is to use @OptimisticLock(excluded = false) above the children field.\nBut if I have a unidirectional link with @JoinColumn on the Parent side in the same situation the Parent's version gets incremented. Is it normal behavior?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

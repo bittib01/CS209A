@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "telegram"
+    ],
+    "owner": {
+      "account_id": 34645198,
+      "reputation": 1,
+      "user_id": 26685335,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/1f5341140f5f56475846ca94f071d728?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Михаил Барыкин",
+      "link": "https://stackoverflow.com/users/26685335/%d0%9c%d0%b8%d1%85%d0%b0%d0%b8%d0%bb-%d0%91%d0%b0%d1%80%d1%8b%d0%ba%d0%b8%d0%bd"
+    },
+    "is_answered": false,
+    "view_count": 148,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1726166485,
+    "creation_date": 1723064252,
+    "last_edit_date": 1723322435,
+    "question_id": 78845642,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78845642/telegram-bot-is-unable-to-send-photo-by-file-id",
+    "title": "Telegram Bot is unable to send photo by file ID",
+    "body": "<pre><code>package Bot;\n\nimport org.telegram.telegrambots.bots.TelegramLongPollingBot;\nimport org.telegram.telegrambots.meta.api.methods.send.SendDocument;\nimport org.telegram.telegrambots.meta.api.methods.send.SendMessage;\nimport org.telegram.telegrambots.meta.api.methods.send.SendPhoto;\nimport org.telegram.telegrambots.meta.api.objects.Update;\nimport org.telegram.telegrambots.meta.exceptions.TelegramApiException;\n\nimport java.text.SimpleDateFormat;\nimport java.util.Date;\nimport java.util.TimeZone;\npublic class TelegramBot extends TelegramLongPollingBot\n{\n\n    @Override\n    public String getBotUsername() {\n        return &quot;TestBobr_Bot&quot;;\n    }\n    @Override\n    public String getBotToken() {\n        return &quot;&lt;I hid it&gt;&quot;;\n    }\n    @Override\n    public void onUpdateReceived(Update update)\n    {\n// getting FileId, ChatId, Text of the message and name of the user\n        String DocumentId = update.getMessage().getDocument().getFileId();\n        String ChatId = update.getMessage().getChatId().toString();\n        String UserFirstName = update.getMessage().getChat().getFirstName();\n        String UserLastName = update.getMessage().getChat().getLastName();\n        String Text = update.getMessage().getText();\n// formatting unix time into usual one\n        Integer UnixTime = update.getMessage().getDate();\n        Date date = new Date(UnixTime*1000L);\n        SimpleDateFormat sdf = new SimpleDateFormat(&quot;yyyy-MM-dd HH:mm:ss&quot;);\n        sdf.setTimeZone(TimeZone.getTimeZone(&quot;GMT+3&quot;));\n        String formattedDate = sdf.format(date);\n// sending the message back\n        SendMessage SentMessage = new SendMessage();\n        SendDocument SentDocument = new SendDocument();\n        SentDocument.setChatId(ChatId);\n        SentDocument.setCaption(&quot;This is a caption&quot;);\n        SentDocument.setDocument(DocumentId);\n\n        SentMessage.setText(&quot;User &quot; + UserFirstName + &quot; &quot; + UserLastName + &quot; Wrote: &quot; + Text + &quot; at &quot; + formattedDate);\n        SentMessage.setChatId(ChatId);\n        try {\n            this.execute(SentMessage);\n\n        } catch (TelegramApiException e) {\n            throw new RuntimeException(e);\n        }\n    }\n}\n</code></pre>\n<p>Here's one of my classes, called &quot;TelegramBot&quot;. It gets the user's message and the time when the user wrote it. then it formats unix tome into usual time and sends them back to user &quot;&lt;User's name&gt; wrote: &lt;user's message&gt; at . I want my bot to get the photo, sent by the user and send it back using File ID. In Full API reference for developers, writing telegram bots wrote, that you can send files, by your document's file ID using the method <code>SetDocument()</code> like here:</p>\n<pre><code>SendDocument SentDocument = new SendDocument();\nSentDocument.setChatId(ChatId);\nSentDocument.setCaption(&quot;This is a caption&quot;);\nSentDocument.setDocument(DocumentId);\n</code></pre>\n<p>In reference to developers wrote, that this method gets InputFile or FileId as String. But when I try to write in brackets the name of the String, which I got from the user, it shows me an error:</p>\n<blockquote>\n<p>'setDocument(org.telegram.telegrambots.meta.api.objects.@lombok.NonNull InputFile)' in 'org.telegram.telegrambots.meta.api.methods.send.SendDocument' cannot be applied to '()'</p>\n</blockquote>\n<p>So, as I understand things, this method just can't get <code>File Id</code>, correct? If so, how can I send files using <code>File Id</code> in other ways? If not, what do to fix it?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "amazon-s3",
+      "aws-sdk",
+      "completable-future"
+    ],
+    "owner": {
+      "account_id": 6915219,
+      "reputation": 321,
+      "user_id": 5309764,
+      "user_type": "registered",
+      "accept_rate": 57,
+      "profile_image": "https://www.gravatar.com/avatar/8221451921a72032693a7c3dbfda1f41?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Leon Csergity",
+      "link": "https://stackoverflow.com/users/5309764/leon-csergity"
+    },
+    "is_answered": true,
+    "view_count": 75,
+    "accepted_answer_id": 79522329,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1742460066,
+    "creation_date": 1740938553,
+    "question_id": 79479501,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79479501/aws-sdk-2-does-not-return-from-join-that-is-called-on-the-completable-futur",
+    "title": "AWS sdk 2 does not return from &quot;.join()&quot; that is called on the completable future on PutObject when uploading large files",
+    "body": "<p>We upgraded from version 1 to the version 2 sdk because support was cut for the first version of the SDK.</p>\n<p>The old client sync client was switched out for the new async client and new transfer manager. Everything was kept as it was because the new code was called with the &quot;.join()&quot; on the completable futures.\nEverything was working fine until we realised that large files dont get uploaded.</p>\n<p>The whole service is a spring boot service that handles file uploads and download to s3.\nThe http-nio request thread logs the the &quot;Before request&quot; and does not finish afterwards.</p>\n<p>I've logged everything I could by setting logging to DEBUG and TRACE and it seems that transfer manager finishes the multipart file upload because i see the log</p>\n<pre><code>2025-03-02T15:48:35,422 DEBUG [sdk-async-response-0-6] software.amazon.awssdk.services.s3.internal.multipart.GenericMultipartHelper : Sending completeMultipartUploadRequest, uploadId: ...xxxx\n</code></pre>\n<p>But the request thread does not continue. The transfer manager does not complete the completable future.\nThis is how the method looks like:</p>\n<pre><code>public void putObject(PutObjectRequest putObjectRequest, InputStream inputStream) {\n    ExecutorService executorService = null;\n    try {\n        executorService = Executors.newSingleThreadExecutor();\n        transferManager.upload(UploadRequest.builder()\n                        .putObjectRequest(putObjectRequest)\n                        .requestBody(\n                                AsyncRequestBody.fromInputStream(\n                                        AsyncRequestBodyFromInputStreamConfiguration.builder()\n                                                .executor(executorService)\n                                                .contentLength(putObjectRequest.contentLength())\n                                                .inputStream(inputStream)\n                                                .build()\n                                )\n                        )\n                        .build()\n                )\n                .completionFuture()\n                .join();\n    } catch (Exception ex) {\n        throwErrorOnUploadFail(ex);\n    } finally {\n        if (Objects.nonNull(executorService)) {\n            executorService.shutdown();\n        }\n    }\n}\n</code></pre>\n<p>When debugging the code doesn't continue after the &quot;.join()&quot; and the initial request thread is held indefinitely</p>\n<p>This same behaviour is observed on every request that is doing something with a large file (5 gigs plus) that returns a Completable future and has join called on it.\nThe operation does not return from join and the request thread is held until the service is killed or stopped.\nBut works as expected with smaller files.</p>\n<p>I don't have much experience working with completable future and I feel like im missing something vital.\nSorry for the wall of text btw.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

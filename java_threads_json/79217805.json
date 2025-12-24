@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "reactive-programming",
+      "reactive",
+      "micronaut"
+    ],
+    "owner": {
+      "account_id": 5760315,
+      "reputation": 74,
+      "user_id": 4546963,
+      "user_type": "registered",
+      "profile_image": "https://graph.facebook.com/10205061376469413/picture?type=large",
+      "display_name": "Sudipto Sarkar",
+      "link": "https://stackoverflow.com/users/4546963/sudipto-sarkar"
+    },
+    "is_answered": false,
+    "view_count": 123,
+    "answer_count": 2,
+    "score": 1,
+    "last_activity_date": 1732371861,
+    "creation_date": 1732364231,
+    "question_id": 79217805,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79217805/how-do-i-set-cookies-in-micronaut-reactive-controllers",
+    "title": "How do I set cookies in Micronaut Reactive Controllers",
+    "body": "<p>I have these service methods which return Monos, and I'm trying to set the cookies with them. This doesn't work. Does anyone know how to do this?</p>\n<p>I need this to return HttpResponse&lt;Mono&gt; and using <code>block()</code> results in an error saying <code>java.lang.IllegalStateException: block()/blockFirst()/blockLast() are blocking, which is not supported in thread default-nioEventLoopGroup-2-4</code></p>\n<pre class=\"lang-java prettyprint-override\"><code>      @Post\n      public Mono&lt;HttpResponse&lt;Mono&lt;UserDto&gt;&gt;&gt; login(@Body LoginDto loginDto, @Header(value = &quot;User-Agent&quot;) String userAgentStr,\n                                                     @CookieValue(value = &quot;myapp-auth-deviceId&quot;) UUID deviceId) {\n        return registrationService.login(loginDto)\n            .flatMap(user -&gt; {\n              MutableHttpResponse&lt;Mono&lt;UserDto&gt;&gt; httpResponse = HttpResponse.ok(Mono.just(user));\n              return registrationService.registerDevice(userAgentStr, deviceId, user)\n                  .flatMap(device -&gt; registrationService.getJwtToken(user, device))\n                  .flatMap(jwtToken -&gt; {\n                    httpResponse.cookie(Cookie.of(DEVICE_ID_COOKIE_NAME, deviceId.toString()).path(&quot;/&quot;).maxAge(365 * 24 * 3600));\n                    httpResponse.cookie(Cookie.of(AUTH_COOKIE_NAME, jwtToken).maxAge(365 * 24 * 3600));\n                    return Mono.just((HttpResponse&lt;Mono&lt;UserDto&gt;&gt;) httpResponse);\n                  });\n            }).single();\n      }\n\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "apache-kafka",
+      "spring-kafka",
+      "kafka-consumer-api"
+    ],
+    "owner": {
+      "account_id": 12441263,
+      "reputation": 13,
+      "user_id": 9059374,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/4c2076f43591fbd18cbc1e5bf878c069?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Rajshekar",
+      "link": "https://stackoverflow.com/users/9059374/rajshekar"
+    },
+    "is_answered": true,
+    "view_count": 87,
+    "accepted_answer_id": 79733828,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1755056099,
+    "creation_date": 1714744274,
+    "question_id": 78425100,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78425100/how-kafka-listener-re-delivers-messages-when-started-consuming-messages-with-aut",
+    "title": "How Kafka Listener re delivers messages when started consuming messages with auto commit set to false",
+    "body": "<p>Let's say suppose I started my consumer with auto commit set to false and consumer started listening to the messages.</p>\n<ol>\n<li>My listener processed 50 messages out of total polled as 100 and then only 50 has been committed and rest 51 to 100 are uncommitted.</li>\n<li>And I started processing next set of messages from 101 and committed till 200.</li>\n<li>After some time will my consumer receive messages from 51 to 100 as I didn't commit them?</li>\n</ol>\n<p>How my Kafka Consumer will behave with this Use Case??</p>\n<p>I've tried below approach. Polling messages in Batch and commit those batch of records based upon my processing result.</p>\n<pre><code>@KafkaListener(id=&quot;${listenerID}&quot;,topics = &quot;${consumer.topic}&quot;, containerFactory = &quot;listenerContainerFactory&quot;,autoStartup =&quot;${isListenerEnabled}&quot;)\npublic void messageListener(List&lt;ConsumerRecord&lt;String, String&gt;&gt; list,Consumer&lt;String, String&gt; consumer) {\n try {\n        Map&lt;TopicPartition, OffsetAndMetadata&gt; offsetAndMetadataMap=processMessage(list, acknowledgment,consumer); //Here I've logic which validates batch of records and gives result for all the processed records. \n        consumer.commitSync(offsetAndMetadataMap);\n    }\n    catch (Exception e){\n               }\n}\n\n\n\npublic ConcurrentKafkaListenerContainerFactory&lt;String, String&gt; listenerContainerFactory()\n {\n ConcurrentKafkaListenerContainerFactory&lt;String, String&gt; factory = new  ConcurrentKafkaListenerContainerFactory&lt;&gt;();\n\n      factory.setConsumerFactory(consumerFactory());\n      factory.setBatchListener(true); \n      factory.setAutoStartup(false); \n      factory.setConcurrency(consumerProperties.getConsumerThreads()); \n      factory.setCommonErrorHandler(new DefaultErrorHandler(new FixedBackOff(1000,2)));       \n     \n    if(!consumerProperties.isAutoCommit()) { \n      factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);\n      }\n return factory; \n}\n\n\npublic ConsumerFactory&lt;String, String&gt; consumerFactory() { \nMap&lt;String, Object&gt; properties = new HashMap&lt;&gt;();\n try {\n        properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,bootStarpServer);\n        properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, keyDeserializer);\n        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, valueDeserializer);\n        properties.put(ConsumerConfig.GROUP_ID_CONFIG,groupId);\n        properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG,autoCommit);\n      \n        return new DefaultKafkaConsumerFactory&lt;&gt;(properties);\n    }\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

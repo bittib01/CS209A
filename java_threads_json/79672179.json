@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "helidon"
+    ],
+    "owner": {
+      "account_id": 2514821,
+      "reputation": 459,
+      "user_id": 2186495,
+      "user_type": "registered",
+      "accept_rate": 29,
+      "profile_image": "https://www.gravatar.com/avatar/a9caeb0de28072254fbe7ed9eb721557?s=256&d=identicon&r=PG",
+      "display_name": "Pat",
+      "link": "https://stackoverflow.com/users/2186495/pat"
+    },
+    "is_answered": false,
+    "view_count": 41,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1750341845,
+    "creation_date": 1750341229,
+    "last_edit_date": 1750341845,
+    "question_id": 79672179,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79672179/running-helidon-mp-application-gives-incompatibleclasschangeerror",
+    "title": "Running helidon-mp application gives IncompatibleClassChangeError",
+    "body": "<p>I need to upgrade our application from Helidon 3.0.2 to Helidon 3.2.12, but running gives this error:</p>\n<pre><code>[INFO] 2025-06-17 13:24:37,043 [main] org.jboss.weld.Bootstrap - WELD-ENV-002001: Weld SE container 144ebd95-bb80-4310-98e2-a1d4f9ebd02e shut down\nException in thread &quot;main&quot; jakarta.enterprise.inject.CreationException\n    at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)\n        ...\n    at io.helidon.microprofile.cdi.HelidonContainerImpl.doStart(HelidonContainerImpl.java:340)\n    at io.helidon.common.context.Contexts.runInContext(Contexts.java:137)\n    at io.helidon.microprofile.cdi.HelidonContainerImpl.start(HelidonContainerImpl.java:250)\n    at io.helidon.microprofile.cdi.Main.main(Main.java:80)\nCaused by: java.lang.IncompatibleClassChangeError: Method 'package02.MyID package02.MyID.valueOf(java.lang.String)' must be InterfaceMethodref constant\n    at package01.MyFactory.&lt;init&gt;(MyFactory.java:55)\n    at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)\n        ...\n    at org.jboss.weld.injection.ConstructorInjectionPoint.newInstance(ConstructorInjectionPoint.java:119)\n    ... 68 more\n</code></pre>\n<p>The library classes (separated jar file):</p>\n<pre><code>package package02;\n\npublic class MyID extends AbstractID implements ID {\n \n    protected MyID(final Builder builder) {\n        super(builder);\n    }\n\n    public static MyID valueOf(final String ocid) {\n        return (MyID) new Builder(id).accept(&lt;key&gt;, &lt;value&gt;).build();\n    }\n}\n\npackage package02.internal;\n\npublic abstract class AbstractID implements ID {\n \n    protected AbstractID(final Builder builder) {\n        //...\n    }\n \n    public static class Builder {\n        \n        public Builder(final String id) {\n            //...\n        }\n    }\n}\n</code></pre>\n<p>The implementation of the application:</p>\n<pre><code>package package01;\n\nimport io.helidon.config.Config;\nimport jakarta.enterprise.context.ApplicationScoped;\nimport jakarta.inject.Inject;\n\n@ApplicationScoped\npublic class MyFactory {\n\n    @Inject\n    public MyFactory(final Config config) {\n        this. = MyID.valueOf(loadProperty(config, &lt;key&gt;)); // this is the problematic line\n    }\n\n    private String loadProperty(final Config config, final String key) {\n        //...\n    }\n}\n</code></pre>\n<p>All classes are freshly compiled. Running on Java 17.</p>\n<p>Could someone give me a hint what to do?</p>\n<p>Thanks</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

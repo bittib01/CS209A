@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "oauth",
+      "keycloak",
+      "linkedin-api"
+    ],
+    "owner": {
+      "account_id": 16217112,
+      "reputation": 364,
+      "user_id": 11709663,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/tlvwA.jpg?s=256",
+      "display_name": "Sabu Shakya",
+      "link": "https://stackoverflow.com/users/11709663/sabu-shakya"
+    },
+    "is_answered": false,
+    "view_count": 117,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1737696035,
+    "creation_date": 1737456806,
+    "question_id": 79374109,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79374109/linkedin-access-token-exchange-with-keycloak-token",
+    "title": "LinkedIn access token exchange with keycloak token",
+    "body": "<p>I'm trying to integrate signup/login from linkedIn in my application which currently uses keycloak for authentication. I've implemented my flow in this way:</p>\n<ol>\n<li>My frontend redirects to linkedIn for sign in.</li>\n<li>LinkedIn then redirects to my callback in backend with authorization code.</li>\n<li>Then my backend application exchanges the code for access token and fetches userinfo from linkedIn and does necessary process.</li>\n<li>My backend manually creates a user in keycloak with federated identities set to linkedin.</li>\n<li>Invoke keycloaks token exchange api to exchange the token from LinkedIn with jwt from keycloak.</li>\n</ol>\n<p>Here's an example code:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public JwtTokenResponse processOAuthCallbackAndGetToken(String code) {\n    // Step 1: Exchange authorization code for an access token\n    String accessToken = exchangeAuthorizationCodeForAccessToken(code);\n\n    // Step 2: Fetch user info from LinkedIn\n    Map&lt;String, Object&gt; userInfo = fetchLinkedInUserProfile(accessToken);\n\n    // Step 3: Create users in app\n    if (userInfo == null) {\n      throw new SomeException(&quot;Error occurred while fetching user info from LinkedIn.&quot;);\n    }\n\n    String email = (String) userInfo.get(&quot;email&quot;);\n    // create user in the application if needed\n\n    // Step 4: Create use in keycloak with federatedIdentity\n\n    log.info(&quot;User Info from LinkedIn ::: {}&quot;, userInfo);\n    Map&lt;String, Object&gt; federatedIdentity = new HashMap&lt;&gt;();\n    federatedIdentity.put(&quot;identityProvider&quot;, &quot;linkedin&quot;);\n    federatedIdentity.put(&quot;userId&quot;, userInfo.get(&quot;sub&quot;)); // LinkedIn user ID\n    federatedIdentity.put(&quot;userName&quot;, email);\n\n    userService.createKeycloakUserWithFederatedIdentity(agentByEmail.getUser(), federatedIdentity);\n\n    log.info(&quot;Created user in keycloak with federated identity ::: {}&quot;, federatedIdentity);\n\n    // Step 5: Exchange LinkedIn access_token with jwt\n    return keycloakAuthServerConnector.getTokenFromLinkedInAccessToken(accessToken);\n  }\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>....\n  private static final String GRANT_TYPE_OAUTH_TOKEN_EXCHANGE =\n      &quot;urn:ietf:params:oauth:grant-type:token-exchange&quot;;\n  private static final String REQUESTED_TOKEN_TYPE =\n      &quot;urn:ietf:params:oauth:token-type:access_token&quot;;\n  public static final String PROTOCOL_OPENID_CONNECT_TOKEN = &quot;/protocol/openid-connect/token&quot;;\n\npublic com.agencyheight.dto.onboardingv2.auth.JwtTokenResponse getTokenFromLinkedInAccessToken(\n      String accessToken) {\n    log.info(&quot;Requesting token with linkedIn access token :: {}&quot;, accessToken);\n\n    return webClient\n        .post()\n        .uri(PROTOCOL_OPENID_CONNECT_TOKEN)\n        .contentType(MediaType.APPLICATION_FORM_URLENCODED)\n        .body(\n            BodyInserters.fromFormData(&quot;client_id&quot;, clientId)\n                .with(&quot;client_secret&quot;, clientSecret)\n                .with(&quot;grant_type&quot;, GRANT_TYPE_OAUTH_TOKEN_EXCHANGE)\n                .with(&quot;subject_token&quot;, accessToken)\n                .with(&quot;subject_issuer&quot;, &quot;linkedin&quot;)\n                .with(&quot;requested_token_type&quot;, REQUESTED_TOKEN_TYPE))\n        .retrieve()\n        .bodyToMono(com.agencyheight.dto.onboardingv2.auth.JwtTokenResponse.class)\n        .block();\n  }\n</code></pre>\n<p>I'm getting this response from keycloak when trying to exchange token.\nStatus : 400 Bad Request</p>\n<pre class=\"lang-json prettyprint-override\"><code>{\n    &quot;error&quot;: &quot;invalid_token&quot;,\n    &quot;error_description&quot;: &quot;invalid token&quot;\n}\n</code></pre>\n<p>I have added the necessary configuration in keycloak:\n<a href=\"https://i.sstatic.net/pzuSPuJf.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/pzuSPuJf.png\" alt=\"enter image description here\" /></a>\nI've enabled the token exchange permission as well and set the policy, as per this document : <a href=\"https://www.keycloak.org/securing-apps/token-exchange#_granting_permission_for_the_exchange_3\" rel=\"nofollow noreferrer\">Granting permission for the exchange</a></p>\n<p><a href=\"https://i.sstatic.net/nuULniEP.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/nuULniEP.png\" alt=\"enter image description here\" /></a></p>\n<p>What am I missing or what is causing the error?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

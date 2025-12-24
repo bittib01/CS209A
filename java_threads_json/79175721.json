@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "akka",
+      "actor",
+      "akka-typed",
+      "actorsystem"
+    ],
+    "owner": {
+      "account_id": 32143249,
+      "reputation": 1,
+      "user_id": 24942356,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/88f0dac47d37353f17af59ef9170338f?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Elizar Konovalov",
+      "link": "https://stackoverflow.com/users/24942356/elizar-konovalov"
+    },
+    "is_answered": true,
+    "view_count": 25,
+    "accepted_answer_id": 79207280,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1733844494,
+    "creation_date": 1731270370,
+    "last_edit_date": 1733844494,
+    "question_id": 79175721,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79175721/akka-reason-incompatible-types-behaviormessage-is-not-convertible-to-behav",
+    "title": "Akka - reason: Incompatible types: Behavior&lt;Message&gt; is not convertible to Behavior&lt;Object&gt;",
+    "body": "<p>I have an OrderManagerActor that accepts messages from classes that implement the Message interface.\nThis interface is implemented by the following classes CreateOrderMessage, DeleteOrderMessage, UpdateOrderStatusMessage.</p>\n<p>When trying to register the createReceive() method in OrderManagerActor</p>\n<pre><code> @Override\n    public Receive&lt;Message&gt; createReceive() {\n        return ReceiveBuilder.create()\n                .onMessage(CreateOrderMessage.class, this::createOrder)\n                .build();\n    }\n</code></pre>\n<p>I get the following:</p>\n<p><strong>reason: Incompatible types: Behavior&lt;Message&gt; is not convertible to Behavior&lt;Object&gt;</strong></p>\n<p>Well, I can make sure that all the messages that my Actor receives are Objects, but it seems to me that this will not be entirely correct</p>\n<p>OrderManagerActor class</p>\n<pre><code>package actor;\n\nimport akka.actor.typed.Behavior;\nimport akka.actor.typed.javadsl.*;\nimport message.Message;\nimport message.impl.CreateOrderMessage;\nimport org.slf4j.Logger;\nimport org.slf4j.LoggerFactory;\n\npublic class OrderManagerActor extends AbstractBehavior&lt;Message&gt; {\n    private final Logger loggerFactory = LoggerFactory.getLogger(OrderManagerActor.class);\n\n    public OrderManagerActor(ActorContext&lt;Message&gt; context) {\n        super(context);\n    }\n\n    @Override\n    public Receive&lt;Message&gt; createReceive() {\n        return ReceiveBuilder.create()\n                .onMessage(CreateOrderMessage.class, this::createOrder)\n                .build();\n    }\n\n    private Behavior&lt;Message&gt; createOrder(CreateOrderMessage createOrderMessage) {\n        loggerFactory.info(createOrderMessage.toString());\n        return this;\n    }\n\n    public static Behavior&lt;Message&gt; createBehavior() {\n        return Behaviors.setup(OrderManagerActor::new);\n    }\n}\n</code></pre>\n<p>Message interface:</p>\n<pre><code>package message;\n\npublic interface Message {\n}\n</code></pre>\n<p>Message interface implementation:</p>\n<pre><code>package message.impl;\n\nimport message.Message;\n\npublic class CreateOrderMessage implements Message {\n    private String id;\n\n    public CreateOrderMessage(String id) {\n        this.id = id;\n    }\n\n    public String getId() {\n        return id;\n    }\n\n    public void setId(String id) {\n        this.id = id;\n    }\n}\n</code></pre>\n<p><strong>UPDATE!</strong></p>\n<p>I fixed it, it was need to use a newReceiveBuilder builder.</p>\n<pre><code> @Override\n    public Receive&lt;Message&gt; createReceive() {\n        return ReceiveBuilder.create()\n                .onMessage(CreateOrderMessage.class, this::createOrder)\n                .build();\n    }\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

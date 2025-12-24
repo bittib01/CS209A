@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "json",
+      "spring-boot",
+      "post",
+      "jsonb"
+    ],
+    "owner": {
+      "account_id": 23782627,
+      "reputation": 65,
+      "user_id": 17795116,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/8b9c03927a8f42b9acf11a0e9c0ef33e?s=256&d=identicon&r=PG",
+      "display_name": "lordlaurent",
+      "link": "https://stackoverflow.com/users/17795116/lordlaurent"
+    },
+    "is_answered": true,
+    "view_count": 163,
+    "accepted_answer_id": 79218201,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1732375824,
+    "creation_date": 1732288784,
+    "question_id": 79215584,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79215584/json-parse-error-cannot-construct-instance-of-java-util-linkedhashmap-no-stri",
+    "title": "JSON parse error: Cannot construct instance of `java.util.LinkedHashMap` no String-argument method to deserialize from String (&#39;{&quot;par1&quot;:&quot;par2&quot;}&#39;)]",
+    "body": "<p>I'm currently working on a spring boot e-commerce backend with frontend in Angular. This is the exact error message:</p>\n<pre><code>2024-11-22T15:47:36.290+01:00  WARN 12532 --- [nio-8080-exec-4] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.http.converter.HttpMessageNotReadableException: JSON parse error: Cannot construct instance of `java.util.LinkedHashMap` (although at least one Creator exists): no String-argument constructor/factory method to deserialize from String value ('{&quot;par1&quot;:&quot;par2&quot;}')]\n</code></pre>\n<p>The error occurs when I try to add a new item to the store with parameters with field type <code>Map&lt;String, String&gt;</code>, which is deserialized wrong. All I have is this 400 (Bad Request) error.</p>\n<p><a href=\"https://i.sstatic.net/fzhp9O16.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/fzhp9O16.png\" alt=\"enter image description here\" /></a></p>\n<p>I'd like to see the JSON sent in the request, but I cannot log anything in console from service to controller level.</p>\n<pre><code>    @RequestMapping(method = RequestMethod.POST)\n    public ResponseEntity&lt;Response&gt; save(@RequestBody ProductFormDTO productFormDTO) {\n        System.out.println(&quot;Received ProductFormDTO: &quot; + productFormDTO);\n        return productMediator.saveProduct(productFormDTO);\n    }\n</code></pre>\n<p>The method seems to stop at the first line of the method, it doesn't even proceed to the print line.</p>\n<p>In the <code>ProductEntity</code> the parameters field is defined like this:</p>\n<pre><code>    @Column(columnDefinition = &quot;jsonb&quot;)\n    private Map&lt;String, String&gt; parameters;\n</code></pre>\n<p>Same in productDTO and productFormDTO</p>\n<pre><code>    private Map&lt;String, String&gt; parameters;\n</code></pre>\n<p>Below I show my saveProduct method in mediator:</p>\n<pre><code>    public ResponseEntity&lt;Response&gt; saveProduct(ProductFormDTO productFormDTO) {\n        try{\n            ProductEntity product = formToProductEntity.toProductEntity(productFormDTO);\n            categoryService.findCategoryByShortID(product.getCategory().getShortId()).ifPresentOrElse(product::setCategory,()-&gt;{\n                throw new CategoryDontExistException();\n            });\n            productService.createProduct(product);\n            return ResponseEntity.ok(new Response(&quot;Successful created a product&quot;));\n        }catch (RuntimeException e){\n            e.printStackTrace();\n            return ResponseEntity.status(400).body(new Response(&quot;Can't create product category don't exist&quot;));\n        }\n    }\n</code></pre>\n<p>and service:</p>\n<pre><code>    @Transactional\n    public void createProduct(ProductEntity product) {\n        logger.info(&quot;Creating product with details: {}&quot;, product);\n\n        if (product != null) {\n            product.setCreateAt(LocalDate.now());\n            product.setUid(UUID.randomUUID().toString());\n            product.setActivate(true);\n            productRepository.save(product);\n\n            for (String uuid : product.getImageUrls()) {\n                activateImage(uuid);\n            }\n\n            logger.info(&quot;Product created successfully with UID: {}&quot;, product.getUid());\n            return;\n        }\n        throw new RuntimeException(&quot;Product is null, cannot create.&quot;);\n    }\n</code></pre>\n<p>The logger doesn't work ofc.</p>\n<p>Do you know what is the issue or do maybe how to see the exact JSON that is being sent in the request? It has probably some bad formatting. I tried the <code>RequestLoggingFilter</code> with <code>@WebFilter(&quot;/*&quot;)</code>, but it didn't work, I had nothing in console.</p>\n<p>Also I am sure that the field parameters in database is set correctly to <code>jsonb</code> in <code>PostgreSQL</code>.</p>\n<p><a href=\"https://i.sstatic.net/9pUGdIKN.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/9pUGdIKN.png\" alt=\"enter image description here\" /></a></p>\n<p>ps. It worked before, it has stopped working since I changed parameters field type from String to Map.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

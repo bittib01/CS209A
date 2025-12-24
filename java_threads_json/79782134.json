@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "animation",
+      "javafx",
+      "css-animations"
+    ],
+    "owner": {
+      "account_id": 12506291,
+      "reputation": 821,
+      "user_id": 9103039,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/TqlDK.jpg?s=256",
+      "display_name": "Starnec",
+      "link": "https://stackoverflow.com/users/9103039/starnec"
+    },
+    "is_answered": false,
+    "view_count": 101,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1759522828,
+    "creation_date": 1759522354,
+    "last_edit_date": 1759522828,
+    "question_id": 79782134,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79782134/how-to-make-an-overlay-animation-in-a-stackpane-with-javafx",
+    "title": "How to make an overlay animation in a StackPane with JavaFX",
+    "body": "<p>I have three <a href=\"https://openjfx.io/javadoc/25/javafx.graphics/javafx/scene/layout/StackPane.html\" rel=\"nofollow noreferrer\">StackPane</a> elements, each containing its corresponding <a href=\"https://openjfx.io/javadoc/25/javafx.graphics/javafx/scene/image/ImageView.html\" rel=\"nofollow noreferrer\">ImageView</a> for an Icon and an overlay <a href=\"https://openjfx.io/javadoc/25/javafx.graphics/javafx/scene/layout/VBox.html\" rel=\"nofollow noreferrer\">VBox</a>. The intended animation is to make the overlay appear from the top to the bottom of the container (or vice versa) when the mouse hovers over it, and then hide again when the mouse leaves.</p>\n<p>However, I faced two issues.</p>\n<ol>\n<li>The <code>setPrefHeight(0)</code> does not set the height to zero for the overlay, since the parent (StackPane) assigns its children the default height, which is 100% of its own height. So that is why I had to use <code>setMaxHeight(0)</code> instead.</li>\n<li>The animation does not move as smoothly as I had expected. I used <a href=\"https://openjfx.io/javadoc/25/javafx.graphics/javafx/animation/KeyFrame.html\" rel=\"nofollow noreferrer\">KeyFrame</a> to make the following animation.</li>\n</ol>\n<blockquote>\n<p>0 -&gt; container's height when the mouse hovered</p>\n</blockquote>\n<p>and</p>\n<blockquote>\n<p>container's height -&gt; 0 when the mouse exits.</p>\n</blockquote>\n<p><strong>But there is no animation, and the overlay appears directly without any animation.</strong></p>\n<h2>Code</h2>\n<pre><code>import javafx.animation.KeyFrame;\nimport javafx.animation.Timeline;\nimport javafx.application.Application;\nimport javafx.geometry.Insets;\nimport javafx.geometry.Pos;\nimport javafx.scene.Scene;\nimport javafx.scene.image.Image;\nimport javafx.scene.image.ImageView;\nimport javafx.scene.layout.*;\nimport javafx.scene.text.Text;\nimport javafx.stage.Stage;\nimport javafx.util.Duration;\n\nimport java.util.Objects;\n\npublic class AnimationExample extends Application {\n    private ImageView createImageIcon(String path) {\n        Image image = new Image(Objects.requireNonNull(getClass().getResourceAsStream(path)));\n        ImageView imageView = new ImageView(image);\n        imageView.setPreserveRatio(true);\n        imageView.setFitHeight(200);\n        imageView.setFitWidth(200);\n\n        return imageView;\n    }\n\n    private StackPane crateImageIconContainer(ImageView image, VBox overlay, String iconTitle) {\n        Text text = new Text(iconTitle);\n        overlay.getChildren().add(text);\n\n        overlay.setAlignment(Pos.CENTER);\n        overlay.setStyle(&quot;-fx-background-color: #d20000;&quot;);\n        StackPane.setAlignment(overlay, Pos.BOTTOM_CENTER);\n        overlay.setMaxHeight(0);\n\n        StackPane stackableContainer = new StackPane();\n        stackableContainer.setPrefHeight(400);\n        stackableContainer.setPrefWidth(400);\n        HBox.setMargin(stackableContainer, new Insets(25, 25, 25, 25));\n\n        final double containerHeight = stackableContainer.getPrefHeight();\n\n        Timeline enterTimeline = new Timeline();\n        Timeline exitTimeline = new Timeline();\n\n        stackableContainer.setOnMouseEntered(_ -&gt; {\n            enterTimeline.getKeyFrames().setAll(\n                    new KeyFrame(Duration.millis(800), _ -&gt; overlay.setMaxHeight(containerHeight))\n            );\n            enterTimeline.play();\n        });\n\n        stackableContainer.setOnMouseExited(_ -&gt; {\n            exitTimeline.getKeyFrames().setAll(\n                    new KeyFrame(Duration.millis(800), _ -&gt; overlay.setMaxHeight(0))\n            );\n            exitTimeline.play();\n        });\n\n        stackableContainer.getChildren().addAll(image, overlay);\n        return stackableContainer;\n    }\n\n    public void start(Stage primaryStage) {\n        HBox mainContainer = new HBox();\n        HBox.setHgrow(mainContainer, Priority.ALWAYS);\n        mainContainer.setAlignment(Pos.CENTER);\n        mainContainer.setStyle(&quot;-fx-background-color: #00396c;&quot;);\n\n        ImageView photoIcon = createImageIcon(&quot;../resources/photo.png&quot;);\n        ImageView videoIcon = createImageIcon(&quot;../resources/video.png&quot;);\n        ImageView webCamIcon = createImageIcon(&quot;../resources/webcam.png&quot;);\n\n        StackPane photoIconContainer = crateImageIconContainer(photoIcon, new VBox(), &quot;Photo&quot;);\n        StackPane videoIconContainer = crateImageIconContainer(videoIcon, new VBox(), &quot;Video&quot;);\n        StackPane webCamIconContainer = crateImageIconContainer(webCamIcon, new VBox(), &quot;Web Cam&quot;);\n\n        mainContainer.getChildren().addAll(photoIconContainer, videoIconContainer, webCamIconContainer);\n\n        Scene scene = new Scene(mainContainer, 900, 350);\n        primaryStage.setTitle(&quot;Color isolator&quot;);\n        primaryStage.setScene(scene);\n        primaryStage.show();\n    }\n}\n</code></pre>\n<p>I would like to know how to make such animation using StackPane or any layout for that matter</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

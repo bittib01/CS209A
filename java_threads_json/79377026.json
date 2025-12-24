@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hibernate",
+      "hibernate-mapping"
+    ],
+    "owner": {
+      "account_id": 34293525,
+      "reputation": 1,
+      "user_id": 26491928,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/9c2e0982888c8450de515218da2a9870?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Daxin",
+      "link": "https://stackoverflow.com/users/26491928/daxin"
+    },
+    "is_answered": false,
+    "view_count": 37,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1737565669,
+    "creation_date": 1737535565,
+    "question_id": 79377026,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79377026/how-to-configure-one-to-mane-mapping-between-entities-both-have-composited-key",
+    "title": "How to configure One To Mane mapping between entities both have composited key",
+    "body": "<p>My entity MrsConHist has One to many map to MrsConHistCar, MrsConHist  and MrsConHistCar both have composited key class. when MrsConHist.getMrsConHistCar(...),  I got error: [ORA-00942: table or view does not exist]</p>\n<p>I checked the entity classes, mapping, etc, find not error. For a Con (a train) in any day, it had at least 6 cars on the train, MrsConHist.getMrsConHistCar(...) should return at least 6 rows.</p>\n<p>The entities:</p>\n<ol>\n<li>parent entity: MrsConHist.java and MrsConHistPK.java:</li>\n</ol>\n<p>```</p>\n<pre><code>@Table(name = &quot;MRS_CON_HIST&quot;)\n@Entity\npublic class MrsConHist implements java.io.Serializable {\n    private static final long serialVersionUID = 1L;\n    @EmbeddedId\n    private MrsConHistPK comp_id;\n    \n    @OneToMany(mappedBy=&quot;mrsConHist&quot;,orphanRemoval =true,fetch= FetchType.LAZY)//tried EAGER\n    private Set&lt;MrsConHistCar&gt; mrsConHistCars = new HashSet&lt;MrsConHistCar&gt;(0);\n\n    public Set&lt;MrsConHistCar&gt; getMrsConHistCars() {\n    return this.mrsConHistCars;\n    }\n    public void setMrsConHistCars(Set&lt;MrsConHistCar&gt; mrsConHistCars) {\n    this.mrsConHistCars = mrsConHistCars;\n    }\n    //Other get and set, and constructors\n}\n\n@Embeddable\npublic class MrsConHistPK  implements java.io.Serializable {\n\n    private static final long serialVersionUID = 1L;\n    @Column(name = &quot;CON_NO&quot;,insertable=false, updatable=false)\n    private String conNo;\n    @Column(name = &quot;DASH_NO&quot;,insertable=false, updatable=false)\n    private Integer dashNo;\n    @Column(name = &quot;DATE_INSRV_REV&quot;,insertable=false, updatable=false)\n    private Date dateInsrvRev;\n    @Column(name = &quot;DATETIME_INSRV&quot;,insertable=false, updatable=false)\n    private Date datetimeInsrv;\n\n    // Constructors, Get, Set, and @Override functions    \n}\n</code></pre>\n<ol start=\"2\">\n<li>child entity: MrsConHistCar.java, and MrsConHistCarPK.java</li>\n</ol>\n<pre><code>@Table(name = &quot;MRS_CON_HIST_CAR&quot;)\n@Entity\npublic class MrsConHistCar  implements java.io.Serializable {\n    private static final long serialVersionUID = 1L;\n    @EmbeddedId\n    private MrsConHistCarPK comp_id;\n\n    @ManyToOne(fetch = FetchType.LAZY ) // tried EAGER\n    @JoinColumns({\n     @JoinColumn(name=&quot;CON_NO&quot;, nullable=false),\n     @JoinColumn(name = &quot;DASH_NO&quot;, nullable=false),\n     @JoinColumn(name = &quot;DATE_INSRV_TREV&quot;, nullable=false),\n     @JoinColumn(name = &quot;DATETIME_INSRV&quot;, nullable=false)\n    })\n     private MrsConHist mrsConHist;    \n    // Constructors, Get, Set, and @Override functions  \n}\n\n\n@Embeddable\npublic class MrsConHistCarPK implements java.io.Serializable {\n    private static final long serialVersionUID = 1L;\n    @Column(name = &quot;CON_NO&quot;, insertable=false, updatable=false)\n    private String conNo;\n    @Column(name = &quot;DASH_NO&quot;, insertable=false, updatable=false)\n    private Integer dashNo;\n    @Column(name = &quot;DATE_INSRV_REV&quot;, insertable=false, updatable=false)\n    private java.sql.Date dateInsrvRev;\n    @Column(name = &quot;DATETIME_INSRV&quot;, insertable=false, updatable=false)\n    private Date datetimeInsrv;\n    @Column(name = &quot;CAR_NO&quot;)\n    private String carNo;\n    // Constructors, Get, Set, and @Override functions \n}\n</code></pre>\n<p>```</p>\n<p>Take value from database:</p>\n<p>```</p>\n<pre><code>mrsConHist= DAOFactory.getMarisConsistDao().retrieve_MrsConHist( incdOccrDt, conNo,  dashNo, true ); \n</code></pre>\n<p>The table exists,  mrsConHist has values, but error occurred when retreive the mapped object at next line:</p>\n<pre><code>Set&lt;MrsConHistCar&gt; cars = mrsConHist.getMrsConHistCars();\n\n\n15:23:48.230 DEBUG JDBC exception executing SQL \\[select mchc1_0.CON_NO,mchc1_0.DASH_NO,mchc1_0.DATE_INSRV_TREV,mchc1_0.DATETIME_INSRV,mchc1_0.CAR_NO,mchc1_0.DATE_INSRV_REV,mchc1_0.CAR_ORDER,mchc1_0.CAR_ORIENTATION,mchc1_0.CUM_HRS,mchc1_0.CUM_MIN,mchc1_0.DATETIME_LAST_UPD,mchc1_0.DATETIME_MAINT_UPD,mchc1_0.END_CAR_HRS,mchc1_0.END_CAR_MIN,mchc1_0.TERM_LAST_UPD,mchc1_0.TERM_MAINT_UPD\nfrom MRS_CON_HIST_CAR mchc1_0\nwhere (mchc1_0.CON_NO,mchc1_0.DASH_NO,mchc1_0.DATE_INSRV_TREV,mchc1_0.DATETIME_INSRV) in ((?,?,?,?))\\] \\[ORA-00942: table or view does not exist\\] \\[n/a\\]\n</code></pre>\n<p>It seems the composited key value is not initialized.\nmy system: hibernate-core 6.6, jakarta.persistence 3.1.0, Oracle 19.6, Java 11\nPlease help.\nThanks,</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

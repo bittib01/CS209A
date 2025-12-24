@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "google-cloud-dataflow",
+      "apache-beam"
+    ],
+    "owner": {
+      "account_id": 15245600,
+      "reputation": 11,
+      "user_id": 11000557,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/284ac20da409a825707b046bc682a57f?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "O Bishop",
+      "link": "https://stackoverflow.com/users/11000557/o-bishop"
+    },
+    "is_answered": false,
+    "view_count": 82,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1748400615,
+    "creation_date": 1747599676,
+    "question_id": 79627799,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79627799/how-to-maximise-throughput-with-requestresponseio-on-gcp-dataflow",
+    "title": "How to maximise throughput with RequestResponseIO on GCP Dataflow",
+    "body": "<p>I'm trying to use RequestResponseIO on Dataflow to make parallel requests to an endpoint. As a test, I've created a Cloud Run helloworld endpoint which just receives these requests; it can handle up to 80 concurrent requests per instance and scale up to 100 instances by default. Request latency is generally ~1ms but RRIO maxes out at ~100 elements/s.</p>\n<p>My RRIO Caller code is:</p>\n<pre><code>public class MakeRequest implements Caller&lt;String, String&gt; {\n  private static HttpRequestFactory REQUEST_FACTORY;\n  private static final Logger LOG = LoggerFactory.getLogger(MakeRequest.class);\n  private static final String url = &quot;REDACTED&quot;;\n\n  public MakeRequest() {}\n\n  public HttpRequestFactory getRequestFactory() {...}\n\n  public static IdTokenCredentials generateIdTokenCredentials(String url) throws IOException {...}\n\n  public static HttpRequestFactory createHttpFactory(String url) {...}\n\n  public String call(String reqString) {\n    HttpRequest request;\n    try {\n      request = getRequestFactory().buildGetRequest(new GenericUrl(url));\n    } catch (IOException e) {\n      throw new RuntimeException(e);\n    }\n\n    HttpResponse response = null;\n    try {\n      response = request.execute();\n      return response.getContent().toString();\n    } catch (IOException e) {\n      throw new RuntimeException(e);\n    }\n  }\n}\n</code></pre>\n<p>There's a lot of extra code to handle authentication with Cloud Run which I've cut out but the bulk of the logic is in the <code>call</code> function which I've created following the docs <a href=\"https://beam.apache.org/documentation/io/built-in/webapis/#practical-examples\" rel=\"nofollow noreferrer\">here</a>. As this is just test code I'm dropping the String elements passed in.</p>\n<p>I can't figure out why RRIO doesn't keep ramping up the number of requests it makes as Cloud Run can clearly handle much higher throughput than it's receiving. Run doesn't even return a 429 No Available Instance error so it's clearly not overloaded. I've tried adding a custom <code>callShouldBackOff</code> implementation which should log out whenever the <code>update()</code> functions are called and it doesn't seem to be hit at all:</p>\n<pre><code>        .apply(\n            RequestResponseIO.of(new MakeRequest(), StringUtf8Coder.of())\n                .withCallShouldBackoff(new TestCallShouldBackoffBasedOnRejectionProbability&lt;&gt;()));\n</code></pre>\n<p>Am I missing some way of increasing parallelism or throughput of the function? How does RRIO determine it should slow down the rate at which it calls the API?</p>\n<p>I'm looking at this as a production issue where we group calls together into a single request JSON body. With 1000 elements in the body Run takes ~1s to process the request, with 100 elements in the body Run takes ~0.1s to process the request. RRIO seems to run these at 1/s or 10/s respectively which seems to imply it's hitting some sort of cap, when Run can absolutely scale much higher.</p>\n<p>TIA!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-spark",
+      "pyspark",
+      "amazon-sagemaker"
+    ],
+    "owner": {
+      "account_id": 40851828,
+      "reputation": 1,
+      "user_id": 29994617,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/4fd75f2d654ea6d1b79da9c53f801c33?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Memonator",
+      "link": "https://stackoverflow.com/users/29994617/memonator"
+    },
+    "is_answered": false,
+    "view_count": 48,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1742442034,
+    "creation_date": 1742442034,
+    "question_id": 79521850,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79521850/aws-pyspark-spark-version-3-4-1-input-byte-array-has-wrong-4-byte-ending-u",
+    "title": "AWS - Pyspark - Spark version 3.4.1 - Input byte array has wrong 4-byte ending unit",
+    "body": "<p>I'm trying to execute a base64 pyspark sql function on AWS Sagemaker where the Spark version is 3.4.1:</p>\n<pre><code>def transform(df: DataFrame, colB64Name: str) -&gt; DataFrame:\n    colUnderscore = df.select(&quot;*&quot;, \n        when(col(colB64Name).contains(&quot;&quot;), regexp_replace(col(colB64Name), &quot;&quot;, &quot;/&quot;))\n        .otherwise(col(colB64Name)).alias(&quot;col_&quot;))\n    \n    colHypen = colUnderscore.select(&quot;*&quot;, \n        when(col(&quot;col_&quot;).contains(&quot;-&quot;), regexp_replace(col(&quot;col_&quot;), &quot;-&quot;, &quot;+&quot;))\n        .otherwise(col(&quot;col_&quot;)).alias(&quot;col_hyphen&quot;))\n    \n    colLengthRepeat = colHypen.select(&quot;*&quot;, \n        (lit(4) - length(col(&quot;col_hyphen&quot;)) % lit(4)).alias(&quot;lengthRepeat&quot;))\n    \n    colFinalTmp = colLengthRepeat.select(&quot;*&quot;, \n        when((length(col(&quot;col_hyphen&quot;)) % 4) != 0, concat(col(&quot;col_hyphen&quot;), expr(&quot;repeat('=', lengthRepeat)&quot;)))\n        .otherwise(col(&quot;col_hyphen&quot;)).alias(&quot;col_final_tmp&quot;))\n    \n     colFinal = colFinalTmp.select(&quot;*&quot;,\n            when(base64(unbase64(col(&quot;col_final_tmp&quot;))) == col(&quot;col_final_tmp&quot;), col(&quot;col_final_tmp&quot;))\n            .otherwise(lit(None)).alias(&quot;validationCol&quot;))\n    return colFinal\n</code></pre>\n<p>But I am getting the following error which was not happening in Spark 3.1.1 version:</p>\n<pre><code>2025-03-19T10:34:39,896 [task-result-getter-0/152] [WARN] org.apache.spark.scheduler.TaskSetManager - Lost task 30.0 in stage 60.0 (TID 23720) (ip-10-60-254-139.ec2.internal executor 31): java.lang.IllegalArgumentException: Input byte array has wrong 4-byte ending unit\n    at java.util.Base64$Decoder.decode0(Base64.java:704)\n    at java.util.Base64$Decoder.decode(Base64.java:526)\n    at java.util.Base64$Decoder.decode(Base64.java:549)\n    at org.apache.spark.sql.catalyst.expressions.GeneratedClass$SpecificUnsafeProjection.CaseWhen_0$(Unknown Source)\n    ...\n</code></pre>\n<p>Is there any known solution?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

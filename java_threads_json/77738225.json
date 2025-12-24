@@ -1,0 +1,37 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "spring-data-jpa",
+      "websphere"
+    ],
+    "owner": {
+      "account_id": 189816,
+      "reputation": 33241,
+      "user_id": 429377,
+      "user_type": "registered",
+      "accept_rate": 91,
+      "profile_image": "https://i.sstatic.net/n8DwZ.jpg?s=256",
+      "display_name": "Mahmoud Saleh",
+      "link": "https://stackoverflow.com/users/429377/mahmoud-saleh"
+    },
+    "is_answered": true,
+    "view_count": 417,
+    "accepted_answer_id": 77763064,
+    "answer_count": 2,
+    "score": 2,
+    "last_activity_date": 1721978720,
+    "creation_date": 1703997390,
+    "last_edit_date": 1706852315,
+    "question_id": 77738225,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77738225/transactional-doesnt-work-with-async-in-websphere",
+    "title": "@Transactional doesn&#39;t work with @Async in Websphere",
+    "body": "<p>I am trying to use <code>@Transactional</code> inside <code>@Async</code> method to track file conversion process as follows:</p>\n<pre><code>@Async\n@Transactional\npublic void convertFile(String documentId) {\n     \n    CustomLog customLog = new CustomLog();\n    customLog.setStatus(&quot;IN_PROGRESS&quot;);\n    mySpringDataRepo.save(customLog);\n\n    try {\n      doConvertFunction(documentId);    \n    } catch (Exception e) {\n      customLog.setStatus(&quot;FAIL&quot;);\n      mySpringDataRepo.save(customLog);\n      return;\n    }\n\n    customLog.setStatus(&quot;SUCCESS&quot;);\n    mySpringDataRepo.save(customLog);   \n}\n</code></pre>\n<p>I am using the following technologies :</p>\n<ul>\n<li><strong>Spring Boot 2.7.18</strong></li>\n<li><strong>Hibernate Core 5.6.15.Final</strong></li>\n<li><strong>Websphere ND 9.0.5.13</strong></li>\n<li><strong>Java 1.8</strong></li>\n</ul>\n<p>My custom EntityManager configuration:</p>\n<pre><code>@Primary\n@Bean\npublic LocalContainerEntityManagerFactoryBean entityManagerFactory(EntityManagerFactoryBuilder builder,\n    DataSource dataSource) {\n    LocalContainerEntityManagerFactoryBean em = builder.dataSource(dataSource).packages(&quot;com.myapp&quot;).persistenceUnit(&quot;MyEntityManagerFactory&quot;).properties(jpaProperties()).build();\n    JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();\n    em.setJpaVendorAdapter(vendorAdapter);\n    return em;\n}\n\nprotected Map&lt;String, Object&gt; jpaProperties() {\n        Map&lt;String, Object&gt; props = new HashMap&lt;&gt;();\n        props.put(&quot;hibernate.physical_naming_strategy&quot;, CamelCaseToUnderscoresNamingStrategy.class.getName());\n        props.put(&quot;hibernate.implicit_naming_strategy&quot;, SpringImplicitNamingStrategy.class.getName());\n        return props;\n}\n</code></pre>\n<p>When running the above code on Tomcat 9 It works perfectly fine, but when trying to run it on Websphere the transaction doesn't open and the save method doesn't get executed at all !</p>\n<p>I made several tries with no luck as follows:</p>\n<ol>\n<li><p>Using <code>@Transactional(propagation = Propagation.REQUIRES_NEW)</code></p>\n</li>\n<li><p>Extracting the save method to a new separate service method which is as follows:</p>\n<pre><code>@Service\npublic class MyService {\n\n  @Autowired\n  private MySpringDataRepo mySpringDataRepo;\n\n  @Transactional(propagation = Propagation.REQUIRES_NEW)\n  public CustomLog save(CustomLog customLog) {\n     mySpringDataRepo.save(customLog);\n     return customLog;\n  }\n\n}\n</code></pre>\n</li>\n</ol>\n<p><strong>UPDATE</strong>:</p>\n<p>The <strong>only solution</strong> worked on Websphere was by creating EntityManager from EntityManagerFactory as follows:</p>\n<pre><code>@Service\npublic class CustomLogService {\n\n    @Autowired\n    private EntityManagerFactory entityManagerFactory;\n\n    \n    public Long save(CustomLog customLog) {\n        EntityManager entityManager = entityManagerFactory.createEntityManager();\n        entityManager.getTransaction().begin();\n        entityManager.persist(customLog);\n        entityManager.flush();\n        entityManager.getTransaction().commit();\n        return customLog.getId();\n    }\n\n    public CustomLog find(Long id) {\n        EntityManager entityManager = entityManagerFactory.createEntityManager();\n        entityManager.getTransaction().begin();\n        CustomLog customLog = entityManager.find(CustomLog.class, id);\n        entityManager.getTransaction().commit();\n        return customLog;\n    }\n\n    public void update(CustomLog customLog) {\n        EntityManager entityManager = entityManagerFactory.createEntityManager();\n        entityManager.getTransaction().begin();\n        entityManager.merge(customLog);\n        entityManager.getTransaction().commit();\n    }\n\n}\n</code></pre>\n<p>and changed my <code>@Async</code> code to be as follows:</p>\n<pre><code>@Async\npublic void convertFile(String documentId) {\n\n    CustomLog customLog = new CustomLog();\n    customLog.setStatus(&quot;IN_PROGRESS&quot;);\n    customLogService.save(customLog);\n\n    try {\n       doConvertFunction(documentId);    \n    } catch (Exception e) {\n      customLog = customLogService.find(customLog.getId());\n      customLog.setStatus(&quot;FAIL&quot;);\n      customLogService.update(customLog);\n      return;\n    }\n\n    customLog = customLogService.find(customLog.getId());\n    customLog.setStatus(&quot;SUCCESS&quot;);\n    customLogService.update(customLog);\n\n}\n</code></pre>\n<p>I tried to inject entityManager as follows but it doesn't work only creating entityManager from EntityManagerFactory works:</p>\n<pre><code>@PersistenceContext(name = &quot;MyEntityManagerFactory&quot;)\nprivate EntityManager entityManager;\n</code></pre>\n<p>Are there any disadvantages/things to consider in this solution because I will be heavily using this method and it returns a new EntityManager instance each time it is invoked?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "super",
+      "outputstream",
+      "try-with-resources"
+    ],
+    "owner": {
+      "account_id": 10977548,
+      "reputation": 15,
+      "user_id": 9685508,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/5e9cc22faccf1751d5190dce03cdb59d?s=256&d=identicon&r=PG",
+      "display_name": "someone",
+      "link": "https://stackoverflow.com/users/9685508/someone"
+    },
+    "is_answered": true,
+    "view_count": 127,
+    "accepted_answer_id": 78754255,
+    "answer_count": 2,
+    "score": -1,
+    "last_activity_date": 1721867250,
+    "creation_date": 1721124523,
+    "last_edit_date": 1721867250,
+    "question_id": 78753925,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78753925/warning-try-with-resources-for-closing-super-outputstream",
+    "title": "Warning try-with-resources for closing super OutputStream",
+    "body": "<p>The bottom code compiles an input String and returns the result, as an int here. Although it works, I get a Netbeans warning telling me that the <code>super.close()</code> line in the <code>close()</code> method of the <code>NewOutputStream</code> class should be handled with try-with-resources. The change to:</p>\n<pre><code>try (super) {\n    this.linkedHashMap.put(this.string,this.byteArrayOutputStream.toByteArray());\n}\n</code></pre>\n<p>doesn't work. This question might also be related to <a href=\"https://stackoverflow.com/questions/37673225/try-with-resources-when-calling-super-constructor\">try-with-resources-when-calling-super-constructor</a>, but I don't know how to adapt the answer to my code.</p>\n<p>Here's my code:</p>\n<pre><code>package group.javacompiler;\nimport java.io.ByteArrayOutputStream;\nimport java.io.IOException;\nimport java.io.OutputStream;\nimport java.net.URI;\nimport java.util.ArrayList;\nimport java.util.LinkedHashMap;\nimport javax.tools.FileObject;\nimport javax.tools.ForwardingJavaFileManager;\nimport javax.tools.JavaFileObject;\nimport javax.tools.JavaFileObject.Kind;\nimport javax.tools.SimpleJavaFileObject;\nimport javax.tools.StandardJavaFileManager;\nimport javax.tools.ToolProvider;\n\npublic class JavaCompiler {\n\n    public static void main(String[] args) {\n        try {\n            String input = &quot;1+2&quot;;\n            String returnType = &quot;int&quot;;\n\n            String methodName = &quot;methodName&quot;;\n            String className = &quot;ClassName&quot;;\n            ArrayList&lt;JavaFileObject&gt; arrayList = new ArrayList&lt;&gt;();\n            arrayList.add(new NewCharContent(className+&quot;.java&quot;,\n                &quot;public class &quot;+className+&quot; {\\n&quot;+\n                &quot;    public static &quot;+returnType+&quot; &quot;+methodName+&quot;() {\\n&quot;+\n                &quot;       return &quot;+input+&quot;;\\n&quot;+\n                &quot;    }\\n&quot;+\n                &quot;}&quot;\n            ));\n            LinkedHashMap&lt;String,byte[]&gt; linkedHashMap = new LinkedHashMap&lt;&gt;();\n            javax.tools.JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();\n            compiler.getTask(null,new NewForwardingJavaFileManager(compiler.getStandardFileManager(null,null,null),linkedHashMap),null,null,null,arrayList).call();\n\n            int result = (int) new NewClassLoader(linkedHashMap).findClass(className).getMethod(methodName).invoke(null,new Object[]{});\n            System.out.println(result);\n        }\n        catch (Throwable throwable) {\n            System.out.println(throwable.getMessage());\n        }\n    }\n    private static class NewCharContent extends SimpleJavaFileObject {\n        \n        private final String charSequence;\n        \n        private NewCharContent(String string,String charSequence) {\n            super(URI.create(&quot;string:///&quot;+string),Kind.SOURCE);\n            this.charSequence = charSequence;\n        }\n        \n        @Override\n        public CharSequence getCharContent(boolean bool) {\n            return this.charSequence;\n        }\n        \n    }\n\n    private static class NewForwardingJavaFileManager extends ForwardingJavaFileManager&lt;StandardJavaFileManager&gt; {\n\n        private final LinkedHashMap&lt;String,byte[]&gt; linkedHashMap;\n\n        private NewForwardingJavaFileManager(StandardJavaFileManager fileManager,LinkedHashMap&lt;String,byte[]&gt; linkedHashMap) {\n            super(fileManager);\n            this.linkedHashMap = linkedHashMap;\n        }\n\n        @Override\n        public JavaFileObject getJavaFileForOutput(final Location location,final String string,Kind kind,FileObject fileOject) {\n            return new NewJavaFileForOutput(string,this.linkedHashMap);\n        }\n\n    }\n\n    private static class NewJavaFileForOutput extends SimpleJavaFileObject {\n\n        private final String string;\n        private final LinkedHashMap&lt;String,byte[]&gt; linkedHashMap;\n\n        private NewJavaFileForOutput(String string,LinkedHashMap&lt;String,byte[]&gt; linkedHashMap) {\n            super(URI.create(&quot;string:///&quot;+string+&quot;.class&quot;),Kind.CLASS);\n            this.string = string;\n            this.linkedHashMap = linkedHashMap;\n        }\n\n        @Override\n        public OutputStream openOutputStream() {\n            return new NewOutputStream(this.string,this.linkedHashMap);\n        }\n\n    }\n\n    private static class NewOutputStream extends OutputStream {\n\n        private final String string;\n        private final LinkedHashMap&lt;String,byte[]&gt; linkedHashMap;\n        private final ByteArrayOutputStream byteArrayOutputStream;\n\n        private NewOutputStream(String string,LinkedHashMap&lt;String,byte[]&gt; linkedHashMap) {\n            this.string = string;\n            this.linkedHashMap = linkedHashMap;\n            this.byteArrayOutputStream = new ByteArrayOutputStream();\n        }\n\n        @Override\n        public void write(int intValue) {\n            this.byteArrayOutputStream.write(intValue);\n        }\n\n        @Override\n        public void close() throws IOException {\n            this.linkedHashMap.put(this.string,this.byteArrayOutputStream.toByteArray());\n            super.close();\n        }\n\n    }\n\n    private static class NewClassLoader extends ClassLoader {\n\n        private final LinkedHashMap&lt;String,byte[]&gt; linkedHashMap;\n\n        private NewClassLoader(LinkedHashMap&lt;String,byte[]&gt; linkedHashMap) {\n            this.linkedHashMap = linkedHashMap;\n        }\n\n        @Override\n        public Class&lt;?&gt; findClass(String string) {\n            byte[] byteArray = this.linkedHashMap.get(string);\n            return defineClass(string,byteArray,0,byteArray.length);\n        }\n\n    }\n\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

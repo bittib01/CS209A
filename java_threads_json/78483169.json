@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "groovy",
+      "kafka-consumer-api",
+      "spock",
+      "spock-spy"
+    ],
+    "owner": {
+      "account_id": 3440545,
+      "reputation": 732,
+      "user_id": 2882619,
+      "user_type": "registered",
+      "accept_rate": 78,
+      "profile_image": "https://i.sstatic.net/q4Efe.jpg?s=256",
+      "display_name": "Ali Malek",
+      "link": "https://stackoverflow.com/users/2882619/ali-malek"
+    },
+    "is_answered": true,
+    "view_count": 123,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1730888966,
+    "creation_date": 1715767646,
+    "last_edit_date": 1730888966,
+    "question_id": 78483169,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78483169/verify-kafkalistener-has-been-called-after-kafka-producer-send-in-spock",
+    "title": "Verify @KafkaListener has been called after Kafka producer send in Spock",
+    "body": "<p>I have a <code>Spring</code> consumer with <code>@KafkaListener</code>:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Service\n@Slf4j\npublic class EventListener {\n\n    @KafkaListener(topics = &quot;topic&quot;, groupId = &quot;group-id&quot;)\n    public void consumer(TheEvent event) {\n        log.info(&quot;Received the event in {}&quot;, event.toString());\n    }\n}\n</code></pre>\n<p>For testing we are using <code>SpockFramework</code>, and I want to verify the consumer received the published message. In <code>Spock</code> documentation I found <code>PollingConditions</code> however, it seems it's not working with spy method call verifier.</p>\n<pre class=\"lang-java prettyprint-override\"><code>@EmbeddedKafka\nclass KafkaSpec extend Specification {\n    @Autowired\n    Producer&lt;String, TheEvent&gt; theEventProducer\n    \n    @SpringSpy\n    EventListener eventListener\n\n    def &quot;produce and consume event successfully&quot;() {\n        given: &quot;An event&quot;\n        var event = MockEventFactory.createEvent()\n\n        when: &quot;A producer sends the event&quot;\n        this.theEventProducer.send(new ProducerRecord&lt;String, TheEvent&gt;(&quot;topic&quot;, &quot;123&quot;, event))\n\n        then: &quot;Consumer reads event eventually&quot;\n        new PollingConditions(timeout: 10).eventually {\n            1 * eventListener.consumer(event)\n        }\n    }\n}\n</code></pre>\n<p>The problem is that the <code>PollingCondition</code> after the first condition checking iteration will fail with the below error, and will not wait for the consumer, or try again to check the condition!</p>\n<pre class=\"lang-none prettyprint-override\"><code>Too few invocations for:\n\n1 * eventListener.consumer(event)   (0 invocations)\n\nUnmatched invocations (ordered by similarity):\n\n</code></pre>\n<p>Waiting to receive the event is the key point for me before start testing the state of the system and the functionality of the code.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

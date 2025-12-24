@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "neo4j",
+      "spring-data-neo4j"
+    ],
+    "owner": {
+      "account_id": 21085478,
+      "reputation": 1,
+      "user_id": 15498699,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/e02aa7043d9c1b8d820b04a4d0b43d70?s=256&d=identicon&r=PG",
+      "display_name": "Quaky",
+      "link": "https://stackoverflow.com/users/15498699/quaky"
+    },
+    "is_answered": false,
+    "view_count": 59,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1764150332,
+    "creation_date": 1763813465,
+    "question_id": 79827307,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79827307/get-a-list-of-relationships-from-neo4j-repository-using-spring",
+    "title": "Get a list of relationships from Neo4J repository using Spring",
+    "body": "<p>I started learning the development of REST API using Spring and Neo4J. I am unable to understand how Repositories work, even I looked to the documentation.</p>\n<p>I have Airport node and LINE relationship. There are stored both-way lines between two airports in the Neo4J databse. I would like to obtain all relationships between all airports. How can I do that? I tried this query. It returns correct number of instances of Line class, but all attributes are null. What am I doing wrong?</p>\n<p>This is <code>AirportNode</code> class:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Node(&quot;Airport&quot;)\n@NoArgsConstructor\n@AllArgsConstructor\n@Getter\n@Setter\npublic class AirportNode implements Serializable {\n\n    /**\n     * The unique identifier for the airport node in Neo4J.\n     */\n    @Id\n    @GeneratedValue\n    private Long id;\n\n    /**\n     * The relational database ID corresponding to this airport.\n     * This links the Neo4j node to its counterpart in a relational database.\n     */\n    @Property(&quot;relational_id&quot;)\n    private Long relationalId;\n\n    /**\n     * IATA code of the airport (3-letter code).\n     * This is a unique identifier for the airport according to the International Air Transport Association standard.\n     */\n    @Property(&quot;code&quot;)\n    private String code;\n\n    @Property(&quot;name&quot;)\n    private String name;\n\n    @Property(&quot;country&quot;)\n    private String country;\n\n    @Property(&quot;zone&quot;)\n    private String zone;\n\n    @Property(&quot;latitude&quot;)\n    private Double latitude;\n\n    @Property(&quot;longitude&quot;)\n    private Double longitude;\n/// Getters, Setters, ctors\n}\n</code></pre>\n<p>This is <code>Line</code> class:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@RelationshipProperties\n@Getter\n@Setter\npublic class Line {\n\n    /**\n     * The unique identifier for this relationship in Neo4J.\n     */\n    @Id\n    @GeneratedValue\n    private Long id;\n\n    /**\n     * The destination airport that this line connects to.\n     */\n    @TargetNode\n    private AirportNode destination;\n\n    @Property(name=&quot;distance&quot;)\n    private Double distance;\n\n    @Property(name=&quot;relational_id&quot;)\n    private Long relationalId;\n\n// getters, setters, ctors\n}\n</code></pre>\n<p>This is the <code>LineRepository</code> with the query:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public interface LineRepository extends Neo4JRepository&lt;Line, Long&gt; {\n    @Query(&quot;&quot;&quot;\n        MATCH (origin:Airport)-[r:LINE]-&gt;(destination:Airport)\n        WHERE id(origin) &lt; id(destination)\n        RETURN r, destination\n    &quot;&quot;&quot;)\n    List&lt;Line&gt; findAllLines();\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

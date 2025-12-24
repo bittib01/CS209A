@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "quarkus"
+    ],
+    "owner": {
+      "account_id": 29189198,
+      "reputation": 11,
+      "user_id": 22361640,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AAcHTtcJVQbUXgz2E3Z95liguwWP6Poay1r2r9pBZUIfOx7O=k-s256",
+      "display_name": "swaroop c",
+      "link": "https://stackoverflow.com/users/22361640/swaroop-c"
+    },
+    "is_answered": false,
+    "view_count": 32,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1740132267,
+    "creation_date": 1740130506,
+    "last_edit_date": 1740132267,
+    "question_id": 79456902,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79456902/quarkus-service-bean-need-to-selected-from-an-api-value",
+    "title": "Quarkus - service bean need to selected from an api value",
+    "body": "<p>PaymentMethodApiService have five implementations</p>\n<p>Initially we had taking value from applicationConfig.yaml\ncm:\next-payment-gw:\ngw-selected: stripe\nand it is used by LookUpIfProperty\n@Slf4j\n@ApplicationScoped\n@LookupIfProperty(name = &quot;cm.ext-payment-gw.gw-selected&quot;, stringValue = &quot;stripe&quot;)\npublic class StripePaymentGatewayService implements PaymentMethodApiService {</p>\n<p>Now I need multiple paymentgateway to be selected in same deployment\next-payment-gw:\ngw-selected:\n- paypal\n- stripe</p>\n<p>so @LookupIfProperty cannot initiate bean from a list it can do only one</p>\n<p>Hence we need to make custom qualifer to pick beans with match of api value</p>\n<pre><code>    @ConfigProperty(name = &quot;cm.ext-payment-gw.gw-selected&quot;)\n    Map&lt;String, Boolean&gt; configuredGateways;\n\n    @Inject\n    ServiceProviderService serviceProviderService;\n\n    @Inject\n    Instance&lt;PaymentMethodApiService&gt; paymentMethodApiServiceProvider;\n\n\n    private PaymentMethodApiService getPaymentGatewayForRequest() {\n        var paymentGateway = serviceProviderService.retrievePaymentGatewayConfig().getProvider().toLowerCase();\n\n        logger.info(&quot;Looking for gateway implementation: {}&quot;, paymentGateway);\n        logger.info(&quot;Configured gateways: {}&quot;, configuredGateways.keySet());\n\n        if (!Boolean.TRUE.equals(configuredGateways.get(paymentGateway))) {\n            throw new IllegalStateException(&quot;Payment gateway &quot; + paymentGateway +\n                    &quot; is not enabled in the configuration: &quot; + configuredGateways);\n        }\n\n        for (PaymentMethodApiService service : paymentMethodApiServiceProvider) {\n            Class&lt;?&gt; beanClass = service.getClass();\n            logger.info(&quot;Discovered service: {}&quot;, beanClass.getSimpleName());\n\n            // Handle proxies correctly by using the superclass if needed\n            if (beanClass.getName().contains(&quot;_ClientProxy&quot;)) {\n                beanClass = beanClass.getSuperclass(); // Get the actual class of the bean\n            }\n\n            SupportedPaymentGateway annotation = beanClass.getAnnotation(SupportedPaymentGateway.class);\n            if (annotation != null) {\n                logger.info(&quot;Service: {} has gateway: {}&quot;, beanClass.getSimpleName(), annotation.value());\n                if (annotation.value().equalsIgnoreCase(paymentGateway)) {\n                    return service;\n                }\n            } else {\n                logger.info(&quot;Service: {} has no @SupportedPaymentGateway annotation&quot;, beanClass.getSimpleName());\n            }\n        }\n\n        throw new IllegalStateException(&quot;No implementation found for gateway: &quot; + paymentGateway);\n    }```\n\nI have made @SupportedPaymentGateway(&quot;stripe&quot;) for stripe service \n            @SupportedPaymentGateway(&quot;paypal&quot;) for paypal service \n\nbut its straight away picking expection, that means there is no Instamces of PaymentMethodServiceProvider\n\n2025-02-21 14:32:18,683 ERROR [com.obp.cms.exc.GenericExceptionMapper] (executor-thread-0) Exception occurred No implementation found for gateway: telus: java.lang.Illeg\nalStateException: No implementation found for gateway: stripe\n\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

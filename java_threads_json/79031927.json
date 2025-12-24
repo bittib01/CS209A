@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "unicode",
+      "command-line-arguments",
+      "processbuilder"
+    ],
+    "owner": {
+      "account_id": 35986892,
+      "reputation": 21,
+      "user_id": 27508058,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/2b64f30eefb562039c760fe921561824?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "user27508058",
+      "link": "https://stackoverflow.com/users/27508058/user27508058"
+    },
+    "is_answered": false,
+    "view_count": 301,
+    "answer_count": 0,
+    "score": 2,
+    "last_activity_date": 1736134283,
+    "creation_date": 1727449367,
+    "last_edit_date": 1727478826,
+    "question_id": 79031927,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79031927/java-processbuilder-replaces-unicode-characters-in-commands-by-how-can-i-av",
+    "title": "Java ProcessBuilder replaces Unicode characters in commands by &#39;?&#39;. How can I avoid that?",
+    "body": "<p>I have a Java importer application that is executed via a scheduler (also from me) by usage of <code>ProcessBuilder</code>. The scheduler passes a file path to the started application as an argument in the process builder's commands. Now, if that file path contains Chinese characters for example, it will end up with <code>?</code> replacements for all of them when received in the started application's main method <code>args</code> array.</p>\n<p>I looked for this and found a lot about parameters <code>file.encoding</code> and <code>sun.jnu.encoding</code> and the <code>LANG</code> environment variable, but in the end I was not able to find a solution. So I discussed it extensively with ChatGPT, and in the end wrote a small Test class, but all to no avail:</p>\n<pre class=\"lang-java prettyprint-override\"><code>import java.io.File;\nimport java.io.IOException;\nimport java.util.stream.Collectors;\n\npublic class CodesetTest\n{\n    public static void main(String[] args) {\n        System.out.println(System.getProperty(&quot;file.encoding&quot;));\n        System.out.println(System.getProperty(&quot;sun.jnu.encoding&quot;));\n        System.out.println(System.getenv(&quot;LANG&quot;));\n        System.out.println(System.getenv(&quot;JAVA_TOOL_OPTIONS&quot;));\n        \n        System.setProperty(&quot;file.encoding&quot;, &quot;UTF-8&quot;);\n        System.setProperty(&quot;sun.jnu.encoding&quot;, &quot;UTF-8&quot;);\n        System.out.println(&quot;Properties changed!&quot;);\n        System.out.println(System.getProperty(&quot;file.encoding&quot;));\n        System.out.println(System.getProperty(&quot;sun.jnu.encoding&quot;));\n        \n        if (args.length == 0) {\n            String filePath = &quot;C:/temp/示例.txt&quot;;\n\n            ProcessBuilder processBuilder = new ProcessBuilder(\n                &quot;java&quot;,\n                &quot;-Dfile.encoding=UTF-8&quot;, \n                &quot;-Dsun.jnu.encoding=UTF-8&quot;, \n                &quot;-cp&quot;, System.getProperty(&quot;java.class.path&quot;), \n                CodesetTest.class.getName(), \n                filePath\n            ).inheritIO();\n\n            processBuilder.environment().put(&quot;LANG&quot;, &quot;en_US.UTF-8&quot;);\n            processBuilder.directory(new File(&quot;C:/temp&quot;));\n\n            try {\n                Process process = processBuilder.start();\n                System.out.println(&quot;Started new process: &quot; + processBuilder.command().stream().collect(Collectors.joining(&quot;, &quot;)));\n                int retVal = process.waitFor();\n                System.out.println(&quot;Result: &quot; + retVal);\n            } catch (IOException e) {\n                e.printStackTrace();\n            }\n            catch (InterruptedException e)\n            {\n                e.printStackTrace();\n            }\n        } else {\n            System.out.println(&quot;File path received: &quot; + args[0]);\n        }\n    }\n}\n</code></pre>\n<p>Here is the output on my machine:</p>\n<pre class=\"lang-none prettyprint-override\"><code>UTF-8\nCp1252\nen_US.UTF-8\nnull\nProperties changed!\nUTF-8\nUTF-8\nStarted new process: java, -Dfile.encoding=UTF-8, -Dsun.jnu.encoding=UTF-8, -cp, C:\\Users\\MRE\\workspaces\\pdtt\\TestProject\\bin, CodesetTest, C:/temp/示例.txt\nUTF-8\nUTF-8\nen_US.UTF-8\nnull\nProperties changed!\nUTF-8\nUTF-8\nFile path received: C:/temp/??.txt\nResult: 0\n</code></pre>\n<p>I thought the file path would be changed by Windows and/or Java when that string is passed as an argument, because the process builder seemed to still have the correct characters when starting the process. If I understood correctly the posts and discussions I read, the system's charset is used for that. So I tried to overwrite that charset explicitly for the started process. That did change the otherwise used <code>cp1252</code> in the <code>sun.jnu.encoding</code> parameter to UTF-8 for the second started JVM, as I hoped.</p>\n<p>But, it didn't fix my problem. Then I thought it may be the writing side, so the process builder when it creates the actual &quot;command line command&quot; before it is executed may change it, at least it originally has the <code>cp1252</code> as seen in the output. So, I tried to set the respective properties before I call the process builder, but again, that didn't work, as you can see.</p>\n<p>Now I am a bit lost and out of ideas. Basically, my goal is, no matter what the system settings are, and where the machine is located, to support passing file paths to my importer application that contain Unicode characters, like these Chinese ones.</p>\n<p>Can anybody explain what I am doing wrong, or what the issue is that prevents this from working?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

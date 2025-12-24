@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "xml",
+      "logging",
+      "log4j2",
+      "xinclude"
+    ],
+    "owner": {
+      "account_id": 32393154,
+      "reputation": 21,
+      "user_id": 25161686,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/d5c483fc3bd6e06e954f72a5f822d507?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Walter Butze",
+      "link": "https://stackoverflow.com/users/25161686/walter-butze"
+    },
+    "is_answered": true,
+    "view_count": 76,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1753128361,
+    "creation_date": 1753094093,
+    "question_id": 79708929,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79708929/defining-log4j-loggers-in-both-the-main-xml-file-and-through-xinclude",
+    "title": "Defining Log4j loggers in both the main `.xml` file and through `XInclude`",
+    "body": "<p>I'm having trouble understanding the priority of Log4j loggers when they are defined both in the main <code>.xml</code> file and in files included via the <code>xi:include</code> element. All the XInclude examples I've seen so far use the following approach:</p>\n<pre><code>&lt;Configuration&gt;\n  &lt;!-- other fields --&gt;\n\n  &lt;xi:include href=&quot;xinclude-loggers.xml&quot;/&gt;\n&lt;/Configuration&gt;\n</code></pre>\n<p>So there is a main file that includes another file containing specific logger definitions via the <code>xi:include</code> element.</p>\n<p>In contrast, I'm referring to a situation where one set of logger definitions is specified in the main file and another in the included file. For example:</p>\n<pre><code>\nlog4j.xml:\n\n&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;\n&lt;Configuration&gt;\n\n    &lt;xi:include href=&quot;xinclude-loggers.xml&quot;/&gt;\n    &lt;Loggers&gt;\n        &lt;Logger name=&quot;myLogger1&quot; level=&quot;DEBUG&quot;&gt;\n        &lt;/Logger&gt;\n    &lt;/Loggers&gt;\n&lt;/Configuration&gt;\n</code></pre>\n<p>xinclude-loggers.xml:</p>\n<pre><code>\n&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;\n&lt;Loggers&gt;\n    &lt;Logger name=&quot;myLogger1&quot; level=&quot;INFO&quot;&gt;\n       &lt;AppenderRef ref=&quot;CONSOLE&quot;/&gt;\n    &lt;/Logger&gt;\n&lt;/Loggers&gt;\n</code></pre>\n<p>The <a href=\"https://logging.apache.org/log4j/2.x/manual/configuration.html#property-substitution\" rel=\"nofollow noreferrer\">documentation</a> says the following:</p>\n<blockquote>\n<p>CompositeConfiguration merges multiple configurations into a single one using a MergeStrategy, which can be customized using the log4j2.mergeStrategy configuration property. The default merge strategy works as follows:</p>\n</blockquote>\n<blockquote>\n<p>Loggers are aggregated. Logger attributes are individually merged, and those in later configurations replace duplicates. Appender references on a logger are aggregated, and those in later configurations replace duplicates. The strategy merges filters on loggers using the rule above.</p>\n</blockquote>\n<p>Consider now the following scenario (s1).<br />\nIn the <code>main.xml</code> file, we have:</p>\n<pre><code>&lt;Configuration&gt;\n    &lt;xi:include href=&quot;log4j-s1-loggers.xml&quot;/&gt;\n    &lt;Loggers&gt;\n        &lt;Root level=&quot;INFO&quot;&gt;&lt;/Root&gt;\n    &lt;/Loggers&gt;\n&lt;/Configuration&gt;\n</code></pre>\n<p>and in the <code>log4j-s1-loggers.xml</code>:</p>\n<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;\n&lt;Loggers&gt;    \n    &lt;Logger name=&quot;myLogger1&quot; level=&quot;DEBUG&quot;/&gt;\n    &lt;Logger name=&quot;myLogger2&quot; level=&quot;DEBUG&quot;/&gt;\n&lt;/Loggers&gt;\n</code></pre>\n<p>When I debug my Java code, I can see that both <code>myLogger1</code> and <code>myLogger2</code> have their debugging level set to <code>INFO</code>.\nSo even though these loggers are not explicitly declared within the <code>&lt;Loggers&gt;</code> element of the <code>main.xml</code>, their debug levels have been overridden by the root level, changing from <code>DEBUG</code> to <code>INFO</code>. This is not something I'd have expected after reading the quoted section of the docs.<br />\nOk, so let's now consider the second scenario (s2) where the <code>XInclude</code> is placed after the <code>Loggers</code> element in the main file, giving us <code>main2.xml</code></p>\n<pre><code>&lt;Configuration&gt;\n    \n    &lt;Loggers&gt;\n        &lt;Root level=&quot;INFO&quot;&gt;&lt;/Root&gt;\n    &lt;/Loggers&gt;\n    &lt;xi:include href=&quot;log4j-s2-loggers.xml&quot;/&gt;\n&lt;/Configuration&gt;\n</code></pre>\n<p>After the initial surprise, I now expect that any (implicit) information about the loggers in the main file will be overridden by the contents of <code>log4j-s2-loggers</code>.\nThis turns out to be correct, checking the Java code, both loggers now have the <code>DEBUG</code> level.</p>\n<p>It appears that only one definition of the <code>&lt;Loggers&gt;</code> element can be active at a time.\nIf two are present, one will completely overwrite the other, even if a specific logger's definition is not explicitly defined in one of them (as we saw in scenario s1).</p>\n<hr />\n<p>Could someone clarify how Log4j2 handles merging in this context (only one `&lt;Loggers&gt;` element possible?), and ideally point to the relevant section in the documentation?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

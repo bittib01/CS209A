@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "c#",
+      "encryption"
+    ],
+    "owner": {
+      "account_id": 550573,
+      "reputation": 3234,
+      "user_id": 915147,
+      "user_type": "registered",
+      "accept_rate": 86,
+      "profile_image": "https://i.sstatic.net/2U7oTwM6.jpg?s=256",
+      "display_name": "imgen",
+      "link": "https://stackoverflow.com/users/915147/imgen"
+    },
+    "is_answered": true,
+    "view_count": 89,
+    "accepted_answer_id": 79014509,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1727092911,
+    "creation_date": 1727091933,
+    "last_edit_date": 1727092180,
+    "question_id": 79014460,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79014460/c-encryption-shows-difference-result-than-java-equivalent",
+    "title": "C# encryption shows difference result than Java equivalent",
+    "body": "<p>I have a piece of Java code that I need to convert to C#. The original Java code looks like below</p>\n<pre><code>    public static String encryptPassword(String pwd, String key) {\n        try {\n            Security.addProvider(new com.sun.crypto.provider.SunJCE());\n            Key secretKey = getDesSecretKey(key);\n            Cipher cipher = Cipher.getInstance(&quot;DES&quot;);\n            cipher.init(Cipher.ENCRYPT_MODE, secretKey);\n            byte[] data = pwd.getBytes(StandardCharsets.UTF_8);\n            byte[] result = cipher.doFinal(data);\n            return new sun.misc.BASE64Encoder().encode(result);\n        } catch (Exception e) {\n            return null;\n        }\n    }\n\n    public static SecretKey getDesSecretKey(String key) {\n        byte[] result = new byte[8];\n        byte[] keys;\n        keys = key.getBytes(StandardCharsets.UTF_8);\n        for (int i = 0; i &lt; 8; i++) {\n            if (i &lt; keys.length) {\n                result[i] = keys[i];\n            } else {\n                result[i] = 0x01;\n            }\n        }\n        return new SecretKeySpec(result, &quot;DES&quot;);\n    }\n</code></pre>\n<p>I converted it to below C# code</p>\n<pre><code>    public static string EncryptPassword(string password, string key)\n    {\n        const int keyLength = 8;\n        var bytes = new byte[keyLength];\n        var keyBytes = Encoding.UTF8.GetBytes(key);\n        for (int i = 0; i &lt; keyLength; i++)\n        {\n            if (i &lt; keyBytes.Length)\n                bytes[i] = keyBytes[i];\n            else\n                bytes[i] = 0x01;\n        }\n\n#pragma warning disable S5547\n        using var des = DES.Create();\n#pragma warning restore S5547\n        des.Key = bytes;\n        des.IV = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0 };\n#pragma warning disable S3329\n        var encryptor = des.CreateEncryptor(des.Key, des.IV);\n#pragma warning restore S3329\n        var passwordBytes = Encoding.UTF8.GetBytes(password);\n        var payload = encryptor.TransformFinalBlock(passwordBytes, 0, passwordBytes.Length);\n        \n        return Convert.ToBase64String(payload);\n    }\n</code></pre>\n<p>For simple cases, it worked fine. Such as password <code>000000</code> and key <code>18823214892</code>, etc. Both Java and C# code give same result. But for a little bit complex case, such as password <code>crmeb.com</code> and key <code>demo</code>, the result differs at the 10th character. Java gives out <code>7iIl3H5zCinwrYbrxAR7cQ==</code>, but C# shows <code>7iIl3H5zCikSuWVlZa1dyA==</code>. What have I done wrong? Maybe the <code>des.IV</code> should be initialized differently? Or I have chosen the wrong encryption class?</p>\n<p>Below is my test code</p>\n<pre><code>var encryptedPassword = CryptoUtils.EncryptPassword(&quot;000000&quot;, &quot;18823214892&quot;);\nencryptedPassword.Should().Be(&quot;PwePP4OrK2o=&quot;);\n\nencryptedPassword = CryptoUtils.EncryptPassword(&quot;123456&quot;, &quot;admin&quot;);\nencryptedPassword.Should().Be(&quot;L8qdg72wbeQ=&quot;);\n\nencryptedPassword = CryptoUtils.EncryptPassword(&quot;000000&quot;, &quot;18292417675&quot;);\nencryptedPassword.Should().Be(&quot;w9LTrURn7xU=&quot;);\n\nencryptedPassword = CryptoUtils.EncryptPassword(&quot;crmeb.com&quot;, &quot;demo&quot;);\nencryptedPassword.Should().Be(&quot;7iIl3H5zCinwrYbrxAR7cQ==&quot;);\n</code></pre>\n<p>The last test case won't pass</p>\n<p>BTW, I followed this link to do the conversion. <a href=\"https://learn.microsoft.com/en-us/answers/questions/553021/java-equivalent-encryption-code-in-net\" rel=\"nofollow noreferrer\">Java equivalent encryption code in .NET</a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

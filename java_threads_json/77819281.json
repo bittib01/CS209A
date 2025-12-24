@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "pdf",
+      "pdf-generation",
+      "pdfbox"
+    ],
+    "owner": {
+      "account_id": 21424508,
+      "reputation": 11,
+      "user_id": 15782047,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/b1870010e8de8420b2d8f34bdedb6955?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "karma-works",
+      "link": "https://stackoverflow.com/users/15782047/karma-works"
+    },
+    "is_answered": false,
+    "view_count": 916,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1712496476,
+    "creation_date": 1705316132,
+    "last_edit_date": 1705321027,
+    "question_id": 77819281,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77819281/pdfbox-3-0-how-can-i-fix-missing-fonts-after-copying-a-page-to-another-documen",
+    "title": "pdfbox 3.0 - How can I fix missing fonts after copying a page to another document?",
+    "body": "<p>I try to merge import a page into a pdf document and copy the font resources. With PDFBOX 2.0 the code worked perfectly fine, as expected, there is a result document in including the required, embedded fonts.</p>\n<p>Essentially I'm doing this steps in the code, while the first document is one empty page PDF/A, and the second document contains the roboto font PDF/A. All fonts are embedded.</p>\n<pre><code>PDDocument targetDoc = Loader.loadPDF(targetDocBytes);\nPDPage sourcePage = Loader.loadPDF(data).getPage(0);\nfinal var copiedPage = targetDoc.importPage(sourcePage);\ncopiedPage.setResources(sourcePage.getResources());\n</code></pre>\n<p>In PDFBOX 3.0 it doesn't seeem to work any more, the document is corrupted if you open it in the Adobe Acrobat.</p>\n<p>It shows a lot of errors, if you open it with the PDFBOX PreflightParser.</p>\n<p>Here the error messages of the preflight parser:</p>\n<pre><code>1.4 Trailer Syntax error, /XRef cross reference streams are not allowed\n3.3.1 Glyph error, The character code 0 in the font program &quot;BCDEEE+Calibri&quot; is missing from the Character Encoding\n3.3.1 Glyph error, The character code 0 in the font program &quot;BCDEEE+Calibri&quot; is missing from the Character Encoding\n3.3.1 Glyph error, The character code 0 in the font program &quot;BCDEEE+Calibri&quot; is missing from the Character Encoding\n3.3.1 Glyph error, The character code 0 in the font program &quot;BCDEEE+Calibri&quot; is missing from the Character Encoding\n3.3.1 Glyph error, The character code 0 in the font program &quot;BCDEEE+Calibri&quot; is missing from the Character Encoding\n3.1.3 Invalid Font definition, BCDFEE+Roboto-Regular: FontFile entry is missing from FontDescriptor\n3.1.14 Invalid Font definition, Unknown font type: XML\n3.3.1 Glyph error, The character code 0 in the font program &quot;BCDEEE+Calibri&quot; is missing from the Character Encoding\n3.3.1 Glyph error, The character code 0 in the font program &quot;BCDEEE+Calibri&quot; is missing from the Character Encoding\n3.3.1 Glyph error, The character code 0 in the font program &quot;BCDEEE+Calibri&quot; is missing from the Character Encoding\n3.3.1 Glyph error, The character code 0 in the font program &quot;BCDEEE+Calibri&quot; is missing from the Character Encoding\n3.3.1 Glyph error, The character code 0 in the font program &quot;BCDEEE+Calibri&quot; is missing from the Character Encoding\n3.3.1 Glyph error, The character code 0 in the font program &quot;BCDEEE+Calibri&quot; is missing from the Character Encoding\n3.3.1 Glyph error, The character code 0 in the font program &quot;BCDEEE+Calibri&quot; is missing from the Character Encoding\n3.3.1 Glyph error, The character code 0 in the font program &quot;BCDEEE+Calibri&quot; is missing from the Character Encoding\n3.3.1 Glyph error, The character code 0 in the font program &quot;BCDEEE+Calibri&quot; is missing from the Character Encoding\n3.1.8 Invalid Font definition\n3.1.2 Invalid Font definition, BCDGEE+TimesNewRomanPS-BoldMT: some mandatory fields are missing from the FontDescriptor: Type, ItalicAngle, FontBBox, Ascent, FontName, StemV, Flags, CapHeight, Descent.\n3.1.3 Invalid Font definition, null: FontFile entry is missing from FontDescriptor\n3.3.2 Glyph error, invalid font dictionary ==&gt; \n</code></pre>\n<p>and here the complete test case using PDFBox 3.0.1</p>\n<pre><code>   @Test\n    void importPageWithFonts_validateFontInfo() throws IOException {\n        // given\n        final var targetDocBytes = IOUtils.toByteArray(PdfUtilitiesTest.class.getClassLoader().getResourceAsStream(&quot;empty.pdf&quot;));\n\n        String[] additionalFiles = new String[]{\n            &quot;roboto-14.pdf&quot;,\n        };\n        PDDocument targetDoc = Loader.loadPDF(targetDocBytes);\n\n\n        // when\n        for (String fileName : Arrays.asList(additionalFiles)) {\n            byte[] data = IOUtils.toByteArray(PdfUtilitiesTest.class.getClassLoader().getResourceAsStream(fileName));\n            // verify source is valid\n            PDPage sourcePage = Loader.loadPDF(data).getPage(0);\n            final var copiedPage = targetDoc.importPage(sourcePage);\n            copiedPage.setResources(sourcePage.getResources());\n            targetDoc.save(Files.createTempFile(&quot;merged-fonts&quot;, &quot;.pdf&quot;).toFile());\n        }\n        Path tmpFile = Files.createTempFile(&quot;fscd-merged&quot;, &quot;.pdf&quot;);\n        targetDoc.save(tmpFile.toFile(), CompressParameters.DEFAULT_COMPRESSION);\n\n\n        // then\n        // font errors, e.g. Invalid Font definition, BCDFEE+Roboto-Regular: FontFile entry is missing from FontDescriptor\n        assertFontsAreValid(tmpFile);\n    }\n\n    private static void assertFontsAreValid(Path tmpFile) throws IOException {\n        PreflightParser parser = new PreflightParser(tmpFile.toFile());\n        final var documentToVerify = (PreflightDocument) parser.parse();\n        // Get validation result\n        final var result = documentToVerify.validate();\n        final var resultString = result.getErrorsList().stream()\n            .filter(err -&gt; !err.getErrorCode()\n                .matches(&quot;7\\\\.11\\\\.2|3\\\\.1\\\\.11|2\\\\.1\\\\.2|2\\\\.2\\\\.1|2\\\\.4\\\\.3&quot;)) // filter findings from the source documents\n            .map(err -&gt; err.getErrorCode() + &quot; &quot; + err.getDetails()).collect(Collectors.joining(&quot;\\n&quot;));\n        assertTrue(resultString.isBlank(), resultString);\n    }\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

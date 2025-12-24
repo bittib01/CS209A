@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-security"
+    ],
+    "owner": {
+      "account_id": 29227858,
+      "reputation": 27,
+      "user_id": 22392163,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AAcHTtc715-MNowvS6OTIFpoNdPNr9Gp2ZDMU3yxCHImGLL9=k-s256",
+      "display_name": "DAN",
+      "link": "https://stackoverflow.com/users/22392163/dan"
+    },
+    "is_answered": false,
+    "view_count": 59,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1744661241,
+    "creation_date": 1732635185,
+    "last_edit_date": 1744661241,
+    "question_id": 79227339,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79227339/authenticated-is-not-working-as-expected-whats-the-cause",
+    "title": ".authenticated() is not working as expected what&#39;s the cause?",
+    "body": "<p>Here am giving authorization for certain links and links that should work only after authentication.</p>\n<pre><code>@Configuration\n@EnableWebSecurity\n@EnableMethodSecurity\n@RequiredArgsConstructor\npublic class SecurityConfiguration {\n\n    private final UserService userService;\n    private final JwtAuthenticationFilter jwtAuthenticationFilter;\n\n    @Bean\n    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {\n\n        http.csrf(AbstractHttpConfigurer::disable)\n                .cors(cors -&gt; cors.configurationSource(request -&gt; {\n                    var corsConfig = new CorsConfiguration();\n                    corsConfig.setAllowedOriginPatterns(List.of(&quot;*&quot;));\n                    corsConfig.setAllowedMethods(List.of(&quot;GET&quot;, &quot;POST&quot;, &quot;PUT&quot;, &quot;DELETE&quot;, &quot;OPTION&quot;));\n                    corsConfig.setAllowedHeaders(List.of(&quot;*&quot;));\n                    corsConfig.setAllowCredentials(true);\n                    return corsConfig;\n                }))\n                .authorizeHttpRequests(authorize -&gt;\n                        authorize.requestMatchers(&quot;/api/v1/auth/**&quot;)\n                                .permitAll()\n                                .requestMatchers(&quot;/api/v1/auth/login/**&quot;)\n                                .permitAll().anyRequest()\n                                .authenticated())\n                .httpBasic(Customizer.withDefaults())\n                .sessionManagement(session -&gt; session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))\n                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);\n\n\n        return http.build();\n    }\n\n    @Bean\n    public PasswordEncoder passwordEncoder() {\n        return new BCryptPasswordEncoder();\n    }\n\n\n    @Bean\n    public AuthenticationProvider authenticationProvider() {\n        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();\n        daoAuthenticationProvider.setUserDetailsService(userService.userDetailsService());\n        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());\n        return daoAuthenticationProvider;\n    }\n\n    @Bean\n    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {\n        return authenticationConfiguration.getAuthenticationManager();\n    }\n\n\n}\n</code></pre>\n<p>when I use this url <a href=\"http://127.0.0.1:8080/api/v1/auth/login/create\" rel=\"nofollow noreferrer\">http://127.0.0.1:8080/api/v1/auth/login/create</a> it works without authentication</p>\n<p>My expectation is that <a href=\"http://127.0.0.1:8080/api/v1/auth/login/create\" rel=\"nofollow noreferrer\">http://127.0.0.1:8080/api/v1/auth/login/create</a> should only work when the user has logged in.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jooq"
+    ],
+    "owner": {
+      "account_id": 3828094,
+      "reputation": 477,
+      "user_id": 3174456,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/qa0Xw.png?s=256",
+      "display_name": "funkrusher",
+      "link": "https://stackoverflow.com/users/3174456/funkrusher"
+    },
+    "is_answered": true,
+    "view_count": 575,
+    "accepted_answer_id": 78227619,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1716054885,
+    "creation_date": 1708193056,
+    "last_edit_date": 1708193730,
+    "question_id": 78013164,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78013164/jooq-record-to-dto-mapping-in-abstraction",
+    "title": "jOOQ Record to DTO Mapping in Abstraction",
+    "body": "<p>i wrote a DAO-Abstraction that all my DAOs extend from. This DAO-Abstraction provides typical remote-pagination with a common query-param model.</p>\n<p>It fetches joined-data from multiple tables. This joined-data is then given to the concrete DAO in form of a <code>List&lt;Record&gt; records</code> parameter, and now the developer must convert those <code>Record</code> instances to the <code>DTO</code> instances (where a DTO-instance may need to be constructed from multiple Record-instances). Here is an example:</p>\n<pre><code>public class ProductViewDAO extends AbstractViewDAO&lt;ProductRecord, ProductDTO, Long&gt; {\n...\n    @Override\n    protected TableOnConditionStep&lt;Record&gt; getViewJoins() {\n        return Product.PRODUCT\n                .leftJoin(ProductLang.PRODUCT_LANG)\n                .on(ProductLang.PRODUCT_LANG.PRODUCTID\n                        .eq(Product.PRODUCT.PRODUCTID));\n    }\n\n    @Override\n    protected List&lt;ProductDTO&gt; recordsToView(List&lt;Record&gt; records) {\n        List&lt;ProductDTO&gt; products = new ArrayList&lt;&gt;();\n        Map&lt;Long, ProductDTO&gt; productMap = new HashMap&lt;&gt;();\n\n        for (Record record : records) {\n            Long productId = record.get(Product.PRODUCT.PRODUCTID);\n            ProductDTO productDTO = productMap.get(productId);\n\n            if (productDTO == null) {\n                ProductRecord productRecord = record.into(new ProductRecord());\n                productDTO = productRecord.into(new ProductDTO());\n                List&lt;ProductLangDTO&gt; xLangs = new ArrayList&lt;&gt;();\n                productDTO.setLangs(xLangs);\n                products.add(productDTO);\n                productMap.put(productId, productDTO);\n            }\n            ProductLangRecord xLangRecord = record.into(new ProductLangRecord());\n            ProductLangDTO xLang = xLangRecord.into(new ProductLangDTO());\n            productDTO.getLangs().add(xLang);\n\n            if (xLang.getLangId().equals(requestContext().getLangId())) {\n                productDTO.setLang(xLang);\n            }\n        }\n        return products;\n    }\n...\n}\n...\npublic abstract class AbstractViewDAO&lt;R extends UpdatableRecord&lt;R&gt;, P extends AbstractDTO, T&gt; extends AbstractBaseDAO&lt;R, T&gt; {\n...\n  public List&lt;P&gt; query(final QueryParameters queryParameters) throws DataAccessException {\n...\n    var result = getViewQuery().where(equal(pk, ids)).fetch();\n    return recordsToView(result);\n  }\n}\n\n\n\n</code></pre>\n<p>how can this be done easier?</p>\n<p>Does Java or jOOQ provide Helper-Classes that can help automate such a mapping of <code>Record</code> to <code>DTO</code> ?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

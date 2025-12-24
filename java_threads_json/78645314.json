@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java"
+    ],
+    "owner": {
+      "account_id": 12856133,
+      "reputation": 1,
+      "user_id": 9299421,
+      "user_type": "registered",
+      "profile_image": "https://graph.facebook.com/1694726833921144/picture?type=large",
+      "display_name": "Bert Horimx",
+      "link": "https://stackoverflow.com/users/9299421/bert-horimx"
+    },
+    "is_answered": true,
+    "view_count": 153,
+    "closed_date": 1718858419,
+    "answer_count": 2,
+    "score": -7,
+    "last_activity_date": 1724277837,
+    "creation_date": 1718852165,
+    "last_edit_date": 1718869470,
+    "question_id": 78645314,
+    "link": "https://stackoverflow.com/questions/78645314/why-the-method-arrays-copyof-produces-a-defensive-copy-instead-of-a-shallow",
+    "closed_reason": "Duplicate",
+    "title": "Why the method &quot;Arrays.copyOf()&quot; produces a defensive copy (instead of a shallow copy) when it is used on a getter?",
+    "body": "<p>I'm a beginner in Java programming. I am a bit confused about the result of the method &quot;Arrays.copyOf()&quot; when it is used on a getter.</p>\n<p>I know that this method usually produce a shallow copy of the argument passed to it. However, it seems that when it is used on a getter to implement a defensive copy of an array, the result returned by the getter is not a shallow copy. (see similar article:\n<a href=\"https://github.com/albertattard/what-is-defensive-copying\" rel=\"nofollow noreferrer\">https://github.com/albertattard/what-is-defensive-copying</a>)</p>\n<p>Could you please explain me why the method &quot;&quot;Arrays.copyOf()&quot; doesn't return a shallow copy when it used in a getter to return a copy of an array?</p>\n<p>PersonRecord class</p>\n<pre><code>import java.util.Arrays;\n\npublic class PersonRecord{\n    private final String name;\n    private final String dob;\n    private final PersonRecord[] kids;\n    \n    //CONSTRUCTOR\n      public PersonRecord(String name, String dob, PersonRecord[] kids) {\n          this.name = name;\n          this.dob = dob;\n          this.kids = kids;\n      }\n    \n    //GETTER for the field &quot;kids&quot;\n    //Use a DEFENSIVE copy for my 3rd field\n    public PersonRecord[] getKids() {\n        return Arrays.copyOf(kids, kids.length);\n    }\n    \n    //&quot;toString()&quot; METHOD (this method only prints the content of the field &quot;kids&quot;)\n    @Override\n    public String toString(){\n        String kidString = &quot;n/a&quot;;\n        String[] names = new String[kids.length];\n        Arrays.setAll(names, i -&gt; names[i] = kids[i].name);\n        kidString = String.join(&quot;,&quot;, names);\n        return kidString;\n   }\n}\n</code></pre>\n<p>}</p>\n<hr />\n<p>My goal is to instantiate a record &quot;john&quot; of type &quot;PersonRecord&quot;. Its third field should be the array &quot;johnKids&quot;</p>\n<pre><code>    //Create content of my 3rd field &quot;johnKids&quot;\n    PersonRecord jane = new PersonRecord(&quot;Jane&quot;, &quot;01/01/1930&quot;, null);\n    PersonRecord jim = new PersonRecord(&quot;Jim&quot;, &quot;02/02/1932&quot;, null);\n    PersonRecord joe = new PersonRecord(&quot;Joe&quot;, &quot;03/03/1934&quot;, null);\n\n    //Create array for my 3rd field\n    PersonRecord[] johnsKids = {jane, jim, joe}; \n    \n    //Create an instance of my class named &quot;john&quot;\n    PersonRecord john = new PersonRecord(&quot;John&quot;, &quot;05/05/1900&quot;, johnsKids);\n\n    //Print my object john\n    System.out.println(john); \n    //RESULT : 3rd field =&gt; {Jane, Jim, Joe}\n\n    //Assign the result of a call the my getter of the 3rd field to a new array\n    PersonRecord[] newArray = john.getKids();\n\n    //Make some modifications on the new array\n    newArray[0] = jim;\n    newArray[1] = new PersonRecord(&quot;Ann&quot;, &quot;04/04/1936&quot;, null);\n    \n    //Print my object john\n    System.out.println(john); \n    //RESULT (not modified) : 3rd field =&gt; {Jane, Jim, Joe}\n    \n</code></pre>\n<p>This result proves that &quot;newArray&quot; and the field &quot;kids&quot; are referencing different objects in memory. I'm confused because in the return type of the getter method (&quot;getKids()&quot;), it's the &quot;Arrays.copyOf()&quot; which was used, and this means that the returned copy was supposed to be a shallow copy (i.e. a copy of the reference in the field &quot;kids&quot;, and not a copy of the object behind the field &quot;kids&quot;). If &quot;Arrays.copyOf()&quot; is supposed to return a shallow copy, why the modification made on &quot;newArray&quot; didn't reflect on my third field &quot;kids&quot;?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

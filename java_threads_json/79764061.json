@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "postgresql",
+      "spring-boot",
+      "jpa",
+      "jpql"
+    ],
+    "owner": {
+      "account_id": 6280829,
+      "reputation": 317,
+      "user_id": 5489294,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/0a50a3238ce3c4f5f33f82c49997dc68?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Guppy_00",
+      "link": "https://stackoverflow.com/users/5489294/guppy-00"
+    },
+    "is_answered": false,
+    "view_count": 128,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1757980333,
+    "creation_date": 1757817053,
+    "last_edit_date": 1757980333,
+    "question_id": 79764061,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79764061/how-make-joincolumns-conditional",
+    "title": "How make @JoinColumns conditional?",
+    "body": "<p>I have the following scenario:</p>\n<pre class=\"lang-java prettyprint-override\"><code>class AId {\nString aId1;\nString aId2;\n}\n\n@IdClass{AId.class}\nclass A {\n@Id String aId1;\n@Id String aId2;\n\nString aType;  // possible values are 0,1\n\n}\n\n@IdClass{BId.class}\nclass B {\n@Id String bId1;\n@Id String bId2;\n\nString bType; // possible values are 0,1,2\n\n@ManyToOne (fetchType=&quot;EAGER&quot;)\n@JoinColumn(name = bId1, referenceColumn = aId1)\n@JoinColumn(name = bType, referenceColumn = aType)\nA aOfB;      // B will have an A only if bType &lt;&gt; 2\n\n}\n\n</code></pre>\n<p>So if <code>B={01,02,1}</code>, I want to perform the join with table A to obtain <code>A={01,03,1}</code><br />\nBut, if <code>B={01,02,2}</code> since <code>bType</code> is <code>2</code>, I know that it won't have an <code>A</code> element and I don't want to join when I fetch <code>B</code>. I am just unsure what the correct syntax is to achieve this.</p>\n<p>Do I use <code>@JoinFormula</code>? But the examples that I've seen using <code>@JoinFormula</code> only relies on single column joins whereas in my case I need 2.</p>\n<p>Update:\nI was hoping that there would be a way to make the query dynamic. Example if bType&lt;&gt;2, I would have the following query:</p>\n<pre><code>select\n    b1_0.b_id1,\n    b1_0.b_id2,\n    a1_0.a_id1,\n    a1_0.a_id2,\n    a1_0.a_type,\n    b1_0.bType \nfrom\n    b_table b1_0 \nleft join\n    a_table a1_0 \n        on a1_0.a_id1=b1_0.b_id1 \n        and a1_0.a_type=b1_0.b_type\nwhere\n    (\n        b1_0.b_id1,b1_0.b_id2\n    ) in ((?,?))\n</code></pre>\n<p>But if btype=2, then only:</p>\n<pre><code>select\n    b1_0.b_id1,\n    b1_0.b_id2,\n    b1_0.bType \nfrom\n    b_table b1_0 \nwhere\n    (\n        b1_0.b_id1,b1_0.b_id2\n    ) in ((?,?))\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

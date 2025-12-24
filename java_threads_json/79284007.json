@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-mvc",
+      "spring-validator"
+    ],
+    "owner": {
+      "account_id": 23456861,
+      "reputation": 467,
+      "user_id": 17512207,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/07fb9ef1a38ee98a31e0189353c35afb?s=256&d=identicon&r=PG",
+      "display_name": "ildvzg68472",
+      "link": "https://stackoverflow.com/users/17512207/ildvzg68472"
+    },
+    "is_answered": false,
+    "view_count": 53,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1734881759,
+    "creation_date": 1734336877,
+    "last_edit_date": 1734881759,
+    "question_id": 79284007,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79284007/how-can-i-add-a-new-validation-rule-without-impacting-other-and-parent-fields",
+    "title": "How can I add a new validation rule without impacting other and parent fields?",
+    "body": "<p>I have a class <code>PojoB</code> which contains a field code and a field of class <code>PojoA</code>:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Data\npublic class PojoB {\n\n    @Size(min = 1, max = 5)\n    @NotBlank()\n    @Pattern(regexp = &quot;[0-9]+&quot;)\n    private String code;\n    \n    @Valid\n    private PojoA pojoA;\n    \n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>@Data\npublic class PojoA {\n\n    @Size(min = 1, max = 5)\n    @NotBlank()\n    @Pattern(regexp = &quot;[0-9]+&quot;)\n    private String code;\n}\n\n</code></pre>\n<p>And <code>PojoB</code> is used as a request body of <code>/testSpringValidation1</code>, validations are enabled.</p>\n<p>Now regarding the new API <code>/testSpringValidation2</code>, the pojoA.code can allow more characteres and <strong>no change/difference on other validation rules comparing /testSpringValidation1</strong>. So <code>@Pattern(regexp = &quot;[0-9a-z]+&quot;, groups = LessValidation.class)</code> is added. But how can I implement it <strong>without changing exisitng code</strong>?</p>\n<pre class=\"lang-java prettyprint-override\"><code>public interface LessValidation extends Default {\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>    @PostMapping(&quot;/testSpringValidation2&quot;)\n    public PojoB testSpringValidation2(@RequestBody @Validated({LessValidation.class}) PojoB reqBody) {\n        return reqBody;\n    }\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>@Data\npublic class PojoA {\n\n    @Size(min = 1, max = 5)\n    @NotBlank()\n    @Pattern(regexp = &quot;[0-9]+&quot;)\n    @Pattern(regexp = &quot;[0-9a-z]+&quot;, groups = LessValidation.class)\n    private String code;\n}\n</code></pre>\n<p>When triggering <code>/testSpringValidation2</code> API by this reqbody,</p>\n<pre><code>{\n    &quot;code&quot;:&quot;12345&quot;,\n    &quot;pojoA&quot;:{\n        &quot;code&quot;: &quot;12ab&quot;\n    }\n}\n</code></pre>\n<p>I received this error</p>\n<pre class=\"lang-none prettyprint-override\"><code>error:\n{\n    &quot;type&quot;: &quot;error&quot;,\n    &quot;code&quot;: &quot;400&quot;,\n    &quot;details&quot;: &quot;mandatory parameter pojoA.code is invalid: must match \\&quot;[0-9]+\\&quot;&quot;\n}\n</code></pre>\n<p>But if I don't make LessValidation extend Default, then other validation rules (like validations on <code>pojoB.code</code>) will also be skipped.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

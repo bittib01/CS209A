@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "firebase-cloud-messaging"
+    ],
+    "owner": {
+      "account_id": 30633600,
+      "reputation": 37,
+      "user_id": 23483479,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocJ6PjQlHyoQjberGj2UPe6xtnmJJAg1zvlPTghOMpT4laM=k-s256",
+      "display_name": "Sufiyan Salman",
+      "link": "https://stackoverflow.com/users/23483479/sufiyan-salman"
+    },
+    "is_answered": false,
+    "view_count": 187,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1713274225,
+    "creation_date": 1710749219,
+    "last_edit_date": 1713259042,
+    "question_id": 78178745,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78178745/unable-to-send-firebase-push-notification-via-remote-server",
+    "title": "Unable to send Firebase push notification via remote server",
+    "body": "<p>I have a springboot project and added firebase dependency and all related things.\nWhen I run the project locally, everything works fine.\nI am using firebase admin sdk to send notifications.\nThe code for sending is:</p>\n<pre><code>try {\n    messagingService.send(message);\n    logger.info(&quot;Firebase notification sent to user: &quot;+user.getUsername());\n    saveLog(true, &quot;Notification Sent&quot;, pushNotificationLog);\n    return true;\n}catch (FirebaseMessagingException e) {\n    logger.info(&quot;Firebase did not send notification to user: &quot;+user.getUsername()+ &quot; Error Message: &quot;+e.getMessage());\n    saveLog(false, e.getMessage(), pushNotificationLog);\n    return false;\n}\n</code></pre>\n<p>As soon as I do the same on my remote server with different application properties, I get the exception while sending the notification, this is what it says:</p>\n<blockquote>\n<p>2024-03-18 07:27:14.759  INFO 1 --- [nio-8091-exec-4] c.p.service.FirebaseNotificationService  : Firebase did not send notification to user: zubair Error Message: Unknown error while making a remote service call: Error getting access token for service account: java.security.NoSuchAlgorithmException: Error constructing implementation (algorithm: Default, provider: SunJSSE, class: sun.security.ssl.SSLContextImpl$DefaultSSLContext), iss: firebase-adminsdk-b545a@bol3-c8b35.ibm.gserviceaccount.com</p>\n</blockquote>\n<p>I have used cryptographic algos in some places of my code and they are working fine, only this isn't.</p>\n<p>I tried running my local with the application properties of the remote server and it worked fine. I am unable to figure out the issue.</p>\n<p><a href=\"https://i.sstatic.net/ZA3Ko.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/ZA3Ko.png\" alt=\"Complete Exception part 1\" /></a>\n<a href=\"https://i.sstatic.net/v39ye.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/v39ye.png\" alt=\"part 2\" /></a>\n<a href=\"https://i.sstatic.net/lRrJH.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/lRrJH.png\" alt=\"part 3\" /></a>\n<a href=\"https://i.sstatic.net/3ebwb.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/3ebwb.png\" alt=\"part 4\" /></a>\n<a href=\"https://i.sstatic.net/FWR6m.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/FWR6m.png\" alt=\"part 5\" /></a></p>\n<p>Edit 1:\nNow to narrow down this issue even more, I got a lead, which is:\nI wrote the following line in my docker file and faced the issue because this.\n<code>ENTRYPOINT [&quot;java&quot;,&quot;-jar&quot;,&quot;-Djava.security.egd=file:/dev/./urandom&quot;,&quot;-Djavax.net.ssl.keyStore=/opt/java/openjdk/lib/security/cacerts&quot;,&quot;-Djavax.net.ssl.keyStorePassword=cheit&quot;,&quot;-Djdk.tls.client.protocols=TLSv1.2&quot;, &quot;/app.jar&quot;]</code></p>\n<p>When I changed the above line to the one below, it worked.\n<code>ENTRYPOINT [&quot;java&quot;,&quot;-jar&quot;,&quot;-Djava.security.egd=file:/dev/./urandom&quot;,&quot;-Djdk.tls.client.protocols=TLSv1.2&quot;, &quot;/app.jar&quot;] </code>\nThis shows that cacerts file has some issue, but it only appears when I use firebase.\nWhat can I do to resolve this?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

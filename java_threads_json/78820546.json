@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "sql",
+      "hibernate"
+    ],
+    "owner": {
+      "account_id": 6383695,
+      "reputation": 5871,
+      "user_id": 4952262,
+      "user_type": "registered",
+      "accept_rate": 71,
+      "profile_image": "https://www.gravatar.com/avatar/e8b911e7b5217f8981c31fc7ee8b7806?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Michu93",
+      "link": "https://stackoverflow.com/users/4952262/michu93"
+    },
+    "is_answered": false,
+    "view_count": 67,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1759524672,
+    "creation_date": 1722509644,
+    "last_edit_date": 1759524672,
+    "question_id": 78820546,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78820546/difference-in-results-took-from-application-and-via-sql-developer",
+    "title": "Difference in results took from application and via SQL Developer",
+    "body": "<p>I am investigating a strange problem: when I run a SQL query manually via e.g SQL Developer, I am getting different result than when an application runs the same SQL query. I know it's impossible but that's what happening.</p>\n<p>We have method to get some values from database:</p>\n<pre><code>public sizeNotification loadSizeNotificationByTypeAndColor(\n            TypeEnum type, String color) {\n\n        if (color == null)\n            return loadSizeNotificationByType(type);\n\n        Query q = getSession().getNamedQuery(&quot;getNotificationByTypeAndColor&quot;);\n        q.setString(&quot;type&quot;, type.getType());\n        q.setString(&quot;color&quot;, color);\n\n        List&lt;SizeNotification&gt; results = q.list();\n\n        if (results.isEmpty()) {\n            return null;\n        } else if (results.size() &gt; 1) {\n            throw new RuntimeException(&quot;Can't have &gt; 1 records in table for Color &quot;);\n        } else {\n            return results.get(0);\n        }\n    }\n</code></pre>\n<p>We have named query in this place:</p>\n<pre><code>getSession().getNamedQuery(&quot;getNotificationByTypeAndColor&quot;)\n</code></pre>\n<p>which is:</p>\n<pre><code>&lt;query name=&quot;getNotificationByTypeAndColor&quot;&gt;\n    &lt;![CDATA[from SizeNotification n where n.type = :type and n.color=:color]]&gt;\n&lt;/query&gt;\n</code></pre>\n<p>In the logs, I can see:</p>\n<pre><code>[Worker-2] DEBUG [AbstractBatcher.java:401] - \n    /* named HQL query getNotificationByTypeAndColor */ select\n        batchsizen0_.KEY as KEY1_,\n        batchsizen0_.ID_TYPE as ID2_1_,\n        batchsizen0_.NOTIFICATION as NOTIFICA3_1_,\n        batchsizen0_.DATE as DATE4_1_,\n        batchsizen0_.COLOR_ID as COLOR5_1_ \n    from\n        SIZE_NOTIFICATIONS batchsizen0_ \n    where\n        batchsizen0_.TYPE=? \n        and batchsizen0_.COLOR=?\n\n[Worker-2] DEBUG [NullableType.java:133] - binding 'GR' to parameter: 1\n[Worker-2] DEBUG [NullableType.java:133] - binding '89' to parameter: 2\n\n[Worker-2] DEBUG [NullableType.java:172] - returning '173' as column: KEY1_\n[Worker-2] DEBUG [NullableType.java:172] - returning 'false' as column: NOTIFICA3_1_\n[Worker-2] DEBUG [NullableType.java:172] - returning '2024-07-01 11:30:00' as column: DATE4_1_\n[Worker-2] DEBUG [NullableType.java:172] - returning '89' as column: COLOR5_1_\n[Worker-2] INFO  [ExecutionTimeLoggerInterceptor.java:21] - my.service.externalGen.DataAccessService.loadSizeNotificationByTypeAndColor([GR, 89]), took : 13 ms.\n</code></pre>\n<p>So it's returning:</p>\n<pre><code>returning 'false' as column: NOTIFICA3_1_\n</code></pre>\n<p>However when I run the same query (<code>getNotificationByTypeAndColor</code>) manually via SQL Developer, I get <code>NOTIFICA3_1_</code> <code>true</code>.</p>\n<p>I don't understand from where this mismatch can come from. I should mention that I am using hibernate 3.2. What should I check here, how it can happen?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

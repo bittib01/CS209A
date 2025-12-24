@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "xstream",
+      "java-module"
+    ],
+    "owner": {
+      "account_id": 2152669,
+      "reputation": 1762,
+      "user_id": 1945316,
+      "user_type": "registered",
+      "accept_rate": 18,
+      "profile_image": "https://www.gravatar.com/avatar/aec50f6ea348ca30f5b77d868d038944?s=256&d=identicon&r=PG",
+      "display_name": "Thomas",
+      "link": "https://stackoverflow.com/users/1945316/thomas"
+    },
+    "is_answered": true,
+    "view_count": 88,
+    "answer_count": 4,
+    "score": 1,
+    "last_activity_date": 1765462316,
+    "creation_date": 1764710538,
+    "last_edit_date": 1764771649,
+    "question_id": 79836333,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79836333/java-module-system-breaking-serialization-of-standard-library-classes-is-there",
+    "title": "Java Module System Breaking Serialization of Standard Library Classes - Is there a better solution than --add-opens?",
+    "body": "<h2>Problem</h2>\n<p>When serializing Java standard library classes (like <code>java.awt.Rectangle</code>, <code>Point</code>, <code>Dimension</code>, etc.) using frameworks like XStream, Jackson, or Gson, I'm forced to use <code>--add-opens</code> flags:</p>\n<pre class=\"lang-bash prettyprint-override\"><code>--add-opens java.desktop/java.awt=ALL-UNNAMED\n</code></pre>\n<p>This is required because serialization frameworks need deep reflection access to private fields, but the module system blocks this even though my code properly declares module dependencies:</p>\n<pre class=\"lang-java prettyprint-override\"><code>module my.app {\n    requires java.desktop;  // Not sufficient for reflection!\n}\n</code></pre>\n<h2>The Core Issue</h2>\n<p><strong>I cannot open another module's packages from my <code>module-info.java</code></strong> - only the owning module can do that. The <code>opens</code> directive only works for your own packages:</p>\n<pre class=\"lang-java prettyprint-override\"><code>module my.app {\n    opens my.package to com.thoughtworks.xstream;  // ✓ Works for MY packages\n    requires java.desktop;                          // ✗ Doesn't open THEIR packages\n}\n</code></pre>\n<p>This design seems fundamentally broken for legitimate serialization use cases.</p>\n<h2>Why This Matters</h2>\n<ol>\n<li><strong><code>--add-opens</code> is a maintenance nightmare</strong> - Must track all affected modules across JDK versions</li>\n<li><strong>Runtime-only solution</strong> - Can't be declared in code, hard to discover when missing</li>\n<li><strong>Standard library classes aren't exotic</strong> - These are normal, stable public APIs (<code>Rectangle</code>, <code>Color</code>, <code>File</code>, etc.)</li>\n<li><strong>Affects all reflection-based frameworks</strong> - Not just serialization but also ORMs, testing frameworks, etc.</li>\n</ol>\n<h2>Questions</h2>\n<ol>\n<li><p><strong>Is there a comprehensive library providing serialization converters/adapters for common JDK classes?</strong> Specifically looking for XStream converters, but interested in solutions for Jackson/Gson as well.</p>\n</li>\n<li><p><strong>Why doesn't the JDK provide a &quot;serialization-friendly&quot; module</strong> that explicitly opens these stable classes for reflection? Something like <code>java.desktop.reflection</code> that could be optionally required?</p>\n</li>\n<li><p><strong>Are there any proposals or JEPs addressing this friction between modules and reflection?</strong></p>\n</li>\n</ol>\n<h2>What might be a solution?</h2>\n<ul>\n<li><strong>DTOs/wrapper classes</strong> - Too much boilerplate for dozens of JDK classes</li>\n<li><strong>Custom converters</strong> - Works but requires writing converters for every JDK class I serialize</li>\n</ul>\n<h2>Context</h2>\n<ul>\n<li>Using XStream for configuration serialization</li>\n<li>Need to serialize complex object graphs containing AWT geometry classes</li>\n<li>Java 17+, modular application</li>\n</ul>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

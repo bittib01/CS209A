@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-flink",
+      "flink-streaming",
+      "amazon-kinesis",
+      "amazon-kinesis-kpl"
+    ],
+    "owner": {
+      "account_id": 35991843,
+      "reputation": 21,
+      "user_id": 27510512,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/5bd4dcc157ea7f82df1e3f636101cb1b?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Rohan Sharma",
+      "link": "https://stackoverflow.com/users/27510512/rohan-sharma"
+    },
+    "is_answered": false,
+    "view_count": 78,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1742488174,
+    "creation_date": 1742488174,
+    "question_id": 79523547,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79523547/kinesis-stream-consumption-not-working-with-flink",
+    "title": "Kinesis Stream Consumption not working with Flink",
+    "body": "<p>I am writing an Consumer which consumes data records from kinesis streams using flink 1.20, but despite following all the instructions mentioned in flink 1.20 docs , i am not able to digest the records, i have sshed into kubernetes pod running the app and can confirm that stream is accessible no permission issue</p>\n<p>Code:</p>\n<pre><code>ublic class UserEventStreamProcessor {\n    private static final Logger logger = LogManager.getLogger(UserEventStreamProcessor.class);\n\n    public void consumeEvent() {\n        try {\n            logger.info(&quot;Starting User Event Stream Processor&quot;);\n\n            // Configure the KinesisStreamsSource\n            Configuration sourceConfig = new Configuration();\n            sourceConfig.set(KinesisSourceConfigOptions.STREAM_INITIAL_POSITION, KinesisSourceConfigOptions.InitialPosition.TRIM_HORIZON); // This is optional, by default connector will read from LATEST\n\n            logger.info(&quot;Building kdsSource&quot;);\n\n            KinesisStreamsSource&lt;String&gt; kdsSource =\n                    KinesisStreamsSource.&lt;String&gt;builder()\n                            .setStreamArn(&quot;Arn Stream&quot;) //Dummy value\n                            .setSourceConfig(sourceConfig)\n                            .setDeserializationSchema(new SimpleStringSchema())\n                            .build();\n\n            logger.info(&quot;Building kdsSourceBuilt&quot;);\n\n            StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();\n\n            logger.info(&quot;Building Getting execution environment&quot;);\n\n\n// Specify watermarking strategy and the name of the Kinesis Source operator.\n// Specify return type using TypeInformation.\n// Specify UID of operator in line with Flink best practice.\n            DataStream&lt;String&gt; kinesisRecordsWithEventTimeWatermarks = env.fromSource(kdsSource, WatermarkStrategy.&lt;String&gt;forMonotonousTimestamps().withIdleness(Duration.ofSeconds(1)), &quot;Kinesis source&quot;)\n                    .returns(TypeInformation.of(String.class))\n                    .uid(&quot;custom-uid&quot;);\n\n            logger.info(&quot;Processing record&quot;);\n\n            kinesisRecordsWithEventTimeWatermarks\n                    .map(record -&gt; {\n                        logger.info(&quot;Received record: &quot; + record);\n                        return record;\n                    });\nenv.execute(&quot;User Event Stream Processor&quot;);\n        } catch (Exception e) {\n            logger.error(&quot;Exception in User Event Stream Processor&quot;, e);\n        }\n    }\n    \n\nMain Method invocation\n\nexecutorService.submit(() -&gt; {\n                \n                userEventStreamProcessor.consumeEvent();\n            });\n\n</code></pre>\n<p>I only get building kdsSource log and after that there is no log on console</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

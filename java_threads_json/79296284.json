@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "maven",
+      "maven-metadata"
+    ],
+    "owner": {
+      "account_id": 18889034,
+      "reputation": 406,
+      "user_id": 13779749,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/lL09M.png?s=256",
+      "display_name": "Ayush Jain",
+      "link": "https://stackoverflow.com/users/13779749/ayush-jain"
+    },
+    "is_answered": false,
+    "view_count": 153,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1735020855,
+    "creation_date": 1734672995,
+    "question_id": 79296284,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79296284/how-to-prevent-maven-metadata-xml-from-updating-with-every-build-in-gradle-mav",
+    "title": "How to prevent `maven-metadata.xml` from updating with every build in Gradle Maven publishing?",
+    "body": "<p>I am working on a Gradle project where I publish artifacts to a JFrog Artifactory repository(this repository is a <a href=\"https://jfrog.com/help/r/jfrog-artifactory-documentation/generic-repositories\" rel=\"nofollow noreferrer\">generic repository</a>, not a <a href=\"https://jfrog.com/help/r/jfrog-artifactory-documentation/maven-repository\" rel=\"nofollow noreferrer\">maven repository</a>) using Maven publishing. However, I am facing an issue where the <code>maven-metadata.xml</code> file in the repository is updated with every build, causing the latest version to always reflect the most recent build, regardless of whether it is a release build, development build, or feature branch build.</p>\n<p>I want to ensure that only stable release builds update the latest version in <code>maven-metadata.xml</code>. Development and feature branch builds should not affect it.</p>\n<p>Here's what I tried so far, but none of them worked:</p>\n<ul>\n<li><p>Using Snapshot Versions:</p>\n<p>I added <code>-SNAPSHOT</code> to the version for non-release builds, hoping that the repository would treat them differently:</p>\n<pre class=\"lang-bash prettyprint-override\"><code>gradle -Pversion=1.0.0-SNAPSHOT publish\n</code></pre>\n</li>\n<li><p>Disabling the <code>GenerateModuleMetadata</code> Task:</p>\n<p>I also tried skipping the <code>generateMetadataFileForMavenCatalogPublication</code> task by disabling it during development builds:</p>\n<pre class=\"lang-kotlin prettyprint-override\"><code>tasks.named(&quot;generateMetadataFileForMavenCatalogPublication&quot;) {\n    enabled = project.findProperty(&quot;buildType&quot;) != &quot;dev&quot;\n}\n</code></pre>\n</li>\n<li><p>Skipping All <code>GenerateModuleMetadata</code> Tasks:</p>\n<p>Next, I skipped all tasks of type GenerateModuleMetadata to ensure that no metadata files would be generated:</p>\n<pre class=\"lang-kotlin prettyprint-override\"><code>tasks.withType&lt;GenerateModuleMetadata&gt; {\n    enabled = project.findProperty(&quot;buildType&quot;) != &quot;dev&quot;\n}\n</code></pre>\n</li>\n<li><p>Adding skip-metadata to Artifactory URL:</p>\n<p>I also tried appending skip-metadata to the Artifactory URL, as suggested in some references.</p>\n</li>\n</ul>\n<p>Here's how I'm publishing the project:</p>\n<pre class=\"lang-kotlin prettyprint-override\"><code>publishing {\n    repositories {\n        maven {\n            url = uri(&quot;artifactory-url&quot;)\n            credentials(PasswordCredentials::class)\n        }\n    }\n    publications {\n        create&lt;MavenPublication&gt;(&quot;mavenCatalog&quot;) {\n            from(components[&quot;java&quot;])\n        }\n    }\n}\n</code></pre>\n<p>Is there anything that I'm missing or doing wrong?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

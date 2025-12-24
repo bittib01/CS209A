@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "hibernate",
+      "jpa"
+    ],
+    "owner": {
+      "account_id": 17722814,
+      "reputation": 113,
+      "user_id": 12867417,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/f56896bea1b566175ab8bc52819813f9?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Maxime Esnol",
+      "link": "https://stackoverflow.com/users/12867417/maxime-esnol"
+    },
+    "is_answered": true,
+    "view_count": 1743,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1721063303,
+    "creation_date": 1705423457,
+    "question_id": 77827393,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77827393/hibernate-cannot-invoke-org-hibernate-persister-entity-discriminatortype-getjd",
+    "title": "Hibernate: Cannot invoke &quot;org.hibernate.persister.entity.DiscriminatorType.getJdbcJavaType()&quot; because &quot;this.discriminatorType&quot; is null",
+    "body": "<p>I am trying to execute a JPQL query that retrieves the 'permissions' associated to a specific 'role'. When I execute the query, this Exception is thrown:</p>\n<p><code>java.lang.NullPointerException: Cannot invoke &quot;org.hibernate.persister.entity.DiscriminatorType.getJdbcJavaType()&quot; because &quot;this.discriminatorType&quot; is null</code></p>\n<p>This is the query:</p>\n<pre class=\"lang-java prettyprint-override\"><code>    @Query(&quot;SELECT PermissionEntity &quot; +\n            &quot;FROM RolePermissionEntity rolePermission &quot; +\n            &quot;JOIN PermissionEntity permission &quot; +\n            &quot;WHERE rolePermission.role = :role&quot;)\n    List&lt;PermissionEntity&gt; findPermissionsByRoleId(@Param(&quot;role&quot;) RoleEntity role);\n</code></pre>\n<p>And these are my entity models:</p>\n<p><strong>RoleEntity</strong></p>\n<pre class=\"lang-java prettyprint-override\"><code>@Entity\n@Table(\n        name = &quot;roles&quot;,\n        indexes = {\n                @Index(name = &quot;role_name_unique&quot;, columnList = &quot;name&quot;, unique = true)\n        }\n)\n/* Lombok annotations omitted */\npublic class RoleEntity {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Integer id;\n\n    @Column\n    private String name;\n\n    @Transient\n    private List&lt;PermissionEntity&gt; permissions;\n\n}\n</code></pre>\n<p><strong>PermissionEntity</strong></p>\n<pre class=\"lang-java prettyprint-override\"><code>@Entity\n@Table(\n        name = &quot;permissions&quot;,\n        indexes = {\n                @Index(name = &quot;permission_name_unique&quot;, columnList = &quot;name&quot;, unique = true)\n        }\n)\n/* Lombok annotations omitted */\npublic class PermissionEntity {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Integer id;\n\n    @Column\n    private String name;\n\n}\n</code></pre>\n<p><strong>RolePermissionEntity</strong></p>\n<pre class=\"lang-java prettyprint-override\"><code>@Entity\n@Table(\n        name = &quot;role_permissions&quot;\n)\n/* Lombok annotations omitted */\npublic class RolePermissionEntity {\n\n    @EmbeddedId\n    private RolePermissionId id;\n\n    @MapsId(&quot;roleId&quot;)\n    @ManyToOne\n    private RoleEntity role;\n\n    @MapsId(&quot;permissionId&quot;)\n    @ManyToOne\n    private PermissionEntity permission;\n\n}\n</code></pre>\n<p>And <strong>RolePermissionId</strong></p>\n<pre class=\"lang-java prettyprint-override\"><code>@Embeddable\n/* Lombok annotations omitted */\npublic class RolePermissionId implements Serializable {\n\n    private Integer roleId;\n\n    private Integer permissionId;\n\n}\n</code></pre>\n<p>I'm using Spring Boot version 3.0.1 with the Spring Boot Data JPA starter with Hibernate as persistence provider.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

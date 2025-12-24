@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "minecraft",
+      "minecraft-forge"
+    ],
+    "owner": {
+      "account_id": 43382240,
+      "reputation": 11,
+      "user_id": 31218047,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/b768f58826705b6606f306054c2c7246?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "BananasHelp20",
+      "link": "https://stackoverflow.com/users/31218047/bananashelp20"
+    },
+    "is_answered": false,
+    "view_count": 57,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1754762001,
+    "creation_date": 1754444037,
+    "last_edit_date": 1754762001,
+    "question_id": 79726732,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79726732/how-to-make-my-block-extending-to-baseentityblock-face-to-the-player-when-plac",
+    "title": "How to make my block (extending to BaseEntityBlock) face to the player when placed?",
+    "body": "<p>The thing is, I already know how to make a simple block having a single texture on every side, but what i want is a block, like a furnace, which has a front, a top, 3 sides, and a bottom. however, i have no idea if there is a blockstate method to do this.</p>\n<p>At First I used blockbench to get a json file for a block model which had different textueres on each side of the block, which is perfect. Afterwards I watched a tutorial where somebody rotated the block which had its own class like e.g. &quot;EnchantingTableBlock&quot; which extended to the class HorizontalDirectionalBlock, but this can't work since my block already has its own class which extends to BaseEntityBlock, and since i can't extend to multiple classes, I have no idea what to do.</p>\n<p>The block i am talking about is my ForgeBlock.\nThe block is actually a BlockEntity, so the block also has a ForgeBlockEntity class, but i assume it's irrelevant to my problem. This is the complete class:</p>\n<pre><code>public class ForgeBlock extends BaseEntityBlock {\n    public static final MapCodec&lt;ForgeBlock&gt; CODEC = simpleCodec(ForgeBlock::new);\n\n    public ForgeBlock(Properties pProperties) {\n        super(pProperties);\n    }\n\n    @Override\n    protected MapCodec&lt;? extends BaseEntityBlock&gt; codec() {\n        return CODEC;\n    }\n\n    @Override\n    public @Nullable BlockEntity newBlockEntity(BlockPos pPos, BlockState pState) {\n        return new ForgeBlockEntity(pPos, pState);\n    }\n\n    @Override\n    protected RenderShape getRenderShape(BlockState pState) {\n        return RenderShape.MODEL;\n    }\n\n    @Override\n    public void onRemove(BlockState pState, Level pLevel, BlockPos pPos, BlockState pNewState, boolean pIsMoving) {\n        if (pState.getBlock() != pNewState.getBlock()) {\n            BlockEntity blockEntity = pLevel.getBlockEntity(pPos);\n            if (blockEntity instanceof ForgeBlockEntity forge) {\n                forge.drops();\n            }\n        }\n    }\n\n    @Override\n    protected ItemInteractionResult useItemOn(ItemStack pStack, BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHitResult) {\n        if (!pLevel.isClientSide) {\n            BlockEntity entity = pLevel.getBlockEntity(pPos);\n            if (entity instanceof ForgeBlockEntity forge) {\n                ((ServerPlayer) pPlayer).openMenu(new SimpleMenuProvider(forge, Component.literal(&quot;Forge&quot;)), pPos);\n            } else {\n                throw new IllegalStateException(&quot;Our Container provider is missing!&quot;);\n            }\n        }\n        return ItemInteractionResult.sidedSuccess(pLevel.isClientSide);\n    }\n\n    @Override\n    @Nullable\n    public &lt;T extends BlockEntity&gt; BlockEntityTicker&lt;T&gt; getTicker(Level pLevel, BlockState pState, BlockEntityType&lt;T&gt; pBlockEntityType) {\n        if (pLevel.isClientSide) {\n            return null;\n        }\n\n        return createTickerHelper(pBlockEntityType, ModBlockEntities.FORGE_BE.get(),\n                (level, blockPos, blockState, forge) -&gt; forge.tick(level, blockPos, blockState));\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "multi-tenant"
+    ],
+    "owner": {
+      "account_id": 3052317,
+      "reputation": 446,
+      "user_id": 2586617,
+      "user_type": "registered",
+      "accept_rate": 43,
+      "profile_image": "https://www.gravatar.com/avatar/f14a5ef8ca4fed42e0b1105f3fa66828?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Narendra Pandey",
+      "link": "https://stackoverflow.com/users/2586617/narendra-pandey"
+    },
+    "is_answered": true,
+    "view_count": 166,
+    "accepted_answer_id": 79317923,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1742447155,
+    "creation_date": 1735323035,
+    "last_edit_date": 1735323987,
+    "question_id": 79312519,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79312519/change-tenantidentifier-at-controller-level",
+    "title": "Change tenantIdentifier at Controller level",
+    "body": "<p>We are implementing multitenancy in our product and we are going with database per tenant design pattern. We followed the tenant per request pattern suggested here <a href=\"https://spring.io/blog/2022/07/31/how-to-integrate-hibernates-multitenant-feature-with-spring-data-jpa-in-a-spring-boot-application#example-3-database-per-tenant\" rel=\"nofollow noreferrer\">spring multitenant</a> and <a href=\"https://github.com/lealceldeiro/springboot-multitenant-hibernate\" rel=\"nofollow noreferrer\">working example</a>\nThe above approach is working well if we already know in which db/schema we want to search.</p>\n<p>We have a use-case where we have to search in default schema and if not found than in other  schema. But once the request reach to Controller layer, we are not able to switch the context and it keeps the default schema only. I tried with below code -</p>\n<pre><code>public class PersonController {\n\n    @Qualifier(&quot;otherSchemaDataSource&quot;)\n    private final DataSource otherSchemaDataSource;\n\n    public PersonDto getPerson(@PathVariable String personId) {\n        try {\n            return personService.getById(personId); //search with default schema\n        } catch (Exception e) {\n            // search in other schema if not found in default schema\n            TenantContext.setTenantInfo(&quot;other_schema&quot;);\n            Object oo = &quot;other_schema&quot;;\n            sessionFactory.withStatelessOptions().tenantIdentifier(oo);\n            tenantIdentifierResolver.resolveCurrentTenantIdentifier();\n            multiTenantConnectionConfig.setDataSource(otherSchemaDataSource);\n            multiTenantConnectionConfig.getConnection(&quot;other_schema&quot;);\n            multiTenantConnectionConfig.setDataSource(ecmArchiveDataSourc);\n            return personService.getById(personId);\n        }\n\n    }\n}\n\n</code></pre>\n<p>Please let us know if we can make this work without adding manual entityManager/ sessionfactories for all the schemas</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

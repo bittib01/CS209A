@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "log4j",
+      "log4j2",
+      "bouncycastle",
+      "ejbca"
+    ],
+    "owner": {
+      "account_id": 4471856,
+      "reputation": 335,
+      "user_id": 3637971,
+      "user_type": "registered",
+      "accept_rate": 14,
+      "profile_image": "https://www.gravatar.com/avatar/eaa013dbe236b2fb7f32e34ce6497a20?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "user3637971",
+      "link": "https://stackoverflow.com/users/3637971/user3637971"
+    },
+    "is_answered": false,
+    "view_count": 55,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1748357016,
+    "creation_date": 1747776052,
+    "question_id": 79631184,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79631184/java-exception-on-cryptoprovidertools-installbcprovider-instruction-using-log4",
+    "title": "Java Exception on CryptoProviderTools.installBCProvider() instruction using log4j2",
+    "body": "<p>I have a java web project which includes lo4j2. It is deploy on tomcat instance locally on my PC.\nI was debugging the java project. When debugger is on the instruction of Certificate class contructor and I see when the instruction 'CryptoProviderTools.installBCProvider();' is executed, it throws the following exception:</p>\n<pre><code>Servlet.service() for servlet [appServlet] in context with path [/myWebApp] threw exception [Request processing failed; nested exception is java.lang.NoClassDefFoundError: org/apache/log4j/Logger] with root cause\njava.lang.ClassNotFoundException: org.apache.log4j.Logger\n    at org.apache.catalina.loader.WebappClassLoaderBase.loadClass(WebappClassLoaderBase.java:1275)\n    at org.apache.catalina.loader.WebappClassLoaderBase.loadClass(WebappClassLoaderBase.java:1109)\n    at org.cesecore.util.CryptoProviderTools.&lt;clinit&gt;(CryptoProviderTools.java:39)\n    at common.Certificate.&lt;init&gt;(Ejbca.java:79)\n</code></pre>\n<p>The message shows 'org/apache/log4j/Logger' as if Java project is using log4j version 1 but it's actually using the log4j version 2. I don't know what does log4j1 have to do.</p>\n<p>I got other java web project where CryptoProviderTools.installBCProvider() is working with lo4j2.</p>\n<p>I'm showing you pom.file, log4j2.properties and Certificate.java files.</p>\n<p><strong>pom.xml file</strong></p>\n<pre><code>&lt;dependency&gt;\n    &lt;groupId&gt;org.apache.logging.log4j&lt;/groupId&gt;\n    &lt;artifactId&gt;log4j-api&lt;/artifactId&gt;\n    &lt;version&gt;2.17.1&lt;/version&gt;\n&lt;/dependency&gt;\n&lt;dependency&gt;\n    &lt;groupId&gt;org.apache.logging.log4j&lt;/groupId&gt;\n    &lt;artifactId&gt;log4j-core&lt;/artifactId&gt;\n    &lt;version&gt;2.17.1&lt;/version&gt;\n&lt;/dependency&gt;\n&lt;dependency&gt;\n    &lt;groupId&gt;cert-cvc-6&lt;/groupId&gt;\n    &lt;artifactId&gt;cert-cvc-6&lt;/artifactId&gt;\n    &lt;version&gt;6.0&lt;/version&gt;\n&lt;/dependency&gt;\n&lt;dependency&gt;\n    &lt;groupId&gt;ejbca-util-6&lt;/groupId&gt;\n    &lt;artifactId&gt;ejbca-util-6&lt;/artifactId&gt;\n    &lt;version&gt;6.0&lt;/version&gt;\n&lt;/dependency&gt;\n&lt;dependency&gt;\n    &lt;groupId&gt;ejbca-ws-cli-6&lt;/groupId&gt;\n    &lt;artifactId&gt;ejbca-ws-cli-6&lt;/artifactId&gt;\n    &lt;version&gt;6.0&lt;/version&gt;\n&lt;/dependency&gt;\n&lt;dependency&gt;\n    &lt;groupId&gt;ejbca-ws-6&lt;/groupId&gt;\n    &lt;artifactId&gt;ejbca-ws-6&lt;/artifactId&gt;\n    &lt;version&gt;6.0&lt;/version&gt;\n&lt;/dependency&gt;\n&lt;dependency&gt;\n    &lt;groupId&gt;cesecore-common-6&lt;/groupId&gt;\n    &lt;artifactId&gt;cesecore-common-6&lt;/artifactId&gt;\n    &lt;version&gt;6.0&lt;/version&gt;\n&lt;/dependency&gt;\n    \n</code></pre>\n<p><strong>log4j2.properties file:</strong></p>\n<pre><code>appenders=console, rolling\nrootLogger.level = debug\nrootLogger.appenderRefs=console,rolling\nrootLogger.appenderRef.console.ref=ConsoleAppender\nrootLogger.appenderRef.rolling.ref=DailyLog\nappender.console.type = Console\nappender.console.name = ConsoleAppender\nappender.console.layout.type = PatternLayout\nappender.console.layout.pattern = [%-5p] %d{dd-MM-yyyy HH:mm:ss} %l - %m%n\nappender.rolling.type = RollingFile\nappender.rolling.name = DailyLog\nappender.rolling.fileName = ${catalina.base}/logs/myWebApp\nappender.rolling.filePattern = ${catalina.base}/logs/myWebApp.%d{yyyy-MM-dd}\nappender.rolling.layout.type = PatternLayout\nappender.rolling.layout.pattern = [%-5p] %d{dd-MM-yyyy HH:mm:ss} %l - %m%n\nappender.rolling.policies.type = Policies\nappender.rolling.policies.time.type = TimeBasedTriggeringPolicy\n    \n</code></pre>\n<p><strong>Java class file:</strong></p>\n<pre><code>import org.apache.logging.log4j.LogManager;\nimport org.apache.logging.log4j.Logger;\nimport org.cesecore.util.CryptoProviderTools;\n\npublic class Certificate {\n    private static final Logger LOG = LogManager.getLogger(Certificate.class);\n    protected Certificate() {\n        \n        try{\n            \n            CryptoProviderTools.installBCProvider(); // &lt;-- the exception is threw here\n            ...\n            ...\n                        \n        }catch(Exception ex){\n            ex.printStackTrace();\n        }\n    }\n}\n</code></pre>\n<p>What can I do so that CryptoProviderTools.installBCProvider() starts to work with log4j2?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

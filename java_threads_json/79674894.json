@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hibernate",
+      "inheritance",
+      "spring-data-jpa"
+    ],
+    "owner": {
+      "account_id": 28699015,
+      "reputation": 11,
+      "user_id": 21976576,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/bd30b20fa0dc227140a882b5f230998f?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "dantecito",
+      "link": "https://stackoverflow.com/users/21976576/dantecito"
+    },
+    "is_answered": false,
+    "view_count": 62,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1750575912,
+    "creation_date": 1750566035,
+    "last_edit_date": 1750573822,
+    "question_id": 79674894,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79674894/how-to-insert-rows-into-table-when-using-generationtype-table",
+    "title": "How to insert rows into table when using GenerationType.TABLE?",
+    "body": "<p>I'm using Hibernate for this project. I have a superclass Mensajes with 2 subclasses Posts and Resenias, and I'm using the &quot;table per class&quot; inheritance strategy. I'm trying to generate IDs for this class by using the TABLE strategy, since I'm working with MySQL for the database.</p>\n<p>I'm inserting data from an external file and not within the app itself since this is for a school project and I need to turn in the .sql file with all the inserts.</p>\n<p>However, when I omit the &quot;id&quot; field, I get the message that there is no default value for it, and when I try to set it so it selects data from the table created via the GenerationType.TABLE strategy, it (obviously) does not auto-update.</p>\n<p>I understand why this happens, I just need to know how to <strong>insert values into the table and have the id field auto-generate itself.</strong> I have no clue how to even start on this honestly, because it seems to me like it's impossible from an external file. Hope not :(</p>\n<p>This is the superclass Mensajes (other attributes omitted for brevity):</p>\n<pre class=\"lang-scala prettyprint-override\"><code>@Entity\n@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)\npublic class Mensajes {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.TABLE, generator = &quot;id_gen&quot;)\n    @TableGenerator(table = &quot;mid_seq&quot;, name = &quot;id_gen&quot;, initialValue = 0, allocationSize = 1)\n    private Long id;\n\n    private String fecha, cont;\n\n//...getters, setters, etc\n</code></pre>\n<p>Subclass Resenia:</p>\n<pre><code>@Entity\npublic class Resenia extends Mensajes{\n\n    @ColumnDefault(&quot;0&quot;)\n    private int rating;\n\n//...getters, setters, etc\n</code></pre>\n<p>Subclass Post:</p>\n<pre><code>@Entity\npublic class Post extends Mensajes {\n\n    @ColumnDefault(&quot;0&quot;)\n    private int votos;\n\n//...getters, setters, etc\n</code></pre>\n<p>Hibernate's output re: the &quot;sequence&quot; table:</p>\n<pre class=\"lang-sql prettyprint-override\"><code>Hibernate: \n    create table mid_seq (\n        next_val bigint,\n        sequence_name varchar(255) not null,\n        primary key (sequence_name)\n    ) engine=InnoDB\nHibernate: \n    insert into mid_seq(sequence_name, next_val) values ('mensajes',0)\n</code></pre>\n<p>What I try to insert:</p>\n<pre><code>insert into resenia(id, fecha, cont, rating) values ((select next_val from mid_seq), &quot;01/01/2000&quot;, &quot;BUU&quot;, 2);\ninsert into resenia(id, fecha, cont, rating) values ((select next_val from mid_seq), &quot;01/01/2003&quot;, &quot;bien&quot;, 4);\n</code></pre>\n<p>The first one inserts correctly, but the 2nd shows:</p>\n<pre class=\"lang-vhdl prettyprint-override\"><code>SQL Error [1062] [23000]: Duplicate entry '0' for key 'PRIMARY'\n</code></pre>\n<p>By the way, when I say &quot;omit the id field&quot;, I meant trying to insert like this:</p>\n<pre class=\"lang-sql prettyprint-override\"><code>insert into resenia(fecha, cont, rating) values (&quot;01/01/2000&quot;, &quot;BUU&quot;, 2);\n</code></pre>\n<p>Which throws:</p>\n<pre><code>SQL Error [1364] [HY000]: Field 'id' doesn't have a default value\n</code></pre>\n<p>Is it hopeless? Should I try @MappedSuperClass for inheritance instead?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

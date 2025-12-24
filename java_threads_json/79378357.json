@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "swagger",
+      "swagger-ui",
+      "springdoc"
+    ],
+    "owner": {
+      "account_id": 4808562,
+      "reputation": 31,
+      "user_id": 3882735,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/5c8a062adf445f3af9e952fcf294c816?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "kchetoua",
+      "link": "https://stackoverflow.com/users/3882735/kchetoua"
+    },
+    "is_answered": true,
+    "view_count": 208,
+    "accepted_answer_id": 79394343,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1738078072,
+    "creation_date": 1737559897,
+    "last_edit_date": 1737568411,
+    "question_id": 79378357,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79378357/springdoc-swagger-spring-6-not-springboot",
+    "title": "Springdoc &amp; Swagger &amp; Spring 6 (not springboot)",
+    "body": "<p>I have problems to configure properly swagger /springdoc with Spring 6 (not Spring Boot).</p>\n<p>I have my api exposed via <code>/CONTEXT-PATH/api</code>, I managed to have swagger-ui accessible at <code>/CONTEXT-PATH/api/swagger-ui/index.html</code> but it tries to get <code>/CONTEXT-PATH/v3/api-docs/swagger-config</code> which doesn't exist. When I access <code>/CONTEXT-PATH/api/v3/api-docs/swagger-config</code> it displays <code>configUrl : &quot;/CONTEXT-PATH/v3/api-docs/swagger-config&quot;</code></p>\n<p>I tried by defining properties in my <code>application.properties</code> and in <code>springdoc.config.properties</code> but it doesn't help:</p>\n<pre><code>springdoc.swagger-ui.disable-swagger-default-url=true\nspringdoc.swagger-ui.configUrl=/CONTEXT-PATH/api/v3/api-docs/swagger-config\nspringdoc.swagger-ui.url=/CONTEXT-PATH/api/swagger-ui/index.html\nspringdoc.api-docs.path=/CONTEXT-PATH/api/v3/api-docs\nserver.servlet.context-path=/CONTEXT-PATH\nspring.mvc.servlet.path=/CONTEXT-PATH/api\n</code></pre>\n<p>And here my Java config class:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Configuration\n@EnableWebMvc\n@ComponentScan(basePackages = {\n        &quot;mypackage.rest&quot;,\n})\n@PropertySource(&quot;classpath:/application.properties&quot;)\n@ComponentScan(basePackages = {&quot;org.springdoc&quot;})\n@Import({\n    SpringDocConfiguration.class,\n    SpringDocConfigProperties.class,\n    SpringDocSpecPropertiesConfiguration.class,\n    SpringDocWebMvcConfiguration.class,\n    MultipleOpenApiSupportConfiguration.class,\n    SpringDocUIConfiguration.class,\n    org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration.class})\npublic class BoApiConfiguration implements WebMvcConfigurer {\n    \n    @Autowired\n    private PropertiesService propertiesService;\n\n    @Override\n    public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {\n        configurer.enable();\n    }\n    \n    @Bean\n    public GroupedOpenApi groupOpenAPI() {\n         return GroupedOpenApi.builder()\n            .group(&quot;api&quot;)\n            .packagesToScan(&quot;eu.europa.ec.comm.euaroundme.web.rest&quot;)\n            .addOpenApiCustomizer(serverOpenApiCustomizer())\n            .build();\n    }\n    \n    public OpenApiCustomizer serverOpenApiCustomizer() {\n        String url = propertiesService.getPropertyValue(ApplicationConstants.APPLICATION_URL_PARAM_KEY);\n        url += &quot;/api&quot;;\n        Server server = new Server().url(url).description(&quot;apiServer&quot;);\n        List&lt;Server&gt; servers = new ArrayList&lt;&gt;();\n        servers.add(server);\n        return openApi -&gt; openApi.setServers(servers);\n    }\n    \n}\n</code></pre>\n<p>Thank you for your help</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

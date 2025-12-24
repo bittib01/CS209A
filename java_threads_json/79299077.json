@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-security",
+      "graalvm"
+    ],
+    "owner": {
+      "account_id": 23388000,
+      "reputation": 23,
+      "user_id": 17453018,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a-/AOh14GhMxaPq8r7VOmv2SoPAzd5w-V64hBaFSFgDSQjJ=k-s256",
+      "display_name": "user17453018",
+      "link": "https://stackoverflow.com/users/17453018/user17453018"
+    },
+    "is_answered": false,
+    "view_count": 54,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1747377191,
+    "creation_date": 1734769042,
+    "last_edit_date": 1747377191,
+    "question_id": 79299077,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79299077/graalvm-could-not-resolve-matching-constructor-on-bean-class-org-springframewor",
+    "title": "Graalvm Could not resolve matching constructor on bean class [org.springframework.security.authentication.AuthenticationManager]",
+    "body": "<p>An error will be reported when executed after successful packaging through graalvm</p>\n<p>my config:</p>\n<pre><code>    @Bean\n    @Primary\n    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {\n        return http.getSharedObject(AuthenticationManagerBuilder.class)\n                .authenticationProvider(daoAuthenticationProvider())\n                .authenticationProvider(emailAuthenticationProvider())\n\n                .authenticationProvider(oAuthClientAuthenticationProvider())\n\n                .authenticationProvider(rememberMeAuthenticationProvider())\n\n                .authenticationProvider(oneTimeTokenAuthenticationProvider())\n\n                .authenticationProvider(refreshAuthenticationProvider())\n\n                .authenticationProvider(apikeyAuthenticationProvider())\n                .parentAuthenticationManager(null)\n                .build();\n    }\n</code></pre>\n<p>When I'm running：</p>\n<pre><code>Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'authenticationManager': Could not resolve matching constructor on bean class [org.springframework.security.authentication.AuthenticationManager] (hint: specify index/type/name arguments for simple parameters to avoid type ambiguities. You should also check the consistency of arguments when mixing indexed and named arguments, especially in case of bean definition inheritance)\n        at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:291)\n</code></pre>\n<p>I read the official documentation and made some changes：</p>\n<pre><code>@Configuration\n@ImportRuntimeHints(ApiRuntimeHintsConfig.class)\npublic class ApiRuntimeHintsConfig implements RuntimeHintsRegistrar {\n    @Override\n    public void registerHints(RuntimeHints hints, ClassLoader classLoader) {\n        //反射\n        hints.reflection().registerType(ProviderManager.class,typeHint -&gt; typeHint.withConstructor(TypeReference.listOf(AuthenticationProvider.class), ExecutableMode.INVOKE ));\n        //资源\n        hints.resources().registerPattern(&quot;config/application.yaml&quot;);\n    }\n}\n</code></pre>\n<p>but it didn't work。</p>\n<p>Then I read the documentation about spring aot again, but didn't find any useful configuration <a href=\"https://docs.spring.io/spring-boot/docs/3.2.4/reference/html/native-image.html\" rel=\"nofollow noreferrer\">spring aot</a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

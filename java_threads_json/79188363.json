@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-flink",
+      "flink-streaming"
+    ],
+    "owner": {
+      "account_id": 9178252,
+      "reputation": 123,
+      "user_id": 6823114,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/7a4a1736a527d0f9b2b0ecc3f4b4fbcc?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Baal",
+      "link": "https://stackoverflow.com/users/6823114/baal"
+    },
+    "is_answered": true,
+    "view_count": 315,
+    "accepted_answer_id": 79220049,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1732901330,
+    "creation_date": 1731580360,
+    "last_edit_date": 1732027862,
+    "question_id": 79188363,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79188363/flink-classloader-cannot-be-null-kryo",
+    "title": "Flink classLoader cannot be null Kryo",
+    "body": "<p>I work with Flink 1.18.1 Java 11. One of my pipelines after around 30 minutes start getting into crash loop. In the TaskManager i can see log:</p>\n<pre><code>Exception in thread &quot;Thread-21&quot; java.lang.IllegalArgumentException: classLoader cannot be null.\n        at com.esotericsoftware.kryo.Kryo.setClassLoader(Kryo.java:975)\n        at org.apache.flink.api.java.typeutils.runtime.kryo.KryoSerializer.checkKryoInitialized(KryoSerializer.java:553)\n        at org.apache.flink.api.java.typeutils.runtime.kryo.KryoSerializer.deserialize(KryoSerializer.java:394)\n        at org.apache.flink.api.common.typeutils.CompositeSerializer.deserialize(CompositeSerializer.java:156)\n        at org.apache.flink.contrib.streaming.state.ttl.RocksDbTtlCompactFiltersManager$ListElementFilter.nextElementLastAccessTimestamp(RocksDbTtlCompactFiltersManager.java:205)\n        at org.apache.flink.contrib.streaming.state.ttl.RocksDbTtlCompactFiltersManager$ListElementFilter.nextUnexpiredOffset(RocksDbTtlCompactFiltersManager.java:191)\n#\n# A fatal error has been detected by the Java Runtime Environment:\n#\n#  SIGSEGV (0xb) at pc=0x00007fc338f944bf, pid=1, tid=388\n#\n# JRE version: OpenJDK Runtime Environment Temurin-11.0.23+9 (11.0.23+9) (build 11.0.23+9)\n# Java VM: OpenJDK 64-Bit Server VM Temurin-11.0.23+9 (11.0.23+9, mixed mode, sharing, tiered, compressed oops, g1 gc, linux-amd64)\n# Problematic frame:\n# V  [libjvm.so+0x7944bf]  Exceptions::_throw_oop(Thread*, char const*, int, oopDesc*)+0x15f\n#\n# Core dump will be written. Default location: /opt/flink/core.1\n#\n# An error report file with more information is saved as:\n# /opt/flink/hs_err_pid1.log\n#\n# If you would like to submit a bug report, please visit:\n#   https://github.com/adoptium/adoptium-support/issues\n#\n</code></pre>\n<p>Can't find a solution for this, any ideas?</p>\n<p>@Update\nThe relevant part of hs_err_pid1.log:</p>\n<pre><code>\nCurrent thread (0x00007f476002d800):  JavaThread &quot;Thread-21&quot; [_thread_in_vm, id=407, stack(0x00007f46a48d4000,0x00007f46a50d4000)]\n\nStack: [0x00007f46a48d4000,0x00007f46a50d4000],  sp=0x00007f46a50d0f10,  free space=8179k\nNative frames: (J=compiled Java code, A=aot compiled Java code, j=interpreted, Vv=VM code, C=native code)\nV  [libjvm.so+0x7944bf]  Exceptions::_throw_oop(Thread*, char const*, int, oopDesc*)+0x15f\nV  [libjvm.so+0x95a8ac]  jni_Throw+0x8c\nC  [librocksdbjni-linux64.so+0x222ce1]  JavaListElementFilter::NextUnexpiredOffset(rocksdb::Slice const&amp;, long, long) const+0x121\nC  [librocksdbjni-linux64.so+0x648941]  rocksdb::flink::FlinkCompactionFilter::ListDecide(rocksdb::Slice const&amp;, std::string*) const+0x81\nC  [librocksdbjni-linux64.so+0x648de7]  rocksdb::flink::FlinkCompactionFilter::FilterV2(int, rocksdb::Slice const&amp;, rocksdb::CompactionFilter::ValueType, rocksdb::Slice const&amp;, std::string*, std::string*) const+0xc7\nC  [librocksdbjni-linux64.so+0x2d0b74]  rocksdb::CompactionIterator::InvokeFilterIfNeeded(bool*, rocksdb::Slice*)+0x914\nC  [librocksdbjni-linux64.so+0x2d24a5]  rocksdb::CompactionIterator::NextFromInput()+0x3c5\nC  [librocksdbjni-linux64.so+0x2d4911]  rocksdb::CompactionIterator::SeekToFirst()+0x11\nC  [librocksdbjni-linux64.so+0x2dd2be]  rocksdb::CompactionJob::ProcessKeyValueCompaction(rocksdb::CompactionJob::SubcompactionState*)+0x55e\nC  [librocksdbjni-linux64.so+0x2de668]  rocksdb::CompactionJob::Run()+0x278\nC  [librocksdbjni-linux64.so+0x33cec4]  rocksdb::DBImpl::BackgroundCompaction(bool*, rocksdb::JobContext*, rocksdb::LogBuffer*, rocksdb::DBImpl::PrepickedCompaction*, rocksdb::Env::Priority)+0x1084\nC  [librocksdbjni-linux64.so+0x3407e7]  rocksdb::DBImpl::BackgroundCallCompaction(rocksdb::DBImpl::PrepickedCompaction*, rocksdb::Env::Priority)+0xd7\nC  [librocksdbjni-linux64.so+0x340dda]  rocksdb::DBImpl::BGWorkCompaction(void*)+0x3a\nC  [librocksdbjni-linux64.so+0x5e5744]  rocksdb::ThreadPoolImpl::Impl::BGThread(unsigned long)+0x254\nC  [librocksdbjni-linux64.so+0x5e58ed]  rocksdb::ThreadPoolImpl::Impl::BGThreadWrapper(void*)+0x5d\n\n\nsiginfo: si_signo: 11 (SIGSEGV), si_code: 1 (SEGV_MAPERR), si_addr: 0x0000000000000000\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

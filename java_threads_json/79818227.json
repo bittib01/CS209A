@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-data-jpa"
+    ],
+    "owner": {
+      "account_id": 7081817,
+      "reputation": 11,
+      "user_id": 5431001,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/875c3a8796ce9c90a2dbcb49f3bf8997?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Rorschach",
+      "link": "https://stackoverflow.com/users/5431001/rorschach"
+    },
+    "is_answered": false,
+    "view_count": 80,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1763136538,
+    "creation_date": 1762979571,
+    "question_id": 79818227,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79818227/why-is-spring-attempting-to-use-a-read-only-transaction-when-i-explicitly-reques",
+    "title": "Why is Spring attempting to use a read-only transaction when I explicitly requested a new write transaction?",
+    "body": "<p>I have a service method that performs the following operations in sequence:</p>\n<ol>\n<li><p>Calls a read method annotated with a custom read-only transaction annotation (equivalent to <code>@Transactional(readOnly = true)</code>)</p>\n</li>\n<li><p>Then calls a write method annotated with a custom annotation that should create a new transaction (equivalent to <code>@Transactional(propagation = Propagation.REQUIRES_NEW)</code>)</p>\n</li>\n</ol>\n<p>I'm getting this error:</p>\n<pre><code>[ERROR: cannot execute UPDATE in a read-only transaction]\n</code></pre>\n<p>Exemple: thanks @Robert</p>\n<pre><code>// Service class with transactional methods\n@Service\npublic class UserService {\n    \n    @Autowired\n    private UserRepository userRepository;\n    \n    // Read-only transaction\n    @Transactional(readOnly = true)\n    public User findUserById(Long id) {\n        return userRepository.findById(id).orElse(null);\n    }\n    \n    // Write transaction with REQUIRES_NEW\n    @Transactional(propagation = Propagation.REQUIRES_NEW)\n    public User updateUser(User user) {\n        return userRepository.save(user);\n    }\n}\n\n// Orchestrator service\n@Service\npublic class UserOrchestrationService {\n    \n    @Autowired\n    private UserService userService;\n    \n    @Autowired\n    private NotificationService notificationService;\n    \n    // No transaction annotation on this method\n    public void processUserUpdate(Long userId, String newEmail) {\n        // Step 1: Read user with READ-ONLY transaction\n        User existingUser = userService.findUserById(userId);\n        \n        if (existingUser == null) {\n            throw new RuntimeException(&quot;User not found&quot;);\n        }\n        \n        // Step 2: Modify user data\n        existingUser.setEmail(newEmail);\n        existingUser.setLastModified(new Date());\n        \n        // Step 3: Save with REQUIRES_NEW transaction - FAILS HERE!\n        User updatedUser = userService.updateUser(existingUser);\n        \n        // Step 4: Send notification\n        notificationService.sendUpdateNotification(updatedUser);\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

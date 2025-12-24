@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "javabeans",
+      "feign"
+    ],
+    "owner": {
+      "account_id": 8056132,
+      "reputation": 401,
+      "user_id": 6073219,
+      "user_type": "registered",
+      "accept_rate": 80,
+      "profile_image": "https://www.gravatar.com/avatar/e746f335363b80c443a3b206851f4970?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Ryley38",
+      "link": "https://stackoverflow.com/users/6073219/ryley38"
+    },
+    "is_answered": false,
+    "view_count": 159,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1755360434,
+    "creation_date": 1755181549,
+    "last_edit_date": 1755185398,
+    "question_id": 79735538,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79735538/preauthorize-failed-to-evaluate-spel-when-expression-is-a-method-from-an-extern",
+    "title": "@PreAuthorize Failed to evaluate SPeL when expression is a method from an external package",
+    "body": "<p>My microservice depends on an <strong>external package</strong> responsible for securing endpoints.\nThat package uses <strong>Feign</strong> to communicate with another microservice.</p>\n<p>I’m trying to secure a dummy endpoint using <code>@PreAuthorize</code>, but the expression isn’t being recognized.\nI suspected that the relevant dependencies weren’t being scanned, but maybe I am missing a config.</p>\n<pre><code>{\n  &quot;type&quot;: &quot;https://www.jhipster.tech/problem/problem-with-message&quot;,\n  &quot;title&quot;: &quot;Internal Server Error&quot;,\n  &quot;status&quot;: 500,\n  &quot;detail&quot;: &quot;Failed to evaluate expression '@myAuthorizationService.myMethod(#projectId, #reverseProxyHeader)'&quot;,\n  &quot;path&quot;: &quot;/my-API/test-preauthorize/688doomyID314a3a&quot;,\n  &quot;message&quot;: &quot;error.http.500&quot;\n}\n</code></pre>\n<p><strong>Main application class</strong></p>\n<pre><code>@SpringBootApplication\n@ComponentScan({ &quot;my.main.app&quot;, &quot;my.package&quot; })\npublic class MainApplication {...}\n</code></pre>\n<p><strong>Feign Configuration</strong></p>\n<pre><code>@Configuration\n@EnableFeignClients(basePackages = { &quot;my.main.app&quot;, &quot;my.package&quot; })\n@Import(FeignClientsConfiguration.class)\npublic class FeignConfiguration {...}\n</code></pre>\n<p><strong>Doomy securized endpoint</strong></p>\n<pre><code>@GetMapping(&quot;observations/test-preauthorize/{projectId}&quot;)\n@PreAuthorize(&quot;@myAuthorizationService.isProjectExecuteQuery(#projectId, #reverseProxyHeader)&quot;)\npublic void testPreauthorize(\n    @RequestHeader(name = &quot;traefik&quot;, required = false, defaultValue = &quot;false&quot;) Boolean reverseProxyHeader,\n    @PathVariable(name = &quot;projectId&quot;) String projectId\n) {...}\n</code></pre>\n<p>}</p>\n<p><strong>MyAuthorizationService</strong> (in package)</p>\n<pre><code>@Service(&quot;myAuthorizationService&quot;)\npublic class MyAuthorizationService {...}\n</code></pre>\n<p>The service needs 2 dependencies injected via constructor. There are interfaces.</p>\n<p><strong>UPDATED 1</strong></p>\n<p><strong>StackTrace</strong></p>\n<pre><code>        at java.base/java.lang.Thread.run(Unknown Source)   \n    Caused by: org.springframework.expression.spel.SpelEvaluationException: EL1058E: A problem occurred when trying to resolve bean 'authorizationService':'Could not resolve bean reference against BeanFactory'    \n        at org.springframework.expression.spel.ast.BeanReference.getValueInternal(BeanReference.java:59)  \n        at org.springframework.expression.spel.ast.CompoundExpression.getValueRef(CompoundExpression.java:55)    \n        at org.springframework.expression.spel.ast.CompoundExpression.getValueInternal(CompoundExpression.java:91)    \n        at org.springframework.expression.spel.ast.SpelNodeImpl.getTypedValue(SpelNodeImpl.java:117)\n        at org.springframework.expression.spel.standard.SpelExpression.getValue(SpelExpression.java:308)    \n        at org.springframework.security.access.expression.ExpressionUtils.evaluateAsBoolean(ExpressionUtils.java:30)    \n        ... 131 common frames omitted    \n    Caused by: org.springframework.expression.AccessException: Could not resolve bean reference against BeanFactory    \n        at org.springframework.context.expression.BeanFactoryResolver.resolve(BeanFactoryResolver.java:54)    \n        at org.springframework.expression.spel.ast.BeanReference.getValueInternal(BeanReference.java:55)    \n        ... 136 common frames omitted    \n    Caused by: org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named 'authorizationService' available    \n        at org.springframework.beans.factory.support.DefaultListableBeanFactory.getBeanDefinition(DefaultListableBeanFactory.java:863)    \n        at org.springframework.beans.factory.support.AbstractBeanFactory.getMergedLocalBeanDefinition(AbstractBeanFactory.java:1344)    \n        at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:309)    \n        at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:283)    \n        at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:208)    \n        at org.springframework.context.support.AbstractApplicationContext.getBean(AbstractApplicationContext.java:1154)    \n        at org.springframework.context.expression.BeanFactoryResolver.resolve(BeanFactoryResolver.java:51)    \n        ... 137 common frames omitted\n</code></pre>\n<p><strong>UPDATED 2</strong></p>\n<p>The package was not properly scanned because of a typo.\nIt leads to an error of a missing bean of a MongoRepository.\nI am fixing it using <code>@EnableMongoRepositories</code> pointing to the correct package. However I still have the following error:</p>\n<pre><code>Parameter 1 of constructor in my.package.authorization.service.AuthorizationService required a bean named 'mongoTemplate' that could not be found.\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

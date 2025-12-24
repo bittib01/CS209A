@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "testing",
+      "junit",
+      "mockito"
+    ],
+    "owner": {
+      "account_id": 10642398,
+      "reputation": 7588,
+      "user_id": 7836976,
+      "user_type": "registered",
+      "accept_rate": 95,
+      "profile_image": "https://www.gravatar.com/avatar/a57c0f1a2af768690957df659cc28f0f?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "runnerpaul",
+      "link": "https://stackoverflow.com/users/7836976/runnerpaul"
+    },
+    "is_answered": false,
+    "view_count": 186,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1742991255,
+    "creation_date": 1742575799,
+    "last_edit_date": 1742991255,
+    "question_id": 79526114,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79526114/test-failing-with-java-lang-nullpointerexception-cannot-invoke-org-springframe",
+    "title": "Test failing with java.lang.NullPointerException: Cannot invoke &quot;org.springframework.http.ResponseEntity.getBody()&quot; because &quot;response&quot; is null",
+    "body": "<p>I have this method:</p>\n<pre class=\"lang-none prettyprint-override\"><code>@Override\npublic EntityModel&lt;TokenResponse&gt; getToken() throws JsonProcessingException {\n    UriComponentsBuilder url =\n            UriComponentsBuilder.fromHttpUrl(oauthUrl);\n\n    ResponseEntity&lt;EntityModel&lt;TokenResponse&gt;&gt; response =\n            restTemplate.exchange(\n                    url.toUriString(),\n                    HttpMethod.POST,\n                    buildRequest(),\n                  new ParameterizedTypeReference&lt;EntityModel&lt;TokenResponse&gt;&gt;() {});\n\n    return response.getBody();\n}\n</code></pre>\n<p>I'm trying to test it with this class:</p>\n<pre class=\"lang-none prettyprint-override\"><code>@RunWith(SpringRunner.class)\n@SpringBootTest(\n        classes = Application.class,\n        properties = {Config.PROFILE_TEST_PROP},\n        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)\n@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)\npublic class OauthTokenRetrieverTest {\n\n    @InjectMocks OauthTokenRetriever oauthTokenRetriever;\n\n    @Mock\n    private RestTemplate restTemplate;\n\n    @Autowired\n    private WebApplicationContext wac;\n\n    private OauthTokenResponse oauthTokenResponse;\n\n    @Before\n    public void setUp() throws Exception {\n        ReflectionTestUtils.setField(\n                oauthTokenRetriever, &quot;oauthUrl&quot;, &quot;https://nowhere/oauthaccess/token&quot;);\n        ReflectionTestUtils.setField(\n                oauthTokenRetriever, &quot;oauthGrantType&quot;, &quot;client_credentials&quot;);\n        ReflectionTestUtils.setField(\n                oauthTokenRetriever, &quot;oauthUsername&quot;, &quot;TestUser&quot;);\n        ReflectionTestUtils.setField(\n                oauthTokenRetriever, &quot;oauthPassword&quot;, &quot;testpass&quot;);\n\n    @Test\n    public void testGetToken() throws JsonProcessingException {\n        OauthTokenResponse oauthTokenResponse = buildOauthTokenResponse();\n\n        doReturn(new ResponseEntity&lt;&gt;(oauthTokenResponse, HttpStatus.OK))\n                .when(restTemplate)\n                .exchange(contains(&quot;/oauthaccess/token&quot;), eq(HttpMethod.POST), any(HttpEntity.class), eq(OauthTokenResponse.class));\n        EntityModel&lt;OauthTokenResponse&gt; result = oauthTokenRetriever.getoToken();\n\n        assertEquals(result.getContent().getAccessToken(), &quot;ABC123&quot;);\n        assertEquals(result.getContent().getTokenType(), &quot;BEARER&quot;);\n        assertEquals(result.getContent().getExpiresIn(), &quot;3600&quot;);\n    }\n\n    private OauthTokenResponse buildOauthTokenResponse() {\n        OauthTokenResponse oauthTokenResponse = new OauthTokenResponse();\n        oauthTokenResponse.setAccessToken(&quot;ABC123&quot;);\n        oauthTokenResponse.setTokenType(&quot;BEARER&quot;);\n        oauthTokenResponse.setExpiresIn(&quot;3600&quot;);\n        return oauthTokenResponse;\n    }\n}\n</code></pre>\n<p>My test fails with this error:</p>\n<blockquote>\n<p>java.lang.NullPointerException: Cannot invoke &quot;org.springframework.http.ResponseEntity.getBody()&quot; because &quot;response&quot; is null</p>\n</blockquote>\n<p>I think I need to mock <code>response</code> in some way but I'm not sure how. Can anyone advise is my thoughts are correct and if so, how do I go about it?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jvm"
+    ],
+    "owner": {
+      "account_id": 18321667,
+      "reputation": 367,
+      "user_id": 13342296,
+      "user_type": "registered",
+      "profile_image": "https://lh4.googleusercontent.com/-VglBQzEgkCs/AAAAAAAAAAI/AAAAAAAAAAA/AAKWJJOZZbpLtkXS93ea7vvjFwVs6ky8Yg/s256-rj/photo.jpg",
+      "display_name": "bbnt",
+      "link": "https://stackoverflow.com/users/13342296/bbnt"
+    },
+    "is_answered": true,
+    "view_count": 91,
+    "accepted_answer_id": 79456173,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1740100903,
+    "creation_date": 1740080628,
+    "question_id": 79455665,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79455665/java-implementing-non-empty-finalize-makes-cleaner-never-run",
+    "title": "Java: Implementing non-empty finalize() makes cleaner never run",
+    "body": "<p>I'm implementing a JNI wrapper class that cleans up native handles. We need to support Java 8-17, so we're using both finalize (for Java 8) and Cleaner (for Java 9+). I'm going to load the cleaner via reflection and only fallback to the finalize method when its java 8 so only one will be executed. However, I'm seeing unexpected behavior when implementing that in the same class.</p>\n<p>If finalize() is empty, the Cleaner runs as expected. But if finalize() contains any code (even just a System.out.println), the Cleaner never runs. Why does this happen?</p>\n<p>Here's a minimal example. If the println is commented out, it passes. If not, it fails</p>\n<pre><code>public abstract class Cleanable {\n    private static final Cleaner cleaner = Cleaner.create();\n    private final Cleaner.Cleanable cleanable;\n    private Runnable cleanAction;\n\n    public Cleanable(Runnable inputCleanAction) {\n        cleanable = cleaner.register(this, inputCleanAction);\n        this.cleanAction = inputCleanAction;\n    }\n\n    @Override\n    public void finalize() throws Throwable {\n        \\\\ System.out.println(&quot;finalize called&quot;);\n    }\n}\n</code></pre>\n<pre><code>AtomicInteger cleaned = new AtomicInteger(0);\n{\n    Cleanable cleanable = new Cleanable(() -&gt; cleaned.incrementAndGet()) {};\n    cleanable = null;\n}\nSystem.gc();\nThread.sleep(1000);\n\nAssert.assertEquals(1, cleaned.get());\n</code></pre>\n<p>Holding the reference to the cleanAction as an instance variable is not the problem because this code works as long as the finalize body is empty. As soon as I do anything inside of finalize, it fails.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

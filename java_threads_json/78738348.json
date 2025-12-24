@@ -1,0 +1,37 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "keycloak",
+      "access-token",
+      "http-status-code-401"
+    ],
+    "owner": {
+      "account_id": 51988,
+      "reputation": 571,
+      "user_id": 155341,
+      "user_type": "registered",
+      "accept_rate": 29,
+      "profile_image": "https://www.gravatar.com/avatar/fd7717e03c292b26512867007d740a32?s=256&d=identicon&r=PG",
+      "display_name": "Jim P",
+      "link": "https://stackoverflow.com/users/155341/jim-p"
+    },
+    "is_answered": true,
+    "view_count": 1909,
+    "accepted_answer_id": 78742682,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1736847465,
+    "creation_date": 1720751681,
+    "last_edit_date": 1736847465,
+    "question_id": 78738348,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78738348/keycloak-account-api-returns-unauthorized-401-with-token-from-user-logged-in-via",
+    "title": "Keycloak Account API returns Unauthorized 401 with token from user logged in via my spring client",
+    "body": "<p>I think the client I added for spring security is missing something that the built-in admin client uses when you visit the <a href=\"http://0.0.0.0:8080/realms/testrealm/account/\" rel=\"nofollow noreferrer\">http://0.0.0.0:8080/realms/testrealm/account/</a> manually and login - chrome dev tools shows the same type of get call working just fine with that bearer token. Rather than use a service account to call the admin API, I'd rather try to use the account API with the token I already have for the logged in user.  This seems like better principle of least security since I only need to get/update current user's profile info.</p>\n<p>What is the key difference between my spring boot app's client using spring security standard Authorization Code Flow to store the logged in user's token in the security context and however the built-in keycloak &quot;account&quot; client which seems to also have the same standard auth code flow which lets the users login, but it's tokens don't get 401 and mine do..??</p>\n<p>If it helps, here's the code I'm using to grab the token and make the account GET call with it, but I think the issue is somehow with my realm / client config.  I tried copying the role 'view-profile' but I don't see how that matters - looks like just a string label.</p>\n<p>What am I missing? This is keycloak 24.0.0 running locally.</p>\n<pre><code>import jakarta.ws.rs.core.MediaType;\nimport jakarta.ws.rs.core.Response;\nimport org.keycloak.admin.client.Keycloak;\nimport org.keycloak.admin.client.spi.ResteasyClientProvider;\nimport org.keycloak.representations.idm.UserRepresentation;\nimport org.springframework.beans.factory.annotation.Value;\nimport org.springframework.http.HttpHeaders;\nimport org.springframework.security.core.Authentication;\nimport org.springframework.security.core.context.SecurityContextHolder;\nimport org.springframework.security.oauth2.core.oidc.user.OidcUser;\nimport org.springframework.stereotype.Service;\nimport org.jboss.resteasy.client.jaxrs.*;\n\n\n@Service\npublic class KeycloakUserService {\n\n    @Value(&quot;${keycloak.auth-server-url}&quot;)\n    private String serverUrl;\n    @Value(&quot;${keycloak.realm}&quot;)\n    private String realm;\n\n    public UserRepresentation getCurrentUser() {\n        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();\n        OidcUser oidcUser = (OidcUser) authentication.getPrincipal();\n        String accessToken = oidcUser.getIdToken().getTokenValue();\n        String userId = oidcUser.getSubject();\n        String url = serverUrl + &quot;/realms/{realm}/account/&quot;;\n\n        ResteasyClientProvider clientProvider = Keycloak.getClientProvider();\n        ResteasyClient client = (ResteasyClient) clientProvider.newRestEasyClient(null, null, false);\n        ResteasyWebTarget target = client.target(url).resolveTemplate(&quot;realm&quot;, realm);\n\n        System.out.println(&quot;URL: &quot; + url);\n\n        Response response = target.request(MediaType.APPLICATION_JSON)\n                .header(HttpHeaders.AUTHORIZATION, &quot;Bearer &quot; + accessToken)\n                .property(&quot;userProfileMetadata&quot;,&quot;true&quot;)\n                .get();\n\n        if (response.getStatus() == 200) {\n            return response.readEntity(UserRepresentation.class);\n        } else {\n            // Handle errors appropriately\n            System.out.println(&quot;Error: &quot; + response.getStatus());\n            String errorMessage = response.readEntity(String.class);\n            System.out.println(&quot;Error Message: &quot; + errorMessage);\n            return null;\n        }\n\n    }\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

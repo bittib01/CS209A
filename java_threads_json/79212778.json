@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "little-proxy"
+    ],
+    "owner": {
+      "account_id": 1956083,
+      "reputation": 5433,
+      "user_id": 1759063,
+      "user_type": "registered",
+      "accept_rate": 53,
+      "profile_image": "https://i.sstatic.net/hJfRp.jpg?s=256",
+      "display_name": "Eljah",
+      "link": "https://stackoverflow.com/users/1759063/eljah"
+    },
+    "is_answered": true,
+    "view_count": 60,
+    "accepted_answer_id": 79212779,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1732219434,
+    "creation_date": 1732219434,
+    "question_id": 79212778,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79212778/how-to-make-littleproxy-to-cut-off-the-half-of-the-http-responses-body",
+    "title": "How to make LittleProxy to cut off the half of the HTTP response&#39;s body?",
+    "body": "<p>I have the <code>LittleProxy</code> sample, that is used for replacing the response's HTTP headers when it is intercepted and sent back:</p>\n<p>package com.example.proxy;</p>\n<p>in pom.xml we have the dependency:</p>\n<pre><code>    &lt;dependency&gt;\n        &lt;groupId&gt;org.littleshoot&lt;/groupId&gt;\n        &lt;artifactId&gt;littleproxy&lt;/artifactId&gt;\n        &lt;version&gt;1.1.2&lt;/version&gt;\n    &lt;/dependency&gt;\n</code></pre>\n<p>and then the classes. The main class:</p>\n<pre><code>import org.littleshoot.proxy.HttpProxyServer;\nimport org.littleshoot.proxy.HttpProxyServerBootstrap;\nimport org.littleshoot.proxy.extras.SelfSignedMitmManager;\nimport org.littleshoot.proxy.impl.DefaultHttpProxyServer;\n\npublic class LittleProxyExample {\n\n    public static void main(String[] args) {\n        // Настраиваем и запускаем прокси-сервер\n        HttpProxyServer proxyServer = org.littleshoot.proxy.impl.DefaultHttpProxyServer.bootstrap()\n                .withPort(8081) // Указываем порт, на котором будет работать прокси\n                .withManInTheMiddle(new SelfSignedMitmManager()) // Добавляем обработчик запросов\n                .withFiltersSource(new RequestInterceptor())\n                .start();\n\n        System.out.println(&quot;Proxy server started on port 8081&quot;);\n    }\n}\n</code></pre>\n<p>And the interceptor:</p>\n<pre><code>package com.example.proxy;\n\nimport io.netty.buffer.CompositeByteBuf;\nimport io.netty.buffer.Unpooled;\nimport io.netty.handler.codec.DecoderResult;\nimport io.netty.handler.codec.http.*;\nimport io.netty.util.CharsetUtil;\nimport org.littleshoot.proxy.HttpFiltersAdapter;\nimport org.littleshoot.proxy.HttpFiltersSourceAdapter;\n\nimport java.nio.charset.StandardCharsets;\n\npublic class RequestInterceptor extends HttpFiltersSourceAdapter {\n\n    @Override\n    public HttpFiltersAdapter filterRequest(HttpRequest originalRequest) {\n        return new HttpFiltersAdapter(originalRequest) {\n\n            @Override\n            public HttpResponse clientToProxyRequest(HttpObject httpObject) {\n                if (httpObject instanceof HttpRequest) {\n                    HttpRequest request = (HttpRequest) httpObject;\n\n                    // replace the header\n                    request.headers().set(&quot;User-Agent&quot;, &quot;LittleProxy/Example&quot;);\n\n                    // logging the query\n                    System.out.println(&quot;Modified Request: &quot; + request.uri());\n                }\n                return null; // going ahead\n            }\n\n            @Override\n            public HttpObject serverToProxyResponse(HttpObject httpObject) {\n                // updating headers of the response here\n\n                HttpResponse response = (HttpResponse) httpObject;\n                response.headers().set(&quot;Test&quot;, &quot;Test&quot;);\n\n                return super.serverToProxyResponse(response);\n            }\n        };\n    }\n\n    @Override\n    public int getMaximumRequestBufferSizeInBytes() {\n        return 10 * 1024 * 1024; \n    }\n\n    @Override\n    public int getMaximumResponseBufferSizeInBytes() {\n        return 10 * 1024 * 1024; \n    }\n}\n</code></pre>\n<p>So I'd like to cut the second half of the response data off (to test some client in order will it crash on the response with the broken structure). Also I'd like to apply this cut only for the specific URI of the reuest from the client to the server. And <code>HttpResponse</code> object doesn't have any API for that.</p>\n<p>How can I get it?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

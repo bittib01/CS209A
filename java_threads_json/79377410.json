@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "db2",
+      "sql-merge"
+    ],
+    "owner": {
+      "account_id": 28604857,
+      "reputation": 21,
+      "user_id": 21901015,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AGNmyxa-6D4EUHFRkIFpz0vf8I2QP647mxJ98yhmg0au=k-s256",
+      "display_name": "Jess N",
+      "link": "https://stackoverflow.com/users/21901015/jess-n"
+    },
+    "is_answered": false,
+    "view_count": 65,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1738659465,
+    "creation_date": 1737542558,
+    "question_id": 79377410,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79377410/merge-statement-with-date-for-db2",
+    "title": "Merge statement with Date for DB2",
+    "body": "<p>I have tried to fix this for several ways, both by binding as String, Date and now by omitting the Date from the binding.</p>\n<p>Please see the code block below which illustrate the example where I have omitted the date from the binding.</p>\n<pre><code>        String updateSql = &quot;&quot;&quot;\n            MERGE INTO MyTable AS mt USING (\n                SELECT * FROM TABLE (\n                    VALUES \n                        (?, ?, ?, %s)\n                )\n            ) AS vt(col1, col2, col3, col4) ON (\n                mt.col1 = vt.col1,\n                mt.col4 = vt.col4 -- date field\n            )\n            WHEN MATCHED THEN\n                UPDATE SET col1 = vt.col1,\n                  col2 = vt.col2,\n                  col3 = vt.col3,\n                  col4 = vt.col4 -- date field\n            WHEN NOT MATCHED THEN\n                INSERT (\n                    col1,\n                    col2,\n                    col3,\n                    col4, -- date field\n                ) VALUES (\n                    vt.col1,\n                    vt.col2,\n                    vt.col3,\n                    vt.col4, -- date field\n                )\n        &quot;&quot;&quot;;\n\n        try {\n            String sql = String.format(\n              updateSql, \n              String.format(&quot;{d '%s'}&quot;, LocalDate.now().format(DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd&quot;)))\n            );\n            java.sql.Connection connection = em.unwrap(java.sql.Connection.class);\n            PreparedStatement prepStatement = connection.prepareStatement(sql);\n            for(List item : items){\n                prepStatement.setLong(1, item.col1());\n                prepStatement.setLong(2, item.col2());\n                prepStatement.setLong(3, item.col3());\n                prepStatement.addBatch();\n            }\n            prepStatement.executeBatch();\n        } catch (SQLException e) {\n        }\n</code></pre>\n<p>Whatever I try, I always get the error message/exception:</p>\n<p><code>com.ibm.db2.jcc.am.SqlSyntaxErrorException: DB2 SQL Error: SQLCODE=-104, SQLSTATE=42601, SQLERRMC=WHEN;vt.col4</code></p>\n<p>I hope for a soon reply on this.</p>\n<p>Thanks in advance</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

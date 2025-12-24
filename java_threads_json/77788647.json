@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "sql",
+      "azure-sql-database",
+      "jdbctemplate"
+    ],
+    "owner": {
+      "account_id": 1763623,
+      "reputation": 322,
+      "user_id": 1610044,
+      "user_type": "registered",
+      "accept_rate": 9,
+      "profile_image": "https://www.gravatar.com/avatar/4928a0b2878d9c53eca15bbb8c732ce4?s=256&d=identicon&r=PG",
+      "display_name": "rand",
+      "link": "https://stackoverflow.com/users/1610044/rand"
+    },
+    "is_answered": true,
+    "view_count": 119,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1721915057,
+    "creation_date": 1704821324,
+    "last_edit_date": 1721915057,
+    "question_id": 77788647,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77788647/conversion-failed-when-converting-from-a-character-string-to-uniqueidentifier-fr",
+    "title": "Conversion failed when converting from a character string to uniqueidentifier from a stored procedure in SQL database",
+    "body": "<p>Getting below error when I connect a stored procedure using JDBC template in my Spring boot application. Error getting only for the <code>accIds</code> parameter</p>\n<blockquote>\n<p>Resolved [org.springframework.jdbc.UncategorizedSQLException: CallableStatementCallback;<br />\nuncategorized SQLException for SQL [{call prc_Test(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}]; SQL state [S0002]; error code [8169]; Conversion failed when converting from a character string to uniqueidentifier.]</p>\n</blockquote>\n<p>Code:</p>\n<pre><code>String aa= &quot;aa95dc9c-0c75, b96bc70b-858e&quot;;\nSimpleJdbcCall simpleJdbcCall = new SimpleJdbcCall(jdbcTemplate)\n            .withProcedureName(&quot;prc_Test&quot;);\n\nMap&lt;String, Object&gt; inParamMap = new LinkedHashMap&lt;String, Object&gt;();\n//inParamMap.put(&quot;accIds&quot;, lst.stream().collect(Collectors.joining(&quot;,&quot;)));  \ninParamMap.put(&quot;accIds&quot;, aa);\n</code></pre>\n<p>This is the stored procedure in the Azure SQL database:</p>\n<pre><code>CREATE PROCEDURE [dbo].[prc_Test]\n    @accIds varchar(max) = '',\n    @paSize int = 10,\n    @pagecount int =1,\n    @isOpenCases bit =1 ,\n    @comId VARCHAR(MAX)='#',\n    @casestatus VARCHAR(MAX)='#',\nAS\nBEGIN\n    -- .............................\n    \n    FROM c_test2\n    WHERE accIds IN (SELECT CAST(value AS uniqueidentifier) \n                     FROM string_split (@accIds,',') )\n      AND (@comId = '#' OR [test_comp] IN (SELECT VALUE \n                                           FROM string_split (@comId,',')))\n    -- ....................................\n    \n    -- ....................................\n    FROM c_test2\n    WHERE accIds IN (SELECT CAST(value AS uniqueidentifier) \n                     FROM string_split (@accIds,',') )\n      AND (@comId = '#' OR [test_comp] IN (SELECT VALUE \n                                           FROM string_split (@comId,',')))\n    -- ....................................\n    -- ....................................\n    ORDER BY test_data DESC\n        OFFSET (@pagecount-1) * @pagesize ROWS\n        FETCH NEXT @pagesize ROWS ONLY\n\n    RETURN 0\nEND\n</code></pre>\n<p>Any idea why the errors occur?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

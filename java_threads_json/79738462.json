@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-flink",
+      "avro",
+      "confluent-schema-registry"
+    ],
+    "owner": {
+      "account_id": 8283698,
+      "reputation": 1039,
+      "user_id": 6227500,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/e9be78c5f20b91a891a12dab02b23ca7?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "raphaelauv",
+      "link": "https://stackoverflow.com/users/6227500/raphaelauv"
+    },
+    "is_answered": true,
+    "view_count": 132,
+    "accepted_answer_id": 79738988,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1755687282,
+    "creation_date": 1755507522,
+    "last_edit_date": 1755687282,
+    "question_id": 79738462,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79738462/flink-confluentregistryavroserializationschema-not-respecting-registryconfigs",
+    "title": "flink ConfluentRegistryAvroSerializationSchema not respecting registryConfigs",
+    "body": "<p>When I use in Apache Flink the KafkaRecordSerializationSchema with settings for the schema registry serialization , the registryConfigs settings are not taken in account</p>\n<p>settings like</p>\n<p>auto.register.schemas or avro.remove.java.properties</p>\n<pre class=\"lang-java prettyprint-override\"><code>package flink;\n\nimport example.avro.Car;\nimport org.apache.flink.api.common.eventtime.WatermarkStrategy;\nimport org.apache.flink.api.common.serialization.SimpleStringSchema;\nimport org.apache.flink.connector.base.DeliveryGuarantee;\nimport org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;\nimport org.apache.flink.connector.kafka.source.KafkaSource;\nimport org.apache.flink.connector.kafka.sink.KafkaSink;\nimport org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;\nimport org.apache.flink.core.execution.CheckpointingMode;\nimport org.apache.flink.formats.avro.registry.confluent.ConfluentRegistryAvroSerializationSchema;\nimport org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;\n\nimport java.util.Map;\n\nimport static io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig.AUTO_REGISTER_SCHEMAS;\nimport static io.confluent.kafka.serializers.KafkaAvroSerializerConfig.AVRO_REMOVE_JAVA_PROPS_CONFIG;\n\npublic class Jobflink {\n\n  public static void main(String[] args) throws Exception {\n    final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();\n    env.enableCheckpointing(1000);\n    env.getCheckpointConfig().setCheckpointingConsistencyMode(CheckpointingMode.AT_LEAST_ONCE);\n\n    Map&lt;String, String&gt; schema_settings = Map.of(\n      AVRO_REMOVE_JAVA_PROPS_CONFIG, &quot;true&quot;,\n      AUTO_REGISTER_SCHEMAS, &quot;false&quot;\n    );\n\n    KafkaSink&lt;Car&gt; sink = KafkaSink.&lt;Car&gt;builder()\n      .setBootstrapServers(&quot;kafka-local:29092&quot;)\n      .setRecordSerializer(\n        KafkaRecordSerializationSchema.builder()\n          .setValueSerializationSchema(\n            ConfluentRegistryAvroSerializationSchema.forSpecific(\n              Car.class,\n              &quot;toto-value&quot;,\n              &quot;http://confluent-schema-registry-local:8081&quot;,\n              schema_settings))\n          .setTopic(&quot;toto&quot;)\n          .build())\n      .setDeliveryGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)\n      .build();\n\n    env.execute();\n  }\n}\n</code></pre>\n<p>I also tried to set the confluent schema registry settings with setKafkaProducerConfig but it also do not work</p>\n<pre class=\"lang-java prettyprint-override\"><code>Properties properties = new Properties();\nproperties.setProperty(AVRO_REMOVE_JAVA_PROPS_CONFIG, &quot;true&quot;);\nproperties.setProperty(AUTO_REGISTER_SCHEMAS, &quot;false&quot;);\n\nKafkaSink&lt;Car&gt; sink = KafkaSink.&lt;Car&gt;builder()\n  .setBootstrapServers(&quot;kafka-local:29092&quot;)\n  .setKafkaProducerConfig(properties)\n  ...\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

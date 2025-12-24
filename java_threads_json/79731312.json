@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "apache-kafka"
+    ],
+    "owner": {
+      "account_id": 11827466,
+      "reputation": 1698,
+      "user_id": 8655052,
+      "user_type": "registered",
+      "accept_rate": 100,
+      "profile_image": "https://www.gravatar.com/avatar/2a84239167eb54108821e2abe83acea6?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Mr.DevEng",
+      "link": "https://stackoverflow.com/users/8655052/mr-deveng"
+    },
+    "is_answered": false,
+    "view_count": 71,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1754914825,
+    "creation_date": 1754838455,
+    "last_edit_date": 1754914825,
+    "question_id": 79731312,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79731312/caused-by-java-lang-illegalargumentexception-failed-to-load-orderevent-for-or",
+    "title": "Caused by: java.lang.IllegalArgumentException: Failed to load: OrderEvent for OrderEvent Error While consuming Object in Kafka springboot",
+    "body": "<p>Caused by: java.lang.IllegalArgumentException: Failed to load: OrderEvent for OrderEvent Error I am getting while consuming Object type topic in my apache kafka consumer.</p>\n<p>I am trying to implement sample demo for choreographic Saga pattern using springboot and apache kafka based on event passing. I am trying to pass OrderEvent object from producer to consume. But while I am running the consumer , I am getting the above mentioned error</p>\n<p>I am reffering the following links to refer when I got this error. And while reading I got to knew that , this is happening because of mapping need to to explicitly define in my application.properties file</p>\n<p>Reffered links</p>\n<p><a href=\"https://docs.spring.io/spring-kafka/reference/kafka/serdes.html#serdes-mapping-types\" rel=\"nofollow noreferrer\">https://docs.spring.io/spring-kafka/reference/kafka/serdes.html#serdes-mapping-types</a></p>\n<p><a href=\"https://stackoverflow.com/questions/68987866/kafka-consumer-classnotfoundexception\">Kafka consumer ClassNotFoundException</a></p>\n<p>And also adding my application code downside,</p>\n<p><strong>application.properties producer side</strong></p>\n<pre><code>spring.kafka.bootstrap-servers=localhost:9092\nspring.kafka.consumer.group-id=orders-group\nspring.kafka.producer.key-serializer=org.apache.kafka.common.serialization.StringSerializer\nspring.kafka.producer.value-   serializer=org.springframework.kafka.support.serializer.JsonSerializer\nspring.kafka.producer.properties.spring.json.type.mapping=orderEvent:com.order.model.OrderEvent\n</code></pre>\n<p><strong>ProducerService file</strong> code like the following</p>\n<pre><code>    @Autowired \n    private KafkaTemplate&lt;String, OrderEvent&gt; kafkaTemplate;\n\n    OrderEvent orderEvent =  new OrderEvent();\n    orderEvent.oid = orderObj.getOid();\n    orderEvent.pid=orderObj.getPid();\n    orderEvent.quantity=orderObj.getQuantity();\n    orderEvent.mode=orderObj.getMode();\n    kafkaTemplate.send(&quot;order-create-event&quot;, orderEvent);   \n</code></pre>\n<p><strong>Consumer properties file</strong></p>\n<pre><code>spring.kafka.bootstrap-servers=localhost:9092\nspring.kafka.consumer.group-id=orders-group\nspring.kafka.consumer.key-deserializer=org.apache.kafka.common.serialization.StringDeserializer\nspring.kafka.consumer.value-deserializer=org.springframework.kafka.support.serializer.JsonDeserializer\nspring.kafka.consumer.properties.spring.json.trusted.packages=*\nspring.kafka.consumer.properties.spring.json.type.mapping=orderEvent:com.payment.model.OrderEvent \n</code></pre>\n<p><strong>Consumer Controller Code</strong></p>\n<pre><code>@KafkaListener(topics = &quot;order-create-event&quot;, groupId = &quot;orders-group&quot;)\npublic void processOrder(OrderEvent orderEventObj) throws JsonMappingException, JsonProcessingException {\n\n    Carts cartObj = new Carts();            \n    cartObj.setPid(orderEventObj.pid);\n    cartObj.setOid(orderEventObj.oid);\n    cartObj.setStatus(orderEventObj.status);\n    cartObj.setMode(orderEventObj.mode);\n    cartRepo.save(cartObj); \n     // remaining codes\n     }\n</code></pre>\n<p><strong>Error</strong></p>\n<pre><code> `Caused by: org.apache.kafka.common.KafkaException: Failed to construct kafka consumer`\n</code></pre>\n<p><strong>TrubleShooted Method</strong></p>\n<pre><code> By adding\n\n     `spring.kafka.producer.properties.spring.json.type.mapping` \n\nand \n\n `spring.kafka.consumer.properties.spring.json.trusted.packages=*`\n</code></pre>\n<p><strong>Modified Code And Error</strong></p>\n<p>Modified with adding following in producer application.properties</p>\n<p><code>spring.kafka.producer.properties.spring.json.type.mapping=orderEvent:com.order.model.OrderEvent</code></p>\n<p>And added the following with consumer application.properties</p>\n<p><code>spring.kafka.consumer.properties.spring.json.type.mapping=orderEvent:com.payment.model.OrderEvent</code></p>\n<p><a href=\"https://i.sstatic.net/9QnZTP2K.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/9QnZTP2K.png\" alt=\"enter image description here\" /></a></p>\n<p>I recently started to explore springboot with apache kafka, Can anyone suggest where I went wrong in implementation or suggest any documentation to refer to resolve this issue?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

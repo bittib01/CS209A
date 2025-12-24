@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hibernate",
+      "hibernate-criteria",
+      "blaze-persistence",
+      "criteriabuilder"
+    ],
+    "owner": {
+      "account_id": 35991390,
+      "reputation": 3,
+      "user_id": 27510305,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/6156ed6208e7025f7fb9db409e7b17e0?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "fishi",
+      "link": "https://stackoverflow.com/users/27510305/fishi"
+    },
+    "is_answered": true,
+    "view_count": 188,
+    "accepted_answer_id": 79520208,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1742387678,
+    "creation_date": 1742317349,
+    "last_edit_date": 1742381646,
+    "question_id": 79518195,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79518195/how-to-wrap-a-blaze-persistence-query-in-a-subquery-to-filter-by-row-number",
+    "title": "How to Wrap a Blaze Persistence Query in a Subquery to Filter by ROW_NUMBER()?",
+    "body": "<p>I am working on a large project where Blaze Persistence is at its core. Our architecture is complex, and all database operations ultimately rely on a specific Blaze Persistence query that looks like this:</p>\n<pre><code>return criteriaBuilder  \n    .from(entityClass, &quot;entityData&quot;)  \n    .innerJoinOn(ChangeData.class, &quot;changes&quot;)  \n        .on(&quot;changes.id&quot;).eqExpression(&quot;entityData.id&quot;)  \n    .end()  \n    .select(&quot;entityData&quot;)  \n    .select(&quot;ROW_NUMBER() OVER (PARTITION BY changes.id ORDER BY changes.sequence DESC)&quot;, &quot;rn&quot;)  \n    .select(&quot;changes.id&quot;, &quot;changes_id&quot;)  \n    .select(&quot;changes.sequence&quot;)  \n    .selectNew(entityObjectBuilder);\n</code></pre>\n<p>Now, I need to wrap this entire query in a subquery to filter by rn = 1, similar to:</p>\n<pre><code>SELECT * FROM (the_above_cb_sql_output) WHERE rn = 1;\n-- Effectively performing a GROUP BY changes.id using the highest changes.sequence\n</code></pre>\n<hr />\n<p>Using .fromSubquery – It requires manually binding all attributes of entityClass, which is not feasible because the class is provided as input (it’s meant to be generic).\nUsing .fromEntitySubquery – I’m struggling to make this work due to a lack of documentation and examples.\nAttempted Solution:\nI tried using .fromEntitySubquery, but I couldn't get it to work:</p>\n<pre><code>return criteriaBuilder  \n    .fromEntitySubquery(entityClass, &quot;entityDataGroupedById&quot;)  \n    .from(entityClass, &quot;entityData&quot;)  \n    .innerJoinOn(ChangeData.class, &quot;changes&quot;)  \n        .on(&quot;changes.id&quot;).eqExpression(&quot;entityData.id&quot;)  \n    .end()  \n    .where(&quot;rn&quot;).eq(1)  \n    .end()  \n    .select(&quot;entityData&quot;)  \n    .select(&quot;ROW_NUMBER() OVER (PARTITION BY changes.id ORDER BY changes.sequence DESC)&quot;, &quot;rn&quot;)  \n    .select(&quot;changes.id&quot;, &quot;changes_id&quot;)  \n    .select(&quot;changes.sequence&quot;)  \n    .selectNew(entityObjectBuilder);\n</code></pre>\n<p><strong>Question:</strong>\nHow can I wrap my existing Blaze Persistence query in a subquery to filter by ROW_NUMBER() = 1, while keeping it generic (without manually binding all attributes of entityClass)?</p>\n<p>Any guidance or examples would be greatly appreciated!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

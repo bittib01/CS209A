@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "gradle",
+      "javafx",
+      "javafx-gradle-plugin"
+    ],
+    "owner": {
+      "account_id": 8634960,
+      "reputation": 93,
+      "user_id": 6465493,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/6f711af9302c7d2d085616a63248d91e?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "QuasiG",
+      "link": "https://stackoverflow.com/users/6465493/quasig"
+    },
+    "is_answered": true,
+    "view_count": 345,
+    "accepted_answer_id": 78877148,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1725483195,
+    "creation_date": 1723750164,
+    "last_edit_date": 1723753965,
+    "question_id": 78876592,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78876592/cant-find-javafx-dependencies-on-linux",
+    "title": "Cant find javafx dependencies on Linux",
+    "body": "<p>We are using Java 21, JavaFx 21, Gradle 8.6 and JavaFx Gradle plugin. See Gradle 8.6 <a href=\"https://docs.gradle.org/8.6/userguide/compatibility.html\" rel=\"nofollow noreferrer\"><em>Compatibility Matrix</em></a>.</p>\n<p>We run unit tests for our application on Azure pipelines' hosted Windows agents and use a self hosted Linux agent.</p>\n<p>The <em>JavaFx Gradle</em> plugin downloads the correct OS version of the JavaFx jars for each agent. The unit tests run correctly on the Windows agent but on the Linux agent, we get the exception below.</p>\n<p>The native dependency which cannot be found is bundled in the javax-graphics jar so I'm not sure what, if anything, I have to do for the dependency to be picked up from the jar. It looks like it’s expecting the dependency to be available in the location specified for <code>java.library.path</code>.</p>\n<pre><code>java.lang.UnsatisfiedLinkError: no javafx_font_pango in java.library.path: /agent/_work/1/s/&lt;path to java.library.path&gt;\nat java.base/java.lang.ClassLoader.loadLibrary(ClassLoader.java:2458)\nat java.base/java.lang.Runtime.loadLibrary0(Runtime.java:916)\nat java.base/java.lang.System.loadLibrary(System.java:2063)\nat com.sun.glass.utils.NativeLibLoader.loadLibraryInternal(NativeLibLoader.java:170)\nat com.sun.glass.utils.NativeLibLoader.loadLibrary(NativeLibLoader.java:58)\nat com.sun.javafx.font.freetype.OSPango.lambda$static$0(OSPango.java:37)\nat java.base/java.security.AccessController.doPrivileged(AccessController.java:319)\nat com.sun.javafx.font.freetype.OSPango.&lt;clinit&gt;(OSPango.java:36)\nat com.sun.javafx.font.freetype.PangoGlyphLayout.&lt;clinit&gt;(PangoGlyphLayout.java:45)\nat com.sun.javafx.font.freetype.FTFactory.createGlyphLayout(FTFactory.java:87)\nat com.sun.javafx.text.GlyphLayout.newInstance(GlyphLayout.java:407)\nat com.sun.javafx.text.GlyphLayout.&lt;clinit&gt;(GlyphLayout.java:402)\nat com.sun.javafx.text.PrismTextLayout.buildRuns(PrismTextLayout.java:818)\nat com.sun.javafx.text.PrismTextLayout.layout(PrismTextLayout.java:1070)\nat com.sun.javafx.text.PrismTextLayout.ensureLayout(PrismTextLayout.java:230)\nat com.sun.javafx.text.PrismTextLayout.getBounds(PrismTextLayout.java:256)\nat javafx.scene.text.Text.getLogicalBounds(Text.java:432)\nat javafx.scene.text.Text.doComputeLayoutBounds(Text.java:1137)\nat javafx.scene.text.Text$1.doComputeLayoutBounds(Text.java:143)\nat com.sun.javafx.scene.shape.TextHelper.computeLayoutBoundsImpl(TextHelper.java:95)\nat com.sun.javafx.scene.NodeHelper.computeLayoutBounds(NodeHelper.java:108)\nat javafx.scene.Node$13.computeBounds(Node.java:3474)\nat javafx.scene.Node$LazyBoundsProperty.get(Node.java:9749)\nat javafx.scene.Node$LazyBoundsProperty.get(Node.java:9740)\nat javafx.scene.Node.getLayoutBounds(Node.java:3489)\n</code></pre>\n<p>Here are a couple of relevant portions of our gradle file</p>\n<p>JavaFx gradle plugin:</p>\n<pre><code>javafx {\n    version = project.properties['javafxVersion']\n    modules = [ 'javafx.base', 'javafx.controls', 'javafx.graphics', 'javafx.swing', 'javafx.web', 'javafx.media' ]\n    configurations = [ 'implementation', 'testImplementation', 'testRuntimeOnly', 'testFixturesImplementation', 'guiTestImplementation' ]\n}\n</code></pre>\n<p>And the test task:</p>\n<pre><code>tasks.withType(Test) {\n    doFirst {\n        delete getReports().getJunitXml().getOutputLocation()\n    }\n\n    jvmArgs &quot;-Djava.library.path=${project.nativeLibsDir}&quot; // our custom native libs directory\n}\n\ntest {\n    useJUnitPlatform()\n    ext.testSrcDirs = project.sourceSets.test.java.srcDirs\n    jvmArgs &quot;-Dglass.platform=Monocle&quot;, &quot;-Dmonocle.platform=Headless&quot;, &quot;-Dprism.order=sw&quot;, &quot;-Dprism.text=t2k&quot;\n    forkEvery 100\n    maxParallelForks = Runtime.getRuntime().availableProcessors() - 1\n\n    testLogging {\n        events &quot;started&quot;, &quot;passed&quot;, &quot;skipped&quot;, &quot;failed&quot;\n    }\n}\n</code></pre>\n<p>Thanks.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "docker",
+      "pac4j",
+      "pac4j-saml"
+    ],
+    "owner": {
+      "account_id": 43153967,
+      "reputation": 1,
+      "user_id": 31106521,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/afc0646371497cbed796487956c79850?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "venkata allu",
+      "link": "https://stackoverflow.com/users/31106521/venkata-allu"
+    },
+    "is_answered": false,
+    "view_count": 28,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1753192404,
+    "creation_date": 1753118881,
+    "question_id": 79709437,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79709437/pac4j-saml-filenotfoundexception-in-docker-container-after-migration",
+    "title": "Pac4j SAML FileNotFoundException in Docker Container after Migration",
+    "body": "<p>I am migrating a Spring Boot application to new versions of Spring and Pac4J (v6.1.2) for SAML authentication. The application runs correctly on my local machine, but fails when deployed to a Docker container on Kubernetes (EKS). The issue is related to loading the SAML service provider (SP) metadata file.</p>\n<p>The application throws a java.io.FileNotFoundException with a stack trace pointing to org.springframework.core.io.AbstractFileResolvingResource.getFile().</p>\n<p>The log output is as follows:</p>\n<pre><code>java.io.FileNotFoundException: class path resource [saml/sp-metadata-dev.xml] cannot be resolved to absolute file path because it does not reside in the file system: jar:nested:/home/tomcat/ssti-service-desk-portal-web-app.jar/!BOOT-INF/classes/!/saml/sp-metadata-dev.xml\n    at org.springframework.util.ResourceUtils.getFile(ResourceUtils.java:223)\n    at org.springframework.core.io.AbstractFileResolvingResource.getFile(AbstractFileResolvingResource.java:204)\n    at org.pac4j.saml.metadata.SAML2FileSystemMetadataGenerator.createMetadataResolver(SAML2FileSystemMetadataGenerator.java:34)\n    ...\n</code></pre>\n<p>My question:\nIs this a known issue or a limitation in pac4j v6.1.2? Is there a way to configure pac4j to read the SP metadata via an InputStream from the Resource object to avoid this error, or is a manual file copy to a temporary directory the only solution?</p>\n<p>Here is my code:\nI have a configuration class that attempts to load the metadata file:</p>\n<pre><code>// SamlConfig.java\n@Value(&quot;${pac4j.saml.sp-metadata}&quot;)\nprivate String spMetadata;\n// ...\n@Bean\npublic Config config() {\n   Resource spMetadataResource = resourceLoader.getResource(&quot;classpath:&quot; + spMetadata);\n   // The problem occurs here\n   samlConfig.setServiceProviderMetadataResource(spMetadataResource);\n   //...\n}\n</code></pre>\n<p>And my properties file:</p>\n<p>Properties\npac4j.saml.sp-metadata=saml/sp-metadata-dev.xml</p>\n<p>My understanding:\nI know that the getFile() method fails because the file is inside the JAR and not a real file path. My code uses the correct Resource object, but the pac4j library itself seems to be forcing the getFile() call.</p>\n<p>Current Workaround:\nTo get the application working, I added a manual workaround to my SamlConfig class that copies the metadata file from the classpath to the file system at startup. This resolves the FileNotFoundException.</p>\n<pre><code>// SamlConfig.java - Workaround Method\nprivate void copyMetadataFile() {\n   // ...\n   try (InputStream inStream = resourceLoader.getResource(&quot;classpath:&quot; + spMetadata).getInputStream();\n       OutputStream outStream = new FileOutputStream(new File(spMetadata).getAbsoluteFile())) {\n      // Copy the file\n      FileCopyUtils.copy(inStream, outStream);\n   } catch (IOException e) {\n      // ...\n   }\n}\n// In my config() method, I call this and then read from the filesystem\n@Bean\npublic Config config() {\n    copyMetadataFile();\n    SAML2Configuration samlConfig = new SAML2Configuration(...);\n    samlConfig.setServiceProviderMetadataResource(new FileSystemResource(new File(spMetadata).getAbsoluteFile()));\n    //...\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

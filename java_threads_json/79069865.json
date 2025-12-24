@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "applet",
+      "smartcard",
+      "javacard",
+      "jcop"
+    ],
+    "owner": {
+      "account_id": 23745027,
+      "reputation": 803,
+      "user_id": 17762566,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/535989cd46e90e339be99aa1f0fbcc04?s=256&d=identicon&r=PG",
+      "display_name": "Preeti ",
+      "link": "https://stackoverflow.com/users/17762566/preeti"
+    },
+    "is_answered": true,
+    "view_count": 249,
+    "answer_count": 3,
+    "score": 0,
+    "last_activity_date": 1739872335,
+    "creation_date": 1728471065,
+    "last_edit_date": 1728545618,
+    "question_id": 79069865,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79069865/cannot-access-data-passed-to-shareable-interface-method-in-javacard",
+    "title": "Cannot access data passed to shareable interface method in javacard",
+    "body": "<p>I new to javacard applet programming and trying to understand <code>shareable</code> interface to call a applets method in another applet. Below is my setup</p>\n<p><code>sourceapplet.java</code> is the applet where my shareable interface is implemented. And from <code>targetapplet.java</code> I am trying to call that interface.</p>\n<pre><code>sourceapplet.java\n</code></pre>\n<pre><code>public void checkNumber(byte[] number) {\n    short numberLength = (short)number.length;\n    if (numberLength &lt; 6) {\n        ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);\n    }\n    ISOException.throwIt(ISO7816.SW_WRONG_DATA);\n  }\n</code></pre>\n<pre><code>Configurations.java\n</code></pre>\n<pre><code>public interface Configuration extends Shareable {\n    public void checkNumber(byte[] number);\n}\n</code></pre>\n<pre><code>targetapplet.java\n</code></pre>\n<pre><code>public final class TargetApplet extends Applet implements MultiSelectable {\n    private static final byte INS_TEST_CHECK_NUMBER = (byte) 0x11;\n    private AID checkNumberAppletAID;\n    private TargetApplet() {\n        // Initialize the AID of the checkNumberApplet\n        byte[] aidBytes = {(byte) 0xB2, 0x86, 0x00, 0x00, 0x00, 0x01};\n        checkNumberAppletAID = JCSystem.lookupAID(aidBytes, (short)0, (byte) aidBytes.length);\n        \n        if (checkNumberAppletAID == null) {\n            ISOException.throwIt(ISO7816.SW_FILE_NOT_FOUND); // Applet not found\n        }\n    }\n\n    public void process(APDU apdu) {\n        final byte[] buffer = apdu.getBuffer();\n        final byte ins = buffer[ISO7816.OFFSET_INS];\n        switch (ins) {\n        case INS_TEST_CHECK_NUMBER:\n            processCheckNumber(apdu);\n            break;\n        default:\n            ISOException.throwIt(ISO7816.SW_INS_NOT_SUPPORTED);\n        }\n    }\n\n    private void processCheckNumber(APDU apdu) {\n        Configuration config = (Configuration) JCSystem.getAppletShareableInterfaceObject(checkNumberAppletAID, (byte) 0x00);\n        if (config == null) {\n            ISOException.throwIt(ISO7816.SW_APPLET_SELECT_FAILED);\n        }\n        \n        byte[] number = new byte[]{1,2,3,4};\n        // byte[] number = new byte[] {(byte) '1', (byte) '2', (byte) '3', (byte) '4'};\n        config.checkNumber(number);\n    }\n}\n</code></pre>\n<p>Now when I send apdu <code>00 11 00 00</code> I get <code>6F00 (SW_UNKNWON)</code> response but I expect to get <code>SW_CONDITIONS_NOT_SATISFIED</code> response. However when I don't do any operation on the passed <code>number</code> array  in <code>checkNumber</code> method then I get <code>SW_WRONG_DATA</code> response as expected.</p>\n<pre><code>public void checkNumber(byte[] number) {\n    /* short numberLength = (short)number.length;\n    if (numberLength &lt; 6) {\n        ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);\n    } */\n    ISOException.throwIt(ISO7816.SW_WRONG_DATA);\n  }\n</code></pre>\n<p>can anyone please let me know what is the issue here and how to resolve it? is there any issue with number array that is passed in <code>processCheckNumber</code> in <code>targetapplet.java</code>?</p>\n<p>Thanks in advance.</p>\n<p><strong>Update</strong></p>\n<p>Using transient memory in <code>targetapplet.java</code></p>\n<pre><code>private byte[] number;\n    private TargetApplet() {\n        number = JCSystem.makeTransientByteArray((short) 4, JCSystem.CLEAR_ON_DESELECT); // Also tried with CLEAR_ON_RESET\n        // Initialize the AID of the checkNumberApplet\n        byte[] aidBytes = {(byte) 0xB2, 0x86, 0x00, 0x00, 0x00, 0x01};\n        checkNumberAppletAID = JCSystem.lookupAID(aidBytes, (short)0, (byte) aidBytes.length);\n\n        if (checkNumberAppletAID == null) {\n            ISOException.throwIt(ISO7816.SW_FILE_NOT_FOUND); // Applet not found\n        }\n    }\n    private void processCheckNumber(APDU apdu) {\n        Configuration config = (Configuration) JCSystem.getAppletShareableInterfaceObject(checkNumberAppletAID, (byte) 0x00);\n        if (config == null) {\n            ISOException.throwIt(ISO7816.SW_APPLET_SELECT_FAILED);\n        }\n\n        number[0] = 1;\n        number[1] = 2;\n        number[2] = 3;\n        number[3] = 4;\n        config.checkNumber(number);\n    }\n</code></pre>\n<p>Using persistent memory in <code>targetapplet.java</code></p>\n<pre><code>private byte[] number;\n    private TargetApplet() {\n        number = new byte[4];\n        // Initialize the AID of the checkNumberApplet\n        byte[] aidBytes = {(byte) 0xB2, 0x86, 0x00, 0x00, 0x00, 0x01};\n        checkNumberAppletAID = JCSystem.lookupAID(aidBytes, (short)0, (byte) aidBytes.length);\n\n        if (checkNumberAppletAID == null) {\n            ISOException.throwIt(ISO7816.SW_FILE_NOT_FOUND); // Applet not found\n        }\n    }\n    private void processCheckNumber(APDU apdu) {\n        Configuration config = (Configuration) JCSystem.getAppletShareableInterfaceObject(checkNumberAppletAID, (byte) 0x00);\n        if (config == null) {\n            ISOException.throwIt(ISO7816.SW_APPLET_SELECT_FAILED);\n        }\n\n        number[0] = 1;\n        number[1] = 2;\n        number[2] = 3;\n        number[3] = 4;\n        config.checkNumber(number);\n    }\n</code></pre>\n<p><strong>Update2</strong></p>\n<p>Added try-catch in <code>sourceapplet.java</code></p>\n<pre><code>public void checkNumber(byte[] number) {\n    try {           \n        short numberLength = (short)number.length;\n        if (numberLength &lt; 6) {\n            ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);\n        }\n    } catch (ISOException e) {\n        ISOException.throwIt(e.getReason());\n    } catch (SecurityException e) {\n        ISOException.throwIt(ISO7816.SW_SECURITY_STATUS_NOT_SATISFIED);\n    }\n  }\n</code></pre>\n<p>And now I get <code>6982 SW_SECURITY_STATUS_NOT_SATISFIED</code> response</p>\n<p>P.S: please let me know if any info is missing</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

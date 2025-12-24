@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hibernate",
+      "spring-data"
+    ],
+    "owner": {
+      "account_id": 10187542,
+      "reputation": 2735,
+      "user_id": 20692967,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/NZSXm.jpg?s=256",
+      "display_name": "Sergey Zolotarev",
+      "link": "https://stackoverflow.com/users/20692967/sergey-zolotarev"
+    },
+    "is_answered": false,
+    "view_count": 92,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1752608593,
+    "creation_date": 1747933036,
+    "question_id": 79634216,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79634216/entitygraph-makes-eager-attributes-lazy",
+    "title": "@EntityGraph makes eager attributes lazy",
+    "body": "<p>I want to be able to eagerly fetch associated &quot;to-many&quot; entities. So I included a separate &quot;eager&quot; query method annotated with <code>@EntityGraph</code>.</p>\n<pre class=\"lang-java prettyprint-override\"><code>@RepositoryDefinition(domainClass = User.class, idClass = Long.class)\npublic interface UserRepository {\n\n    Optional&lt;User&gt; findById(Long id);\n\n    @EntityGraph(attributePaths = {&quot;emailData&quot;}, type = EntityGraph.EntityGraphType.LOAD) // this is important\n    Optional&lt;User&gt; findEagerlyById(Long id);\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>// I removed some irrelevant fields\n\nimport jakarta.persistence.CascadeType;\nimport jakarta.persistence.Column;\nimport jakarta.persistence.Entity;\nimport jakarta.persistence.GeneratedValue;\nimport jakarta.persistence.GenerationType;\nimport jakarta.persistence.Id;\nimport jakarta.persistence.OneToMany;\nimport jakarta.persistence.OneToOne;\nimport jakarta.persistence.Table;\nimport lombok.Getter;\nimport lombok.Setter;\n\nimport java.time.LocalDate;\nimport java.util.List;\n\n@Entity\n@Getter\n@Setter\n@Table(name = &quot;\\&quot;user\\&quot;&quot;)\npublic class User {\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n    private String name;\n    @OneToOne(mappedBy = &quot;user&quot;)\n    private Account account;\n    @OneToMany(mappedBy = &quot;user&quot;, cascade = CascadeType.ALL, orphanRemoval = true)\n    private List&lt;EmailData&gt; emailData;\n}\n</code></pre>\n<p>The problem is it somehow broke a join of <code>User</code>'s to-one relation, <code>Account</code>.</p>\n<pre class=\"lang-java prettyprint-override\"><code>import jakarta.persistence.Entity;\nimport jakarta.persistence.GeneratedValue;\nimport jakarta.persistence.GenerationType;\nimport jakarta.persistence.Id;\nimport jakarta.persistence.JoinColumn;\nimport jakarta.persistence.OneToOne;\nimport lombok.Getter;\nimport lombok.Setter;\n\nimport java.math.BigDecimal;\n\n@Entity\n@Getter\n@Setter\npublic class Account {\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n    @OneToOne\n    @JoinColumn(name = &quot;user_id&quot;)\n    private User user;\n    private BigDecimal balance;\n}\n</code></pre>\n<p>What it was (with a regular <code>findById(String)</code>):</p>\n<pre><code>Hibernate: select u1_0.id,a1_0.id,a1_0.balance,u1_0.date_of_birth,u1_0.name,u1_0.password from &quot;user&quot; u1_0 left join account a1_0 on u1_0.id=a1_0.user_id where u1_0.id=?\nHibernate: select ed1_0.user_id,ed1_0.id,ed1_0.email from email_data ed1_0 where ed1_0.user_id=?\n</code></pre>\n<p>What it's become (<code>findEagerlyById(String)</code>):</p>\n<pre><code>Hibernate: select u1_0.id,u1_0.date_of_birth,ed1_0.user_id,ed1_0.id,ed1_0.email,u1_0.name,u1_0.password from &quot;user&quot; u1_0 left join email_data ed1_0 on u1_0.id=ed1_0.user_id where u1_0.id=?\nHibernate: select a1_0.id,a1_0.balance,u1_0.id,u1_0.date_of_birth,u1_0.name,u1_0.password from account a1_0 left join &quot;user&quot; u1_0 on u1_0.id=a1_0.user_id where a1_0.user_id=?\n</code></pre>\n<p>It's weird since I specified <code>type=EntityGraph.EntityGraphType.LOAD</code>. According to the documentation:</p>\n<pre class=\"lang-java prettyprint-override\"><code>        /**\n         * When the jakarta.persistence.loadgraph property is used to specify an entity graph, attributes that are specified\n         * by attribute nodes of the entity graph are treated as FetchType.EAGER and attributes that are not specified are\n         * treated according to their specified or default FetchType.\n         *\n         * @see &lt;a href=&quot;https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1#load-graph-semantics&quot;&gt;Jakarta\n         *      Persistence Specification: Load Graph Semantics&lt;/a&gt;\n         */\n        LOAD(&quot;jakarta.persistence.loadgraph&quot;),\n</code></pre>\n<p>Notice it said <em>&quot;according to their specified <strong>or default</strong> FetchType&quot;</em>. As you are probably well aware, <code>@OneToOne</code>'s default fetch type is <code>FetchType.EAGER</code>.</p>\n<pre class=\"lang-java prettyprint-override\"><code>// jakarta.persistence.OneToOne\n    FetchType fetch() default FetchType.EAGER;\n\n</code></pre>\n<p>So the question is, why did it break, and how do I fix it?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

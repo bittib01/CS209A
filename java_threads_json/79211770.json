@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "json",
+      "jackson",
+      "deserialization"
+    ],
+    "owner": {
+      "account_id": 22379995,
+      "reputation": 33,
+      "user_id": 16593724,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/34b73930005bc513e10242fa2256f5a3?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Swathi Ragupathi",
+      "link": "https://stackoverflow.com/users/16593724/swathi-ragupathi"
+    },
+    "is_answered": false,
+    "view_count": 130,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1732206033,
+    "creation_date": 1732201544,
+    "last_edit_date": 1732206033,
+    "question_id": 79211770,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79211770/mismatched-input-exception-when-deserializing-empty-enum",
+    "title": "Mismatched Input Exception When Deserializing Empty Enum",
+    "body": "<p>I recently migrated my Spring Boot application from version 2.7.x to 3.0.x, and I'm encountering an issue when deserializing an enum field with an empty object value. The following code worked with Jackson 2.13, but it no longer works with Jackson 2.17. Please help me to create a custom deserializer that can handle any enum class. Thanks in advance</p>\n<p><strong>Constraints:</strong></p>\n<ul>\n<li>I cannot update the JSON structure or modify the POJO classes to include the <code>@JsonDeserialize(using = xxx.class)</code> annotation on the field, as these classes are provided by third parties.</li>\n<li>I cannot use a regex approach like <code>json.replace(&quot;{},&quot;, &quot;&quot;).replace(&quot;{}&quot;, &quot;&quot;);</code> to replace empty objects, as this method is used in many places and could potentially introduce risks.</li>\n<li>I cannot register the module in the <code>ObjectMapper</code> individually for each enum class, as new classes may be added by third parties in the future, which could lead to failures.</li>\n</ul>\n<p>Json :</p>\n<pre><code>{       \n    &quot;lineItems&quot;:[\n        \n        {},\n        {}\n    ]\n}\n</code></pre>\n<p>Class:</p>\n<pre><code>@ToString\n@Data\npublic class YourClass {\n\n    private List&lt;ItemEnum&gt; lineItems;\n    \n}\n</code></pre>\n<p>ItemEnum class</p>\n<pre><code>public enum ItemEnum\n{\n    ITEM_1, ITEM_2, ITEM_3\n\n}\n</code></pre>\n<p>Code:</p>\n<pre><code>public static void main(String[] args) throws JsonMappingException, JsonProcessingException\n    {\n      String json = &quot;{\\&quot;lineItems\\&quot;:{},{}]}&quot;;\n\n        ObjectMapper objectMapper = new ObjectMapper();\n        objectMapper.enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL);\n        objectMapper.coercionConfigFor(LogicalType.Array)\n                .setCoercion(CoercionInputShape.EmptyString, CoercionAction.AsNull)\n                .setCoercion(CoercionInputShape.EmptyObject, CoercionAction.AsNull)\n                .setCoercion(CoercionInputShape.EmptyArray, CoercionAction.AsNull);\n        objectMapper.coercionConfigFor(LogicalType.Collection)\n                .setCoercion(CoercionInputShape.EmptyString, CoercionAction.AsNull)\n                .setCoercion(CoercionInputShape.EmptyObject, CoercionAction.AsNull)\n                .setCoercion(CoercionInputShape.EmptyArray, CoercionAction.AsNull);\n        objectMapper.coercionConfigFor(LogicalType.Enum)\n                .setCoercion(CoercionInputShape.EmptyString, CoercionAction.AsNull)\n                .setCoercion(CoercionInputShape.EmptyObject, CoercionAction.AsNull)\n                .setCoercion(CoercionInputShape.EmptyArray, CoercionAction.AsNull);\n        YourClass obj = objectMapper.readValue(json, YourClass.class);\n        System.err.println(obj);\n}\n</code></pre>\n<p>Error:</p>\n<pre><code>Exception in thread &quot;main&quot; com.fasterxml.jackson.databind.exc.MismatchedInputException: Cannot deserialize value of type `com.demo.ItemEnum` from Object value (token `JsonToken.START_OBJECT`)\n at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 5, column: 3] (through reference chain: com.demo.YourClass[&quot;lineItems&quot;]-&gt;java.util.ArrayList[0])\n    at com.fasterxml.jackson.databind.exc.MismatchedInputException.from(MismatchedInputException.java:59)\n    at com.fasterxml.jackson.databind.DeserializationContext.reportInputMismatch(DeserializationContext.java:1767)\n    at com.fasterxml.jackson.databind.DeserializationContext.handleUnexpectedToken(DeserializationContext.java:1541)\n    at com.fasterxml.jackson.databind.DeserializationContext.handleUnexpectedToken(DeserializationContext.java:1446)\n    at com.fasterxml.jackson.databind.DeserializationContext.extractScalarFromObject(DeserializationContext.java:958)\n    at com.fasterxml.jackson.databind.deser.std.EnumDeserializer.deserialize(EnumDeserializer.java:290)\n    at com.fasterxml.jackson.databind.deser.std.CollectionDeserializer._deserializeFromArray(CollectionDeserializer.java:361)\n    at com.fasterxml.jackson.databind.deser.std.CollectionDeserializer.deserialize(CollectionDeserializer.java:246)\n    at com.fasterxml.jackson.databind.deser.std.CollectionDeserializer.deserialize(CollectionDeserializer.java:30)\n    at com.fasterxml.jackson.databind.deser.impl.MethodProperty.deserializeAndSet(MethodProperty.java:129)\n    at com.fasterxml.jackson.databind.deser.BeanDeserializer.vanillaDeserialize(BeanDeserializer.java:310)\n    at com.fasterxml.jackson.databind.deser.BeanDeserializer.deserialize(BeanDeserializer.java:177)\n    at com.fasterxml.jackson.databind.deser.DefaultDeserializationContext.readRootValue(DefaultDeserializationContext.java:342)\n    at com.fasterxml.jackson.databind.ObjectMapper._readMapAndClose(ObjectMapper.java:4905)\n    at com.fasterxml.jackson.databind.ObjectMapper.readValue(ObjectMapper.java:3848)\n    at com.fasterxml.jackson.databind.ObjectMapper.readValue(ObjectMapper.java:3816)\n    at com.demo.Application.main(Application.java:57)\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

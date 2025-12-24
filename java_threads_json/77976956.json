@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jackson-databind"
+    ],
+    "owner": {
+      "account_id": 10187542,
+      "reputation": 2735,
+      "user_id": 20692967,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/NZSXm.jpg?s=256",
+      "display_name": "Sergey Zolotarev",
+      "link": "https://stackoverflow.com/users/20692967/sergey-zolotarev"
+    },
+    "is_answered": true,
+    "view_count": 748,
+    "accepted_answer_id": 77977980,
+    "answer_count": 2,
+    "score": 3,
+    "last_activity_date": 1754490664,
+    "creation_date": 1707658725,
+    "last_edit_date": 1707764205,
+    "question_id": 77976956,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77976956/how-can-i-make-jackson-serialize-enum-constants-to-lower-case-values-if-the-enum",
+    "title": "How can I make Jackson serialize enum constants to lower-case values if the enum is read-only?",
+    "body": "<p><em>I ask this because of one bug in Swagger UI. More on that is <a href=\"https://github.com/swagger-api/swagger-ui/issues/9565\" rel=\"nofollow noreferrer\">here</a></em>.</p>\n<p>Here, a small MRE:</p>\n<pre class=\"lang-java prettyprint-override\"><code>package com.example.dynamicgateway.misc;\n\nimport com.fasterxml.jackson.annotation.JsonValue;\nimport lombok.Getter;\nimport lombok.NoArgsConstructor;\n\n@NoArgsConstructor\n@Getter\nclass SomeClass {\n    SomeEnum someEnumProperty = SomeEnum.INSTANCE_ONE;\n\n    enum SomeEnum {\n        INSTANCE_ONE, INSTANCE_TWO;\n    }\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>package com.example.dynamicgateway.misc;\n\nimport com.fasterxml.jackson.databind.ObjectMapper;\nimport lombok.SneakyThrows;\nimport org.junit.jupiter.api.Test;\n\npublic class GenericTest {\n    @Test\n    @SneakyThrows\n    void test() {\n        ObjectMapper objectMapper = new ObjectMapper();\n        SomeClass someClass = new SomeClass();\n        String serializedSomeClass = objectMapper.writeValueAsString(someClass);\n        System.out.println(serializedSomeClass);\n    }\n}\n</code></pre>\n<pre><code>{&quot;someEnumProperty&quot;:&quot;INSTANCE_ONE&quot;}\n</code></pre>\n<p>Now, let's imagine I need the enum to be serialized into <code>instance_one</code> instead. <em>If</em> I have write access to <code>SomeClass</code>, I could do this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@NoArgsConstructor\n@Getter\nclass SomeClass {\n    SomeEnum someEnumProperty = SomeEnum.INSTANCE_ONE;\n\n    enum SomeEnum {\n        INSTANCE_ONE, INSTANCE_TWO;\n\n        @Override\n        @JsonValue // this is the key\n        public String toString() {\n            return name().toLowerCase();\n        }\n    }\n}\n</code></pre>\n<pre><code>{&quot;someEnumProperty&quot;:&quot;instance_one&quot;}\n</code></pre>\n<p>But what if I don't have such a write access to <code>SomeClass</code>? Maybe, I can somehow configure my <code>ObjectMapper</code>, can't I?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

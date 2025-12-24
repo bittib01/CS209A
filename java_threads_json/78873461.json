@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jwt",
+      "identityserver4"
+    ],
+    "owner": {
+      "account_id": 9013374,
+      "reputation": 9,
+      "user_id": 6717131,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/32ba2be735b3d563a31018d82a95e17a?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "WinLord",
+      "link": "https://stackoverflow.com/users/6717131/winlord"
+    },
+    "is_answered": false,
+    "view_count": 300,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1724848586,
+    "creation_date": 1723689632,
+    "question_id": 78873461,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78873461/call-authorization-to-duende-identityserver-error-code-challenge-is-missing",
+    "title": "Call authorization to duende identityserver error code_challenge is missing",
+    "body": "<p>Our system has duende identityserver to manage user and authorization rules for call apis.\nI create java spring boot restful api, include 2 apis - login and get-report.</p>\n<p>Login api call duende identityserver and everything ok, i have response to provide token, role...</p>\n<p>Second step, i used token from login, add header used bearer token for api get-report.</p>\n<p>This is my config for security. Permit all request can call login api, other request need authenticated via identityserver. I added endpoint for authorizationUri,tokenUri,userInfoUri like duende documents present.</p>\n<pre><code> @Override\n    protected void configure(HttpSecurity http) throws Exception {\n        http.cors().configurationSource(request -&gt; new CorsConfiguration().applyPermitDefaultValues())\n            .and()\n            .csrf().disable()\n            .authorizeRequests()\n            .antMatchers(&quot;/api/login&quot;).permitAll()           \n            .anyRequest().authenticated()\n            .and()\n            .oauth2Login()\n            .clientRegistrationRepository(clientRegistrationRepository())\n            .and()\n            .oauth2ResourceServer()\n            .jwt()\n            .jwtAuthenticationConverter(jwt -&gt; {\n                return new JwtAuthenticationToken(jwt);\n            });\n    }\n\n@Bean\n    public JwtDecoder jwtDecoder() {\n        return new NimbusJwtDecoderJwkSupport(&quot;http://myip:5001/.well-known/openid-configuration/jwks&quot;);\n    }\n\n    @Bean\n    public ClientRegistrationRepository clientRegistrationRepository() {\n        ClientRegistration clientRegistration = ClientRegistration.withRegistrationId(&quot;custom-oauth&quot;)\n            .clientId(&quot;clienId&quot;)\n            .clientSecret(&quot;clienKey&quot;)\n            .clientAuthenticationMethod(ClientAuthenticationMethod.BASIC)\n            .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)\n            .redirectUriTemplate(&quot;https://localhost:44300/signin-oidc&quot;)\n            .scope(&quot;report&quot;, &quot;common&quot;)           \n            .authorizationUri(&quot;http://myIP:5001/connect/authorize&quot;)\n            .tokenUri(&quot;http://myIP:5001/connect/token&quot;)\n            .userInfoUri(&quot;myIP:5001/connect/userinfo&quot;)         \n            .userNameAttributeName(&quot;id&quot;)\n            .clientName(&quot;Custom OAuth2 Client&quot;)\n            .build();\n        return new InMemoryClientRegistrationRepository(clientRegistration);\n    }\n</code></pre>\n<p>When i test call get-report api, it show http response code 200, but content show other error.\nCheck Duende IdentityServer ,trace log error it show</p>\n<pre><code>Duende.IdentityServer.Validation.AuthorizeRequestValidator\ncode_challenge is missing\n</code></pre>\n<p>I searched and solution for fix code_challenge is missing is disable PKCE in server, but it still has this error. And i have create custom pkce to implement, but version in my springboot framework conflict. My pom.xml has this lib and version</p>\n<pre><code>&lt;parent&gt;\n    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n    &lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;\n    &lt;version&gt;2.1.6.RELEASE&lt;/version&gt;\n&lt;/parent&gt;\n\n&lt;dependency&gt;\n    &lt;groupId&gt;org.springframework.security&lt;/groupId&gt;\n    &lt;artifactId&gt;spring-security-oauth2-client&lt;/artifactId&gt;    \n&lt;/dependency&gt;\n\n&lt;dependency&gt;\n    &lt;groupId&gt;org.springframework.security&lt;/groupId&gt;\n    &lt;artifactId&gt;spring-security-oauth2-resource-server&lt;/artifactId&gt;\n    &lt;version&gt;5.1.13.RELEASE&lt;/version&gt;\n&lt;/dependency&gt;\n</code></pre>\n<p>So how i can fix this problem?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

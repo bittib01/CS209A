@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "youtube",
+      "api-key",
+      "restriction"
+    ],
+    "owner": {
+      "account_id": 2890812,
+      "reputation": 76,
+      "user_id": 2479651,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/cc534ef6077ae0792adf968866b7c246?s=256&d=identicon&r=PG",
+      "display_name": "Fabio R Lopes",
+      "link": "https://stackoverflow.com/users/2479651/fabio-r-lopes"
+    },
+    "is_answered": false,
+    "view_count": 87,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1732315980,
+    "creation_date": 1732315980,
+    "question_id": 79216780,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79216780/restrict-youtube-api-key-to-only-my-android-app",
+    "title": "Restrict Youtube API_KEY to only my android app",
+    "body": "<p>I'm trying to restrict my API_KEY to only my app. In the Edit API key page I set to 'Android apps' and set the package name and Fingerprint.\nThe package name is the same as in my AndroidManifest.xml:</p>\n<pre><code>&lt;manifest xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;\nxmlns:tools=&quot;http://schemas.android.com/tools&quot;\npackage=&quot;com.xxxxxx.yyyyyy&quot;&gt;\n</code></pre>\n<p>I'm also passing the name in the code:</p>\n<pre><code>public YouTube getYouTubeService() throws GeneralSecurityException, IOException {\n    return new YouTube.Builder(GoogleNetHttpTransport.newTrustedTransport(), JSON_FACTORY, null)\n            .setApplicationName(&quot;com.xxxxxx.yyyyyy&quot;)\n            .build();\n}\n</code></pre>\n<p>The fingerprint is the debug one, recovered as the page explains:</p>\n<pre><code>keytool -list -v -keystore &quot;%USERPROFILE%\\.android\\debug.keystore&quot; -alias androiddebugkey -storepass android -keypass android\n</code></pre>\n<p>I also have a method to display the fingerprint just to confirm:</p>\n<pre><code>    public String getSHA1Fingerprint() {\n    try {\n        PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), PackageManager.GET_SIGNATURES);\n        for (Signature signature : info.signatures) {\n            MessageDigest md = MessageDigest.getInstance(&quot;SHA-1&quot;);\n            md.update(signature.toByteArray());\n            byte[] digest = md.digest();\n\n            // Convert to colon-separated hex\n            StringBuilder hexString = new StringBuilder();\n            for (int i = 0; i &lt; digest.length; i++) {\n                if (i &gt; 0) {\n                    hexString.append(&quot;:&quot;);\n                }\n                String hex = Integer.toHexString(0xFF &amp; digest[i]);\n                if (hex.length() == 1) {\n                    hexString.append(&quot;0&quot;); // Pad with leading zero\n                }\n                hexString.append(hex);\n            }\n            return hexString.toString().toUpperCase();\n        }\n    } catch (Exception e) {\n        e.printStackTrace();\n    }\n    return null;\n}\n</code></pre>\n<p>So I'm somewhat confident that the same info that is on the Edit Api key page is in my app.\nBut when I apply the changes to the key, I get a 403 error. When I remove them I can list youtube videos (for example).</p>\n<p>The 403 error:</p>\n<pre><code>GET https://youtube.googleapis.com/youtube/v3/channels?id=xxxxxxxxxxxxx&amp;key=yyyyyyyyyyyyyyyyyyyyyy&amp;part=contentDetails\n{\n  &quot;code&quot;: 403,\n  &quot;details&quot;: [\n    {\n      &quot;@type&quot;: &quot;type.googleapis.com/google.rpc.ErrorInfo&quot;,\n      &quot;reason&quot;: &quot;API_KEY_ANDROID_APP_BLOCKED&quot;,\n      &quot;domain&quot;: &quot;googleapis.com&quot;,\n      &quot;metadata&quot;: {\n        &quot;service&quot;: &quot;youtube.googleapis.com&quot;,\n        &quot;consumer&quot;: &quot;projects/1063253415806&quot;\n      }\n    }\n  ],\n  &quot;errors&quot;: [\n    {\n      &quot;domain&quot;: &quot;global&quot;,\n      &quot;message&quot;: &quot;Requests from this Android client application &lt;empty&gt; are blocked.&quot;,\n      &quot;reason&quot;: &quot;forbidden&quot;\n    }\n  ],\n  &quot;message&quot;: &quot;Requests from this Android client application &lt;empty&gt; are blocked.&quot;,\n  &quot;status&quot;: &quot;PERMISSION_DENIED&quot;\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,30 @@
+{
+  "question": {
+    "tags": [
+      "java"
+    ],
+    "owner": {
+      "account_id": 10187542,
+      "reputation": 2735,
+      "user_id": 20692967,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/NZSXm.jpg?s=256",
+      "display_name": "Sergey Zolotarev",
+      "link": "https://stackoverflow.com/users/20692967/sergey-zolotarev"
+    },
+    "is_answered": false,
+    "view_count": 101,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1752273839,
+    "creation_date": 1752059560,
+    "question_id": 79695520,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79695520/comparing-two-objects-ignoring-distinction-between-null-and-empty-string-proper",
+    "title": "Comparing two objects, ignoring distinction between null and empty string properties",
+    "body": "<p>We have a DB field editable in GUI. Entity fields correspond to GUI components, such as <code>JTextField</code>s.</p>\n<p>Whenever the user tries to close the form dialog, we need to <a href=\"https://softwareengineering.stackexchange.com/questions/458735/tracking-data-change-in-gui-form/458737\">check</a> whether any data was modified. We could:</p>\n<ol>\n<li>Save the initial data in memory once the dialog is displayed.</li>\n<li>Collect all the GUI data on disposal attempts.</li>\n<li>Then compare the two. If they differ, we may show a confirmation dialog (some disagree it's a good UX/UI decision, but it's not the point).</li>\n</ol>\n<p>The problem is <code>JTextField</code>s never return nulls. So if you have a null field in the DB, then compare a corresponding text field's <code>text</code> to that null, you'll get a false positive.</p>\n<p>I need to compare two objects (entities) in a way that doesn't distinguish between null and empty string properties.</p>\n<p>It's relatively straightforward to write such code. But I'm more interested in <strong>not</strong> writing code (maybe, there's something OOB that could help me).</p>\n<p>Any idea how I can achieve my goal concisely and elegantly?</p>\n<pre class=\"lang-java prettyprint-override\"><code>import org.junit.jupiter.api.Test;\n\nimport java.util.Objects;\n\nimport static org.junit.jupiter.api.Assertions.assertTrue;\n\npublic class EqualityTest {\n\n    @Test\n    public void equalityTest() {\n        User emptyNameUser = new User(&quot;&quot;);\n        User nullNameUser = new User(null);\n        boolean usersEqual = equal(emptyNameUser, nullNameUser);\n        assertTrue(usersEqual);\n    }\n\n    private boolean equal(User userOne, User userTwo) {\n        // doesn't work since null and empty strings are not equal\n        return Objects.equals(userOne, userTwo);\n    }\n\n    static class User {\n\n        // imagine there are scores of properties\n        String name;\n\n        public User(String name) {\n            this.name = name;\n        }\n        \n        // vanilla equals() and hashCode()\n        @Override\n        public boolean equals(Object o) {\n            if (this == o) return true;\n            if (!(o instanceof User)) return false;\n            User user = (User) o;\n            return Objects.equals(name, user.name);\n        }\n\n        @Override\n        public int hashCode() {\n            return Objects.hashCode(name);\n        }\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

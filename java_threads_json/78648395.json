@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "annotation-processing"
+    ],
+    "owner": {
+      "account_id": 23479709,
+      "reputation": 107,
+      "user_id": 17532039,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/8d74ee8787bafdbfd546c73b2e487df3?s=256&d=identicon&r=PG",
+      "display_name": "cancech",
+      "link": "https://stackoverflow.com/users/17532039/cancech"
+    },
+    "is_answered": true,
+    "view_count": 1590,
+    "accepted_answer_id": 78674152,
+    "answer_count": 2,
+    "score": 3,
+    "last_activity_date": 1732114904,
+    "creation_date": 1718897053,
+    "question_id": 78648395,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78648395/custom-annotation-processor-using-generated-annotation",
+    "title": "Custom annotation processor using generated annotation",
+    "body": "<p><strong>Question</strong></p>\n<p>What is the proper way to create a Java annotation processor, which makes use of annotations that it itself generates?</p>\n<p><strong>Context</strong></p>\n<p>I'm looking at annotation processing as a means of generating repetitive/boilerplate code and currently in my crosshair are annotations that use an enum. From what I understand only enums which are explicitly referenced can be used, however I'd like to be able to use any client Enum (thus not something that is known to the annotation processor at its compile time).</p>\n<pre><code>public @interface GenericEnumAnnotation() {\n    Enum&lt;?&gt; value();\n}\n</code></pre>\n<p>doesn't work, rather this has to be done as</p>\n<pre><code>public @interface MyEnumAnnotation() {\n    MyEnum value();\n}\n</code></pre>\n<p>So code generation to the rescue! Rather than having the client create a custom annotation for each Enum, I have it setup to generate this annotation based on a <code>@GenerateAnnotation</code> annotation. Thus</p>\n<pre><code>@GenerateAnnotation\npublic enum MyEnum {...}\n</code></pre>\n<p>will generate the valid <code>MyEnumAnnotation</code></p>\n<pre><code>@EnumAnnotation\npublic @interface MyEnumAnnotation() {\n    MyEnum value();\n}\n</code></pre>\n<p>Client code can then make use of the generated <code>@MyEnumAnnotation</code>. Now that the enum is generated, I want to now use this <code>@MyEnumAnnotation</code> to generate some additional code for client code that is annotated with it. The newly generated annotation becomes available in the second pass of the annotation processor, and thanks to the <code>@EnumAnnotation</code> I can tell that this is the annotation that I want to use for code generation, however when I make the attempt no usages are found.</p>\n<pre><code>@SupportedAnnotationTypes(&quot;com.company.generator.EnumAnnotation&quot;)\n@AutoService(Processor.class)\npublic class EnumAnnotationProcessor extends AbstractProcessor {\n\n    @Override\n    public boolean process(Set&lt;? extends TypeElement&gt; annotations, RoundEnvironment env) {\n        annotations.forEach(enumAnnotation -&gt; { //@EnumAnnotation\n            env.getElementsAnnotatedWith(enumAnnotation).forEach(customAnnontation -&gt; { //@MyEnumAnnotation\n                env.getElementsAnnotatedWith(customAnnotation -&gt; { // Elements using the @MyEnumAnnotation\n                    // Never entered - nothing annotated is found\n                });\n            });\n        });\n    }\n}\n</code></pre>\n<p>From experimentation I've determined that this is due to the second pass only looking at the &quot;new files&quot; rather than the full scope/scale of the classes. The client code (which uses the annotation) is only processed during the initial pass and as such it is no longer searchable/accessible in the second pass when the annotation processor actually knows of this generated annotation.</p>\n<p>The only method that I have found that allows me to go back and &quot;reprocess&quot; the original file set is by means of a separate processor which just purely holds on to the environment from the first pass, and using it rather than the environment from subsequent passes.</p>\n<pre><code>@SupportedAnnotationTypes(&quot;*&quot;)\n@SupportedSourceVersion(SourceVersion.RELEASE_21)\n@AutoService(Processor.class)\npublic class FirstPassCollector extends AbstractProcessor {\n    \n    public static RoundEnvironment firstPassEnvironment = null;\n\n    @Override\n    public boolean process(Set&lt;? extends TypeElement&gt; annotations, RoundEnvironment roundEnv) {\n        if (firstPassEnvironment == null)\n            FirstPassCollector.firstPassEnvironment = roundEnv;\n        return false;\n    }\n\n}\n\n\n@SupportedAnnotationTypes(&quot;com.company.generator.EnumAnnotation&quot;)\n@AutoService(Processor.class)\npublic class EnumAnnotationProcessor extends AbstractProcessor {\n\n    @Override\n    public boolean process(Set&lt;? extends TypeElement&gt; annotations, RoundEnvironment env) {\n        annotations.forEach(enumAnnotation -&gt; {\n            env.getElementsAnnotatedWith(enumAnnotation).forEach(customAnnontation -&gt; {\n                FirstPassCollector.firstPassEnvironment.getElementsAnnotatedWith(customAnnotation -&gt; {\n                    // Now searching the files from the first pass, and annotated classes are now found!\n                });\n            });\n        });\n    }\n}\n\n</code></pre>\n<p>I know there are deficiencies in the code as written (i.e.: no null check on the firstPassEnvironment when using it), however as a concept this is something that works, but feels like a rather brittle/hacked solution. Is there a better way of accomplishing this end goal?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

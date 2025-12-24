@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "sonarqube"
+    ],
+    "owner": {
+      "account_id": 12296207,
+      "reputation": 2560,
+      "user_id": 8971773,
+      "user_type": "registered",
+      "accept_rate": 25,
+      "profile_image": "https://i.sstatic.net/tFcJU.png?s=256",
+      "display_name": "Kira Resari",
+      "link": "https://stackoverflow.com/users/8971773/kira-resari"
+    },
+    "is_answered": false,
+    "view_count": 220,
+    "answer_count": 1,
+    "score": 3,
+    "last_activity_date": 1752580210,
+    "creation_date": 1732278739,
+    "question_id": 79215036,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79215036/sonarqube-java-how-to-parameterize-tests-should-include-assertions-rule-to",
+    "title": "SonarQube &amp; Java ~ How to parameterize &quot;Tests should include assertions&quot; rule to recognize custom assertions",
+    "body": "<p>I have a test that looks like this:</p>\n<pre><code>    @Test\n    void postUploadShouldReturnOk() throws Exception {\n        String body = prepareCorrectBody(true);\n\n        myTestUtils.performRequestAndAssertStatus(body, status().isOk());\n    }\n</code></pre>\n<p>I have a whole bunch of these tests in different test classes that all follow this pattern, with different bodies and expected statuses. That's why I extracted the <code>performRequestAndAssertStatus</code> to a utility class to avoid repetition. However, ever since I did that, SonarQube has marked this as an issue, saying &quot;Tests should include assertions java:S2699&quot;</p>\n<p>Now, I've read the documentation for that rule, which can be found here:\n<a href=\"https://next.sonarqube.com/sonarqube/coding_rules?open=java%3AS2699&amp;rule_key=java%3AS2699\" rel=\"nofollow noreferrer\">https://next.sonarqube.com/sonarqube/coding_rules?open=java%3AS2699&amp;rule_key=java%3AS2699</a></p>\n<p>According to that documentation, it should be possible to parameterize the rule so that it recognizes my custom assertion:</p>\n<p><code>Furthermore, as new or custom assertion frameworks may be used, the rule can be parametrized to define specific methods that will also be considered as assertions. No issue will be raised when such methods are found in test cases. The parameter value should have the following format &lt;FullyQualifiedClassName&gt;#&lt;MethodName&gt;, where MethodName can end with the wildcard character. For constructors, the pattern should be &lt;FullyQualifiedClassName&gt;#&lt;init&gt;.</code></p>\n<blockquote>\n<p>Example: com.company.CompareToTester#compare*,com.company.CustomAssert#customAssertMethod,com.company.CheckVerifier#.</p>\n</blockquote>\n<blockquote>\n<p>Parameters</p>\n<p>customAssertionMethods<br />\nComma-separated list of fully qualified method symbols that should be considered as assertion methods. The wildcard character can be used at the end of the method name.</p>\n</blockquote>\n<p>I have now tries to implement this by adding it to the existing and working sonar properties in my <code>build.gradle</code> like this:</p>\n<pre><code>sonar {\n    properties {\n        property &quot;sonar.gradle.skipCompile&quot;, &quot;true&quot;\n        property &quot;sonar.projectKey&quot;, &quot;my-service_12345678-1234-1234-1234-123412341234&quot;\n        property &quot;sonar.projectName&quot;, &quot;My-Service&quot;\n        property &quot;sonar.coverage.exclusions&quot;, &quot;**/MatomoClientImpl.java, **/ConverterClientImpl.java,&quot; \n        property &quot;sonar.java.customAssertionMethods&quot;, &quot;my_service.MyTestUtils#performRequestAndAssertStatus&quot;\n    }\n}\n</code></pre>\n<p>However, that didn't work. I've tried all variations that I could think of too, but none of them worked.</p>\n<p>Does anyone have any idea of how to get this to work? According to the documentation, it should be possible, right?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "swing",
+      "fest"
+    ],
+    "owner": {
+      "account_id": 10187542,
+      "reputation": 2735,
+      "user_id": 20692967,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/NZSXm.jpg?s=256",
+      "display_name": "Sergey Zolotarev",
+      "link": "https://stackoverflow.com/users/20692967/sergey-zolotarev"
+    },
+    "is_answered": true,
+    "view_count": 111,
+    "accepted_answer_id": 79756253,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1757244957,
+    "creation_date": 1756991312,
+    "last_edit_date": 1757244957,
+    "question_id": 79755759,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79755759/is-it-required-to-access-swing-properties-in-edt",
+    "title": "Is it required to access Swing properties in EDT?",
+    "body": "<p>Is it required to access Swing properties in EDT?</p>\n<p>On the one hand, it is said that:</p>\n<blockquote>\n<p>In general Swing is not thread safe. All Swing components and related classes, unless otherwise documented, must be <strong>accessed</strong> on the event dispatching thread.</p>\n<p><em><a href=\"https://web.archive.org/web/20120609190427/http://docs.oracle.com/javase/6/docs/api/javax/swing/package-summary.html\" rel=\"nofollow noreferrer\">Swing's Threading Policy</a></em></p>\n</blockquote>\n<p>On the other hand, I can freely invoke, for example, <code>getText()</code> on <code>JTextComponent</code>s with no exceptions thrown <em>even if</em> I explicitly install a <code>FailOnThreadViolationRepaintManager</code> (see <a href=\"https://web.archive.org/web/20120825054049/http://docs.codehaus.org/display/FEST/Testing+that+access+to+Swing+components+is+done+in+the+EDT\" rel=\"nofollow noreferrer\">this page</a> for more info).</p>\n<pre class=\"lang-java prettyprint-override\"><code>import org.fest.swing.edt.FailOnThreadViolationRepaintManager;\nimport org.fest.swing.edt.GuiActionRunner;\nimport org.fest.swing.edt.GuiQuery;\nimport org.fest.swing.exception.EdtViolationException;\nimport org.junit.jupiter.api.BeforeAll;\nimport org.junit.jupiter.api.Test;\n\nimport javax.swing.JTextField;\n\nimport static org.junit.jupiter.api.Assertions.assertDoesNotThrow;\nimport static org.junit.jupiter.api.Assertions.assertThrows;\n\nclass EdtTest {\n\n    @BeforeAll\n    static void beforeAll() {\n        FailOnThreadViolationRepaintManager.install();\n    }\n\n    @Test\n    void settingThrows_butAccessingDoesNot() {\n        JTextField textField = GuiActionRunner.execute(new GuiQuery&lt;JTextField&gt;() {\n            @Override\n            protected JTextField executeInEDT() {\n                return new JTextField();\n            }\n        });\n        String text = &quot;Some text&quot;;\n        assertThrows(EdtViolationException.class, () -&gt; textField.setText(text));\n        assertDoesNotThrow(() -&gt; textField.getText());\n    }\n}\n</code></pre>\n<p>If I can get away with it, I would rather avoid wrapping each getter call in some EDT-posting lambda in my tests (even if I make it easier with some utility method, like <code>callAndWait(field::getText)</code>).</p>\n<p>Java 8.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "apache-kafka-streams"
+    ],
+    "owner": {
+      "account_id": 3070822,
+      "reputation": 160,
+      "user_id": 2601524,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/20b3d986351cde9884399560d652d77a?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "mohammadjavadkh",
+      "link": "https://stackoverflow.com/users/2601524/mohammadjavadkh"
+    },
+    "is_answered": false,
+    "view_count": 169,
+    "answer_count": 0,
+    "score": 4,
+    "last_activity_date": 1746706673,
+    "creation_date": 1745411874,
+    "last_edit_date": 1745415065,
+    "question_id": 79588638,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79588638/decrease-response-time-in-kafka-streams",
+    "title": "decrease response time in Kafka streams",
+    "body": "<p>I have a project with kafka streams to create one minute candle on price for stock. My topology code is :</p>\n<pre><code>List&lt;String&gt; inputTopics = new ArrayList&lt;&gt;();\ninputTopics.add(tradeTopic);\nConsumed&lt;String, ProtoClass.Trade&gt; CandleConsumerOptions = Consumed\n        .with(Serdes.String(), ProtobufSerdes.Trade())\n        .withTimestampExtractor(new CandleTimestampExtractor());\n\n\n        KTable&lt;Windowed&lt;String&gt;, ProtoClass.OHLC&gt; ohlcKTable =\n                stream\n                        .filter((key, Trade) -&gt; Trade.getTradeTime() != 0 &amp;&amp; Trade.getTradeTime() &gt; todayMillis)\n                        .groupByKey(\n                                Grouped.with(Serdes.String(),ProtobufSerdes.Trade())\n                        )\n                        .windowedBy(TimeWindows.ofSizeAndGrace(Duration.ofMinutes(1)),Duration.ofHours(8)))\n                        .aggregate(\n                                ()-&gt; ProtoClass.OHLC.newBuilder().build(),\n                                (String key, ProtoClass.Trade trade,ProtoClass.OHLC ohlc) -&gt;  ExtendedOHLC.add(trade,key,ohlc),\n                                Materialized.&lt;String,ProtoClass.OHLC,WindowStore&lt;Bytes,byte[]&gt;&gt;as(stateStoreName)\n                                        .withCachingEnabled()\n                                        .withKeySerde(Serdes.String())\n                                        .withValueSerde(ProtobufSerdes.OHLC())\n                        );\n</code></pre>\n<p>And<br />\nmy config is:</p>\n<pre><code>  streamsConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, applicationId);\n    streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, BootstrapServer);\n    streamsConfiguration.put(StreamsConfig.APPLICATION_SERVER_CONFIG, appServerConfig);\n    streamsConfiguration.put(StreamsConfig.STATE_DIR_CONFIG, &quot;/app/kafka-stream&quot;);\n    streamsConfiguration.put(StreamsConfig.NUM_STANDBY_REPLICAS_CONFIG, 3);\n    streamsConfiguration.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, 100);\n    streamsConfiguration.put(StreamsConfig.NUM_STREAM_THREADS_CONFIG, 2);\n    streamsConfiguration.put(StreamsConfig.MAX_WARMUP_REPLICAS_CONFIG, 2);\n    streamsConfiguration.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 1000);\n</code></pre>\n<p>my service layer is:</p>\n<pre><code>public List&lt;Candle&gt; getRange(String symbol, long from, long to) {\nInstant fromTime = Instant.ofEpochMilli(convertEpochTimeToLocal(from));\nInstant toTime = Instant.ofEpochMilli(convertEpochTimeToLocal(to));\n\nKeyQueryMetadata metadata = streams.queryMetadataForKey(stateStoreName, symbol, Serdes.String().serializer());\nif (hostInfo.equals(metadata.activeHost()))\n    return fetchCandlesLocally(symbol, fromTime, toTime);\nelse\n    return fetchCandlesRemotelyGrpc(symbol, from, to, metadata.activeHost());\n    //return fetchCandlesRemotely(symbol, from, to, metadata.activeHost());\n\n}\nprivate List&lt;Candle&gt; fetchCandlesLocally(String symbol, Instant fromTime, Instant toTime) {\n\n        readOnlyWindowStore = streams.store(StoreQueryParameters.fromNameAndType(stateStoreName, QueryableStoreTypes.windowStore()));\n\n\n    List&lt;Candle&gt; candles = new ArrayList&lt;&gt;();\n    try (WindowStoreIterator&lt;ProtoClass.OHLC&gt; range = readOnlyWindowStore.fetch(symbol, fromTime, toTime)) {\n        if (range == null)\n            return candles;\n\n        while (range.hasNext()) {\n            KeyValue&lt;Long, ProtoClass.OHLC&gt; next = range.next();\n            if (next.value != null) {\n                Candle candle = createCandle(symbol, next.value,next.key);\n                candles.add(candle);\n            }\n        }\n    }\n    return candles;\n}\n</code></pre>\n<p>My problem is that I have a lot of input data for processing, and approximately 700 requests per second in the service layer, increased response time significantly. I have 24 partitions and I have 12 instances. Why does this problem? And what is your suggestion for solving this problem?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

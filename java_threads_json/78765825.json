@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "kotlin",
+      "kubernetes",
+      "spring-cloud-gateway"
+    ],
+    "owner": {
+      "account_id": 5160779,
+      "reputation": 129,
+      "user_id": 4132541,
+      "user_type": "registered",
+      "profile_image": "https://lh6.googleusercontent.com/-RA2lawWJDdE/AAAAAAAAAAI/AAAAAAAAAAA/AMZuucnOnS81X9fYiiRwW3jRmAEMLoMEKA/s256-rj/photo.jpg",
+      "display_name": "Lior Derei",
+      "link": "https://stackoverflow.com/users/4132541/lior-derei"
+    },
+    "is_answered": true,
+    "view_count": 225,
+    "accepted_answer_id": 78805747,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1722236015,
+    "creation_date": 1721322603,
+    "last_edit_date": 1721329596,
+    "question_id": 78765825,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78765825/spring-cloud-gateway-with-kubernetes-discovery-client-for-http-and-grpc-requests",
+    "title": "Spring Cloud Gateway with Kubernetes discovery client for http and grpc requests",
+    "body": "<p>I'm trying to implement gateway service using Spring Cloud Gateway with k8s client dicovery that will redirect both http/1.1 and http/2(GRPC) requests</p>\n<p>I set the following configurations:</p>\n<pre><code>server:\n  port: 9995\n  shutdown: graceful\n  http2:\n    enabled: true\n\nlogging:\n  level:\n    org.springframework.cloud.gateway: TRACE\n\nspring:\n  application:\n    name: api-gateway\n  lifecycle:\n    timeout-per-shutdown-phase: 30s\n  cloud:\n    gateway:\n      discovery:\n        locator:\n          enabled: true\n          include-expression: &quot;metadata['gateway.enabled']=='true'&quot;\n          predicates:\n            - name: Path\n              args:\n                pattern: &quot;'/'+serviceId+'/**'&quot;\n          filters:\n            - name: RewritePathAndPort\n              args:\n                grpcPort: 9090\n                httpPort: 8080\n    kubernetes:\n      discovery:\n        enabled: true\n        primary-port-name: app-port\n      loadbalancer:\n        enabled: true\n        mode: service\n#        port-name: grpc-port\n\nmanagement:\n  endpoint:\n    health:\n      enabled: true\n      show-details: always\n    gateway:\n      enabled: true\n  endpoints:\n    web:\n      exposure:\n        include: '*'\n\n</code></pre>\n<p>I alsom implemented the custom filter <code>RewritePathAndPort</code>:</p>\n<pre><code>@Component\nclass RewritePathAndPortGatewayFilterFactory :\n  AbstractGatewayFilterFactory&lt;RewritePathAndPortGatewayFilterFactory.Config&gt;(Config::class.java) {\n  val log = KotlinLogging.logger {}\n\n  class Config {\n    var grpcPort: Int = 9090\n    var httpPort: Int = 8080\n  }\n\n  override fun apply(config: Config): GatewayFilter =\n    GatewayFilter { exchange, chain -&gt;\n      val req = exchange.request\n      ServerWebExchangeUtils.addOriginalRequestUrl(exchange, req.uri)\n      val path = req.uri.rawPath\n\n      val pathSegments = path.split(&quot;/&quot;)\n      log.info { &quot;pathSegments: $pathSegments&quot; }\n      val host = pathSegments[1]\n      log.info { &quot;new host: $host&quot; }\n\n      val (newPath, newPort) =\n        if (path.contains(&quot;/grpc/&quot;)) {\n          stripPathSegments(pathSegments = pathSegments, segmentsToStrip = 3) to config.grpcPort\n        } else {\n          path to config.httpPort\n        }\n\n      log.info { &quot;new port: $newPort&quot; }\n\n      log.info { &quot;new path: $newPath&quot; }\n\n      val newUri =\n        UriComponentsBuilder\n          .fromUri(req.uri)\n          .scheme(&quot;lb&quot;)\n          .host(host)\n          .port(newPort) // Set the new port\n          .replacePath(newPath) // Set the new path\n          .build(true) // true for encoding the path\n          .toUri()\n      log.info { &quot;new Uri: $newUri&quot; }\n      val request =\n        req\n          .mutate()\n          .uri(newUri)\n          .path(newPath)\n          .build()\n\n      log.info { &quot;new request: $request&quot; }\n\n      exchange.attributes[ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR] = request.uri\n      log.info { &quot;new exchange: $exchange&quot; }\n      chain.filter(exchange.mutate().request(request).build())\n    }\n\n  override fun shortcutFieldOrder(): List&lt;String&gt; = listOf(&quot;regexp&quot;, &quot;replacement&quot;, &quot;port&quot;)\n\n  private fun stripPathSegments(\n    pathSegments: List&lt;String&gt;,\n    segmentsToStrip: Int,\n  ): String =\n    pathSegments\n      .subList(segmentsToStrip, pathSegments.size)\n      .joinToString(&quot;/&quot;)\n      .let { &quot;/$it&quot; }\n}\n</code></pre>\n<p>explination:</p>\n<p>if it's an http request:</p>\n<ul>\n<li>override the host by the first segment of the path</li>\n<li>leave the path as is</li>\n<li>use port 8080</li>\n</ul>\n<p>For example request with path: <code>/other-service/api/v1/hello</code> the uri will be <code>lb://other-service:8080/other-service/api/v1/hello</code></p>\n<p>if it's a grpc request:</p>\n<ul>\n<li>override the host by the first segment of the path</li>\n<li>strip the first 2 segments from the path</li>\n<li>use port 9090</li>\n</ul>\n<p>For example: <code>/other-grpc-service/grpc/HelloService/sayHello</code> the uri will be <code>lb://other-grpc-service:9090/HelloService/sayHello</code></p>\n<p>With the configuration above, http requests are working and grpc don't (fail on <code>Connection prematurely closed BEFORE response</code>)\nbecause the load balancer uses the default http port configured on the http service which is 8080</p>\n<p>if I uncomment <code>port-name: grpc-port</code> which tells the load balancer to use port <code>grpc-port</code>, the grpc requests are working but http requests fail on same error.\nThis happens because the load balancer overrides the uri port with <code>grpc-port</code> that configured on the grpc service which 9090</p>\n<p>What causes this is:\n<code>ReactiveLoadBalancerClientFilter</code>.</p>\n<p>Is there any way to work around this?</p>\n<p>edit: I found a workaround after hours of tries. I basically copies <code>ReactiveLoadBalancerClientFilter</code> and changed the port according to the content-type header and it worked, but this is less then ideal</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

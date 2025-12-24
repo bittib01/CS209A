@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "mongodb",
+      "spring-boot"
+    ],
+    "owner": {
+      "account_id": 40890101,
+      "reputation": 1,
+      "user_id": 30014908,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/13d4d8bdacd66d55e8ca74a9aa12c804?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Nijaoui Khalil",
+      "link": "https://stackoverflow.com/users/30014908/nijaoui-khalil"
+    },
+    "is_answered": false,
+    "view_count": 31,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1742572234,
+    "creation_date": 1742572234,
+    "question_id": 79525962,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79525962/mongo-java-driver-prematurely-reached-end-of-stream",
+    "title": "Mongo java driver Prematurely reached end of stream",
+    "body": "<p>I am performing a long running aggregation on my java application and I keep getting this error :</p>\n<blockquote>\n<p>Got socket exception on connection [connectionId{localValue:5, serverValue:32617}] to mymongoserver:27017. All connections to mymongoser:27017 will be closed.\norg.springframework.data.mongodb.UncategorizedMongoDbException: Prematurely reached end of stream; nested exception is com.mongodb.MongoSocketReadException: Prematurely reached end of stream.</p>\n</blockquote>\n<p>Here is my current config:</p>\n<p>MongoDB URI: mongodb://user:mymongoserver:27017/dbname?authSource=dbname&amp;replicaSet=rs-mdb&amp;readPreference=secondaryPreferred&amp;socketTimeoutMS=10000000&amp;maxIdleTimeMS=10000000&amp;connectTimeoutMS=10000000</p>\n<p>and this is the aggregation:</p>\n<pre><code>public void cleanDuplicateActiveRecords() {\n    // Step 1: Find duplicate active records grouped by externalId &amp;\n    // serviceSpecification.name\n    // Step 1: Re-map dot-notated fields to simple field names\n    try {\n        int batchSize = 1000; \n        long offset = 0;\n        boolean hasMoreData = true;\n\n        AggregationOptions options = AggregationOptions.builder().maxTime(Duration.ofHours(2)).allowDiskUse(true)\n                .build();\n\n        while (hasMoreData) {\n            Aggregation aggregation = Aggregation.newAggregation(\n                    Aggregation.match(Criteria.where(&quot;order.state&quot;).in(Arrays.asList(&quot;ACTIVE&quot;, &quot;SUSPENDED&quot;))),\n                    Aggregation.project(&quot;_id&quot;, &quot;lastUpdated&quot;).and(&quot;order.externalId&quot;).as(&quot;externalId&quot;)\n                            .and(&quot;order.serviceSpecification.name&quot;).as(&quot;orderName&quot;),\n                    Aggregation.sort(Sort.by(Sort.Direction.DESC, &quot;lastUpdated&quot;)),\n                    Aggregation.group(&quot;externalId&quot;, &quot;orderName&quot;).push(&quot;_id&quot;).as(&quot;ids&quot;).push(&quot;lastUpdated&quot;)\n                            .as(&quot;timestamps&quot;).count().as(&quot;count&quot;),\n                    Aggregation.match(Criteria.where(&quot;count&quot;).gt(1)), Aggregation.project(&quot;ids&quot;, &quot;timestamps&quot;),\n                    Aggregation.skip(offset), Aggregation.limit(batchSize)\n            ).withOptions(options);\n\n\n    List&lt;DuplicateOrder&gt; duplicates = mongoTemplate\n            .aggregate(aggregation, &quot;orders&quot;, DuplicateOrder.class)\n            .getMappedResults();\n\n    if (duplicates.size() &lt; batchSize) {\n        hasMoreData = false;\n    } else {\n        offset += batchSize;\n    }\n    log.info(&quot;The number of duplicated records {}&quot;, duplicates.size());\n    // Step 2: Delete all but the latest record for each group\n    for (DuplicateOrder duplicate : duplicates) {\n        List&lt;String&gt; ids = duplicate.getIds();\n        if (ids.size() &gt; 1) {\n            // Keep only the most recent record, delete the rest\n            List&lt;String&gt; idsToDelete = ids.subList(1, ids.size());\n            log.info(&quot;deleting records with ids: {}&quot;, idsToDelete);\n\n            Query deleteQuery = new Query(Criteria.where(&quot;_id&quot;).in(idsToDelete));\n            mongoTemplate.remove(deleteQuery, &quot;orders&quot;);\n        }\n    }\n}\n} catch (Exception e) {\n    log.error(&quot;Exception happened: {}&quot;, e);\n    e.printStackTrace();\n}\n</code></pre>\n<p>}</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

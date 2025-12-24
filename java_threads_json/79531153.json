@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "hibernate",
+      "concurrency",
+      "spring-batch"
+    ],
+    "owner": {
+      "account_id": 2058273,
+      "reputation": 911,
+      "user_id": 1835477,
+      "user_type": "registered",
+      "accept_rate": 59,
+      "profile_image": "https://www.gravatar.com/avatar/3b65fecacf57c96ec1f85b26804c6d32?s=256&d=identicon&r=PG",
+      "display_name": "DJViking",
+      "link": "https://stackoverflow.com/users/1835477/djviking"
+    },
+    "is_answered": false,
+    "view_count": 255,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1749601314,
+    "creation_date": 1742821324,
+    "last_edit_date": 1743400794,
+    "question_id": 79531153,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79531153/spring-batch-multi-threaded-processing",
+    "title": "Spring Batch: Multi-threaded processing",
+    "body": "<p>Making a Batch Job Multi-threaded seemed easy and straight forward.\nAlthough I got some problems with Hibernate session on Lazy collections.</p>\n<p>The first step of the Job has a Reader and a Processor (Custom Noop Writer is used).\nThe Reader is an RepositoryItemReader. The Processor is a custom implements ItemProcessor.</p>\n<p>I could make this Step multi-threaded by creating a ThreadPoolTaskExecutor and adding it to the Step.</p>\n<p>However on some occasions I do get an Exception related to missing or closed hibernate session in my ItemProcessor. Though I have gotten several different Exceptions, all related to the Lazy collection in my Domain class being read and processed.</p>\n<pre><code>java.lang.IllegalStateException: Session/EntityManager is closed\njava.lang.NullPointerException: Cannot invoke &quot;org.hibernate.engine.spi.SharedSessionContractImplementor.getPersistenceContext()&quot; because &quot;this.session&quot; is null\njava.lang.ArrayIndexOutOfBoundsException: Index 331 out of bounds for length 331\norg.hibernate.LazyInitializationException: failed to lazily initialize a collection of role: com.company.app.domain.CustomObject.aListOfItems: could not initialize proxy - no Session\n</code></pre>\n<p>I am not sure if there is a way to fix this without making the collection Eager loading.</p>\n<p>It seems to me that the ItemReader is closing the Hibernate session before the ItemProcessor is finished processing the read database items.</p>\n<pre><code>    @Bean\n    public Job batchJob(\n        final Step batchStep,\n        final Step step2,\n        final Step step3,\n        final Step step4,\n        final Step step5\n    ) {\n        return new JobBuilder(&quot;batchJob&quot;, jobRepository)\n            .incrementer(new RunIdIncrementer())\n            .start(batchStep)\n            .next(step1)\n            .next(step2)\n            .next(step3)\n            .next(step4)\n            .next(step5)\n            .build();\n    }\n\n    @Bean\n    public Step batchStep(\n        final ItemReader&lt;CustomObject&gt; customObjectReader,\n        final CustomObjectProcessor customObjectProcessor,\n        final TaskExecutor batchTaskExecutor\n    ) {\n        return new StepBuilder(&quot;batchStep&quot;, jobRepository)\n            .&lt;CustomObject, CustomObject&gt;chunk(100, transactionManager)\n            .reader(customObjectReader)\n            .processor(customObjectProcessor)\n            .writer(chunk -&gt; {})\n            .taskExecutor(batchTaskExecutor)\n            .throttleLimit(4)\n            .build();\n    }\n\n    @Bean\n    @StepScope\n    public ItemReader&lt;CustomObject&gt; customObjectReader(\n        final CustomObjectRepository customObjectRepository,\n        @Value(&quot;#{jobParameters['year']}&quot;) final Integer year,\n        @Value(&quot;#{jobParameters['month']}&quot;) final Integer month\n    ) {\n        final RepositoryItemReader&lt;CustomObject&gt; reader = new RepositoryItemReader&lt;&gt;();\n        reader.setRepository(customObjectRepository);\n        reader.setMethodName(&quot;findAllByYearAndMonth&quot;);\n        reader.setArguments(List.of(year, month));\n        reader.setSort(Map.of(&quot;id&quot;, Sort.Direction.ASC));\n        reader.setPageSize(100);\n        reader.setSaveState(false);\n        return reader;\n    }\n\n    @Bean\n    public TaskExecutor batchTaskExecutor() {\n        final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();\n        executor.setCorePoolSize(20);\n        executor.setMaxPoolSize(20);\n        executor.setQueueCapacity(20);\n        executor.setThreadNamePrefix(&quot;Batch-&quot;);\n        executor.initialize();\n        return executor;\n    }\n\n    @Component\n    @StepScope\n    public class CustomObjectProcessor implements ItemProcessor&lt;CustomObject, CustomObject&gt;, ItemStream {\n\n        @Override\n        public CustomObject process(final CustomObject customObject) {\n            log.info(&quot;Processing customObject Id={}&quot;, customObject.getId());\n            customObject.updateData();\n            return customObject;\n        }\n\n    }\n\n    @Repository\n    @Transactional(readOnly = true)\n    public interface CustomObjectRepository extends JpaRepository&lt;CustomObject, Long&gt;, QuerydslPredicateExecutor&lt;CustomObject&gt; {\n        Page&lt;CustomObject&gt; findAllByYearAndMonth(Integer year, Integer month, Pageable pageable);\n    }\n\n</code></pre>\n<p>I tried making the Repository Query to do JOIN FETCH, but that does not seem to work. It still executes SQL SELECT when reading the collection.</p>\n<pre><code>@Query(&quot;&quot;&quot;\n    SELECT co FROM CustomObject co\n    JOIN FETCH co.aListOfItems loi\n    WHERE co.year = :year\n    AND co.month = :month\n&quot;&quot;&quot;)\nPage&lt;CustomObject&gt; findAllByYearAndMonth(Integer year, Integer month, Pageable pageable);\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

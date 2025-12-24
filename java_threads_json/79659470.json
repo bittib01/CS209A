@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "tomcat",
+      "opensearch"
+    ],
+    "owner": {
+      "account_id": 12171422,
+      "reputation": 301,
+      "user_id": 8885960,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/c09b0842a8836bdb2aed03601df6fa5d?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "kasualnetuser",
+      "link": "https://stackoverflow.com/users/8885960/kasualnetuser"
+    },
+    "is_answered": true,
+    "view_count": 117,
+    "accepted_answer_id": 79664090,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1749827088,
+    "creation_date": 1749499722,
+    "last_edit_date": 1749827088,
+    "question_id": 79659470,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79659470/cannot-write-xcontent-for-unknown-value-of-type-java-time-localdate-appears-ra",
+    "title": "“cannot write xcontent for unknown value of type java.time.LocalDate” appears randomly on one Tomcat node",
+    "body": "<p>OpenSearch XContentBuilder – “cannot write xcontent for unknown value of type java.time.LocalDate” appears randomly on Tomcat.</p>\n<p><strong>Context</strong>:</p>\n<ol>\n<li>Spring-Boot 3.4.4, packaged as a WAR and deployed external Tomcat 10.1.20 servers (JDK 17.0.11 Temurin).</li>\n<li>OpenSearch Java client 2.19.0 (also tested 2.6 → same result).</li>\n<li>All dependencies live in WEB-INF/lib — no shading/uber-jar.</li>\n</ol>\n<p><strong>What I understood ?</strong></p>\n<ol>\n<li>Static initialisation of XContentBuilder</li>\n</ol>\n<pre class=\"lang-java prettyprint-override\"><code>public class XContentBuilder implements Closeable {\n    /** Map: Java type ➜ lambda that writes that value */\n    private static final Map&lt;Class&lt;?&gt;, Writer&gt; WRITERS = new HashMap&lt;&gt;();\n\n    static {\n        /* ── 1 a. built-in primitives ───────────────────────────── */\n        WRITERS.put(String.class, (b, v) -&gt; b.value((String) v));\n        WRITERS.put(Integer.class, (b, v) -&gt; b.value((Integer) v));\n        /* …​ Boolean, BigInteger, Date, byte[]  … */\n\n        /* ── 1 b. ask every SPI extension to extend the map ─────── */\n        /*\n         * This is the SPI hook.  It is executed ONCE, the first time\n         * XContentBuilder is referenced inside a given class-loader.\n         */\n        for (XContentBuilderExtension ext :\n                ServiceLoader.load(XContentBuilderExtension.class)) {\n            ext.accept(WRITERS);      // registers extra writers\n        }\n    }\n    …\n}\n\n</code></pre>\n<p>Everything happens once per class-loader, the result is cached in the static WRITERS map.</p>\n<p>Somehow, for an obscure reason, <code>ServiceLoader.load(XContentBuilderExtension.class)</code> does not find <code>XContentOpenSearchExtension.class</code></p>\n<p>and when calling this method with a <code>LocalDate</code> object</p>\n<pre><code>    private void unknownValue(Object value, boolean ensureNoSelfReferences) throws IOException {\n    if (value == null) {\n        nullValue();\n        return;\n    }\n    Writer writer = WRITERS.get(value.getClass());\n    if (writer != null) {\n        writer.write(this, value);\n    } else if (value instanceof Path) {\n        // Path implements Iterable&lt;Path&gt; and causes endless recursion and a StackOverFlow if treated as an Iterable here\n        value((Path) value);\n    } else if (value instanceof Map) {\n        @SuppressWarnings(&quot;unchecked&quot;)\n        final Map&lt;String, ?&gt; valueMap = (Map&lt;String, ?&gt;) value;\n        map(valueMap, ensureNoSelfReferences, true);\n    } else if (value instanceof Iterable) {\n        value((Iterable&lt;?&gt;) value, ensureNoSelfReferences);\n    } else if (value instanceof Object[]) {\n        values((Object[]) value, ensureNoSelfReferences);\n    } else if (value instanceof ToXContent) {\n        value((ToXContent) value);\n    } else if (value instanceof Enum&lt;?&gt;) {\n        // Write out the Enum toString\n        value(Objects.toString(value));\n    } else {\n        throw new IllegalArgumentException(&quot;cannot write xcontent for unknown value of type &quot; + value.getClass());\n    }\n}\n</code></pre>\n<p>The IllegalArgumentException is throw :</p>\n<pre><code>java.lang.IllegalArgumentException: cannot write xcontent for unknown value of type class java.time.LocalDate\n    at org.opensearch.core.xcontent.XContentBuilder.unknownValue(XContentBuilder.java:866)\n    at org.opensearch.core.xcontent.XContentBuilder.value(XContentBuilder.java:837)\n    at org.opensearch.core.xcontent.XContentBuilder.field(XContentBuilder.java:822)\n    at org.opensearch.index.query.RangeQueryBuilder.doXContent(RangeQueryBuilder.java:334)\n</code></pre>\n<p>What can lead <code>ServiceLoader.load(XContentBuilderExtension.class)</code> to not find <code>XContentOpenSearchExtension</code> class ?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

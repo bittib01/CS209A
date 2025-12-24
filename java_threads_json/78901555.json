@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "proguard",
+      "javacard"
+    ],
+    "owner": {
+      "account_id": 9218865,
+      "reputation": 1082,
+      "user_id": 6849045,
+      "user_type": "registered",
+      "accept_rate": 25,
+      "profile_image": "https://www.gravatar.com/avatar/7952d7a6b63a7975e71e8f5699a6aa1b?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Typhaon",
+      "link": "https://stackoverflow.com/users/6849045/typhaon"
+    },
+    "is_answered": true,
+    "view_count": 73,
+    "answer_count": 1,
+    "score": 3,
+    "last_activity_date": 1745178322,
+    "creation_date": 1724329452,
+    "last_edit_date": 1724665671,
+    "question_id": 78901555,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78901555/how-to-prevent-proguard-from-overloading-functions-that-have-different-return-ty",
+    "title": "How to prevent proguard from overloading functions that have different return types",
+    "body": "<p>I'm working on a Javacard applet. I'm using Proguard because I have almost no memory on that card. I also optimize aggressively because of this. Proguard will overload functions, which is fine, but if an overloaded function has a different return type from another function, then the converter (which turns the JAR into something that the card understands) will throw an error.</p>\n<p>I want proguard to overload functions, except when they have different return types.</p>\n<p>My rules:</p>\n<pre><code>-verbose\n-allowaccessmodification\n-optimizeaggressively\n-dontwarn java.lang.Class\n-repackageclasses com.example\n-optimizationpasses 10\n-keepattributes Exceptions\n-optimizations !code/simplification/arithmetic,!code/simplification/cast\n-useuniqueclassmembernames\n\n-keep public class com.example.MyApplet {\n    public static void install(byte[], short, byte);\n    public void process(javacard.framework.APDU);\n    public void processToolkit(short);\n    public void uninstall();\n}\n</code></pre>\n<p>Below is an example. I'm concerned with the bottom functions:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class MyApplet extends Applet implements ToolkitInterface, AppletEvent {\n    byte[] timerIds = new byte[3];\n    MyApplet() {}\n\n    public void configureToolkit() {\n        ToolkitRegistry toolkitRegistry = ToolkitRegistrySystem.getEntry();\n\n       for(byte i = 0; i &lt; (byte) timerIds.length; i++ {\n            timerIds[i] = toolkitRegistry.allocateTimer();\n        }\n\n        toolkitRegistry.setEvent(EVENT_PROFILE_DOWNLOAD);\n    }\n\n    public static void install(byte[] bArray, short bOffset, byte bLength) {\n        MyApplet applet = MyApplet();\n        applet.register();\n        applet.configureToolkit();\n    }\n\n    public void process(APDU apdu) {}\n\n    public void processToolkit(short event) {\n        switch(event)\n            case EVENT_PROFILE_DOWNLOAD:\n                for(byte i = 0; i &lt; (byte) timerIds.length; i++ {\n                    startTimer(timerIds[i], i);\n                }\n                break;\n            case EVENT_TIMER_EXPIRATION:\n                byte timerId = getTimerId();\n                startTimer(timerId, (byte) 5);\n                break;\n            default:\n                break;\n        }\n    }\n\n    public void uninstall() {}\n\n    // If these are not inlined, they will get the same name.\n    // But they have different return types\n    void startTimer(byte timerId, byte seconds) {\n         // impl\n    }\n\n    byte getTimerId() {\n        // impl\n    }\n}\n</code></pre>\n<p>Most of the time these types of functions are inlined. But assume that for some reason these functions cannot be inlined.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

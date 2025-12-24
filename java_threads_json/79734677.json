@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "gradle",
+      "github-actions",
+      "nexus3",
+      "maven-publish"
+    ],
+    "owner": {
+      "account_id": 21337950,
+      "reputation": 1,
+      "user_id": 15708890,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a-/AOh14Gi91n2Lmah0rgMckbbF0OublS3s7LJV2cJvx3WO=k-s256",
+      "display_name": "RaftDev",
+      "link": "https://stackoverflow.com/users/15708890/raftdev"
+    },
+    "is_answered": false,
+    "view_count": 80,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1755218154,
+    "creation_date": 1755114072,
+    "question_id": 79734677,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79734677/gradle-publishing-in-github-workflows-doesnt-work-403-forbidden",
+    "title": "Gradle Publishing in Github Workflows doesn&#39;t work (403 Forbidden)",
+    "body": "<p>I'm running into a really weird issue.</p>\n<p>I'm unable to make my Github Workflow work, which is supposed to upload artifacts of mine on my self-hosted repository but it always fails when it tries to upload the jar.sha1 artifact with 403, but the .jar artifact is fully uploaded.</p>\n<p>Trying on my own machine with the gradle task and the same users and credentials as the github workflow and it uploads all the artifacts without any issues.</p>\n<p>Even weirder when checking the logs of Nexus and Nginx my server never receives the second request to upload the .jar.sha1 artifact.. I can see the .jar artifact being uploaded and returning 201 as a result.</p>\n<p>So I'm absolutely sure that it isn't misconfigured permissions or a faulty workflow file.</p>\n<p>If anyone has an idea of what's happening I would be glad to know!</p>\n<p>Here is my project on github, it's based of another repo I'm working on it's simply to freely test and break stuff before moving it into my main project. As such the publication gradle task is a bit dirty.</p>\n<p><a href=\"https://github.com/BelgianDev/Action-Sandbox\" rel=\"nofollow noreferrer\">https://github.com/BelgianDev/Action-Sandbox</a> Feel free to try stuff, simply need to change the url and endpoints for the repos.</p>\n<p>Here is my workflow file:</p>\n<pre class=\"lang-yaml prettyprint-override\"><code>name: Publish - Snapshot\non:\n  push\n\njobs:\n  publish:\n    strategy:\n      matrix:\n        java: [ 21 ]\n        os: [ ubuntu-latest ]\n    runs-on: ${{ matrix.os }}\n    steps:\n      - name: Checkout Repository\n        uses: actions/checkout@v4\n\n      - name: Setup Java\n        uses: actions/setup-java@v4\n        with:\n          distribution: temurin\n          java-version: ${{ matrix.java }}\n\n      - name: Make Gradle Executable\n        run: chmod +x ./gradlew\n\n      - name: Setup Gradle\n        uses: gradle/actions/setup-gradle@v3\n\n      - name: Determine Version\n        id: version\n        run: |\n          GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)\n          GIT_HASH=$(git rev-parse HEAD)\n\n          VERSION=&quot;${GIT_BRANCH}-${GIT_HASH:0:7}&quot;\n          \n          echo &quot;version=$VERSION&quot; &gt;&gt; &quot;$GITHUB_OUTPUT&quot;\n          echo &quot;Version: ${VERSION}&quot; &gt;&gt; $GITHUB_STEP_SUMMARY\n\n      - name: Publish Artifacts\n        run: ./gradlew publish\n        env:\n          REPO_USERNAME: ${{ secrets.REPOSITORY_USER }}\n          REPO_PASSWORD: ${{ secrets.REPOSITORY_PASSWORD }}\n          RELEASE: false\n          VERSION: ${{ steps.version.outputs.version }}\n</code></pre>\n<p>Here is the build.gradle.kts:</p>\n<pre class=\"lang-kotlin prettyprint-override\"><code>import java.net.URI\n\nplugins {\n    id(&quot;java-library&quot;)\n    id(&quot;maven-publish&quot;)\n}\n\njava {\n    withJavadocJar()\n}\n\ndependencies {\n\n}\n\npublishing {\n    publications {\n        create&lt;MavenPublication&gt;(&quot;core&quot;) {\n            from(components[&quot;java&quot;])\n        }\n    }\n\n    repositories {\n        mavenLocal()\n\n        maven {\n            name = &quot;AtlasWorld-Repository&quot;\n            url = URI.create(&quot;https://repository.atlasworld.fr/repository/maven-snapshot/&quot;)\n\n            credentials {\n                username = System.getenv(&quot;REPO_USERNAME&quot;)\n                password = System.getenv(&quot;REPO_PASSWORD&quot;)\n            }\n\n            metadataSources {\n                gradleMetadata()\n            }\n        }\n    }\n}\n</code></pre>\n<p>Here is a sample the Github Action output I got. (For the full action output refer to this action: <a href=\"https://github.com/BelgianDev/Action-Sandbox/actions/runs/16936757503/job/48002882361\" rel=\"nofollow noreferrer\">https://github.com/BelgianDev/Action-Sandbox/actions/runs/16936757503/job/48002882361</a>)</p>\n<pre><code>* What went wrong:\nExecution failed for task ':core:publishCorePublicationToAtlasWorld-RepositoryRepository'.\n&gt; Failed to publish publication 'core' to repository 'AtlasWorld-Repository'\n   &gt; Could not PUT 'https://repository.atlasworld.fr/repository/maven-snapshots/fr/atlasworld/fresco-core/master-ad82aba/fresco-core-master-ad82aba.jar.sha1'. Received status code 403 from server: Forbidden\n</code></pre>\n<p>The repo is also available here: <a href=\"https://repository.atlasworld.fr/#browse/browse:maven-snapshots\" rel=\"nofollow noreferrer\">https://repository.atlasworld.fr/#browse/browse:maven-snapshots</a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

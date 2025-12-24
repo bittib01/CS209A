@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "minecraft",
+      "bukkit",
+      "spigot"
+    ],
+    "owner": {
+      "account_id": 31084922,
+      "reputation": 1,
+      "user_id": 26947099,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/49da7b5ac2f597dd492aed7569ae8b1d?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "user378555",
+      "link": "https://stackoverflow.com/users/26947099/user378555"
+    },
+    "is_answered": false,
+    "view_count": 86,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1743756257,
+    "creation_date": 1737897408,
+    "question_id": 79388581,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79388581/how-can-i-get-the-output-of-a-command-executed-by-a-player",
+    "title": "How can I get the output of a command executed by a player?",
+    "body": "<p>I am doing a plugin in paper, and I need to get the player's output, when executing a command, for example, if a player uses: / tpa  get an output like: &quot;A teleportation request was sent to &quot; while in the server console it only shows &quot;user issued the command: /tpa &quot;</p>\n<pre><code>package cherry.plugins;\n\nimport org.bukkit.Bukkit;\nimport org.bukkit.event.EventHandler;\nimport org.bukkit.event.Listener;\nimport org.bukkit.event.player.AsyncPlayerChatEvent;\nimport org.bukkit.event.player.PlayerCommandPreprocessEvent;\nimport org.bukkit.event.player.PlayerChatEvent;\n\npublic class CommandLogger implements Listener {\n    private final CherryCostume plugin;\n\n    // Variable para capturar la salida del comando antes de que se envíe al chat\n    private String currentCommandSender;\n    private String lastCommandOutput;\n\n    public CommandLogger(CherryCostume plugin) {\n        this.plugin = plugin;\n        Bukkit.getPluginManager().registerEvents(this, plugin);\n    }\n\n    @EventHandler\n    public void onPlayerCommand(PlayerCommandPreprocessEvent event) {\n        String command = event.getMessage().substring(1); // Remueve la barra inicial\n        String playerName = event.getPlayer().getName();\n\n        // Verificamos si el comando es de tipo /tell o /msg\n        if (command.startsWith(&quot;tell&quot;) || command.startsWith(&quot;msg&quot;)) {\n            String[] commandParts = command.split(&quot; &quot;, 3);\n            if (commandParts.length &gt;= 3) {\n                String targetPlayer = commandParts[1]; // Jugador objetivo\n                String message = commandParts[2]; // Mensaje del comando\n\n                // Guardamos el jugador que envió el comando para comparar más tarde\n                currentCommandSender = playerName;\n\n                // Logueamos el comando ejecutado\n                plugin.getLogger().info(&quot;Comando ejecutado: &quot; + command);\n                plugin.getLogger().info(&quot;Salida: Comando enviado a &quot; + targetPlayer + &quot; con el mensaje: &quot; + message);\n            }\n        }\n    }\n\n    @EventHandler\n    public void onPlayerChat(AsyncPlayerChatEvent event) {\n        String message = event.getMessage();\n\n        // Verificamos si el mensaje corresponde a un susurro\n        if (message.startsWith(&quot;§7[§8[.*§r&quot;)) {\n            String sender = event.getPlayer().getName();\n\n            // Solo registramos el mensaje de chat si es de un jugador que acaba de ejecutar un comando\n            if (sender.equals(currentCommandSender)) {\n                // Capturamos la salida exacta como aparece en el chat\n                lastCommandOutput = message;\n\n                // Logueamos la salida exacta del chat generada por el comando\n                plugin.getLogger().info(&quot;Salida: &quot; + lastCommandOutput);\n            }\n        }\n    }\n}````\n\n\n\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

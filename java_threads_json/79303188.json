@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "oracle-database",
+      "spring-boot",
+      "spring-data-jdbc"
+    ],
+    "owner": {
+      "account_id": 23310487,
+      "reputation": 21,
+      "user_id": 17389825,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/A2zh7xn8.jpg?s=256",
+      "display_name": "Youssef Gamal",
+      "link": "https://stackoverflow.com/users/17389825/youssef-gamal"
+    },
+    "is_answered": false,
+    "view_count": 77,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1734960601,
+    "creation_date": 1734959636,
+    "last_edit_date": 1734960601,
+    "question_id": 79303188,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79303188/store-java-object-as-json-in-db-table-in-spring-data-jdbc-and-search-with-stored",
+    "title": "Store Java Object as JSON in DB Table in Spring Data JDBC and Search with Stored JSON Properties Soon",
+    "body": "<p>i'm using spring-data-jdbc and i want to store java object as a json into database and when i <em><strong>find</strong></em> or <em><strong>search</strong></em> in the repository i use normal <code>_</code> as we do in normal spring-data-jdbc nested object as an example <code>findAllByCommonInfo_IsActive(boolean isActive)</code> to search inside object called <code>commonInfo</code>, this is the following representation that i want to apply my question to it</p>\n<p><strong>1- What i Want</strong></p>\n<p><strong>LuCallingRequestCase.java</strong></p>\n<pre class=\"lang-java prettyprint-override\"><code>\n@Data\n@Builder\n@Table\n@NoArgsConstructor\n@AllArgsConstructor\npublic class LuCallingRequestCase implements Serializable {\n\n    @Id\n    private Long luCallingRequestCaseId;\n\n    private Long luProsecutionWorkRequestTypeId;\n\n    private CommonInfo commonInfo;\n\n}\n</code></pre>\n<p><strong>CommonInfo.java</strong></p>\n<pre class=\"lang-java prettyprint-override\"><code>@Data\n@Builder\npublic class CommonInfo {\n\n    @NonNull\n    private final String createdBy;\n\n    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = &quot;dd-MM-yyyy HH:mm:ss&quot;, timezone = &quot;GMT+2&quot;)\n    private final Instant createdAt;\n\n\n    private String updatedBy;\n\n    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = &quot;dd-MM-yyyy HH:mm:ss&quot;, timezone = &quot;GMT+2&quot;)\n    private Instant updatedAt;\n\n    @Builder.Default\n    private boolean isActive = true;\n\n    @Builder.Default\n    private boolean isUsed = false;\n\n    @Builder.Default\n    @JsonProperty(&quot;isDeleted&quot;)\n    private boolean isDeleted = false;\n}\n</code></pre>\n<p><strong>Oracle SQL Table</strong></p>\n<pre class=\"lang-sql prettyprint-override\"><code>\nCREATE TABLE LU_CALLING_REQUEST_CASE\n(\n     LU_CALLING_REQUEST_CASE_ID           NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY NOT NULL,\n     LU_PROSECUTION_WORK_REQUEST_TYPE_ID  NUMBER                                          NOT NULL,\n     COMMON_INFO                 JSON DEFAULT '{\n      &quot;createdBy&quot;: null,\n      &quot;updatedBy&quot;: null,\n      &quot;createdAt&quot;: null,\n      &quot;updatedAt&quot;: null,\n      &quot;isActive&quot;: true,\n      &quot;isUsed&quot;: false,\n      &quot;isDeleted&quot;: false\n    }',\n    CONSTRAINT FK4_PROSECUTION_WORK_REQUEST_TYPE FOREIGN KEY (LU_PROSECUTION_WORK_REQUEST_TYPE_ID) REFERENCES LU_PROSECUTION_WORK_REQUEST_TYPE (LU_PROSECUTION_WORK_REQUEST_TYPE_ID) ON DELETE CASCADE\n);\n\n</code></pre>\n<p><strong>2- Exiting Implementation of Repository Layer</strong></p>\n<p><strong>LuCallingRequestCaseRepository.java</strong></p>\n<pre class=\"lang-java prettyprint-override\"><code>\n@Repository\npublic interface LuCallingRequestCaseRepository extends PagingAndSortingRepository&lt;LuCallingRequestCase, Long&gt;, CrudRepository&lt;LuCallingRequestCase, Long&gt; {\n\n    // Query to count records based on available filter without using 'isDeleted'\n    @Query(&quot;&quot;&quot;\n            SELECT COUNT(*)\n            FROM LU_CALLING_REQUEST_CASE\n            WHERE ( LU_PROSECUTION_WORK_REQUEST_TYPE_ID = :prosecutionWorkTypeId OR :prosecutionWorkTypeId IS NULL )\n            &quot;&quot;&quot;)\n    int countByFilter(Long prosecutionWorkTypeId);\n\n    // Query to find records with pagination\n    @Query(&quot;&quot;&quot;\n            SELECT \n                LU_CALLING_REQUEST_CASE_ID,\n                LU_PROSECUTION_WORK_REQUEST_TYPE_ID,\n                JSON_SERIALIZE(LU_PROSECUTION_WORK_REQUEST_TYPE_IDS) AS LU_PROSECUTION_WORK_REQUEST_TYPE_IDS,\n                JSON_SERIALIZE(LU_CASE_TYPE_IDS) AS LU_CASE_TYPE_IDS\n            FROM LU_CALLING_REQUEST_CASE\n            WHERE ( LU_PROSECUTION_WORK_REQUEST_TYPE_ID = :prosecutionWorkTypeId OR :prosecutionWorkTypeId IS NULL )\n            ORDER BY LU_CALLING_REQUEST_CASE_ID\n            OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY\n            &quot;&quot;&quot;)\n    List&lt;LuCallingRequestCase&gt; findByFilter(\n            @Param(&quot;offset&quot;) int offset,\n            @Param(&quot;limit&quot;) int limit,\n            Long prosecutionWorkTypeId);\n\n    // Query to find a specific record by LU_CALLING_REQUEST_CASE_ID\n    @Query(&quot;&quot;&quot;\n            SELECT \n                LU_CALLING_REQUEST_CASE_ID,\n                LU_PROSECUTION_WORK_REQUEST_TYPE_ID,\n                JSON_SERIALIZE(LU_PROSECUTION_WORK_REQUEST_TYPE_IDS) AS LU_PROSECUTION_WORK_REQUEST_TYPE_IDS,\n                JSON_SERIALIZE(LU_CASE_TYPE_IDS) AS LU_CASE_TYPE_IDS\n            FROM LU_CALLING_REQUEST_CASE\n            WHERE LU_CALLING_REQUEST_CASE_ID = :callingRequestCaseId\n            &quot;&quot;&quot;)\n    Optional&lt;LuCallingRequestCase&gt; findByCallingRequestCaseId(\n            @Param(&quot;callingRequestCaseId&quot;) Long callingRequestCaseId);\n\n}\n\n</code></pre>\n<p>How Can optimize the repo to be with less code structure in the repo layer instead of dense sql code according to store java object as json and make the framework undertand as an example <code>findAllByCommonInfo_IsActive(boolean isActive)</code> and it search into all records and check the isActive to be true of false from common info json ?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

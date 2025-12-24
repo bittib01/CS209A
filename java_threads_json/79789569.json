@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "gradle",
+      "continuous-delivery",
+      "spring-boot-gradle-plugin"
+    ],
+    "owner": {
+      "account_id": 792027,
+      "reputation": 2875,
+      "user_id": 869368,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/2fbecbc4c9b1c79fd9a903b48cac5dba?s=256&d=identicon&r=PG",
+      "display_name": "Matthias",
+      "link": "https://stackoverflow.com/users/869368/matthias"
+    },
+    "is_answered": false,
+    "view_count": 97,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1760615383,
+    "creation_date": 1760381550,
+    "question_id": 79789569,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79789569/gradle-configuration-cache-in-spring-boot-bootbuildimage-with-multiple-images",
+    "title": "Gradle Configuration Cache in Spring Boot bootBuildImage with multiple Images",
+    "body": "<p>I have a modulith that produces several applications in one multimodule Gradle Build (Gradle 9.1)</p>\n<p>These applications are all spring boot apps and they are deployed as docker images using the bootBuildImage task from the gradle spring boot plugin.</p>\n<p>We're using continuous delivery, so every build should produce docker images for all applications with the version of the image being just the build number (which is produced by the pipeline and is unique for every pipeline run)</p>\n<p>My grade configuration looks like this:</p>\n<pre><code>\ntasks.named('bootBuildImage') {\n    \n    imageName = &quot;${System.getenv('BUILD_DOCKER_REGISTRY')}/${project.name}:${System.getenv('BUILD_DOCKER_TAG')}&quot;\n        \n    builder = &quot;paketobuildpacks/builder-jammy-java-tiny&quot;\n    buildpacks = [ /* ... */ ]\n\n    environment.putAll([ /* ... */ ])\n}\n</code></pre>\n<p>This all works fine, but it is not compatible with configuration cache. Gradle detects the env BUILD_DOCKER_TAG to change for every build and then invalidates configuration cache.</p>\n<p>This is painful for my team, as the configuration time in our project is comparatively large and the build logic rarely changes.</p>\n<p>Therefore, my question is: Is there a way to shift configuration of the image name from configuration time to build time, so that configuration cache stays intact? (I've tried providers, but what I've tried didn't do the trick, plus I could not really understand the documentation when describing the behaviour in regards to configuration cache)</p>\n<p>Things that will not work:</p>\n<ul>\n<li>Passing the image name as a build parameter: the build will produce multiple images that differ in name but have to have the same tag.</li>\n<li>optimizing or reviewing the project structure: The build is highly optimized, pretty much all tricks that can be pulled are pulled.</li>\n<li>any things that will take <em>longer</em> (e.g. multiple gradle builds instead of one - as the one gradle build is highly concurrent)</li>\n</ul>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "mongodb",
+      "ssl",
+      "keystore",
+      "truststore"
+    ],
+    "owner": {
+      "account_id": 28783139,
+      "reputation": 11,
+      "user_id": 22044293,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/3e6b52fa0a06a2c6c224c9989c1d7015?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "AVG",
+      "link": "https://stackoverflow.com/users/22044293/avg"
+    },
+    "is_answered": false,
+    "view_count": 330,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1756803918,
+    "creation_date": 1738816655,
+    "question_id": 79416789,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79416789/cannot-get-mongodb-java-driver-to-work-correctly-with-tls",
+    "title": "Cannot get MongoDB Java Driver to work correctly with TLS",
+    "body": "<p>I recently set up a server using a self-signed certificate and I just cannot get it to work on Java. My process was to  create a ca pem and a key pem and use them for TLS. With this, I've gotten Mongo compass able to connect as well as a basic Python program. When i try to do the same thing in Java  I constantly get this error:\nHi, I recently set up a server using a self-signed certificate and I just cannot get it to work on Java. My process was to  create a ca pem and a key pem and use them for TLS. With this, I've gotten Mongo compass able to connect as well as a basic Python program. When i try to do the same thing in Java  I constantly get this error:</p>\n<pre><code>Caused by: javax.net.ssl.SSLHandshakeException: PKIX path validation failed: java.security.cert.CertPathValidatorException: Path does not chain with any of the trust anchors\n</code></pre>\n<p>Because it' s java, I also had to remove the extra tls stuff at the end of the uri and use trust and key stores to get it working, but it never ended up working. Below is my code:</p>\n<pre><code>        System.setProperty(&quot;javax.net.ssl.trustStore&quot;,&quot;C:/Program Files/Java/jdk-21/lib/security/cacerts&quot;);\n        System.setProperty(&quot;javax.net.ssl.trustStorePassword&quot;,&quot;changeit&quot;);\n        System.setProperty(&quot;javax.net.ssl.keyStore&quot;, &quot;C:/Program Files/Java/jdk-21/lib/security/mongodb.pkcs12&quot;);\n        System.setProperty(&quot;javax.net.ssl.keyStorePassword&quot;,&quot;changeit&quot;);\n        System.out.println(System.getProperties());\n\n        String connectionString = &quot;&lt;mongodb-uri&gt;?tls=true&quot;;\n\n        MongoClientSettings settings = MongoClientSettings.builder()\n                .applyConnectionString(new ConnectionString(connectionString))\n\n                .applyToSslSettings(builder -&gt; {\n                    builder.enabled(true);\n                    builder.invalidHostNameAllowed(true);\n                })\n                .build();\n\n        MongoClient client = MongoClients.create(settings);\n</code></pre>\n<p>To try to set up the trust store, I ran:\n<code>keytool -import -trustcacerts -file mongodbca.pem -keystore cacerts -storepass &quot;changeit&quot;</code>\nand for the key store I simply changed my pem file to a pkcs12 file with openssl with the following:\n<code>openssl pkcs12 -export -out mongodb.pkcs12 -in mongodbkey.pem</code></p>\n<p>What is so strange to me, is that it works with everything else except for Java, and unfortunately the only one I need it to work on is Java lol. If you have any ideas, that would be awesome.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

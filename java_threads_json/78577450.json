@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "concurrency",
+      "locking",
+      "volatile",
+      "readwritelock"
+    ],
+    "owner": {
+      "account_id": 32464876,
+      "reputation": 13,
+      "user_id": 25221525,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/89fa3aa66e3f35bf4da90c75c0f4a9fc?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "tinyzero4",
+      "link": "https://stackoverflow.com/users/25221525/tinyzero4"
+    },
+    "is_answered": true,
+    "view_count": 203,
+    "accepted_answer_id": 78577680,
+    "answer_count": 2,
+    "score": 1,
+    "last_activity_date": 1720516903,
+    "creation_date": 1717530515,
+    "last_edit_date": 1717534265,
+    "question_id": 78577450,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78577450/java-readwrite-concurrency-readwrite-lock-vs-lock-volatile",
+    "title": "Java readwrite concurrency: readwrite lock vs lock + volatile",
+    "body": "<p>Assuming that readers = 10 x writers, which of the following solutions is better in terms of throughput. Which solution is better to use in production code?</p>\n<ol>\n<li>Using single lock for <em>set</em> operation and volatile variable for <em>get</em> operation</li>\n</ol>\n<pre class=\"lang-java prettyprint-override\"><code>import java.util.List;\nimport java.util.concurrent.locks.Lock;\nimport java.util.concurrent.locks.ReentrantLock;\n\npublic final class InstanceProvider {\n\n    private final Lock wLock = new ReentrantLock();\n    private volatile List&lt;Instance&gt; instances;\n\n    public void setInstances(List&lt;Instance&gt; newInstances) {\n        wLock.lock();\n        try {\n            doSmthWith(newInstances);\n            instances = newInstances;\n        } finally {\n            wLock.unlock();\n        }\n    }\n\n    public List&lt;Instance&gt; getInstances() {\n        return instances;\n    }\n\n    @Getter\n    public static final class Instance {\n\n        private final String name;\n\n        public Instance(String name) {\n            this.name = name;\n        }\n\n    }\n}\n</code></pre>\n<ol start=\"2\">\n<li>Using single read-write lock for both <em>set</em> and <em>get</em> operations</li>\n</ol>\n<pre class=\"lang-java prettyprint-override\"><code>import java.util.List;\nimport java.util.concurrent.locks.ReadWriteLock;\nimport java.util.concurrent.locks.ReentrantReadWriteLock;\n\npublic final class InstanceProvider {\n\n    private final ReadWriteLock lock = new ReentrantReadWriteLock();\n    private List&lt;Instance&gt; instances;\n\n    public void setInstances(List&lt;Instance&gt; newInstances) {\n        lock.writeLock().lock();\n        try {\n            doSmthWith(newInstances);\n            instances = newInstances;\n        } finally {\n            lock.writeLock().unlock();\n        }\n    }\n\n    public List&lt;Instance&gt; getInstances() {\n        lock.readLock().lock();\n        try {\n            return instances;\n        } finally {\n            lock.readLock().unlock();\n        }\n    }\n\n    @Getter\n    public static final class Instance {\n\n        private final String name;\n\n        public Instance(String name) {\n            this.name = name;\n        }\n\n    }\n}\n</code></pre>\n<p>My assumption is that reading volatile is cheaper(basically it will be cached most of the time) and locks require additional instructions to be executed</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

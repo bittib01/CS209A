@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-flink",
+      "flink-streaming"
+    ],
+    "owner": {
+      "account_id": 8222456,
+      "reputation": 73,
+      "user_id": 6185792,
+      "user_type": "registered",
+      "accept_rate": 25,
+      "profile_image": "https://www.gravatar.com/avatar/b7ca7e0b2e14cdb865a40b34d3a20867?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Noah",
+      "link": "https://stackoverflow.com/users/6185792/noah"
+    },
+    "is_answered": false,
+    "view_count": 85,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1740076028,
+    "creation_date": 1739405383,
+    "last_edit_date": 1740076028,
+    "question_id": 79434775,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79434775/efficiently-cleaning-broadcast-state-in-flink",
+    "title": "Efficiently Cleaning Broadcast State in Flink",
+    "body": "<p>Currently have a Flink job that is using the broadcast state pattern, connecting the broadcasted stream to an event stream to provide context for decision making. The broadcasted data contains relatively small objects and is a medium throughput stream.</p>\n<p>Since broadcasted state can only be manipulated on the broadcast side, the current method for cleaning this data to prevent it from infinitely growing in size (since it is stored in memory) is to iterate through the entire state in the <code>processBroadcastElement</code> method, removing items that meet certain qualifications based on specific object properties.</p>\n<p>For normal operation, this works fine and does not seem to strain processing power. However, there have been a couple of situations where the state needs to be cleared and backloaded with hundreds of thousands of broadcast stream objects (currently adding up to about 15 MB * 2 parallel instances in checkpoint size). In these situations, the job immediately becomes 100% busy on the Co-Process-Broadcast operator, providing 100% backpressure on both data sources.</p>\n<p>A few potential solutions that might be better:</p>\n<ol>\n<li>Transition to a <code>MapState</code> for the currently broadcasted data and a keyed event stream so I can access the state in a rich map function and clean the state there if needed</li>\n<li>Transition to a <code>MapState</code> for the currently broadcasted data and a keyed event stream so I can access the state in a rich map function and clean the full state on a timer interval in a keyed process function on the event stream</li>\n<li>Implement something similar to the connected streams example here: <a href=\"https://nightlies.apache.org/flink/flink-docs-stable/docs/learn-flink/etl/#connected-streams\" rel=\"nofollow noreferrer\">https://nightlies.apache.org/flink/flink-docs-stable/docs/learn-flink/etl/#connected-streams</a>, keying both streams off of the same id and saving the broadcast data in a MapState for use when the event stream object arrives</li>\n</ol>\n<p>Looking for feedback on which option is the most &quot;correct&quot; pattern to use for this situation, along with which would be most performant.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

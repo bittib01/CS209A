@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hibernate",
+      "jpa",
+      "entity",
+      "relationship"
+    ],
+    "owner": {
+      "account_id": 6609714,
+      "reputation": 4493,
+      "user_id": 5105305,
+      "user_type": "registered",
+      "accept_rate": 58,
+      "profile_image": "https://lh4.googleusercontent.com/-i8lMihc1yYc/AAAAAAAAAAI/AAAAAAAAAJE/ooPD4M12q8I/s256-rj/photo.jpg",
+      "display_name": "Kasun Siyambalapitiya",
+      "link": "https://stackoverflow.com/users/5105305/kasun-siyambalapitiya"
+    },
+    "is_answered": false,
+    "view_count": 67,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1758203876,
+    "creation_date": 1758182392,
+    "question_id": 79768139,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79768139/what-relationship-should-be-used",
+    "title": "What relationship should be used",
+    "body": "<p>I have a table (<code>product</code>) as follows which holds product related data</p>\n<pre><code>@Entity\n@Table(name = &quot;product&quot;)\npublic class ProductEntity {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    @Column(name = &quot;id&quot;)\n    private int id;\n\n    @Column(name = &quot;name&quot;)\n    private String name;\n\n    @Column(name = &quot;version&quot;)\n    private String version;\n\n// getters and setter\n}\n</code></pre>\n<p>Among some of the products, there are some products which are derived from another product and there is requirement to store this mapping in a table (<code>sub_product_mapping</code>)</p>\n<pre><code>@Entity\n@Table(name = &quot;sub_product_mapping&quot;)\npublic class SubProductMappingEntity {\n\n    @EmbeddedId\n    private SubProductMappingKeyEntity subProductMappingKeyEntity;\n\n    @MapsId(&quot;majorProductId&quot;)\n    @ManyToOne\n    @JoinColumn(name = &quot;major_product_id&quot;, referencedColumnName = &quot;id&quot;, nullable = false)\n    private ProductEntity majorProduct;\n\n    @MapsId(&quot;subProductId&quot;)\n    @ManyToOne\n    @JoinColumn(name = &quot;sub_product_id&quot;, referencedColumnName = &quot;id&quot;, nullable = false)\n    private ProductEntity subProduct;\n\n// getters and setter\n\n</code></pre>\n<p>and the key entity is as follows</p>\n<pre><code>@Embeddable\npublic class SubProductMappingKeyEntity implements Serializable {\n\n    private static final long serialVersionUID = 1L;\n\n    @Column(name = &quot;major_product_id&quot;, nullable = false)\n    private int majorProductId;\n    @Column(name = &quot;sub_product_id&quot;, nullable = false)\n    private int subProductId;\n\n// getters and setters\n</code></pre>\n<p>For a minor product there can only be one major product. But for a major product there can be multiple minor products. Since both the <code>majorProduct</code> and <code>subProduct</code> are instances of <code>ProductEntity</code>, what should be the relationship that should be used? Is it valid to have the relationships as follows?</p>\n<pre><code> @MapsId(&quot;majorProductId&quot;)\n    @ManyToOne\n    @JoinColumn(name = &quot;major_product_id&quot;, referencedColumnName = &quot;id&quot;, nullable = false)\n    private ProductEntity majorProduct;\n\n    @MapsId(&quot;subProductId&quot;)\n    @OneToOne\n    @JoinColumn(name = &quot;sub_product_id&quot;, referencedColumnName = &quot;id&quot;, nullable = false)\n    private ProductEntity subProduct;\n</code></pre>\n<p>(note: I am using <code>Hibernate</code> as the JPA implementation)</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

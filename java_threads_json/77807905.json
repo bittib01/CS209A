@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "python",
+      "java",
+      "numpy"
+    ],
+    "owner": {
+      "account_id": 20324633,
+      "reputation": 45,
+      "user_id": 14908414,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/UxeEQ.jpg?s=256",
+      "display_name": "Ilhom Soliev",
+      "link": "https://stackoverflow.com/users/14908414/ilhom-soliev"
+    },
+    "is_answered": false,
+    "view_count": 310,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1733921359,
+    "creation_date": 1705075978,
+    "last_edit_date": 1705079566,
+    "question_id": 77807905,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77807905/how-to-run-python-script-with-its-own-dependencies-in-java-independently-from-jd",
+    "title": "How to run python script with its own dependencies in Java independently from JDK environment",
+    "body": "<p>I want to run script inside my Java code. More specifically, I want to implement GUI in Java and run python script to get make heavy lifting work that I want to do only with python and get result in java and show it to the user in GUI.</p>\n<p>I tried some examples on the internet by creating its own environment for python and connecting it to the python script but it seems like there is problem with architecture.</p>\n<p>The error from numpy library:</p>\n<pre><code>ImportError: dlopen(/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/numpy/core/_multiarray_umath.cpython-311-darwin.so, 0x0002): tried: '/Library/Frameworks/Python.framework/Versions/3.11/lib/python3.11/site-packages/numpy/core/_multiarray_umath.cpython-311-darwin.so' (mach-o file, but is an incompatible architecture (have (arm64), need (x86_64)))\n\n\nImportError: Error importing numpy: you should not try to import numpy from\n        its source directory; please exit the numpy source tree, and relaunch\n        your python interpreter from there.\n</code></pre>\n<p>This is my Java code:</p>\n<pre><code>import java.io.BufferedReader;\nimport java.io.IOException;\nimport java.io.InputStreamReader;\n\npublic class Main {\n    public static void main(String[] args) {\n        try {\n            setupPythonEnvironment();\n            ProcessBuilder builder = new ProcessBuilder(&quot;python3&quot;, &quot;/Users/ilhomsoliev/Desktop/WebApplications/PythonInJavaRun/src/python_scripts/main.py&quot;);\n            Process process = builder.start();\n            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));\n            BufferedReader readerError = new BufferedReader(new InputStreamReader(process.getErrorStream()));\n            String lines = null;\n            while ((lines = reader.readLine()) != null) {\n                System.out.println(lines);\n            }\n            while ((lines = readerError.readLine()) != null) {\n                System.out.println(lines);\n            }\n        } catch (Exception e) {\n            System.out.println(e.getMessage());\n        }\n    }\n    public static void setupPythonEnvironment(){\n        try {\n            // Path to your Python script's directory\n            String scriptDir = &quot;/Users/ilhomsoliev/Desktop/WebApplications/PythonInJavaRun/src/python_scripts&quot;;\n            String requirementsPath = scriptDir + &quot;/requirements.txt&quot;;\n\n            // Create a virtual environment\n            String venvDir = scriptDir + &quot;/venv&quot;;\n            executeCommand(&quot;python3 -m venv &quot; + venvDir);\n\n            // Install dependencies from requirements.txt\n            String pipInstallCmd = venvDir + &quot;/bin/pip3 install -r &quot; + requirementsPath; // for Unix-based systems\n            executeCommand(pipInstallCmd);\n\n            System.out.println(&quot;Python environment set up successfully.&quot;);\n        } catch (Exception e) {\n            e.printStackTrace();\n        }\n    }\n    private static void executeCommand(String command) throws IOException, InterruptedException {\n        ProcessBuilder pb = new ProcessBuilder(command.split(&quot; &quot;));\n        pb.inheritIO(); // To show the output/error in Java console\n        Process p = pb.start();\n        p.waitFor(); // Wait for the process to finish\n    }\n}\n</code></pre>\n<p>This is requirments.txt:</p>\n<pre><code>pip\nsite-packages\nnumpy\nmoviepy\npacman\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

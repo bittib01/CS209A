@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-kafka",
+      "gatling"
+    ],
+    "owner": {
+      "account_id": 33343618,
+      "reputation": 35,
+      "user_id": 25816162,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/adba765a4a3e802439edc3ae5e8da378?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Roman Chumak",
+      "link": "https://stackoverflow.com/users/25816162/roman-chumak"
+    },
+    "is_answered": true,
+    "view_count": 258,
+    "accepted_answer_id": 79703101,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1752652940,
+    "creation_date": 1752407653,
+    "last_edit_date": 1752408183,
+    "question_id": 79699939,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79699939/kafka-load-test-on-gatling",
+    "title": "Kafka load test on Gatling",
+    "body": "<p>Gatling as maven dependencies:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;plugin&gt;\n&lt;groupId&gt;io.gatling&lt;/groupId&gt;\n&lt;artifactId&gt;gatling-maven-plugin&lt;/artifactId&gt;\n&lt;version&gt;4.19.1&lt;/version&gt;\n&lt;/plugin&gt;\n\n&lt;dependencies&gt;\n    &lt;dependency&gt;\n      &lt;groupId&gt;io.gatling.highcharts&lt;/groupId&gt;\n      &lt;artifactId&gt;gatling-charts-highcharts&lt;/artifactId&gt;\n      &lt;version&gt;3.14.3&lt;/version&gt;\n      &lt;scope&gt;test&lt;/scope&gt;\n    &lt;/dependency&gt;\n    &lt;!-- https://mvnrepository.com/artifact/org.apache.kafka/kafka-clients --&gt;\n    &lt;dependency&gt;\n        &lt;groupId&gt;org.apache.kafka&lt;/groupId&gt;\n        &lt;artifactId&gt;kafka-clients&lt;/artifactId&gt;\n        &lt;version&gt;4.0.0&lt;/version&gt;\n    &lt;/dependency&gt;\n&lt;/dependencies&gt;\n</code></pre>\n<p>I have created load test:</p>\n<pre><code>import io.gatling.javaapi.core.*;\nimport org.apache.kafka.clients.producer.*;\n\nimport java.util.Properties;\nimport java.util.concurrent.TimeUnit;\n\nimport static io.gatling.javaapi.core.CoreDsl.*;\n\npublic class KafkaLoadTesting extends Simulation {\n    private static final String TOPIC = &quot;likes-bucket&quot;;\n    private static final String BOOTSTRAP_SERVERS = &quot;localhost:9092&quot;;\n\n\n    private static void sendKafkaMessage(String message) {\n        Properties props = new Properties();\n        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);\n        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, &quot;org.apache.kafka.common.serialization.StringSerializer&quot;);\n        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, &quot;org.apache.kafka.common.serialization.StringSerializer&quot;);\n\n        Producer&lt;String, String&gt; producer = new KafkaProducer&lt;&gt;(props);\n        ProducerRecord&lt;String, String&gt; record = new ProducerRecord&lt;&gt;(TOPIC, message);\n        producer.send(record);\n        producer.close();\n    }\n\n    ChainBuilder kafkaAction = exec(session -&gt; {\n        String payload = &quot;{\\&quot;talkName\\&quot;:\\&quot;Spring best practice\\&quot;,\\&quot;likes\\&quot;:1}&quot;;\n        sendKafkaMessage(payload);\n        return session;\n    });\n\n    {\n        setUp(\n                scenario(&quot;Kafka Load Test&quot;)\n                        .exec(kafkaAction)\n                        .pause(1, TimeUnit.SECONDS.ordinal())\n                        .repeat(100).on(kafkaAction)\n                        .injectOpen(atOnceUsers(10))\n        ).protocols();\n    }\n}\n</code></pre>\n<p>I run the test ./mvnw clean gatling:test\nMy java version: java 23.0.2 2025-01-21\nI dont see any messages in kafka but i got loop. What i do wrong and what is correct way to send message to broker? i dont see any error on console.</p>\n<p><a href=\"https://i.sstatic.net/EDWyoHgZ.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/EDWyoHgZ.png\" alt=\"enter image description here\" /></a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

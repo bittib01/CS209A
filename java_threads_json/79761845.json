@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hibernate"
+    ],
+    "owner": {
+      "account_id": 174361,
+      "reputation": 494,
+      "user_id": 403675,
+      "user_type": "registered",
+      "accept_rate": 62,
+      "profile_image": "https://www.gravatar.com/avatar/47584f658eea1972c0ce9fc71cec7e5c?s=256&d=identicon&r=PG",
+      "display_name": "Petr Kostroun",
+      "link": "https://stackoverflow.com/users/403675/petr-kostroun"
+    },
+    "is_answered": false,
+    "view_count": 49,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1757613423,
+    "creation_date": 1757589188,
+    "question_id": 79761845,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79761845/problem-with-mapping-onetoone-with-hibernate",
+    "title": "Problem with mapping OneToOne with Hibernate",
+    "body": "<p>I have this entity:</p>\n<pre><code>@Entity\n@DiscriminatorValue(&quot;10&quot;)\n@ToString(callSuper = true)\n@Getter\n@Setter\n@NoArgsConstructor\npublic class ChangePolicy extends AllowedRangeOption {\n\n    @Column(name = &quot;ALLOWED_RANGE_OPTION_TYPE&quot;, insertable = false, updatable = false)\n    private AllowedRangeOptionsType type;\n\n    @OneToOne\n    @JoinColumn(name = &quot;INSTANCE_ID&quot;, insertable = false, updatable = false)\n    private FinancialProduct financialProduct;\n\n    @OneToOne\n    @JoinFormula(value = &quot;(case when (ITEM_KEY = 'OfferProdAttr_ObservedPeriodUnit') then key_value_id else null end)&quot;)\n    @JoinColumn(name=&quot;instance_id&quot;, referencedColumnName = &quot;instance_id&quot;, updatable = false, insertable = false)\n    private KeyValue temp;\n}\n</code></pre>\n<p>It has join with KeyValue on KeyValue.instance_id = AllowedRangeOption.instance_id and\nKeyValue.ITEM_KEY = 'OfferProdAttr_ObservedPeriodUnit'. There is problem that it fails on :</p>\n<pre><code>org.springframework.orm.jpa.JpaSystemException: More than one row with the given identifier was found: 250627104234518978, for class: cz.kb.pcp.bc.cataloguemanagement.jpa.model.entity.keyvalue.KeyValue\n</code></pre>\n<p>Can someone please give me advice hot to solve this issue? I also try to use</p>\n<pre><code>    @OneToOne\n    @SQLRestriction( &quot;ITEM_KEY = 'OfferProdAttr_ObservedPeriodUnit'&quot;)\n    @JoinColumn(name=&quot;instance_id&quot;, referencedColumnName = &quot;instance_id&quot;, updatable = false, insertable = false)\n    private KeyValue temp;\n</code></pre>\n<p>But with the same problem, it seems that hibernate ignore annotation @SQLRestriction</p>\n<p>I also try this:</p>\n<pre><code>@OneToOne\n    @SQLJoinTableRestriction( &quot;ITEM_KEY = 'OfferProdAttr_ObservedPeriodUnit'&quot;)\n    @JoinColumn(name=&quot;instance_id&quot;, referencedColumnName = &quot;instance_id&quot;, updatable = false, insertable = false)\n    private KeyValue temp;\n</code></pre>\n<p>But with same problem.</p>\n<p>I also use:</p>\n<pre><code>    @OneToOne\n    @WhereJoinTable(clause = &quot;ITEM_KEY = 'OfferProdAttr_ObservedPeriodUnit'&quot;)\n    @JoinColumn(name=&quot;instance_id&quot;, referencedColumnName = &quot;instance_id&quot;, updatable = false, insertable = false)\n    private KeyValue temp;\n</code></pre>\n<p>But still problem persist.</p>\n<p>Can someone please give me an point how to solve this issue? Thanks for help</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

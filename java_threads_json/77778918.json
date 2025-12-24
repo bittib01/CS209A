@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "junit",
+      "mockito",
+      "junit5"
+    ],
+    "owner": {
+      "account_id": 8094771,
+      "reputation": 1047,
+      "user_id": 6099686,
+      "user_type": "registered",
+      "accept_rate": 80,
+      "profile_image": "https://www.gravatar.com/avatar/d59d467765901f0122e15d767c06d77d?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "MrAndre",
+      "link": "https://stackoverflow.com/users/6099686/mrandre"
+    },
+    "is_answered": true,
+    "view_count": 351,
+    "accepted_answer_id": 77780261,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1713330488,
+    "creation_date": 1704710280,
+    "last_edit_date": 1713330488,
+    "question_id": 77778918,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77778918/java-mockito-test-static-method-keeps-the-mock-from-the-first-test-case-in-runs",
+    "title": "Java mockito test static method keeps the mock from the first test case in runs",
+    "body": "<p>I am trying to create multiple test cases with Mockito in Java with static mocks. They run fine when running separate but when I run the whole test class the mocked method which ran first (in this case <code>shouldRequirePricingIfSucceeding</code>) will also impact the other testcases (in this case <code>shouldNotRequirePricingIfRequestFails</code> will never fail). I have tried now to just put all the things I mock even in their own test methods but even that doesn't work.</p>\n<p>Here is my code:</p>\n<pre><code>public class PricingService {\n    public static final int PRODUCT_CODE = 10;\n    private final ZoneId zoneId = ZoneId.of(&quot;UTC&quot;);\n    private static final Logger LOGGER = LoggerFactory.getLogger(PricingService.class);\n    private static final PricingOauthApi pricingOauthApi = PricingOauthApiFactory.create();\n    private static final PricingApi pricingApi = PricingApiFactory.create();\n    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd'T'HH:mm:ssXXX&quot;);\n\n    public boolean requiresPricingBeforeSendPush(PushCSCTransaction pushCSCTransaction) {\n        int transactionType = pushCSCTransaction.getCscTransaction().getTransactionType();\n        if (!pushCSCTransaction.getControlArea().getSource().equals(&quot;TEST&quot;) ||\n            transactionType != 30 &amp;&amp;\n                transactionType != 31)\n            return false;\n\n        boolean sendRequestSuccessfully = sendPriceRequest(pushCSCTransaction);\n\n        return sendRequestSuccessfully &amp;&amp; transactionType == 31;\n    }\n\n    private boolean sendPriceRequest(PushCSCTransaction pushCSCTransaction) {\n        try {\n            OauthRequest oauthRequest = new OauthRequest(Configuration.Pricing.getOauthScope(), Configuration.Pricing.getOauthClientId(), Configuration.Pricing.getOauthClientSecret());\n            Response&lt;OauthResponse&gt; oauthResponse = pricingOauthApi.oauth(oauthRequest, Configuration.Pricing.getOauthPathId()).execute();\n\n            if (!oauthResponse.isSuccessful() || oauthResponse.body() == null) throw new WebApplicationException(&quot;&quot;);\n\n            Response&lt;Void&gt; response = pricingApi.pricing(pushCSCTransaction, &quot;Bearer &quot; + oauthResponse.body().getAccessToken()).execute();\n\n            return response.isSuccessful();\n        } catch (Exception exception) {\n            LOGGER.error(&quot;Error when trying to send transaction message&quot;, exception);\n            return false;\n        }\n    }\n}\n\n@ExtendWith(MockitoExtension.class)\npublic class PricingServiceTest {\n    @Test\n    public void shouldNotRequirePricingIfRequestFails() throws IOException {\n        PricingApi pricingApi = mock();\n        PricingOauthApi pricingOauthApi = mock();\n        try (MockedStatic&lt;PricingApiFactory&gt; pricingApiFactory = Mockito.mockStatic(PricingApiFactory.class);\n             MockedStatic&lt;PricingOauthApiFactory&gt; pricingOauthApiFactory = Mockito.mockStatic(PricingOauthApiFactory.class)) {\n            pricingApiFactory.when(PricingApiFactory::create).thenReturn(pricingApi);\n            pricingOauthApiFactory.when(PricingOauthApiFactory::create).thenReturn(pricingOauthApi);\n            Call&lt;OauthResponse&gt; call = mock(Call.class);\n            Mockito.when(pricingOauthApi.oauth(Mockito.any(), Mockito.any())).thenReturn(call);\n            Mockito.when(call.execute()).thenThrow(new IOException(&quot;Test&quot;));\n\n            PushCSCTransaction transaction = createCsvTransaction(&quot;TEST&quot;, 31, PRODUCT_CODE, 1312, 311, 1);\n            PricingService service = new PricingService();\n\n            boolean result = service.requiresPricingBeforeSendPush(transaction);\n\n            assertFalse(result);\n            Mockito.verify(pricingOauthApi).oauth(Mockito.any(), Mockito.any());\n            Mockito.verify(pricingApi, Mockito.never()).pricing(Mockito.any(), Mockito.any());\n        }\n    }\n\n    @Test\n    public void shouldRequirePricingIfSucceeding() throws IOException {\n        PricingApi pricingApi = mock();\n        PricingOauthApi pricingOauthApi = mock();\n        try (MockedStatic&lt;PricingApiFactory&gt; pricingApiFactory = Mockito.mockStatic(PricingApiFactory.class);\n             MockedStatic&lt;PricingOauthApiFactory&gt; pricingOauthApiFactory = Mockito.mockStatic(PricingOauthApiFactory.class)) {\n            pricingApiFactory.when(PricingApiFactory::create).thenReturn(pricingApi);\n            Call&lt;Void&gt; call = mock(Call.class);\n            Mockito.when(pricingApi.pricing(Mockito.any(), Mockito.any())).thenReturn(call);\n            Mockito.when(call.execute()).thenReturn(Response.success(null));\n\n            pricingOauthApiFactory.when(PricingOauthApiFactory::create).thenReturn(pricingOauthApi);\n            Call&lt;OauthResponse&gt; callOauth = mock(Call.class);\n            Mockito.when(pricingOauthApi.oauth(Mockito.any(), Mockito.any())).thenReturn(callOauth);\n            OauthResponse oauthResponse = new OauthResponse();\n            Mockito.when(callOauth.execute()).thenReturn(Response.success(oauthResponse));\n\n            PushCSCTransaction transaction = createCsvTransaction(&quot;TEST&quot;, 31, PRODUCT_CODE, 1312, 311, 1);\n            PricingService service = new PricingService();\n\n            boolean result = service.requiresPricingBeforeSendPush(transaction);\n\n            assertTrue(result);\n            Mockito.verify(pricingOauthApi).oauth(Mockito.any(), Mockito.any());\n            Mockito.verify(pricingApi).pricing(Mockito.any(), Mockito.any());\n        }\n    }\n}\n</code></pre>\n<p>So when I run this code I get now always a true from <code>sendPriceRequest</code> since the mock will never change to throw a exception. What am I forgetting to unmock static methods? I am using Java 8 with mockito version 4.11.0 and junit 5.</p>\n<p>Also tried adding:</p>\n<pre><code>@BeforeEach\n    public void setUp() {\n        Mockito.clearAllCaches();\n    }\n</code></pre>\n<p>But that didn't work either.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "ssl"
+    ],
+    "owner": {
+      "account_id": 27795625,
+      "reputation": 1,
+      "user_id": 21221211,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AEdFTp4NYjoO-rLHnvq1s-dk0NF7iOfnyXj7C67-XUPR=k-s256",
+      "display_name": "Oussama Charafi",
+      "link": "https://stackoverflow.com/users/21221211/oussama-charafi"
+    },
+    "is_answered": false,
+    "view_count": 37,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1734965265,
+    "creation_date": 1734963558,
+    "last_edit_date": 1734965265,
+    "question_id": 79303353,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79303353/error-with-ssl-cert-in-spring-boot-restamplate",
+    "title": "Error with SSL cert in spring boot restamplate",
+    "body": "<p>I have a web app created with spring boot java. This app is getting data from a server using https ubuntu for the jobs. I used the rest template for connection, but the server has cert ssl, after this I want make the images for exporting to another server for up.</p>\n<p>I try much methods but this error not opened :</p>\n<blockquote>\n<p>PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target</p>\n</blockquote>\n<p>Code:</p>\n<pre><code>package dashlet_filter.dashfilter.config;\nimport org.apache.hc.client5.http.impl.classic.CloseableHttpClient;\nimport org.apache.hc.client5.http.impl.classic.HttpClients;\nimport org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;\nimport org.apache.hc.client5.http.socket.ConnectionSocketFactory;\nimport org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;\nimport org.apache.hc.client5.http.ssl.NoopHostnameVerifier;\nimport org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;\nimport org.apache.hc.core5.http.config.Registry;\nimport org.apache.hc.core5.http.config.RegistryBuilder;\nimport org.apache.hc.core5.ssl.SSLContexts;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\nimport org.springframework.http.client.HttpComponentsClientHttpRequestFactory;\nimport org.springframework.http.client.support.BasicAuthenticationInterceptor;\nimport org.springframework.web.client.RestTemplate;\n\nimport javax.net.ssl.SSLContext;\nimport javax.net.ssl.TrustManager;\nimport javax.net.ssl.X509TrustManager;\nimport java.security.cert.X509Certificate;\nimport java.time.Duration;\n\n@Configuration\npublic class AppConfig {\n    @Bean\n    public RestTemplate restTemplate() throws Exception {\n        TrustManager[] trustAllCerts = new TrustManager[]{\n                new X509TrustManager() {\n                    @Override\n                    public void checkClientTrusted(X509Certificate[] chain, String authType) {\n                    }\n\n                    @Override\n                    public void checkServerTrusted(X509Certificate[] chain, String authType) {\n                    }\n\n                    @Override\n                    public X509Certificate[] getAcceptedIssuers() {\n                        return null;\n                    }\n                }\n        };\n\n        SSLContext sslContext = SSLContexts.custom()\n                .loadTrustMaterial((chain, authType) -&gt; true) \n                .build();\n        sslContext.init(null, trustAllCerts, new java.security.SecureRandom());\n\n        SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(\n                sslContext,\n                NoopHostnameVerifier.INSTANCE\n        );\n\n        PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager(\n                RegistryBuilder.&lt;ConnectionSocketFactory&gt;create()\n                        .register(&quot;http&quot;, PlainConnectionSocketFactory.INSTANCE)\n                        .register(&quot;https&quot;, sslSocketFactory)\n                        .build()\n        );\n\n\n        CloseableHttpClient httpClient = HttpClients.custom()\n                .setConnectionManager(connectionManager)\n                .build();\n\n        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);\n        requestFactory.setConnectTimeout(Duration.ofSeconds(5));\n        requestFactory.setConnectionRequestTimeout(Duration.ofSeconds(5));\n\n        RestTemplate restTemplate = new RestTemplate(requestFactory);\n        \n        restTemplate.getInterceptors().add(new BasicAuthenticationInterceptor(&quot;xxxxxx&quot;, &quot;xxxxxx&quot;));\n\n        return restTemplate;\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

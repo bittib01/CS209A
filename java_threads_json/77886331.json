@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "redis",
+      "testcontainers",
+      "redis-sentinel"
+    ],
+    "owner": {
+      "account_id": 4197388,
+      "reputation": 9047,
+      "user_id": 3438473,
+      "user_type": "registered",
+      "accept_rate": 58,
+      "profile_image": "https://www.gravatar.com/avatar/fcf2886d3b19dc83497b8df3214c5415?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "CuriousMind",
+      "link": "https://stackoverflow.com/users/3438473/curiousmind"
+    },
+    "is_answered": true,
+    "view_count": 1457,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1723805575,
+    "creation_date": 1706273078,
+    "last_edit_date": 1707357198,
+    "question_id": 77886331,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77886331/spinning-up-redis-server-in-sentinel-mode-using-testcontainer-for-integration-te",
+    "title": "Spinning up Redis server in sentinel mode using testcontainer for integration tests in Spring Boot",
+    "body": "<p>I recently learned of <code>testcontainers</code>, so I wanted to use it for an integration test cases, for a Spring Boot application.</p>\n<p>I have tried many combinations to achieve this, but it isn't working / starting. For example, the below is the latest code I tried:</p>\n<pre><code>import org.junit.jupiter.api.Test;\nimport org.testcontainers.containers.GenericContainer;\nimport org.testcontainers.containers.Network;\nimport org.testcontainers.containers.wait.strategy.Wait;\n\npublic class RedisSentinelIntegrationTest {\n\n    private static final int REDIS_MASTER_PORT = 6379;\n    private static final int REDIS_SENTINEL_PORT_1 = 26379;\n    private static final int REDIS_SENTINEL_PORT_2 = 26380;\n\n    @Test\n    void testRedisSentinel() {\n        Network network = Network.newNetwork();\n\n        // Redis Master\n        GenericContainer&lt;?&gt; redisMaster = new GenericContainer&lt;&gt;(&quot;redis:6.0.12&quot;)\n                .withExposedPorts(REDIS_MASTER_PORT)\n                .withNetwork(network)\n                .waitingFor(Wait.forListeningPort());\n\n        redisMaster.start();\n\n        // Redis Sentinel 1\n        GenericContainer&lt;?&gt; redisSentinel1 = new GenericContainer&lt;&gt;(&quot;redis:6.0.12&quot;)\n                .withExposedPorts(REDIS_SENTINEL_PORT_1)\n                .withNetwork(network)\n                .withCommand(&quot;redis-server&quot;, &quot;--sentinel&quot;, &quot;yes&quot;, &quot;--sentinel-announce-ip&quot;, &quot;redis-sentinel-1&quot;, &quot;--sentinel-announce-port&quot;, String.valueOf(REDIS_SENTINEL_PORT_1))\n                .waitingFor(Wait.forListeningPort());\n\n        redisSentinel1.start();\n\n        // Redis Sentinel 2\n        GenericContainer&lt;?&gt; redisSentinel2 = new GenericContainer&lt;&gt;(&quot;redis:6.0.12&quot;)\n                .withExposedPorts(REDIS_SENTINEL_PORT_2)\n                .withNetwork(network)\n                .withCommand(&quot;redis-server&quot;, &quot;--sentinel&quot;, &quot;yes&quot;, &quot;--sentinel-announce-ip&quot;, &quot;redis-sentinel-2&quot;, &quot;--sentinel-announce-port&quot;, String.valueOf(REDIS_SENTINEL_PORT_2))\n                .waitingFor(Wait.forListeningPort());\n\n        redisSentinel2.start();\n\n        String sentinelUrl1 = &quot;redis://&quot; + redisSentinel1.getContainerIpAddress() + &quot;:&quot; + redisSentinel1.getMappedPort(REDIS_SENTINEL_PORT_1);\n\n        String sentinelUrl2 = &quot;redis://&quot; + redisSentinel2.getContainerIpAddress() + &quot;:&quot; + redisSentinel2.getMappedPort(REDIS_SENTINEL_PORT_2);\n\n     // .. do something\n\n       \n\n        // Stop the containers\n        redisMaster.stop();\n        redisSentinel1.stop();\n        redisSentinel2.stop();\n    }\n}\n</code></pre>\n<p>But to my dismay it never works; isn't testcontainers supposed to ease life? I tried their official website, but again they haven't given any such example.</p>\n<p>How can I use Redis testcontainers to run in sentinel mode and successfully run it? What issues might I have in the set up?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

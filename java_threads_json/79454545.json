@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "testcontainers",
+      "wiremock",
+      "dapr"
+    ],
+    "owner": {
+      "account_id": 7050143,
+      "reputation": 70,
+      "user_id": 5399526,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/a1da593e96c471c917eaa76f3fe14cdd?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "JP13",
+      "link": "https://stackoverflow.com/users/5399526/jp13"
+    },
+    "is_answered": true,
+    "view_count": 85,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1740126661,
+    "creation_date": 1740055344,
+    "last_edit_date": 1740056359,
+    "question_id": 79454545,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79454545/is-there-a-way-to-add-a-component-referencing-a-wiremockcontainer-to-a-dapr-test",
+    "title": "Is there a way to add a Component referencing a WireMockContainer to a Dapr testcontainer?",
+    "body": "<p>I am trying to test a spring boot application using dapr. For my test set up I want to start a Dapr testcontainer and have a Conmponent that references a Wiremock testcontainer to stub http calls.</p>\n<pre><code>class TestcontainersConfiguration {\n\n    private static final Network network = Network.newNetwork();\n\n    @Bean\n    @ServiceConnection\n    public DaprContainer daprContainer(WireMockContainer wireMockContainer) {\n        // Get the network alias instead of the base URL\n        String wireServiceUrl = &quot;http://&quot; + wireMockContainer.getNetworkAliases().getFirst() + &quot;:&quot; + wireMockContainer.getPort();\n\n        DaprContainer dapr = new DaprContainer(&quot;daprio/daprd:latest&quot;)\n                .withAppName(&quot;local-dapr-app&quot;)\n                .withNetwork(network)\n                .withComponent(new Component(&quot;warehouse&quot;, &quot;http&quot;, &quot;v1&quot;, Collections.singletonList(new MetadataEntry(&quot;url&quot;, wireServiceUrl))))\n                .withAppPort(8080)\n                .withAppChannelAddress(&quot;host.testcontainers.internal&quot;);\n        return dapr;\n    }\n\n\n    @Bean\n    WireMockContainer wireMockContainer() {\n        WireMockContainer wireMockContainer = new WireMockContainer(&quot;wiremock/wiremock:3.12.0-1&quot;)\n                .withMappingFromResource(&quot;warehouse-service-stubs.json&quot;)\n                .withNetwork(network);\n        wireMockContainer.start();\n        return wireMockContainer;\n    }\n\n    @Bean\n    public DynamicPropertyRegistrar wireMockProperties(WireMockContainer wireMockContainer, DaprContainer dapr) {\n        return registry -&gt; {\n            registry.add(&quot;DAPR_HTTP_ENDPOINT&quot;, wireMockContainer::getBaseUrl);\n            registry.add(&quot;dapr.grpc.port&quot;, () -&gt; dapr.getMappedPort(50001));\n            registry.add(&quot;dapr.http.port&quot;, () -&gt; dapr.getMappedPort(3500));\n        };\n    }\n}\n</code></pre>\n<p>If I start the set up with the .withComponent line, the health check of the dapr container fails. If i remove it, the application fails because there is no component with the id &quot;warehouse&quot;. Is there a working set up to stub http calls in tests with dapr?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

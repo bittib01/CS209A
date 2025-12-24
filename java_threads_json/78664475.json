@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "minecraft",
+      "bukkit",
+      "spigot"
+    ],
+    "owner": {
+      "account_id": 33182231,
+      "reputation": 21,
+      "user_id": 25704330,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/YFJRBA1x.png?s=256",
+      "display_name": "Ludgerr",
+      "link": "https://stackoverflow.com/users/25704330/ludgerr"
+    },
+    "is_answered": false,
+    "view_count": 281,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1736259095,
+    "creation_date": 1719260697,
+    "last_edit_date": 1719285428,
+    "question_id": 78664475,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78664475/how-to-change-a-nametag-with-or-without-protocollib",
+    "title": "How to change a nametag with or without protocollib",
+    "body": "<p>So i've been searching for the past year and out of all the solutions to change the nametag of a player 2 have been standing out one is using reflection and another is just using protocollib.</p>\n<p>The problem im facing is that i cant get the nametag right just as i want it!</p>\n<p><strong>ProtocolLib Solution</strong></p>\n<pre><code>public static void changePlayerNameTag(Player player, String newName) {\n    // Update nametag for other players\n    ProtocolLibrary.getProtocolManager().addPacketListener(new PacketAdapter(EssentialsNicks.getPlugin(), PacketType.Play.Server.PLAYER_INFO) {\n        @Override\n        public void onPacketSending(PacketEvent event) {\n            if (event.getPacket().getPlaye`your text`rInfoAction().read(0) != EnumWrappers.PlayerInfoAction.ADD_PLAYER) return;\n            List&lt;PlayerInfoData&gt; newPlayerInfoDataList = new ArrayList&lt;PlayerInfoData&gt;();\n            List&lt;PlayerInfoData&gt; playerInfoDataList = event.getPacket().getPlayerInfoDataLists().read(0);\n            for (PlayerInfoData playerInfoData : playerInfoDataList) {\n                if (playerInfoData == null || playerInfoData.getProfile() == null || Bukkit.getPlayer(playerInfoData.getProfile().getUUID()) == null) { //Unknown Player\n                    newPlayerInfoDataList.add(playerInfoData);\n                    continue;\n                }\n                // Check if the player's UUID matches the specific player's UUID\n                if (!playerInfoData.getProfile().getUUID().equals(player.getUniqueId())) {\n                    newPlayerInfoDataList.add(playerInfoData);\n                    continue;\n                }\n                WrappedGameProfile profile = playerInfoData.getProfile();\n                // Create a new profile with the desired name and the original profile's properties (including the skin)\n                WrappedGameProfile newProfile = new WrappedGameProfile(profile.getUUID(), ChatColor.translateAlternateColorCodes('&amp;', newName));\n                newProfile.getProperties().putAll(profile.getProperties());\n                PlayerInfoData newPlayerInfoData = new PlayerInfoData(newProfile, playerInfoData.getLatency(), playerInfoData.getGameMode(), playerInfoData.getDisplayName());\n                newPlayerInfoDataList.add(newPlayerInfoData);\n            }\n            event.getPacket().getPlayerInfoDataLists().write(0, newPlayerInfoDataList);\n        }\n    });\n\n    Bukkit.getOnlinePlayers().forEach(onlinePlayer -&gt; {\n        protocolManager.sendServerPacket(onlinePlayer, packet);\n        onlinePlayer.hidePlayer(player);\n        onlinePlayer.showPlayer(player);\n    });\n}\n</code></pre>\n<p><strong>Reflection</strong></p>\n<pre><code> public static void changeName(String name, Player player) {\n        try {\n            Method getHandle = player.getClass().getMethod(&quot;getHandle&quot;);\n            Object entityPlayer = getHandle.invoke(player);\n            Class&lt;?&gt; entityHuman = entityPlayer.getClass().getSuperclass();\n            Field gameProfileField;\n            int majVersion = Integer.parseInt(Bukkit.getServer().getClass().getPackage().getName().split(&quot;\\\\.&quot;)[3].replaceAll(&quot;(v|R[0-9]+)&quot;, &quot;&quot;).split(&quot;_&quot;)[0]);\n            int minVersion = Integer.parseInt(Bukkit.getServer().getClass().getPackage().getName().split(&quot;\\\\.&quot;)[3].replaceAll(&quot;(v|R[0-9]+)&quot;, &quot;&quot;).split(&quot;_&quot;)[1]);\n            if (majVersion &gt;= 1 &amp;&amp; minVersion &gt;= 9) {\n                gameProfileField = entityHuman.getDeclaredField(&quot;bS&quot;);\n            } else {\n                gameProfileField = entityHuman.getDeclaredField(&quot;bH&quot;);\n            }\n            gameProfileField.setAccessible(true);\n            gameProfileField.set(entityPlayer, new GameProfile(player.getUniqueId(), name));\n            for (Player players : Bukkit.getOnlinePlayers()) {\n                players.hidePlayer(player);\n                players.showPlayer(player);\n            }\n        } catch (NoSuchMethodException | SecurityException | InvocationTargetException | NoSuchFieldException | IllegalArgumentException | IllegalAccessException e) {\n            e.printStackTrace();\n        }\n    }\n</code></pre>\n<p>Each own has its own problem and im tryna just have the best of both worlds kinda like hypixel</p>\n<p><strong>Common Problems</strong>\nPlayer's own nametag doesn't change (Client Side)</p>\n<p><strong>ProtocolLib's Problems</strong>\nChanged nametag doesn't work with teams</p>\n<p><strong>Reflection's Problems</strong>\nFor Reflection it changes your very own minecraft name (obviously only on the server) the problem im facing with Reflection is that its gonna make minecraft and all of the other plugins commands unusuable also you can't even tab to get your or the changed name.</p>\n<p>Honestly if i can just fix the problem with protocolLib nametag that doesn't work with teams i would be happy but i kinda want the player's own nametag to change also 😭.</p>\n<p>If anybody knows something i don't please i beg for your help!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

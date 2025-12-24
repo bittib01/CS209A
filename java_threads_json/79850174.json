@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "model-context-protocol",
+      "spring-ai"
+    ],
+    "owner": {
+      "account_id": 3573671,
+      "reputation": 139,
+      "user_id": 2983451,
+      "user_type": "registered",
+      "accept_rate": 71,
+      "profile_image": "https://www.gravatar.com/avatar/bc301f6873e4007b3584a1d4dc1f3ebc?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "KaustubhKhati",
+      "link": "https://stackoverflow.com/users/2983451/kaustubhkhati"
+    },
+    "is_answered": false,
+    "view_count": 110,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1766078706,
+    "creation_date": 1766051230,
+    "last_edit_date": 1766078706,
+    "question_id": 79850174,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79850174/is-there-any-sane-way-of-using-the-spring-ai-mcp-prompts-between-the-client-and",
+    "title": "Is there any sane way of using the Spring AI MCP Prompts between the Client and Server",
+    "body": "<p>I’m struggling to piece together how to seamlessly use the MCP Prompt from an MCP server to an MCP client, both using Spring AI 1.1.0.</p>\n<p><strong>The Problem:</strong></p>\n<p>The server returns a <code>GetPromptResult</code> that contains a <code>PromptMessage</code>, but neither of these directly correlates to what a <code>ChatClient</code> expects.\nThe implementation also doesn’t make things easy.</p>\n<p>The example shows:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@McpPrompt(\n    name = &quot;greeting&quot;,\n    description = &quot;Generate a greeting message&quot;)\npublic GetPromptResult greeting(\n    @McpArg(name = &quot;name&quot;, description = &quot;User's name&quot;, required = true)\n    String name) {\n\n    String message = &quot;Hello, &quot; + name + &quot;! How can I help you today?&quot;;\n\n    return new GetPromptResult(\n        &quot;Greeting&quot;,\n        List.of(new PromptMessage(Role.ASSISTANT, new TextContent(message)))\n    );\n}\n</code></pre>\n<p>However, to build the message string, it seems I can’t use the <code>PromptTemplate</code> or <code>AssistantPromptTemplate</code> directly.  Instead, I end up having to do something like:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@McpPrompt(\n    name = &quot;greeting&quot;,\n    description = &quot;Generate a greeting message&quot;)\npublic McpSchema.GetPromptResult greeting(\n    @McpArg(name = &quot;name&quot;, description = &quot;User's name&quot;, required = true)\n    String name) {\n\n    String messageTemplate = &quot;Hello, {name}! How can I help you today?&quot;;\n    String message = PromptTemplate.builder()\n        .template(messageTemplate)\n        .variables(Map.of(&quot;name&quot;, name))\n        .build()\n        .create()\n        .getContents();\n\n    return new McpSchema.GetPromptResult(\n        &quot;Greeting&quot;,\n        List.of(new McpSchema.PromptMessage(\n            McpSchema.Role.USER,\n            new McpSchema.TextContent(message)\n        ))\n    );\n}\n</code></pre>\n<p>Honestly, this feels unnecessarily complicated.\nIt would make more sense if the server just returned the prompt with placeholders to the client, and then let the client resolve and fill them.\nBut even that doesn’t seem straightforward.</p>\n<p>Example client usage:</p>\n<pre class=\"lang-java prettyprint-override\"><code>McpSchema.GetPromptResult getPromptResult =\n    mcpClients.getFirst().getPrompt(\n        new McpSchema.GetPromptRequest(&quot;greeting&quot;, Map.of(&quot;name&quot;, &quot;hell&quot;))\n    );\n\nMcpSchema.TextContent content =\n    (McpSchema.TextContent) getPromptResult.messages().getFirst().content();\n\ncontent.text();\n</code></pre>\n<p>I’d appreciate it if someone could point out if my current approach is completely wrong and suggest a better, more idiomatic way to handle this scenario.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

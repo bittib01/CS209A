@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "lockscreen",
+      "key-attestation"
+    ],
+    "owner": {
+      "account_id": 131296,
+      "reputation": 140,
+      "user_id": 331187,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/1eec5421daa80c47d6c0398e1490b3d6?s=256&d=identicon&r=PG",
+      "display_name": "pHagi",
+      "link": "https://stackoverflow.com/users/331187/phagi"
+    },
+    "is_answered": true,
+    "view_count": 750,
+    "accepted_answer_id": 79741438,
+    "answer_count": 3,
+    "score": 7,
+    "last_activity_date": 1755859411,
+    "creation_date": 1712050735,
+    "last_edit_date": 1755848549,
+    "question_id": 78260329,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78260329/android-keystore-lskf-is-not-setup-for-the-user",
+    "title": "Android keystore &quot;LSKF is not setup for the user&quot;",
+    "body": "<p>I have a problem with some Android devices, where the key pair generation failed with &quot;java.security.ProviderException: Failed to generate key pair.&quot; caused by &quot;Failed to handle super encryption.&quot;, &quot;Failed to super encrypt with LskfBound key.&quot;, &quot;LSKF is not setup for the user.&quot;</p>\n<p>Resetting the lock screen pin/password didn't help.</p>\n<p>As far as I could analyse the error, LSKF is the lock screen knowledge factor, the pin/password used for unlocking the device lock screen.</p>\n<p>Full exception (from Samsung S21, Android 14):</p>\n<pre><code>Java.security.ProviderException: Failed to generate key pair.\n    ...\n    at android.view.View.performClick(View.java:8043) ~[na:0.0]\n    at android.widget.TextView.performClick(TextView.java:17816) ~[na:0.0]\n    at com.google.android.material.button.MaterialButton.performClick(MaterialButton.java:1218) ~[na:0.0]\n    at android.view.View.performClickInternal(View.java:8020) ~[na:0.0]\n    at android.view.View.-$$Nest$mperformClickInternal(Unknown Source:0) ~[na:0.0]\n    at android.view.View$PerformClick.run(View.java:31850) ~[na:0.0]\n    at android.os.Handler.handleCallback(Handler.java:958) ~[na:0.0]\n    at android.os.Handler.dispatchMessage(Handler.java:99) ~[na:0.0]\n    at android.os.Looper.loopOnce(Looper.java:230) ~[na:0.0]\n    at android.os.Looper.loop(Looper.java:319) ~[na:0.0]\n    at android.app.ActivityThread.main(ActivityThread.java:8893) ~[na:0.0]\n    at java.lang.reflect.Method.invoke(Native Method) ~[na:0.0]\n    at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:608) ~[na:0.0]\n    at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1103) ~[na:0.0]\n Caused by: android.security.KeyStoreException: Keystore not initialized (internal Keystore code: 3 message: system/security/keystore2/src/security_level.rs:701: In generate_key. 10012\n \n Caused by:\n 0: system/security/keystore2/src/security_level.rs:209\n 1: system/security/keystore2/src/security_level.rs:186: Failed to handle super encryption.\n 2: system/security/keystore2/src/super_key.rs:758: Failed to super encrypt with LskfBound key.\n 3: system/security/keystore2/src/super_key.rs:718: LSKF is not setup for the user.\n 4: Error::Rc(r#UNINITIALIZED))\n    at android.security.KeyStore2.getKeyStoreException(KeyStore2.java:399) ~[na:0.0]\n    at android.security.KeyStoreSecurityLevel.handleExceptions(KeyStoreSecurityLevel.java:60) ~[na:0.0]\n    at android.security.KeyStoreSecurityLevel.generateKey(KeyStoreSecurityLevel.java:161) ~[na:0.0]\n    at android.security.keystore2.AndroidKeyStoreKeyPairGeneratorSpi.generateKeyPair(AndroidKeyStoreKeyPairGeneratorSpi.java:651) ~[na:0.0]\n 24 common frames omitted\n</code></pre>\n<p>I don't have direct access to the device and was not able to reproduce the same error on any test device.</p>\n<p>What I know about the device:</p>\n<ul>\n<li>strong biometrics are set (finger print)</li>\n<li>a string password is set (PASSWORD_COMPLEXITY_HIGH)</li>\n</ul>\n<p>The relevant key generation parameter:</p>\n<pre><code>setUserAuthenticationRequired(true)\nsetUserAuthenticationParameters(0,KeyProperties.AUTH_BIOMETRIC_STRONG)\nsetUserConfirmationRequired(false)\nsetDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)\n</code></pre>\n<p>The error occurs on the generation of RSA and EC keys. There are fallbacks for only SHA256 and time-based key authentication, but neither seems to work here.</p>\n<p>Does anybody have the same problems? I found some similar problem on the net but without any answer.\nCan anybody reproduce the problem?</p>\n<p>I tried to remove and set the lock screen factors for different device models from different manufactures.</p>\n<p>For some older devices you can set a finger print, remove the pin afterwards and keep the finger print data, but that didn't result in the expected error.</p>\n<p>I've added retry logic to the key generation process for different key types (RSA,EC), differente hash algorithm (SHA256, SHA512) and authentication timeouts (per-use-keys and time-based-keys). The error occurs on all of the variants for these devices.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

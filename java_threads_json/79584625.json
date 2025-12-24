@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "unit-testing",
+      "mockito",
+      "jedis"
+    ],
+    "owner": {
+      "account_id": 13160610,
+      "reputation": 135,
+      "user_id": 9506231,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/8b29f4cbd82a7413bb6e24d9523ae7ef?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "user9506231",
+      "link": "https://stackoverflow.com/users/9506231/user9506231"
+    },
+    "is_answered": true,
+    "view_count": 168,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1746304711,
+    "creation_date": 1745238142,
+    "last_edit_date": 1745326350,
+    "question_id": 79584625,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79584625/java-spring-unit-test-config-class",
+    "title": "Java Spring - unit test config class",
+    "body": "<p>I have a Java Spring application with a <code>RedisService</code> for interacting with a Redis database. The <code>RedisService</code> constructor takes a <code>JedisPooled</code> object as the constructor dependency for using the Redis connection:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Repository\npublic class RedisService {\n    private final JedisPooled jedisPooled;\n\n    @Autowired\n    public RedisService(final JedisPooled jedisPooled) {\n        this.jedisPooled = jedisPooled;\n    }\n\n    public String set(final String key, final String val) {\n        return jedisPooled.set(key, val);\n    }\n\n    public String get(final String key) {\n        return jedisPooled.get(key);\n    }\n}\n</code></pre>\n<p>I use a <code>RedisServiceConfig</code> class to manage the configuration for this service:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Configuration\npublic class RedisServiceConfig {\n    @Bean\n    public RedisService redisService(@Value(&quot;${redis.auth.password}&quot;) final String redisAuthPassword,\n                                     @Value(&quot;${redis.endpoint}&quot;) final String redisEndpoint,\n                                     @Value(&quot;${redis.port}&quot;) final int redisPort) {\n        final JedisPooled jedisPooled;\n\n        try {\n            jedisPooled = new JedisPooled(redisEndpoint, redisPort, redisAuthPassword);\n        } catch (final Exception e) {\n            throw new JedisConnectionException(&quot;Error connecting to Redis&quot;);\n        }\n\n        return new RedisService(jedisPooled);\n    }\n}\n</code></pre>\n<p>How can I unit test the exception handling in the config class? I've tried something like this, but I can't quite get it to work:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class RedisServiceConfigTest {\n    @Mock\n    private JedisPooled mockJedisPooled;\n    @InjectMocks\n    private RedisServiceConfig redisServiceConfig;\n\n    @Test\n    public void testRedisServiceBeanCreation() {\n        when(mockJedisPooled.created()).thenThrow(new JedisConnectionException(&quot;Connection error&quot;));\n        // I need something ^ like this?\n\n        final RedisService redisService = redisServiceConfig.redisService(&quot;testPassword&quot;, &quot;localhost&quot;, 6379);\n\n        Assertions.assertNotNull(redisService);\n    }\n}\n</code></pre>\n<p>I've tried mocking the <code>mockJedisPooled</code> and tried to force it to throw exceptions. Is this the correct approach for unit testing a config class like this?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

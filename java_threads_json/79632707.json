@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "mapstruct"
+    ],
+    "owner": {
+      "account_id": 10187542,
+      "reputation": 2735,
+      "user_id": 20692967,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/NZSXm.jpg?s=256",
+      "display_name": "Sergey Zolotarev",
+      "link": "https://stackoverflow.com/users/20692967/sergey-zolotarev"
+    },
+    "is_answered": true,
+    "view_count": 124,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1747926984,
+    "creation_date": 1747858781,
+    "question_id": 79632707,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79632707/making-mapstruct-put-component-on-its-implementations-while-allowing-for-spri",
+    "title": "Making MapStruct put @Component on its implementations – while allowing for Spring-less initialization",
+    "body": "<p>Imagine I want my MapStruct mappers to be Spring-managed <code>@Component</code>s (for production).</p>\n<p>Also imagine I want to test those mappers. However, I don't want to bootstrap the entire Spring context to do that. Or even a tiny context that has the mappers only. I want to unit-test the mappers and keep Spring completely unaware of that.</p>\n<p>As far as I know, the only way to make MapStruct annotate its generated mapper implementations with <code>@Component</code> is to set <code>componentModel</code> to <code>&quot;spring&quot;</code>.</p>\n<p>However, that means that any mappers created with the <code>Mappers</code> factory (which I want to do in my unit-test) would not be initialized.</p>\n<p>So it seems I'm between a rock and a hard place: I either manually create mapper <code>@Bean</code>s or abandon the idea of testing MapStruct mappers without Spring's involvement. Or am I wrong?</p>\n<pre class=\"lang-java prettyprint-override\"><code>import lombok.Getter;\nimport lombok.Setter;\n\nimport java.util.List;\n\n@Getter\n@Setter\npublic class UserRequestDto {\n\n    private Long id;\n    private String name;\n    private List&lt;String&gt; emailData;\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>import jakarta.persistence.Column;\nimport jakarta.persistence.Entity;\nimport jakarta.persistence.GeneratedValue;\nimport jakarta.persistence.GenerationType;\nimport jakarta.persistence.Id;\nimport jakarta.persistence.OneToMany;\nimport jakarta.persistence.Table;\nimport lombok.Getter;\nimport lombok.Setter;\n\nimport java.util.List;\n\n@Entity\n@Getter\n@Setter\n@Table(name = &quot;\\&quot;user\\&quot;&quot;)\npublic class User {\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n    private String name;\n    @OneToMany\n    private List&lt;EmailData&gt; emailData;\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>import jakarta.persistence.Entity;\nimport jakarta.persistence.GeneratedValue;\nimport jakarta.persistence.GenerationType;\nimport jakarta.persistence.Id;\nimport jakarta.persistence.Table;\nimport lombok.Getter;\nimport lombok.Setter;\n\n@Entity\n@Getter\n@Setter\n@Table(name = &quot;email_data&quot;)\npublic class EmailData {\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n    // a back reference to user is omitted for irrelevance\n    private String email;\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>import org.mapstruct.Mapper;\n\n@Mapper(uses = EmailMapper.class, componentModel=&quot;spring&quot;)\npublic interface UserMapper {\n    User toUser(UserRequestDto userRequestDto);\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>import org.mapstruct.Mapper;\nimport org.mapstruct.Mapping;\n\n@Mapper\npublic interface EmailMapper {\n    @Mapping(source = &quot;.&quot;, target = &quot;email&quot;)\n    EmailData toEmailData(String email);\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>import com.example.pixel_user_api.data.dto.request.UserRequestDto;\nimport com.example.pixel_user_api.data.entity.User;\nimport org.junit.jupiter.api.Test;\nimport org.mapstruct.factory.Mappers;\n\nimport java.util.List;\n\nimport static org.assertj.core.api.Assertions.assertThat;\n\nclass UserMapperTest {\n    @Test\n    void testMapper() {\n        UserRequestDto userDto = new UserRequestDto();\n        userDto.setId(123L);\n        userDto.setName(&quot;Steve123&quot;);\n        String email = &quot;steve@gmail.com&quot;;\n        userDto.setEmailData(List.of(email));\n\n        UserMapper mapper = Mappers.getMapper(UserMapper.class);\n        User user = mapper.toUser(userDto); // throws NPE\n    }\n}\n</code></pre>\n<pre><code>java.lang.NullPointerException: Cannot invoke &quot;com.example.pixel_user_api.mapper.EmailMapper.toEmailData(String)&quot; because &quot;this.emailMapper&quot; is null\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

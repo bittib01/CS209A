@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "kotlin",
+      "threadpool"
+    ],
+    "owner": {
+      "account_id": 68986,
+      "reputation": 23384,
+      "user_id": 200987,
+      "user_type": "registered",
+      "accept_rate": 69,
+      "profile_image": "https://www.gravatar.com/avatar/1cdd96f59bb81a26d81870ba244215bc?s=256&d=identicon&r=PG",
+      "display_name": "oligofren",
+      "link": "https://stackoverflow.com/users/200987/oligofren"
+    },
+    "is_answered": false,
+    "view_count": 44,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1727093980,
+    "creation_date": 1727081293,
+    "last_edit_date": 1727093400,
+    "question_id": 79013856,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79013856/unable-to-get-spring-async-to-run-on-dedicated-threadpool",
+    "title": "Unable to get Spring `@Async` to run on dedicated threadpool",
+    "body": "<p>I was expecting the below code to spend 1 second in the below test, but it takes 5 seconds. I ran it by ChatGPT and it found no issues either. What could be the issue preventing Spring from running each invocation of the Future returning method on different threads?</p>\n<pre><code>@SpringJUnitConfig(SpringAsyncTest.MyTestConfig::class)\nclass SpringAsyncTest {\n\n    @Autowired\n    lateinit var sut: MySpecialBean\n\n    @TestConfiguration()\n    class MyTestConfig {\n        @Bean(name = [&quot;myThreadPoolExecutor&quot;])\n        fun asyncExecutor(): ThreadPoolTaskExecutor {\n            val executor = ThreadPoolTaskExecutor()\n            executor.corePoolSize = 10\n            executor.queueCapacity = 2000\n            executor.initialize()\n            return executor\n        }\n\n        @Bean\n        fun sut(): MySpecialBean = MySpecialBean()\n    }\n    @Test\n    @Throws(InterruptedException::class, ExecutionException::class)\n    fun testSpringAsync() {\n        CompletableFuture.allOf(\n            sut.aFutureCompletable(),\n            sut.aFutureCompletable(),\n            sut.aFutureCompletable(),\n            sut.aFutureCompletable(),\n            sut.aFutureCompletable()\n        ).get()\n     }\n}\n</code></pre>\n<p><strong>SUT</strong></p>\n<pre><code>@Component\nclass MySpecialBean {\n\n    @Throws(InterruptedException::class)\n    @Async(&quot;myThreadPoolExecutor&quot;) // Use the custom executor\n    fun aFutureCompletable(): CompletableFuture&lt;Void?&gt; {\n        Thread.sleep(1000)  // Simulate a long-running task\n        return CompletableFuture.completedFuture(null)\n    }\n}\n</code></pre>\n<p><strong>Reproduction</strong></p>\n<p>All the code is in a Gradle project that can be cloned here:\n<a href=\"https://github.com/fatso83/test-driven-learning/blob/master/java-spring/src/test/kotlin/io/github/fatso83/spring_learning/SpringAsyncTest.kt\" rel=\"nofollow noreferrer\">github.com/fatso83/test-driven-learning/</a>.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

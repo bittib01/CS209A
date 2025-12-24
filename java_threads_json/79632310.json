@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "hazelcast"
+    ],
+    "owner": {
+      "account_id": 2402261,
+      "reputation": 318,
+      "user_id": 2099686,
+      "user_type": "registered",
+      "accept_rate": 100,
+      "profile_image": "https://i.sstatic.net/NnqYy.jpg?s=256",
+      "display_name": "vnkid",
+      "link": "https://stackoverflow.com/users/2099686/vnkid"
+    },
+    "is_answered": false,
+    "view_count": 54,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1747841289,
+    "creation_date": 1747841289,
+    "question_id": 79632310,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79632310/hazelcastcachemanager-does-not-evict-that-cache-after-set-ttl",
+    "title": "HazelcastCacheManager does not evict that cache after set TTL",
+    "body": "<p>I have Server node with cache map entries TTL set to 15 seconds. Then client node without any near-cache. A CacheManager bean which was created from new HazelcastCacheManager(hazelcastClientInstance).\nThen an Endpoint that calls Service method, that is annotated as @Cacheable\nAfter calling the endpoint again after the TTL time, it should re-invoke the method, but it doesn't.</p>\n<pre><code>HazelcastInstance instance2 = ((HazelcastCacheManager) cacheManager).getHazelcastInstance();\n    logger.debug(&quot;hazelcastInstance in use: {}&quot;, hazelcastInstance);\n    logger.debug(&quot;instance2 (cachemanager): {}&quot;, instance2);\n    logger.debug(&quot;------------------&quot;);\n    hazelcastInstance.getMap(&quot;my-cache&quot;)\n            .forEach((key, value) -&gt; logger.debug(&quot;Key: {}, Value: {}&quot;, key, value));\n    instance2.getMap(&quot;my-cache&quot;)\n                    .forEach((key, value) -&gt; logger.debug(&quot;Key2: {}, Value2: {}&quot;, key, value));\n    logger.debug(&quot;------------------&quot;);\n    logger.debug(&quot;CacheManager in use: {}&quot;, cacheManager.getClass());\n    Cache.ValueWrapper cacheValue = cacheManager.getCache(&quot;my-cache&quot;).get(&quot;the-key&quot;);\n    if (cacheValue != null) {\n        logger.debug(&quot;Cache value: {}&quot;, cacheValue.get());\n    } else {\n        logger.debug(&quot;Cache value is null&quot;);\n    }\n    // invoke the method\n</code></pre>\n<p>I have printed out logs and this is what happened:</p>\n<ul>\n<li>The hazelcastInstance.getMap(&quot;my-cache&quot;) does not contains the cache after the TTL - correct</li>\n<li>But the CacheManager (which is HazelcastCacheManager) - getCache still return the cache after the TTL - Incorrect\nI have checked that the hazelcastInstance got from cacheManager is the same one as the hazelcastInstance above</li>\n</ul>\n<p>The cache from cacheManager does evict after the whole TTL, but it seems that it does extends the remaining TTL after each access, which is strange because the TTL should not be extendable within an access, right?</p>\n<p><strong>Expected behavior</strong></p>\n<p>After calling the endpoint again after the TTL time, it should re-invoke the method</p>\n<p><strong>Additional context</strong></p>\n<p>hazelcast-all-4.2.8</p>\n<blockquote>\n<p>the ip/port are set from elsewhere - not important, as the client and server did connect successfully\nthe server.yaml</p>\n</blockquote>\n<pre><code>hazelcast:\n  instance-name: hazelcast-instance \n  cluster-name: hazelcast\n  network:\n    port:\n      auto-increment: true\n    join:\n      auto-detection:\n        enabled: false \n      tcp-ip: \n        enabled: true \n        member-list:\n          - 127.0.0.1\n  properties:\n    hazelcast.logging.type: slf4j\n  map:\n    my-cache:\n      time-to-live-seconds: 15\n</code></pre>\n<p>the client.yaml</p>\n<pre><code>hazelcast-client:\n  cluster-name: hazelcast\n  instance-name: hazelcast-client\n  network:\n    connection-strategy:\n      async-start: false\n      reconnect-mode: ASYNC\n      connection-retry:\n        enabled: true\n        initial-backoff-millis: 1000\n        max-backoff-millis: 32000\n        multiplier: 2\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

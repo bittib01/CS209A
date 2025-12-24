@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "maven"
+    ],
+    "owner": {
+      "account_id": 44940702,
+      "reputation": 25,
+      "user_id": 32015291,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/d710dfa297a50b8ba090e52d3da9a152?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "user32015291",
+      "link": "https://stackoverflow.com/users/32015291/user32015291"
+    },
+    "is_answered": false,
+    "view_count": 101,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1765153171,
+    "creation_date": 1765153171,
+    "question_id": 79840541,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79840541/under-high-load-streams-obtained-via-launchedclassloader-are-unexpectedly-close",
+    "title": "Under high load, streams obtained via LaunchedClassLoader are unexpectedly closed, causing file read failures",
+    "body": "<h2>Issue</h2>\n<p>We are developing a component in a Spring Boot application that loads YAML configuration files from the classpath using ClassLoader#getResourceAsStream. After upgrading from Spring Boot v2.5.12 (OpenJDK v11) to Spring Boot v3.3.3 (OpenJDK v17), under high load (large numbers of concurrent requests), the stream in this component is unexpectedly closed, resulting in failed file reads. Please advise on possible countermeasures.</p>\n<p>Note: The issue does not occur under low load; processing completes successfully.</p>\n<h2>Version information</h2>\n<ul>\n<li>Spring Boot: v2.5.12 -&gt; v3.3.3</li>\n<li>Red Hat OpenJDK: v11.0.17 -&gt; v17.0.9</li>\n<li>Maven: v3.5.3 -&gt; v3.9.6</li>\n<li>SnakeYAML: v1.28 -&gt; v2.2</li>\n</ul>\n<p>Note: The issue occurs after the upgrade.</p>\n<h2>Runtime environment</h2>\n<ul>\n<li>Packaging: Executable JAR (fat jar)</li>\n<li>Deployment: OpenShift container environment (OpenJDK 17)</li>\n</ul>\n<h2>Error log (excerpt)</h2>\n<pre><code>Caused by: org.yaml.snakeyaml.error.YAMLException: java.io.IOException: Stream closed\n\nCaused by: java.io.IOException: Stream closed\n</code></pre>\n<h2>Relevant source code (excerpt)</h2>\n<pre><code>protected InputStream getInputStream(String fileName) throws FileNotFoundException {  \nInputStream is;\n...\nis = getClass().getClassLoader().getResourceAsStream(fileName);  \nreturn is;\n</code></pre>\n<p>Notes:</p>\n<ul>\n<li>A new stream is used per request; streams are not shared across requests.</li>\n<li>The stream is closed properly by the caller using try-with-resources.</li>\n</ul>\n<h2>Known facts</h2>\n<ul>\n<li>Heap dump analysis confirms the class loader in use is LaunchedClassLoader.</li>\n<li>Applying the setting to use the legacy class loader described under “Nested Jar Support” in the Spring Boot 3.2 release notes prevents the issue from occurring.</li>\n</ul>\n<p>Reference: <a href=\"https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.2-Release-Notes#nested-jar-support\" rel=\"nofollow noreferrer\">https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.2-Release-Notes#nested-jar-support</a></p>\n<h2>Reproduction conditions</h2>\n<ul>\n<li>The issue occurs when generating high load (large numbers of concurrent requests) using tools such as JMeter.</li>\n<li>The issue occurs whether the YAML configuration file is packaged within the Spring Boot application or inside a dependency JAR (library).</li>\n<li>It has been reproduced only in the test environment; it has not been reproduced locally.</li>\n</ul>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

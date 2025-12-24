@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "hibernate",
+      "spring-data-jpa",
+      "hibernate-criteria"
+    ],
+    "owner": {
+      "account_id": 104174,
+      "reputation": 9842,
+      "user_id": 278659,
+      "user_type": "registered",
+      "accept_rate": 83,
+      "profile_image": "https://www.gravatar.com/avatar/a10f8a52a8c247d8e20ee9ab59ee22f2?s=256&d=identicon&r=PG",
+      "display_name": "j3d",
+      "link": "https://stackoverflow.com/users/278659/j3d"
+    },
+    "is_answered": false,
+    "view_count": 95,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1727219018,
+    "creation_date": 1726760234,
+    "last_edit_date": 1726814199,
+    "question_id": 79003371,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79003371/how-to-get-subquery-values-when-using-hibernate-criteria-api",
+    "title": "How to get subquery values when using Hibernate Criteria API",
+    "body": "<p>Here below is a subquery to retrieve a list of ids:</p>\n<pre><code>protected Long getIdList(\n        @NonNull final CriteriaBuilder rootBuilder,\n        @NonNull final CriteriaQuery&lt;?&gt; rootQuery,\n        @NonNull final Pageable pageable) {\n    final HibernateCriteriaBuilder listBuilder = (HibernateCriteriaBuilder) rootBuilder;\n    final JpaCriteriaQuery&lt;Long&gt; listQuery = listBuilder.createQuery(Long.class);\n    final SqmSubQuery&lt;Tuple&gt; subQuery = (SqmSubQuery&lt;Tuple&gt;) listQuery.subquery(Tuple.class);\n    final SqmQuerySpec&lt;Tuple&gt; rootQuerySpec = ((SqmSelectStatement) rootQuery).getQuerySpec();\n    final SqmQuerySpec&lt;Tuple&gt; subQuerySpec = rootQuerySpec.copy(SqmCopyContext.simpleContext());\n    subQuery.setQueryPart(subQuerySpec);\n    final Root&lt;?&gt; subRoot = subQuery.getRoots().iterator().next();\n    subQuery.multiselect(subRoot.get(&quot;id&quot;).alias(&quot;id&quot;));\n\n    // listQuery.multiselect(listBuilder.count(listBuilder.literal(1))).from(subQuery);\n    // instead of counting the ids, I want to get them...\n    listQuery.multiselect(subRoot.get(&quot;id&quot;)).from(subQuery);\n\n    return entityManager\n        .createQuery(listQuery)\n        .setFirstResult(PageableUtils.getOffsetAsInteger(pageable))\n        .setMaxResults(pageable.getPageSize())\n        .getResultList();\n}\n</code></pre>\n<p>Unfortunately it doesn't work and I always get this error message:</p>\n<pre><code>org.springframework.orm.jpa.JpaSystemException: Could not locate TableGroup\n</code></pre>\n<p>Any hint would be appreciated. Thanks.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

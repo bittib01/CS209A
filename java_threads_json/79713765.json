@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "jetty"
+    ],
+    "owner": {
+      "account_id": 42843506,
+      "reputation": 11,
+      "user_id": 30950928,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/ee4fae590d64b38e18c81178309dab80?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Abdurrafay Atif",
+      "link": "https://stackoverflow.com/users/30950928/abdurrafay-atif"
+    },
+    "is_answered": false,
+    "view_count": 100,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1756826646,
+    "creation_date": 1753378597,
+    "last_edit_date": 1756826646,
+    "question_id": 79713765,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79713765/trying-to-run-a-spring-boot-server-with-spark-but-errors-occur",
+    "title": "Trying to run a Spring Boot server with Spark, but errors occur",
+    "body": "<p>I have the following two classes that use the Spark package and that run a server via SpringBoot.</p>\n<p><strong>Server.java</strong></p>\n<pre class=\"lang-java prettyprint-override\"><code>package server;\n\nimport static spark.Spark.get;\nimport static spark.Spark.port;\nimport static spark.Spark.post;\n\nimport phone.PhoneSystem;\n\npublic class Server \n{\n    public static void run()\n    {\n        port(4567);\n        \n        try(PhoneSystem phone = new PhoneSystem())\n        {\n            get(&quot;/voice&quot;, (request, response) -&gt; \n            {\n                return phone.startupMessage(request, response);\n            });\n            \n            post(&quot;/process&quot;, (request, response) -&gt;\n            {\n                return phone.messageLoop(request, response);\n            });\n        }\n    }\n}\n</code></pre>\n<p><strong>MyApplication.java</strong></p>\n<pre class=\"lang-java prettyprint-override\"><code>package server;\n\nimport org.springframework.boot.SpringApplication;\nimport org.springframework.boot.autoconfigure.SpringBootApplication;\n\n@SpringBootApplication\npublic class MyApplication \n{\n    public static void main(String[] args) \n    {\n        SpringApplication.run(MyApplication.class, args);\n        Server.run();\n    }\n}\n</code></pre>\n<p>I am trying to run the server using the following command:</p>\n<pre class=\"lang-none prettyprint-override\"><code>mvn exec:java -Dexec.mainClass=&quot;server.MyApplication&quot;\n</code></pre>\n<p>But it is giving me the following error output:</p>\n<pre class=\"lang-none prettyprint-override\"><code>\njava.lang.NoClassDefFoundError: spark/embeddedserver/jetty/JettyHandler\n    at spark.embeddedserver.jetty.EmbeddedJettyFactory.create (EmbeddedJettyFactory.java:51)\n    at spark.embeddedserver.EmbeddedServers.create (EmbeddedServers.java:80)\n    at spark.Service.lambda$init$2 (Service.java:624)\n    at java.lang.Thread.run (Thread.java:1447)\nCaused by: java.lang.ClassNotFoundException: spark.embeddedserver.jetty.JettyHandler\n    at org.codehaus.mojo.exec.URLClassLoaderBuilder$ExecJavaClassLoader.loadClass (URLClassLoaderBuilder.java:211)\n    at java.lang.ClassLoader.loadClass (ClassLoader.java:490)\n    at spark.embeddedserver.jetty.EmbeddedJettyFactory.create (EmbeddedJettyFactory.java:51)\n    at spark.embeddedserver.EmbeddedServers.create (EmbeddedServers.java:80)\n    at spark.Service.lambda$init$2 (Service.java:624)\n    at java.lang.Thread.run (Thread.java:1447)\n</code></pre>\n<p><strong>What I've tried</strong></p>\n<ul>\n<li>Switching to <code>Spark 3.0.0</code> in order to fix this problem but it seems that this version of Spark is not available on <code>Maven Central</code>. - Removing the <code>Jetty</code> dependencies.</li>\n<li>Using snapshot versions within a repository in the <code>pom.xml</code> file but I still get the same error messages.</li>\n</ul>\n<p>For reference I am using the following dependencies in my <code>pom.xml</code> file:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>        &lt;dependency&gt;\n            &lt;groupId&gt;com.sparkjava&lt;/groupId&gt;\n            &lt;artifactId&gt;spark-core&lt;/artifactId&gt;\n            &lt;version&gt;2.9.4&lt;/version&gt;\n        &lt;/dependency&gt;\n        \n        &lt;dependency&gt;\n            &lt;groupId&gt;org.eclipse.jetty&lt;/groupId&gt;\n            &lt;artifactId&gt;jetty-server&lt;/artifactId&gt;\n        &lt;/dependency&gt;\n        \n        &lt;dependency&gt;\n            &lt;groupId&gt;org.eclipse.jetty&lt;/groupId&gt;\n            &lt;artifactId&gt;jetty-servlet&lt;/artifactId&gt;\n            &lt;version&gt;9.4.44.v20210927&lt;/version&gt;\n        &lt;/dependency&gt;\n</code></pre>\n<p>UPDATE 7/25/2025:</p>\n<p>I was able to resolve the issue by no longer using Spark but instead relying entirely on SpringBoot. I removed the dependencies above and used methods with <code>GetMapping(&quot;/voice&quot;)</code> and <code>PostMapping(&quot;/process&quot;)</code> in a Server class to replace what I did before.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

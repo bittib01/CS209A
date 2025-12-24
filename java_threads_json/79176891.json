@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-security",
+      "spring-authorization-server",
+      "spring-security-6"
+    ],
+    "owner": {
+      "account_id": 15714113,
+      "reputation": 107,
+      "user_id": 11338722,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/MpsHn.jpg?s=256",
+      "display_name": "Sudan Shrestha",
+      "link": "https://stackoverflow.com/users/11338722/sudan-shrestha"
+    },
+    "is_answered": false,
+    "view_count": 735,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1733160667,
+    "creation_date": 1731313851,
+    "question_id": 79176891,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79176891/migration-from-spring-boot-2-2-to-3-2-and-java-8-to-java-21-facing-issues-upgr",
+    "title": "Migration from Spring Boot 2.2 to 3.2 and Java 8 to Java 21 - facing issues upgrading to Spring Authorization Server",
+    "body": "<p>I am currently in the process of migrating the application from Java 8 to Java 21 and Spring Boot 2.2 to Spring Boot 3.2.</p>\n<p>I am currently facing trouble with security. My application has both an authorization server and a resource server which uses Spring security oauth2 of version 2.0.10 for authentication and authorization purposes.\nThe dependency I was using for it was</p>\n<pre><code>        &lt;dependency&gt;\n            &lt;groupId&gt;org.springframework.security.oauth&lt;/groupId&gt;\n            &lt;artifactId&gt;spring-security-oauth2&lt;/artifactId&gt;\n            &lt;version&gt;2.0.10.RELEASE&lt;/version&gt;\n        &lt;/dependency&gt;\n</code></pre>\n<p>My authorization server class is as</p>\n<pre><code>import java.util.Arrays;\n\nimport javax.sql.DataSource;\n\nimport org.springframework.beans.factory.annotation.Autowired;\nimport org.springframework.beans.factory.annotation.Value;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\nimport org.springframework.http.ResponseEntity;\nimport org.springframework.security.authentication.AuthenticationManager;\nimport org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;\nimport org.springframework.security.oauth2.common.exceptions.OAuth2Exception;\nimport org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;\nimport org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;\nimport org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;\nimport org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;\nimport org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;\nimport org.springframework.security.oauth2.provider.token.TokenEnhancerChain;\nimport org.springframework.security.oauth2.provider.token.TokenStore;\nimport org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;\nimport org.springframework.security.oauth2.provider.token.store.JwtTokenStore;\n\n\n@Configuration\n@EnableAuthorizationServer\npublic class AuthorizationServerConfiguration extends AuthorizationServerConfigurerAdapter {\n    \n    private static final String GRANT_TYPE_PASSWORD = &quot;password&quot;;\n    private static final String AUTHORIZATION_CODE = &quot;authorization_code&quot;;\n    private static final String REFRESH_TOKEN = &quot;refresh_token&quot;;\n    private static final String IMPLICIT = &quot;implicit&quot;;\n    private static final String SCOPE_READ = &quot;read&quot;;\n    private static final String SCOPE_WRITE = &quot;write&quot;;\n    private static final String TRUST = &quot;trust&quot;;\n    private static final int ACCESS_TOKEN_VALIDITY_SECONDS = 1 * 60 * 60;\n    private static final int FREFRESH_TOKEN_VALIDITY_SECONDS = 6 * 60 * 60;\n    \n    \n    @Value(&quot;${auth.server.client.id}&quot;)\n    private String clientId;\n    \n    @Value(&quot;${auth.server.client.secret}&quot;)\n    private String clientSecret;\n    \n    @Value(&quot;${auth.server.signing.key}&quot;)\n    private String signingKey;\n\n    @Autowired\n    private AuthenticationManager authenticationManager;\n\n    @Autowired\n    private CustomTokenEnhancer customTokenEnhancer;\n\n    @SuppressWarnings(&quot;unused&quot;)\n    @Autowired\n    private DataSource dataSource;\n    \n    @Bean\n    public JwtAccessTokenConverter accessTokenConverter() {\n        JwtAccessTokenConverter converter = new JwtAccessTokenConverter();\n        converter.setSigningKey(signingKey);\n        return converter;\n    }\n\n    @Bean\n    public TokenStore tokenStore() {\n        return new JwtTokenStore(accessTokenConverter());\n    }\n\n    @Override\n    public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {\n\n        security.tokenKeyAccess(&quot;permitAll()&quot;).checkTokenAccess(&quot;isAuthenticated()&quot;)\n                .passwordEncoder(new BCryptPasswordEncoder());\n    }\n\n    @Override\n    public void configure(ClientDetailsServiceConfigurer clientDetailsServiceConfigurer) throws Exception {\n        clientDetailsServiceConfigurer.inMemory().withClient(clientId)\n                .secret(new BCryptPasswordEncoder().encode(clientSecret))\n                .authorizedGrantTypes(GRANT_TYPE_PASSWORD, AUTHORIZATION_CODE, REFRESH_TOKEN, IMPLICIT)\n                .scopes(SCOPE_READ, SCOPE_WRITE, TRUST).accessTokenValiditySeconds(ACCESS_TOKEN_VALIDITY_SECONDS)\n                .refreshTokenValiditySeconds(FREFRESH_TOKEN_VALIDITY_SECONDS);\n\n    }\n\n    @Override\n    public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {\n\n        TokenEnhancerChain tokenEnhancerChain = new TokenEnhancerChain();\n        tokenEnhancerChain.setTokenEnhancers(Arrays.asList(customTokenEnhancer, accessTokenConverter()));\n\n        endpoints.tokenStore(tokenStore()).tokenEnhancer(tokenEnhancerChain)\n                .authenticationManager(authenticationManager).exceptionTranslator(e -&gt; {\n                    if (e instanceof OAuth2Exception oAuth2Exception) {\n                        return ResponseEntity.status(oAuth2Exception.getHttpErrorCode())\n                                .body(new OAuth2Exception(oAuth2Exception.getMessage()));\n                    } else {\n                        throw e;\n                    }\n                });\n    }\n\n}\n\n</code></pre>\n<p>I couldn't find proper solution to upgrading this server to new Spring Authorization Server with custom token enhancer and jwt token converter.\nIs there any way to incorporate it with the new Spring Authorization Server?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

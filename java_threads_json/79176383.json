@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "bazel",
+      "bazel-java"
+    ],
+    "owner": {
+      "account_id": 30701821,
+      "reputation": 1,
+      "user_id": 23539875,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocJBedY_YlWgr45BqOUZqGV1hN46YNb5nUo3G_2UDy7fgA=k-s256",
+      "display_name": "Prasanth Kommini",
+      "link": "https://stackoverflow.com/users/23539875/prasanth-kommini"
+    },
+    "is_answered": true,
+    "view_count": 130,
+    "accepted_answer_id": 79255068,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1733603911,
+    "creation_date": 1731298909,
+    "last_edit_date": 1731347497,
+    "question_id": 79176383,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79176383/bazel-run-maven-pin-results-in-error-filenotfoundexception",
+    "title": "bazel run @maven//:pin results in error: FileNotFoundException",
+    "body": "<pre><code>➜  simpleproject git:(main) ✗ bazel run @maven//:pin --verbose_failures\nERROR: /private/var/tmp/_bazel_pk/2535445c9817f31453336c07943a57d6/external/rules_jvm_external~/private/extensions/maven.bzl:450:42: Traceback (most recent call last):\n        File &quot;/private/var/tmp/_bazel_pk/2535445c9817f31453336c07943a57d6/external/rules_jvm_external~/private/extensions/maven.bzl&quot;, line 450, column 42, in maven_impl\n                lock_file_content = mctx.read(mctx.path(repo.get(&quot;lock_file&quot;)))\nError in read: java.io.FileNotFoundException: /Users/pk/personal/simpleproject/maven_install.json (No such file or directory)\nERROR: error evaluating module extension maven in @@rules_jvm_external~//:extensions.bzl\nINFO: Elapsed time: 0.130s\nINFO: 0 processes.\nERROR: Build did NOT complete successfully\nERROR: Build failed. Not running target\nFAILED: \n    Fetching module extension maven in @@rules_jvm_external~//:extensions.bzl; starting\n</code></pre>\n<p>This is my MODULE.bazel file:</p>\n<pre class=\"lang-none prettyprint-override\"><code>###############################################################################\n# Bazel now uses Bzlmod by default to manage external dependencies.\n# Please consider migrating your external dependencies from WORKSPACE to MODULE.bazel.\n#\n# For more details, please check https://github.com/bazelbuild/bazel/issues/18958\n###############################################################################\n\nmodule(name = &quot;my_monorepo&quot;)\n\nbazel_dep(name = &quot;gazelle&quot;, version = &quot;0.39.1&quot;)\nbazel_dep(name = &quot;aspect_rules_ts&quot;, version = &quot;3.3.1&quot;)\nbazel_dep(name = &quot;rules_proto&quot;, version = &quot;7.0.1&quot;)\nbazel_dep(name = &quot;rules_proto_grpc&quot;, version = &quot;5.0.0&quot;)\nbazel_dep(name = &quot;rules_jvm_external&quot;, version = &quot;6.5&quot;)\n\n# Additional configuration for aspect_rules_ts\nrules_ts_ext = use_extension(&quot;@aspect_rules_ts//ts:extensions.bzl&quot;, &quot;ext&quot;, dev_dependency = True)\n\nrules_ts_ext.deps(\n    ts_version_from = &quot;//frontend:package.json&quot;,\n)\n\nuse_repo(rules_ts_ext, &quot;npm_typescript&quot;)\n\nmaven = use_extension(&quot;@rules_jvm_external//:extensions.bzl&quot;, &quot;maven&quot;)\n\nmaven.install(\n    artifacts = [\n        &quot;io.grpc:grpc-netty:1.38.0&quot;,\n        &quot;org.springframework.boot:spring-boot-starter:2.5.2&quot;,\n        &quot;org.springframework.boot:spring-boot-starter-web:2.5.2&quot;,\n    ],\n    fetch_sources = True,\n    lock_file = &quot;//backend:maven_install.json&quot;,\n)\n\nuse_repo(maven, &quot;maven&quot;)\n\n</code></pre>\n<p>Do I need to pre-create a maven_install.json file? I assumed it generates one for you. Am I missing something?</p>\n<p>We expect the command to go through and generate a maven_install.json file.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

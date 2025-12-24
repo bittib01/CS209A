@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "xml",
+      "namespaces",
+      "jaxb",
+      "xml-binding"
+    ],
+    "owner": {
+      "account_id": 34229539,
+      "reputation": 1,
+      "user_id": 26454585,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/682ecffc4cd9befc9e6c6bf507742e3f?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "farkadi oussama",
+      "link": "https://stackoverflow.com/users/26454585/farkadi-oussama"
+    },
+    "is_answered": false,
+    "view_count": 93,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1721848662,
+    "creation_date": 1721568909,
+    "last_edit_date": 1721848662,
+    "question_id": 78775336,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78775336/how-to-customize-xml-namespace-prefixes-using-jaxb-keeping-only-specific-prefix",
+    "title": "How to Customize XML Namespace Prefixes Using JAXB, Keeping Only Specific Prefix?",
+    "body": "<p>I'm generating XML using JAXB and need specific namespace prefixes for my XML elements. Here's an example of the XML structure I am currently generating, where each namespace has a unique prefix:</p>\n<pre><code>&lt;ns4:RequestPayload \n    xmlns:head=&quot;urn:iso:std:iso:20022:tech:xsd:head.001.001.03&quot; \n    xmlns:doc=&quot;urn:iso:std:iso:20022:tech:xsd:admi.004.001.02&quot;  \n    xmlns:ns4=&quot;urn:bceao:pi:xsd:payload.1.0.0&quot; \n    xmlns:ds=&quot;http://www.w3.org/2000/09/xmldsig#&quot;&gt;\n    &lt;head:AppHdr&gt;\n        &lt;!-- Header info --&gt; \n        &lt;head:Sgntr&gt;            \n            &lt;ds:Signature&gt;\n                &lt;!-- Signature info --&gt; \n            &lt;/ds:Signature&gt;\n        &lt;/head:Sgntr&gt;\n    &lt;/head:AppHdr&gt;\n    &lt;doc:Document&gt;\n        &lt;!-- Document info --&gt; \n    &lt;/doc:Document&gt;\n&lt;/ns4:RequestPayload&gt;\n</code></pre>\n<p>When I omit the prefix namespace declarations in my package-info.java, a default naming convention is applied, resulting in prefixes like ns1, ns2, ns3:</p>\n<pre><code>&lt;ns4:RequestPayload \n    xmlns:ns1=&quot;urn:iso:std:iso:20022:tech:xsd:head.001.001.03&quot; \n    xmlns:ns2=&quot;urn:iso:std:iso:20022:tech:xsd:admi.004.001.02&quot;  \n    xmlns:ns4=&quot;urn:bceao:pi:xsd:payload.1.0.0&quot; \n    xmlns:ds=&quot;http://www.w3.org/2000/09/xmldsig#&quot;&gt;\n    &lt;ns1:AppHdr&gt;\n        &lt;!-- Header info --&gt; \n        &lt;ns1:Sgntr&gt;            \n            &lt;ds:Signature&gt;\n                &lt;!-- Signature info --&gt; \n            &lt;/ds:Signature&gt;\n        &lt;/ns1:Sgntr&gt;\n    &lt;/ns1:AppHdr&gt;\n    &lt;ns2:Document&gt;\n        &lt;!-- Document info --&gt; \n    &lt;/ns2:Document&gt;\n&lt;/ns4:RequestPayload&gt;\n</code></pre>\n<p><strong>My goal is to generate an XML without any namespace prefixes, except for the &quot;ds&quot; prefix for the signature elements.</strong></p>\n<p>I tried overriding the getPreferredPrefix method in com.sun.xml.bind.marshaller.NamespacePrefixMapper to achieve the desired namespace prefix customization. Here is my implementation:</p>\n<pre><code>public class CustomNamespacePrefixMapper extends NamespacePrefixMapper {\n    @Override\n    public String getPreferredPrefix(String namespaceUri, String suggestion, boolean requirePrefix) {\n        if (&quot;http://www.w3.org/2000/09/xmldsig#&quot;.equals(namespaceUri)) {\n            return &quot;ds&quot;;\n        }\n        return &quot;&quot;;\n    }\n}\n</code></pre>\n<p>And adding to :</p>\n<pre><code>JAXBContext context = JAXBContext.newInstance(EnvelopeAdmi004.class);\nMarshaller marshaller = context.createMarshaller();\nmarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);\nmarshaller.setProperty(&quot;com.sun.xml.bind.namespacePrefixMapper&quot;, new CustomNamespacePrefixMapper());\n\n</code></pre>\n<p>Despite this implementation, the output XML still contains default prefixes like ns1, ns2, and ns3. I expected that my custom NamespacePrefixMapper would result in an XML with no prefixes, except for the ds prefix for the signature elements.</p>\n<p>How can I achieve the desired XML format with only the ds prefix and no other prefixes? What am I missing in my approach? Any suggestions or insights would be greatly appreciated.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "hibernate",
+      "jpa",
+      "second-level-cache"
+    ],
+    "owner": {
+      "account_id": 17607759,
+      "reputation": 63,
+      "user_id": 13308178,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/330133463b696c2d6d98a13fcb1d4982?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "danilakds",
+      "link": "https://stackoverflow.com/users/13308178/danilakds"
+    },
+    "is_answered": true,
+    "view_count": 87,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1731428523,
+    "creation_date": 1714849817,
+    "last_edit_date": 1731426777,
+    "question_id": 78430114,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78430114/hibernate-second-level-cache-usage-with-jpa-issue",
+    "title": "Hibernate second level cache usage with jpa issue",
+    "body": "<p>Case i want to recreate:</p>\n<ol>\n<li>Application startup and put one table from postgres DB to cache</li>\n<li>All querys to this table must be executed and use second level cache instead of DB connection.</li>\n</ol>\n<p>build.gradle:</p>\n<pre><code>dependencies {\n    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'\n    implementation 'org.hibernate.orm:hibernate-jcache:6.1.6.Final'\n    implementation 'org.springframework.boot:spring-boot-starter-web'\n    runtimeOnly 'org.postgresql:postgresql'\n    testImplementation 'org.springframework.boot:spring-boot-starter-test'\n    implementation 'org.ehcache:ehcache:3.10.8'\n}\n</code></pre>\n<p>application.properties:</p>\n<pre><code>spring.jpa.show-sql=true\nspring.jpa.properties.javax.persistence.sharedCache.mode=ENABLE_SELECTIVE\nspring.jpa.properties.hibernate.format_sql=true\nspring.jpa.properties.hibernate.generate_statistics=true\nspring.jpa.properties.hibernate.cache.use_second_level_cache=true\nspring.jpa.properties.hibernate.cache.use_query_cache=true\nspring.jpa.properties.hibernate.cache.region.factory_class= \norg.hibernate.cache.jcache.JCacheRegionFactory\nspring.jpa.hibernate.ddl-auto=none\n</code></pre>\n<p>Cache initialization:</p>\n<pre><code>@Configuration\npublic class CacheConfig {\n\n    private final RegionsRepo repo;\n\n    public CacheConfig(RegionsRepo repo) {\n        this.repo = repo;\n    }\n\n    @PostConstruct\n    public void initCache() {\n        repo.findAll().forEach(region -&gt; {});\n    }\n}\n</code></pre>\n<p>Entity annotations:</p>\n<pre><code>@Entity\n@Cacheable\n@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_ONLY) \n@Table(name = &quot;regions&quot;)\n</code></pre>\n<p>And JpaRepository:</p>\n<pre><code>public interface RegionsRepo extends JpaRepository&lt;Regions, Long&gt; {\n    \n    Optional&lt;Regions&gt; findRegionsByExternalid(Integer id);\n\n    @Override\n    Optional&lt;Regions&gt; findById(Long aLong);\n\n    @Override\n    @QueryHints(@QueryHint(name = org.hibernate.annotations.QueryHints.CACHEABLE, value = &quot;true&quot;))\n    List&lt;Regions&gt; findAll();\n}\n</code></pre>\n<p>After starup app puts table into second level hibernate cache. Log:</p>\n<pre><code> 346333 nanoseconds spent acquiring 1 JDBC connections;\n    0 nanoseconds spent releasing 0 JDBC connections;\n    73250 nanoseconds spent preparing 1 JDBC statements;\n    1098084 nanoseconds spent executing 1 JDBC statements;\n    0 nanoseconds spent executing 0 JDBC batches;\n    5962251 nanoseconds spent performing 3 L2C puts;\n    0 nanoseconds spent performing 0 L2C hits;\n    368667 nanoseconds spent performing 1 L2C misses;\n    0 nanoseconds spent executing 0 flushes (flushing a total of 0 entities and 0 collections);\n    68458 nanoseconds spent executing 1 partial-flushes (flushing a total of 0 entities and 0 collections)\n</code></pre>\n<p>when i call repository method</p>\n<blockquote>\n<p>findById</p>\n</blockquote>\n<p>which is Overrided from JpaRepository, i see that there is no execution of JDBC statement, just pure L2C hits which is what i needed.\nLog:</p>\n<pre><code>    1277291 nanoseconds spent acquiring 1 JDBC connections;\n    0 nanoseconds spent releasing 0 JDBC connections;\n    0 nanoseconds spent preparing 0 JDBC statements;\n    0 nanoseconds spent executing 0 JDBC statements;\n    0 nanoseconds spent executing 0 JDBC batches;\n    0 nanoseconds spent performing 0 L2C puts;\n    418709 nanoseconds spent performing 1 L2C hits;\n    0 nanoseconds spent performing 0 L2C misses;\n    0 nanoseconds spent executing 0 flushes (flushing a total of 0 entities and 0 collections);\n    0 nanoseconds spent executing 0 partial-flushes (flushing a total of 0 entities and 0 collections)\n</code></pre>\n<p>BUT when i use custom, not overrided method</p>\n<blockquote>\n<p>findRegionsByExternalid</p>\n</blockquote>\n<p>L2C hits is ignored. Log:</p>\n<pre><code>742083 nanoseconds spent acquiring 1 JDBC connections;\n0 nanoseconds spent releasing 0 JDBC connections;\n849083 nanoseconds spent preparing 1 JDBC statements;\n2029042 nanoseconds spent executing 1 JDBC statements;\n0 nanoseconds spent executing 0 JDBC batches;\n670583 nanoseconds spent performing 1 L2C puts;\n0 nanoseconds spent performing 0 L2C hits;\n0 nanoseconds spent performing 0 L2C misses;\n0 nanoseconds spent executing 0 flushes (flushing a total of 0 entities and 0 collections);\n0 nanoseconds spent executing 0 partial-flushes (flushing a total of 0 entities and 0 collections)\n</code></pre>\n<p>Could you please tell what is wrong with hibernate cache configuration in this case?</p>\n<p>And what should i do to make hibernate use L2C cache at non-overrided JpaRepository methods?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

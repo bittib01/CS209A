@@ -1,0 +1,37 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "kubernetes",
+      "gradle",
+      "jvm",
+      "jmx"
+    ],
+    "owner": {
+      "account_id": 6830695,
+      "reputation": 665,
+      "user_id": 5254815,
+      "user_type": "registered",
+      "accept_rate": 58,
+      "profile_image": "https://www.gravatar.com/avatar/2a29812f15accf0d0d2a1c2a8babea07?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "curious_soul",
+      "link": "https://stackoverflow.com/users/5254815/curious-soul"
+    },
+    "is_answered": true,
+    "view_count": 130,
+    "accepted_answer_id": 78943414,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1725353001,
+    "creation_date": 1721671016,
+    "last_edit_date": 1725352664,
+    "question_id": 78780159,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78780159/unable-to-connect-visualvm-to-java-application-after-7-3-gradle-upgrade",
+    "title": "Unable to connect visualvm to java application after 7.3 gradle upgrade",
+    "body": "<p>We recently upgraded gradle version in our project from 7.1.x to 7.3.x. We observed that we are no longer able to connect visualvm java(11) application running in kubernetes. Port-forward works but when visualvm connection is opened, port-forwarding stops.\nWe found few blogs indicating a CVE fix in 7.2.x which says &quot;Gradle 7.2 start script stopped expanding environment variables passed inside JAVA_OPTS&quot;.</p>\n<p><a href=\"https://github.com/gradle/gradle/issues/18170\" rel=\"nofollow noreferrer\">https://github.com/gradle/gradle/issues/18170</a></p>\n<p><a href=\"https://github.com/gradle/gradle/security/advisories/GHSA-6j2p-252f-7mw8\" rel=\"nofollow noreferrer\">https://github.com/gradle/gradle/security/advisories/GHSA-6j2p-252f-7mw8</a></p>\n<p>Application gradle scripts:</p>\n<p>We pass jvm parameters through gradle and artifacts is passed as entrypoint to docker image. What is the right way to pass jvm parameters after 7.2.x?</p>\n<pre><code>ext.getJvmArgs = { jmxPort, jdwpPort, initialRamPercentage = 50.0, maxRamPercentage = 70.0 -&gt;\n    return [&quot;-XX:InitialRAMPercentage=$initialRamPercentage&quot;,\n            &quot;-XX:MaxRAMPercentage=$maxRamPercentage&quot;,\n            &quot;-XX:+UseStringDeduplication&quot;,\n            // Force G1GC as the GC collector. In a container environment, GC is selected by docker based on CPU and Memory.\n            &quot;-XX:+UseG1GC&quot;,\n            &quot;-Duser.timezone=\\&quot;UTC\\&quot;&quot;,\n            &quot;-Dcom.sun.management.jmxremote&quot;,\n            &quot;-Dcom.sun.management.jmxremote.authenticate=false&quot;,\n            &quot;-Dcom.sun.management.jmxremote.ssl=false&quot;,\n            &quot;-Dcom.sun.management.jmxremote.local.only=false&quot;,\n            &quot;-Dcom.sun.management.jmxremote.port=$jmxPort&quot;,\n            &quot;-Dcom.sun.management.jmxremote.rmi.port=$jmxPort&quot;]\n}\n\napplication {\n    int jmxPort = 2609\n    int jdwpPort = 2611\n    float initialRamPercentage = 30.0\n    float maxRamPercentage = 60.0\n    applicationDefaultJvmArgs = project.getJvmArgs(jmxPort, jdwpPort, initialRamPercentage, maxRamPercentage) + ['-XX:ErrorFile=/tmp/hs_err_pid%p.log']\n    getMainClass().set('com.xxx.yyy.AbcMain')\n}\n\ntask customScript(type: CreateStartScripts) {\n    mainClass = &quot;com.xxx.yyy.XyzMain&quot;\n    applicationName = &quot;xyz&quot;\n    int jmxPort = 2609\n    int jdwpPort = 2611\n    float initialRamPercentage = 30.0\n    float maxRamPercentage = 60.0\n    defaultJvmOpts = project.getJvmArgs(jmxPort, jdwpPort, initialRamPercentage, maxRamPercentage) + ['-XX:ErrorFile=/tmp/hs_err_pid%p.log']\n    outputDir = new File(project.buildDir, 'scripts')\n    classpath = jar.outputs.files + configurations.runtimeClasspath\n}\n\napplicationDistribution.into(&quot;bin&quot;) {\n    from(customScript)\n    duplicatesStrategy = DuplicatesStrategy.EXCLUDE\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

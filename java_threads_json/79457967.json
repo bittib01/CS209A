@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "transactions"
+    ],
+    "owner": {
+      "account_id": 40335498,
+      "reputation": 1,
+      "user_id": 29728765,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/1c1691656afa95cebe878aded7cd0573?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "user29728765",
+      "link": "https://stackoverflow.com/users/29728765/user29728765"
+    },
+    "is_answered": false,
+    "view_count": 23,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1740344622,
+    "creation_date": 1740153658,
+    "last_edit_date": 1740344622,
+    "question_id": 79457967,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79457967/when-datasourcetransactionmanager-dobegin-method-does-not-create-a-new-conne",
+    "title": "When DataSourceTransactionManager. DoBegin () method does not create a new connection?",
+    "body": "<p>When we use DataSourceTransactionManager doBegin methods to open transaction, it works like this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>protected void doBegin(Object transaction, TransactionDefinition definition) {\n    DataSourceTransactionObject txObject = (DataSourceTransactionObject) transaction;\n    Connection con = null;\n\n    try {\n        if (!txObject.hasConnectionHolder() ||\n                txObject.getConnectionHolder().isSynchronizedWithTransaction()) {\n            Connection newCon = this.dataSource.getConnection();\n            if (logger.isDebugEnabled()) {\n                logger.debug(&quot;Acquired Connection [&quot; + newCon + &quot;] for JDBC transaction&quot;);\n            }\n            txObject.setConnectionHolder(new ConnectionHolder(newCon), true);\n        }\n\n        txObject.getConnectionHolder().setSynchronizedWithTransaction(true);\n        con = txObject.getConnectionHolder().getConnection();\n\n        Integer previousIsolationLevel = DataSourceUtils.prepareConnectionForTransaction(con, definition);\n        txObject.setPreviousIsolationLevel(previousIsolationLevel);\n\n        // Switch to manual commit if necessary. This is very expensive in some JDBC drivers,\n        // so we don't want to do it unnecessarily (for example if we've explicitly\n        // configured the connection pool to set it already).\n        if (con.getAutoCommit()) {\n            txObject.setMustRestoreAutoCommit(true);\n            if (logger.isDebugEnabled()) {\n                logger.debug(&quot;Switching JDBC Connection [&quot; + con + &quot;] to manual commit&quot;);\n            }\n            con.setAutoCommit(false);\n        }\n\n        prepareTransactionalConnection(con, definition);\n        txObject.getConnectionHolder().setTransactionActive(true);\n\n        int timeout = determineTimeout(definition);\n        if (timeout != TransactionDefinition.TIMEOUT_DEFAULT) {\n            txObject.getConnectionHolder().setTimeoutInSeconds(timeout);\n        }\n\n        // Bind the connection holder to the thread.\n        if (txObject.isNewConnectionHolder()) {\n            TransactionSynchronizationManager.bindResource(getDataSource(), txObject.getConnectionHolder());\n        }\n    }\n\n    catch (Throwable ex) {\n        if (txObject.isNewConnectionHolder()) {\n            DataSourceUtils.releaseConnection(con, this.dataSource);\n            txObject.setConnectionHolder(null, false);\n        }\n        throw new CannotCreateTransactionException(&quot;Could not open JDBC Connection for transaction&quot;, ex);\n    }\n}\n</code></pre>\n<p>The situation I'm puzzled about is that Spring will use the connection of the ConnectionHolder of <code>txObject</code> under specific conditions (obtained by <code>TransactionSynchronizationManager</code> when initialising and bound to the thread) instead of creating a new connection. In the case where there is an outer transaction, the ConnectionHolder of <code>txObject</code> should be set to null through the suspend method. So here, it should be the case where there is no outer transaction, and <code>txObject</code> obtained the ConnectionHolder from the thread but did not start a transaction, You can refer to here（AbstractPlatformTransactionManager.getTransaction）:</p>\n<pre class=\"lang-java prettyprint-override\"><code>SuspendedResourcesHolder suspendedResources = suspend(null);\n</code></pre>\n<p>I want to know in what scenarios Spring reuses the connection in the thread when starting a transaction through the doBegin method? According to my understanding, I think a new transaction should always create a new connection. Otherwise, wouldn't it modify the state of the outer connection, such as setting autocommit to false, etc.? I hope someone can solve my confusion. Thank you very much.</p>\n<p>Under what circumstances will the doBegin method not create a new connection?</p>\n<pre class=\"lang-java prettyprint-override\"><code>if (!txObject.hasConnectionHolder() || \n    txObject.getConnectionHolder().isSynchronizedWithTransaction()) {\n    \n    Connection newCon = this.dataSource.getConnection();\n    \n    if (logger.isDebugEnabled()) {\n        logger.debug(&quot;Acquired Connection [&quot; + newCon + &quot;] for JDBC transaction&quot;);\n    }\n    \n    txObject.setConnectionHolder(new ConnectionHolder(newCon), true);\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

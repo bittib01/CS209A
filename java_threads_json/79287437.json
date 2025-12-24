@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "multithreading",
+      "concurrency",
+      "synchronization",
+      "thread-safety"
+    ],
+    "owner": {
+      "account_id": 38316400,
+      "reputation": 11,
+      "user_id": 28710128,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/52d8d1b35e2b7abeb97960ed740d3fd8?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Tuychi Sharipov",
+      "link": "https://stackoverflow.com/users/28710128/tuychi-sharipov"
+    },
+    "is_answered": false,
+    "view_count": 113,
+    "answer_count": 4,
+    "score": 0,
+    "last_activity_date": 1734881013,
+    "creation_date": 1734430119,
+    "last_edit_date": 1734881013,
+    "question_id": 79287437,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79287437/how-to-prevent-simultaneous-reproduction-logic-between-two-threads",
+    "title": "How to prevent simultaneous reproduction logic between two threads?",
+    "body": "<p>I have created a Fish class that simulates a fish that reproduces in a Java program. Each fish must breed by meeting another random fish. The problem is that two fish find each other as a pair and create two children at the same time. This process of reproduction is repeated several times at the same time.</p>\n<p>I am keeping fish in Aquarium class. After the fish is born, after it reaches the breeding age (i.e. should start at 4 years old), it should find a random mate from the Aquarium class. In the code I wrote, a fish wants to find a mate and reproduce, and at this moment, that fish also reproduces by choosing the first fish from the Aquarium class. Two fishes will be born in one place in the sea. Actually, one fish should be born.</p>\n<p>I can't figure out how to solve this problem. The real problem is in the method of reproduction. Where and how to write it. Please suggest me optimal solutions.</p>\n<p>I have a Fish class:</p>\n<pre class=\"lang-java prettyprint-override\"><code>package lesson.uz;\n\nimport lombok.EqualsAndHashCode;\nimport lombok.Getter;\nimport lombok.Setter;\n\nimport java.util.Random;\n\n@Getter\n@Setter\n@EqualsAndHashCode\npublic class Fish extends Thread {\n\n    private long id;\n    private Gender gender;\n    private Integer lifespan;\n    private String fishName;\n    private Integer age = 0;\n    private static Long counter = 1L;\n\n    public Fish(Gender gender) {\n        this.gender = gender;\n        this.lifespan = new Random().nextInt(11)+40;\n        this.fishName = &quot;Fish&quot;+ counter++;\n        this.id = Math.abs(new Random().nextLong() * System.currentTimeMillis());\n        System.out.println(fishName + &quot; created. &quot;+System.currentTimeMillis());\n    }\n\n    @Override\n    public void run() {\n        while (true) {\n            try {\n                Thread.sleep(1000);\n                reproduce();\n                age++;\n            } catch (InterruptedException e) {\n                throw new RuntimeException(e);\n            }\n        }\n\n    }\n\n    public void reproduce() {\n        Fish randomFish = getRandomFish();\n        long count = Aquarium.raddom.stream().filter(id -&gt; randomFish.getId() == id || this.getId() == id).count();\n\n        if (count == 0 &amp;&amp; this.age &gt;= 4 &amp;&amp; randomFish.getAge() &gt;= 4 &amp;&amp; this.getGender() != randomFish.getGender()) {\n\n            Aquarium.raddom.add(this.id);\n            Aquarium.raddom.add(randomFish.id);\n\n            System.out.println(this.fishName + &quot; and &quot; + randomFish.getFishName() + &quot; meet.\\n&quot;);\n            Fish babyFish = createFish();\n            Aquarium.fishList.add(babyFish);\n            Aquarium.raddom.remove(this.id);\n            Aquarium.raddom.remove(randomFish.id);\n        }\n    }\n\n    public static Fish createFish() {\n        Fish newFish = new Fish(Math.random() &gt; 0.5 ? Gender.MALE : Gender.FEMALE);\n        newFish.start();\n        return newFish;\n    }\n\n    public Fish getRandomFish() {\n        int randomNum = 0;\n        Fish currenFish = null;\n        while (true) {\n            randomNum = new Random().nextInt(Aquarium.fishList.size());\n            currenFish = Aquarium.fishList.get(randomNum);\n\n            if (this != currenFish) {\n                break;\n            }\n        }\n        return currenFish;\n    }\n}\n</code></pre>\n<p>I have a Aquarium class:</p>\n<pre class=\"lang-java prettyprint-override\"><code>package lesson.uz;\n\nimport java.util.ArrayList;\nimport java.util.List;\nimport java.util.Random;\n\npublic class Aquarium extends Thread {\n\n    public static List&lt;Fish&gt; fishList = new ArrayList&lt;&gt;();\n    public static List&lt;Long&gt; raddom = new ArrayList&lt;&gt;();\n\n    @Override\n    public void run() {\n        \n    }\n}\n</code></pre>\n<p>and Main class:</p>\n<pre class=\"lang-java prettyprint-override\"><code>package lesson.uz;\n\npublic class Main {\n\n    public static void main(String[] args) {\n        Aquarium aquarium = new Aquarium();\n        aquarium.start();\n        init();\n    }\n\n    public static void init() {\n        Fish fish1 = new Fish(Gender.MALE);\n        fish1.start();\n        Aquarium.fishList.add(fish1);\n        Fish fish2 = new Fish(Gender.FEMALE);\n        fish2.start();\n        Aquarium.fishList.add(fish2);\n    }\n}\n</code></pre>\n<p>Problem (Problem):\nFish A and Fish B choose each other as a mate.\nAt the same time, Fish B also selects Fish A and begins the process of reproduction in parallel.\nAs a result, two children are created at the same time.</p>\n<p>How to solve this problem? How can you ensure that the reproduction process only happens once at a time?</p>\n<pre class=\"lang-java prettyprint-override\"><code>public static List&lt;Long&gt; raddom = new ArrayList&lt;&gt;();\n</code></pre>\n<p>I tried to solve the problem by adding a raddom (in the sense of a maternity ward) list. My program is not finished yet, but it didn't help. Please suggest me optimal solutions.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

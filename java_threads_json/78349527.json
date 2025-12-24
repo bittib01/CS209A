@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "kotlin",
+      "inputstream",
+      "arrow-kt"
+    ],
+    "owner": {
+      "account_id": 2090213,
+      "reputation": 1839,
+      "user_id": 1860222,
+      "user_type": "registered",
+      "accept_rate": 52,
+      "profile_image": "https://www.gravatar.com/avatar/dcd9cf0881ee1e7a5f28175308628e25?s=256&d=identicon&r=PG",
+      "display_name": "pbuchheit",
+      "link": "https://stackoverflow.com/users/1860222/pbuchheit"
+    },
+    "is_answered": false,
+    "view_count": 244,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1714584037,
+    "creation_date": 1713463915,
+    "last_edit_date": 1713553951,
+    "question_id": 78349527,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78349527/safely-closing-an-input-stream-using-kotlin-and-arrow",
+    "title": "Safely closing an input stream using Kotlin and Arrow",
+    "body": "<p>I'm working on an application that uses the arrow-kt library of Kotlin to execute some code as part of an AWS lambda. The function takes an InputStream as a parameter. It then needs to convert that stream into json data, execute some other functions using the parsed json, and return an arrow Either&lt;Throwable, String&gt; . It also needs to safely close the InputStream, regardless of any errors that may occur.</p>\n<p>My initial thought was to use Closeable from the Kotlin std lib. Something like:</p>\n<pre><code>fun pipeline(inputStream: java.io.InputStream): Either&lt;Throwable, String&gt;\n{\n    return inputStream.use \n    { stream -&gt;\n        val input = IOUtils.toString(stream, Charset.defaultCharset())\n        fromJson&lt;S3EventNotification.S3Event&gt;(input).fold({\n            it.left()\n        },{ event-&gt;\n            val key = event.records.first().s3.s3object.key\n            getZoomLocationData(key).fold({it.left()},{ it.toString().left})\n        })\n    }\n}\n</code></pre>\n<p>The problem I ran into is that the use() function of Closeable masks any failures thrown within the block. Using this, there is no way to let the errors bubble up and be returned to the caller as an Either.</p>\n<p>How can I call and close my InputStream in a safe way while still allowing errors to bubble up and be returned?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

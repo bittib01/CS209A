@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "caching",
+      "caffeine-cache"
+    ],
+    "owner": {
+      "account_id": 19814361,
+      "reputation": 1,
+      "user_id": 14512430,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/1905fe62ca65ce8325849b4877dc042a?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "theuntamed000",
+      "link": "https://stackoverflow.com/users/14512430/theuntamed000"
+    },
+    "is_answered": false,
+    "view_count": 285,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1755072142,
+    "creation_date": 1755021758,
+    "last_edit_date": 1755072142,
+    "question_id": 79733518,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79733518/how-do-i-properly-invalidate-and-clear-a-caffeine-cache",
+    "title": "How do I properly invalidate and clear a Caffeine cache",
+    "body": "<p>I am struggling to properly invalidate the cache.</p>\n<pre class=\"lang-java prettyprint-override\"><code>import com.github.benmanes.caffeine.cache.Caffeine;\nimport com.github.benmanes.caffeine.cache.LoadingCache;\n\nimport java.util.*;\nimport java.util.concurrent.locks.ReentrantLock;\n\nclass Trial2 {\n    public static void main(String[] args) {\n        LoadingCache&lt;Integer, Temp&gt; cache = Caffeine.newBuilder()\n                .maximumSize(5)\n                .removalListener( (key, value, cause) -&gt; {\n                    try {\n                        ((AutoCloseable) value).close();\n                    } catch (Exception e) {\n                        throw new RuntimeException(e);\n                    }\n                })\n                .build(Trial2::getObj);\n\n        Random random = new Random();\n        for (int i = 0; i &lt; 1000000; i++) {\n            int value = random.nextInt(1000);\n            var found = cache.get(value);\n            if (found.isClosed) {\n                cache.invalidate(value);\n                cache.cleanUp();\n                found = cache.get(value);\n            }\n            if (found.getValue() != value) {\n                throw new IllegalStateException(&quot;Value mismatch: expected &quot; + value + &quot;, got &quot; + found.getValue());\n            }\n        }\n        System.out.println(&quot;All values matched successfully!&quot;);\n    }\n\n    private static Temp getObj(int value) {\n        System.out.println(&quot;Creating obj for value: &quot; + value);\n        return new Temp(value);\n    }\n}\n\nclass Temp implements AutoCloseable {\n    private final int value;\n    public volatile boolean isClosed = false;\n    private ReentrantLock lock = new ReentrantLock();\n\n    public Temp(int value) {\n        this.value = value;\n    }\n\n    public int getValue() {\n        lock.lock();\n        try {\n            if (isClosed) {\n                throw new IllegalStateException(&quot;This object is closed&quot;);\n            }\n            return value;\n        }finally {\n            lock.unlock();\n        }\n    }\n\n    @Override\n    public void close() throws Exception {\n        lock.lock();\n        try {\n            System.out.println(&quot;Closing class with value: &quot; + value);\n            isClosed = true;\n        } finally {\n            lock.unlock();\n        }\n    }\n}\n</code></pre>\n<p>i even tried</p>\n<pre><code> if (found.isClosed) {\n    cache.asMap().remove(value);\n    found = cache.get(value);\n }\n</code></pre>\n<p>Still</p>\n<pre class=\"lang-none prettyprint-override\"><code>Exception in thread &quot;main&quot; java.lang.IllegalStateException: This object is closed\n    at Temp.getValue(idk.java:57)\n    at Trial2.main(idk.java:31)\n</code></pre>\n<p>I was planning on using the cache in a multi-threaded environment too.</p>\n<p>I tried some of the solutions provided on the internet, like, to remove the key from the map, <code>cache.asMap().remove(value)</code>;</p>\n<p>I'm still puzzled on what am I doing wrong. Is it to do with object being stateful?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-camel",
+      "jms",
+      "ibm-mq"
+    ],
+    "owner": {
+      "account_id": 232989,
+      "reputation": 1740,
+      "user_id": 498190,
+      "user_type": "registered",
+      "accept_rate": 55,
+      "profile_image": "https://i.sstatic.net/rP1qS.jpg?s=256",
+      "display_name": "Marvin",
+      "link": "https://stackoverflow.com/users/498190/marvin"
+    },
+    "is_answered": false,
+    "view_count": 74,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1763112225,
+    "creation_date": 1758294616,
+    "question_id": 79769669,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79769669/camel-jms-component-does-not-cache-the-connection",
+    "title": "Camel JMS component does not cache the connection",
+    "body": "<p>We are currently using apache camel to build routes between an IBM Mq broker and some other ones (basically : a messaging bridge)</p>\n<p>As an input component, we use the <a href=\"https://camel.apache.org/components/4.10.x/jms-component.html\" rel=\"nofollow noreferrer\">JMS</a> one.</p>\n<p>It is performing.... quite well, but we noticed some recurring TIME_WAIT connections, and a keep-changing ESTABLISHED connection.</p>\n<p>The first drawback to this is a terrible transfert rate of messages (2/s, versus 100+/s with other components).\nThe other ones is that there are 60+ &quot;ghost&quot; connections aside the ESTABLISHED ones that do trigger some alarms on producer side, since it does look suspicious by their side.</p>\n<p>Since we were using a basic <em>MqConnectionFactory</em>, we guessed connections were not cached, and that each &quot;polling call&quot; would instead trigger a new connection.</p>\n<p>So we decided to use a CachingConnectionFactory instead. But doing so resulted in the following error :</p>\n<blockquote>\n<p>class jdk.proxy2.$Proxy87 cannot be cast to class com.ibm.mq.jakarta.jms.MQSession (jdk.proxy2.$Proxy87 is in module jdk.proxy2 of loader 'app';\ncom.ibm.mq.jakarta.jms.MQSession is in unnamed module of loader 'app')</p>\n</blockquote>\n<p>We also tried to use a transactionManager (trying both CONSUMER and SESSION cache levels) , but it did not change the problem of multiple TIME_WAIT connexions.</p>\n<p>So, anyone has an idea on how to do this the properway, with a (eg) connectionPool, or any kind of cached connection that would allow us to</p>\n<p>Here below is how we do (this one is a the failing exemple with the <em>cachingCOnnectionFactory</em>)</p>\n<pre><code>JmsConfiguration jmsConfiguration = new JmsConfiguration();\njmsConfiguration.setConnectionFactory(createMqConnectionFactory(mq));\njmsConfiguration.setDestinationResolver(new WMQDestinationResolver(mq.getTargetClient()));\njmsConfiguration.setTransacted(true);\njmsConfiguration.setExceptionListener(jmsExceptionListener);\njmsConfiguration.setCacheLevelName(&quot;CACHE_CONSUMER&quot;);\njmsConfiguration.setAllowAdditionalHeaders(&quot;JMS_IBM_MQMD_.*&quot;);\n\nJmsComponent component = new JmsComponent();\ncomponent.setConfiguration(jmsConfiguration);\n    \n\nprivate CachingConnectionFactory createMqConnectionFactory(Mq mq) {\n    MQQueueConnectionFactory connectionFactory = new MQQueueConnectionFactory();\n    \n    connectionFactory.setHostName(mq.getHosts());\n    connectionFactory.setPort(mq.getPort());\n    connectionFactory.setQueueManager(mq.getQm());\n    connectionFactory.setChannel(mq.getChannel());\n    connectionFactory.setTransportType(WMQConstants.WMQ_CM_CLIENT );\n    connectionFactory.setCCSID(mq.getCcsid());\n    \n    UserCredentialsConnectionFactoryAdapter userCredentialsAdapter = new UserCredentialsConnectionFactoryAdapter(); // for user/password managment\n    \n    \n    CachingConnectionFactory cachingConnectionFactory = new CachingConnectionFactory(connectionFactory);\n    \n    return cachingConnectionFactory;\n    \n}\n\n\n\nclass jdk.proxy2.$Proxy87 cannot be cast to class com.ibm.mq.jakarta.jms.MQSession (jdk.proxy2.$Proxy87 is in module jdk.proxy2 of loader 'app'; com.ibm.mq.jakarta.jms.MQSession is in unnamed module of loader 'app')\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

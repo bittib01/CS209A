@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot"
+    ],
+    "owner": {
+      "account_id": 965625,
+      "reputation": 904,
+      "user_id": 1103606,
+      "user_type": "registered",
+      "accept_rate": 51,
+      "profile_image": "https://www.gravatar.com/avatar/0d93cc650b93939ea91066fcb5aefae0?s=256&d=identicon&r=PG",
+      "display_name": "Peter Penzov",
+      "link": "https://stackoverflow.com/users/1103606/peter-penzov"
+    },
+    "is_answered": true,
+    "view_count": 337,
+    "accepted_answer_id": 79559528,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1744027242,
+    "creation_date": 1712604556,
+    "last_edit_date": 1743870739,
+    "question_id": 78294740,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78294740/interceptor-for-http-header-params",
+    "title": "Interceptor for http header params",
+    "body": "<p>I need to create a code in Spring Boot for intercepting http header params. I have the following requirement for Java class body:</p>\n<pre><code>import java.util.HashMap;\nimport java.util.Map;\n\npublic final class InternalHeadersContext {\n\n    public static final String X_INTERNAL_CORRELATION_ID_HEADER = &quot;X-INTERNAL-CORRELATION-ID&quot;;\n    public static final String X_INTERNAL_REQUEST_ID_HEADER = &quot;X-INTERNAL-REQUEST-ID&quot;;\n    public static final String X_INTERNAL_USER_ID_HEADER = &quot;X-INTERNAL-USER-ID&quot;;\n\n    public static void clear() {\n        .....\n    }\n\n    public static void initContext() {\n        ......\n    }\n\n    public static void setInternalHeaders(Map&lt;String, String&gt; internalHeaders) {\n        .....\n    }\n\n    public static Map&lt;String, String&gt; getInternalHeaders() {\n        ......\n    }\n}\n\n....\nString value = (String) InternalHeadersContext.getInternalHeaders().getOrDefault(&quot;X-INTERNAL-USER-ID&quot;, &quot;test_value&quot;);\n</code></pre>\n<p>I implemented this:</p>\n<pre><code>public final class InternalHeadersContext {\n\n    public static final String X_INTERNAL_CORRELATION_ID_HEADER = &quot;X-INTERNAL-CORRELATION-ID&quot;;\n    public static final String X_INTERNAL_REQUEST_ID_HEADER = &quot;X-INTERNAL-REQUEST-ID&quot;;\n    public static final String X_INTERNAL_USER_ID_HEADER = &quot;X-INTERNAL-USER-ID&quot;;\n\n    // Initialize ThreadLocal with a map containing all keys (values default to null)\n    private static final ThreadLocal&lt;Map&lt;String, String&gt;&gt; context = ThreadLocal.withInitial(() -&gt; {\n        Map&lt;String, String&gt; initialMap = new HashMap&lt;&gt;();\n        initialMap.put(X_INTERNAL_CORRELATION_ID_HEADER, null);\n        initialMap.put(X_INTERNAL_REQUEST_ID_HEADER, null);\n        initialMap.put(X_INTERNAL_USER_ID_HEADER, null);\n        return initialMap;\n    });\n\n    public static void clear() {\n        context.remove();\n    }\n\n    public static void initContext() {\n        // No-op: ThreadLocal already initializes with all keys\n    }\n\n    public static void setInternalHeaders(Map&lt;String, String&gt; internalHeaders) {\n        if (internalHeaders == null) {\n            clear();\n        } else {\n            // Create a new map with all required keys, merging with incoming headers\n            Map&lt;String, String&gt; newMap = new HashMap&lt;&gt;();\n            newMap.put(X_INTERNAL_CORRELATION_ID_HEADER, internalHeaders.getOrDefault(X_INTERNAL_CORRELATION_ID_HEADER, null));\n            newMap.put(X_INTERNAL_REQUEST_ID_HEADER, internalHeaders.getOrDefault(X_INTERNAL_REQUEST_ID_HEADER, null));\n            newMap.put(X_INTERNAL_USER_ID_HEADER, internalHeaders.getOrDefault(X_INTERNAL_USER_ID_HEADER, null));\n            context.set(newMap);\n        }\n    }\n\n    public static Map&lt;String, String&gt; getInternalHeaders() {\n        return context.get();\n    }\n}\n.....\nimport java.io.IOException;\nimport java.util.HashMap;\nimport java.util.Map;\n\n@Component\npublic class InternalHeadersFilter implements Filter {\n\n    @Override\n    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)\n            throws IOException, ServletException {\n        HttpServletRequest httpRequest = (HttpServletRequest) request;\n\n        // Extract headers from the request\n        Map&lt;String, String&gt; headers = new HashMap&lt;&gt;();\n        headers.put(InternalHeadersContext.X_INTERNAL_CORRELATION_ID_HEADER,\n                httpRequest.getHeader(InternalHeadersContext.X_INTERNAL_CORRELATION_ID_HEADER));\n        headers.put(InternalHeadersContext.X_INTERNAL_REQUEST_ID_HEADER,\n                httpRequest.getHeader(InternalHeadersContext.X_INTERNAL_REQUEST_ID_HEADER));\n        headers.put(InternalHeadersContext.X_INTERNAL_USER_ID_HEADER,\n                httpRequest.getHeader(InternalHeadersContext.X_INTERNAL_USER_ID_HEADER));\n\n        // Update the context with headers\n        InternalHeadersContext.setInternalHeaders(headers);\n\n        try {\n            chain.doFilter(request, response);\n        } finally {\n            InternalHeadersContext.clear(); // Cleanup to avoid memory leaks\n        }\n    }\n}\n</code></pre>\n<p>Full code: <a href=\"https://github.com/rcbandit111/error_handler_poc\" rel=\"nofollow noreferrer\">https://github.com/rcbandit111/error_handler_poc</a></p>\n<p>I have implemented the interceptor code into a separate jar and I use it into parent proejct.</p>\n<p>When I run the code I can't get the http value. I get NPE. What is the proper way to get http params from request?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

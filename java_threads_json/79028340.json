@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "servlets"
+    ],
+    "owner": {
+      "account_id": 11161564,
+      "reputation": 73,
+      "user_id": 8191506,
+      "user_type": "registered",
+      "profile_image": "https://lh6.googleusercontent.com/-FbhN7i1_x9U/AAAAAAAAAAI/AAAAAAAAWos/bqiYf7tEOnc/s256-rj/photo.jpg",
+      "display_name": "maxime chevry",
+      "link": "https://stackoverflow.com/users/8191506/maxime-chevry"
+    },
+    "is_answered": false,
+    "view_count": 100,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1752090984,
+    "creation_date": 1727368941,
+    "last_edit_date": 1752090984,
+    "question_id": 79028340,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79028340/springboot-httpservletresponse-is-not-retreiving-the-actual-http-body",
+    "title": "Springboot / HttpServletResponse is not retreiving the actual HTTP body",
+    "body": "<p>I am facing a weird issue on a Spring boot project where the body is not retrievable in the controller.\nThis is a bit specific: I am using a bc tls psk scheme to talk to sim cards and it has been working without fault for a few years, but now when exchanging with specific cards / devices the payload sent by the card is not available in my Controller.</p>\n<p>I am using Springboot 2.5.15, Java 8, BC jdk8on 1.78.1.</p>\n<p>I took tcpdump traces an I do see the payload AF 80 23 11 .. .. 00 00 (sim card talk like this, please dont judge them!).\nSo I am not able to retrieve that payload <strong>even though</strong> it is there in <strong>both</strong> the TCP trace AND the <strong>content length header</strong> tell me it is there.</p>\n<p>Here is the TCPDUMP screenshot:</p>\n<p><a href=\"https://i.sstatic.net/DdBTJjw4.jpg\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/DdBTJjw4.jpg\" alt=\"Failure case\" /></a></p>\n<p>My controller:</p>\n<pre><code>public void anyRequest(@RequestHeader(value = CONTENT_TYPE, required = false) String requestContentType,\n            @RequestHeader(value = HEADER_X_ADMIN_PROTOCOL) String adminProtocol,\n            @RequestHeader(value = HEADER_X_ADMIN_FROM) String adminFrom,\n            @RequestHeader(value = HEADER_X_ADMIN_RESUME, required = false, defaultValue = &quot;false&quot;) boolean adminResume,\n            @RequestHeader(value = HEADER_X_ADMIN_SCRIPT_STATUS, required = false) String adminScriptStatus,\n            @RequestBody(required = false) byte[] body, final HttpServletRequest request,\n            final HttpServletResponse response) throws InterruptedException, IOException {\n</code></pre>\n<p>In there I usually get the body like this:</p>\n<pre><code>Long contentLength = request.getContentLengthLong();\nlog.info(&quot;Request Content lenght in header: {}&quot;, contentLength);\nif (body != null) {\n    log.info(&quot;body content {} &quot;, Hex.encodeHexString(body));\n            }\n</code></pre>\n<p>And again it works 99 % of the time. But when I use a specific device, it doesnt, body stays null.</p>\n<p>I even tried to get it in a few other ways, but with no luck</p>\n<p>Try number 1:</p>\n<pre><code>if (body == null &amp;&amp; contentLength &gt; 0) {\n\n    log.warn(&quot;Body seems null while Content length Header is {} &quot;, contentLength);\n    log.info(&quot;Trying alternative way to retreive the body {} &quot;, contentLength);\n    InputStream is = request.getInputStream();\n    ByteArrayOutputStream buffer = new ByteArrayOutputStream();\n    int nRead;\n    byte[] data = new byte[16384];\n    while ((nRead = is.read(data, 0, data.length)) != -1) {\n        buffer.write(data, 0, nRead);\n        }\n    body = buffer.toByteArray();\n}\n</code></pre>\n<p>Try number 2: (this is actually return a byte array of zeroes, but it was worth trying)</p>\n<pre><code>private byte[] alternateBodybytes(InputStream serveltInputStream, int contentLength) throws IOException {\n\n        byte[] bytes = new byte[contentLength];\n        for (int r, offset = 0; (r = serveltInputStream.read(bytes, offset, bytes.length - offset)) &gt; -1;) {\n            offset += r;\n        }\n        \n        return bytes;\n\n    }\n</code></pre>\n<p>I am running out of Options at the moment and am looking for suggestions if you guys have any?</p>\n<ul>\n<li>Is there another way to get the raw payload maybe at a lower level of the stack within the Springboot framework ?</li>\n<li>I hope not to have to update Spring / Java as it would make me have a lot more of regression to do, but it might time.</li>\n</ul>\n<p>What do you think? Any advice?</p>\n<p>Note: Below is the TCP traces of a transaction where I was able to get the body from <em>@RequestBody(required = false) byte[] body</em>, to me it seems exactly the same, right?</p>\n<p><a href=\"https://i.sstatic.net/DdTU9UG4.jpg\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/DdTU9UG4.jpg\" alt=\"success case\" /></a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

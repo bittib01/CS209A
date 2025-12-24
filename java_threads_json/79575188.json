@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "testing",
+      "druid"
+    ],
+    "owner": {
+      "account_id": 30413014,
+      "reputation": 25,
+      "user_id": 23306543,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/m2msl.jpg?s=256",
+      "display_name": "Paulo Alves",
+      "link": "https://stackoverflow.com/users/23306543/paulo-alves"
+    },
+    "is_answered": true,
+    "view_count": 69,
+    "accepted_answer_id": 79593391,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1745619833,
+    "creation_date": 1744721176,
+    "question_id": 79575188,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79575188/apache-druid-calcite-query-testing-cannot-read-field-componentsupplier-becaus",
+    "title": "Apache Druid Calcite Query Testing: Cannot read field &quot;componentSupplier&quot; because &quot;config&quot; is null",
+    "body": "<p>I have an druid extension project that adds new user defined function to Druid SQL, but I have been facing some problems when implementing tests. I have used <a href=\"https://github.com/implydata/druid-example-extension/blob/master/src/test/java/io/imply/druid/example/calcite/aggregation/ExampleSumSqlAggregationTest.java\" rel=\"nofollow noreferrer\">this</a> example as reference but it is broken, since <em>configureGuice</em> method no longer exists as Druid 32.</p>\n<p>I have tried the following by reading the source code from Druid:</p>\n<pre><code>@ComponentSupplier(MyComponentSupplier.class)\npublic class CustomSqlAggregatorTest extends BaseCalciteQueryTest {\n\n    @Test\n    public void testCustomAggSql() {\n        cannotVectorize();\n        testBuilder()\n                .sql(&quot;select CUSTOM_AGG(m1) from foo&quot;)\n                .expectedQueries(\n                        List.of(\n                                Druids.newTimeseriesQueryBuilder()\n                                        .dataSource(CalciteTests.DATASOURCE1)\n                                        .intervals(querySegmentSpec(Filtration.eternity()))\n                                        .granularity(Granularities.ALL)\n                                        .aggregators(aggregators(getAggFactory()))\n                                        .context(QUERY_CONTEXT_DEFAULT)\n                                        .build()\n                        )\n                )\n                .expectedResults(ImmutableList.of(new Object[]{21.0F}))\n                .run();\n    }\n    ...\n}\n</code></pre>\n<p>But I get the following error:</p>\n<pre><code>Caused by: java.lang.NullPointerException: Cannot read field &quot;componentSupplier&quot; because &quot;config&quot; is null\n    at org.apache.druid.sql.calcite.SqlTestFrameworkConfig$ConfigurationInstance.&lt;init&gt;(SqlTestFrameworkConfig.java:378)\n    at org.apache.druid.sql.calcite.SqlTestFrameworkConfig$SqlTestFrameworkConfigStore.getConfigurationInstance(SqlTestFrameworkConfig.java:253)\n    at org.apache.druid.sql.calcite.SqlTestFrameworkConfig$Rule.get(SqlTestFrameworkConfig.java:344)\n    at org.apache.druid.sql.calcite.BaseCalciteQueryTest.queryFramework(BaseCalciteQueryTest.java:535)\n    ... 34 more\n\n</code></pre>\n<p>My component supplier code looks like the following:</p>\n<pre><code>public class MyComponentSupplier extends SqlTestFramework.StandardComponentSupplier {\n    public MyComponentSupplier(TempDirProducer tempDirProducer) {\n        super(tempDirProducer);\n    }\n\n    @Override\n    public DruidModule getCoreModule() {\n        return DruidModuleCollection.of(\n                super.getCoreModule(),\n                new MyExtensionModule()\n        );\n    }\n}\n</code></pre>\n<p>Any suggestions?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

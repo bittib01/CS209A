@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "c",
+      "java-native-interface"
+    ],
+    "owner": {
+      "account_id": 2182945,
+      "reputation": 1737,
+      "user_id": 1932017,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/e7616d89db29c9dd38b7ac21fdf302ff?s=256&d=identicon&r=PG",
+      "display_name": "YujiSoftware",
+      "link": "https://stackoverflow.com/users/1932017/yujisoftware"
+    },
+    "is_answered": false,
+    "view_count": 459,
+    "answer_count": 0,
+    "score": 6,
+    "last_activity_date": 1762881426,
+    "creation_date": 1760193851,
+    "last_edit_date": 1760969067,
+    "question_id": 79788082,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79788082/when-should-i-use-name-resolution-vs-registernatives-in-jni",
+    "title": "When should I use name resolution vs. RegisterNatives in JNI?",
+    "body": "<p>In <code>System.c</code>, the JVM function corresponding to Java’s <code>System.currentTimeMillis()</code> is registered using RegisterNatives.<br />\nIn contrast, <code>System.identityHashCode(Object)</code> calls a JVM function directly based on the naming convention.</p>\n<p><a href=\"https://github.com/openjdk/jdk/blob/9b99bc8ef53ad20c4f1cb5d26cffc64b0deb79ad/src/java.base/share/native/libjava/System.c#L39-L59\" rel=\"nofollow noreferrer\">https://github.com/openjdk/jdk/blob/9b99bc8ef53ad20c4f1cb5d26cffc64b0deb79ad/src/java.base/share/native/libjava/System.c#L39-L59</a></p>\n<pre class=\"lang-c prettyprint-override\"><code>/* Only register the performance-critical methods */\nstatic JNINativeMethod methods[] = {\n    {&quot;currentTimeMillis&quot;, &quot;()J&quot;,              (void *)&amp;JVM_CurrentTimeMillis},\n    {&quot;nanoTime&quot;,          &quot;()J&quot;,              (void *)&amp;JVM_NanoTime},\n    {&quot;arraycopy&quot;,     &quot;(&quot; OBJ &quot;I&quot; OBJ &quot;II)V&quot;, (void *)&amp;JVM_ArrayCopy},\n};\n\nJNIEXPORT void JNICALL\nJava_java_lang_System_registerNatives(JNIEnv *env, jclass cls)\n{\n    (*env)-&gt;RegisterNatives(env, cls,\n                            methods, sizeof(methods)/sizeof(methods[0]));\n}\n\nJNIEXPORT jint JNICALL\nJava_java_lang_System_identityHashCode(JNIEnv *env, jobject this, jobject x)\n{\n    return JVM_IHashCode(env, x);\n}\n</code></pre>\n<p>Both approaches are used, but what determines which one to use?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

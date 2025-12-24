@@ -1,0 +1,31 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "performance",
+      "jit",
+      "graalvm",
+      "jvm-hotspot"
+    ],
+    "owner": {
+      "user_type": "does_not_exist",
+      "display_name": "user19401035"
+    },
+    "is_answered": true,
+    "view_count": 2245,
+    "accepted_answer_id": 79275283,
+    "answer_count": 1,
+    "score": 20,
+    "last_activity_date": 1736776086,
+    "creation_date": 1734007606,
+    "last_edit_date": 1734172732,
+    "question_id": 79275170,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79275170/why-does-this-simple-and-small-java-code-runs-30x-faster-in-all-graal-jvms-but-n",
+    "title": "Why does this simple and small Java code runs 30x faster in all Graal JVMs but not on any Oracle JVMs?",
+    "body": "<p>I'm not compiling anything to <em>native</em>, in other words, I'm <em><strong>not</strong></em> using <code>native-image</code> from GraalVM. I'm just running the same Java class (same Java bytecode) with GraalVM and then running the same Java class (same Java bytecode) with regular Oracle JVMs.</p>\n<p>It does not matter which version of Java I use or platform (I tested in Linux and Mac). GraalVM is always much faster (30x) than any other regular JVM.</p>\n<p>It looks like the regular JVMs are not optimizing the method correctly with their JIT. Notice that the method is very simple and small.</p>\n<p>Does anyone have any insight of why that's the case and how I could fix that in my regular JVM? The only workaround at the moment is to migrate to GraalVM. It is very easy to compile and run the code below to reproduce the issue. Just compile and then run first with an Oracle JVM and then with any Graal JVM to see the difference.</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class OracleJvm23MathBug {\n\n    // simple and small amount of math\n    // =====&gt; should be optimized/compiled/inlined for sure!\n    private static final long doSomething(int load, int i) {\n        long x = 0;\n        for (int j = 0; j &lt; load; j++) {\n            long pow = (i % 8) * (i % 16);\n            if (i % 2 == 0) {\n                x += pow;\n            } else {\n                x -= pow;\n            }\n        }\n        return x;\n    }\n\n    /*\n     * Execute this with OpenJDK/Zulu/Oracle JVM 23 =&gt; average 215 nanoseconds\n     * Now execute this with Graal23 JVM 23 =&gt; average 7 nanoseconds\n     * \n     * This bug can be observed in any platform (I tested on Linux and Mac)\n     * \n     * $ java -version \n     * java version &quot;23.0.1&quot; 2024-10-15 \n     * Java(TM) SE Runtime Environment (build 23.0.1+11-39)\n     * Java HotSpot(TM) 64-Bit Server VM (build 23.0.1+11-39, mixed mode, sharing)\n     * \n     * $ java -cp . OracleJvm23MathBug\n     * Value computed: -550000000000\n     * Measurements: 10000000| Avg Time: 215 nanos | Min Time: 83 nanos | Max Time: 199750 nanos\n     * \n     * $ java -version\n     * java version &quot;23.0.1&quot; 2024-10-15\n     * Java(TM) SE Runtime Environment Oracle GraalVM 23.0.1+11.1 (build 23.0.1+11-jvmci-b01)\n     * Java HotSpot(TM) 64-Bit Server VM Oracle GraalVM 23.0.1+11.1 (build 23.0.1+11-jvmci-b01, mixed mode, sharing)\n     * \n     * $ java -cp . OracleJvm23MathBug\n     * Value computed: -550000000000\n     * Measurements: 10000000| Avg Time: 7 nanos | Min Time: 0 nanos | Max Time: 178625 nanos\n     */\n    public static final void main(String[] args) {\n        final int iterations = 10_000_000;\n        final int load = 10_000;\n        NanoBench bench = new NanoBench();\n        long computed = 0;\n        for (int i = 0; i &lt; iterations; i++) {\n            bench.mark();\n            computed += doSomething(load, i);\n            bench.measure();\n        }\n        System.out.println(&quot;Value computed: &quot; + computed);\n        bench.printResults();\n    }\n\n    private static class NanoBench {\n\n        private int measurements;\n        private long totalTime, minTime, maxTime, time;\n        private final StringBuilder sb = new StringBuilder(128);\n\n        NanoBench() {\n            reset();\n        }\n\n        public final void reset() {\n            totalTime = time = measurements = 0;\n            maxTime = Long.MIN_VALUE;\n            minTime = Long.MAX_VALUE;\n        }\n\n        public final void mark() {\n            time = System.nanoTime();\n        }\n\n        public final void measure() {\n            long lastNanoTime = System.nanoTime() - time;\n            totalTime += lastNanoTime;\n            minTime = lastNanoTime &lt; minTime ? lastNanoTime : minTime;\n            maxTime = lastNanoTime &gt; maxTime ? lastNanoTime : maxTime;\n            measurements++;\n        }\n\n        public final void printResults() {\n            sb.setLength(0);\n            sb.append(&quot;Measurements: &quot;).append(measurements);\n            sb.append(&quot;| Avg Time: &quot;).append((long) (totalTime / (double) measurements)).append(&quot; nanos&quot;);\n            sb.append(&quot; | Min Time: &quot;).append(minTime).append(&quot; nanos&quot;);\n            sb.append(&quot; | Max Time: &quot;).append(maxTime).append(&quot; nanos\\n\\n&quot;);\n            for (int i = 0; i &lt; sb.length(); i++) System.out.print(sb.charAt(i));\n        }\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

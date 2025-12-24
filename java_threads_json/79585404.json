@@ -1,0 +1,37 @@
+{
+  "question": {
+    "tags": [
+      "javascript",
+      "java",
+      "kotlin",
+      "intellij-plugin",
+      "jcef"
+    ],
+    "owner": {
+      "account_id": 9947305,
+      "reputation": 14026,
+      "user_id": 7361479,
+      "user_type": "registered",
+      "accept_rate": 75,
+      "profile_image": "https://i.sstatic.net/soT91.jpg?s=256",
+      "display_name": "kshetline",
+      "link": "https://stackoverflow.com/users/7361479/kshetline"
+    },
+    "is_answered": true,
+    "view_count": 143,
+    "accepted_answer_id": 79585639,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1745291705,
+    "creation_date": 1745273213,
+    "last_edit_date": 1745289517,
+    "question_id": 79585404,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79585404/what-is-needed-to-get-a-simple-instance-of-jbcefbrowser-up-and-running-to-execut",
+    "title": "What is needed to get a simple instance of JBCefBrowser up and running to execute JavaScript?",
+    "body": "<p>I'm working on making a possible contribution the Community Edition of Intellij IDEA, adding some enhancements to the Markdown preview feature.</p>\n<p>The IDEA code base is primarily Java and Java's cousin, Kotlin. There is, however, some other open-source code I want to leverage, <a href=\"https://highlightjs.org/\" rel=\"nofollow noreferrer\">highlight.js</a>, that's written it JavaScript.</p>\n<p>I've found a <em>functional</em> way to get highlight.js to work for me in this code environment, but it took some ugly and unsatisfactory hacking to do it. I think I have the basic elements for a better solution in place, but just can't get it to actually work.</p>\n<p>This is the start of what I hope to be a less kludgy way of running JavaScript code:</p>\n<pre class=\"lang-kotlin prettyprint-override\"><code>var browser = JBCefBrowser()\n\nbrowser.jbCefClient.addDisplayHandler(object: CefDisplayHandlerAdapter() {\n  override fun onConsoleMessage(browser: CefBrowser, level: CefSettings.LogSeverity,\n    message: String, source: String, line: Int\n  ): Boolean {\n    println(message) // &lt;-- Should reach this code, but it's not happening\n    return false\n  }\n}, browser.cefBrowser)\n\nbrowser.executeJavaScript(&quot;console.info('Hello, world.')&quot;)\n</code></pre>\n<p><em>If you're already feeling a little TL;DR at this point, you can skip past the following explanation of how I arrived here and go to the end of the post for the specific problem I'm running into.</em></p>\n<p>IDEA uses JCEFBrowser (JCEF: Java Chromium Embedded Framework) for a number of things, including for its Markdown preview. Such browsers are capable of executing JavaScript code, so taking advantage of that seems to make a lot more sense that dragging in an additional heavy-weight dependency like GraalVM to run highlight.js.</p>\n<p>As the IDEA code is set up, however, the <code>MarkdownJCEFHtmlPanel</code> implementation of a JCEFBrowser can only work on changing code fence highlighting a bit late in the game, after all processing for syntax highlighting should have already been done. With my current solution the user momentarily sees un-highlighted code until the JavaScript running in <code>MarkdownJCEFHtmlPanel</code> locates the code fence contents and then applies highlight.js highlighting.</p>\n<p>This results in noticeable flicker when code fence contents are being edited. Without some additional ugly hacking, <em>every code fence</em> had flickered when <em>anything</em> was edited anywhere.</p>\n<p>Hence the alternate solution I'm trying to find, and the problem with that solution so far: For reasons I don't understand the extra JBCefBrowser instance I'm creating is totally unresponsive, dead in the water and not helping me to do anything.</p>\n<p>I get no errors and no warnings, just nothing useful happens. Things like <code>waitForPageLoad</code> hang forever.</p>\n<p>Does the <code>JCEFBrowser</code>, even if it's meant to be offscreen, need to be attached to a live view of some sort? Does the browser need to be registered somewhere so that it receives processing time and/or event dispatches?</p>\n<p>The debugger tells me <code>browser.cefBrowser.hasDocument()</code> is always false, so I’m sure that’s not a good sign.</p>\n<p>I feel like there’s some missing initialization or other form of a kick in the pants needed to get this <code>JBCefBrowser</code> instance up and running in a fully functional state.</p>\n<p>Can anyone suggest what that might be?</p>\n<p><strong>Update:</strong></p>\n<p>I've made some progress. If I add...</p>\n<pre class=\"lang-kotlin prettyprint-override\"><code>browser.createImmediately()\nbrowser.waitForPageLoad(&quot;about:blank&quot;)\n</code></pre>\n<p>...the <code>waitForPageLoad</code> doesn't hang anymore, and <code>browser.cefBrowser.hasDocument()</code> is finally <code>true</code>.</p>\n<p>I can even execute a JavaScript <code>alert</code> and the alert pops up, so I know JavaScript is functioning (to an extent). Oddly, however, the <code>CefDisplayHandlerAdapter</code> still doesn't get any feedback from a <code>console</code> statement.</p>\n<p>Since that's the only reasonable way I know of to get usable feedback from highlight.js, I don't have a proper solution yet, but at least I think I'm closer.</p>\n<p>...</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

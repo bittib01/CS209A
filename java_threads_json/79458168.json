@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "testing",
+      "testcontainers"
+    ],
+    "owner": {
+      "account_id": 87230,
+      "reputation": 43293,
+      "user_id": 242042,
+      "user_type": "registered",
+      "accept_rate": 57,
+      "profile_image": "https://www.gravatar.com/avatar/a798a3d661375ece15776f83fbb80c2c?s=256&d=identicon&r=PG",
+      "display_name": "Archimedes Trajano",
+      "link": "https://stackoverflow.com/users/242042/archimedes-trajano"
+    },
+    "is_answered": true,
+    "view_count": 204,
+    "accepted_answer_id": 79458408,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1740346908,
+    "creation_date": 1740158027,
+    "last_edit_date": 1740175187,
+    "question_id": 79458168,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79458168/how-would-i-structure-my-annotation-and-spring-configurations-so-that-i-can-use",
+    "title": "How would I structure my annotation and Spring Configurations so that I can use an annotation to set up a TestContainer test without an abstract class",
+    "body": "<p>I want to be able to simply do</p>\n<pre><code>@MyTestConfig\nclass MyTests {\n  @Autowired SomeJpaRepo repo;\n  @Test\n  void findAll() {\n    assertThatCode(repo::findAll).doesNotThrowAnyExceptions();\n  }\n}\n</code></pre>\n<p>What I started was to do the annotation</p>\n<pre><code>@Target(ElementType.TYPE)\n@Retention(RetentionPolicy.RUNTIME)\n@Inherited\n@DataJpaTest\n@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)\n@TestContainers\npublic @interface MyTestConfig {\n}\n</code></pre>\n<p>With that the following test works give</p>\n<pre class=\"lang-java prettyprint-override\"><code>@MyTestConfig\nclass MyTests {\n  @Container\n  private static final MySQLContainer&lt;?&gt; MYSQL_CONTAINER =\n      new MySQLContainer&lt;&gt;(\n          DockerImageName.parse(&quot;library/mariadb&quot;)\n              .asCompatibleSubstituteFor(&quot;mysql&quot;));\n\n  @DynamicPropertySource\n  static void mysqlProperties(DynamicPropertyRegistry registry) {\n    registry.add(&quot;spring.datasource.url&quot;, MYSQL_CONTAINER::getJdbcUrl);\n    registry.add(&quot;spring.datasource.username&quot;, MYSQL_CONTAINER::getUsername);\n    registry.add(&quot;spring.datasource.password&quot;, MYSQL_CONTAINER::getPassword);\n  }\n  @Autowired SomeJpaRepo repo;\n  @Test\n  void findAll() {\n    assertThatCode(repo::findAll).doesNotThrowAnyExceptions();\n  }\n}\n</code></pre>\n<p>However, I am unable to get that TestContainer configuration out to a separate file that is managed by <code>@MyTestConfig</code>, the closest thing that worked which I wanted to avoid if possible is creating an abstract test class</p>\n<pre><code>abstract class AbstractMyTest {\n  @Container\n  private static final MySQLContainer&lt;?&gt; MYSQL_CONTAINER =\n      new MySQLContainer&lt;&gt;(\n          DockerImageName.parse(&quot;library/mariadb&quot;)\n              .asCompatibleSubstituteFor(&quot;mysql&quot;));\n\n  @DynamicPropertySource\n  static void mysqlProperties(DynamicPropertyRegistry registry) {\n    registry.add(&quot;spring.datasource.url&quot;, MYSQL_CONTAINER::getJdbcUrl);\n    registry.add(&quot;spring.datasource.username&quot;, MYSQL_CONTAINER::getUsername);\n    registry.add(&quot;spring.datasource.password&quot;, MYSQL_CONTAINER::getPassword);\n  }\n}\n</code></pre>\n<p>I am thinking that it may be something along the lines of creating a JUnit extension class rather than utilizing Spring annotations.</p>\n<p>Just a note I'm still on Spring Boot 2.7.18, so I don't have the <code>@ServiceContainer</code> annotation.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "spring-security"
+    ],
+    "owner": {
+      "account_id": 20261619,
+      "reputation": 924,
+      "user_id": 14859847,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/QAIQ1.png?s=256",
+      "display_name": "Junhyunny",
+      "link": "https://stackoverflow.com/users/14859847/junhyunny"
+    },
+    "is_answered": false,
+    "view_count": 175,
+    "answer_count": 1,
+    "score": -2,
+    "last_activity_date": 1744866047,
+    "creation_date": 1703747222,
+    "question_id": 77725458,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77725458/deferring-or-deferred-pattern-in-spring-security-framework",
+    "title": "Deferring- or Deferred- pattern in spring security framework",
+    "body": "<p>Recently, I research about spring security. There are some classes and methods named with <code>Deferring-</code> and <code>Deferred-</code>.</p>\n<p>For examples</p>\n<ul>\n<li>DeferredSecurityContext</li>\n<li>SupplierDeferredSecurityContext</li>\n<li>DeferringObservationReactiveAuthorizationManager</li>\n<li>DeferringObservationAuthorizationManager</li>\n</ul>\n<p>and so on.</p>\n<p>The common pattern of the classes or methods uses <code>Supplier</code> functional interface and get object from supplier function. Like this.</p>\n<pre class=\"lang-java prettyprint-override\"><code>final class DeferringObservationAuthorizationManager&lt;T&gt; implements AuthorizationManager&lt;T&gt; {\n\n    private final Supplier&lt;AuthorizationManager&lt;T&gt;&gt; delegate;\n\n    DeferringObservationAuthorizationManager(ObjectProvider&lt;ObservationRegistry&gt; provider, AuthorizationManager&lt;T&gt; delegate) {\n        this.delegate = SingletonSupplier.of(() -&gt; {\n            ObservationRegistry registry = (ObservationRegistry)provider.getIfAvailable(() -&gt; {\n                return ObservationRegistry.NOOP;\n            });\n            return (AuthorizationManager)(registry.isNoop() ? delegate : new ObservationAuthorizationManager(registry, delegate));\n        });\n    }\n\n    public AuthorizationDecision check(Supplier&lt;Authentication&gt; authentication, T object) {\n        return ((AuthorizationManager)this.delegate.get()).check(authentication, object);\n    }\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>public class HttpSessionSecurityContextRepository implements SecurityContextRepository {\n\n    // ...\n    \n    public DeferredSecurityContext loadDeferredContext(HttpServletRequest request) {\n        Supplier&lt;SecurityContext&gt; supplier = () -&gt; {\n            return this.readSecurityContextFromSession(request.getSession(false));\n        };\n        return new SupplierDeferredSecurityContext(supplier, this.securityContextHolderStrategy);\n    }\n}\n\n\nfinal class SupplierDeferredSecurityContext implements DeferredSecurityContext {\n\n    private final Supplier&lt;SecurityContext&gt; supplier;\n\n    // ...\n\n    public SecurityContext get() {\n        this.init();\n        return this.securityContext;\n    }\n\n    public boolean isGenerated() {\n        this.init();\n        return this.missingContext;\n    }\n\n    private void init() {\n        if (this.securityContext == null) {\n            this.securityContext = (SecurityContext)this.supplier.get();\n            this.missingContext = this.securityContext == null;\n            if (this.missingContext) {\n                this.securityContext = this.strategy.createEmptyContext();\n                if (logger.isTraceEnabled()) {\n                    logger.trace(LogMessage.format(&quot;Created %s&quot;, this.securityContext));\n                }\n            }\n\n        }\n    }\n}\n</code></pre>\n<p>I'm curious about this pattern. Why do not use instance directly? Are there benefits when we contain object in lambda function and defer to use?</p>\n<ul>\n<li>What is the purpose of this pattern?</li>\n<li>What do we get benefits from this pattern?</li>\n<li>Are there good examples to understand about this pattern's benefits or solve some problems?</li>\n</ul>\n<p>Please, let me know. Thanks.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

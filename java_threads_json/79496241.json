@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-webflux",
+      "webclient",
+      "spring-webclient"
+    ],
+    "owner": {
+      "account_id": 20103679,
+      "reputation": 1,
+      "user_id": 14741657,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/ddcb2c5e0e6b4a59c1c2cf1cb5ac52d7?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Hagar",
+      "link": "https://stackoverflow.com/users/14741657/hagar"
+    },
+    "is_answered": false,
+    "view_count": 55,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1743976986,
+    "creation_date": 1741538647,
+    "last_edit_date": 1743976986,
+    "question_id": 79496241,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79496241/spring-webflux-webclient-inserting-empty-body-for-get-requests",
+    "title": "Spring webflux webclient inserting empty body for get requests",
+    "body": "<p>I am using webclient to integrate with external get API</p>\n<pre class=\"lang-java prettyprint-override\"><code>WebClient webClient = WebClient.builder().filter(logRequestAndResponse()).baseUrl(&quot;url&quot;).build();\nreturn webClient.get()\n    .uri(uriBuilder -&gt; uriBuilder.path(&quot;path&quot;).queryParams(validatedRequestParams).build())\n    .headers(headers -&gt; { headers.addAll(httpHeaders); })\n    .retrieve()\n    .toEntity(ResponseClass.class)\n    .block();\n\npublic ExchangeFilterFunction logRequestAndResponse() {\n    AtomicReference&lt;String&gt; startTime = new AtomicReference&lt;&gt;();\n    ExchangeFilterFunction logRequest = ExchangeFilterFunction.ofRequestProcessor(clientRequest -&gt; {\n        log.info(&quot;##### Request Body: {}&quot;, ObjectMapperHelper.mapToString(clientRequest.body()));\n\n        return Mono.just(clientRequest);\n    });\n\n                    return logRequest.andThen((clientRequest, next) -&gt; next.exchange(clientRequest)\n                            .flatMap(clientResponse -&gt; clientResponse.bodyToMono(String.class)\n                                    .defaultIfEmpty(&quot;&quot;)\n                                    .flatMap(body -&gt; {\n        log.info(&quot;###response in: {}&quot;, body);\n        return Mono.just(clientResponse.mutate().body(body).build());\n                                    })\n                            )\n</code></pre>\n<p>The issue is this always results in an empty body payload {} even though no body is explicitly added, which results in receiving an error as the external API is not expecting a body for the get request.</p>\n<p>I tried to remove the content-length header, setting it to 0, but I got the same error. How can I prevent an empty payload from being inserted for the get request?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

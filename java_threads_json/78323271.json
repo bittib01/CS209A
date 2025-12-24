@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "hibernate",
+      "jpa",
+      "dynamic"
+    ],
+    "owner": {
+      "account_id": 31497690,
+      "reputation": 1,
+      "user_id": 24319693,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/d21d71de7d292b664f072c61de68eee1?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Geoffrey BISCH",
+      "link": "https://stackoverflow.com/users/24319693/geoffrey-bisch"
+    },
+    "is_answered": false,
+    "view_count": 56,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1715696078,
+    "creation_date": 1713085966,
+    "last_edit_date": 1715696078,
+    "question_id": 78323271,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78323271/access-dynamically-to-crudrepository",
+    "title": "Access dynamically to CrudRepository",
+    "body": "<p>Sorry for the low example of code I could share but my project is a job project, and also sorry for my english that could contain error :D</p>\n<p>Here's my problem I got several Entity and Repository in my service (up to 50 entity - repo)\nI have to implement a manager that will be called by user.\nThe data coming from a CSV file that contain all the the line for each entity defined as :<br />\ntrigram_1;col_1;col_2<br />\ntrigram_2;col_1;col_2;col_3</p>\n<p>(the size of the line column can change for each trigram)\nThe generation of my entity with the csv file is good, and works fine with reflection and introspection</p>\n<p>I also set in my manager a way to get the entity populated depending on which trigram I give.</p>\n<p>for this i use Reflection on package with that kind of implementation :</p>\n<pre class=\"lang-java prettyprint-override\"><code>public Map&lt;String,Class&gt; findAllClassesUsingReflectionsLibrary(String packageName) {\n    Reflections reflections = new Reflections(packageName, new SubTypesScanner(false));\n    return reflections.getSubTypesOf(MySuperEntity.class)\n      .stream()\n      .collect(Collectors.toMap(Class::SimpleName, obj -&gt; obj));\n}\n\npublic foo(String trigram, String data){\n    // this is only an example of usage\n    Map&lt;String,Class&gt; map = findAllClassesUsingReflectionsLibrary(&quot;path.to.package.entity&quot;);\n    String key = &quot;prefix&quot;+trigram+&quot;Db&quot;;\n    if(map.contains(key)){\n        MySuperEntity entity = map.get(key).newInstance().instantiate(data)\n        // instantiate is a method defined by my MySuperEntity superclass \n        // that create an instance of the class and add the data to each attribute\n        //\n    } \n    //....\n}\n</code></pre>\n<p>it works perfectly for entity, but now my problem is to do the &quot;same&quot; for repository</p>\n<p>My problem here is that repository types are CrudRepository and I'm not able to get access to their implementation by doing reflection on the package where they are stored (cause they are interface and aren't instatiable by myself).</p>\n<p>Initially they was added in the constructor and Spring/hibernate deal by themself to build it correctly but I won't follow this initial implementation that push me to just doing a stupid switch for 50 trigram...</p>\n<pre class=\"lang-java prettyprint-override\"><code>public CrudRepository getRepo(String trigram){\n    switch(trigram){\n        case &quot;AAA&quot; :\n            return repositoryAAA;\n        break;\n        case &quot;BBB&quot; : \n            // ...\n    }\n}\n</code></pre>\n<p>So is there a way to access in my repository implementation? (without implementing by myself instead of doing an interface)</p>\n<p>I actually tried to find some documentation about this but i found nothing (maybe i didn't search in the good way?)</p>\n<p>i tried to get the repository by this method without really care if they are interface but it doesn't work.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

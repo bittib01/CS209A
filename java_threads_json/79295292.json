@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-mvc",
+      "spring-security"
+    ],
+    "owner": {
+      "account_id": 4464410,
+      "reputation": 268,
+      "user_id": 3632426,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/d2d38805f4e406ad9537576b98e76acb?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Micke",
+      "link": "https://stackoverflow.com/users/3632426/micke"
+    },
+    "is_answered": true,
+    "view_count": 55,
+    "accepted_answer_id": 79308536,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1735178423,
+    "creation_date": 1734633626,
+    "question_id": 79295292,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79295292/replacing-default-remembermeauthenticationprovider-added-by-spring-security",
+    "title": "Replacing default RememberMeAuthenticationProvider added by spring-security",
+    "body": "<p>I need to provide my own custom RememberMeAuthenticationProvider provider, which I know how to do. But the default created one is still present in the ProviderManager list of providers.</p>\n<p>Can I completely replace the default one with my custom one?</p>\n<p>How I add my own</p>\n<pre><code>    @Bean\n    public RememberMeAuthenticationProvider rememberMeAuthenticationProvider(MessageSource messageSource) {\n        var authProvider = new MyRememberMeAuthenticationProvider(REMEMBER_ME_KEY);\n        authProvider.setMessageSource(messageSource);\n        return authProvider;\n    }\n\n    @Bean\n    public SecurityFilterChain filterChain(HttpSecurity http,\n                                           MvcRequestMatcher.Builder mvc,\n                                           MessageSource messageSource) throws Exception {\n        http\n                .csrf(csrf -&gt; csrf.csrfTokenRequestHandler(csrfRequestHandler)\n                        .ignoringRequestMatchers(LOGIN_URI + &quot;**&quot;))\n                .authenticationProvider(authenticationProvider)\n                .authenticationProvider(rememberMeAuthenticationProvider(messageSource))\n&lt;cut&gt;\n        return http.build();\n    }\n</code></pre>\n<p>But the RememberMeConfigurer unconditionally adds the default one</p>\n<pre><code>@Override\npublic void configure(H http) {\n    RememberMeAuthenticationFilter rememberMeFilter = new RememberMeAuthenticationFilter(\n            http.getSharedObject(AuthenticationManager.class), this.rememberMeServices);\n    if (this.authenticationSuccessHandler != null) {\n        rememberMeFilter.setAuthenticationSuccessHandler(this.authenticationSuccessHandler);\n    }\n    SecurityContextConfigurer&lt;?&gt; securityContextConfigurer = http.getConfigurer(SecurityContextConfigurer.class);\n    if (securityContextConfigurer != null &amp;&amp; securityContextConfigurer.isRequireExplicitSave()) {\n        SecurityContextRepository securityContextRepository = securityContextConfigurer\n            .getSecurityContextRepository();\n        rememberMeFilter.setSecurityContextRepository(securityContextRepository);\n    }\n    rememberMeFilter.setSecurityContextHolderStrategy(getSecurityContextHolderStrategy());\n    rememberMeFilter = postProcess(rememberMeFilter);\n    http.addFilter(rememberMeFilter);\n}\n</code></pre>\n<p>Which leads to this list of configured providers</p>\n<pre><code>0 = {MyAuthenticationProvider@17013} \n1 = {MyRememberMeAuthenticationProvider@16992} \n2 = {AnonymousAuthenticationProvider@26592} \n3 = {RememberMeAuthenticationProvider@18312} \n</code></pre>\n<p>Right now this works, likely due to the order, but I would really want to remove the default one completely.</p>\n<p>Is this possible?</p>\n<p>Many thanks,\nMike</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "ssl",
+      "winapi"
+    ],
+    "owner": {
+      "account_id": 14253920,
+      "reputation": 926,
+      "user_id": 10296768,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/BOd50.jpg?s=256",
+      "display_name": "David R. Hedges",
+      "link": "https://stackoverflow.com/users/10296768/david-r-hedges"
+    },
+    "is_answered": true,
+    "view_count": 155,
+    "answer_count": 1,
+    "score": 3,
+    "last_activity_date": 1729931364,
+    "creation_date": 1728065868,
+    "question_id": 79055417,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79055417/get-java-code-to-trigger-windows-ctl-lookup-ctl-to-trusted-root-cas-migration",
+    "title": "Get Java code to trigger Windows&#39; CTL lookup / CTL-to-Trusted-Root-CAs migration",
+    "body": "<p>I have a Java application that calls <code>System.setProperty(&quot;javax.net.ssl.trustStoreType&quot;, &quot;WINDOWS-ROOT&quot;);</code>, thus triggering the JRE to eventually call the Windows <a href=\"https://learn.microsoft.com/en-us/windows/win32/api/wincrypt/nf-wincrypt-certopensystemstorea\" rel=\"nofollow noreferrer\"><code>CertOpenSystemStore</code></a> method, then <a href=\"https://github.com/AdoptOpenJDK/openjdk-jdk11/blob/19fb8f93c59dfd791f62d41f332db9e306bc1422/src/jdk.crypto.mscapi/windows/native/libsunmscapi/security.cpp#L438\" rel=\"nofollow noreferrer\">enumerate and load</a> the certs from the HKLM-backed Trusted Root Certification Authorities cert store to use for its internal validation.</p>\n<p>That's great and all, except when dealing with a very clean / recently installed Windows machine where the Trusted Root Certification Authorities only contains ~16 entries. I only recently learned about Windows' <a href=\"https://learn.microsoft.com/en-us/windows-server/identity/ad-cs/certificate-trust\" rel=\"nofollow noreferrer\">Certificate Trust List (CTL)</a> functionality, a hidden mechanism that transparently checks certificate chains against a list of trusted roots that Windows downloads from Windows Update (or elsewhere, if overridden, e.g., by GPO). This enables web browsers to work without complaint with more than a handful of sites, and digitally signed binaries to execute without warnings. Certain operations, like visiting a site in Internet Explorer (but not Edge) additionally cause a CA to be migrated from the CTL to the Trusted Root Certification Authorities store.</p>\n<p>However, I infer that the CTL mechanism doesn't get triggered in the Java workflow because Java doesn't ask Windows to validate a TLS certificate chain—it just validates the chain against the certs it enumerated from the Trusted Root Certification Authorities (<code>CertOpenSystemStore</code>). The end result is <code>sun.security.validator.ValidatorException: PKIX path building failed: : sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target</code> after calling <code>HttpURLConnection::getOutputStream().write(postDataBytes);</code>.</p>\n<p>Does anyone know of a way to trigger Windows' CTL-to-Trusted Root Certification Authorities migration mechanism? Obviously if there's a native Java way to do this, that'd be ideal, but even if someone knows what Windows C API(s) trigger this, so I could write some JNI, that'd be better than the alternative of telling users to visit a site <em>in Internet Explorer</em> to make sure its root CA will be trusted by the Java application.</p>\n<p>Thanks!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

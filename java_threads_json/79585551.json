@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "encryption",
+      "aes",
+      "objectmapper",
+      "fasterxml"
+    ],
+    "owner": {
+      "account_id": 1203915,
+      "reputation": 10731,
+      "user_id": 1174024,
+      "user_type": "registered",
+      "accept_rate": 85,
+      "profile_image": "https://i.sstatic.net/9zaVE.jpg?s=256",
+      "display_name": "Nicholas DiPiazza",
+      "link": "https://stackoverflow.com/users/1174024/nicholas-dipiazza"
+    },
+    "is_answered": true,
+    "view_count": 83,
+    "accepted_answer_id": 79585605,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1745930114,
+    "creation_date": 1745284356,
+    "question_id": 79585551,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79585551/is-it-possible-create-an-objectmapper-configured-such-that-it-aes-encrypts-all-f",
+    "title": "Is it possible create an ObjectMapper configured such that it AES encrypts all fields except fields annotated with a certain annotation?",
+    "body": "<p>Let's say you have an annotation configured on a per field basis:</p>\n<pre><code>import java.lang.annotation.ElementType;\nimport java.lang.annotation.Retention;\nimport java.lang.annotation.RetentionPolicy;\nimport java.lang.annotation.Target;\n\n@Retention(RetentionPolicy.RUNTIME)\n@Target(ElementType.FIELD)\npublic @interface DoNotEncrypt {\n}\n</code></pre>\n<p>OK so now you have the annotation. So you can have your fields annotated when you don't want them encrypted:</p>\n<pre><code>static class CoolStuff {\n        private String shouldBeEncrypted;\n        @DoNotEncrypt\n        private String notEncrypted = &quot;should not be encrypted&quot;;\n\n        public String getShouldBeEncrypted() {\n            return shouldBeEncrypted;\n        }\n\n        public void setShouldBeEncrypted(String shouldBeEncrypted) {\n            this.shouldBeEncrypted = shouldBeEncrypted;\n        }\n\n        public String getNotEncrypted() {\n            return notEncrypted;\n        }\n\n        public void setNotEncrypted(String notEncrypted) {\n            this.notEncrypted = notEncrypted;\n        }\n    }\n</code></pre>\n<p>I want to implement this serializer:</p>\n<pre><code>import com.fasterxml.jackson.core.JsonGenerator;\nimport com.fasterxml.jackson.databind.JsonSerializer;\nimport com.fasterxml.jackson.databind.ObjectMapper;\nimport com.fasterxml.jackson.databind.SerializerProvider;\nimport com.fasterxml.jackson.databind.module.SimpleModule;\nimport org.slf4j.Logger;\nimport org.slf4j.LoggerFactory;\n\n/**\n * Encrypt every string except fields that have annotation {@link DoNotEncrypt}\n */\npublic class ConfidentialSerializer extends JsonSerializer&lt;Object&gt; {\n    private static final Logger LOG = LoggerFactory.getLogger(ConfidentialSerializer.class);\n    @Override\n    public void serialize(Object value, JsonGenerator gen, SerializerProvider serializers) {\n       // I want to implement this here\n    }\n    public static ObjectMapper configurationObjectMapper() {\n        ObjectMapper objectMapper = new ObjectMapper();\n        SimpleModule module = new SimpleModule();\n        // is this right?\n        module.addSerializer(Object.class, new ConfidentialSerializer());\n        objectMapper.registerModule(module);\n        return objectMapper;\n    }\n}\n</code></pre>\n<p>In order to test the change i want to see that strings are encrypted unless annotationed <code>@DoNotEncrypt</code>.</p>\n<pre><code>import com.fasterxml.jackson.core.JsonProcessingException;\nimport com.fasterxml.jackson.databind.ObjectMapper;\nimport org.junit.Test;\n\npublic class ConfidentialSerializerTest {\n    static class CoolStuff {\n        private String shouldBeEncrypted;\n        @DoNotEncrypt\n        private String notEncrypted;\n\n        public String getShouldBeEncrypted() {\n            return shouldBeEncrypted;\n        }\n\n        public void setShouldBeEncrypted(String shouldBeEncrypted) {\n            this.shouldBeEncrypted = shouldBeEncrypted;\n        }\n\n        public String getNotEncrypted() {\n            return notEncrypted;\n        }\n\n        public void setNotEncrypted(String notEncrypted) {\n            this.notEncrypted = notEncrypted;\n        }\n    }\n    @Test\n    public void testConfigurationObjectMapper() throws JsonProcessingException {\n        ObjectMapper objectMapper = ConfidentialSerializer.configurationObjectMapper();\n        CoolStuff coolStuff = new CoolStuff();\n        coolStuff = new CoolStuff();\n        coolStuff.setShouldBeEncrypted(&quot;is&quot;);\n        coolStuff.setNotEncrypted(&quot;is not&quot;);\n        String out = objectMapper.writeValueAsString(coolStuff);\n        Map mapOut = objectMapper.readValue(out, Map.class);\n        Assert.assertNotEquals(&quot;is&quot;, mapOut.get(&quot;notEncrypted&quot;));\n        Assert.assertEquals(&quot;is not&quot;, mapOut.get(&quot;shouldBeEncrypted&quot;));    }\n}\n</code></pre>\n<p>Is this something that is possible with Object Mapper? If so, how do you do it?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "javascript",
+      "java",
+      "cryptography",
+      "bouncycastle",
+      "webcrypto-api"
+    ],
+    "owner": {
+      "account_id": 21137019,
+      "reputation": 103,
+      "user_id": 15540286,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a-/AOh14GgDDQqHedLpKAMfLcdAp9eSd4lIxyY15We3_MsPrA=k-s256",
+      "display_name": "Chetan Tailor",
+      "link": "https://stackoverflow.com/users/15540286/chetan-tailor"
+    },
+    "is_answered": true,
+    "view_count": 395,
+    "accepted_answer_id": 78964952,
+    "answer_count": 1,
+    "score": 10,
+    "last_activity_date": 1764605178,
+    "creation_date": 1723533852,
+    "last_edit_date": 1764605178,
+    "question_id": 78864922,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78864922/java-generated-private-key-imports-in-chrome-but-fails-in-safari",
+    "title": "Java-Generated Private Key Imports in Chrome but Fails in Safari",
+    "body": "<p>I am working on a project where I generate an EC private key using Java and then import it in the browser using JavaScript. The key imports successfully in Chrome, but it fails in Safari.Here’s my JavaScript code for importing private key:</p>\n<p>[Try running this html file in browser]</p>\n<pre class=\"lang-js prettyprint-override\"><code>&lt;!DOCTYPE html&gt;\n&lt;html&gt;\n&lt;head&gt;\n  &lt;title&gt;ECDH Key Pair Generation&lt;/title&gt;\n&lt;/head&gt;\n&lt;body&gt; \n  &lt;script&gt;\n\n//Utils\nfunction _extractRawKeyMaterial(pem, type) {\n  const pemHeader = `-----BEGIN ${type} KEY-----`;\n  const pemFooter = `-----END ${type} KEY-----`;\n\n  const endingIndex = pem.indexOf(pemFooter);\n  const startingIndex = pem.indexOf(pemHeader) + pemHeader.length;\n\n  const pemContents = pem.substring(startingIndex, endingIndex);\n  var return_object = convertBase64StringToArrayBuffer(pemContents.trim());\n  return return_object;\n}\n\n const convertBase64StringToArrayBuffer = base64String =&gt; {\n  const text = window.atob(base64String);\n  return convertStringToArrayBuffer(text);\n};\n\n const convertStringToArrayBuffer = str =&gt; {\n  const buf = new ArrayBuffer(str.length);\n  const bufView = new Uint8Array(buf);\n  for (let i = 0, strLen = str.length; i &lt; strLen; i++) {\n    bufView[i] = str.charCodeAt(i);\n  }\n  return buf;\n};\n\n\n// private key\nvar privateKeyGenerated = `-----BEGIN PRIVATE KEY-----\nME4CAQAwEAYHKoZIzj0CAQYFK4EEACIENzA1AgEBBDAMvyd7HU0FwJxgs5N87NVw\nMPOR60umJXnhPjdtn0O0RHgx2J0sVnvw7B6ue1Wb5uQ=\n-----END PRIVATE KEY-----`\n\n// Pass the loaded private key to your function\n_loadEccPrivateKey(privateKeyGenerated);\n\n// Code working in chrome but fails in safari with an error : Data provided to an operation does not meet requirements\n async function _loadEccPrivateKey(pemKey) {\n  try {\n     const rawKey = _extractRawKeyMaterial(pemKey.trim(), &quot;PRIVATE&quot;);\n\n    //console.log(rawKey)\n    const key = await window.crypto.subtle.importKey(\n      &quot;pkcs8&quot;, // Format for private keys\n      rawKey,\n      {\n        name: &quot;ECDH&quot;,\n        namedCurve: &quot;P-384&quot;,\n      },\n      true,\n      [&quot;deriveBits&quot;, &quot;deriveKey&quot;] // Key usages\n    );\n\n    console.log('Imported Private Key:', key);\n    return key;\n  } catch (e) {\n    console.error('Error importing private key:', e);\n    throw e;\n  }\n}\n\n&lt;/script&gt; \n&lt;/body&gt;\n&lt;/html&gt;\n</code></pre>\n<p>The code works perfectly in Chrome but throws an error in Safari. The error message is\n&quot;DATA PROVIDED TO AN OPERATION DOES NOT MEET REQUIREMENTS&quot;</p>\n<p>Here is my JAVA CODE for more information:</p>\n<pre class=\"lang-java prettyprint-override\"><code>\nimport org.bouncycastle.jce.provider.BouncyCastleProvider;\n\nimport java.io.FileOutputStream;\nimport java.io.IOException;\nimport java.security.*;\nimport java.security.spec.ECGenParameterSpec;\nimport java.util.Base64;\n\npublic class TestApplication {\n\n    private static final String CURVE = &quot;secp384r1&quot;; // P-384 curve\n\n    public static void main(String[] args) {\n        try {\n            // Add BouncyCastle Provider\n            Security.addProvider(new BouncyCastleProvider());\n\n            // Generate EC key pair\n            ECGenParameterSpec parameterSpec = new ECGenParameterSpec(CURVE);\n            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(&quot;EC&quot;, &quot;BC&quot;);\n            keyPairGenerator.initialize(parameterSpec, new SecureRandom());\n            KeyPair keyPair = keyPairGenerator.generateKeyPair();\n\n            // Extract and print private key\n            PrivateKey privateKey = keyPair.getPrivate();\n            String privateKeyPem = convertToPem(privateKey);\n            System.out.println(&quot;Private Key in PEM format:\\n&quot; + privateKeyPem);\n\n            // Save the private key in binary format to a file (optional)\n            String privateKeyFilePath = &quot;private_key.bin&quot;;\n            saveKeyToBinaryFile(privateKey, privateKeyFilePath);\n\n        } catch (Exception e) {\n            e.printStackTrace();\n        }\n    }\n\n    // Convert private key to PEM format\n    private static String convertToPem(PrivateKey privateKey) {\n        String base64Key = Base64.getEncoder().encodeToString(privateKey.getEncoded());\n        return &quot;-----BEGIN PRIVATE KEY-----\\n&quot; +\n                base64Key +\n                &quot;\\n-----END PRIVATE KEY-----&quot;;\n    }\n\n    // Save the private key in binary format\n    private static void saveKeyToBinaryFile(PrivateKey privateKey, String filePath) {\n        try (FileOutputStream fos = new FileOutputStream(filePath)) {\n            fos.write(privateKey.getEncoded());\n        } catch (IOException e) {\n            e.printStackTrace();\n        }\n    }\n}\n\n\n</code></pre>\n<p>If you want to try it yourself, just run this Java POC: <a href=\"https://github.com/ChetanTailor/JavaPrivateKeyPOC\" rel=\"nofollow noreferrer\">https://github.com/ChetanTailor/JavaPrivateKeyPOC</a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

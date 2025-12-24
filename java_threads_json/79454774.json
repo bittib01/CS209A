@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "kotlin",
+      "spring-security",
+      "spring-webflux"
+    ],
+    "owner": {
+      "account_id": 10048944,
+      "reputation": 1,
+      "user_id": 7429329,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/0a78623c462d8cb046c6033b6f27f504?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Robert Helanion",
+      "link": "https://stackoverflow.com/users/7429329/robert-helanion"
+    },
+    "is_answered": false,
+    "view_count": 50,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1740092234,
+    "creation_date": 1740060253,
+    "question_id": 79454774,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79454774/processing-controller-method-multiple-time-when-i-add-filter-to-security-chain",
+    "title": "Processing controller method multiple time when I add filter to security chain",
+    "body": "<p>SO this is my controller</p>\n<pre><code>@RestController\nclass SyncRevokedTokensController(private val syncRevokedTokenService: SyncRevokedTokensService) {\n\n    private val log: Logger = LoggerFactory.getLogger(SyncRevokedTokensController::class.java)\n\n    @PostMapping(&quot;/sync-revoked-tokens&quot;, consumes = [&quot;application/json&quot;])\n    fun syncTokens(@RequestBody request: Mono&lt;SyncRevokedTokens&gt;): Mono&lt;Void&gt; {\n        log.info(&quot;Received request to sync revoked tokens&quot;)\n\n        return request\n            .flatMap { syncRequest -&gt;\n                if (syncRequest.startSynchronization) {\n                    log.info(&quot;Starting sync of revoked tokens&quot;)\n                    syncRevokedTokenService.sync()\n                        .doOnSuccess {\n                            log.info(&quot;Completed sync service operation&quot;)\n                        }\n                        .onErrorResume { error -&gt;\n                            log.error(&quot;Error during sync operation&quot;, error)\n                            Mono.error(error)\n                        }\n                } else {\n                    log.info(\n                        &quot;Synchronization not started as startSynchronization is false &quot;\n                    )\n                    Mono.empty()\n                }\n            }\n            .doOnSuccess {\n                log.info(&quot;Successfully completed sync tokens request&quot;)\n            }\n            .onErrorResume { error -&gt;\n                log.error(&quot;Error processing sync request&quot;, error)\n                Mono.error(error)\n            }\n    }\n}\n</code></pre>\n<p>and based on log it's trying to process this method twice, first time it's processed correctly and on second run it's throwing this exception <code>org.springframework.core.codec.DecodingException: No request body</code> and results with 400 bad request.</p>\n<p>that is because I have add filter in security chain which is that one:</p>\n<pre><code>    @Bean\n    @Order(2)\n    fun syncRevokedTokensFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {\n        return http\n            .securityMatcher(ServerWebExchangeMatchers.pathMatchers(HttpMethod.POST, &quot;/sync-revoked-tokens&quot;))\n            .authorizeExchange { exchanges -&gt;\n                exchanges.anyExchange().authenticated()\n            }\n            .addFilterAt(MfaEndpointsAuthorizationWebFilter(), SecurityWebFiltersOrder.LAST)\n            .oauth2ResourceServer { oauth2 -&gt;\n                oauth2\n                    .bearerTokenConverter(ServerBearerTokenAuthenticationConverter())\n                    .authenticationManagerResolver(customAuthenticationOauth2ManagerResolver())\n            }\n            .csrf { it.disable() }\n            .headers { it.disable() }\n            .build()\n    }\n</code></pre>\n<p>in case I delete this line of code: <code>.addFilterAt(MfaEndpointsAuthorizationWebFilter(), SecurityWebFiltersOrder.LAST)</code> I'm getting 200 from my api and it's not tried to be process multiple time.</p>\n<p>Here is also a filter:</p>\n<pre><code>class MfaEndpointsAuthorizationWebFilter : WebFilter {\n\n    companion object {\n        private val log = LoggerFactory.getLogger(MfaEndpointsAuthorizationWebFilter::class.java)\n    }\n\n    private fun isMfaScopeSupportedEndpoint(path: String): Boolean {\n        //TODO on purpose delete logic because of security reasons\n        return true\n    }\n\n    override fun filter(exchange: ServerWebExchange, chain: WebFilterChain): Mono&lt;Void&gt; {\n        log.info(&quot;Starting MfaEndpointsAuthorizationWebFilter for path: {}&quot;, exchange.request.path)\n        return ReactiveSecurityContextHolder.getContext()\n            .flatMap { securityContext: SecurityContext -&gt;\n                if (securityContext.authentication is CustomAuthentication) {\n                    val customAuthentication = securityContext.authentication as CustomAuthentication\n                    val scope = customAuthentication.tokenScope\n\n                    if (&quot;totp_authenticator&quot; == scope &amp;&amp; !isMfaScopeSupportedEndpoint(exchange.request.path.value())) {\n                        exchange.response.setStatusCode(HttpStatus.UNAUTHORIZED)\n                        return@flatMap Mono.error&lt;Void&gt;(OAuth2AuthenticationException(&quot;MFA scope is not supported for called url&quot;))\n                    }\n                }\n                chain.filter(exchange)\n            }\n            .switchIfEmpty(chain.filter(exchange)) // Proceed with the filter chain if no security context is present\n            .onErrorResume(OAuth2AuthenticationException::class.java) { _: OAuth2AuthenticationException? -&gt; Mono.empty() }\n    }\n}\n</code></pre>\n<p>Like I said I was trying multiple thing on enabling and disabling filter, when it's not added to security chain it's working like a charm</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

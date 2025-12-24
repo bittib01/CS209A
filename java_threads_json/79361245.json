@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "multithreading",
+      "text-to-speech"
+    ],
+    "owner": {
+      "account_id": 11445074,
+      "reputation": 628,
+      "user_id": 8389251,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/b92ZPLUr.png?s=256",
+      "display_name": "Antares",
+      "link": "https://stackoverflow.com/users/8389251/antares"
+    },
+    "is_answered": false,
+    "view_count": 51,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1738830902,
+    "creation_date": 1737024255,
+    "last_edit_date": 1738830902,
+    "question_id": 79361245,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79361245/wrapping-functions-call-with-its-callback-in-one-blocking-function-in-java-and",
+    "title": "Wrapping function&#39;s call with its callback in one blocking function in Java (Android specific)",
+    "body": "<p>In Android system there is TextToSpeech API that allows initialize TTS engine - it happens by calling TextToSpeech constructor and giving listener called later with result:</p>\n<pre><code>mEngine = new TextToSpeech(mContext, listener, ENGINE_GOOGLE_NAME);\n</code></pre>\n<p>What I want to reach is to have one blocking function that calls constructor and returns after callback is done.</p>\n<p>As I experienced no matter from what thread the constructor is called, the listener is fired from &quot;main&quot; application's thread.</p>\n<p>My idea was to have example function (simplified code - I hope it is understandable):</p>\n<pre class=\"lang-java prettyprint-override\"><code>private TextToSpeech mEngine;\nCountDownLatch cdl = new CountDownLatch(1);\nExecutorService executorService = Executors.newSingleThreadExecutor();\n\npublic void initializeBlocking() {\n        \n        executorService.execute(() -&gt; { // new thread\n            mEngine = new TextToSpeech(mContext, status -&gt; {\n                \n               cdl.countDown(); // callback body (executes in &quot;main&quot; thread)\n                \n            }, ENGINE_GOOGLE_NAME);\n        });\n        \n        cdl.await(); // main thread\n            \n    }\n</code></pre>\n<p>I hoped the listener also will be called in new thread, but since it is called in main thread and main thread is waiting ( <em>cdl.await()</em> ) it is never called and whole application is getting stuck.</p>\n<p>Do you have any idea how can I reach my goal in this situation? Maybe I am doing something basically wrong?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

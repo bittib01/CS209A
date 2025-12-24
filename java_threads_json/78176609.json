@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "http",
+      "security"
+    ],
+    "owner": {
+      "account_id": 20955342,
+      "reputation": 1,
+      "user_id": 15396000,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/3083cd2eb480cbae223ab255f75bb945?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Jaehyuk Chang",
+      "link": "https://stackoverflow.com/users/15396000/jaehyuk-chang"
+    },
+    "is_answered": true,
+    "view_count": 555,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1721558571,
+    "creation_date": 1710703243,
+    "last_edit_date": 1721558571,
+    "question_id": 78176609,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78176609/how-to-send-a-http-cookie-using-the-set-cookie-header-over-a-http-connection",
+    "title": "How to send a HTTP Cookie using the Set-Cookie header over a HTTP connection?",
+    "body": "<p>I'm developing the backend for a web application using the Java Spring Framework and Spring Security. I'm trying to create a login system using JWT, by sending the JWT access token from the server to the client as cookies using the Set-Cookie header.</p>\n<p>When I'm testing on localhost with Postman, I seem to have no problems. However, when trying to send the cookies to a client on another pc, the Set-Cookie header seems to get refused by the client.</p>\n<p>This is the logic for receiving a login request from the client, and returning a JWT access token if the login is valid :</p>\n<pre><code>    @PostMapping(&quot;/login&quot;)\n    public ResponseEntity&lt;?&gt; authenticate(HttpServletRequest request, HttpServletResponse response, @RequestBody AuthRequestDTO requestDTO){\n\n// Verify the client's login (username and password)\n        AuthDTO responseDTO = authService.authenticate(requestDTO);\n\n// Set JWT access token if the client's login details are valid\n        ResponseCookie cookieAccessToken = ResponseCookie.from(&quot;accessToken&quot;, responseDTO.getAccessToken())\n                .maxAge(Duration.ofMinutes(5))\n                .domain(request.getRemoteAddr())\n                .sameSite(&quot;Lax&quot;)\n                .secure(false)\n                .httpOnly(true)\n                .build();\n\n// Add access token as &quot;Set-Cookie&quot; key-value in HTTP response header.\n        response.addHeader(HttpHeaders.SET_COOKIE, cookieAccessToken.toString());\n\n        log.info(&quot;Access Token Cookie : &quot; + cookieAccessToken.toString());\n\n        return ResponseEntity.ok().body(null);\n    }\n</code></pre>\n<p>I feel that the main point is regarding the ResponseCookie methods. I've tried changing up many of the method options but to no avail. If anyone has worked with sending cookies over a HTTP connection (not HTTPS - due to the code being in early development), I would appreciate help on this matter.</p>\n<p>For reference, this is my Spring Security config settings (AUTH_WHITELIST allows access to the login API without needing an access token, and jwtAuthenticationFilter is a spring bean component of my custom implementation of JWT) :</p>\n<pre><code>@Bean\n    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{\n        http.csrf((csrf) -&gt; csrf.disable())\n                .headers((header)-&gt;header.frameOptions((fo)-&gt;fo.sameOrigin()))\n                .authorizeHttpRequests((authorize) -&gt; authorize\n                        .requestMatchers(AUTH_WHITELIST).permitAll()\n                        .requestMatchers(&quot;/api/admin&quot;).hasAnyRole(ADMIN_MAIN.name(), ADMIN_SUB.name())\n                        .requestMatchers(&quot;/api/file&quot;).hasAnyRole(ADMIN_MAIN.name(), ADMIN_SUB.name())\n                        .requestMatchers(&quot;/**&quot;).hasAnyRole(ADMIN_MAIN.name(), ADMIN_SUB.name(), USER_ENTERPRISE.name(), USER_INDIVIDUAL.name(), VISITOR.name())\n                        .anyRequest().authenticated());\n\n        http.sessionManagement((sessionManagement) -&gt; sessionManagement\n                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))\n                .authenticationProvider(authenticationProvider)\n                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);\n\n        http.logout((logout) -&gt; logout.logoutUrl(&quot;/api/auth/logout&quot;).addLogoutHandler(logoutHandler)\n                .logoutSuccessHandler((request, response, authentication) -&gt; SecurityContextHolder.clearContext()));\n        return http.build();\n    }\n</code></pre>\n<p>I've tried accessing the login API from several clients. I tried accessing the login API on Google Chrome, Mozilla Firefox, and Postman from another pc (i.e. different IP address from the server).</p>\n<p>EDIT : I do have CORS configured in a separate file.</p>\n<pre><code>    @Override\n    public void addCorsMappings(CorsRegistry registry){\n        registry.addMapping(&quot;/**&quot;)\n                .allowedOriginPatterns(&quot;*&quot;)\n                .allowCredentials(true)\n                .allowedMethods(&quot;GET&quot;, &quot;POST&quot;, &quot;PUT&quot;, &quot;DELETE&quot;);\n    }\n</code></pre>\n<p>EDIT 2 : I've also tried explicitly setting the IP of the client pc as the domain. For some baffling reason that didn't seem to work either.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

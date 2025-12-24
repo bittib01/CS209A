@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "file",
+      "reactive-programming",
+      "project-reactor"
+    ],
+    "owner": {
+      "account_id": 39348919,
+      "reputation": 57,
+      "user_id": 29231999,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/40b4870373bc4ee8aa253047911677bb?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "george",
+      "link": "https://stackoverflow.com/users/29231999/george"
+    },
+    "is_answered": true,
+    "view_count": 119,
+    "answer_count": 2,
+    "score": 2,
+    "last_activity_date": 1740070223,
+    "creation_date": 1740061965,
+    "last_edit_date": 1740066652,
+    "question_id": 79454853,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79454853/how-to-read-a-file-more-efficiently",
+    "title": "How to read a file more efficiently?",
+    "body": "<p>I have code that reads a file and converts and returns a flux of a list of hashmaps in groups of 10. Initially I was taking an input of the entire file content as a string, but I felt like it would use too much memory, and want to read the file directly. Is my implementation actually saving any memory? I feel like using .collectList contradicts what I am doing.</p>\n<pre class=\"lang-java prettyprint-override\"><code>public Flux&lt;List&lt;Map&lt;String, String&gt;&gt;&gt; processCsvFile(File csvFile, String delimiter) {\n\n    notBlank(csvFile.getPath(), &quot;the file must not be empty&quot;);\n    notBlank(delimiter, &quot;the delimiter must not be empty&quot;);\n\n    return Flux.using(\n            () -&gt; Files.lines(csvFile.toPath()),\n            Flux::fromStream,\n            stream -&gt; stream.close()\n        )\n        .collectList()\n        .flatMapMany(lines -&gt; {\n            final var headers = Splitter.on(delimiter)\n                    .trimResults()\n                    .splitToList(lines.get(0).replaceAll(Pattern.quote(delimiter) + &quot;+$&quot;, &quot;&quot;));\n\n            return Flux.fromIterable(lines.subList(1, lines.size()))\n                    .map(line -&gt; {\n                        final var values =\n                                Splitter.on(delimiter).trimResults().splitToList(line.replaceAll(Pattern.quote(delimiter) + &quot;+$&quot;, &quot;&quot;));\n                        Map&lt;String, String&gt; outputMap = new HashMap&lt;&gt;();\n                        for (var i = 0; i &lt; headers.size(); i++) {\n                            outputMap.put(headers.get(i), i &lt; values.size() ? values.get(i) : &quot;&quot;);\n                        }\n                        return outputMap;\n                    })\n                    .buffer(10);\n        })\n        .onErrorResume(e -&gt; {\n            log.atError()\n                    .addKeyValue(&quot;csvFile&quot;, csvFile.getName())\n                    .setCause(e)\n                    .log(&quot;Error processing CSV file&quot;);\n            return Flux.error(new RuntimeException(&quot;Error processing CSV file&quot;, e));\n        });\n}\n</code></pre>\n<p>Here is an example file content:</p>\n<pre class=\"lang-none prettyprint-override\"><code>id|name|description|created_at|\nid1|name1|desc1|created1|\nid2|name2|desc2|created2|\nid3|name3|desc3|created3|\nid4|name4|desc4|created4|\nid5|name5|desc5|created5|\nid6|name6|desc6|created6|\nid7|name7|desc7|created7|\nid8|name8|desc8|created8|\nid9|name9|desc9|created9|\nid10|name10|desc10|created10|\nid11|name11|desc11|created11|\nid12|name12|desc12|created12|\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

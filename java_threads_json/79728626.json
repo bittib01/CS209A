@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "json",
+      "rest"
+    ],
+    "owner": {
+      "account_id": 16802961,
+      "reputation": 69,
+      "user_id": 12147810,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/11328054df033f211a88d83bfd506b89?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "GetWhimsical",
+      "link": "https://stackoverflow.com/users/12147810/getwhimsical"
+    },
+    "is_answered": false,
+    "view_count": 57,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1755200698,
+    "creation_date": 1754572567,
+    "last_edit_date": 1754572882,
+    "question_id": 79728626,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79728626/receiving-an-invalid-value-at-address-error-when-attempting-to-call-google-a",
+    "title": "Receiving an &quot;Invalid value at &#39;address&#39;&quot; error when attempting to call Google Address Validation API",
+    "body": "<p>I'm attempting to create an address validator for a web app using Java with GSON and I can't get the API call out to Google Maps to complete validly.  Here's what I have for the controller:</p>\n<pre><code>@RestController\npublic class AddressController {\n    @GetMapping(&quot;/AddressChecker&quot;)\n    public ModelAndView addressChecker() throws URISyntaxException, IOException, InterruptedException, JSONException {\n        ModelAndView addressChecker = new ModelAndView(&quot;/Address/AddressChecker&quot;);\n\n        GoogleAddress googleAddress = new GoogleAddress();\n        googleAddress.setAddress_url(&quot;Address Line 1&quot;, &quot;Postal Code&quot;);\n        Gson gson = new Gson();\n        String jsonRequest = gson.toJson(googleAddress);\n        \n        HttpRequest postRequest = HttpRequest.newBuilder()\n                .uri(new URI(&quot;https://addressvalidation.googleapis.com/v1:validateAddress&quot;))\n                .header(&quot;Authorization&quot;, Constants.API_Key)\n                .POST(HttpRequest.BodyPublishers.ofString(jsonRequest))\n                .build();\n\n        HttpClient httpClient = HttpClient.newHttpClient();\n        HttpResponse&lt;String&gt; postResponse = httpClient.send(postRequest, HttpResponse.BodyHandlers.ofString());\n\n        addressChecker.addObject(&quot;postResponse&quot;, postResponse.body());\n        return addressChecker;\n    }\n}\n</code></pre>\n<p>And the Model:</p>\n<pre><code>public class GoogleAddress {\n    public GoogleAddress() {\n    }\n\n    private String address;\n\n    public String getAddress_url() {\n        return address;\n    }\n\n    public void setAddress_url(String address, String postCode) throws JSONException {\n        JSONObject json = new JSONObject();\n        JSONObject array = new JSONObject();\n        ArrayList&lt;String&gt; addressLineString = new ArrayList&lt;String&gt;();\n        addressLineString.add(address);\n        array.put(&quot;addressLines&quot;, addressLineString);\n        array.put(&quot;postCode&quot;, postCode);\n        json.put(&quot;address&quot;, array);\n        this.address = String.valueOf(json);\n    }\n}\n</code></pre>\n<p>I've been on the documentation and have seen that it's expecting the following JSON in the body:\n{&quot;address&quot;: {&quot;postalCode&quot;: 12345, &quot;addressLines&quot;: [&quot;1600 Amphitheatre Pkwy&quot;]}</p>\n<p>I'm unsure what's causing this error to be returned, but here's the full POST response:</p>\n<pre><code>object      {1}\n        \n    error       {4}\n        \ncode    :   400\n        \nmessage :   Invalid value at 'address' (type.googleapis.com/google.type.PostalAddress), \\&quot;{\\&quot;address\\&quot;:{\\&quot;postalCode\\&quot;:\\&quot;12345\\&quot;,\\&quot;addressLines\\&quot;:\\&quot;Address Line 1]\\&quot;}}\\&quot;\n        \nstatus  :   INVALID_ARGUMENT\n        \n    details     [1]\n        \n    0       {2}\n        \n@type   :   type.googleapis.com/google.rpc.BadRequest\n        \n    fieldViolations     [1]\n        \n    0       {2}\n        \nfield   :   address\n        \ndescription :   Invalid value at 'address' (type.googleapis.com/google.type.PostalAddress), \\&quot;{\\&quot;address\\&quot;:{\\&quot;postalCode\\&quot;:\\&quot;12345\\&quot;,\\&quot;addressLines\\&quot;:\\&quot;[Address Line 1]\\&quot;}}\\&quot;\n</code></pre>\n<p>Edits: updated example data</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "arrays",
+      "resize",
+      "doubly-linked-list"
+    ],
+    "owner": {
+      "account_id": 40906345,
+      "reputation": 11,
+      "user_id": 30022751,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/f821633fae40a6d551378788beb74e7a?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "GoldenPlus 89",
+      "link": "https://stackoverflow.com/users/30022751/goldenplus-89"
+    },
+    "is_answered": false,
+    "view_count": 65,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1742912859,
+    "creation_date": 1742660980,
+    "question_id": 79527740,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79527740/im-implementing-a-python-dict-i%c2%b4m-using-a-doubly-linked-list-it-works-until-th",
+    "title": "Im implementing a python dict. I&#180;m using a doubly linked list, it works until the first resize. How can I change my resize method to make it work?",
+    "body": "<p>When inserting the first 8 pairs of keys and values it works perfectly fine and the order is maintained, the problem comes after the resizing. If I insert the pairs (4,4),(5,5),(6,6),(7,7),(1,1),(2,2),(3,3) the order is maintained and the dict looks like this [(1,1),(2,2),(3,3),(4,4),(5,5),(6,6),(7,7)] but if I insert (8,8) the resize comes in action and then the insertion order is completely changed because the doubly linked list still has the first insertions (4,4)(5,5)(6,6)(7,7)(1,1)(2,2)(3,3) and now adds to the tail one by one the elements in the dict so the Doubly linked list ends up like this: (4,4),(5,5),(6,6),(7,7),(1,1),(2,2),(3,3),(1,1),(2,2),(3,3),(4,4),(5,5),(6,6),(7,7).\nHere´s my doubly linked list class:</p>\n<pre><code>    public class DoubleLinkedList {\n        Node&lt;K, V&gt; head;\n        Node&lt;K, V&gt; tail;\n\n        public DoubleLinkedList() {\n            head = null;\n            tail = null;\n        }\n\n        public void insertAtEnd(Node&lt;K, V&gt; node)\n        {\n            if (tail == null) {\n                head = node;\n                tail = node;\n            }\n            else {\n                tail.next = node;\n                node.prev = tail;\n                tail = node;\n            }\n        }\n    }\n</code></pre>\n<p>Here is my Dict class and Node class:</p>\n<pre><code>public class Dict&lt;K, V&gt; implements Iterable&lt;K&gt;{\n\n\n    public static class Node&lt;K, V&gt; {\n        private K key;\n        private V value;\n        // liberado == 1, ocupado == 0\n        private int state;\n        private Node&lt;K, V&gt; next;\n        private Node&lt;K, V&gt; prev;\n    }\n\n    private Node&lt;K, V&gt;[] dict;\n    private int size;\n    private final double loadFactor = 0.80;\n    private DoubleLinkedList list;\n\n    public Dict() {\n        this.size = 0;\n        this.dict = new Node[10];\n        this.list = new DoubleLinkedList();\n\n    }\n</code></pre>\n<p>And here are my resize and put methods:</p>\n<pre><code>    public void put(K key, V value) {\n        if (this.size + 1 &gt; (this.dict.length * 0.8)) {\n            resize();\n        }\n\n        int clave = disperse(key);\n        for (int i = 0; i &lt;= dict.length; i++) {\n            int index = (clave + i) % this.dict.length;\n            if (dict[index] == null || dict[index].getState() == 1) {\n                Node&lt;K, V&gt; newNode = new Node(key, value);\n                dict[index] = newNode;\n                list.insertAtEnd(newNode);\n                this.size++;\n                return;\n            } else if (dict[index] != null &amp;&amp; dict[index].key.equals(key)) {\n                dict[index].value = value;\n                System.out.println(dict[index].value);\n                return;\n            }\n        }\n    }\n    private void resize() {\n        int capacidad = (int) (dict.length * 1.5);\n        Node&lt;K, V&gt;[] antiguoDict = this.dict;\n        this.dict = new Node[capacidad];\n        size = 0;\n        for(Node&lt;K, V&gt; node : antiguoDict){\n            if(node != null){\n                put(node.key, node.value);\n            }\n        }\n    }\n\n</code></pre>\n<p>I was trying this solution:</p>\n<pre><code>    private void resize() {\n        int capacidad = (int) (dict.length * 1.5);\n        int prev_size = size;\n        Node&lt;K, V&gt;[] nuevoDict= new Node[capacidad];\n        Node&lt;K, V&gt; current = this.list.head;\n\n        this.dict = nuevoDict;\n\n        for (int i = 0; i &lt; prev_size; i++) {\n            put(current.key, current.value);\n            pop(current.getKey());\n            current = this.list.head;\n\n        }\n\n    }\n</code></pre>\n<p>Where I use this pop method:</p>\n<pre><code>    public void pop(K key) throws NullPointerException {\n        int clave = disperse(key);\n        for (int i = 0; i &lt; dict.length; i++) {\n            int index = (clave + i) % this.dict.length;\n            Node&lt;K, V&gt; node = dict[index];\n            if (node == null) {\n                throw new NullPointerException();\n            }\n            if (node.key.equals(key)) {\n                if (node.prev != null) {\n                    node.prev.next = node.next;\n                } else {\n                    list.head = node.next;\n                }\n                if (node.next != null) {\n                    node.next.prev = node.prev;\n                } else {\n                    list.tail = node.prev;\n                }\n                dict[index] = new Node&lt;&gt;(null, null, 1);\n                size--;\n                return;\n            }\n        }\n        throw new NullPointerException();\n    }\n</code></pre>\n<p>But the pop method just eliminates the value I have just put inside the dict and so the dict is empty.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

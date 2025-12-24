@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "hibernate",
+      "jpa",
+      "spring-data-jpa"
+    ],
+    "owner": {
+      "account_id": 29999041,
+      "reputation": 73,
+      "user_id": 22989572,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocI8MFnMQ5UFoxF7AR3soJArQ26CSzpUQwuATq6cJkZ2vw=k-s256",
+      "display_name": "Marat Tim",
+      "link": "https://stackoverflow.com/users/22989572/marat-tim"
+    },
+    "is_answered": false,
+    "view_count": 94,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1747918458,
+    "creation_date": 1747918458,
+    "question_id": 79633796,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79633796/how-can-i-map-the-result-of-sql-query-to-a-dto-when-the-result-includes-a-jsonb",
+    "title": "How can I map the result of SQL query to a DTO when the result includes a JSONB type(JPA)?",
+    "body": "<p>My dependencies</p>\n<pre><code>springBootVersion = '3.4.5'\norg.springframework.boot:spring-boot-starter-data-jpa\nio.hypersistence:hypersistence-utils-hibernate-63:3.9.0\n</code></pre>\n<p>In the entities, I declare the columns as</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Entity\nclass TestEntity {\n...\n@Type(JsonBinaryType.class)\n@Column(columnDefinition = &quot;jsonb&quot;)\nList&lt;SomeDtoClass&gt; test;\n</code></pre>\n<p>and that works fine when I’m return entities in sql queries</p>\n<p>However, now I have a native SQL query that returns not the entity itself, but a set of other columns derived from the entity</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Repository\ninterface Repo extends JpaRepository&lt;TestEntity, UUID&gt; {\n  @Query(\n    &quot;&quot;&quot;\n    SELECT \n      CAST(test AS jsonb) AS test, -- just in case, in the database this column already has type jsonb\n      'example' AS example\n    FROM test\n    &quot;&quot;&quot;,\n    nativeQuery = true\n  )\n  List&lt;Dto&gt; find();\n}\n</code></pre>\n<p>I tried declaring <code>Dto</code> in different ways: as an interface to make projection work, and as <code>@Data</code> class(I tried adding a constructor where instead of complex types there's just <code>Object</code>, which is later cast to the complex type). Nothing helped. I keep having this problem every time</p>\n<pre><code>Cannot cast java.lang.String to java.util.List\n</code></pre>\n<p>So the query works fine but returns the result as a String and won't convert it automatically. I do <strong>NOT</strong> want to write manual conversion because I know it already exists and is used with the original entity. What do I need to add to the <code>Dto</code></p>\n<pre class=\"lang-java prettyprint-override\"><code>@Data\n@NoArgsContructor\n@AllArgsConstructor\nclass Dto {\n  List&lt;SomeDtoClass&gt; test;\n\n  String example;\n}\n</code></pre>\n<p>so it works like the original entity and automatically converts the result to the right type? Ideally, without adding extra libraries beyond the ones I already have</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

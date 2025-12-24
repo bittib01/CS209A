@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "postgresql",
+      "spring-boot",
+      "database-migration",
+      "liquibase"
+    ],
+    "owner": {
+      "account_id": 25028548,
+      "reputation": 635,
+      "user_id": 18886549,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/f837a3e17aeaa0aa25b6224baf3e547d?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Ali BOUHLEL",
+      "link": "https://stackoverflow.com/users/18886549/ali-bouhlel"
+    },
+    "is_answered": true,
+    "view_count": 137,
+    "accepted_answer_id": 79378448,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1737562504,
+    "creation_date": 1737558420,
+    "question_id": 79378264,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79378264/replace-liquibase-with-json-based-configuration-for-database-migrations-in-sprin",
+    "title": "Replace Liquibase with JSON Based Configuration for Database Migrations in Spring Boot",
+    "body": "<p>I'm working on a Spring Boot project where we are currently using Liquibase for database migrations to a PostgreSQL database. Our project involves creating tables, persisting data and performing updates. However, we are facing challenges with rollbacks because we are using SQL scripts.</p>\n<p>To address this, I am considering replacing Liquibase with a custom solution that uses JSON configuration for database migrations. Here is what I have done so far.</p>\n<ol>\n<li>Created a JSON file that describes the database schema and data changes.</li>\n<li>Created a service that reads the JSON configuration and applies the changes to the database.</li>\n<li>Integrated the Service into our Spring Boot application.</li>\n</ol>\n<p>Here is an example of the JSON configuration (db_migrations.json):</p>\n<pre><code>{\n  &quot;migrations&quot;: [\n    {\n      &quot;id&quot;: &quot;001&quot;,\n      &quot;description&quot;: &quot;Create table1&quot;,\n      &quot;up&quot;: [\n        &quot;CREATE TABLE table1 (id SERIAL PRIMARY KEY, field1 VARCHAR(255) NOT NULL, field2 VARCHAR(255), field3 VARCHAR(255), field4 VARCHAR(255), field5 VARCHAR(255), field6 VARCHAR(255) NOT NULL, field7 JSONB NOT NULL, field8 TIMESTAMP, field9 TIMESTAMP, field10 VARCHAR(255), field11 UUID NOT NULL)&quot;\n      ],\n      &quot;down&quot;: [\n        &quot;DROP TABLE table1&quot;\n      ]\n    }\n  ]\n}\n</code></pre>\n<p>And here is the JsonMigrationService:</p>\n<pre><code>\n@Service\npublic class JsonMigrationService {\n\n    private final JdbcTemplate jdbcTemplate;\n    private final ObjectMapper objectMapper;\n\n    @Autowired\n    public JsonMigrationService(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {\n        this.jdbcTemplate = jdbcTemplate;\n        this.objectMapper = objectMapper;\n    }\n\n    @PostConstruct\n    public void applyMigrations() throws IOException {\n        File file = new File(&quot;src/main/resources/db_migrations.json&quot;);\n        JsonNode rootNode = objectMapper.readTree(file);\n        JsonNode migrations = rootNode.path(&quot;migrations&quot;);\n\n        for (JsonNode migration : migrations) {\n            String id = migration.path(&quot;id&quot;).asText();\n            String description = migration.path(&quot;description&quot;).asText();\n            JsonNode upCommands = migration.path(&quot;up&quot;);\n\n            for (JsonNode command : upCommands) {\n                jdbcTemplate.execute(command.asText());\n            }\n        }\n    }\n\n    public void rollbackMigration(String migrationId) throws IOException {\n        File file = new File(&quot;src/main/resources/db_migrations.json&quot;);\n        JsonNode rootNode = objectMapper.readTree(file);\n        JsonNode migrations = rootNode.path(&quot;migrations&quot;);\n\n        for (JsonNode migration : migrations) {\n            if (migration.path(&quot;id&quot;).asText().equals(migrationId)) {\n                JsonNode downCommands = migration.path(&quot;down&quot;);\n                for (JsonNode command : downCommands) {\n                    jdbcTemplate.execute(command.asText());\n                }\n                break;\n            }\n        }\n    }\n}\n</code></pre>\n<p>How can I improve the rollback mechanism to ensure it is robust and reliable?</p>\n<p>Are there any existing libraries or frameworks that support JSON based database migrations that I should consider instead of building a custom solution?</p>\n<p>Any advice or suggestions would be greatly appreciated. Thank you!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

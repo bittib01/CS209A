@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-security",
+      "spring-saml",
+      "opensaml",
+      "spring-security-saml2"
+    ],
+    "owner": {
+      "account_id": 26326267,
+      "reputation": 31,
+      "user_id": 20924819,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/3901029cef95f0689edb7d30597a3bd1?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Kim",
+      "link": "https://stackoverflow.com/users/20924819/kim"
+    },
+    "is_answered": true,
+    "view_count": 185,
+    "accepted_answer_id": 79586789,
+    "answer_count": 1,
+    "score": 3,
+    "last_activity_date": 1745334295,
+    "creation_date": 1733911697,
+    "last_edit_date": 1734002879,
+    "question_id": 79271274,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79271274/how-to-access-encrypted-assertions-after-migrating-to-spring-security-saml2-serv",
+    "title": "How to access encrypted assertions after migrating to spring-security-saml2-service-provider 6.4",
+    "body": "<h3>Background</h3>\n<p>In an application where <code>spring-security-saml2-service-provider</code> was upgraded from <code>6.3.x</code> to <code>6.4.1</code>, I am experiencing a change in behaviour where I'm struggling to access the list of encrypted assertions in a validator class.</p>\n<p>I'm configuring a response validator in my configuration as Spring intends by:</p>\n<pre class=\"lang-java prettyprint-override\"><code>var authProvider = new OpenSaml4AuthenticationProvider();\nauthProvider.setResponseValidator(responseValidator);\n</code></pre>\n<p>Having received a SAML Response with a single encrypted assertion, in said <code>responseValidator</code>, I'd be able to do something like this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>class SamlResponseValidator implements Converter&lt;ResponseToken, Saml2ResponseValidatorResult&gt; {\n\n  @Override\n  public Saml2ResponseValidatorResult convert(ResponseToken responseToken) {\n    // Without any other overrides, the below gives you the Spring-decrypted assertion:\n    var assertions = responseToken.getResponse().getAssertions();\n    \n    // In 6.3, the below would _also_ contain the still-encrypted assertions while\n    // in 6.4, you'll always just get an empty list, it seems:\n    var encryptedAssertions = responseToken.getResponse().getEncryptedAssertions();\n\n    // (...)\n  }\n}\n</code></pre>\n<p>I can see that this change comes from what is now <code>OpenSaml4Template.OpenSaml4DecryptionConfigurer.decryptResponse(Response response)</code> which will do this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>// ...\n\nint count = 0; // &lt;-- This should probably a 1, I assume, otherwise the log statement doesn't make sense\nint size = response.getEncryptedAssertions().size();\nfor (EncryptedAssertion encrypted : response.getEncryptedAssertions()) {\n   logger.trace(String.format(&quot;Decrypting EncryptedAssertion (%d/%d) in Response [%s]&quot;, count, size, response.getID()));\n   try {\n      Assertion decrypted = this.decrypter.decrypt(encrypted);\n      if (decrypted != null) {\n         encrypteds.add(encrypted);\n         decrypteds.add(decrypted);\n      }\n      count++;\n   } catch (DecryptionException ex) {\n      throw new Saml2Exception(ex);\n   }\n}\n\nresponse.getEncryptedAssertions().removeAll(encrypteds); // &lt;-- The cause of what I'm seeing!\nresponse.getAssertions().addAll(decrypteds);\n\n// ...\n</code></pre>\n<p>The Javadoc on the method states that:</p>\n<blockquote>\n<p>The methods that follow are adapted from OpenSAML's [classes].</p>\n</blockquote>\n<p>Previously, <code>response.getEncryptedAssertions().removeAll(encrypteds)</code> did not exist.</p>\n<h3>Questions</h3>\n<ol>\n<li>Is this an intentional change in behaviour? Feels odd.</li>\n<li>What is the intended way of accessing the encrypted assertion in a validator?</li>\n</ol>\n<h3>More details</h3>\n<p>I know that a possible solution is to do <code>responseToken.getToken().getSaml2Response()</code> and parse it again.</p>\n<p>I also now simply override the decrypter that is being used but that would mean a lot of copy and paste of code that I don't actually want to customise (and room for additional bugs and the need for additional tests).</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-security"
+    ],
+    "owner": {
+      "account_id": 13624129,
+      "reputation": 1,
+      "user_id": 11886033,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/5905f088b3489e2dc35cfd0e04cfa5ea?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Shubhankar Singh",
+      "link": "https://stackoverflow.com/users/11886033/shubhankar-singh"
+    },
+    "is_answered": true,
+    "view_count": 5397,
+    "accepted_answer_id": 78935056,
+    "answer_count": 4,
+    "score": 0,
+    "last_activity_date": 1750337952,
+    "creation_date": 1725104742,
+    "last_edit_date": 1725105345,
+    "question_id": 78935010,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78935010/spring-boot-throwing-401-unauthorized-on-post-request",
+    "title": "Spring Boot throwing 401 Unauthorized on POST request",
+    "body": "<p>I am working on a spring-boot web app and have configured Spring Security with JWT. My issue is that when I make a POST request in Postman, I receive a 401 Unauthorized error. However, when I make a GET request, it returns data with a 200 status. This seems to be a common issue; I've checked different threads on stackoverflow, and most suggest disabling CSRF in the security config. I've already done this, but it’s still not working.</p>\n<p>Request &quot;/courses/**&quot; with permitAll(), should be accessible without authentication.</p>\n<p><strong>SecurityConfig.java</strong></p>\n<pre><code>@Configuration \n@EnableWebSecurity\n@RequiredArgsConstructor\npublic class SecurityConfig {\n\nprivate final CustomUserDetailsService userDetailsService;\nprivate final JwtAuthEntryPoint jwtAuthEntryPoint;\n\n@Bean\npublic AuthTokenFilter authenticationTokenFilter(){\n    return new AuthTokenFilter();\n}\n\n@Bean\npublic PasswordEncoder passwordEncoder(){\n    return new BCryptPasswordEncoder();\n}\n\n@Bean\npublic AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {\n    return authConfig.getAuthenticationManager();\n}\n\n@Bean\npublic DaoAuthenticationProvider authenticationProvider(){\n    var authProvider = new DaoAuthenticationProvider();\n    authProvider.setUserDetailsService(userDetailsService);\n    authProvider.setPasswordEncoder(passwordEncoder());\n    return authProvider;\n}\n\n@Bean\npublic SecurityFilterChain filterChain(HttpSecurity http) throws Exception{\n    http.csrf(AbstractHttpConfigurer::disable)  // Disable CSRF for stateless APIs\n            .exceptionHandling(exception -&gt; exception.authenticationEntryPoint(jwtAuthEntryPoint))\n            .sessionManagement(session -&gt; session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))\n            .authorizeHttpRequests(auth-&gt;\n                            auth.requestMatchers(&quot;/api/auth/**&quot;).permitAll()\n                            .requestMatchers(&quot;/api/roles/**&quot;).permitAll()\n                            .requestMatchers(&quot;/api/users/**&quot;).permitAll()\n                            .requestMatchers(&quot;/courses/**&quot;).permitAll()\n                            .anyRequest().authenticated()\n            );\n    http.authenticationProvider(authenticationProvider());\n    http.addFilterBefore(authenticationTokenFilter(), UsernamePasswordAuthenticationFilter.class);\n\n    return http.build();\n}\n\n}\n</code></pre>\n<p><strong>Post Method</strong></p>\n<pre><code>    @PostMapping(&quot;/add-course&quot;)\npublic ResponseEntity&lt;?&gt; addCourse(@RequestBody Course course){\n    try{\n        System.out.println(&quot;Course body: &quot; + course);\n        Course theCourse = courseService.addNewCourse(course);\n        return ResponseEntity.ok(theCourse);\n    }catch (Exception e){\n        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());\n    }\n}\n</code></pre>\n<p><strong>Postman API call Image</strong></p>\n<p><a href=\"https://i.sstatic.net/erpB8vI4.png\" rel=\"nofollow noreferrer\">POSTMAN post request</a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "rag",
+      "langchain4j"
+    ],
+    "owner": {
+      "account_id": 200481,
+      "reputation": 5535,
+      "user_id": 446357,
+      "user_type": "registered",
+      "accept_rate": 64,
+      "profile_image": "https://www.gravatar.com/avatar/2374e43485f6caeb3302e66c327608e2?s=256&d=identicon&r=PG",
+      "display_name": "MTilsted",
+      "link": "https://stackoverflow.com/users/446357/mtilsted"
+    },
+    "is_answered": false,
+    "view_count": 132,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1756482404,
+    "creation_date": 1753739989,
+    "last_edit_date": 1753799180,
+    "question_id": 79717924,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79717924/how-do-i-prevent-duplicate-messages-in-context-window-when-using-rag-and-memory",
+    "title": "How do I prevent duplicate messages in context window, when using rag and memory?",
+    "body": "<p>When using rag and memory, multiple identical copies of the same information is sent to the ai, when asking related questions.</p>\n<p>I have</p>\n<pre><code>import java.util.ArrayList;\nimport java.util.List;\n\nimport dev.langchain4j.data.message.ChatMessage;\nimport dev.langchain4j.memory.ChatMemory;\nimport dev.langchain4j.memory.chat.MessageWindowChatMemory;\nimport dev.langchain4j.model.openai.OpenAiChatModel;\nimport dev.langchain4j.model.openai.OpenAiChatModelName;\nimport dev.langchain4j.rag.content.Content;\nimport dev.langchain4j.rag.content.retriever.ContentRetriever;\nimport dev.langchain4j.rag.query.Query;\nimport dev.langchain4j.service.AiServices;\nimport dev.langchain4j.service.MemoryId;\nimport dev.langchain4j.service.UserMessage;\nimport dev.langchain4j.service.memory.ChatMemoryAccess;\n\ninterface ChatInterface extends ChatMemoryAccess {\nString chat(@memoryid int memoryId, @Usermessage String userMessage);\n}\n\npublic class RagHistoryBug {\npublic static void main(String args[]) throws Exception {\nString apiKey=&quot;Can't provide my key, but I am sure this bug also shows up with local run ai&quot;;\nOpenAiChatModel chatModel=OpenAiChatModel.builder()\n.apiKey(apiKey)\n.modelName(OpenAiChatModelName.GPT_4_O_MINI)\n.build();\n\n    AiServices&lt;ChatInterface&gt; builder=AiServices.builder(ChatInterface.class)\n            .chatModel(chatModel)\n            .chatMemoryProvider(memoryId -&gt; MessageWindowChatMemory.withMaxMessages(11));\n    \n    ContentRetriever contentRetriever=new ContentRetriever() {\n        @Override public List&lt;Content&gt; retrieve(Query q) {\n            List&lt;Content&gt; list = new ArrayList&lt;&gt;();\n            list.add(Content.from(&quot;I have a cat called Pulasy. It likes mice very much&quot;));\n            return list;\n        }\n    };\n    builder=builder.contentRetriever(contentRetriever);\n    ChatInterface assistant=builder.build();\n\n    System.out.println(assistant.chat(1,&quot;What is the name of my cat?&quot;));\n    System.out.println(assistant.chat(1,&quot;Do my cat like mice?&quot;));\n    System.out.println(assistant.chat(1,&quot;Is Pulasy a lion?&quot;));\n    \n    ChatMemory mem = assistant.getChatMemory(1);\n    List&lt;ChatMessage&gt; messages = mem.messages();\n    for(ChatMessage msg: messages) {\n        System.out.println(&quot;Msg:&quot; + msg);\n    }\n}\n\n}\n\n\n\nIf I run this program, the output is:\n\nYour cat's name is Pulasy.\nYes, your cat Pulasy likes mice very much.\nNo, Pulasy is not a lion; Pulasy is a cat.\nMsg:UserMessage { name = null contents = [TextContent { text = &quot;What is the name of my cat?\n\nAnswer using the following information:\nI have a cat called Pulasy. It likes mice very much&quot; }] }\nMsg:AiMessage { text = &quot;Your cat's name is Pulasy.&quot; toolExecutionRequests = [] }\nMsg:UserMessage { name = null contents = [TextContent { text = &quot;Do my cat like mice?\n\nAnswer using the following information:\nI have a cat called Pulasy. It likes mice very much&quot; }] }\nMsg:AiMessage { text = &quot;Yes, your cat Pulasy likes mice very much.&quot; toolExecutionRequests = [] }\nMsg:UserMessage { name = null contents = [TextContent { text = &quot;Is Pulasy a lion?\n\nAnswer using the following information:\nI have a cat called Pulasy. It likes mice very much&quot; }] }\nMsg:AiMessage { text = &quot;No, Pulasy is not a lion; Pulasy is a cat.&quot; toolExecutionRequests = [] }\n\n</code></pre>\n<p>Note that:</p>\n<pre><code>Answer using the following information:\nI have a cat called Pulasy. It likes mice very much&quot; }] }\nMsg:AiMessage { text = &quot;No, Pulasy is not a lion; Pulasy is a cat.&quot; toolExecutionRequests = [] }\n\nis included 3 times. (And I checked the used input tokens. It really is included 3 times. How do I prevent that?\n\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

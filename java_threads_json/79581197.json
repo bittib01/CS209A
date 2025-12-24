@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-webflux",
+      "reactor-netty"
+    ],
+    "owner": {
+      "account_id": 33109821,
+      "reputation": 1,
+      "user_id": 25667394,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/a31ff3accf383a051979eae9060026ce?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "G.K. Meier",
+      "link": "https://stackoverflow.com/users/25667394/g-k-meier"
+    },
+    "is_answered": false,
+    "view_count": 91,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1745568574,
+    "creation_date": 1744985204,
+    "last_edit_date": 1745568574,
+    "question_id": 79581197,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79581197/how-do-i-scale-a-reactor-http-server-connections-per-second",
+    "title": "How do I scale a Reactor Http Server connections per second?",
+    "body": "<p>How do I scale Reactor Http Server connections per second?</p>\n<p>Right now the toy app scales to 500 connections per second (exactly).</p>\n<p>(I'm not concerned with the number of requests that can be processed per second on a single connection.)</p>\n<p>If its of interest of using MacOS (Sequoia 15.3.2), OpenJDK 21, and Reactor-Netty 1.2.4</p>\n<p>Searching the Reactor documentation I can find information about Http client scaling (which is configured in the constructor), but that same option is not available in the Http server.</p>\n<p>I have not been able to determine through my research what the constraint is (weather it lies in the library or OS, although given the small number, I am guessing the library). Thus I do not know if it is related to pools, threads, schedulers, channels, connection queues, or a hard coded limit.</p>\n<p>A minimum viable example (very simplified version of the code) using Http to remove encryption overhead.</p>\n<pre class=\"lang-java prettyprint-override\"><code>package example;\n\nimport reactor.core.publisher.Mono;\nimport reactor.netty.DisposableServer;\nimport reactor.netty.http.HttpProtocol;\nimport reactor.netty.http.server.HttpServer;\n\npublic final class MVP {\n\n  public static void main(String[] args) throws Exception {\n    HttpServer server = HttpServer.create()\n      .port(80)\n      .wiretap(false)\n      .compress(false)\n      .protocol(HttpProtocol.HTTP11);\n    server.warmup();\n    DisposableServer disposableServer = server\n      .route(routes -&gt;\n        routes.post(&quot;/fortune&quot;, (req, res) -&gt; {\n          Mono&lt;String&gt; returnContent = req\n            .receive()\n            .aggregate()\n            .asString()\n            .filter(str -&gt; str.length() &gt; 0);\n          return res.sendString(returnContent);\n        })\n      )\n      .bindNow();\n    Mono.when(disposableServer.onDispose()).block();\n  }\n}\n</code></pre>\n<p>Test script</p>\n<pre class=\"lang-bash prettyprint-override\"><code>#!/bin/bash\n\nhostname=$(hostname)\ntime1=$(date +%s)\necho &quot;Start time: ${time1}&quot;\n# Test rapid connections\nfor i in {1..10000}\ndo\n  # sleep 0.00001\n  curl --cacert ./certs.pem http://${hostname}/fortune -d &quot;key${i}=${time1}&quot; -H &quot;Content-Type:application/x-www-form-urlencoded&quot; -o /dev/null &gt; /dev/null 2&gt;&amp;1 &amp;\ndone\ntime2=$(date +%s)\necho &quot;End time (estimated): ${time2}&quot;\necho &quot;Connections per second:&quot;\nawk &quot;BEGIN { print 10000.0/(${time2} - ${time1}) }&quot;\n</code></pre>\n<p>Build dependencies:</p>\n<pre><code>implementation group: 'io.netty', name: 'netty-all', version: '4.1.118.Final'\nimplementation group: 'io.projectreactor.netty', name: 'reactor-netty-core', version: '1.2.4'\nimplementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.2.4'\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

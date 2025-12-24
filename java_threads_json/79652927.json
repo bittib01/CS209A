@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "javac",
+      "java-24"
+    ],
+    "owner": {
+      "account_id": 13634501,
+      "reputation": 24855,
+      "user_id": 9835872,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/k0ksC.jpg?s=256",
+      "display_name": "ruohola",
+      "link": "https://stackoverflow.com/users/9835872/ruohola"
+    },
+    "is_answered": true,
+    "view_count": 343,
+    "accepted_answer_id": 79653341,
+    "answer_count": 1,
+    "score": 7,
+    "last_activity_date": 1758099390,
+    "creation_date": 1749045670,
+    "last_edit_date": 1758099390,
+    "question_id": 79652927,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79652927/why-does-using-instanceof-pattern-matching-on-a-record-field-with-a-switch-expre",
+    "title": "Why does using instanceof pattern matching on a record field with a switch expression in the same method cause a java.lang.VerifyError?",
+    "body": "<p>I found this minimal set of code which seems to break any Java version I can find. (Also reproducible in <a href=\"https://www.onlinegdb.com/online_java_compiler\" rel=\"nofollow noreferrer\">https://www.onlinegdb.com/online_java_compiler</a> with Java <code>23.0.2+7-58</code>). The example is not meant to do anything useful except to demonstrate the issue — my actual code is more complex.</p>\n<pre class=\"lang-java prettyprint-override\"><code>record VehicleInput(Vehicle vehicle) {}\n\nsealed interface Vehicle permits Car {}\n\nrecord Car(String licensePlate) implements Vehicle {}\n\nsealed interface Animal permits Cat, Dog {}\n\nrecord Cat() implements Animal {}\n\nrecord Dog() implements Animal {}\n\nclass VehicleProgressor {\n  private boolean progress(VehicleInput input, Animal animal) {\n    if (input.vehicle() instanceof Car(String licensePlate)) {\n      return true;\n    }\n\n    return switch (animal) {\n      case Cat cat -&gt; true;\n      case Dog dog -&gt; true;\n    };\n  }\n}\n\npublic class Main {\n  public static void main(String[] args) {\n    System.out.println(Runtime.version());\n\n    new VehicleProgressor();\n  }\n}\n</code></pre>\n<p>(Versions managed with <a href=\"https://sdkman.io/install/\" rel=\"nofollow noreferrer\">sdkman</a>)</p>\n<pre class=\"lang-none prettyprint-override\"><code>$ sdk install java 24.0.1-amzn\n$ sdk use java 24.0.1-amzn\n</code></pre>\n<p>(The error output is exactly the same with <code>java 21.0.7-amzn</code>, <code>java 24.0.1-amzn</code>, <code>java 25.ea.25-open</code>, and <code>java 25.ea.25-graal</code>.)</p>\n<p>Compiling works:</p>\n<pre class=\"lang-none prettyprint-override\"><code>$ javac Main.java\n</code></pre>\n<p>but running fails with:</p>\n<pre class=\"lang-none prettyprint-override\"><code>$ java Main\n24.0.1+9-FR\nException in thread &quot;main&quot; java.lang.VerifyError: Inconsistent stackmap frames at branch target 96\nException Details:\n  Location:\n    VehicleProgressor.progress(LVehicleInput;LAnimal;)Z @96: aload_3\n  Reason:\n    Type top (current frame, locals[5]) is not assignable to 'Cat' (stack map, locals[5])\n  Current Frame:\n    bci: @50\n    flags: { }\n    locals: { 'VehicleProgressor', 'VehicleInput', 'Animal', 'Animal', integer }\n    stack: { integer }\n  Stackmap Frame:\n    bci: @96\n    flags: { }\n    locals: { 'VehicleProgressor', 'VehicleInput', 'Animal', 'Animal', integer, 'Cat' }\n    stack: { }\n  Bytecode:\n    0000000: 2bb6 0007 3a05 1905 c100 0d99 0015 1905\n    0000010: c000 0d4e 2db6 000f 3a06 1906 3a04 04ac\n    0000020: 2c59 b800 1357 4e03 3604 2d15 04ba 0019\n    0000030: 0000 ab00 0000 001a 0000 0002 0000 0000\n    0000040: 0000 0024 0000 0001 0000 002e bb00 1d59\n    0000050: 0101 b700 1fbf 2dc0 0022 3a05 04a7 000a\n    0000060: 2dc0 0024 3a06 04ac 4ebb 001d 592d b600\n    0000070: 282d b700 1fbf\n  Exception Handler Table:\n    bci [21, 24] =&gt; handler: 104\n  Stackmap Table:\n    same_frame(@32)\n    append_frame(@42,Object[#50],Integer)\n    same_frame(@76)\n    same_frame(@86)\n    append_frame(@96,Object[#34])\n    full_frame(@103,{Object[#43],Object[#8],Object[#50]},{Integer})\n    same_locals_1_stack_item_frame(@104,Object[#38])\n\n    at Main.main(Main.java:30)\n</code></pre>\n<p>Is this a bug in Java/JDK?</p>\n<p>If I change the class in the above code into:</p>\n<pre class=\"lang-java prettyprint-override\"><code>class VehicleProgressor {\n  private boolean progress(VehicleInput input, Animal animal) {\n    if (input.vehicle() instanceof Car) {\n      return true;\n    }\n\n    return switch (animal) {\n      case Cat cat -&gt; true;\n      case Dog dog -&gt; true;\n    };\n  }\n}\n</code></pre>\n<p>or into:</p>\n<pre class=\"lang-java prettyprint-override\"><code>class VehicleProgressor {\n  private boolean progress(VehicleInput input, Animal animal) {\n    if (input.vehicle() instanceof Car(String licensePlate)) {\n      return true;\n    }\n    return true;\n  }\n}\n</code></pre>\n<p>or into:</p>\n<pre class=\"lang-java prettyprint-override\"><code>class VehicleProgressor {\n  private boolean progress(Vehicle vehicle, Animal animal) {\n    if (vehicle instanceof Car(String licensePlate)) {\n      return true;\n    }\n\n    return switch (animal) {\n      case Cat cat -&gt; true;\n      case Dog dog -&gt; true;\n    };\n  }\n}\n</code></pre>\n<p>it runs fine just printing the version number.</p>\n<p>The super strange part is that I'm not even calling the <code>progress</code> method anywhere. I also tried having everything in separate files as <code>public</code> <code>interface</code>s/<code>record</code>s, but that made no difference.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "dto"
+    ],
+    "owner": {
+      "account_id": 31754933,
+      "reputation": 9,
+      "user_id": 24570315,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/ef99d7d98d64e271e97ff4dd3e3f7bfa?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Frank2497",
+      "link": "https://stackoverflow.com/users/24570315/frank2497"
+    },
+    "is_answered": false,
+    "view_count": 353,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1742874603,
+    "creation_date": 1742395079,
+    "last_edit_date": 1742759602,
+    "question_id": 79520511,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79520511/dto-at-hexagonal-architecture",
+    "title": "DTO at hexagonal architecture",
+    "body": "<p>I am recently working on hexagonal architecture test with java and spring boot, and i am trying to implement DTOs, i have a service class and this class inherits from four interfaces, ICreateProduct, IUpdateProduct, IRetrieveProduct and IDeleteProduct. The problem is that when i try to convert my domain models to DTOs to map the data i get an error, and i need change the methods to reurn DTOs instead of interface methods to resolve it. My question is for all those who have professional experience in hexagonal architecture, is it correct to change service methods to methods that return DTOs and only use the interfaces as dependency injection?</p>\n<p>This is my code:</p>\n<pre><code>public class ProductService implements ICreateProduct, IUpdateProduct, IDeleteProduct{\nprivate final ICreateProduct createProduct;\nprivate final IUpdateProduct updateProduct;\nprivate final IRetrieveProduct retrieveProduct;\nprivate final IDeleteProduct deleteProduct;\n\n    public ProductService(ICreateProduct createProduct, IUpdateProduct updateProduct, IRetrieveProduct retrieveProduct, IDeleteProduct deleteProduct) {\n        this.createProduct = createProduct;\n        this.updateProduct = updateProduct;\n        this.retrieveProduct = retrieveProduct;\n        this.deleteProduct = deleteProduct;\n    }\n    \n    @Override\n    public boolean deleteProductById(Long id) {\n        return deleteProduct.deleteProductById(id);\n    }\n    \n    public GetAllProductsDTO getAllProducts() {\n        List&lt;ProductDto&gt; products = retrieveProduct.getAllProducts().stream().map(ProductMapper::toDto).collect(Collectors.toList());\n        //return retrieveProduct.getAllProducts().stream().map(this::convertToDTO).collect(Collectors.toList());\n        return new GetAllProductsDTO(products);\n    }\n    \n    public ProductDto getProductById(Long id) {\n        Product product = retrieveProduct.getProductById(id).orElseThrow(() -&gt; new RuntimeException(&quot;¡Product not found!&quot;));\n        return ProductMapper.toDto(product);\n    }\n    \n    @Override\n    public Optional&lt;Product&gt; updateProduct(Long id, Product product) {\n        return updateProduct.updateProduct(id, product);\n    }\n    \n    @Override\n    public Product createProduct(Product product) {\n        return createProduct.createProduct(product);\n    }\n\n}\n</code></pre>\n<p>And my DTOs, i am using records for that.</p>\n<pre><code>public record GetAllProductsDTO(List&lt;ProductDto&gt; products) {\n\n}\n</code></pre>\n<pre><code>public record ProductDto(Long id, String name, double price) {\n\n}\n</code></pre>\n<p><a href=\"https://i.sstatic.net/Y6EpEZx7.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/Y6EpEZx7.png\" alt=\"enter image description here\" /></a></p>\n<p>These are the folders of my project, this is how it is structured.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

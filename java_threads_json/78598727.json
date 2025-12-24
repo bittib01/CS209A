@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-security",
+      "jwt"
+    ],
+    "owner": {
+      "account_id": 10416430,
+      "reputation": 423,
+      "user_id": 11993600,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/32f7426e04e8fa5113b7c25fa97bde0c?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "SorryForAsking",
+      "link": "https://stackoverflow.com/users/11993600/sorryforasking"
+    },
+    "is_answered": true,
+    "view_count": 840,
+    "accepted_answer_id": 78599071,
+    "answer_count": 3,
+    "score": 0,
+    "last_activity_date": 1721900695,
+    "creation_date": 1717940194,
+    "question_id": 78598727,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78598727/why-do-we-need-to-load-user-details-from-the-db-for-each-request-in-jwt-authenti",
+    "title": "Why do we need to load user details from the DB for each request in JWT authentication with Spring Security?",
+    "body": "<p>I am currently implementing JWT authentication in a Spring Boot application. In most tutorials and examples, I see that the UserDetailsService.loadUserByUsername method is called for each request to validate the token. Here is a snippet of my filter:</p>\n<pre><code>@Component\n@RequiredArgsConstructor\npublic class JwtAuthFilter extends OncePerRequestFilter {\n    private static final String BEARER_PREFIX = &quot;Bearer &quot;;\n    private static final String AUTHORIZATION_HEADER = &quot;Authorization&quot;;\n    private static final int TOKEN_START_INDEX = 7;\n\n\n    private final JwtService jwtService;\n    private final UserDetailsService jpaUserDetailsService;\n\n    @Override\n    protected void doFilterInternal(final HttpServletRequest request,\n                                    final HttpServletResponse response,\n                                    final FilterChain filterChain) throws ServletException, IOException {\n        String authHeader = request.getHeader(AUTHORIZATION_HEADER);\n        if (hasBearerHeader(authHeader)) {\n            String token = extractToken(authHeader);\n            String username = jwtService.extractUsername(token);\n\n            if (username != null &amp;&amp; !isUserAuthenticated()) {\n                UserDetails userDetails = jpaUserDetailsService.loadUserByUsername(username);\n                if (jwtService.isTokenValid(token, userDetails)) {\n                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(\n                            userDetails,\n                            null,\n                            userDetails.getAuthorities()\n                    );\n                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));\n                    SecurityContextHolder.getContext().setAuthentication(authToken);\n                }\n            }\n        }\n\n        filterChain.doFilter(request, response);\n    }\n\n    private boolean hasBearerHeader(final String authHeader) {\n        return StringUtils.hasText(authHeader) &amp;&amp; authHeader.startsWith(BEARER_PREFIX);\n    }\n\n    private String extractToken(String authHeader) {\n        return Optional.of(authHeader)\n                .filter(s -&gt; s.length() &gt; TOKEN_START_INDEX)\n                .map(s -&gt; s.substring(TOKEN_START_INDEX))\n                .orElseThrow(() -&gt; new BadCredentialsException(&quot;Invalid Authorization header: Bearer token is missing or invalid.&quot;));\n    }\n\n    private boolean isUserAuthenticated() {\n        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();\n        return authentication != null &amp;&amp; authentication.isAuthenticated();\n    }\n}\n</code></pre>\n<p>JwtService:</p>\n<pre><code>@Service\npublic class JwtService {\n    private static final int TOKEN_VALIDITY_HOURS = 1;\n    private static final int SECONDS_PER_HOUR = 3600;\n    private static final int TOKEN_VALIDITY_SECONDS = TOKEN_VALIDITY_HOURS * SECONDS_PER_HOUR;\n    private static final String ALGORITHM = &quot;HmacSHA256&quot;;\n\n    @Value(&quot;${secret.key}&quot;)\n    private String secretKey;\n\n    public String generateToken(final UserDetails userDetails) {\n        return generateToken(new HashMap&lt;&gt;(), userDetails);\n    }\n\n    public String generateToken(final Map&lt;String, ?&gt; claims, final UserDetails userDetails) {\n        Instant currentTime = Instant.now();\n        Instant expirationTime = currentTime.plusSeconds(TOKEN_VALIDITY_SECONDS);\n\n        return Jwts\n                .builder()\n                .claims(claims)\n                .subject(userDetails.getUsername())\n                .issuedAt(Date.from(currentTime))\n                .expiration(Date.from(expirationTime))\n                .signWith(getSecretKey(), Jwts.SIG.HS256)\n                .compact();\n    }\n\n    public boolean isTokenValid(final String token, final UserDetails userDetails) {\n        String usernameFromToken = extractUsername(token);\n        return usernameFromToken.equals(userDetails.getUsername()) &amp;&amp; !isTokenExpired(token);\n    }\n\n    private boolean isTokenExpired(final String token) {\n        return extractExpiration(token).before(new Date());\n    }\n\n    public String extractUsername(final String token) {\n        return extractClaim(token, Claims::getSubject);\n    }\n\n    public Date extractExpiration(final String token) {\n        return extractClaim(token, Claims::getExpiration);\n    }\n\n    private &lt;T&gt; T extractClaim(final String token, final Function&lt;Claims, T&gt; extractor) {\n        Claims claims = Jwts.parser()\n                .verifyWith(getSecretKey())\n                .build()\n                .parseSignedClaims(token)\n                .getPayload();\n\n        return extractor.apply(claims);\n\n    }\n\n    private SecretKey getSecretKey() {\n        byte[] decodedKey = Base64.getDecoder().decode(secretKey);\n        return new SecretKeySpec(decodedKey, 0, decodedKey.length, ALGORITHM);\n    }\n}\n</code></pre>\n<p>I am confused about the necessity of loading user details from the database with each request. If the token is issued and verified, doesn't it mean the user is already authenticated? Can't we just verify the token's signature and claims without hitting the database every time?</p>\n<p>I appreciate any detailed explanations and recommendations on how to handle JWT authentication efficiently in Spring Security.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

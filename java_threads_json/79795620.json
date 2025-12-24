@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "serialization",
+      "deserialization",
+      "record"
+    ],
+    "owner": {
+      "account_id": 2803497,
+      "reputation": 26340,
+      "user_id": 2411243,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/W96lW.png?s=256",
+      "display_name": "Zabuzard",
+      "link": "https://stackoverflow.com/users/2411243/zabuzard"
+    },
+    "is_answered": true,
+    "view_count": 153,
+    "accepted_answer_id": 79795655,
+    "answer_count": 1,
+    "score": 7,
+    "last_activity_date": 1762340092,
+    "creation_date": 1761036374,
+    "last_edit_date": 1762340092,
+    "question_id": 79795620,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79795620/records-dont-deserialize-cycles",
+    "title": "Records don&#39;t deserialize cycles",
+    "body": "<p>I stumbled upon something that got me curious. Apparently, serializing a record with a cyclic reference does not retain the cycle when deserializing it again, it becomes <code>null</code>. When doing the same exercise with a regular class, the cycle is still there.</p>\n<p>Why is that the case?</p>\n<p>Any pointers or also relevant snippets from the JLS would be appreciated.</p>\n<h4>Disclaimer</h4>\n<p>I am aware that Javas built-in serialization is <em>bad</em> and should not be used, same goes for cyclic references that are not marked <code>transient</code>. The setup is contrived and not something I am going to use anywhere. A student ran into it and I am curious as to why Java behaves the way it does.</p>\n<h3>Minimal Example</h3>\n<p>I have nailed it down to a cycle setup like:</p>\n<pre class=\"lang-java prettyprint-override\"><code>normal.ref.o -&gt; normal\nrecord.ref().o -&gt; record\n</code></pre>\n<p>The full code is:</p>\n<pre class=\"lang-java prettyprint-override\"><code>import java.io.*;\nimport java.util.Objects;\n\npublic class Test {\n    static class Ref implements Serializable {\n        Object o;\n\n        @Override\n        public String toString() {\n            return &quot;Ref[o=%s]&quot;.formatted(Objects.hashCode(o));\n        }\n    }\n\n    static class Normal implements Serializable {\n        int x;\n        Ref ref;\n\n        @Override\n        public String toString() {\n            return &quot;Normal[x=%d, ref=%s]&quot;.formatted(x, ref);\n        }\n    }\n\n    record Record(int x, Ref ref) implements Serializable {}\n\n    public static void main(String[] args) throws Exception {\n        // Setup\n        Normal normalBefore = new Normal();\n        normalBefore.x = 5;\n        normalBefore.ref = new Ref();\n        normalBefore.ref.o = normalBefore; // cycle\n        // normalBefore.ref.o == normalBefore\n\n        Record recordBefore = new Record(5, new Ref());\n        recordBefore.ref().o = recordBefore; // cycle\n        // recordBefore.ref().o == recordBefore\n\n        // Test\n        Normal normalAfter = serializeAndDeserialize(normalBefore);\n        Record recordAfter = serializeAndDeserialize(recordBefore);\n\n        System.out.println(&quot;Normal before:\\t&quot; + normalBefore);\n        System.out.println(&quot;Normal after:\\t&quot; + normalAfter);\n        System.out.println(&quot;Record before:\\t&quot; + recordBefore);\n        System.out.println(&quot;Record after:\\t&quot; + recordAfter);\n        System.out.println(&quot;recordAfter.ref().o:\\t&quot; + recordAfter.ref().o);\n    }\n\n    static &lt;T&gt; T serializeAndDeserialize(T obj) throws Exception {\n        ByteArrayOutputStream baos = new ByteArrayOutputStream();\n        ObjectOutputStream oos = new ObjectOutputStream(baos);\n        oos.writeObject(obj);\n        oos.close();\n\n        ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());\n        ObjectInputStream ois = new ObjectInputStream(bais);\n        T result = (T) ois.readObject();\n        ois.close();\n\n        return result;\n    }\n}\n</code></pre>\n<p>It prints:</p>\n<pre class=\"lang-java prettyprint-override\"><code>Normal before:  Normal[x=5, ref=Ref[o=1732398722]]\nNormal after:   Normal[x=5, ref=Ref[o=1579572132]]\n\nRecord before:  Record[x=5, ref=Ref[o=1323468385]]\nRecord after:   Record[x=5, ref=Ref[o=0]]\n\nrecordAfter.ref().o:    null\n</code></pre>\n<p>As we can see, <code>Normal</code> serializes and deserializes fully (a full <code>toString()</code> print would yield to a StackOverflow because of the cycle).</p>\n<p>However, the <code>Record</code> drops the cyclic back-reference to itself inside the <code>Ref</code> wrapper object, it becomes <code>null</code>.</p>\n<h4>Code Guidance</h4>\n<p>To give some assistance reading the code, it consists of a wrapper for the cycle, <code>Ref</code>:</p>\n<pre class=\"lang-java prettyprint-override\"><code>static class Ref implements Serializable {\n    Object o;\n\n    @Override\n    public String toString() {\n        return &quot;Ref[o=%s]&quot;.formatted(Objects.hashCode(o));\n    }\n}\n</code></pre>\n<p>This is needed because otherwise we could not create a cycle for <code>record</code>, as its fields are unmodifiable (<code>final</code>).</p>\n<p>Then the actual data carrier classes:</p>\n<pre class=\"lang-java prettyprint-override\"><code>static class Normal implements Serializable {\n    int x;\n    Ref ref;\n\n    @Override\n    public String toString() {\n        return &quot;Normal[x=%d, ref=%s]&quot;.formatted(x, ref);\n    }\n}\n\nrecord Record(int x, Ref ref) implements Serializable {}\n</code></pre>\n<p>The <code>int x</code> is technically obsolete, but I added it to show that non-cycles are fully deserialized still.</p>\n<p>Then we have a method that simply <code>serializeAndDeserialize</code> any given Object and the cycle setup in <code>main</code>, as well as the final test.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

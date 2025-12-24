@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "docker",
+      "apache-kafka"
+    ],
+    "owner": {
+      "account_id": 41568314,
+      "reputation": 1,
+      "user_id": 30350426,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/6733ef3497cfdd26b7eaa1abba3e7e02?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "JITESH BILUNIA",
+      "link": "https://stackoverflow.com/users/30350426/jitesh-bilunia"
+    },
+    "is_answered": false,
+    "view_count": 74,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1758293389,
+    "creation_date": 1745407011,
+    "last_edit_date": 1745407107,
+    "question_id": 79588477,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79588477/unable-to-connect-to-kafka-while-hitting-the-producer-in-docker-compose",
+    "title": "Unable to connect to kafka while hitting the producer, in docker-compose",
+    "body": "<p>This is my docker-compose.yml</p>\n<pre><code>  version: '3.8'\n\nservices:\nparking_service:\n  build:\n    context: .\n  ports:\n    - &quot;8081:8081&quot;\n  depends_on:\n    postgres:\n      condition: service_healthy\n    kafka:\n      condition: service_healthy\n  environment:\n    - DB_HOST=postgres\n    - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/car_parking\n    - SPRING_DATASOURCE_USERNAME=myuser\n    - SPRING_DATASOURCE_PASSWORD=mypassword\n    - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092\n  networks:\n    - parking_network\n\npostgres:\n  image: postgres:13\n  environment:\n    POSTGRES_USER: myuser\n    POSTGRES_PASSWORD: mypassword\n    POSTGRES_DB: car_parking\n  volumes:\n    - postgres-data:/var/lib/postgresql/data\n  ports:\n    - &quot;5433:5432&quot;\n  healthcheck:\n    test: [&quot;CMD-SHELL&quot;, &quot;pg_isready -U myuser -d car_parking&quot;]\n    interval: 5s\n    timeout: 5s\n    retries: 10\n  networks:\n    - parking_network\n\nzookeeper:\n  image: wurstmeister/zookeeper:latest\n  ports:\n    - &quot;2181:2181&quot;\n  environment:\n    ZOOKEEPER_CLIENT_PORT: 2181\n  networks:\n    - parking_network\n\nkafka:\n  image: wurstmeister/kafka:latest\n  environment:\n    KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092\n    KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092\n    KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181\n\n  ports:\n    - &quot;9092:9092&quot;\n  healthcheck:\n    test: [ &quot;CMD&quot;, &quot;kafka-topics.sh&quot;, &quot;--list&quot;, &quot;--bootstrap-server&quot;, &quot;kafka:9092&quot; ]\n    interval: 20s\n    timeout: 10s\n    retries: 15\n  depends_on:\n    - zookeeper\n  networks:\n    - parking_network\n\n\nvolumes:\npostgres-data:\n\nnetworks:\nparking_network:\n  driver: bridge\n</code></pre>\n<p>SO when I do docker-compose up --build and I hit the api I see this error pasted below</p>\n<pre><code>**enter code hereparking_service-1  | 2025-04-23T10:43:36.357Z  INFO 1 --- [parking_service] [vice-producer-1] org.apache.kafka.clients.NetworkClient   : [Producer clientId=parking_service-producer-1] Node -1 disconnected.\nparking_service-1  | 2025-04-23T10:43:36.359Z  WARN 1 --- [parking_service] [vice-producer-1] org.apache.kafka.clients.NetworkClient   : [Producer clientId=parking_service-producer-1] Connection to node -1 (localhost/127.0.0.1:9092) could not be established. Node may not be available.     \nparking_service-1  | 2025-04-23T10:43:36.360Z  WARN 1 --- [parking_service] [vice-producer-1] org.apache.kafka.clients.NetworkClient   : [Producer clientId=parking_service-producer-1] Bootstrap broker localhost:9092 (id: -1 rack: null) disconnected                                          \nparking_service-1  | 2025-04-23T10:43:37.266Z  INFO 1 --- [parking_service] [vice-producer-1] org.apache.kafka.clients.NetworkClient   : [Producer clientId=parking_service-producer-1] Node -1 disconnected.\nparking_service-1  | 2025-04-23T10:43:37.266Z  WARN 1 --- [parking_service] [vice-producer-1] org.apache.kafka.clients.NetworkClient   : [Producer clientId=parking_service-producer-1] Connection to node -1 (localhost/127.0.0.1:9092) could not be established. Node may not be available.     \nparking_service-1  | 2025-04-23T10:43:37.266Z  WARN 1 --- [parking_service] [vice-producer-1] org.apache.kafka.clients.NetworkClient   : [Producer clientId=parking_service-producer-1] Bootstrap broker localhost:9092 (id: -1 rack: null) disconnected                                          \nparking_service-1  | 2025-04-23T10:43:37.403Z ERROR 1 --- [parking_service] [nio-8081-exec-2] o.s.k.support.LoggingProducerListener    : Exception thrown when sending a message with key='null' and payload='User 4 parked at slot A3' to topic parking.slot.occupied:\nparking_service-1  | \nparking_service-1  | org.apache.kafka.common.errors.TimeoutException: Topic parking.slot.occupied not present in metadata after 60000 ms.\nparking_service-1  | \nparking_service-1  | 2025-04-23T10:43:37.431Z DEBUG 1 --- [parking_service] [nio-8081-exec-2] o.s.web.servlet.DispatcherServlet        : Failed to complete request: org.springframework.kafka.KafkaException: Send failed**\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

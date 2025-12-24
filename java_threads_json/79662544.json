@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "algorithm"
+    ],
+    "owner": {
+      "account_id": 31187804,
+      "reputation": 794,
+      "user_id": 23993901,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/7417aaad0c8ece3fac44f06d05a8ba8b?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "CodeCrusader",
+      "link": "https://stackoverflow.com/users/23993901/codecrusader"
+    },
+    "is_answered": true,
+    "view_count": 420,
+    "accepted_answer_id": 79665332,
+    "answer_count": 2,
+    "score": 7,
+    "last_activity_date": 1750027731,
+    "creation_date": 1749669773,
+    "last_edit_date": 1749756706,
+    "question_id": 79662544,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79662544/efficient-way-to-reconstruct-minimal-number-sequence-matching-a-digit-subsequenc",
+    "title": "Efficient way to reconstruct minimal number sequence matching a digit subsequence",
+    "body": "<p>I got this task:</p>\n<p>The builders at a tech company are fixing a computer. This computer stores a special number made by a secret game using two small numbers, firstStep and secondStep. But uh-oh! Some digits (numbers) of the big number got lost!</p>\n<p>They still have part of the number called puzzleNumber. It’s like a puzzle — some of the numbers are there, but others are missing. The task is to figure out what the full number might have been before some digits were lost.</p>\n<p>Here’s how the game works:</p>\n<p>Start with a score of 0.</p>\n<p>You can add firstStep or secondStep to the score as many times as you want.</p>\n<p>Each time you add, write down only the last digit of the score (that’s called the unit digit, like the 3 in 123).</p>\n<p>Keep writing down these digits to make a big number.</p>\n<p>Now imagine you did this and got a number, but someone erased some of the digits. What you see now is puzzleNumber.</p>\n<p>Now the Task is:\nFind the smallest possible full number that could have made puzzleNumber by just erasing some digits from it.</p>\n<p>If it’s not possible to do that with any number from the game, return &quot;-1&quot;.</p>\n<p><strong>Example:</strong></p>\n<pre><code>puzzleNumber = &quot;27&quot;\nfirstStep = 2\nsecondStep = 3\n\nLet's play the game:\n\nStart at 0.\n\nAdd 2 → score = 2 → last digit = 2 → full = &quot;2&quot;\n\nAdd 2 → score = 4 → last digit = 4 → full = &quot;24&quot;\n\nAdd 3 → score = 7 → last digit = 7 → full = &quot;247&quot;\n\nNow look! If you remove the 4 from &quot;247&quot;, you get &quot;27&quot; — the same as puzzleNumber!\nThere could be other numbers too, like &quot;257&quot;, but we want the smallest one.\nSo the answer is: &quot;247&quot;\n</code></pre>\n<p><strong>constrains:</strong></p>\n<pre><code>2 &lt;= |puzzleNumber| &lt;= 2*10^5\n1 &lt;= firstStep, secondStep &lt;= 9\n</code></pre>\n<p>This is an interview question in hackerrank, and I have come up with below code but it passed 7 test cases out of 15 , one test case failed saying wrong output and remaining failed with time out errors. All the failed test cases are hidden so I don't have details of them.</p>\n<pre><code>import java.util.*;\n\npublic class Main {\n    public static String solve(String puzzleNumber, int firstStep, int secondStep) {\n        Queue&lt;State&gt; queue = new LinkedList&lt;&gt;();\n        Set&lt;String&gt; seen = new HashSet&lt;&gt;();\n\n        queue.offer(new State(0, &quot;&quot;, 0)); // cur, sequence, matchedIndex\n\n        while (!queue.isEmpty()) {\n            State curr = queue.poll();\n\n            if (curr.matched == puzzleNumber.length()) {\n                return curr.sequence;\n            }\n\n            String key = (curr.cur % 10) + &quot;:&quot; + curr.matched;\n            if (seen.contains(key)) continue;\n            seen.add(key);\n\n            // Try adding firstStep\n            int nextX = curr.cur + firstStep;\n            int digitX = nextX % 10;\n            int matchedX = curr.matched;\n            if (matchedX &lt; puzzleNumber.length() &amp;&amp; puzzleNumber.charAt(matchedX) == (char)(digitX + '0')) {\n                matchedX++;\n            }\n            queue.offer(new State(nextX, curr.sequence + digitX, matchedX));\n\n            // Try adding secondStep\n            if (firstStep != secondStep) { // prevent duplicate branches\n                int nextY = curr.cur + secondStep;\n                int digitY = nextY % 10;\n                int matchedY = curr.matched;\n                if (matchedY &lt; puzzleNumber.length() &amp;&amp; puzzleNumber.charAt(matchedY) == (char)(digitY + '0')) {\n                    matchedY++;\n                }\n                queue.offer(new State(nextY, curr.sequence + digitY, matchedY));\n            }\n        }\n\n        return &quot;-1&quot;;\n    }\n\n    static class State {\n        int cur;\n        String sequence;\n        int matched;\n\n        State(int cur, String sequence, int matched) {\n            this.cur = cur;\n            this.sequence = sequence;\n            this.matched = matched;\n        }\n    }\n\n    public static void main(String[] args) {\n        System.out.println(solve(&quot;27&quot;, 2, 3)); // Expected output: &quot;247&quot;\n        System.out.println(solve(&quot;324&quot;, 2, 3)); // Expected: 36924\n        System.out.println(solve(&quot;521&quot;, 5, 5)); // Expected: -1    \n    }\n}\n</code></pre>\n<p>What is the correct way to solve this problem in less time complexity?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

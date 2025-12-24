@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "udp",
+      "netty",
+      "nio",
+      "multicast"
+    ],
+    "owner": {
+      "account_id": 1226904,
+      "reputation": 472,
+      "user_id": 1192286,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/bf099da2b4f72ea6ffc5b58da637ba5f?s=256&d=identicon&r=PG",
+      "display_name": "elk",
+      "link": "https://stackoverflow.com/users/1192286/elk"
+    },
+    "is_answered": true,
+    "view_count": 206,
+    "accepted_answer_id": 77806077,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1710417714,
+    "creation_date": 1704997281,
+    "last_edit_date": 1705057336,
+    "question_id": 77802262,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77802262/multiple-netty-clients-listening-on-the-same-multicast-group",
+    "title": "Multiple Netty clients listening on the same multicast group",
+    "body": "<p>I am trying to get multiple Netty clients listening on the same multicast group address.</p>\n<p>The issue with running these clients on the same machine is that each client is bound to the same port (group port) which results in port clash.</p>\n<p>It is generally possible to run multiple clients listening on the same address so how can this be achieved with Netty?</p>\n<p>Here is code of the client:</p>\n<pre><code>package com.something.tools.udp;\n\nimport io.netty.bootstrap.Bootstrap;\nimport io.netty.channel.ChannelHandlerContext;\nimport io.netty.channel.ChannelOption;\nimport io.netty.channel.FixedRecvByteBufAllocator;\nimport io.netty.channel.SimpleChannelInboundHandler;\nimport io.netty.channel.nio.NioEventLoopGroup;\nimport io.netty.channel.socket.DatagramChannel;\nimport io.netty.channel.socket.DatagramPacket;\nimport io.netty.channel.socket.InternetProtocolFamily;\nimport io.netty.channel.socket.nio.NioDatagramChannel;\n\nimport java.net.InetAddress;\nimport java.net.InetSocketAddress;\nimport java.net.NetworkInterface;\nimport java.net.SocketException;\n\npublic class SimpleMulticastClient {\n    public static void main(String[] args) throws InterruptedException, SocketException {\n        String groupAddress = args[0];\n        int groupPort = Integer.parseInt(args[1]);\n        String interfaceName = args[2];\n\n        Bootstrap b = new Bootstrap();\n        b.option(ChannelOption.SO_RCVBUF, 1048576);\n        b.group(new NioEventLoopGroup())\n                .handler(new SimpleChannelInboundHandler&lt;DatagramPacket&gt;() {\n                    @Override\n                    public void channelRead0(ChannelHandlerContext ctx, DatagramPacket msg) {\n                        System.out.println(&quot;Received: &quot; + msg);\n                    }\n                })\n                .option(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvByteBufAllocator(1000))\n                .option(ChannelOption.SO_REUSEADDR, Boolean.TRUE);\n\n        NetworkInterface networkInterface = NetworkInterface.getByName(interfaceName);\n        DatagramChannel channel = (DatagramChannel)b\n                .channelFactory(() -&gt; new NioDatagramChannel(InternetProtocolFamily.IPv4))\n                .localAddress(0)\n                .bind(groupPort).sync().channel();\n        System.out.println(&quot;UDP client bound to: &quot; + channel.localAddress());\n        channel.joinGroup(new InetSocketAddress(groupAddress, groupPort), networkInterface).sync();\n    }\n}\n</code></pre>\n<p>If I run a single client I can receive multicast traffic OK:</p>\n<pre><code>UDP client bound to: /0.0.0.0:19000\nReceived: DatagramPacket(/192.168.0.4:57335 =&gt; /0.0.0.0:19000, PooledUnsafeDirectByteBuf(ridx: 0, widx: 4, cap: 1000))\nReceived: DatagramPacket(/192.168.0.4:57335 =&gt; /0.0.0.0:19000, PooledUnsafeDirectByteBuf(ridx: 0, widx: 4, cap: 1000))\n...\n</code></pre>\n<p>If I try to start a second client on the same machine (with the same arguments), I get this exception:</p>\n<pre><code>Exception in thread &quot;main&quot; java.net.BindException: Address already in use\n</code></pre>\n<p>I've also tried to change this line:</p>\n<pre class=\"lang-java prettyprint-override\"><code>    .bind(groupPort).sync().channel();\n</code></pre>\n<p>to:</p>\n<pre class=\"lang-java prettyprint-override\"><code>    .bind(0).sync().channel();\n</code></pre>\n<p>and that allows to run both clients simultaneously (i.e. no port clash). However the clients then stop seeing the multicast traffic.</p>\n<p>Is there a way to make this working with Netty?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

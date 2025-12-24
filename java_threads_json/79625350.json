@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "rest",
+      "apache-kafka",
+      "spring-kafka"
+    ],
+    "owner": {
+      "account_id": 403186,
+      "reputation": 167,
+      "user_id": 5015771,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/393aaa738836eff467d3c1c15c3bce55?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Artem Zyuzko",
+      "link": "https://stackoverflow.com/users/5015771/artem-zyuzko"
+    },
+    "is_answered": true,
+    "view_count": 56,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1747408781,
+    "creation_date": 1747404565,
+    "question_id": 79625350,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79625350/request-response-pattern-over-the-rest-call-via-replyingkafkatemplate",
+    "title": "Request-response pattern over the REST call via ReplyingKafkaTemplate",
+    "body": "<p>Simple scenario with Kafka and REST http services, but I didn't find an appropriate solution.</p>\n<p>2 services: <strong>A</strong> and <strong>B</strong></p>\n<p><strong>A</strong> - have REST API for external clients\n<strong>B</strong> - have 2 topics : <em>RequestTopic</em> for receive external requests and <em>ResponseTopic</em> to push the results of the request</p>\n<ol>\n<li>External client calls <strong>A</strong> via Rest sync call</li>\n<li><strong>A</strong> sends message to topic <em>RequestTopic</em> via ReplyingKafkaTemplate and suspends thread in waiting state</li>\n<li><strong>B</strong> get message from <em>RequestTopic</em>, processes it and sends response to <em>ResponseTopic</em></li>\n<li><strong>A</strong> consumes response, correlates it with the request's waiting thread and <strong>A</strong> returns http response to client</li>\n</ol>\n<p>When we have only 1 instance of java app there is one instance of consumer's group - no problem.</p>\n<p>The problem exists on a cluster. If we have a few replicas - the request in p.1 can be sent from one app instance and response can be consumed by another app instance in consumer group.</p>\n<p>The documentation of Spring kafka offers to use some kind of partition binding of consumers, where requester should know the exact partition-ID and put the partition-ID in headers and the response should be put in the specified partition.\nBut this solution seems very unflexible in my opinion - we can't scale the app deployment dynamically without reconfiguring partitions &amp; consumers.</p>\n<p>Another solution - is to create dynamic group-IDs for all app instances of consumers, and in that case every instance will receive the response message and one of them will be an appropriate sender instance. Other instances will just omit that message.\nThis solution also look isn't good because a lot of messages will be processed in vain.</p>\n<p>Any other ideas how to solve it?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

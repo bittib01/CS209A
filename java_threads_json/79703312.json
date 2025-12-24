@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "javabeans",
+      "micronaut",
+      "scopes",
+      "requestscope"
+    ],
+    "owner": {
+      "account_id": 7388507,
+      "reputation": 125,
+      "user_id": 5727327,
+      "user_type": "registered",
+      "accept_rate": 50,
+      "profile_image": "https://lh3.googleusercontent.com/-u9aNKJtcoqo/AAAAAAAAAAI/AAAAAAAAABo/_lIcrN9wJmA/s256-rj/photo.jpg",
+      "display_name": "ionesi cristi",
+      "link": "https://stackoverflow.com/users/5727327/ionesi-cristi"
+    },
+    "is_answered": false,
+    "view_count": 109,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1752667175,
+    "creation_date": 1752663692,
+    "last_edit_date": 1752667175,
+    "question_id": 79703312,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79703312/why-am-i-getting-different-requestscope-bean-instances-in-my-filter-vs-control",
+    "title": "Why am I getting different @RequestScope bean instances in my Filter vs. Controller?",
+    "body": "<p>I've just upgraded to Micronaut 4 and Java 21 and I'm trying to share state between a HttpServerFilter and a Controller using a @RequestScope bean. My goal is to set some summary information (like a success/failure code) in the controller, and then have the filter read that information after the controller executes to write a final summary log.</p>\n<p>However, the state I set in the controller is null when the filter tries to access it. After some debugging, it appears I'm being injected with two different instances of my @RequestScope bean for the same HTTP request, which I did not expect.</p>\n<p>According to the documentation, a @RequestScope bean should have a single instance for the entire lifecycle of a single request. Why would my filter and controller be receiving different instances, and how can I fix it?</p>\n<p>The same code used to work fine in Micronaut 3 &amp; Java 17.</p>\n<p>The code:</p>\n<h3>1. The @RequestScope bean and its interface</h3>\n<p>I have a RequestInfo bean that holds request-specific data. It implements a common SummaryInfo interface.</p>\n<pre><code>// The common interface\npublic interface SummaryInfo {\n    SummaryEnum getSummaryEnum();\n    void setSummaryEnum(SummaryEnum summaryEnum);\n    Map&lt;String, Object&gt; getIdentifiers();\n}\n\n// The Request-Scoped implementation\nimport io.micronaut.runtime.http.scope.RequestScope;\nimport lombok.Data;\n\n@Data\n@RequestScope\npublic class RequestInfo implements SummaryInfo {\n    private SummaryEnum summaryEnum;\n    private String customerId;\n\n    @Override\n    public Map&lt;String, Object&gt; getIdentifiers() {\n        return Collections.singletonMap(&quot;customerId&quot;, customerId);\n    }\n}\n</code></pre>\n<h3>2. The Logging filter</h3>\n<p>My filter is a singleton that directly injects the SummaryInfo bean.</p>\n<pre><code>import io.micronaut.http.filter.HttpServerFilter;\nimport io.micronaut.http.filter.ServerFilterChain;\nimport jakarta.inject.Inject;\nimport reactor.core.publisher.Mono;\n\n@Filter(&quot;/**&quot;)\npublic class SummaryLoggingFilter implements HttpServerFilter {\n\n    @Inject\n    private SummaryInfo summaryInfo; // Direct injection\n    // ... other dependencies\n\n    @Override\n    public Publisher&lt;MutableHttpResponse&lt;?&gt;&gt; doFilter(HttpRequest&lt;?&gt; request, ServerFilterChain chain) {\n        log.info(&quot;Filter (before): Got bean instance {}&quot;, summaryInfo.hashCode());  //Different HashCode than in the Controller here\n\n        return Mono.from(chain.proceed(request))\n            .doOnNext(response -&gt; {\n                log.info(&quot;Filter (after): Got bean instance {}&quot;, summaryInfo.hashCode());\n\n                log.info(summaryInfo.getSummaryEnum()); // PROBLEM: summaryInfo.getSummaryEnum() is null here!\n            });\n    }\n}\n</code></pre>\n<h3>3. The controller</h3>\n<p>My controller is also a singleton and directly injects the SummaryInfo bean.</p>\n<pre><code>import jakarta.inject.Inject;\n\n@Controller\npublic class MyController {\n\n    @Inject\n    private RequestInfo requestInfo; // Direct injection\n\n    @Post(&quot;/hello/{customerId}&quot;)\n    public Response hello(@PathVariable String customerId) {\n        log.info(&quot;Controller: Got bean instance {}&quot;, requestInfo.hashCode()); //Different HashCode than in the filter here\n\n        requestInfo.setCustomerId(customerId);\n        // Set the state\n        requestInfo.setSummaryEnum(ExampleSummaryEnum.SUCCESS);\n        log.info(&quot;Controller: Set summaryEnum to SUCCESS&quot;);\n\n        Response response = new Response();\n        response.setMessage(&quot;world!&quot;);\n        return response;\n    }\n}\n</code></pre>\n<h3>What I've researched</h3>\n<ul>\n<li>Micronaut Documentation on Scopes: I have read the <a href=\"https://docs.micronaut.io/latest/guide/index.html#scopes\" rel=\"nofollow noreferrer\">Micronaut documentation on Bean Scopes</a>. My understanding is that the request scope becomes active as soon as the HTTP request is received, and Micronaut provides a proxy to the singleton beans that will delegate to the real, request-specific instance.</li>\n<li>Provider Injection: I have also tried injecting a <code>jakarta.inject.Provider&lt;SummaryInfo&gt;</code> into both the filter and controller, as recommended for injecting narrower-scoped beans into singletons. This did not make any difference; I still received different underlying instances.</li>\n</ul>\n<h3>Expected behavior:</h3>\n<p>My expectation is that for a single HTTP request, the injected SummaryInfo should delegate to the exact same underlying instance in both the filter and the controller. The logs (using hashCode()) show that this is not the case.</p>\n<p>I'm stuck because this seems like it should be a straightforward use case, but it's not behaving as expected. What am I missing?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

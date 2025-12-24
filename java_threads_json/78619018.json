@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "algorithm",
+      "dynamic-programming"
+    ],
+    "owner": {
+      "account_id": 1802065,
+      "reputation": 161,
+      "user_id": 1640135,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/uHTKm.jpg?s=256",
+      "display_name": "Karthikeyan",
+      "link": "https://stackoverflow.com/users/1640135/karthikeyan"
+    },
+    "is_answered": true,
+    "view_count": 208,
+    "answer_count": 2,
+    "score": 1,
+    "last_activity_date": 1719189675,
+    "creation_date": 1718294793,
+    "last_edit_date": 1719189675,
+    "question_id": 78619018,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78619018/dynamic-programming-partition-array-to-find-minimum-difference-fails-for-negativ",
+    "title": "Dynamic programming partition array to find minimum difference fails for negative numbers",
+    "body": "<p>I am trying to solve the problem it works for positive integer arrays but fails for negative test cases. How to handle the below test case?</p>\n<blockquote>\n<p>You are given an integer array nums of 2 * n integers. You need to partition nums into two arrays of length n to minimize the absolute difference of the sums of the arrays. To partition nums, put each element of nums into one of the two arrays.\nReturn the minimum possible absolute difference.</p>\n</blockquote>\n<p>I am able to get the possible sum for these negative numbers and store in the list of the map but, when I iterate through the map values to find the absolute difference I cannot get the correct value as 0 instead I am getting the value as 6 because in the memorization map possible sum as -3  added it to the target we get 3. so the absolute difference becomes 6</p>\n<p>How to handle this scenario? Refer to the below comment in the code.</p>\n<p>Code that needs to re-visited for negative integers scenario</p>\n<p>Test case:\nInput: nums = [2,-1,0,4,-2,-9]\nOutput: 0\nExplanation: One optimal partition is: [2,4,-9] and [-1,0,-2].\nThe absolute difference between the sums of the arrays is abs((2 + 4 + -9) - (-1 + 0 + -2)) = 0.</p>\n<pre><code>package com.dynamicProgramming;\n\nimport java.util.*;\n\npublic class PartitionSum {\n\n    List&lt;HashMap&lt;Integer,Boolean&gt;&gt; ll = new ArrayList&lt;&gt;();\n\n    public int minimumDifference(int[] nums) {\n        int n = nums.length;\n        int range = 0;\n        for(int i =0;i&lt;nums.length;i++){\n            ll.add(new HashMap&lt;&gt;());\n            range+=nums[i];\n        }\n       // System.out.println(range/2);\n        findSub(nums ,n-1,range);\n       int min=Integer.MAX_VALUE;\n//Code that needs to re-vistied for negative integers scenario\n       for(HashMap&lt;Integer,Boolean&gt; h:ll){\n\n           for(Map.Entry&lt;Integer,Boolean&gt; map:h.entrySet()){\n\n               if(map.getValue()){\n\n                   int s2= (range&lt;0)?range+map.getKey():range-map.getKey();\n\n                   System.out.println(map.getKey()+ &quot; &quot;+s2);\n                   int diff=Math.abs(s2-map.getKey());\n                   min=Math.min(min,diff);\n               }\n           }\n       }\n        return min;\n    }\n\n    private boolean findSub(int[] nums, int i, int sum) {\n\n        if(sum==0)\n            return true;\n        if(i==0){\n            return nums[i]==sum;\n        }\n\n        if(ll.get(i).containsKey(sum)) {\n            return ll.get(i).get(sum);\n\n        }\n        boolean p=false;\n        if(sum&gt;=nums[i])\n            p=findSub(nums,i-1,sum-nums[i]);\n        boolean np=findSub(nums,i-1,sum);\n        ll.get(i).put(sum,p||np);\n        return p||np;\n\n\n    }\n\n\n    public static void main(String[] args) {\n        PartitionSum partitionSum= new PartitionSum();\n        int[] nums={2,-1,0,4,-2,-9};\n\n        System.out.println(partitionSum.minimumDifference(nums));\n        System.out.println(partitionSum.ll);\n    }\n\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

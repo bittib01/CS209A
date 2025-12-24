@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "activemq-artemis",
+      "hawtio"
+    ],
+    "owner": {
+      "account_id": 25550010,
+      "reputation": 15,
+      "user_id": 23505220,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/2cceb486c6d36584b02a9173dbc0b8bc?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Cooper Jones",
+      "link": "https://stackoverflow.com/users/23505220/cooper-jones"
+    },
+    "is_answered": true,
+    "view_count": 537,
+    "accepted_answer_id": 78099819,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1728499558,
+    "creation_date": 1709338402,
+    "last_edit_date": 1709566847,
+    "question_id": 78091026,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78091026/embedded-activemq-artemis-web-console-loading-incorrectly",
+    "title": "Embedded ActiveMQ Artemis web console loading incorrectly",
+    "body": "<p>I am running an embedded instance of ActiveMQ Artemis and have been running into some trouble getting the web console to behave correctly.</p>\n<p>In order to get the console to run I followed <a href=\"https://stackoverflow.com/questions/76670206/embedded-activemq-artemis-doesnt-show-web-console\">these instructions</a>.</p>\n<p>This successfully starts the console and I can login based on the username and password I set in my <code>login.config</code> file. However, when navigating through the console I noticed I am missing many of the navigation bars on the top of the console (queues, session, producers, etc.) as you can see in the image below and I'm not entirely sure why.</p>\n<p><a href=\"https://i.sstatic.net/pHmrO.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/pHmrO.png\" alt=\"enter image description here\" /></a></p>\n<p>An additional problem that might help diagnose what is going on include the fact that just going to <code>consoleHost:8161</code> pulls up the below result but <code>consoleHost:8161/console</code> correctly redirects to the login page. However, these might be unrelated problems\n<a href=\"https://i.sstatic.net/HCOCo.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/HCOCo.png\" alt=\"enter image description here\" /></a></p>\n<p>Looking through the JavaScript files that are included in the decompressed <code>artemis-plugin.war</code> directory (specifically <code>\\tmp\\webapps\\artemis-plugin.war\\webapp\\plugin\\js\\components\\navigation.js</code>) I noticed that the inclusion of these are based on the MBean server so my leading theory is that instead of setting the MBean server to <code>ManagementFactory.getPlatformMBeanServer()</code> I should be setting it to something more specific to Artemis but I'm not sure what that would be.</p>\n<p>Comparing the console logs of a locally running, standalone Artemis instance that correctly displays the console and my embedded implementation the only difference in initialization that stands out is that the working logs have the line:</p>\n<pre><code>[hawtio-jmx-rbac] Using mbean hawtio:type=security,area=jmx,name=ArtemisJMXSecurity for client-side role based access control\n</code></pre>\n<p>and my broken implementation instead has the line:</p>\n<pre><code>[hawtio-jmx-rbac] Using mbean hawtio:type=security,area=jmx,rank=0,name=HawtioDummyJMXSecurity for client-side role based access control\n</code></pre>\n<p>Not sure if any of this helps but any pointers to what could be wrong would be greatly appreciated as I have been scratching my head for awhile trying to get the console to work correctly on my embedded artemis instance.</p>\n<p>EDIT:</p>\n<p>Updating my answer with the code I added to the <a href=\"https://stackoverflow.com/questions/76670206/embedded-activemq-artemis-doesnt-show-web-console\">original instructions</a></p>\n<pre><code>ActiveMQSecurityManager securityManager = server.getActiveMQServer().getSecurityManager();\nManagementContextDTO managementDTO = new ManagementContextDTO();\nManagementContext managementContext = ManagementFactory.create(managementDTO, securityManager);\nserver.getActiveMQServer().getManagementService().registerHawtioSecurity(managementContext.getArtemisMBeanServerGuard());\n</code></pre>\n<p>I placed these lines after the line <code>webServerDTO.addBinding(bindingDTO);</code> and before <code>webServerComponent.configure(webServerDTO, pathToArtemis, pathToArtemis);</code></p>\n<p>I believe this just enables default security configuration as I never defined a <code>management.xml</code> file but hopefully this is enough to help anyone with the same problem</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

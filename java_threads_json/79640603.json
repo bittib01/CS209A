@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-kafka",
+      "spring-kafka"
+    ],
+    "owner": {
+      "account_id": 13928922,
+      "reputation": 11,
+      "user_id": 10057529,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/-z6U1gtYNmnY/AAAAAAAAAAI/AAAAAAAAAiQ/0O471DoYJOY/s256-rj/photo.jpg",
+      "display_name": "Александр Новомлинов",
+      "link": "https://stackoverflow.com/users/10057529/%d0%90%d0%bb%d0%b5%d0%ba%d1%81%d0%b0%d0%bd%d0%b4%d1%80-%d0%9d%d0%be%d0%b2%d0%be%d0%bc%d0%bb%d0%b8%d0%bd%d0%be%d0%b2"
+    },
+    "is_answered": true,
+    "view_count": 69,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1751006513,
+    "creation_date": 1748353299,
+    "last_edit_date": 1748636345,
+    "question_id": 79640603,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79640603/cant-force-to-work-compaction-in-apache-kafka",
+    "title": "Can&#39;t force to work compaction in Apache Kafka",
+    "body": "<p>I have problem with kafka cleanup policy compact.\nI want events with the same key to be deduplicated or at least contained within the same segment. But I can't get it to work properly.\nStep to reproduce:</p>\n<ol>\n<li>create docker container</li>\n</ol>\n<pre><code>docker run -d \\\n  --name kafka \\\n  -e KAFKA_NODE_ID=1 \\\n  -e KAFKA_PROCESS_ROLES=broker,controller \\\n  -p 9092:9092 \\\n  -p 9999:9999 \\\n  -e KAFKA_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093 \\\n  -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092 \\\n  -e KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER \\\n  -e KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT \\\n  -e KAFKA_CONTROLLER_QUORUM_VOTERS=1@localhost:9093 \\\n  -e KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1 \\\n  -e KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1 \\\n  -e KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1 \\\n  -e KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS=0 \\\n  -e KAFKA_NUM_PARTITIONS=3 \\\n  -e KAFKA_LOG_CLEANER_ENABLE=true \\\n  -e KAFKA_LOG_CLEANER_THREADS=2 \\\n  -e KAFKA_LOG_CLEANER_DEDUPE_BUFFER_SIZE=134217728 \\\n  -e KAFKA_LOG_CLEANER_IO_BUFFER_SIZE=524288 \\\n  -e KAFKA_JMX_PORT=9999 \\\n  apache/kafka:3.7.2\n</code></pre>\n<ol start=\"2\">\n<li>create topic</li>\n</ol>\n<pre><code>docker exec -it kafka bash\n</code></pre>\n<pre><code>cd /opt/kafka/bin/\n</code></pre>\n<pre><code>./kafka-topics.sh --create \\\n  --bootstrap-server localhost:9092 \\\n  --topic compact-topic1 \\\n  --partitions 4 \\\n  --replication-factor 1 \\\n  --config cleanup.policy=compact \\\n  --config segment.bytes=100000 \\\n  --config min.cleanable.dirty.ratio=0.01 \\\n  --config delete.retention.ms=10000 \\\n  --config min.compaction.lag.ms=5000 \\\n  --config max.compaction.lag.ms=30000 \\\n  --config segment.ms=60000\n</code></pre>\n<ol start=\"3\">\n<li>send events (SpringBoot 3.4.5)</li>\n</ol>\n<pre><code>package com.example.kafka_compact_playground;\n\nimport jakarta.annotation.PostConstruct;\nimport lombok.RequiredArgsConstructor;\nimport lombok.extern.slf4j.Slf4j;\nimport org.springframework.kafka.core.KafkaTemplate;\nimport org.springframework.stereotype.Component;\n\nimport java.time.LocalDateTime;\n\n@RequiredArgsConstructor\n@Component\n@Slf4j\npublic class KafkaGeneratorService {\n    private static final String TOPIC = &quot;compact-topic1&quot;;\n    private final KafkaTemplate&lt;String, String&gt; kafkaTemplate;\n\n    public void sendMessage(String key, String message) {\n        // For compact topics, always use a key\n        kafkaTemplate.send(TOPIC, key, message)\n\n                ;\n    }\n\n    @PostConstruct\n    void init(){\n        int k = 0;\n        for(int j = 0; j &lt; 500000; j++) {\n            for (int i = 0; i &lt; 10; i++) { // More keys\n                String key = &quot;key&quot; + i;\n                String message = &quot;message&quot; + i + &quot;_version_&quot; + j + &quot; data: &quot; + LocalDateTime.now();\n                sendMessage(key, message);\n                k++;\n\n                if (k % 1000 == 0) {\n                    log.info(&quot;Batch {}: Sent message with key: {}&quot;, k, key);\n                    try {\n                        Thread.sleep(10);\n                    } catch (InterruptedException e) {\n                        Thread.currentThread().interrupt();\n                        break;\n                    }\n                }\n            }\n\n            // Add small delay to allow segments to close\n\n        }\n    }\n}\n</code></pre>\n<p>Waiting...\nCheck with offset explorer - 5000000 events\nWhat I'm expecting - a little bit less events.\nWhat I'm doing wrong?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

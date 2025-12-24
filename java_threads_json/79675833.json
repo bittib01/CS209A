@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "c#",
+      "performance",
+      "benchmarking",
+      "microbenchmark"
+    ],
+    "owner": {
+      "account_id": 42679246,
+      "reputation": 379,
+      "user_id": 30869176,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/e8c2f3e4f8519a81500e2c8f44b0b208?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Vasilis Kontopoulos",
+      "link": "https://stackoverflow.com/users/30869176/vasilis-kontopoulos"
+    },
+    "is_answered": true,
+    "view_count": 9457,
+    "accepted_answer_id": 79676383,
+    "answer_count": 5,
+    "score": 27,
+    "last_activity_date": 1751035279,
+    "creation_date": 1750666109,
+    "last_edit_date": 1750762346,
+    "question_id": 79675833,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79675833/why-is-this-code-5-times-slower-in-c-compared-to-java",
+    "title": "Why is this code 5 times slower in C# compared to Java?",
+    "body": "<p>First of all we create a random binary file with 100.000.000 bytes. I used Python for this:</p>\n<pre class=\"lang-py prettyprint-override\"><code>import random\nimport os\n\ndef Main():\n    length = 100000000\n    randomArray = random.randbytes(length)\n    desktopPath = os.path.normpath(os.path.expanduser(&quot;~/Desktop&quot;))\n    fullPath=os.path.join(desktopPath,&quot;RandomFile.dat&quot;)\n    if os.path.isfile(fullPath):\n        print(&quot;File already exists.&quot;)\n        return\n    with open(fullPath, &quot;wb&quot;) as file:\n        file.write(randomArray)\n        print(&quot;The file has been created.&quot;)\n\nMain()\n</code></pre>\n<p>After this we find how many of these bytes were greater than 100 using C# and Java.</p>\n<p>C#:</p>\n<pre class=\"lang-cs prettyprint-override\"><code>using System.Diagnostics;\n\nnamespace TestYouTube\n{\n    public class Program\n    {\n        //finished\n        public static void Main(string[] args)\n        {\n            string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);\n            string fullPath = Path.Combine(desktopPath, &quot;RandomFile.dat&quot;);\n            if (!File.Exists(fullPath))\n            {\n                Console.WriteLine(&quot;The file does not exist.&quot;);\n                return;\n            }\n            byte[] byteArray = File.ReadAllBytes(fullPath);\n            int[] intArray = ByteArrayToIntArray(byteArray);\n            Stopwatch stopwatch = new Stopwatch();\n            stopwatch.Start();\n            int count = TestSpeed(intArray);\n            stopwatch.Stop();\n            Console.WriteLine($&quot;Count = {count}&quot;);\n            Console.WriteLine($&quot;Elapsed: {stopwatch.Elapsed.TotalSeconds} seconds&quot;);\n            Console.ReadLine();\n        }\n\n        //finished\n        private static int[] ByteArrayToIntArray(byte[] byteArray)\n        {\n            if (byteArray == null) return null;\n            if (byteArray.Length == 0) return Array.Empty&lt;int&gt;();\n            int[] intArray = new int[byteArray.Length];\n            for (int i = 0; i &lt; intArray.Length; i++)\n            {\n                intArray[i] = byteArray[i];\n            }\n            return intArray;\n        }\n\n        //finished\n        private static int TestSpeed(int[] array)\n        {\n            if (array == null) throw new ArgumentNullException();\n            if (array.Length == 0) throw new ArgumentException();\n            int count = 0;\n            foreach (int element in array)\n            {\n                if (element &gt; 100)\n                {\n                    count++;\n                }\n            }\n            return count;\n        }\n    }\n}\n</code></pre>\n<p>Java:</p>\n<pre class=\"lang-java prettyprint-override\"><code>import javax.swing.filechooser.*;\nimport java.io.*;\nimport java.nio.file.*;\n\npublic class Main\n{\n    public static void main(String[] args) throws IOException\n    {\n        FileSystemView view = FileSystemView.getFileSystemView();\n        File file = view.getHomeDirectory();\n        String desktopPath = file.getPath();\n        Path fullPath = Paths.get(desktopPath,&quot;RandomFile.dat&quot;);\n        File randomFile=new File(fullPath.toString());\n        if (!randomFile.exists() || randomFile.isDirectory())\n        {\n            System.out.println(&quot;The file does not exist.&quot;);\n            return;\n        }\n        byte[] array = Files.readAllBytes(randomFile.toPath());\n        int[] intArray=ByteArrayToUnsignedByteArray(array);\n        long start = System.currentTimeMillis();\n        int count=TestSpeed(intArray);\n        long end = System.currentTimeMillis();\n        long elapsed=end-start;\n        double elapsedSeconds=((double)elapsed)/1000;\n        System.out.printf(&quot;Count = %d\\n&quot;,count);\n        System.out.printf(&quot;Elapsed: %f seconds\\n&quot;,elapsedSeconds);\n    }\n\n    private static int ByteToUnsignedByte(byte b)\n    {\n        return b &amp; 0b11111111;\n    }\n\n    private static int[] ByteArrayToUnsignedByteArray(byte[] byteArray)\n    {\n        if (byteArray==null) return null;\n        if (byteArray.length==0) return new int[0];\n        int[] newArray=new int[byteArray.length];\n        for (int i=0;i&lt;byteArray.length;i++)\n        {\n            int element=ByteToUnsignedByte(byteArray[i]);\n            newArray[i]=element;\n        }\n        return newArray;\n    }\n\n    private static int TestSpeed(int[] byteArray)\n    {\n        if (byteArray==null) throw new IllegalArgumentException(&quot;The array must not be null.&quot;);\n        if (byteArray.length==0) throw new IllegalArgumentException(&quot;The array length must be non zero.&quot;);\n        int count=0;\n        for (int element : byteArray)\n        {\n            if (element&gt;100)\n            {\n                count++;\n            }\n        }\n        return count;\n    }\n}\n</code></pre>\n<p>Please note that we only measure the time of the function TestSpeed in both languages.</p>\n<p>Results:\nC#:<br />\nCount = 60542647<br />\nElapsed: 0,4286155 seconds</p>\n<p>Java:<br />\nCount = 60542647<br />\nElapsed: 0,077000 seconds</p>\n<p>I ran the code multiple times and the result is about the same. C# is about 5 times slower than Java. Please note that I ran the code from &quot;Release&quot; and also I used &quot;Start Without Debbuging&quot;.</p>\n<p>Does anybody know why this happens? What am I doing wrong?</p>\n<hr />\n<p>According to comments it's better to benchmark the C# code with a benchmark library so I used BenchmarkDotNet for this. The results:<br />\n<code>TestSpeed Mean: 411.2 ms</code><br />\nWhich is not really different from Stopwatch.</p>\n<ul>\n<li>.NET version: .NET 9.0,</li>\n<li>Java openjdk version &quot;24.0.1&quot; 2025-04-15,</li>\n<li>OS: Microsoft Windows [Version 10.0.19045.5965],</li>\n<li>CPU name: AMD Athlon Gold 3150U with Radeon Graphics (dual core Zen 1)</li>\n</ul>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

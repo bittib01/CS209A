@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "jvm"
+    ],
+    "owner": {
+      "account_id": 18106034,
+      "reputation": 89,
+      "user_id": 13163365,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/0baad226f8eb97837b4349842cab5e88?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Random Guy",
+      "link": "https://stackoverflow.com/users/13163365/random-guy"
+    },
+    "is_answered": true,
+    "view_count": 1058,
+    "accepted_answer_id": 78787207,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1721810048,
+    "creation_date": 1718182479,
+    "last_edit_date": 1718340924,
+    "question_id": 78611574,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78611574/spring-boot-3-3-with-cds-support-database-error-during-build-process",
+    "title": "Spring Boot 3.3 with CDS support database error during build process",
+    "body": "<p>I am working on a Spring Boot 3.3 project with Java 21 and I am implementing a new CDS (Class Data Sharing) support feature. The application is a standard CRUD application with a REST API that connects to a PostgreSQL database. My application.yml looks like this:</p>\n<pre class=\"lang-yaml prettyprint-override\"><code>spring:\n  datasource:\n    url: jdbc:postgresql://host.docker.internal:5433/mydatabase\n    username: myuser\n    password: secret\n  liquibase:\n    change-log: classpath:db/changelog/db.changelog-master.xml\n    contexts: schema, data\n    database-change-log-lock-table: ${liquibase.database-change-log-lock-table}\n    database-change-log-table: ${liquibase.database-change-log-table}\n  jpa:\n    properties:\n      hibernate.show_sql: false\n      hibernate.format_sql: true\n      hibernate.highlight_sql: true\n      hibernate.use_sql_comments: true\n      hibernate.generate_statistics: false\n      hibernate.hbm2ddl.auto: none # validate\n\naudit:\n  enable-spring-jpa-listener: true\n\ncache:\n  list:\n    - name: absence-by-id\n      time-to-live: 5m\n      enabled: true\n  default-time-to-live: 10m\n  enable-cache-validation: true\n</code></pre>\n<p>I also have a Dockerfile which is used to build and run the application. The Dockerfile is as follows:</p>\n<pre><code>FROM bellsoft/liberica-runtime-container:jdk-21-crac-cds-musl as builder\n\nWORKDIR /home/app\nADD . /home/app/spring-boot-clean-architecture\nRUN cd spring-boot-clean-architecture &amp;&amp; ./mvnw -Dmaven.test.skip=true -Daether.dependencyCollector.impl=bf clean package\n\nFROM bellsoft/liberica-runtime-container:jdk-21-cds-slim-musl\n\nWORKDIR /home/app\nCOPY --from=builder /home/app/spring-boot-clean-architecture/target/*.jar app.jar\nCOPY --from=builder /home/app/spring-boot-clean-architecture/configuration/development/ config/\nRUN mv config/application-development.yml config/application.yml\nRUN java -Djarmode=tools -jar app.jar extract --layers --launcher\n\nRUN cp -r app/application/* .\nRUN cp -r app/dependencies/* .\nRUN cp -r app/spring-boot-loader/* .\nRUN java -Dspring.aot.enabled=true -XX:ArchiveClassesAtExit=./app/application.jsa -Dspring.context.exit=onRefresh org.springframework.boot.loader.launch.JarLauncher\n\nEXPOSE 8080\nENTRYPOINT exec java $JAVA_OPTS -Dspring.aot.enabled=true -XX:SharedArchiveFile=./app/application.jsa org.springframework.boot.loader.launch.JarLauncher\n</code></pre>\n<p>The Docker build works fine when my PostgreSQL database is running. However, during CI/CD where the database might not be available, the build fails with the following error <code>Caused by: java.net.ConnectException: Connection refused</code></p>\n<p>And the Docker build error:</p>\n<pre><code>&gt;&gt;&gt; RUN java -Dspring.aot.enabled=true -XX:ArchiveClassesAtExit=./app/application.jsa -Dspring.context.exit=onRefresh org.springframework.boot.loader.launch.JarLauncher\n--------------------\nERROR: failed to solve: process &quot;/bin/sh -c java -Dspring.aot.enabled=true -XX:ArchiveClassesAtExit=./app/application.jsa -Dspring.context.exit=onRefresh org.springframework.boot.loader.launch.JarLauncher&quot; did not complete successfully: exit code: 1\n</code></pre>\n<p>I am considering the following approaches but am unsure which one is best:</p>\n<ol>\n<li>Use a separate application.yml for CI/CD: Configure an H2 database to ensure the application starts without needing a real PostgreSQL instance.</li>\n<li>Autoconfigure exclusions: Exclude DataSourceAutoConfiguration and JpaRepositoriesAutoConfiguration, but this leads to errors because my repository beans require an entity manager.\n3.Any other approach: Is there another way to handle this situation more effectively?</li>\n</ol>\n<p>What is the best practice for handling database dependencies during the CI/CD build process to avoid the above errors or to approach Spring Boot with CDS support?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

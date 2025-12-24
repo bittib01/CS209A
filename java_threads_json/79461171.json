@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "postgresql",
+      "spring-boot",
+      "sql-delete"
+    ],
+    "owner": {
+      "account_id": 1615315,
+      "reputation": 8058,
+      "user_id": 1493192,
+      "user_type": "registered",
+      "accept_rate": 65,
+      "profile_image": "https://www.gravatar.com/avatar/903018aeb6c36cd52d977636e81586a4?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Gianni Spear",
+      "link": "https://stackoverflow.com/users/1493192/gianni-spear"
+    },
+    "is_answered": true,
+    "view_count": 98,
+    "accepted_answer_id": 79461186,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1740325667,
+    "creation_date": 1740311505,
+    "last_edit_date": 1740313768,
+    "question_id": 79461171,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79461171/spring-boot-sql-error-in-deleting-record-with-not-null-constraint-violation",
+    "title": "Spring boot SQL error in deleting record with not-null constraint violation",
+    "body": "<p>In Spring boot I have two entity classes</p>\n<pre><code>import java.time.OffsetDateTime;\nimport java.util.Set;\nimport java.util.UUID;\nimport jakarta.persistence.*;\n\nimport lombok.*;\nimport org.apache.commons.lang3.StringUtils;\nimport org.cnr.plantvocdb.enums.LeafHabitus;\nimport org.cnr.plantvocdb.enums.PlantsRanks;\n\n@Entity\n@AllArgsConstructor\n@NoArgsConstructor\n@Builder\n@Getter\n@Setter\n@Table(name = &quot;plants_voc&quot;)\npublic class PlantEntity {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.UUID)\n    @Column(name=&quot;id&quot;, length = 50, nullable = false, updatable = false)\n    private UUID id;\n\n    @Column(name=&quot;ipni&quot;, length = 50)\n    private String ipni;\n\n    @Setter(AccessLevel.NONE)\n    @Column(name=&quot;full_name_plain&quot;, length = 50)\n    private String fullNamePlain;\n\n    @Setter(AccessLevel.NONE)\n    @Column(name=&quot;full_name_no_authors_plain&quot;, length = 50)\n    private String fullNameNoAuthorsPlain;\n\n    @Setter(AccessLevel.NONE)\n    @Column(name=&quot;plant_name&quot;, length = 30, nullable = false)\n    private String name;\n\n    @Setter(AccessLevel.NONE)\n    @Column(name=&quot;family&quot;, length = 30, nullable = false)\n    private String family;\n\n    @Setter(AccessLevel.NONE)\n    @Column(name=&quot;genus&quot;, length = 30, nullable = false)\n    private String genus;\n\n    @Setter(AccessLevel.NONE)\n    @Column(name=&quot;species&quot;, length = 30, nullable = false)\n    private String species;\n\n    @Column(name=&quot;valid_nomenclature&quot;)\n    private boolean validNomenclature;\n\n    @Column(name=&quot;rank&quot;, length = 20)\n    @Enumerated(EnumType.STRING)\n    private PlantsRanks rank;\n\n    @Column(name=&quot;leaf_habitus&quot;, length = 20)\n    @Enumerated(EnumType.STRING)\n    private LeafHabitus leafHabitus;\n\n    @OneToMany(\n            fetch = FetchType.EAGER,\n            cascade = CascadeType.ALL,\n            mappedBy = &quot;plant&quot;\n    )\n    private Set&lt;PlantEmitterEntity&gt; emitter;\n\n    @ElementCollection\n    @CollectionTable(\n            name = &quot;synonyms&quot;, // Nome della tabella intermedia\n            joinColumns = @JoinColumn(name = &quot;fk_synonyms_plant_id&quot;),\n            foreignKey = @ForeignKey(name = &quot;FK_synonyms_plant&quot;)\n    )\n    @Column(name=&quot;synonyms&quot;)\n    private Set&lt;String&gt; synonyms;\n\n    @Column(name=&quot;created_datetime_utc&quot;, updatable = false) // creation_datetime_utc\n    private OffsetDateTime createdDatetimeUTC;\n\n    @Column(name=&quot;updated_datetime_utc&quot;)  // last_modified_datetime_utc\n    private OffsetDateTime updatedDatetimeUTC;\n\n    public void setName(String name) {\n\n        this.name = StringUtils\n                .normalizeSpace(name.toLowerCase());\n    }\n\n    public void setFamily(String family) {\n\n        this.family = StringUtils\n                .normalizeSpace(StringUtils\n                        .capitalize(family.toLowerCase()));\n    }\n\n    public void setGenus(String genus) {\n\n        this.genus = StringUtils\n                .normalizeSpace(StringUtils\n                        .capitalize(genus.toLowerCase()));\n    }\n\n    public void setSpecies(String species) {\n\n        this.species = StringUtils\n                .normalizeSpace(species.toLowerCase());\n    }\n\n    public void setFullNamePlain(String fullNamePlain) {\n        this.fullNamePlain = StringUtils\n                .normalizeSpace(fullNamePlain);\n    }\n\n    public void setFullNameNoAuthorsPlain(String fullNameNoAuthorsPlain) {\n        this.fullNameNoAuthorsPlain = StringUtils\n                .normalizeSpace(fullNameNoAuthorsPlain);\n    }\n}\n</code></pre>\n<p>and</p>\n<pre><code>import jakarta.persistence.*;\nimport lombok.Getter;\nimport lombok.Setter;\n\n@Entity\n@Table(name=&quot;emitters&quot;)\n@Getter\n@Setter\npublic class PlantEmitterEntity {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n\n    @Column(name=&quot;emits&quot;, length = 50)\n    private boolean emits;\n\n    @Column(name=&quot;doi&quot;)\n    private String doi;\n\n    @ManyToOne(\n            fetch = FetchType.LAZY,\n            cascade = CascadeType.ALL\n    )\n    @JoinColumn(\n            name = &quot;fk_emitters_plant_id&quot;,\n            nullable = false,\n            updatable = true,\n            insertable = true,\n            foreignKey = @ForeignKey(name = &quot;FK_emitters_plant&quot;))\n    private PlantEntity plant;\n\n}\n</code></pre>\n<p>I developed a series of endpoints in the Controller in order to perform the classic GET, PUT, DELETE and UPDATE operations. However, when I try to delete a plant record using its UUID id I get this error:</p>\n<pre><code>org.postgresql.util.PSQLException: ERROR: null value in column &quot;fk_emitters_plant_id&quot; of relation &quot;emitters&quot; violates not-null constraint\n</code></pre>\n<p>I suppose this is due to the constraint that doesn't let me delete PlantEntity along with PlantEmitterEntity</p>\n<p><strong>Controller</strong></p>\n<pre><code>@DeleteMapping(&quot;/{id}&quot;)\n    public ResponseEntity&lt;ResponsePlantDTO&gt; delete(@PathVariable(&quot;id&quot;) UUID id){\n        Optional&lt;ResponsePlantDTO&gt; optionalResponsePlantDTO = service.findPlantById(id);\n        if(optionalResponsePlantDTO.isPresent()){\n            service.delete(optionalResponsePlantDTO.get());\n            return ResponseEntity\n                    .status(HttpStatus.OK)\n                    .body(optionalResponsePlantDTO.get());\n        } else {\n            throw new PlantNotFoundException(\n                    MessageFormat.format(&quot;Plant not found with id code: {0}.&quot;, id.toString())\n            );\n        }\n    }\n</code></pre>\n<p><strong>Service</strong></p>\n<pre><code>public void delete(ResponsePlantDTO plant){\n    PlantEntity plantEntity = mapper.map(plant, PlantEntity.class);\n    repository.delete(plantEntity);\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

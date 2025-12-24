@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "jackson"
+    ],
+    "owner": {
+      "account_id": 29645,
+      "reputation": 5644,
+      "user_id": 80280,
+      "user_type": "registered",
+      "accept_rate": 76,
+      "profile_image": "https://i.sstatic.net/wfRgf.jpg?s=256",
+      "display_name": "Eric Liprandi",
+      "link": "https://stackoverflow.com/users/80280/eric-liprandi"
+    },
+    "is_answered": false,
+    "view_count": 120,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1757107177,
+    "creation_date": 1757107177,
+    "question_id": 79757166,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79757166/jacksoninject-jsoncreator-objectmapper-spring-boot",
+    "title": "@JacksonInject + @JsonCreator + ObjectMapper + Spring Boot",
+    "body": "<p>This is pretty much the same question as <a href=\"https://stackoverflow.com/q/33056502/80280\">this one</a> but it's 9 years old and never got an answer (the comment doesn't explain how they actually fixed it - just gives a short hint).</p>\n<p>Using Jackson, I am trying to parse a string from a property that contains JSON. I am sure the perfect implementation is to build a custom deserializer. However, to limit the changes to the existing code (for business reasons), I would rather access the <code>ObjectMapper</code> used by Spring Boot to deserialize the object itself. My understanding is that I should be able to achieve that using <code>@JacksonInject</code>.\nHowever, the deserialization is failing with an error similar to:</p>\n<pre class=\"lang-none prettyprint-override\"><code>com.fasterxml.jackson.databind.exc.InvalidDefinitionException: Conflicting setter definitions for property &quot;defaultPropertyInclusion&quot;: com.fasterxml.jackson.databind.ObjectMapper#setDefaultPropertyInclusion(com.fasterxml.jackson.annotation.JsonInclude$Value) vs com.fasterxml.jackson.databind.ObjectMapper#setDefaultPropertyInclusion(com.fasterxml.jackson.annotation.JsonInclude$Include)\n</code></pre>\n<p>This seems to indicate that <code>ObjectMapper</code> is trying to <em>deserialize</em> <code>ObjectMapper</code>.</p>\n<p>Below is a simple test showing my use case with 3 simple classes:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@JsonTest\nclass FooTest {\n  @Autowired\n  private JacksonTester&lt;Foo&gt; tester;\n  @Autowired\n  private JacksonTester&lt;Foobar&gt; tester2;\n\n  @Test\n  void foo() throws Exception {\n    // Arrange\n    // Act\n    final var target = tester.parseObject(&quot;&quot;&quot;\n        {\n          &quot;bar&quot;: &quot;baz&quot;,\n          &quot;baz&quot;: {\n            &quot;other&quot;: &quot;qux&quot;\n          }\n        }\n        &quot;&quot;&quot;);\n\n    // Assert\n    assertThat(target.bar()).isEqualTo(&quot;baz&quot;);\n    assertThat(target.baz().other()).isEqualTo(&quot;qux&quot;);\n  }\n\n  @Test\n  void foobar() throws Exception {\n    // Arrange\n    // Act\n    final var target = tester2.parseObject(&quot;&quot;&quot;\n        {\n          &quot;bar&quot;: &quot;baz&quot;,\n          &quot;baz&quot;: &quot;{\\\\&quot;bar\\\\&quot;: \\\\&quot;qux\\\\&quot;}&quot;\n        }\n        &quot;&quot;&quot;);\n\n    // Assert\n    assertThat(target.bar()).isEqualTo(&quot;baz&quot;);\n    assertThat(target.baz().other()).isEqualTo(&quot;qux&quot;);\n  }\n\n  record Foo(String bar, Bar baz) {}\n\n  record Bar(String other) {}\n\n  record Foobar(String bar, Bar baz) {\n    @JsonCreator\n    public static Foobar fromJson(String bar, String baz, @JacksonInject ObjectMapper mapper)\n        throws JsonProcessingException {\n      final var barObj = mapper.readValue(baz, Bar.class);\n      return new Foobar(bar, barObj);\n    }\n  }\n}\n</code></pre>\n<p>And it's getting the same <code>Conflicting setter definitions...</code> error.</p>\n<p>Am I just trying to do something that is not supported?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

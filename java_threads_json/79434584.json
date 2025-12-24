@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jpa",
+      "spring-data-jpa",
+      "hibernate-criteria",
+      "criteria-api"
+    ],
+    "owner": {
+      "account_id": 28128516,
+      "reputation": 11,
+      "user_id": 21493475,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/729e18cf5725ed2eafbbecffe9c4a925?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "ZoiloN",
+      "link": "https://stackoverflow.com/users/21493475/zoilon"
+    },
+    "is_answered": true,
+    "view_count": 97,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1761577873,
+    "creation_date": 1739397945,
+    "question_id": 79434584,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79434584/sorting-over-a-jpa-projection-of-a-union-query-using-criteria-api",
+    "title": "Sorting over a JPA projection of a UNION query using Criteria API",
+    "body": "<p>I have the following (oversimplified) code, that performs an unionAll between two tables using Criteria API, and retrieves a projection given by <strong>ProjectionDTO</strong>. These entites are just examples.</p>\n<pre><code>public List&lt;ProjectionDTO&gt; someMethod(int offset, int size) {\n   HibernateCriteriaBuilder builder = entityManager.unwrap(Session.class).getCriteriaBuilder();\n\n   CriteriaQuery&lt;ProjectionDTO&gt; qUser = builder.createQuery(ProjectionDTO.class);\n   Root&lt;UserEntity&gt; rootUser = qUser.from(UserEntity.class);\n   qUser.select(builder.construct(\n           ProjectionDTO.class,\n           rootUser.get(&quot;id&quot;).alias(&quot;field1&quot;),\n           rootUser.get(&quot;role&quot;).alias(&quot;field2&quot;)\n   ));\n\n   CriteriaQuery&lt;ProjectionDTO&gt; qItem = builder.createQuery(ProjectionDTO.class);\n   Root&lt;ItemEntity&gt; rootItem = qItem.from(ItemEntity.class);\n   qItem.select(builder.construct(\n           ProjectionDTO.class,\n           rootItem.get(&quot;quantity&quot;).alias(&quot;field1&quot;),\n           rootItem.get(&quot;description&quot;).alias(&quot;field2&quot;)\n   ));\n\n   CriteriaQuery&lt;ProjectionDTO&gt; qUnion = builder.unionAll(qUser, qItem);\n\n   List&lt;ProjectionDTO&gt; result = entityManager.createQuery(qUnion)\n                                   .setFirstResult(offset)\n                                   .setMaxResults(size)\n                                   .getResultList();\n   return result;\n}\n</code></pre>\n<p>The projection is given by:</p>\n<pre><code>public class ProjectionDTO {\n\n    private Long field1;\n    private String field2;\n\n    public ProjectionDTO () {\n    }\n\n    public ProjectionDTO (Long field1, String field2) {\n        this.field1 = field1;\n        this.field2 = field2;\n    }\n}\n</code></pre>\n<p>This works fine, but I have been unsuccessful trying to implement the order clause using the aliases. Especially because I want to be able to handle pagination properly afterwards.</p>\n<p>I know I can get this to work using the index like:</p>\n<pre><code>qUnion.orderBy(builder.desc(builder.literal(1)));\n</code></pre>\n<p>But obviously this just a workaround and the ordering (maybe by multiple columns) is only known at runtime. Ideally I would like to do something like:</p>\n<pre><code>Root&lt;ProjectionDTO&gt; rootProjection = qUnion.from(ProjectionDTO.class);\nqUnion.orderBy(builder.desc(rootProjection.get(&quot;field1&quot;)));\n</code></pre>\n<p>Where I can order based upon the projection alias. But this implementation is obviously incorrect, and does not work.</p>\n<p>Ideally the solution would be able to also handle predicates upon the projection, but as of now I can add them to both queries individually as a workaround. So it is less of a concern (but a nice bonus nonetheless).</p>\n<p>I have toyed a bit with subqueries so maybe can be done that way. Last resort would be building the query manually.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

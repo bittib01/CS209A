@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "angular",
+      "typescript",
+      "spring",
+      "multipartform-data"
+    ],
+    "owner": {
+      "account_id": 14618034,
+      "reputation": 345,
+      "user_id": 10707177,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/E3z2m.jpg?s=256",
+      "display_name": "Alfredo Marin",
+      "link": "https://stackoverflow.com/users/10707177/alfredo-marin"
+    },
+    "is_answered": true,
+    "view_count": 59,
+    "accepted_answer_id": 79385065,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1737737588,
+    "creation_date": 1737089966,
+    "question_id": 79363635,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79363635/java-spring-with-angular-16-uploading-multiple-files-with-json-attached",
+    "title": "Java Spring with Angular 16 uploading multiple files with JSON attached",
+    "body": "<p>I have an Java application running Spring and on it I have an endpoint to receive multiple files but, every time I hit it I get &quot;415 Status&quot;.</p>\n<p>This is my endpoint:</p>\n<pre><code>@PostMapping(value = &quot;/upload&quot;, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)\npublic List&lt;Media&gt; uploadMediaToS3(@RequestPart(&quot;files&quot;) Set&lt;MultipartFile&gt; files,\n                                   @RequestPart(&quot;mediaUploads&quot;) Set&lt;MediaUploadDTO&gt; mediaUploadDTOs,\n                                   @RequestParam(&quot;profileId&quot;) UUID profileId) throws IOException, FindMeDataNotFoundException {\n    logger.info(&quot;WORKED! &quot; + profileId.toString());\n    return new ArrayList&lt;&gt;();\n}\n</code></pre>\n<p>And this is how I'm building the request on my Angular application:\nPS: <code>postMedia</code> is an array of <code>{ fileData: fileToSend, base64: event.target!.result!.toString() }</code>.</p>\n<pre><code>    let formDataWithFiles = new FormData();\n    let filesRaw = [] as Array&lt;File&gt;;\n    let filesInfo = [] as Array&lt;Media&gt;;\n    this.postMedias.forEach(postMedia =&gt; {\n      filesRaw.push(new File([postMedia.base64], postMedia.fileData.fileName));\n      filesInfo.push(postMedia.fileData);\n    });\n    formDataWithFiles.append('files', new Blob(filesRaw));\n    formDataWithFiles.append('mediaUploads', JSON.stringify(filesInfo));\n    console.log(formDataWithFiles);\n    this.postService.uploadMedias(formDataWithFiles, this.profileId);\n</code></pre>\n<p>The service call is:</p>\n<pre><code>  uploadMedias(files: FormData, profileId: string) {\nreturn firstValueFrom(this.appService.POST&lt;Media&gt;(`medias/upload?profileId=${profileId}`, files)).then(savedMedia =&gt; {\n  return savedMedia;\n}, error =&gt; {\n  throw error;\n});\n</code></pre>\n<p>}\nMy files are being upload to my Angular application by an Input type file and are being save onto a variable by using this code:</p>\n<pre><code>if (file.target.files[0]['size'] / 1e+6 == this.maxMediaSize) {\n  this.openSnackBar(this.translateService.instant('CUSTOM-FILE-INPUT.MAX-SIZE-ERROR') + `${this.maxMediaSize}Mb`, 2500);\n} else {\n  let reader = new FileReader();\n  reader.readAsDataURL(file.target.files[0]);\n  let fileToSend: Media = {} as Media;\n  fileToSend.mediaExtension = file.target.files[0].type.substring(file.target.files[0].type.indexOf('/') + 1).toUpperCase();\n  fileToSend.mediaPrivacy = 'PUBLIC';\n  fileToSend.mediaPrice = 0.0\n  fileToSend.whenToDelete = new Date().getTime();\n  fileToSend.fileName = file.target.files[0].name;\n  fileToSend.mediaType = 'PROFILE_AVATAR_MEDIA';\n\n  reader.onload = (event) =&gt; {\n    this.formFiles.push({ fileData: fileToSend, base64: event.target!.result!.toString() });\n  };\n }\n</code></pre>\n<p>I tried using Postman to test this endpoint but, getting nowhere either:\n<a href=\"https://i.sstatic.net/BT6FFSzu.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/BT6FFSzu.png\" alt=\"Response of Postman request\" /></a></p>\n<p>I have another endpoint that saves a single file and it works perfectly:</p>\n<pre><code>@PostMapping(value = &quot;/update-avatar&quot;, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)\npublic Media uploadAvatarToS3(@RequestPart(&quot;avatar&quot;) MultipartFile avatar,\n                              @RequestPart(&quot;mediaUpload&quot;) MediaUploadDTO mediaUploadDTO,\n                              @RequestParam(&quot;profileId&quot;) UUID profileId) throws IOException, FindMeDataNotFoundException {\n    return mediaService.uploadAvatar(avatar, profileId, mediaUploadDTO);\n}\n</code></pre>\n<p>My application.properties has the &quot;multipart&quot; properties in it:</p>\n<pre><code>spring.servlet.multipart.enabled=true\nspring.servlet.multipart.location=${java.io.tmpdir}\nspring.servlet.multipart.max-file-size=100MB\nspring.servlet.multipart.max-request-size=100MB\n</code></pre>\n<p>My Spring version is 3.3.3 with Java 17</p>\n<p>If anyone has any idea on what I could try, it'd help a lot! Thanks in advance!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "multithreading",
+      "network-programming",
+      "server",
+      "netty"
+    ],
+    "owner": {
+      "account_id": 24394475,
+      "reputation": 11,
+      "user_id": 19484037,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/1ae240995c698e245c7ffbd8b1263293?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "ann",
+      "link": "https://stackoverflow.com/users/19484037/ann"
+    },
+    "is_answered": false,
+    "view_count": 78,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1719400194,
+    "creation_date": 1718857790,
+    "last_edit_date": 1719400194,
+    "question_id": 78645527,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78645527/netty-use-channel-executor-to-send-message",
+    "title": "Netty, use channel executor to send message",
+    "body": "<p>I thought the cost per call to writeAndFlush was too high, so I did it like this.\nI tried using flushQueue in channelReadCompleted, but addMessage was probably called from another thread. As a result, that message hung in the queue until there was a read event, and it might have hung in the queue indefinitely.\nDoes anyone have a better solution?</p>\n<pre><code>public class Sender {\n    private final Session session;\n    private final Queue&lt;Message&gt; messages = new ConcurrentLinkedQueue&lt;&gt;();\n\n    public ScheduledFuture&lt;?&gt; future;\n\n    public Sender(Session session) {\n        this.session = session;\n        future = session.getCtx().executor().scheduleWithFixedDelay(this::flushMessages, 50, 50, TimeUnit.MILLISECONDS);\n    }\n\n    public void addMessage(Message message) {\n        messages.add(message);\n    }\n\n    public void cancel() {\n        future.cancel(false);\n    }\n\n    public void flushMessages() {\n        Message message = messages.poll();\n        if (message != null) {\n            ByteBuf buffer = PooledByteBufAllocator.DEFAULT.buffer();\n            do {\n                buffer.writeBytes(message.getBuffer());\n                message.release();\n\n                message = messages.poll();\n            } while (message != null);\n\n            session.getCtx().writeAndFlush(buffer);\n        }\n    }\n}\n</code></pre>\n<p><strong>EDIT:</strong></p>\n<p>I gave up using a message queue. Instead, I just write to the channel and call flush after each interval. However, I still hope there is a better way.</p>\n<pre><code>futureFlushEvent = ctx.channel().eventLoop().scheduleAtFixedRate(ctx::flush, 100, 100, TimeUnit.MILLISECONDS);\n\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

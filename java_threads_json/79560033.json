@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "rest",
+      "spring-security"
+    ],
+    "owner": {
+      "account_id": 21685823,
+      "reputation": 17,
+      "user_id": 16001314,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/caf60dd7479777ef9c6b82b0fa364bf1?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Shin Thant Maung",
+      "link": "https://stackoverflow.com/users/16001314/shin-thant-maung"
+    },
+    "is_answered": false,
+    "view_count": 774,
+    "answer_count": 2,
+    "score": -1,
+    "last_activity_date": 1747204980,
+    "creation_date": 1744033303,
+    "last_edit_date": 1744033895,
+    "question_id": 79560033,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79560033/no-default-password-encoder-configured",
+    "title": "No default password encoder configured",
+    "body": "<pre><code>@Configuration\n@EnableWebSecurity\n@Slf4j\npublic class SecurityConfig {\n\n    @Bean\n    public PasswordEncoder passwordEncoder()\n    {\n        return PasswordEncoderFactories.createDelegatingPasswordEncoder();\n    }\n\n    @Bean\n    public AuthenticationManager authenticationManage(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) throws Exception {\n        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();\n        provider.setUserDetailsService(userDetailsService);\n        provider.setPasswordEncoder(passwordEncoder);\n        return new ProviderManager(provider);\n    }\n\n    @Bean\n    public JwtAuthenticationFilter jwtAuthenticationFilter(AuthenticationService authenticationService)\n    {\n        return new JwtAuthenticationFilter(authenticationService);\n    }\n\n    @Bean\n    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder, UserRepository userRepository)\n    {\n        BlogUserDetailsService userDetailsService = new BlogUserDetailsService(userRepository);\n        String email = &quot;user@gmail.com&quot;;\n        String encodedPassword = passwordEncoder.encode(&quot;password&quot;);\n        userRepository.findByEmail(email).orElseGet(() -&gt; {\n            User newUser = User.builder()\n                    .name(&quot;user&quot;)\n                    .email(email)\n                    .password(encodedPassword)\n                    .build();\n            return userRepository.save(newUser);\n        });\n        return userDetailsService;\n    }\n    @Bean\n    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception\n    {\n        http\n                .authorizeHttpRequests(auth -&gt; auth\n                        .requestMatchers(HttpMethod.POST, &quot;/api/v1/auth/login&quot;).permitAll()\n                        .requestMatchers(HttpMethod.GET, &quot;/api/v1/categories/**&quot;).permitAll()\n                        .requestMatchers(HttpMethod.GET, &quot;/api/v1/posts/**&quot;).permitAll()\n                        .requestMatchers(HttpMethod.GET, &quot;/api/v1/tags/**&quot;).permitAll()\n                        .anyRequest().authenticated())\n                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)\n                .csrf(AbstractHttpConfigurer::disable)\n                .sessionManagement(session -&gt; session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));\n        return http.build();\n    }\n\n}\n</code></pre>\n<p>In above security config class, I have created password Encoder bean and also a default user in userDetailsService bean with encoded password. But, when i try to login with the default user email and password from &quot;Postman&quot;. I get &quot;Bad Request Error(400)&quot;, with error message that says the following:</p>\n<pre>\"Given that there is no default password encoder configured, each password must have a password encoding prefix. Please either prefix this password with '{noop}' or set a default password encoder in `DelegatingPasswordEncoder`.\"</pre>\n<p>Why?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

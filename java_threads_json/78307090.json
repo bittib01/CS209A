@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "gradle",
+      "jlink",
+      "jpackage"
+    ],
+    "owner": {
+      "account_id": 31388262,
+      "reputation": 1,
+      "user_id": 24207965,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/ba3dfe7036edf725a51ab499eb8d86c3?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "SRLU",
+      "link": "https://stackoverflow.com/users/24207965/srlu"
+    },
+    "is_answered": false,
+    "view_count": 110,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1716439564,
+    "creation_date": 1712782650,
+    "last_edit_date": 1712789650,
+    "question_id": 78307090,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78307090/debug-jpackage-executable-file",
+    "title": "Debug Jpackage executable file",
+    "body": "<p>i'm using gradle and created a jpackage task. But the executable file doesn't run correctly, i want to see what is happening in console. For that my researchs came to the conclusion that I should use <code>--win-console</code> in jpackage configuration. But results in:</p>\n<p><a href=\"https://i.sstatic.net/jeq7I.png\" rel=\"nofollow noreferrer\">enter image description here</a></p>\n<p>this is my build.gradle:</p>\n<pre><code>buildscript {\n    ext.gradle_version = &quot;7.1.1&quot;\n}\n\nplugins {\n    id &quot;java&quot;\n    id &quot;application&quot;\n    id &quot;org.javamodularity.moduleplugin&quot; version &quot;1.8.12&quot;\n    id &quot;org.openjfx.javafxplugin&quot; version &quot;0.0.13&quot;\n    id &quot;org.beryx.jlink&quot; version &quot;2.25.0&quot;\n}\n\ngroup &quot;com.webkriativa.mypackage&quot;\nversion &quot;0.5&quot;\n\nvar simpleitkVersion = &quot;2.3.1&quot;\nvar simpleitkLibPath = &quot;libs/SimpleITK-&quot; + simpleitkVersion\nvar simpleitkJarPath = simpleitkLibPath + &quot;/simpleitk-&quot; + simpleitkVersion + &quot;.jar&quot;\nvar lwjglNativesPath = &quot;libs/lwjgl&quot;;\nvar dcm4chePath = &quot;libs/dcm4che-5.31.2&quot;;\nvar openCVNativesWindowsPath = &quot;libs/dcm4che-5.31.2/lib/windows-x86-64&quot;\nproject.ext.lwjglVersion = &quot;3.3.3&quot;\nproject.ext.lwjglNatives = &quot;natives-windows&quot;\n\nrepositories {\n    mavenCentral()\n    maven {\n        url = uri(&quot;https://maven.scijava.org/content/repositories/public/&quot;)\n    }\n}\n\ntasks.withType(JavaCompile).configureEach {\n    options.encoding = &quot;UTF-8&quot;\n}\n\napplication {\n    mainModule = &quot;com.webkriativa.mypackage&quot;\n    mainClass = &quot;com.webkriativa.mypackage.MRETest&quot;\n}\n\njavafx {\n    version = &quot;17.0.6&quot;\n    modules = [&quot;javafx.controls&quot;, &quot;javafx.fxml&quot;, &quot;javafx.graphics&quot;]\n}\n\ndependencies {\n    //a lot of things here\n}\n\njar {\n    manifest {\n        attributes &quot;Main-Class&quot; : &quot;com.webkriativa.mypackage.MRETest&quot;\n    }\n\n    duplicatesStrategy = &quot;exclude&quot;\n\n}\n\ntasks.jpackageImage.doLast {\n    copy {\n        from(&quot;src/main/resources&quot;)\n        into(&quot;$buildDir/jpackage/$project.name/src/main/resources&quot;)\n    }\n    copy {\n        from simpleitkLibPath\n        into(&quot;$buildDir/jpackage/$project.name/runtime/bin&quot;)\n        include '**/*.dll'\n    }\n    copy {\n        from lwjglNativesPath\n        into(&quot;$buildDir/jpackage/$project.name/runtime/bin&quot;)\n    }\n    copy {\n        from dcm4chePath\n        into(&quot;$buildDir/jpackage/$project.name/runtime/bin&quot;)\n    }\n    copy{\n        from 'src'\n        into(&quot;$buildDir/jpackage/$project.name&quot;)\n        include 'run-noah.bat'\n    }\n}\n\njlink{\n    jpackage {\n        if (org.gradle.internal.os.OperatingSystem.current().windows) {\n            installerOptions += ['--win-per-user-install', '--win-menu', '--win-shortcut', '--win-menu-group', '--win-dir-chooser', '--win-console']\n        }\n    }\n}\n\nrun {\n    jvmArgs = ['-Djava.library.path=&quot;' + lwjglNativesPath + ';' + openCVNativesWindowsPath + ';' + simpleitkLibPath + '&quot;', '--add-opens', 'java.desktop/javax.imageio.stream=dcm4che.imageio.opencv',\n               '--add-opens', 'java.base/java.io=dcm4che.imageio.opencv', '-Dorg.lwjgl.util.Debug=true', '-Dorg.lwjgl.util.DebugLoader=true']\n}\n</code></pre>\n<p>I know the problem is related to LWJGL (opengl wrapper), because it was working until i added this lib. So it isnt a javafx/simpleitk/dcm4che problem.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "google-maps",
+      "complexity-theory",
+      "android-gps"
+    ],
+    "owner": {
+      "account_id": 24279106,
+      "reputation": 47,
+      "user_id": 18225947,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AATXAJzZQJkRvjw7WRQ1I_pV4UK7sBNSfQja4YFJd6Zh=k-s256",
+      "display_name": "Ravid Ofek",
+      "link": "https://stackoverflow.com/users/18225947/ravid-ofek"
+    },
+    "is_answered": false,
+    "view_count": 159,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1735059829,
+    "creation_date": 1729967252,
+    "question_id": 79129217,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79129217/smooth-gps-tracking-with-google-maps",
+    "title": "Smooth GPS tracking with google maps",
+    "body": "<p>I am working on a vehicle tracking application, and im trying to get the moving animation of the car smooth, with no &quot;jumps&quot; and a continous movement of the map with the current location.\nGPS location is provided every second, which is obviously not sufficient for smooth experience.\nIve figured I could interpolate between the last two given locations and update the marker location and move the map every 16ms to create a transition in 60fps from each given location which would result in a smooth movement.\nThe problem is that this is unbareably battery consuming, taking in an emulator 70% of the pc cpu.\ni've trying changing it to 20 and even 10 fps but no big difference.\nWaze application provides exactly what I aim for while taking 30 - 40% cpu\nany ideas how to achive this without overwhelming the phone?\nthis is my current code that takes alot of cpu :</p>\n<pre class=\"lang-none prettyprint-override\"><code>        if(fusedLocationClient != null &amp;&amp; ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)\n                == PackageManager.PERMISSION_GRANTED)\n        {\n\n            locationCallback = new LocationCallback() {\n                @Override\n                public void onLocationResult(LocationResult locationResult) {\n                    Location location = locationResult.getLastLocation();\n\n                    //Place current location marker\n                    LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());\n                    if(mLastLocation == null)\n                    {\n                        mLastLocation = latLng;\n                        mCurrLocationMarker = Helper.setCustomMarker(MapsActivity.this, latLng, mMap);\n                        locationUpdater = new LocationUpdater(mMap, MapsActivity.this, mCurrLocationMarker);\n                    }\n                    mCurrLocationMarker.setRotation(calculateBearing(mLastLocation, latLng));\n\n                    //mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng,18), ANIMATION_TIME, null);\n                    animateMarker(mLastLocation, latLng);\n\n                    mLastLocation = latLng;\n                    //move map camera\n\n                }\n            };\n\n            LocationRequest locationRequest = LocationRequest.create();\n            locationRequest.setInterval(ANIMATION_TIME);\n            locationRequest.setFastestInterval(ANIMATION_TIME/2);\n            locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);\n\n            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());\n        } \n public void animateMarker(final LatLng startPosition, final LatLng toPosition) {\n\n        final Handler handler = new Handler();\n        final long start = SystemClock.uptimeMillis();\n\n        final long duration = ANIMATION_TIME;\n        final Interpolator interpolator = new LinearInterpolator();\n\n        handler.post(new Runnable() {\n            @Override\n            public void run() {\n                long elapsed = SystemClock.uptimeMillis() - start;\n                float t = interpolator.getInterpolation((float) elapsed\n                        / duration);\n                double lng = t * toPosition.longitude + (1 - t)\n                        * startPosition.longitude;\n                double lat = t * toPosition.latitude + (1 - t)\n                        * startPosition.latitude;\n                LatLng latLng = new LatLng(lat, lng);\n                mCurrLocationMarker.setPosition(latLng);\n                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng,18));\n\n                if (t &lt; 1.0) {\n                    // Post again 16ms later.\n                    handler.postDelayed(this, 16);\n                }\n            }\n        });\n    }```\n \n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

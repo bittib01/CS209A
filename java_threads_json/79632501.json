@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jackson",
+      "deserialization"
+    ],
+    "owner": {
+      "account_id": 72183,
+      "reputation": 721,
+      "user_id": 208514,
+      "user_type": "registered",
+      "accept_rate": 25,
+      "profile_image": "https://www.gravatar.com/avatar/913a8d91f8308c10dd8d308e6b12a545?s=256&d=identicon&r=PG",
+      "display_name": "kio21",
+      "link": "https://stackoverflow.com/users/208514/kio21"
+    },
+    "is_answered": true,
+    "view_count": 62,
+    "accepted_answer_id": 79632608,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1747894462,
+    "creation_date": 1747848884,
+    "last_edit_date": 1747894462,
+    "question_id": 79632501,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79632501/jackson-custom-map-deserialization-throws-cannot-find-a-map-key-deserializer",
+    "title": "Jackson custom map deserialization throws &quot;Cannot find a (Map) Key deserializer&quot; exception",
+    "body": "<p>I have several sets of parameters that comes from client and I need to parse them.\nI make a custom class extended from a HashMap. It is parameterized with map key class which  is enum itself. Using Enums here is dictated by its use in other various parts of the application.</p>\n<p>Below is a working code snippet with commented state of issue I have. I need to make case (1) to be working but it throws &quot;Cannot find a (Map) Key deserializer&quot; exception.</p>\n<p>Cases (2) and (3) I write here as my experiments. I'm not sure about case (2) error as I can instantiate <code>new ClientParams&lt;FirstParams&gt;()</code> with no problem. Case (3) is working and almost what I need, but nonetheless I need to have separate <code>ClientParams&lt;P&gt;</code> class for parameters map.</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class Main {\n    public static final ObjectMapper mapper = new ObjectMapper();\n\n    public static void main(String[] args) throws JsonProcessingException {\n        new Main().doParse();\n    }\n    public void doParse() throws JsonProcessingException {\n        String json = &quot;{\\&quot;p1\\&quot;: \\&quot;str1\\&quot;}&quot;;\n\n        // case (1)\n        new FirstParser().parse(json);\n        // Exception in thread &quot;main&quot; com.fasterxml.jackson.databind.exc.InvalidDefinitionException:\n        // Cannot find a (Map) Key deserializer for type [simple type, class org.example.Main$Param]\n\n        // case (2)\n        mapper.readValue(json, new TypeReference&lt;ClientParams&lt;FirstParams&gt;&gt;() {});\n        // Exception in thread &quot;main&quot; com.fasterxml.jackson.databind.exc.InvalidDefinitionException:\n        // Cannot construct instance of `org.example.Main$ClientParams` (no Creators, \n        // like default constructor, exist): no default constructor found\n        \n        // case (3)\n        mapper.readValue(json, new TypeReference&lt;HashMap&lt;FirstParams, Object&gt;&gt;() {});\n        // OK\n    }\n    interface Param {\n        String key();\n    }\n    class FirstParser extends Parser&lt;FirstParams&gt; {}\n    class Parser&lt;P extends Param&gt; {\n        ClientParams&lt;P&gt; parse(String str) throws JsonProcessingException {\n            return mapper.readValue(str, new TypeReference&lt;&gt;() {});\n        }\n    }\n    enum FirstParams implements Param {\n        P1(&quot;p1&quot;), P2(&quot;p2&quot;);\n        private final String key;\n        FirstParams(String key) {this.key = key;}\n        public String key() {return key;}\n        private static final Map&lt;String, FirstParams&gt; mapByKey =\n            Stream.of(values()).collect(toMap(t -&gt; t.key, identity()));\n        @JsonCreator\n        public static FirstParams fromKey(String key) {return mapByKey.get(key);}\n    }\n    class ClientParams&lt;P extends Param&gt; extends HashMap&lt;P, Object&gt; {\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

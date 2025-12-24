@@ -1,0 +1,37 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "encryption",
+      "cryptography",
+      "bouncycastle",
+      "libsodium"
+    ],
+    "owner": {
+      "account_id": 3552273,
+      "reputation": 1069,
+      "user_id": 3340829,
+      "user_type": "registered",
+      "accept_rate": 62,
+      "profile_image": "https://www.gravatar.com/avatar/c03cc5746d06531934ac1817708f6454?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Leprechaun",
+      "link": "https://stackoverflow.com/users/3340829/leprechaun"
+    },
+    "is_answered": true,
+    "view_count": 292,
+    "accepted_answer_id": 78902623,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1724484041,
+    "creation_date": 1724323083,
+    "last_edit_date": 1724323833,
+    "question_id": 78901095,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78901095/how-to-do-x25519-ecdh-with-a-round-of-hsalsa20-to-produce-the-shared-secret-key",
+    "title": "How to do X25519 ECDH with a round of HSalsa20 to produce the shared secret key specified by NaCl and libsodium using BouncyCastle?",
+    "body": "<p>While trying to implement the &quot;<em>Authenticated encryption</em>&quot; scheme of <a href=\"https://doc.libsodium.org/public-key_cryptography/authenticated_encryption\" rel=\"nofollow noreferrer\">libsodium</a> using BouncyCastle I naively performed simple X25519 key agreement to obtain a <code>javax.crypto.SecretKey</code> object.\nI.e.:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public SecretKey generateSecretKey(PrivateKey privateKey, PublicKey publicKey) throws NoSuchAlgorithmException, InvalidKeyException {\n    KeyAgreement keyAgreement = KeyAgreement.getInstance(&quot;X25519&quot;, new BouncyCastleProvider());\n    keyAgreement.init(privateKey);\n    keyAgreement.doPhase(publicKey, true);\n    return keyAgreement.generateSecret(&quot;X25519&quot;);\n}\n</code></pre>\n<p>I used this <code>secretKey</code> as an input to the <code>org.bouncycastle.crypto.engines.XSalsa20Engine</code>:</p>\n<pre class=\"lang-java prettyprint-override\"><code>XSalsa20Engine xSalsa20Engine = new XSalsa20Engine();\nxSalsa20Engine.init(true, new ParametersWithIV(new KeyParameter(secretKey), nonce));\n</code></pre>\n<p>However, reading the <a href=\"https://cr.yp.to/highspeed/naclcrypto-20090310.pdf\" rel=\"nofollow noreferrer\">Cryptography in NaCl</a> paper, and subsequent testing, I found that this is wrong.</p>\n<p>Quote:</p>\n<blockquote>\n<p>In the next step, described in Section 7, Alice will convert this 32-byte shared\nsecret k into a 32-byte string HSalsa20(k, 0), which is then used to encrypt and\nauthenticate packets. Bob similarly uses HSalsa20(k, 0) to verify and decrypt\nthe packets. No other use is made of k. One can thus view HSalsa20(k, 0) as the\nshared secret rather than k.</p>\n</blockquote>\n<p>The secret key produced by the <code>KeyAgreement</code> needs to be first run through a round of <code>HSalsa20(k, 0)</code>. to produce the final key, called a &quot;shared secret key&quot; in the original paper by Bernstein, that is then used for encryption.</p>\n<h1>TLDR</h1>\n<p>How can I perform a round of HSalsa20 on the initial <code>SecretKey</code> object I got from X25519 exchange using BouncyCastle? There is no standalone <code>HSalsa20</code> function implementation in Bouncycastle library. It seems to be implemented somehow implicitly as a part of the (X)Salsa20Engine class, and I'm not able to invoke it out of the message encryption context.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

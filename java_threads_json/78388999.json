@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "amazon-web-services",
+      "testing",
+      "testcontainers"
+    ],
+    "owner": {
+      "account_id": 31886515,
+      "reputation": 33,
+      "user_id": 24698459,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/91f515c782d8383bc9831d9a870447b7?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Nazar Havronskyi",
+      "link": "https://stackoverflow.com/users/24698459/nazar-havronskyi"
+    },
+    "is_answered": true,
+    "view_count": 1157,
+    "accepted_answer_id": 78395636,
+    "answer_count": 2,
+    "score": 2,
+    "last_activity_date": 1741956957,
+    "creation_date": 1714118145,
+    "last_edit_date": 1714124326,
+    "question_id": 78388999,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78388999/localstack-testcontainer-aws-sqs-spring-boot-unable-to-execute-http-reque",
+    "title": "LocalStack TestContainer + AWS SQS + Spring Boot -&gt; Unable to execute HTTP request",
+    "body": "<p>I have this interesting problem, and would be glad to receive any help</p>\n<p>When I try to create queue, AmazonSQS client creates queue, but when i try to send messages it throws this exception <strong>Unable to execute HTTP request</strong></p>\n<p>CODE:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@TestInstance(TestInstance.Lifecycle.PER_CLASS)\n@TestMethodOrder(MethodOrderer.OrderAnnotation.class)\n@Testcontainers\npublic class AwsSqsTest {\nprivate static final Network network = Network.newNetwork();\n@Container\nstatic final LocalStackContainer localStack = new LocalStackContainer(\nDockerImageName.parse(&quot;localstack/localstack:latest&quot;))\n.withNetwork(network)\n.withNetworkAliases(&quot;notthis&quot;, &quot;localstack&quot;)\n.withServices(Service.SQS);\n\n    static AmazonSQS amazonSQSClient;\n    final String SqsURL = &quot;http://sqs.us-east-1.localstack:4566/000000000000/&quot;;\n    \n    @BeforeAll\n    static void beforeAll() {\n        String localStackEndpoint = localStack.getEndpoint().toString();\n        amazonSQSClient = amazonSQS(\n                localStack.getAccessKey(),\n                localStack.getSecretKey(),\n                localStack.getRegion(),\n                localStackEndpoint\n        );\n    }\n    \n    static AmazonSQS amazonSQS(String accessKey, String secretKey, String region, String stackEndpoint) {\n        var basicAWSCredentials = new BasicAWSCredentials(accessKey, secretKey);\n        var endpointConfiguration = new AwsClientBuilder.EndpointConfiguration(stackEndpoint, region);\n        var credentialsProvider = new AWSStaticCredentialsProvider(basicAWSCredentials);\n        return AmazonSQSClientBuilder.standard()\n                .withEndpointConfiguration(endpointConfiguration)\n                .withCredentials(credentialsProvider)\n                .build();\n    }\n    \n    @Test\n    @Order(1)\n    void testSQSClientInitialization() {\n        assertNotNull(amazonSQSClient);\n    }\n    \n    @ParameterizedTest\n    @ValueSource(strings = {&quot;news&quot;, &quot;trends&quot;})\n    @Order(2)\n    void createQueueTest(String queueName) {\n        amazonSQSClient.createQueue(queueName);\n    \n        var queues = amazonSQSClient.listQueues().getQueueUrls();\n    \n        assertTrue(queues.contains(SqsURL + queueName));\n    }\n    \n    \n    @ParameterizedTest\n    @MethodSource(&quot;saveToQueue&quot;)\n    @Order(3)\n    void saveToQueue(String queueName, String data) {\n        String url = SqsURL + queueName;\n        amazonSQSClient.sendMessage(url, data);\n    \n        var messages = amazonSQSClient.receiveMessage(url);\n    \n        assertEquals(data, messages.getMessages().getFirst().getBody());\n    }\n    \n    Stream&lt;Arguments&gt; saveToQueue() {\n        return Stream.of(\n                arguments(&quot;trends&quot;, &quot;{}&quot;),\n                arguments(&quot;news&quot;, &quot;{}&quot;)\n        );\n    }\n\n}\n</code></pre>\n<p>LOGS:</p>\n<pre><code>\nUnable to execute HTTP request: sqs.us-east-1.localstack\ncom.amazonaws.SdkClientException: Unable to execute HTTP request: sqs.us-east-1.localstack\n...\nCaused by: java.net.UnknownHostException: sqs.us-east-1.localstack\n...\n\nsqs.us-east-1.localstack\njava.net.UnknownHostException: sqs.us-east-1.localstack\n...\n</code></pre>\n<pre><code></code></pre>\n<p><a href=\"https://i.sstatic.net/Z46QvxEm.png\" rel=\"nofollow noreferrer\">enter image description here</a></p>\n<p>I tried to use other implementations of AmazonSQS and use docs, and nothing helped;(</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "junit5"
+    ],
+    "owner": {
+      "account_id": 6241036,
+      "reputation": 1,
+      "user_id": 4854659,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/602719485325773febcfed945f820c7b?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Nonnemo",
+      "link": "https://stackoverflow.com/users/4854659/nonnemo"
+    },
+    "is_answered": false,
+    "view_count": 51,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1751307952,
+    "creation_date": 1733182561,
+    "last_edit_date": 1751307952,
+    "question_id": 79245882,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79245882/is-there-a-way-to-annotate-methods-to-run-before-or-after-all-classes-annotated",
+    "title": "Is there a way to annotate methods to run before or after all classes annotated with @Nested, but not before or after each method annotated as @Test?",
+    "body": "<p>I am using JUnit 5.7.0. I have a class that has a set-up method that I want to run before each nested classes and a tear-down method that I want to run after each nested class, but not before and after each test method within the nested classes.</p>\n<p>Currently, the code looks something like this:</p>\n<pre><code>class BatchJob0TestClass\n{\n    @BeforeEach\n    public void setUp()\n    {\n        //set up test data\n    }\n\n    @AfterEach\n    public void tearDown()\n    {\n        //tear down test data\n    }\n\n    @Nested\n    @TestInstance(TestInstance.Lifecycle.PER_CLASS)\n    @DisplayName(&quot;Given only good records in the database&quot;)\n    class AllGoodRecordsTest\n    {\n        @Test\n        @Order(1)\n        @DisplayName(&quot;Then the job should finish successfully&quot;)\n        void shouldSucceed()\n        {\n            //run batch job and check that it exited as successful\n        }\n\n        @Test\n        @Order(2)\n        @DisplayName(&quot;Then some value X should change from '0' to '1' for all test records&quot;)\n        void shouldChangeSomeValueXFrom0To1ForAllTestRecords()\n        {\n            //verify that some value X changed from '0' to '1' for all test records\n        }\n    }\n\n    @Nested\n    @TestInstance(TestInstance.Lifecycle.PER_CLASS)\n    @DisplayName(&quot;Given one record in the database where the data is bad&quot;)\n    class OneRecordIsBadTest\n    {\n        @BeforeEach\n        void setup()\n        {\n            //change default test set up to have the data of one record be bad\n        }\n        \n        @Test\n        @DisplayName(&quot;Then the job should finish as failed&quot;)\n        void shouldFail()\n        {\n            //run batch job and verify that it exited as failed\n        }\n    }\n\n    @Nested\n    @TestInstance(TestInstance.Lifecycle.PER_CLASS)\n    @DisplayName(&quot;Given another record in the database where the data is bad in a different way&quot;)\n    class AnotherRecordIsBadInADifferentWayTest\n    {\n        @BeforeEach\n        void setup()\n        {\n            //change default test set up to have another record be bad in a different way\n        }\n        \n        @Test\n        @DisplayName(&quot;Then the job should finish as failed&quot;)\n        void shouldFail()\n        {\n            //run batch job and verify that it exited as failed\n        }\n    }\n}\n</code></pre>\n<p>Another iteration of the above used @BeforeAll and @AfterAll, respectively, for the setUp() and tearDown() methods.</p>\n<pre><code>class BatchJob0TestClass\n{\n    @BeforeAll\n    public static void setUp()\n    {\n        //set up test data\n    }\n\n    @AfterAll\n    public static void tearDown()\n    {\n        //tear down test data\n    }\n\n    @Nested\n    @TestInstance(TestInstance.Lifecycle.PER_CLASS)\n    @DisplayName(&quot;Given only good records in the database&quot;)\n    class AllGoodRecordsTest\n    {\n        @Test\n        @Order(1)\n        @DisplayName(&quot;Then the job should finish successfully&quot;)\n        void shouldSucceed()\n        {\n            //run batch job and check that it exited as successful\n        }\n\n        @Test\n        @Order(2)\n        @DisplayName(&quot;Then some value X should change from '0' to '1' for all test records&quot;)\n        void shouldChangeSomeValueXFrom0To1ForAllTestRecords()\n        {\n            //verify that some value X changed from '0' to '1' for all test records\n        }\n    }\n\n    @Nested\n    @TestInstance(TestInstance.Lifecycle.PER_CLASS)\n    @DisplayName(&quot;Given one record in the database where the data is bad&quot;)\n    class OneRecordIsBadTest\n    {\n        @BeforeEach\n        void setup()\n        {\n            //change default test set up to have the data of one record be bad\n        }\n        \n        @Test\n        @DisplayName(&quot;Then the job should finish as failed&quot;)\n        void shouldFail()\n        {\n            //run batch job and verify that it exited as failed\n        }\n    }\n\n    @Nested\n    @TestInstance(TestInstance.Lifecycle.PER_CLASS)\n    @DisplayName(&quot;Given another record in the database where the data is bad in a different way&quot;)\n    class AnotherRecordIsBadInADifferentWayTest\n    {\n        @BeforeEach\n        void setup()\n        {\n            //change default test set up to have another record be bad in a different way\n        }\n        \n        @Test\n        @DisplayName(&quot;Then the job should finish as failed&quot;)\n        void shouldFail()\n        {\n            //run batch job and verify that it exited as failed\n        }\n    }\n}\n</code></pre>\n<p>Regardless how I do it, I can't get the desired behavior. Either the test data is set up or torn down once each for the outer class only, or it is set up and torn down for every test method.</p>\n<p>Is what I'm trying to achieve even possible using JUnit's out-of-the-box annotations, or do I just need to resort to calls to unannotated helper methods to get the setUp() and tearDown() methods to run only at the start and end of the test classes and not each test? I know how to do the latter, but I was hoping that JUnit was capable of the desired behavior through annotations alone.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

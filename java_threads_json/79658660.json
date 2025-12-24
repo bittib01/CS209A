@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "odt",
+      "xdocreport"
+    ],
+    "owner": {
+      "account_id": 21607936,
+      "reputation": 269,
+      "user_id": 15935039,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/C9wwH.png?s=256",
+      "display_name": "Asis",
+      "link": "https://stackoverflow.com/users/15935039/asis"
+    },
+    "is_answered": true,
+    "view_count": 212,
+    "accepted_answer_id": 79669740,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1750324789,
+    "creation_date": 1749462363,
+    "last_edit_date": 1750324789,
+    "question_id": 79658660,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79658660/unable-to-convert-odt-to-pdf-with-xdocreport",
+    "title": "Unable to convert ODT to PDF with xdocreport",
+    "body": "<p>I'm trying to use the xdocreport package to convert an ODT file into a PDF. I've tried 2 different variations. Here is the code and error for both variations:</p>\n<pre class=\"lang-java prettyprint-override\"><code>Options options = Options.getFrom(DocumentKind.ODT).to(ConverterTypeTo.PDF);\n\nInputStream raw = this.getResources().openRawResource(R.raw.timesheet_template);\nIXDocReport xdocGenerator = XDocReportRegistry.getRegistry().loadReport(raw, TemplateEngineKind.Freemarker);\n\nIContext context = xdocGenerator.createContext();\nIConverter converter = ConverterRegistry.getRegistry().getConverter(options);\n\nOutputStream out = new FileOutputStream(HOME_PATH+&quot;/test.pdf&quot;);\n\nxdocGenerator.convert(context, options, out);\n\nraw.close();\nout.close();\n</code></pre>\n<p>ERROR:</p>\n<pre><code>fr.opensagres.xdocreport.core.XDocReportException: Null template engine. Set template engine with IXDocReport#setTemplateEngine.\n</code></pre>\n<p>Other method:</p>\n<pre class=\"lang-java prettyprint-override\"><code>Options options = Options.getFrom(DocumentKind.ODT).to(ConverterTypeTo.PDF);\n\nIConverter converter = ConverterRegistry.getRegistry().getConverter(options);\n\nInputStream raw = this.getResources().openRawResource(R.raw.timesheet_template);\nOutputStream out = new FileOutputStream(HOME_PATH+&quot;/test.pdf&quot;);\n\nconverter.convert(raw, out, options);\n\nraw.close();\nout.close();\n</code></pre>\n<p>ERROR:</p>\n<pre><code>java.lang.NullPointerException: Attempt to invoke interface method 'void fr.opensagres.xdocreport.converter.IConverter.convert(java.io.InputStream, java.io.OutputStream, fr.opensagres.xdocreport.converter.Options)' on a null object reference\n</code></pre>\n<p>From reading online and the errors themselves I believe there is an underlying dependency that is not available by default in android. I don't know what it is or how to include it though.</p>\n<p>An important thing to note is I was able to accomplish this without issue using Aspose library. They have a water mark though which is why I want to use xdocreport.</p>\n<p>I'm importing the following in gradle:</p>\n<pre><code>implementation 'fr.opensagres.xdocreport:fr.opensagres.xdocreport.document.odt:2.1.0'\n</code></pre>\n<p>Any help would be appreciated.</p>\n<hr />\n<p>ANSWER:\nBased on the accepted answer, here's how I made it work.\nFirst the gradle dependencies are as fallows:</p>\n<pre><code>implementation 'fr.opensagres.xdocreport:fr.opensagres.xdocreport.document.odt:2.1.0'\nimplementation 'fr.opensagres.xdocreport:fr.opensagres.xdocreport.template.freemarker:2.1.0'\nimplementation 'fr.opensagres.xdocreport:fr.opensagres.xdocreport.converter.odt.odfdom:2.1.0'\nimplementation 'ro.andob.androidawt:androidawt:1.0.4'\n</code></pre>\n<p>You will also need the following in <code>android</code> section:</p>\n<pre><code>configurations {\n    all { // You should exclude one of them not both of them\n        exclude group: &quot;com.sun.activation&quot;, module: &quot;jakarta.activation&quot;\n    }\n}\n</code></pre>\n<p>In <code>settings.gradle</code> under <code>repositories</code> for both <code>pluginManagement</code> and <code>dependencyResolutionManagement</code> add the following:</p>\n<pre><code>maven { url &quot;https://andob.io/repository/open_source&quot; }\n</code></pre>\n<p>I'm not sure if this is required, but I added the following in <code>proguard-rules.pro</code>:</p>\n<pre><code>-dontwarn org.bouncycastle.**\n-dontwarn java.lang.invoke.**\n</code></pre>\n<p>The code is the same as in the question. This setup will resolve the duplicate class issue, add the converter for XDocReport to use and add the java.awt dependencies.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "docker",
+      "sonarqube"
+    ],
+    "owner": {
+      "account_id": 7531034,
+      "reputation": 2948,
+      "user_id": 5719229,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/6ce9838b80ca63bca34363ae64e500a1?s=256&d=identicon&r=PG",
+      "display_name": "Sercan Noyan Germiyanoğlu",
+      "link": "https://stackoverflow.com/users/5719229/sercan-noyan-germiyano%c4%9flu"
+    },
+    "is_answered": true,
+    "view_count": 830,
+    "accepted_answer_id": 79462004,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1740345857,
+    "creation_date": 1739734427,
+    "last_edit_date": 1739789593,
+    "question_id": 79443806,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79443806/sonarqube-running-on-docker-throws-error-status-returned-by-url-https-api-so",
+    "title": "Sonarqube running on Docker throws Error status returned by url [https:// api.sonarcloud.io/analysis/jres?os=windows&amp;arch=amd64]: 401",
+    "body": "<p>I tried to run sonarqube running on docker for my Spring Boot Project.\nI have a problem to get sonarqube result.</p>\n<p>Here is my <strong>sonarqube plugin</strong> in my pom.xml</p>\n<pre><code>&lt;plugin&gt;\n    &lt;groupId&gt;org.sonarsource.scanner.maven&lt;/groupId&gt;\n    &lt;artifactId&gt;sonar-maven-plugin&lt;/artifactId&gt;\n    &lt;version&gt;${sonar-maven-plugin.version}&lt;/version&gt;\n&lt;/plugin&gt;\n</code></pre>\n<p>Here is the <strong>docker-compose.yml</strong></p>\n<pre><code>services:\n\n  postgres:\n    image: postgres:latest\n    container_name: postgres-container\n    restart: always\n    ports:\n      - &quot;5432:5432&quot;\n    environment:\n      - POSTGRES_USER=${POSTGRES_USER}\n      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}\n      - POSTGRES_DB=weatherapianalysisdatabase\n    volumes:\n      - postgres_data:/var/lib/postgresql/data\n    networks:\n      - weatherapianalysis_network\n\n  pgadmin:\n    image: dpage/pgadmin4:latest\n    container_name: pgadmin-container\n    restart: always\n    ports:\n      - &quot;5050:80&quot;\n    environment:\n      - PGADMIN_DEFAULT_EMAIL=admin@pgadmin.com\n      - PGADMIN_DEFAULT_PASSWORD=admin\n    depends_on:\n      - postgres\n    networks:\n      - weatherapianalysis_network\n\n  weatherapianalysis:\n    image: 'weatherapianalysis:latest'\n    build:\n      context: .\n      dockerfile: Dockerfile\n    container_name: weatherapianalysis\n    restart: on-failure\n    env_file:\n      - .env  # Use the .env file for environment variables\n    ports:\n      - &quot;1100:1100&quot;\n    environment:\n      - server.port=1100\n      - WEATHER_DB_IP=postgres\n      - WEATHER_DB_PORT=5432\n      - POSTGRES_USER=${POSTGRES_USER}\n      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}\n      - OPEN_WEATHER_API_KEY=${OPEN_WEATHER_API_KEY:-open_weather_api_default_key}\n    depends_on:\n      - postgres\n    networks:\n      - weatherapianalysis_network\n\n  sonarqube:\n    image: sonarqube:latest\n    container_name: sonarqube\n    restart: always\n    ports:\n      - &quot;9000:9000&quot;\n    environment:\n      - SONAR_JDBC_URL=jdbc:postgresql://postgres:5432/weatherapianalysisdatabase\n      - SONAR_JDBC_USERNAME=${POSTGRES_USER}\n      - SONAR_JDBC_PASSWORD=${POSTGRES_PASSWORD}\n    volumes:\n      - sonarqube_data:/opt/sonarqube/data\n      - sonarqube_extensions:/opt/sonarqube/extensions\n      - sonarqube_logs:/opt/sonarqube/logs\n    depends_on:\n      - postgres\n    networks:\n      - weatherapianalysis_network\n\nvolumes:\n  postgres_data:\n  sonarqube_data:\n  sonarqube_extensions:\n  sonarqube_logs:\n\nnetworks:\n  weatherapianalysis_network:\n</code></pre>\n<p>Here is thr sonar-project.properties</p>\n<pre><code># Project identification\nsonar.projectKey=weatherapianalysis\nsonar.projectName=Weather API Analysis\nsonar.projectVersion=1.0\n\n# SonarQube Server\nsonar.host.url=http://localhost:9000\n\n# Authentication Token (replace with your token from SonarQube)\nsonar.token=token\n\n# Language &amp; Source Code\nsonar.language=java\nsonar.sources=src\nsonar.tests=src/test\nsonar.sourceEncoding=UTF-8\nsonar.java.binaries=target/classes\n</code></pre>\n<p>After I created token through My Account &gt; Security &gt; Generate a Token , I copied the new token and updated sonar-project.properties</p>\n<p>When I run this command <code>mvn clean verify sonar:sonar</code> , I got this issue shown below</p>\n<pre><code>[ERROR] Failed to execute goal org.sonarsource.scanner.maven:sonar-maven-plugin:5.0.0.4389:sonar (default-cli) on project weatherapianalysis: Error status returned by url [https://\napi.sonarcloud.io/analysis/jres?os=windows&amp;arch=amd64]: 401 -&gt; [Help 1]\n[ERROR]\n[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.\n[ERROR] Re-run Maven using the -X switch to enable full debug logging.\n[ERROR]\n[ERROR] For more information about the errors and possible solutions, please read the following articles:\n[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException\n</code></pre>\n<p>How can I fix the issue?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

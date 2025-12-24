@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "grpc",
+      "grpc-java",
+      "spring-boot-3"
+    ],
+    "owner": {
+      "account_id": 14819652,
+      "reputation": 53,
+      "user_id": 10702431,
+      "user_type": "registered",
+      "profile_image": "https://graph.facebook.com/2110766185919974/picture?type=large",
+      "display_name": "Arvind Singh Rawat",
+      "link": "https://stackoverflow.com/users/10702431/arvind-singh-rawat"
+    },
+    "is_answered": true,
+    "view_count": 181,
+    "accepted_answer_id": 79583372,
+    "answer_count": 3,
+    "score": 0,
+    "last_activity_date": 1745153793,
+    "creation_date": 1743406402,
+    "question_id": 79545704,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79545704/using-grpc-springboot-the-grpc-plugin-is-not-able-to-autogenerate-the-streami",
+    "title": "Using GRPC + Springboot, the GRPC plugin is not able to autogenerate the Streaming request object",
+    "body": "<p>I am using the new Springboot starter from <code>org.springframework.boot</code> (more details below) and I am able to use it to make a simple GRPC API to return Hello world. Now I was trying to upgrade the same program to support streaming HTTP 2 request but when I try to build my project which eventually autogenerates the models is not building the Request models.</p>\n<p>Code exerpts (shortened code wherever I can, code is bootstrapped from Spring intializer.)</p>\n<p><strong>build.gradle</strong></p>\n<pre class=\"lang-none prettyprint-override\"><code>plugins {\n    id 'java'\n    id 'org.springframework.boot' version '3.4.4'\n    id 'io.spring.dependency-management' version '1.1.7'\n    id 'com.google.protobuf' version '0.9.4'\n}\n\nrepositories {\n    mavenCentral()\n}\n\next {\n    set('springGrpcVersion', &quot;0.4.0&quot;)\n}\n\ndependencies {\n    implementation 'io.grpc:grpc-services'\n    implementation 'org.springframework.grpc:spring-grpc-spring-boot-starter'\n    testImplementation 'org.springframework.boot:spring-boot-starter-test'\n    testImplementation 'org.springframework.grpc:spring-grpc-test'\n    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'\n    implementation 'io.grpc:grpc-netty-shaded'\n    modules {\n        module(&quot;io.grpc:grpc-netty&quot;) {\n            replacedBy(&quot;io.grpc:grpc-netty-shaded&quot;, &quot;Use Netty shaded instead of regular Netty&quot;)\n        }\n    }\n}\n\ndependencyManagement {\n    imports {\n        mavenBom &quot;org.springframework.grpc:spring-grpc-dependencies:${springGrpcVersion}&quot;\n    }\n}\n\nprotobuf {\n    protoc {\n        artifact = 'com.google.protobuf:protoc'\n    }\n    plugins {\n        grpc {\n            artifact = 'io.grpc:protoc-gen-grpc-java'\n        }\n    }\n    generateProtoTasks {\n        all()*.plugins {\n            grpc {\n                option 'jakarta_omit'\n                option '@generated=omit'\n            }\n        }\n    }\n}\n\n// ...\n</code></pre>\n<p><strong>Hello World.proto</strong></p>\n<pre class=\"lang-proto prettyprint-override\"><code>syntax = &quot;proto3&quot;;\n\noption java_package = &quot;com.asr.example.grpc.demo.model&quot;;\noption java_multiple_files = true;\n\nmessage HelloWorldRequest {\n    optional string name = 1;\n}\n\nmessage HelloWorldResponse {\n    string greeting = 1;\n}\n\nservice HelloWorldService {\n    rpc sayHello(stream HelloWorldRequest) returns (stream HelloWorldResponse);\n}\n</code></pre>\n<p><strong>HelloWorldController.java</strong></p>\n<pre class=\"lang-java prettyprint-override\"><code>import com.asr.example.grpc.demo.model.HelloWorldRequest;\nimport com.asr.example.grpc.demo.model.HelloWorldResponse;\nimport com.asr.example.grpc.demo.model.HelloWorldServiceGrpc;\nimport io.grpc.stub.StreamObserver;\nimport org.springframework.grpc.server.service.GrpcService;\nimport org.springframework.util.StringUtils;\n\nimport java.text.MessageFormat;\n\n@GrpcService\npublic class HelloWorldController extends HelloWorldServiceGrpc.HelloWorldServiceImplBase {\n\n    @Override\n    public StreamObserver&lt;HelloWorldRequest&gt; sayHello(StreamObserver&lt;HelloWorldResponse&gt; responseObserver) {\n        return super.sayHello(responseObserver);\n    }\n    \n    /* Expected:\n    public StreamObserver&lt;HelloWorldResponse&gt; sayHello(HelloWorldRequest request, StreamObserver&lt;HelloWorldResponse&gt; responseObserver) {\n        // Further Implementation\n    }\n     */\n\n    // Original without streaming\n    // @Override\n    public void sayHello(\n            HelloWorldRequest request,\n            StreamObserver&lt;HelloWorldResponse&gt; responseObserver) {\n        responseObserver\n                .onNext(HelloWorldResponse.newBuilder()\n                        .setGreeting(MessageFormat.format(\n                                &quot;Hello {0}!!!&quot;,\n                                StringUtils.hasText(request.getName()) ? request.getName() : &quot;Arvind&quot;)\n                        )\n                        .build()\n                );\n        responseObserver\n                .onCompleted();\n    }\n}\n</code></pre>\n<p>Code explanation:</p>\n<ol>\n<li>Bootstrapped code from Spring Initializr.</li>\n<li>Added Protobuf specs without <code>stream</code> keyword.</li>\n<li>Implemented the generated controller using the original method.</li>\n<li>Works fine.</li>\n<li>Added <code>stream</code> keyword as prefix in HelloWorld request in Protobuf spec.</li>\n<li>Expected generated code is a bit different from what I expected, and unable to find a way to fetch the request.</li>\n</ol>\n<p>Questions:</p>\n<ol>\n<li>I believe feature is still experimental , is this the reason this is not working ?</li>\n<li>I have seen similar dependency from <a href=\"https://mvnrepository.com/artifact/io.github.lognet/grpc-spring-boot-starter\" rel=\"nofollow noreferrer\"><code>io.github.lognet</code></a> and <a href=\"https://mvnrepository.com/artifact/net.devh/grpc-spring-boot-starter\" rel=\"nofollow noreferrer\"><code>net.devh</code></a>, are any of these 2 viable alternatives for LTS ?</li>\n</ol>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

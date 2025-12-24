@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "java-21",
+      "virtual-threads"
+    ],
+    "owner": {
+      "account_id": 19687197,
+      "reputation": 21,
+      "user_id": 14412908,
+      "user_type": "registered",
+      "profile_image": "https://lh4.googleusercontent.com/-wAAsOmwO8Sg/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuckpBfapVJPpJmtMFKESpij7lSsfsg/s256-rj/photo.jpg",
+      "display_name": "Olga grts",
+      "link": "https://stackoverflow.com/users/14412908/olga-grts"
+    },
+    "is_answered": true,
+    "view_count": 229,
+    "answer_count": 1,
+    "score": 3,
+    "last_activity_date": 1760646186,
+    "creation_date": 1760426126,
+    "last_edit_date": 1760432312,
+    "question_id": 79789906,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79789906/executorservice-configuration-with-virtual-threads",
+    "title": "ExecutorService configuration with virtual threads",
+    "body": "<p>In a service I have 2 executorServices for different tasks:</p>\n<ol>\n<li>get user transactions (50-100 threads, queue 300)</li>\n<li>get user family (10-50 threads, queue 100)</li>\n</ol>\n<p>It was easy to monitoring threads and adding resources and implement logic &quot;skip this task if queue is full&quot;.</p>\n<p>How this should be migrated to java 21? Is this logic &quot;skip this task if queue is full&quot; still can be implemented?</p>\n<p>Example:</p>\n<pre class=\"lang-java prettyprint-override\"><code>private ThreadPoolTaskExecutor getExecutor(AsyncProperties executorProperties, ContextDataDecorator contextDataDecorator) {\n    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();\n    executor.setVirtualThreads(executorProperties.isVirtual());\n    executor.setTaskDecorator(contextDataDecorator);\n    executor.setCorePoolSize(executorProperties.getPoolSize());\n    executor.setMaxPoolSize(executorProperties.getPoolSize());\n    executor.setThreadNamePrefix(executorProperties.getThreadNamePrefix());\n    executor.setRejectedExecutionHandler((runnable, threadPoolExecutor) -&gt; log.warn(&quot;Task {} was skipped by executor {}&quot;, runnable, threadPoolExecutor));\n    if (executorProperties.hasQueueCapacity()) {\n        executor.setQueueCapacity(executorProperties.getQueueCapacity());\n    }\n    executor.initialize();\n    return executor;\n}\n</code></pre>\n<p>configs:</p>\n<pre class=\"lang-yaml prettyprint-override\"><code>transactions.executor:\n    pool-size: 100\n    thread-name-prefix: transactions-async-executor-\n    queue-capacity: 200\n    virtual: true\nfamily.executor:\n    pool-size: 50\n    queue-capacity: 100\n    thread-name-prefix: family-async-\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

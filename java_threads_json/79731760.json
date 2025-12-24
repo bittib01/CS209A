@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "dependency-injection",
+      "quarkus",
+      "classpath",
+      "javabeans"
+    ],
+    "owner": {
+      "account_id": 15103838,
+      "reputation": 41,
+      "user_id": 10900089,
+      "user_type": "registered",
+      "profile_image": "https://lh6.googleusercontent.com/-W-09N53byzU/AAAAAAAAAAI/AAAAAAAAAAA/AKxrwcYvBXlSN-C_vWIOLf8H5063IH67pQ/mo/s256-rj/photo.jpg",
+      "display_name": "Stephan Pelikan",
+      "link": "https://stackoverflow.com/users/10900089/stephan-pelikan"
+    },
+    "is_answered": false,
+    "view_count": 65,
+    "answer_count": 0,
+    "score": 4,
+    "last_activity_date": 1754982744,
+    "creation_date": 1754896515,
+    "last_edit_date": 1754982744,
+    "question_id": 79731760,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79731760/unsatisfied-dependency-for-synthetic-bean-at-runtime",
+    "title": "Unsatisfied dependency for synthetic bean at runtime",
+    "body": "<p>I’m a contributor of the OpenSource project <a href=\"https://www.vanillabp.io\" rel=\"nofollow noreferrer\">VanillaBP</a> which is providing hexagonal architecture to business processing applications using process engines.</p>\n<p>In the past VanillaBP was only available to Spring Boot applications and we are working on bringing this also to Quarkus.</p>\n<p>The idea is to provide a Quarkus extension “vanillabp” which collects adapters (in the manner of a hexagonal architecture) from other extensions (identified by capability <code>vanillabp-adapter</code>) which are specific to a certain process engine used. Based on the configuration and the adapters given beans are constructed implementing the port (in the manner of hexagonale architecture), so the main application does not need to know about the process engine implementation details.</p>\n<p>However, for those beans we construct SyntheticBeans need to be initialised during runtime (connect to process engine, do some validation of given configuration in conjunction with the status reported by the process engine):</p>\n<p><a href=\"https://github.com/vanillabp/adapter-platform-integration/blob/issue/unsatisfied-dependency-using-quarkus-maven-build-plugin/quarkus-integration/deployment/src/main/java/io/vanillabp/integration/deployment/VanillaBpIntegrationProcessor.java#L209\" rel=\"nofollow noreferrer\">https://github.com/vanillabp/adapter-platform-integration/blob/issue/unsatisfied-dependency-using-quarkus-maven-build-plugin/quarkus-integration/deployment/src/main/java/io/vanillabp/integration/deployment/VanillaBpIntegrationProcessor.java#L209</a></p>\n<p>This works fine in tests but unfortunately, those beans are not found during runtime. There is a Maven module <code>main-integration-test</code> which uses the extension in a regular way</p>\n<p><a href=\"https://github.com/vanillabp/adapter-platform-integration/tree/issue/unsatisfied-dependency-using-quarkus-maven-build-plugin/quarkus-integration/integration-tests/main-integration-test\" rel=\"nofollow noreferrer\">https://github.com/vanillabp/adapter-platform-integration/tree/issue/unsatisfied-dependency-using-quarkus-maven-build-plugin/quarkus-integration/integration-tests/main-integration-test</a></p>\n<p>and on building, I get this error (hint: there are two different beans used which are both not found):</p>\n<pre><code>[ERROR] Failed to execute goal io.quarkus:quarkus-maven-plugin:3.22.3:build (default) on project quarkus-main-integration-test: Failed to build quarkus application: io.quarkus.builder.BuildException: Build failure: Build failed due to errors\n[ERROR]         [error]: Build step io.quarkus.arc.deployment.ArcProcessor#validate threw an exception: jakarta.enterprise.inject.spi.DeploymentException: Found 2 deployment problems: \n[ERROR] [1] Unsatisfied dependency for type io.vanillabp.spi.process.ProcessService&lt;io.vanillabp.integration.test.sample.Aggregate&gt; and qualifiers [@Default]\n[ERROR]         - injection target: io.vanillabp.integration.test.sample.SampleWorkflowService#processService\n[ERROR]         - declared on CLASS bean [types=[io.vanillabp.integration.test.sample.SampleWorkflowService, java.lang.Object], qualifiers=[@Default, @Any], target=io.vanillabp.integration.test.sample.SampleWorkflowService]\n[ERROR] [2] Unsatisfied dependency for type io.vanillabp.spi.process.ProcessService&lt;io.vanillabp.integration.test.sample2.Aggregate&gt; and qualifiers [@Default]\n[ERROR]         - injection target: io.vanillabp.integration.test.sample2.SampleWorkflowService#processService\n[ERROR]         - declared on CLASS bean [types=[java.lang.Object, io.vanillabp.integration.test.sample2.SampleWorkflowService], qualifiers=[@Default, @Any], target=io.vanillabp.integration.test.sample2.SampleWorkflowService]\n</code></pre>\n<p>As far as I could figure out, it seems to be a problem to construct this bean based on a Java class having no default-constructor. When I add a default-constructor this constructor is executed. I used <a href=\"https://github.com/quarkusio/quarkus/blob/896f24580bf2b6fe1339e8fcc8d7a4199d2e76d0/extensions/arc/deployment/src/main/java/io/quarkus/arc/deployment/SyntheticBeanBuildItem.java#L181\" rel=\"nofollow noreferrer\">createWith</a> which is documented to be used for connecting external classes as beans which only provide non-default-constructors.</p>\n<p>I also found some examples on GitHub of other extensions which do this in the same way and obviously are fine:</p>\n<p><a href=\"https://github.com/quarkiverse/quarkus-openapi-generator/blob/main/client/runtime/src/main/java/io/quarkiverse/openapi/generator/AuthenticationRecorder.java#L52\" rel=\"nofollow noreferrer\">https://github.com/quarkiverse/quarkus-openapi-generator/blob/main/client/runtime/src/main/java/io/quarkiverse/openapi/generator/AuthenticationRecorder.java#L52</a></p>\n<p>What is missing? I tried a lot of different approaches (<code>runtimeValue</code>, etc.) but non worked. I don’t want to avoid non-default-constructors because they are necessary to connect some given APIs of process engines. I want to know how to deal with this in the right way.</p>\n<p>Thanks,\nStephan</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

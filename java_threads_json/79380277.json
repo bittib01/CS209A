@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "hibernate",
+      "maven",
+      "tomcat"
+    ],
+    "owner": {
+      "account_id": 18654179,
+      "reputation": 17,
+      "user_id": 13596971,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/67360d9671256541f5c6c598df4ec630?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "user13596971",
+      "link": "https://stackoverflow.com/users/13596971/user13596971"
+    },
+    "is_answered": false,
+    "view_count": 126,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1737888871,
+    "creation_date": 1737619809,
+    "last_edit_date": 1737888871,
+    "question_id": 79380277,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79380277/memory-leaks-in-my-multi-module-maven-project-using-spring-hibernate-and-tomca",
+    "title": "Memory leaks in my multi-module Maven project using Spring, Hibernate, and Tomcat",
+    "body": "<p>I am encountering multiple memory leaks in my multi-module Maven project, and I am unable to identify the root cause despite extensive debugging. I have tried using tools like SonarQube, PMD, CheckStyle, and SpotBugs, but nothing has resolved the issue.</p>\n<p>Here is an overview of my environment:</p>\n<ul>\n<li>Java version: 17</li>\n<li>Tomcat version: 10</li>\n<li>JNDI data source: Managed by Tomcat</li>\n<li>MySQL driver: mysql-connector-j-9.1.0 (available only in Tomcat's lib folder, not in Maven POM files)</li>\n<li>Spring framework version: 6.2.0</li>\n<li>Spring Security version: 6.2.3</li>\n<li>Hibernate version: 6.2.0.Final</li>\n<li>Hibernate Commons: 7.0.1.Final</li>\n</ul>\n<p>Here is the relevant configuration:</p>\n<p>HikariCP data source configuration:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;bean id=&quot;dataSource&quot; class=&quot;com.zaxxer.hikari.HikariDataSource&quot; destroy-method=&quot;close&quot;&gt;\n    &lt;property name=&quot;dataSourceJNDI&quot; value=&quot;java:/comp/env/jdbc/xxx&quot; /&gt;  \n    &lt;property name=&quot;maximumPoolSize&quot; value=&quot;10&quot; /&gt;\n    &lt;property name=&quot;minimumIdle&quot; value=&quot;10&quot; /&gt;   \n    &lt;property name=&quot;idleTimeout&quot; value=&quot;300000&quot; /&gt;   \n    &lt;property name=&quot;connectionTestQuery&quot; value=&quot;SELECT 1&quot; /&gt;\n    &lt;property name=&quot;leakDetectionThreshold&quot; value=&quot;30000&quot; /&gt;\n    &lt;property name=&quot;autoCommit&quot; value=&quot;true&quot; /&gt;\n&lt;/bean&gt;\n</code></pre>\n<p>EntityManager configuration:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;bean id=&quot;entityManagerFactory&quot; class=&quot;org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean&quot;&gt;\n    &lt;property name=&quot;persistenceUnitName&quot; value=&quot;xxxxx&quot; /&gt;\n    &lt;property name=&quot;dataSource&quot; ref=&quot;dataSource&quot; /&gt;\n    &lt;property name=&quot;jpaVendorAdapter&quot;&gt;\n        &lt;bean class=&quot;org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter&quot;&gt;\n            &lt;property name=&quot;generateDdl&quot; value=&quot;false&quot; /&gt;\n        &lt;/bean&gt;\n    &lt;/property&gt;\n    &lt;property name=&quot;jpaPropertyMap&quot;&gt;\n        &lt;map&gt;\n            &lt;entry key=&quot;hibernate.dialect&quot; value=&quot;org.hibernate.dialect.MySQLDialect&quot; /&gt;\n            &lt;entry key=&quot;hibernate.enable_lazy_load_no_trans&quot; value=&quot;true&quot; /&gt;\n            &lt;entry key=&quot;hibernate.jdbc.batch_size&quot; value=&quot;50&quot; /&gt;\n        &lt;/map&gt;\n    &lt;/property&gt;\n&lt;/bean&gt;\n</code></pre>\n<p>JNDI resource configuration in Tomcat:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;Resource name=&quot;jdbc/MainDB&quot; auth=&quot;Container&quot;\n          type=&quot;javax.sql.DataSource&quot; username=&quot;rrrrr&quot; password=&quot;ttttt&quot;\n          driverClassName=&quot;com.mysql.cj.jdbc.Driver&quot;\n          url=&quot;jdbc:mysql://xxxxx/yyyyy?useSSL=false&amp;amp;dontTrackOpenResources=true&quot;\n          maxIdle=&quot;4&quot; maxTotal=&quot;2000&quot; minIdle=&quot;2&quot;\n          testOnBorrow=&quot;true&quot; validationQuery=&quot;SELECT 1&quot; \n          removeAbandonedOnBorrow=&quot;true&quot; removeAbandonedTimeout=&quot;600&quot;\n          logAbandoned=&quot;true&quot; /&gt;\n</code></pre>\n<p>Abstract DAO implementation (GenericDaoImpl):</p>\n<pre class=\"lang-java prettyprint-override\"><code>@PersistenceContext\nprotected EntityManager entityManager;\n</code></pre>\n<p>I am not directly managing sessions or connections, as everything is delegated to Tomcat, Hibernate, and Spring. Despite configuring HikariCP and using JNDI for connection pooling, I continue to see memory leak issues.</p>\n<p>I suspect that the problem might be related to either:</p>\n<ul>\n<li>Tomcat's handling of the MySQL driver.</li>\n<li>Hibernate's lazy loading or batch processing configuration.</li>\n</ul>\n<p>I have enabled Hibernate's generate_statistics and show_sql options but have not identified anything unusual.</p>\n<p>Could someone help me troubleshoot this issue or provide guidance on common pitfalls that might cause memory leaks in a similar setup? Any tools, techniques, or configurations I might have overlooked would also be greatly appreciated.</p>\n<p><a href=\"https://i.sstatic.net/4QgcFeLj.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/4QgcFeLj.png\" alt=\"enter image description here\" /></a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

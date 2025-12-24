@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-mvc",
+      "spring-security"
+    ],
+    "owner": {
+      "account_id": 175744,
+      "reputation": 555,
+      "user_id": 405966,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/15d121ee48e5c3344daa0512dca26cf5?s=256&d=identicon&r=PG",
+      "display_name": "mwhidden",
+      "link": "https://stackoverflow.com/users/405966/mwhidden"
+    },
+    "is_answered": true,
+    "view_count": 71,
+    "accepted_answer_id": 79521407,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1742688865,
+    "creation_date": 1742414054,
+    "question_id": 79521264,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79521264/rest-endpoint-invocable-either-by-api-key-or-user-login",
+    "title": "REST endpoint invocable either by API Key or User Login",
+    "body": "<p>I'm building a micro service with REST endpoints protected by APIKeys for use inside a corporate firewall. I'm trying to add a small, simple UI to the application that will allow a user to login and invoke some of those endpoints.</p>\n<p>To that end I have created the following two SecurityFilterChains. Each one works well independently. I can login and retrieve web pages that are authorized to my user, and I can invoke the REST endpoints with the correct API Key.</p>\n<p>What's not working is that a REST call without the API Key, but bearing the JSESSIONID of an authenticated user is denied access. I'd like the FilterChain attached to /api/** to permit the call if the necessary role is conveyed by the session associated to the JSESSIONID.</p>\n<pre><code>    @Bean\n    @Order(1)\n    public SecurityFilterChain filterChainREST(HttpSecurity http) \n           throws Exception\n    {\n        APIKeyFilter filter = new APIKeyFilter(API_KEYS);\n        http.antMatcher(&quot;/api/**&quot;)\n                .addFilterBefore(filter, AnonymousAuthenticationFilter.class)\n                .csrf().disable()\n                .authorizeHttpRequests(requests -&gt; requests\n                .antMatchers(&quot;/api/1/mgr/**&quot;).hasAnyRole(&quot;ADMIN&quot;, &quot;MGR&quot;)\n                .antMatchers(&quot;/api/1/admin/**&quot;).hasRole(&quot;ADMIN&quot;)\n                .anyRequest().denyAll())\n                .sessionManagement()\n                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS);\n\n        return http.build();\n    }\n\n    @Bean\n    @Order(2)\n    public SecurityFilterChain filterChainWebUI(HttpSecurity http) \n           throws Exception\n    {\n        http\n                // Since we have TWO authentication entry points, we must\n                // have an antMatcher *before* authorizeHttpRequests so this\n                // filter chain will only respond to those requests.\n                .antMatcher(&quot;/**&quot;) // catch anything not caught by filter #1\n                .csrf().disable()\n                .authorizeHttpRequests()\n                .antMatchers(&quot;/admin/**&quot;).hasRole(&quot;ADMIN&quot;)\n                .antMatchers(&quot;/mgr/**&quot;).hasAnyRole(&quot;ADMIN&quot;, &quot;MGR&quot;)\n                .antMatchers(&quot;/login*&quot;).permitAll()\n                .anyRequest().authenticated()\n                .and()\n                .formLogin(Customizer.withDefaults())\n                .logout(l-&gt;l.deleteCookies(&quot;JSESSIONID&quot;))\n                .sessionManagement().\n                     sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)\n                .and()\n                .exceptionHandling().accessDeniedPage(&quot;/error/accessDenied.html&quot;);\n        return http.build();\n    }\n</code></pre>\n<p>(The APIKeyFilter invokes <code>SecurityContextHolder.getContext().setAuthentication(auth);</code> to establish the granted role after it validates the API Key.) If it does not find a valid APIKey, it just invokes <code>filterChain.doFilter()</code>.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

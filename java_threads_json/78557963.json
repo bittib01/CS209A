@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "zgc"
+    ],
+    "owner": {
+      "account_id": 5333747,
+      "reputation": 1923,
+      "user_id": 4253536,
+      "user_type": "registered",
+      "accept_rate": 82,
+      "profile_image": "https://i.sstatic.net/Bl265.jpg?s=256",
+      "display_name": "Nick Allen",
+      "link": "https://stackoverflow.com/users/4253536/nick-allen"
+    },
+    "is_answered": true,
+    "view_count": 806,
+    "accepted_answer_id": 78641227,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1723448465,
+    "creation_date": 1717125587,
+    "last_edit_date": 1718849426,
+    "question_id": 78557963,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78557963/rss-keeps-growing-with-java17-but-nmt-result-didnt-grows-at-all",
+    "title": "Rss keeps growing with java17, but nmt result didn&#39;t grows at all",
+    "body": "<p>Recently we are switching from java8 to 17, but with zgc enabled, most of our microservice used more memory and leading to OOM kill by docker.</p>\n<p>I investigated into this, and there is some differenice I noticed:</p>\n<ol>\n<li>With zgc, the java process tends to use a lot more shared memory because zgc use tmpfs to create the heap when linux kernel version is below 3.17</li>\n<li>tmpfs only goes into cache entry of memory.stat, so rss is most composed of off-heap memory.</li>\n<li>Some microserivce with heavy load is having a constant grow of rss but nmt result show committed memory don't grow much (nmt committed memory without heap is only about 500MB, but rss grows to 783MB).</li>\n<li>There is similar problem like <a href=\"https://stackoverflow.com/questions/26041117/growing-resident-memory-usage-rss-of-java-process/28935139#28935139\">this one</a>.</li>\n<li>Our java version is 17.0.7, I didn't find any bugfix from the release notes of newer version of java17.</li>\n</ol>\n<pre><code>cat /sys/fs/cgroup/memory/memory.stat\ncache 1764929536\nrss 821440512  // Don't know why it is so large and keeps growing\nrss huge 92274688\nshmem 1073741824 // almost consistent of 1024MB heap\nmapped file 1014423552\ndirty 38055936\nwriteback O\nswap 0\npgpgin 9505349\npgpgout 8896394\npgfault 9380913\npgmajfault 105\ninactive anon 994127872\nactive anon 901025792\ninactive file 606601216\nactive file 84586496\nunevictable O\nhierarchical memory limit 2621440000\nhierarchical memsw limit 2621440000\ntotal cache 1764929536\ntotal rss 821440512\ntotal rss huge 92274688\ntotal shmem 1073741824\ntotal mapped file 1014423552\ntotal dirty 38055936\ntotal writeback o\ntotal swap o\ntotal pgpgin 9505349\ntotal pgpgout 8896394\ntotal pgfault 9380913\ntotal pgmajfault 105\ntotal inactive anon 994127872\ntotal active anon 901025792\ntotal inactive file 606601216\ntotal active file 84586496 \ntotal unevictable o\n</code></pre>\n<p>nmt result:</p>\n<pre><code>Native Memory Tracking:\n(Omitting categories weighting less than 1KB) \nTotal: reserved=59804324KB, committed=1561672KB\nmalloc: 202620KB #928892\nmmap:  reserved=59601704KB, committed=1359052KB\n</code></pre>\n<p>The question is: how is rss growing without nmt reported committed memory grows?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

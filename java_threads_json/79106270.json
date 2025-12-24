@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "minecraft",
+      "minecraft-forge"
+    ],
+    "owner": {
+      "account_id": 36725548,
+      "reputation": 1,
+      "user_id": 27887517,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/622dc6432ff64d98ddc5a394b9b14b69?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Murzik Gaming",
+      "link": "https://stackoverflow.com/users/27887517/murzik-gaming"
+    },
+    "is_answered": false,
+    "view_count": 91,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1738642317,
+    "creation_date": 1729391316,
+    "question_id": 79106270,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79106270/level-setblock-places-invisible-blocks",
+    "title": "Level.setBlock() places invisible blocks",
+    "body": "<p>I'm trying to create an item that places blocks that are in another hand above the block on which the item is used, but it only places the first block normally, and the others are invisible, which become normal if you right-click on them or rejoin the world</p>\n<p>How can this be fixed?</p>\n<pre><code>package &quot;my package&quot;;\n\nimport net.minecraft.core.BlockPos;\nimport net.minecraft.world.InteractionResult;\nimport net.minecraft.world.entity.EquipmentSlot;\nimport net.minecraft.world.entity.player.Player;\nimport net.minecraft.world.item.Item;\nimport net.minecraft.world.item.ItemStack;\nimport net.minecraft.world.item.context.UseOnContext;\nimport net.minecraft.world.level.Level;\nimport net.minecraft.world.level.block.Block;\nimport net.minecraft.world.level.block.Blocks;\nimport org.jetbrains.annotations.NotNull;\n\nimport java.util.Objects;\n\npublic class BlockPlacerItem extends Item {\n    public BlockPlacerItem(Properties pProperties) {\n        super(pProperties.stacksTo(1).durability(100));\n    }\n\n    @Override\n    public @NotNull InteractionResult useOn(UseOnContext pContext) {\n        if(!pContext.getLevel().isClientSide()) {\n            Level level = pContext.getLevel();\n            BlockPos position = pContext.getClickedPos();\n            Player player = pContext.getPlayer();\n            assert player != null;\n            ItemStack item = player.getItemBySlot(EquipmentSlot.OFFHAND);\n            int count = item.getCount();\n            Block blockType = Block.byItem(item.getItem());\n\n            if(blockType != Blocks.AIR) {\n                for (int i = 1; i &lt; count + 1; i++) {\n                    BlockPos newPos = position.above(i);\n                    level.setBlock(newPos, blockType.defaultBlockState(), 1);\n                    level.setBlock(newPos, blockType.defaultBlockState(), 1);\n                }\n                if(!player.isCreative() &amp;&amp; !player.isSpectator()) {\n                    item.setCount(0);\n                    pContext.getItemInHand().hurtAndBreak(1, Objects.requireNonNull(pContext.getPlayer()), pl -&gt; pl.broadcastBreakEvent(pl.getUsedItemHand()));\n                }\n            }\n        }\n\n        return InteractionResult.SUCCESS;\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

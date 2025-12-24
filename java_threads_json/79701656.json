@@ -1,0 +1,37 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "database",
+      "hibernate",
+      "aop"
+    ],
+    "owner": {
+      "account_id": 29890320,
+      "reputation": 13,
+      "user_id": 22906633,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/90bd533be5eb78a6fc2cd70be734f06c?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Alexis",
+      "link": "https://stackoverflow.com/users/22906633/alexis"
+    },
+    "is_answered": true,
+    "view_count": 75,
+    "closed_date": 1752934672,
+    "accepted_answer_id": 79703432,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1753256898,
+    "creation_date": 1752561240,
+    "last_edit_date": 1753256898,
+    "question_id": 79701656,
+    "link": "https://stackoverflow.com/questions/79701656/why-i-get-error-transaction-is-in-progress-when-my-listener-phase-after-commit",
+    "closed_reason": "Needs details or clarity",
+    "title": "Why I get error transaction is in progress when my listener phase AFTER_COMMIT",
+    "body": "<p>Why if I set the transaction propagation= Required. I will get error <code>org.springframework.dao.InvalidDataAccessApiUsageException: no transaction is in progress</code>. I cant understand that because my Listner has phase <code>TransactionPhase.AFTER_COMMIT</code> and the transaction should be completed and create new transaction\nBut if I set <code>@Transactional(Transactional.TxType.REQUIRES_NEW)</code> it doesn't throw an error. How it works</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Aspect\n@Component\n@RequiredArgsConstructor\npublic class AspectOffsettingRepository {\n\n  private final ApplicationEventPublisher publisher;\n  private static final String STATUS_FOR_MESSAGE = &quot;REGISTERED&quot;;\n\n  @AfterReturning(\n      pointcut = &quot;execution(* service.repository.impl.OffsettingJpaRepository.save(..))&quot;,\n      returning = &quot;result&quot;\n  )\n  public void afterSave(OffsettingEntity result) {\n    handleAfterSave(result);\n  }\n\n  @AfterReturning(\n      pointcut = &quot;execution(* service.repository.impl.OffsettingJpaRepository.saveAndFlush(..))&quot;,\n      returning = &quot;result&quot;\n  )\n  public void afterSaveAndFlush(OffsettingEntity result) {\n    handleAfterSave(result);\n  }\n\n  private void handleAfterSave(OffsettingEntity entity) {\n    if (entity.getStatus() != null &amp;&amp; STATUS_FOR_MESSAGE.equals(entity.getStatus())) {\n      publisher.publishEvent(new OffsettingRegisteredEvent(\n          entity.getOffsetId(),\n          entity.getCreatedBy(),\n          entity.getFirstPartnerId().toString()\n      ));\n    }\n  }\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)\npublic void postSave(OffsettingRegisteredEvent event) {\n    offsettingOutboxService.createMessageToRo(event);\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>@Slf4j\n@Service\n@RequiredArgsConstructor\npublic class OffsettingOutboxService {\n\n  private final OffsettingDebtDao offsettingDebtDao;\n  private final OffsettingDao offsettingDao;\n  private final DebtService debtService;\n  private final OutboxContentBuilder outboxBuilder;\n  private final OutboxService outboxService;\n  private final MdmGateway mdmGateway;\n\n  private static final String OFFSETTING_STATUS = &quot;GLA_CONFIRMATION&quot;;\n\n  @Transactional(Transactional.TxType.REQUIRES_NEW)\n  public void createMessageToRo(OffsettingRegisteredEvent event) {\n    List&lt;PairOffsettingDebtIds&gt; pairsDebtId = findPairsDebtId(event.offsetId());\n    EmployeeInfo employeeInfo = mdmGateway.findEmployeeInfo(event.createdBy());\n    Map&lt;UUID, DebtModel&gt; debtMap = findDebts(pairsDebtId);\n    Map&lt;String, EmployeeInfo&gt; employeeInfoCache = new HashMap&lt;&gt;();\n\n    boolean isRegisterFilled = false;\n\n    for (PairOffsettingDebtIds pair : pairsDebtId) {\n      DebtModel firstDebt = debtMap.get(pair.getFirstDebtId());\n      DebtModel secondDebt = debtMap.get(pair.getSecondDebtId());\n\n      if (firstDebt == null || secondDebt == null) {\n        continue;\n      }\n\n      EmployeeInfo firstEmployeeInfo = employeeInfoCache.computeIfAbsent(\n          firstDebt.getCreatedBy(), mdmGateway::findEmployeeInfo);\n      EmployeeInfo secondEmployeeInfo = employeeInfoCache.computeIfAbsent(\n          secondDebt.getCreatedBy(), mdmGateway::findEmployeeInfo);\n\n      boolean fillRegisterForThisPair = !isRegisterFilled &amp;&amp; Boolean.TRUE.equals(secondDebt.getIsRegisterCreator());\n\n      OutboxRegisterOfOperationContent registerOfOperationContent = createRegisterOfOperationContent(\n          OutboxRegisterOfOperationContentDto.builder()\n              .debtFirstSide(firstDebt)\n              .debtSecondSide(secondDebt)\n              .serviceOriginatorDepartment(event.partnerId())\n              .userName(employeeInfo.fio())\n              .debtFirstSideEmployeeInfo(firstEmployeeInfo)\n              .debtSecondSideEmployeeInfo(secondEmployeeInfo)\n              .debtFirstSideBeginDate(getRelationBeginDate(firstDebt.getRegister().getAccountingPartnerId().toString()))\n              .debtSecondSideBeginDate(getRelationBeginDate(secondDebt.getRegister().getAccountingPartnerId().toString()))\n              .isRegisterFill(fillRegisterForThisPair)\n              .build()\n      );\n\noutboxService.save(outboxBuilder.buildOutbox(registerOfOperationContent, fillRegisterForThisPair));\n\n      if (fillRegisterForThisPair) {\n        isRegisterFilled = true;\n      }\n    }\n\n    OffsettingEntity offsettingEntity = offsettingDao.findByOffsetId(event.offsetId());\n    offsettingEntity.setStatus(OFFSETTING_STATUS);\n\n    offsettingDao.save(offsettingEntity);\n  }\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

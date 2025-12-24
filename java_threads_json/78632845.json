@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "utf-8",
+      "base64",
+      "bouncycastle",
+      "decoding"
+    ],
+    "owner": {
+      "account_id": 14140697,
+      "reputation": 1,
+      "user_id": 10215600,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/f7e5010d0e4033ed74bf245430fdea0e?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Aleks",
+      "link": "https://stackoverflow.com/users/10215600/aleks"
+    },
+    "is_answered": true,
+    "view_count": 187,
+    "accepted_answer_id": 78944107,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1725362794,
+    "creation_date": 1718630307,
+    "last_edit_date": 1718714605,
+    "question_id": 78632845,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78632845/eot-etx-in-base64-encoded-bouncy-castle-signature",
+    "title": "EOT,ETX in base64 encoded bouncy castle signature",
+    "body": "<p>I have a function that uses Bouncy Castle libraries (version bouncy castle: jdk15on-1.57 and java 8) to sign a string and return the base64 value of the signed string (including the content of the string).</p>\n<p>Part of the code:</p>\n<pre><code>        String stringMessage = &quot;exampleContentBlaBla&quot;;\n\n            // Load the keystore\n            KeyStore keystore = KeyStore.getInstance(&quot;JKS&quot;);\n           \n            keystore.load(new FileInputStream(&quot;path/to/keystore.jks&quot;), &quot;keystorePassword&quot;.toCharArray());\n\n            // Get the private key and certificate\n            String alias = &quot;yourAlias&quot;;\n            PrivateKey privateKey = (PrivateKey) keystore.getKey(alias, &quot;keyPassword&quot;.toCharArray());\n            Certificate certificate = keystore.getCertificate(alias);\n\n            // Initialize CMS components\n            CMSSignedDataGenerator generator = new CMSSignedDataGenerator();\n            CMSTypedData content = new CMSProcessableByteArray(stringMessage.getBytes(&quot;UTF-8&quot;));\n\n            // Create a JcaSimpleSignerInfoGeneratorBuilder and configure the signer\n            JcaContentSignerBuilder contentSignerBuilder = new JcaContentSignerBuilder(&quot;SHA256withRSA&quot;);\n            ContentSigner contentSigner = contentSignerBuilder.build(privateKey);\n\n            JcaSignerInfoGeneratorBuilder builder = new JcaSignerInfoGeneratorBuilder(\n                    new JcaDigestCalculatorProviderBuilder().setProvider(&quot;BC&quot;).build());\n            generator.addSignerInfoGenerator(builder.build(contentSigner, certificate));\n\n            // Generate the signed data\n            CMSSignedData signedData = generator.generate(content, true);\n\n            // Encode the signed data to Base64\n            byte[] pkcs7Bytes = signedData.getEncoded();\n            String encodedData = new String(Base64.encode(pkcs7Bytes), &quot;UTF-8&quot;);\n</code></pre>\n<p>However, when I decode the result, the string contains random characters like EOT, ETX, and x82, making it impossible to interpret the content of the signed string, even though the signature verification passes successfully.</p>\n<p>Example:</p>\n<p><a href=\"https://i.sstatic.net/26uCkFWM.png\" rel=\"nofollow noreferrer\">outcome of base64 decoded signature</a></p>\n<pre><code>    String testDecoded = new String(Base64.decode(encodedString.getBytes(&quot;UTF-8&quot;)));\n                    System.out.println(testDecoded );\n</code></pre>\n<p>This way I see the decoded message in the console.\nAnd I  also used notepad++ tool for decoding for better  visualization</p>\n<p>I have pinpointed that the EOT and ETX characters are randomly added after the signature. I tried base64 encoding and decoding the string without the signature, and there were no issues.</p>\n<p>I have explicitly added UTF-8 encoding wherever possible. Something happens during the signing process, but I can't find a logical explanation or how to fix it.</p>\n<p>Can anyone help me understand what is happening and how to resolve this issue?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

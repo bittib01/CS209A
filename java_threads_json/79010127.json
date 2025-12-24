@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-webflux",
+      "project-reactor",
+      "spring-graphql",
+      "netflix-dgs"
+    ],
+    "owner": {
+      "account_id": 2067066,
+      "reputation": 121,
+      "user_id": 1842390,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/419072968e450a8d3c7f2a9d1563d602?s=256&d=identicon&r=PG",
+      "display_name": "FlatPenguin",
+      "link": "https://stackoverflow.com/users/1842390/flatpenguin"
+    },
+    "is_answered": false,
+    "view_count": 324,
+    "answer_count": 0,
+    "score": 2,
+    "last_activity_date": 1727564056,
+    "creation_date": 1726939727,
+    "question_id": 79010127,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79010127/how-to-properly-configure-netflix-dgs-subscriptions-with-connectableflux",
+    "title": "How to properly configure Netflix DGS Subscriptions with ConnectableFlux",
+    "body": "<p>I'm trying to understand how to properly setup the <code>Publisher</code> for Netflix DGS Subscriptions.</p>\n<p>I have found two interesting examples:</p>\n<ul>\n<li><a href=\"https://github.com/spring-petclinic/spring-petclinic-graphql/blob/main/backend/src/main/java/org/springframework/samples/petclinic/graphql/VisitPublisher.java\" rel=\"nofollow noreferrer\">Spring-GraphQL</a></li>\n<li><a href=\"https://github.com/Netflix/dgs-examples-java/blob/main/src/main/java/com/example/demo/services/DefaultReviewsService.java\" rel=\"nofollow noreferrer\">Netflix-DGS</a></li>\n</ul>\n<p>If the subscription model is &quot;one subscriber per GraphQL subscription connection, i.e. websockets&quot;, conceptually, if feels like we need to use a <code>ConnectableFlux</code> from the Netflix to <a href=\"https://projectreactor.io/docs/core/release/reference/#advanced-broadcast-multiple-subscribers-connectableflux\" rel=\"nofollow noreferrer\">broadcast to multiple subscribers</a>.  But on the other hand, Spring-GraphQL is using <code>Sinks.Many</code> to <a href=\"https://projectreactor.io/docs/core/milestone/reference/coreFeatures/sinks.html#sinks-many-multicast-onbackpressurebufferargs\" rel=\"nofollow noreferrer\">emit to several subscribers</a>.  And I'm struggling finding documentation on the tradeoffs between the two.</p>\n<p>Both seem to manage backpressue, albeit with slightly more configurable options in <code>Sinks.Many</code>.  And <code>ConnectableFlux</code> seems to manage subscribers more elegantly with <code>refCount</code>....maybe <code>Sinks.Many</code> does as well too.</p>\n<p>I can easily bridge the gap between both approaches like so:</p>\n<pre><code>@Component\npublic class SinkConfig {\n\n    private final Sinks.Many&lt;Review&gt; sink;\n    private final Flux&lt;Review&gt; reviewFlux;\n\n    public SinkConfig() {\n        Sinks.Many&lt;Review&gt; sinks = Sinks.many().multicast().onBackpressureBuffer(Queues.SMALL_BUFFER_SIZE, false);\n        this.reviewFlux = sinks.asFlux().publish().refCount(1);\n        this.sink = sinks;\n    }\n\n    //Only subscribe to reviews written by a particular user\n    Publisher&lt;Review&gt; publisher(String input) {\n        return reviewFlux.filterWhen(x -&gt; Mono.fromCallable(() -&gt; x.getUsername().equals(input)));\n    }\n\n    void emit(Review review) {\n        sink.emitNext(review, Sinks.EmitFailureHandler.FAIL_FAST);\n    }\n}\n</code></pre>\n<p>The above example seems overly complicated when compared against the Spring and Netflix examples.  And I'm looking for a configuration that would be best suited to manage 1000's of concurrent subscriptions that are filtering on usernames.</p>\n<p>Any help would be greatly appreciated!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

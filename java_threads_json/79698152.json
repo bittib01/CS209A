@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android"
+    ],
+    "owner": {
+      "account_id": 9257999,
+      "reputation": 2826,
+      "user_id": 6876149,
+      "user_type": "registered",
+      "accept_rate": 86,
+      "profile_image": "https://i.sstatic.net/LDe4I.jpg?s=256",
+      "display_name": "C.Unbay",
+      "link": "https://stackoverflow.com/users/6876149/c-unbay"
+    },
+    "is_answered": true,
+    "view_count": 42,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1752234094,
+    "creation_date": 1752228064,
+    "question_id": 79698152,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79698152/java-android-read-sms-with-timer-is-failing",
+    "title": "java android read sms with timer is failing",
+    "body": "<p>I have this code which was running fine. I am using <code>ContentProvider</code> query to access sms messages, and display them using <code>Cursor</code>. If I tried to use <code>TimerTask</code> the app ran but crashed only after a while, without running anything.</p>\n<p>if I use now <code>postDelayed</code> with <code>new Runnable</code> Android Studio gives error pre compilation as <code>cannot resolve method 'postDelayed(Runnable)</code></p>\n<p>My goal is to just keep looping <code>readSms()</code> with intervals and keep adding to the listview. (not worried about duplicates for now)\nNote that the program works without adding <code>TimerTask</code> or <code>postdelay</code> method. Yet I cannot add an interval function here to keep reading the incoming Sms message.\nWhat am I doing wrong and what should be my syntax ?</p>\n<p>I commented out the original code at the very bottom and tried to add postdelay. beofre that I tried TaskTimer and that also crashed at run time.</p>\n<pre><code>package com.example.emptyviews;\nimport android.content.ContentResolver;\nimport android.content.pm.PackageManager;\nimport android.database.Cursor;\nimport android.net.Uri;\nimport android.os.Bundle;\nimport android.provider.Telephony;\nimport android.util.Log;\nimport android.widget.ArrayAdapter;\nimport android.widget.ListView;\nimport android.os.Handler;\n\nimport androidx.annotation.NonNull;\nimport androidx.appcompat.app.AppCompatActivity;\nimport androidx.core.app.ActivityCompat;\nimport androidx.core.content.ContextCompat;\n\nimport java.util.ArrayList;\n\npublic class MainActivity extends AppCompatActivity {\n\n    private ArrayList&lt;String&gt; smsList = new ArrayList&lt;&gt;();\n    private ListView listView;\n    private static final int READ_SMS_PERMISSION_CODE = 1;\n\n    @Override\n    protected void onCreate(Bundle savedInstanceState) {\n        super.onCreate(savedInstanceState);\n        setContentView(R.layout.activity_main);\n\n        listView = findViewById(R.id.listView);\n        ArrayAdapter&lt;String&gt; adapter = new ArrayAdapter&lt;&gt;(this, android.R.layout.simple_list_item_1, smsList);\n        listView.setAdapter(adapter);\n\n        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_SMS)\n                != PackageManager.PERMISSION_GRANTED) {\n            ActivityCompat.requestPermissions(this,\n                    new String[]{android.Manifest.permission.READ_SMS}, READ_SMS_PERMISSION_CODE);\n        } else {\n/*\n            Timer timer = new Timer();\n            TimerTask task = new TimerTask() {\n                @Override\n                public void run() {\n                    readSms();\n                    //adapter.notifyDataSetChanged();\n                }\n            };\n            timer.schedule(task, 10000, 5000);\n        */\n        }\n\n    }\n\n\n    private void readSms() {\n        ContentResolver contentResolver = getContentResolver();\n        Cursor cursor = contentResolver.query(\n                Telephony.Sms.CONTENT_URI,\n                null,\n                null,\n                null,\n                null);\n\n        if (cursor != null &amp;&amp; cursor.moveToFirst()) {\n                String address = cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Sms.ADDRESS));\n                String body = cursor.getString(cursor.getColumnIndexOrThrow(Telephony.Sms.BODY));\n                smsList.add(&quot;Sender: &quot; + address + &quot;\\nMessage: &quot; + body);\n        }\n\n        if (cursor != null) {\n            cursor.close();\n        }\n    }\n\n    @Override\n    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,\n                                           @NonNull int[] grantResults) {\n        super.onRequestPermissionsResult(requestCode, permissions, grantResults);\n        if (requestCode == READ_SMS_PERMISSION_CODE) {\n            if (grantResults.length &gt; 0 &amp;&amp; grantResults[0] == PackageManager.PERMISSION_GRANTED) {\n                new android.os.Handler().postDelayed(new Runnable(){\n                    @Override\n                    public void run(){\n                        readSms();\n                        ArrayAdapter&lt;String&gt; adapter = (ArrayAdapter&lt;String&gt;) listView.getAdapter();\n                        adapter.notifyDataSetChanged();\n                    }\n                });\n                //readSms();\n                //ArrayAdapter&lt;String&gt; adapter = (ArrayAdapter&lt;String&gt;) listView.getAdapter();\n                //adapter.notifyDataSetChanged();\n            }\n        }\n    }\n\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

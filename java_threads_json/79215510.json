@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-webflux"
+    ],
+    "owner": {
+      "account_id": 2796529,
+      "reputation": 2177,
+      "user_id": 2405663,
+      "user_type": "registered",
+      "accept_rate": 48,
+      "profile_image": "https://www.gravatar.com/avatar/ded7b79bc778bdbd87e808c0e9664796?s=256&d=identicon&r=PG",
+      "display_name": "bircastri",
+      "link": "https://stackoverflow.com/users/2405663/bircastri"
+    },
+    "is_answered": false,
+    "view_count": 38,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1732288640,
+    "creation_date": 1732287538,
+    "last_edit_date": 1732288640,
+    "question_id": 79215510,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79215510/java-api-get-with-webflux",
+    "title": "java API GET with WebFlux",
+    "body": "<p>I m building a API with Springboot WebFlux. This method can downlaod file. This is the code:</p>\n<pre><code> public Mono&lt;ServerResponse&gt; downloadAttachment(final ServerRequest request) {\n        final var idPercorso = request.queryParam(&quot;idPercorso&quot;)\n                .map(Integer::parseInt).orElse(null);\n    }\n\nMono&lt;ServerResponse&gt; additionalCalcualtions(MapFile mapFile, ServerRequest request){\n        return Mono.zip(parseUserInfo(request), request.bodyToMono(ObjectNode.class))\n                .flatMap(t -&gt; {\n                    //var dto = t.getT2();\n                    return silverMountainService(t.getT1()).downloadMappaPercorso(StorageType.parse(mapFile.storageType),mapFile.omniaClass, mapFile.getFileName()\n                            )\n                            .flatMap(fileResult -&gt; ServerResponse.ok()\n                                    .headers(h -&gt; h.setContentDisposition(\n                                            Optional.ofNullable(mapFile.getFileName())\n                                                    .filter(StringUtils::isNotBlank)\n                                                    .map(filename -&gt; ContentDisposition.attachment().filename(mapFile.getFileName()).build())\n                                                    .orElseGet(() -&gt; ContentDisposition.inline().build() )\n                                    ))\n                                    .contentType(MediaType.APPLICATION_OCTET_STREAM)\n                                    .body(BodyInserters.fromValue(fileResult.getContent()))\n                            );\n                })\n                .onErrorResume(CustomHttpException.class, assEx -&gt; {\n                    log.error(&quot;Error({}): {}&quot;, assEx.getErrorId(), assEx.getMessage());\n                    return ServerResponse.status(assEx.getHttpStatus()).bodyValue(String.format(&quot;ErrorID: %s&quot;, assEx.getErrorId()));\n                })\n                .onErrorResume(Exception.class, ex -&gt; {\n                    var errId = UUID.randomUUID().toString();\n                    log.error(String.format(&quot;Error(%s) %s&quot;, errId, ex.getMessage()), ex);\n                    return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue(String.format(&quot;ErrorID: %s&quot;, errId));\n                });\n    }\n</code></pre>\n<p>To call this method, I m using the following link:</p>\n<pre><code>myUrl/downloadMappa?idPercorso=2\n</code></pre>\n<p>Now if I try to call my method with json body like this</p>\n<pre><code>{}\n</code></pre>\n<p>my method works correctly. If I try to call my method without json body the return me empty response.</p>\n<p>How can I make to change my code to accept NULL as body?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

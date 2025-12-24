@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "multithreading",
+      "tcp",
+      "nio"
+    ],
+    "owner": {
+      "account_id": 21435285,
+      "reputation": 67,
+      "user_id": 15790858,
+      "user_type": "registered",
+      "profile_image": "https://lh4.googleusercontent.com/-tBnNmyFX4S4/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclm6OANjn2PMSlySBz6M-Yci0f6XQ/s96-c/s256-rj/photo.jpg",
+      "display_name": "mc ser",
+      "link": "https://stackoverflow.com/users/15790858/mc-ser"
+    },
+    "is_answered": false,
+    "view_count": 98,
+    "answer_count": 1,
+    "score": -3,
+    "last_activity_date": 1746516907,
+    "creation_date": 1724751881,
+    "question_id": 78918192,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78918192/socket-server-multithreading-java-nio",
+    "title": "Socket Server Multithreading Java NIO",
+    "body": "<p>i need help to create a multithreaded java socket server that can handle and process the request asynchronously.</p>\n<p>What i did right now is i created java NIO Socket Server and Client, the client will send request simultaneously, to test the asynchronous mechanism on the server, the second request thread will be distrupted by a thread sleep.</p>\n<p>Expected Result: the Third to Five request will be processed asynchronously without waiting second request is completed.</p>\n<p>Current Result: the Third to Five request is not processed before the second request thread sleep is completed.</p>\n<pre><code>import java.io.IOException;\nimport java.net.InetSocketAddress;\nimport java.net.ServerSocket;\nimport java.nio.ByteBuffer;\nimport java.nio.channels.SelectionKey;\nimport java.nio.channels.Selector;\nimport java.nio.channels.ServerSocketChannel;\nimport java.nio.channels.SocketChannel;\nimport java.time.LocalDateTime;\nimport java.time.format.DateTimeFormatter;\nimport java.util.Date;\nimport java.util.Iterator;\nimport java.util.Set;\n\npublic class NIOServer {\n    private static Selector selector = null;\n\n    public static void main(String[] args)\n    {\n\n        try {\n            selector = Selector.open();\n            // We have to set connection host,port and\n            // non-blocking mode\n            ServerSocketChannel serverSocketChannel\n                    = ServerSocketChannel.open();\n            ServerSocket serverSocket\n                    = serverSocketChannel.socket();\n            serverSocket.bind(\n                    new InetSocketAddress(&quot;localhost&quot;, 8089));\n            serverSocketChannel.configureBlocking(false);\n            int ops = serverSocketChannel.validOps();\n            serverSocketChannel.register(selector, ops,\n                    null);\n            while (true) {\n                selector.select();\n                Set&lt;SelectionKey&gt; selectedKeys\n                        = selector.selectedKeys();\n                Iterator&lt;SelectionKey&gt; i\n                        = selectedKeys.iterator();\n\n                while (i.hasNext()) {\n                    SelectionKey key = i.next();\n\n                    if (key.isAcceptable()) {\n                        // New client has been accepted\n                        handleAccept(serverSocketChannel,\n                                key);\n                    }\n                    else if (key.isReadable()) {\n                        // We can run non-blocking operation\n                        // READ on our client\n                        handleRead(key);\n                    }\n                    i.remove();\n                }\n            }\n        }\n        catch (IOException e) {\n            e.printStackTrace();\n        }\n    }\n\n    private static void\n    handleAccept(ServerSocketChannel mySocket,\n                 SelectionKey key) throws IOException\n    {\n\n        System.out.println(&quot;Connection Accepted..&quot;);\n\n        // Accept the connection and set non-blocking mode\n        SocketChannel client = mySocket.accept();\n        client.configureBlocking(false);\n\n        // Register that client is reading this channel\n        client.register(selector, SelectionKey.OP_READ);\n    }\n\n    private static void handleRead(SelectionKey key)\n            throws IOException\n    {\n//        System.out.println(&quot;Reading client's message.&quot;);\n\n        // create a ServerSocketChannel to read the request\n        SocketChannel client = (SocketChannel)key.channel();\n\n        // Create buffer to read data\n        ByteBuffer buffer = ByteBuffer.allocate(1024);\n\n        client.read(buffer);\n\n        // Parse data from buffer to String\n        String data = new String(buffer.array()).trim();\n        if (data.length() &gt; 0) {\n            System.out.println(&quot;Received message: &quot; + data);\n\n            System.out.println(new Date());\n\n            if (data.equalsIgnoreCase(\n                    &quot;Hello, server! Request 2&quot;)) {\n                try {\n                    Thread.sleep(30000);\n                    System.out.println(&quot;Sleep is executed&quot;);\n                } catch (InterruptedException e) {\n                    throw new RuntimeException(e);\n                }\n            }\n\n            if (data.equalsIgnoreCase(\n                    &quot;Testing5&quot;)) {\n                client.close();\n                System.out.println(&quot;Connection closed...&quot;);\n            }\n        }\n    }\n}\n</code></pre>\n<p>Do you guys have any advice how to handle this mechanism?\nThank you</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

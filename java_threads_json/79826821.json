@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "error-handling",
+      "spring-kafka"
+    ],
+    "owner": {
+      "account_id": 44760644,
+      "reputation": 11,
+      "user_id": 31922681,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/7bcfbfb283632f97129595a26d24f1ed?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Bogysh",
+      "link": "https://stackoverflow.com/users/31922681/bogysh"
+    },
+    "is_answered": false,
+    "view_count": 45,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1763747375,
+    "creation_date": 1763747375,
+    "question_id": 79826821,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79826821/idempotencybreachexceptionhandling-in-service-used-in-kafka-listener",
+    "title": "IdempotencyBreachExceptionHandling in service used in kafka listener",
+    "body": "<p>I’m encountering an issue with possible idempotencyBreachException in a service used by Kafka listener.</p>\n<p>I’m not entirely sure how to handle this situation correctly. I have a lockExecutor that locks a given customerId and a cache used as an idempotencyRepository. In 99.99% of cases everything will work as expected, but I’m concerned about the scenario where an IdempotencyBreachException eventually occurs and got 2xdata saved in database. Should I simply log the error and handle it manually when it occur, or is there any better way to handle it?</p>\n<p>I considered using @Retryable on the processing method, but this creates a problem: the cache key is already consumed, and I know I shouldn’t remove it. Additionally, I’m worried about how retries would interact with rollbacks in this context, as it will be concurrent processing. At the moment, the only solution that comes to mind is to log the exception and handle the case manually if necessary in the future.</p>\n<pre><code>@Service\n@RequiredArgsConstructor\npublic class ProcessingEventsServiceImpl {\n\n    private final IdempotencyRepository idempotencyRepository;\n    private final TransactionalService transactionalService;\n    private final LockExecutor lockExecutor;\n\n    public void process(InboundData inbound) {\n\n        final String key = inbound.getTransactionId();\n        final String customerId = inbound.getCustomerId();\n        final Provenance provenance = inbound.getDataProvenance();\n\n        lockExecutor.run(customerId, () -&gt; {\n\n            if (idempotencyRepository.isKeyUsed(provenance, key)) {\n                return;\n            }\n\n            transactionalService.executeTransactionProcess(inbound);\n            try {\n                idempotencyRepository.markKeyAsUsed(provenance, key);\n\n            } catch (IdempotencyBreachException e) {\n                log.error(...);\n            }\n        });\n    }\n}\n</code></pre>\n<pre><code>@Component\n@RequiredArgsConstructor\npublic class KafkaListener {\n\n    private final ProcessingService processingService;\n    private final DataMapper mapper;\n\n    private static final Logger LOGGER =\n            LoggerFactory.getLogger(KafkaListener.class);\n\n    @KafkaListener(topics = &quot;topic&quot;)\n    public void onEvent(Event event) {\n        var data = mapper.mapEventToModel(event);\n        processingService.process(data);\n    }\n}\n</code></pre>\n<pre><code>@Service\n@RequiredArgsConstructor\npublic class TransactionalService {\n    private final InboundRepository repository;\n    private final InboundMapper mapper;\n\n    @Transactional\n    public void executeTransactionalProcess(TransferData inbound) {\n        var entity = repository.saveOrUpdate(inbound);\n        repository.save(entity);\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

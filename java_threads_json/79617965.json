@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "java.util.concurrent"
+    ],
+    "owner": {
+      "account_id": 24017768,
+      "reputation": 41,
+      "user_id": 18000509,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AATXAJwBSNbstE2prBB8_2p_ULQaCd4Z48DvptNyPIO5=k-s256",
+      "display_name": "SemgHH",
+      "link": "https://stackoverflow.com/users/18000509/semghh"
+    },
+    "is_answered": true,
+    "view_count": 90,
+    "answer_count": 1,
+    "score": 3,
+    "last_activity_date": 1747702870,
+    "creation_date": 1747057076,
+    "last_edit_date": 1747702870,
+    "question_id": 79617965,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79617965/can-not-reproduce-experiment-about-ra-mode-of-j9mm",
+    "title": "Can not reproduce experiment about RA mode of J9mm",
+    "body": "<p>I attempted to replicate the experiment about &quot;Release/acquire&quot; from Doug Lea‘s blog on j9mm (<a href=\"https://gee.cs.oswego.edu/dl/html/j9mm.html#summarysec\" rel=\"nofollow noreferrer\">https://gee.cs.oswego.edu/dl/html/j9mm.html#summarysec</a>) :</p>\n<pre class=\"lang-java prettyprint-override\"><code>volatile int ready; // Initially 0, with VarHandle READY\n int dinner;         // mode does not matter here\n\n Thread 1                   |  Thread 2\n dinner = 17;               |  if (READY.getAcquire(this) == 1)\n READY.setRelease(this, 1); |    int d = dinner; // sees 17\n\n</code></pre>\n<p>However, I was not successful in reproducing the original results :</p>\n<pre class=\"lang-bash prettyprint-override\"><code>Java Concurrency Stress Tests\n---------------------------------------------------------------------------------\n...\n\n  RESULT     SAMPLES     FREQ       EXPECT  DESCRIPTION\n       0     462,012    1.69%  Interesting\n      17  26,856,279   98.31%  Interesting                                                                                                          \n...\n\n  RESULT        SAMPLES     FREQ       EXPECT  DESCRIPTION\n       0  1,027,953,599   44.29%  Interesting\n      17  1,292,906,829   55.71%  Interesting\n...\n\n\n</code></pre>\n<p>The correct situation should not result in 0.</p>\n<p>I had post the full output infomation on pastebin (<a href=\"https://pastebin.com/FEif5XPg\" rel=\"nofollow noreferrer\">https://pastebin.com/FEif5XPg</a>)</p>\n<p>My code is as follows:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@JCStressTest\n@State\n@Outcome(id = {&quot;17&quot;}, expect = ACCEPTABLE_INTERESTING)\n@Outcome(id = {&quot;0&quot;}, expect = ACCEPTABLE_INTERESTING)\npublic class TestRA {\n\n    volatile int ready;\n    int dinner;\n    static final VarHandle READY;\n    static {\n        try {\n            READY = MethodHandles.lookup()\n                    .findVarHandle(TestRA.class, &quot;ready&quot;, int.class);\n        } catch (NoSuchFieldException | IllegalAccessException e) {\n            throw new RuntimeException(e);\n        }\n    }\n    @Actor\n    public void actor1(I_Result result) {\n        final int i = (int) READY.getAcquire(this);\n        if (i == 1) {\n            result.r1 = dinner;\n        }\n    }\n    @Actor\n    public void actor2() {\n        dinner = 17;\n        READY.setRelease(this, 1);\n    }\n}\n\n</code></pre>\n<p>env:</p>\n<ul>\n<li>OS: Windows 11</li>\n<li>cpu platform: x86_64</li>\n<li>jdk: graalvm-17 (17.0.7)</li>\n</ul>\n<hr />\n<p>Thanks to @pveentjer ,  I refered to his answer, modified my code.\nThe result is correct.</p>\n<p>The modified code is as follows:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@JCStressTest\n@State\n@Outcome(id = {&quot;-1&quot;}, expect = ACCEPTABLE_INTERESTING,desc = &quot;setRelease may not executed yet&quot;)\n@Outcome(id = {&quot;17&quot;}, expect = ACCEPTABLE_INTERESTING,desc = &quot;see 17 correctly&quot;)\n@Outcome(id = {&quot;0&quot;}, expect = FORBIDDEN,desc = &quot;should not appear&quot;)\npublic class TestRA {\n\n    volatile int ready;\n    int dinner;\n    static final VarHandle READY;\n    static {\n        try {\n            READY = MethodHandles.lookup()\n                    .findVarHandle(TestRA.class, &quot;ready&quot;, int.class);\n        } catch (NoSuchFieldException | IllegalAccessException e) {\n            throw new RuntimeException(e);\n        }\n    }\n    @Actor\n    public void actor1(I_Result result) {\n        final int i = (int) READY.getAcquire(this);\n        if (i == 1) {\n            result.r1 = dinner;\n        }else {\n            result.r1 = -1;\n        }\n    }\n    @Actor\n    public void actor2() {\n        dinner = 17;\n        READY.setRelease(this, 1);\n    }\n}\n\n</code></pre>\n<p>The test results are as follows:</p>\n<pre class=\"lang-bash prettyprint-override\"><code>\n  Results across all configurations:\n\n  RESULT        SAMPLES     FREQ       EXPECT  DESCRIPTION\n      -1  1,040,257,363   41.48%  Interesting  setRelease may not executed yet\n       0              0    0.00%    Forbidden  should not appear\n      17  1,467,462,585   58.52%  Interesting  see 17 correctly\n\n...\n\n  RESULT     SAMPLES     FREQ       EXPECT  DESCRIPTION\n      -1   2,459,157    9.99%  Interesting  setRelease may not executed yet\n       0           0    0.00%    Forbidden  should not appear\n      17  22,155,774   90.01%  Interesting  see 17 correctly\n\n...\n\n\n  RESULT     SAMPLES     FREQ       EXPECT  DESCRIPTION\n      -1  19,598,608   58.46%  Interesting  setRelease may not executed yet\n       0           0    0.00%    Forbidden  should not appear\n      17  13,925,123   41.54%  Interesting  see 17 correctly\n\n\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

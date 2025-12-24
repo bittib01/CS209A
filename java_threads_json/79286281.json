@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "dependency-injection",
+      "spring6"
+    ],
+    "owner": {
+      "account_id": 10421042,
+      "reputation": 78,
+      "user_id": 7683701,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/fcc09ce87cd10c0c1c4f67aea05ea58d?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "ReMadWeb",
+      "link": "https://stackoverflow.com/users/7683701/remadweb"
+    },
+    "is_answered": false,
+    "view_count": 103,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1734907191,
+    "creation_date": 1734389854,
+    "last_edit_date": 1734415534,
+    "question_id": 79286281,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79286281/spring-5-wait-until-a-late-initialized-bean-is-available-depends-on-and-order-h",
+    "title": "Spring 5 wait until a late initialized bean is available, depends-on and order have not helped",
+    "body": "<p>How to wait until bean &quot;allAppConfigs&quot; is initialized and then initialize bean &quot;pseudoBean1&quot;? For PostConstruct-annotated-Method &quot;populateMap&quot; member &quot;allAppConfigs&quot; is needed with values to fill the map.\nI tried depends-on and different orders, reading spring 5 / 6 manual / docs and InitializingBean interface. I think import of resources is done too late. Maybe there is a good solution. Thanks in advance.</p>\n<p>About order when Spring injects:</p>\n<ol>\n<li>(1) PseudoBean1.setApplicationConfigRegistry(...)</li>\n<li>(2) PseudoBean1setAllAppConfigs(...)</li>\n<li>(then PostConstruct runs)</li>\n<li>(3) PseudoBean2.setAllAppConfigs(...)</li>\n</ol>\n<p>spring.xml:</p>\n<pre><code>...\n&lt;!-- Objects imported as AppConfig.class --&gt;\n&lt;import resource=&quot;folder/*.xml&quot;&gt;\n\n&lt;util:list id=&quot;allAppConfigs&quot; value-type=&quot;edu.somepackage.models.AppConfig&quot;&gt;\n    &lt;ref bean=&quot;systemAppConfig&quot;&gt;\n    &lt;ref bean=&quot;someAppConfig&quot;&gt;\n    &lt;ref bean=&quot;springAppConfig&quot;&gt;    \n&lt;/util:list&gt;\n...\n</code></pre>\n<p>myFrameWork/spring.xml:</p>\n<pre><code>&lt;bean id=&quot;pseudoBean2&quot; class=&quot;PseudoBean2&quot;&gt;\n    &lt;property name=&quot;allAppConfigs&quot; ref=&quot;allAppConfigs&quot; /&gt;\n&lt;/bean&gt;\n\n&lt;bean id=&quot;pseudoBean1&quot; class=&quot;PseudoBean1&quot;&gt;\n    &lt;property name=&quot;applicationConfigRegistry&quot; ref=&quot;pseudoBean2&quot; /&gt;\n&lt;/bean&gt;\n</code></pre>\n<pre><code>public class PseudoBean2 {\n\n    private List&lt;AppConfig&gt; allAppConfigs;\n    \n    public void setAllAppConfigs(List&lt;AppConfig&gt; allAppConfigs) {\n        this.allAppConfigs = allAppConfigs;\n    }\n    \n    public List&lt;AppConfig&gt; allAppConfigs() {\n        return this.allAppConfigs;\n    }\n}\n</code></pre>\n<pre><code>public class PseudoBean1 {\n\n    private PseudoBean2 applicationConfigRegistry;\n\n    private Map&lt;String, AppConfigImpl&gt; map = new HashMap&lt;&gt;();\n\n    private List&lt;AppConfig&gt; allAppConfigs = new ArrayList&lt;&gt;();\n    \n    public void setApplicationConfigRegistry(PseudoBean2 applicationConfigRegistry) {\n        this.applicationConfigRegistry = applicationConfigRegistry;\n    }\n\n    public void setAllAppConfigs(List&lt;AppConfig&gt; allAppConfigs) {\n        this.allAppConfigs = allAppConfigs;\n    }\n\n    @PostConstruct\n    protected void populateMap() {\n        int i = 1;\n        for(AppConfig config : applicationConfigRegistry.allAppConfigs()) {\n            map.put(&quot;key&quot; + i, config);\n            i++;\n        }\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

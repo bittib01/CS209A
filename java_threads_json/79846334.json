@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "graphql",
+      "open-liberty"
+    ],
+    "owner": {
+      "account_id": 18386614,
+      "reputation": 21,
+      "user_id": 13393496,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/-dp1HcnpPW8Y/AAAAAAAAAAI/AAAAAAAAAAA/AAKWJJNG1rSAhdA7jyyS3_r39KA58fRcgw/s256-rj/photo.jpg",
+      "display_name": "Michael F.",
+      "link": "https://stackoverflow.com/users/13393496/michael-f"
+    },
+    "is_answered": false,
+    "view_count": 104,
+    "answer_count": 0,
+    "score": 2,
+    "last_activity_date": 1765585794,
+    "creation_date": 1765585794,
+    "question_id": 79846334,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79846334/npe-when-using-batch-resolver-source-list-with-openlibertys-graphql-implem",
+    "title": "NPE when using Batch-Resolver (@Source List&lt;&gt;) with Openliberty&#39;s GraphQL Implementation",
+    "body": "<p><strong>Environment:</strong></p>\n<ul>\n<li><p>OpenLiberty(25.0.0.12 -&gt; <a href=\"https://openliberty.io/start/#gradle\" rel=\"nofollow noreferrer\">https://openliberty.io/start/#gradle</a>) with <code>mpGraphQL-2.0</code> feature</p>\n</li>\n<li><p>MicroProfile GraphQL API 2.0</p>\n</li>\n<li><p>Java 21</p>\n</li>\n</ul>\n<p>I'm trying to use batch resolvers in MicroProfile GraphQL 2.0 with OpenLiberty, but the batch resolver doesn't seem to be invoked even though the server logs indicate it should be.</p>\n<p><code>[WARNUNG ] SRGQL010002: Operation [subName] also exist as a batch operation - ignoring the non-batch operation</code></p>\n<p>So both Resolver methods are recognized, but when calling the API it throws NPE when accessing the 'subName':</p>\n<pre><code>query Test {\n  testDto {\n    name\n    subName\n  }\n}\n</code></pre>\n<p>Results in:</p>\n<pre><code>{\n  &quot;errors&quot;: [\n    {\n      &quot;message&quot;: &quot;Server Error&quot;,\n      &quot;locations&quot;: [\n        {\n          &quot;line&quot;: 4,\n          &quot;column&quot;: 5\n        }\n      ],\n      &quot;path&quot;: [\n        &quot;testDto&quot;,\n        &quot;subName&quot;\n      ],\n      &quot;extensions&quot;: {\n        &quot;exception&quot;: &quot;java.lang.NullPointerException&quot;,\n        &quot;classification&quot;: &quot;DataFetchingException&quot;,\n        &quot;code&quot;: &quot;null-pointer&quot;\n      }\n    }\n  ],\n  &quot;data&quot;: {\n    &quot;testDto&quot;: {\n      &quot;name&quot;: &quot;P1&quot;,\n      &quot;subName&quot;: null\n    }\n  }\n}\n</code></pre>\n<p>I have a simple GraphQL API with both a single resolver and a batch resolver for the same field:</p>\n<pre><code>\n@GraphQLApi\npublic class TestGQL {\n\n    @Query\n    public TestDto getTestDto() {\n        return new TestDto(&quot;P1&quot;);\n    }\n\n    @Query\n    public List&lt;TestDto&gt; getTestDtos() {\n        List&lt;TestDto&gt; result = new ArrayList&lt;&gt;();\n        result.add(new TestDto(&quot;P2&quot;));\n        result.add(new TestDto(&quot;P3&quot;));\n        return result;\n    }\n\n    @Name(&quot;subName&quot;)\n    public String getSubName(@Source TestDto testDto) {\n        return testDto.name + &quot;_SingleResolver&quot;;\n    }\n\n    @Name(&quot;subName&quot;)\n    public List&lt;String&gt; getSubNameBatch(@Source List&lt;TestDto&gt; testDtos) {\n        return testDtos.stream().map(p -&gt; p.name + &quot;_BatchResolver&quot;).toList();\n    }\n\n    public static class TestDto {\n        public String name;\n\n        public TestDto(String name) {\n            this.name = name;\n        }\n    }\n}\n</code></pre>\n<p>Enabled features in my server.xml</p>\n<pre><code>    &lt;featureManager&gt;\n        &lt;feature&gt;jakartaee-10.0&lt;/feature&gt;\n        &lt;feature&gt;microProfile-7.0&lt;/feature&gt;\n        &lt;feature&gt;mpGraphQL-2.0&lt;/feature&gt;\n    &lt;/featureManager&gt;\n</code></pre>\n<p>Dependencies in my build.gradle:</p>\n<pre><code>dependencies {\n    // provided dependencies\n    providedCompile 'jakarta.platform:jakarta.jakartaee-api:10.0.0' \n    providedCompile 'org.eclipse.microprofile:microprofile:7.0'\n    // https://mvnrepository.com/artifact/org.eclipse.microprofile.graphql/microprofile-graphql-api\n    implementation 'org.eclipse.microprofile.graphql:microprofile-graphql-api:2.0'\n}\n</code></pre>\n<p><strong>Question</strong>:<br />\nIs there something misconfigured in my setup, or is this a bug in the OpenLiberty implementation of MicroProfile GraphQL?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

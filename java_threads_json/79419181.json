@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "apache-camel"
+    ],
+    "owner": {
+      "account_id": 1689409,
+      "reputation": 1213,
+      "user_id": 1552080,
+      "user_type": "registered",
+      "accept_rate": 64,
+      "profile_image": "https://www.gravatar.com/avatar/59ce9d0384a5c3a071ffaf2e7e2cc144?s=256&d=identicon&r=PG",
+      "display_name": "WolfiG",
+      "link": "https://stackoverflow.com/users/1552080/wolfig"
+    },
+    "is_answered": false,
+    "view_count": 79,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1740636358,
+    "creation_date": 1738871584,
+    "last_edit_date": 1738911663,
+    "question_id": 79419181,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79419181/making-minimal-example-of-an-apache-camel-jetty-based-server-work",
+    "title": "Making minimal example of an Apache Camel Jetty-based server work",
+    "body": "<p>I want to build a REST interface to a database using Apache Camel's Jetty component. However, I am struggling with the first steps, so I want to make a minimal example work.</p>\n<p>I have a component class:</p>\n<pre><code>@Component\npublic class myRouteBuilder extends RouteBuilder {\n    from(&quot;jetty:http://0.0.0.0:8080/&quot;).log(&quot;Request received.&quot;).setBody(simple(&quot;Huhu y'all!&quot;));\n}\n</code></pre>\n<p>Which is kicked off by a SpringBoot starter class:</p>\n<pre><code>@SpringBootApplication\npublic class RestServiceApplication {\n\n    private static CountDownLatch _stopLatch = null;\n\n    public static void main(String[] args) {\n\n        SpringApplication theApp = new SpringApplication(myRouteBuilder.class);\n     \n        // variant 1 causing to happen nothing\n        theApp.setWebApplicationType(WebApplicationType.NONE);\n        // variant 2 causing an execption\n        theApp.setWebApplicationType(WebApplicationType.SERVLET);\n\n        try {\n            ConfigurableApplicationContext appContext = theApp.run();\n            appContext.registerShutdownHook();\n        } catch (Exception e) {\n            ...\n            return;\n        }\n\n        _stopLatch = new CountDownLatch(1);\n        try {\n            _stopLatch.await();\n        } catch (InterruptedException e) {\n            ...\n        }\n    }\n}\n</code></pre>\n<p>Variant 1 causes a <code>curl http://localhost:8080/</code> to come back with &quot;Failed to connect to localhost port 8080: Connection refused&quot;</p>\n<p>Variant 2 causes exception</p>\n<blockquote>\n<p>Unable to start web server; nested exception is org.springframework.boot.web.context.MissingWebServerFactoryBeanException: No qualifying bean of type 'org.springframework.boot.web.servlet.server.ServletWebServerFactory' available: Unable to start AnnotationConfigServletWebServerApplicationContext due to missing ServletWebServerFactory bean</p>\n</blockquote>\n<p>POM dependencies:</p>\n<pre><code>  &lt;dependencies&gt;\n    &lt;!-- for REST deployment in Tomcat server --&gt; \n    &lt;dependency&gt;\n      &lt;groupId&gt;org.apache.camel.springboot&lt;/groupId&gt;\n      &lt;artifactId&gt;camel-servlet-starter&lt;/artifactId&gt;\n    &lt;/dependency&gt;\n    \n    &lt;dependency&gt;\n      &lt;groupId&gt;org.apache.camel&lt;/groupId&gt;\n      &lt;artifactId&gt;camel-jetty&lt;/artifactId&gt;\n    &lt;/dependency&gt;\n    \n    &lt;dependency&gt;\n      &lt;groupId&gt;org.apache.camel.springboot&lt;/groupId&gt;\n      &lt;artifactId&gt;camel-jetty-starter&lt;/artifactId&gt;\n    &lt;/dependency&gt;\n    \n    &lt;dependency&gt;\n      &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n      &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;\n    &lt;/dependency&gt;\n  &lt;/dependencies&gt;\n</code></pre>\n<p>I must admit that I didn't understand how SpringBoot and all this works, so I copy pasted so far, but now I need some guidance. How can</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

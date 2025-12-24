@@ -1,0 +1,37 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "spring-security",
+      "least-privilege"
+    ],
+    "owner": {
+      "account_id": 8414867,
+      "reputation": 418,
+      "user_id": 6315631,
+      "user_type": "registered",
+      "accept_rate": 50,
+      "profile_image": "https://www.gravatar.com/avatar/a5f5c638e8b35ee1929a2127e3410c5c?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "CidTori",
+      "link": "https://stackoverflow.com/users/6315631/cidtori"
+    },
+    "is_answered": true,
+    "view_count": 1157,
+    "accepted_answer_id": 77754259,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1749040211,
+    "creation_date": 1704185662,
+    "last_edit_date": 1704305025,
+    "question_id": 77745018,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77745018/how-do-i-make-all-of-my-requestmapping-as-preauthorizeisauthenticated-by",
+    "title": "How do I make all of my @RequestMapping as @PreAuthorize(&quot;isAuthenticated()&quot;) by default?",
+    "body": "<p>I’d like to apply the <a href=\"https://en.wikipedia.org/wiki/Principle_of_least_privilege\" rel=\"nofollow noreferrer\">Principle of Least Privilege</a> in my endpoints by requiring all of them to be authenticated, unless stated otherwise at the method-level (so I don’t need to duplicate pathes from my controllers in a <code>SecurityFilterChain</code>).</p>\n<p>Ideally, I’d want all of them to behave as if they were annotated by <code>@PreAuthorize(&quot;isAuthenticated()&quot;)</code> by default, while still being able to override this by explicitly specifying a <code>@PreAuthorize</code> (or other annotations like <code>@PermitAll</code>). Of course, it can be achieved by annotating the <code>@Controller</code>s themselves like the following, but you can still forget to annotate one, which is the reason why I’d like a more global solution:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@RestController\n@PreAuthorize(&quot;isAuthenticated()&quot;)\npublic class TestController {\n    @GetMapping(&quot;/test&quot;)\n    @PreAuthorize(&quot;permitAll()&quot;)\n    public void test() {}\n}\n</code></pre>\n<p>I tried following the <a href=\"https://docs.spring.io/spring-security/reference/servlet/authorization/method-security.html#request-vs-method\" rel=\"nofollow noreferrer\">documentation</a> that says:</p>\n<blockquote>\n<p>It’s important to remember that when you use annotation-based Method Security, then unannotated methods are not secured. To protect against this, declare <a href=\"https://docs.spring.io/spring-security/reference/servlet/authorization/authorize-http-requests.html#activate-request-security\" rel=\"nofollow noreferrer\">a catch-all authorization rule</a> in your <a href=\"https://docs.spring.io/spring-security/reference/servlet/configuration/java.html#jc-httpsecurity\" rel=\"nofollow noreferrer\">HttpSecurity</a> instance.</p>\n</blockquote>\n<p>So I kept <a href=\"https://github.com/spring-projects/spring-boot/blob/8bb60eef026fc8787b5ac763bcb9c532f3fcb5f9/spring-boot-project/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/security/servlet/SpringBootWebSecurityConfiguration.java#L58\" rel=\"nofollow noreferrer\">Spring Boot’s default <code>SecurityFilterChain</code></a> which does <code>http.authorizeHttpRequests((authorize) -&gt; authorize.anyRequest().authenticated())</code> like in the doc:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Bean\npublic SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {\n    http.authorizeHttpRequests((requests) -&gt; requests.anyRequest().authenticated());\n    http.formLogin(withDefaults());\n    http.httpBasic(withDefaults());\n    return http.build();\n}\n</code></pre>\n<p>Then I tried using <code>@PreAuthorize(&quot;permitAll()&quot;)</code> on some endpoints to override it, with no success: as described in <a href=\"https://github.com/spring-projects/spring-security/issues/14371\" rel=\"nofollow noreferrer\">my issue</a> on the subject, <code>SecurityFilterChain</code> rules are evaluated before <code>@PreAuthorize</code>, so they can’t be overridden by it.</p>\n<p>I tried using <a href=\"https://docs.spring.io/spring-security/reference/servlet/authorization/method-security.html#custom-authorization-managers\" rel=\"nofollow noreferrer\">custom method security</a> (with a custom <code>SecurityFilterChain</code> identical to Spring Boot's but with the catch-all line <code>http.authorizeHttpRequests((authorize) -&gt; authorize.anyRequest().authenticated())</code> commented out) as advised in the issue, like this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Configuration\n@EnableMethodSecurity\npublic class SecurityConfiguration {\n    @Bean\n    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {\n        //http.authorizeHttpRequests((requests) -&gt; requests.anyRequest().authenticated());\n        http.formLogin(withDefaults());\n        http.httpBasic(withDefaults());\n        return http.build();\n    }\n\n    @Bean\n    @Role(BeanDefinition.ROLE_INFRASTRUCTURE)\n    Advisor preAuthorize() {\n        return AuthorizationManagerBeforeMethodInterceptor.preAuthorize(AuthenticatedAuthorizationManager.authenticated());\n    }\n}\n</code></pre>\n<p>with no success, since <a href=\"https://github.com/spring-projects/spring-security/blob/af2d210ccb62a00374983ff276e1a16e5773b130/core/src/main/java/org/springframework/security/authorization/method/AuthorizationManagerBeforeMethodInterceptor.java#L99\" rel=\"nofollow noreferrer\"><code>AuthorizationManagerBeforeMethodInterceptor.preAuthorize</code> only applies to <code>@PreAuthorize</code>-annotated methods</a>:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public static AuthorizationManagerBeforeMethodInterceptor preAuthorize(\n        PreAuthorizeAuthorizationManager authorizationManager) {\n    AuthorizationManagerBeforeMethodInterceptor interceptor = new AuthorizationManagerBeforeMethodInterceptor(\n            AuthorizationMethodPointcuts.forAnnotations(PreAuthorize.class), authorizationManager);\n    interceptor.setOrder(AuthorizationInterceptorsOrder.PRE_AUTHORIZE.getOrder());\n    return interceptor;\n}\n</code></pre>\n<p>(and indeed it does work if I annotate the <code>@Controller</code> with <code>@PreAuthorize(&quot;&quot;)</code>)</p>\n<p>I tried creating my own <code>AuthorizationManagerBeforeMethodInterceptor</code>, but to no avail either for now, since I don't really understand how that internal machinery works.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

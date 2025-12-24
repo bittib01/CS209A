@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "authentication",
+      "spring-security",
+      "microsoft-entra-id"
+    ],
+    "owner": {
+      "account_id": 19284118,
+      "reputation": 11,
+      "user_id": 22236663,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/d0fe423e4fd2e606f95dfde950dfa6a9?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "DasShorty",
+      "link": "https://stackoverflow.com/users/22236663/dasshorty"
+    },
+    "is_answered": true,
+    "view_count": 131,
+    "accepted_answer_id": 79519987,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1742382123,
+    "creation_date": 1742305455,
+    "last_edit_date": 1742366251,
+    "question_id": 79517646,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79517646/how-to-add-a-second-authentication-provider-for-spring-boot-if-i-use-aad-jwts",
+    "title": "How to add a second authentication provider for Spring Boot if i use Aad Jwts",
+    "body": "<p>I want to add a second authentication provider to my spring project but i'm using the Spring Boot Active Directory Starter dependency where i only configure the oauth2 resource server with a keyset uri and an authentication converter.</p>\n<p>How would i approach this problem? Can i just add a second authentication provider or is some configuration needed for the aad auth before? If some configuration is needed could you explain this then to me?</p>\n<p>Here is my current Spring Security Config</p>\n<pre><code>@Configuration\n@EnableWebSecurity\n@EnableMethodSecurity\npublic class SpringSecurityConfig implements WebMvcConfigurer {\n\n    @Value(&quot;${security.oauth2.resource.jwt.key-uri}&quot;)\n    private String keySetUri;\n\n    @Value(&quot;${security.oauth2.resource.id}&quot;)\n    private String resourceId;\n\n    @Value(&quot;${security.oauth2.issuer}&quot;)\n    private String issuer;\n\n    @Value(&quot;${security.oauth2.scope.access-as-user}&quot;)\n    private String accessAsUserScope;\n\n    private final FigaroAuthenticationConverter authenticationConverter;\n\n    @Autowired\n    public SpringSecurityConfig(FigaroAuthenticationConverter authenticationConverter) {\n        this.authenticationConverter = authenticationConverter;\n    }\n\n    /**\n     * Configures the security filter chain for the application.\n     *\n     * @param http the HttpSecurity to modify\n     * @return the configured SecurityFilterChain\n     * @throws Exception if an error occurs while configuring the filter chain\n     */\n    @Bean\n    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {\n\n        http.cors(corsCustomizer -&gt;\n                corsCustomizer.configurationSource(request -&gt; {\n\n                    CorsConfiguration config = new CorsConfiguration();\n\n                    config.setAllowedOrigins(List.of(&quot;http://localhost:4200&quot;));\n                    config.setAllowedMethods(List.of(&quot;GET&quot;, &quot;POST&quot;, &quot;PUT&quot;, &quot;DELETE&quot;, &quot;OPTIONS&quot;));\n                    config.setAllowCredentials(true);\n                    config.setExposedHeaders(List.of(&quot;Authorization&quot;));\n                    config.setAllowedHeaders(List.of(\n                            &quot;Access-Control-Allow-Headers&quot;,\n                            &quot;Access-Control-Allow-Origin&quot;,\n                            &quot;Access-Control-Request-Method&quot;,\n                            &quot;Access-Control-Request-Headers&quot;,\n                            &quot;Origin&quot;,\n                            &quot;Cache-Control&quot;,\n                            &quot;Content-Type&quot;,\n                            &quot;Authorization&quot;\n                    ));\n\n                    config.setMaxAge(3600L);\n\n                    return config;\n                }));\n\n        http.sessionManagement(Customizer.withDefaults())\n                .sessionManagement(sessionManagementConfigurer -&gt;\n                        sessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS));\n\n\n        http.oauth2ResourceServer(oauth2 -&gt;\n                oauth2.jwt(jwtConfigurer -&gt; {\n\n                    jwtConfigurer.jwkSetUri(this.keySetUri);\n                    jwtConfigurer.jwtAuthenticationConverter(jwtAuthenticationConverter());\n\n                }));\n\n        http.authorizeHttpRequests(auth -&gt; {\n            auth.requestMatchers(HttpMethod.OPTIONS)\n                    .permitAll();\n            auth.requestMatchers(&quot;/actuator/**&quot;, &quot;/api-docs&quot;).permitAll();\n            auth.anyRequest().authenticated();\n        });\n\n        return http.build();\n    }\n\n    private JwtAuthenticationConverter jwtAuthenticationConverter() {\n        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();\n        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(this.authenticationConverter);\n        return jwtAuthenticationConverter;\n    }\n\n    @Bean\n    public JwtDecoder jwtDecoder() {\n        return NimbusJwtDecoder.withJwkSetUri(this.keySetUri).build();\n    }\n}\n</code></pre>\n<p>I havn't tried anything. But i don't really now where to start. I researched before this post a bit and found out that i could achive this with something like that</p>\n<pre><code>@Override\nprotected void configure(AuthenticationManagerBuilder auth) throws Exception {\n        auth.authenticationProvider(oAuth2ResourceServerConfigurer);\n        auth.authenticationProvider(customAuthenticationProvider);\n}\n</code></pre>\n<p><strong>----------------------- EDIT -----------------------</strong></p>\n<p>I've tried solving this issue with a request filter that is executed before the authentication filter. I thought i could authenticate it in the filter and proceed normally and it would skip the rest of the authentication but this didn't work they way i expected it.</p>\n<pre><code>public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {\n\n    private static final String HEADER_NAME = &quot;X-API-KEY&quot;;\n\n    @Override\n    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {\n\n        logger.info(&quot;Checking for API key&quot;);\n\n        String apiKey = request.getHeader(HEADER_NAME);\n        \n        logger.info(apiKey);\n\n        if (StringUtils.hasText(apiKey)) {\n\n            Authentication auth = new ApiKeyAuthenticationToken(apiKey, List.of(new SimpleGrantedAuthority(&quot;ROLE_VIEWER&quot;)));\n            SecurityContextHolder.getContext().setAuthentication(auth);\n\n            return;\n\n        }\n\n        filterChain.doFilter(request, response);\n\n    }\n}\n</code></pre>\n<p>As you can see i set the authentication and return immediatly. This raises now the issue that i get a status code 200 but no response body. This is because i return there, right?</p>\n<p>The filter doesn't make very much sense for now, because i havn't added the &quot;checking&quot; part, but for now it is just for testing</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

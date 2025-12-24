@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot"
+    ],
+    "owner": {
+      "account_id": 3251786,
+      "reputation": 2492,
+      "user_id": 2741831,
+      "user_type": "registered",
+      "accept_rate": 76,
+      "profile_image": "https://www.gravatar.com/avatar/c638b05bf29d8b4305f592fd7c570e10?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "user2741831",
+      "link": "https://stackoverflow.com/users/2741831/user2741831"
+    },
+    "is_answered": true,
+    "view_count": 131,
+    "accepted_answer_id": 79380061,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1737614616,
+    "creation_date": 1735379394,
+    "last_edit_date": 1735379850,
+    "question_id": 79313545,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79313545/how-can-i-use-a-request-scope-bean-in-a-component-and-fall-back-to-a-default-val",
+    "title": "How can I use a Request scope bean in a component and fall back to a default value outside of request scope?",
+    "body": "<p>I have 2 different classes, TenantContext, which is request scope, TenantIdentfierResolver which is a component. During Request Scopes, TenantIdentifierResolver should retrieve the Current tenant name from TenantContext, outside of request scopes, it should simply return default. (The tenant context will be set by the controller function in endpoints that require it). Here's what that looks like.</p>\n<pre><code>    @Component\n    @RequestScope\n    public class TenantContext  {\n        @Getter @Setter\n        private String currentTenant=null;\n    \n    }\n\n\n\n\n\n@Component\n@RequiredArgsConstructor\npublic class TenantIdentifierResolver implements CurrentTenantIdentifierResolver&lt;String&gt;, HibernatePropertiesCustomizer {\n    private final TenantContext tenantContext;\n    private static String defaultValue=&quot;default&quot;;\n\n\n    @Override\n    public String resolveCurrentTenantIdentifier() {\n        return tenantContext==null?defaultValue:tenantContext.getCurrentTenant();\n    }\n\n\n    @Override\n    public void customize(Map&lt;String, Object&gt; hibernateProperties) {\n        hibernateProperties.put(AvailableSettings.MULTI_TENANT_IDENTIFIER_RESOLVER, this);\n    }\n\n    @Override\n    public boolean validateExistingCurrentSessions() {\n        return false;\n    }\n}\n</code></pre>\n<p>But this always returns an exceptions along the lines of:</p>\n<pre><code>Error creating bean with name 'scopedTarget.tenantContext': Scope 'request' is not active for the current thread; consider defining a scoped proxy for this bean if you intend to refer to it from a singleton\n</code></pre>\n<p>I already tried</p>\n<pre><code>@Scope(value = WebApplicationContext.SCOPE_REQUEST, proxyModel = ScopedProxyMode.TARGET_CLASS)\n</code></pre>\n<p>As well as an ObjectProvider and an @Optional annotation, but they all lead to similar Exception. So how can I only invoke the tenantContext only when it is actually available? It feels like ObjectProviders getIfAvailable would be the perfect solution (returning null if the object is not available), but it simply spits out an Exception.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

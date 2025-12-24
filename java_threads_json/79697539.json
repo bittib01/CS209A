@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "maven",
+      "jpa",
+      "jpa-2.0",
+      "datanucleus"
+    ],
+    "owner": {
+      "account_id": 412334,
+      "reputation": 35687,
+      "user_id": 785349,
+      "user_type": "registered",
+      "accept_rate": 94,
+      "profile_image": "https://i.sstatic.net/OuJeX.jpg?s=256",
+      "display_name": "quarks",
+      "link": "https://stackoverflow.com/users/785349/quarks"
+    },
+    "is_answered": false,
+    "view_count": 69,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1752177149,
+    "creation_date": 1752177149,
+    "question_id": 79697539,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79697539/cannot-read-the-array-length-because-elems-is-null-error-when-running-dn-as-ja",
+    "title": "Cannot read the array length because &quot;elems&quot; is null error when running DN as jar",
+    "body": "<p>I've been trying so squash this bug in my program. My program runs fine with <code>mvn test</code> and <code>mvn exec:java</code> but running it as <code>java -jar</code> throws this error:</p>\n<pre><code>Exception in thread &quot;main&quot; java.lang.NullPointerException: Cannot read the array length because &quot;elems&quot; is null\n        at org.datanucleus.metadata.xml.XmlMetaDataEntityResolver.&lt;init&gt;(XmlMetaDataEntityResolver.java:64)\n        at org.datanucleus.metadata.xml.XmlMetaDataParser.&lt;init&gt;(XmlMetaDataParser.java:90)\n        at org.datanucleus.metadata.MetaDataUtils.parsePersistenceFiles(MetaDataUtils.java:885)\n        at org.datanucleus.api.jpa.JPAEntityManagerFactory.getPersistenceUnitMetaDataForName(JPAEntityManagerFactory.java:1316)\n        at org.datanucleus.api.jpa.JPAEntityManagerFactory.&lt;init&gt;(JPAEntityManagerFactory.java:405)\n        at org.datanucleus.api.jpa.PersistenceProviderImpl.createEntityManagerFactory(PersistenceProviderImpl.java:104)\n        at javax.persistence.Persistence.createEntityManagerFactory(Persistence.java:79)\n        at javax.persistence.Persistence.createEntityManagerFactory(Persistence.java:54)\n</code></pre>\n<p>From:</p>\n<pre class=\"lang-java prettyprint-override\"><code>import dagger.Provides;\n\nimport javax.inject.Singleton;\nimport javax.persistence.EntityManagerFactory;\nimport javax.persistence.Persistence;\n\n@Provides\n@Singleton\nEntityManagerFactory provideEntityManagerFactory() {\n    setSystemProperties();\n\n    if (!isDatabaseUrlSet()) {\n        return Persistence.createEntityManagerFactory(TEST_PU);\n    } else {\n        return Persistence.createEntityManagerFactory(PROD_PU, getPostgresProperties());\n    }\n}\n</code></pre>\n<p>The shade plugin is configured as such:</p>\n<pre><code>&lt;plugin&gt;\n    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;\n    &lt;artifactId&gt;maven-shade-plugin&lt;/artifactId&gt;\n    &lt;version&gt;3.6.0&lt;/version&gt;\n    &lt;executions&gt;\n        &lt;execution&gt;\n            &lt;phase&gt;package&lt;/phase&gt;\n            &lt;goals&gt;\n                &lt;goal&gt;shade&lt;/goal&gt;\n            &lt;/goals&gt;\n            &lt;configuration&gt;\n                &lt;transformers&gt;\n                    &lt;transformer implementation=&quot;org.apache.maven.plugins.shade.resource.ServicesResourceTransformer&quot;/&gt;\n                    &lt;transformer implementation=&quot;org.apache.maven.plugins.shade.resource.ManifestResourceTransformer&quot;&gt;\n                        &lt;mainClass&gt;${main.class}&lt;/mainClass&gt;\n                    &lt;/transformer&gt;\n                    &lt;transformer implementation=&quot;org.apache.maven.plugins.shade.resource.AppendingTransformer&quot;&gt;\n                        &lt;resource&gt;META-INF/persistence.xml&lt;/resource&gt;\n                    &lt;/transformer&gt;\n                &lt;/transformers&gt;\n                &lt;filters&gt;\n                    &lt;filter&gt;\n                        &lt;artifact&gt;*:*&lt;/artifact&gt;\n                        &lt;excludes&gt;\n                            &lt;exclude&gt;META-INF/*.SF&lt;/exclude&gt;\n                            &lt;exclude&gt;META-INF/*.DSA&lt;/exclude&gt;\n                            &lt;exclude&gt;META-INF/*.RSA&lt;/exclude&gt;\n                        &lt;/excludes&gt;\n                    &lt;/filter&gt;\n                &lt;/filters&gt;\n            &lt;/configuration&gt;\n        &lt;/execution&gt;\n    &lt;/executions&gt;\n&lt;/plugin&gt;\n</code></pre>\n<p>And the persistence configuration XML is intact:</p>\n<pre><code>jar tf target/rest-0-SNAPSHOT.jar | grep persistence.xml\nMETA-INF/persistence.xml\n</code></pre>\n<p>The DN versions are:</p>\n<pre><code>&lt;datanucleus.core.version&gt;6.0.11&lt;/datanucleus.core.version&gt;\n&lt;datanucleus.rdbms.version&gt;6.0.10&lt;/datanucleus.rdbms.version&gt;\n&lt;datanucleus.jpa.version&gt;6.0.2&lt;/datanucleus.jpa.version&gt;\n&lt;datanucleus.jpa.query.version&gt;6.0.0-release&lt;/datanucleus.jpa.query.version&gt;\n\n...\n\n&lt;dependency&gt;\n    &lt;groupId&gt;org.datanucleus&lt;/groupId&gt;\n    &lt;artifactId&gt;datanucleus-core&lt;/artifactId&gt;\n    &lt;version&gt;${datanucleus.core.version}&lt;/version&gt;\n&lt;/dependency&gt;\n\n&lt;dependency&gt;\n    &lt;groupId&gt;org.datanucleus&lt;/groupId&gt;\n    &lt;artifactId&gt;datanucleus-rdbms&lt;/artifactId&gt;\n    &lt;version&gt;${datanucleus.rdbms.version}&lt;/version&gt;\n&lt;/dependency&gt;\n\n&lt;dependency&gt;\n    &lt;groupId&gt;org.datanucleus&lt;/groupId&gt;\n    &lt;artifactId&gt;datanucleus-api-jpa&lt;/artifactId&gt;\n    &lt;version&gt;${datanucleus.jpa.version}&lt;/version&gt;\n&lt;/dependency&gt;\n\n&lt;dependency&gt;\n    &lt;groupId&gt;org.datanucleus&lt;/groupId&gt;\n    &lt;artifactId&gt;datanucleus-jpa-query&lt;/artifactId&gt;\n    &lt;version&gt;${datanucleus.jpa.query.version}&lt;/version&gt;\n&lt;/dependency&gt;\n</code></pre>\n<hr />\n<p>How to debug the program further to identify the root cause?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

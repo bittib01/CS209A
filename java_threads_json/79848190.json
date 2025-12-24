@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "jackson"
+    ],
+    "owner": {
+      "account_id": 24111,
+      "reputation": 1891,
+      "user_id": 61104,
+      "user_type": "registered",
+      "accept_rate": 85,
+      "profile_image": "https://www.gravatar.com/avatar/de357816d5d57debab13abc5999ab068?s=256&d=identicon&r=PG",
+      "display_name": "Kevin",
+      "link": "https://stackoverflow.com/users/61104/kevin"
+    },
+    "is_answered": true,
+    "view_count": 331,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1765922098,
+    "creation_date": 1765859565,
+    "last_edit_date": 1765922098,
+    "question_id": 79848190,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79848190/how-do-i-migrate-to-spring-boot-4-and-maintain-jackson-2",
+    "title": "How do I migrate to Spring Boot 4 and maintain Jackson 2?",
+    "body": "<p>The guides all emphasize that Spring Boot 4 maintains support for Jackson 2, but I'm attempting the migration right now, and it is causing me all sorts of issues.</p>\n<p>I have some custom serialization/deserialization code written against Jackson's public API's that should continue to work, since I'm sticking with Jackson 2 for now, but it's no longer being executed. I've tried defining an ObjectMapper bean, and then a MappingJackson2HttpMessageConverter because that seemed to be missing.</p>\n<p>I've added these dependencies:</p>\n<pre><code>implementation(&quot;org.springframework.boot:spring-boot-starter-json&quot;)\nimplementation(&quot;org.springframework.boot:spring-boot-jackson2&quot;)\n</code></pre>\n<p>This is my configuration:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Configuration\n@RequiredArgsConstructor\npublic class JacksonConfiguration {\n\n  private final Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder;\n\n  @Bean\n  @Primary\n  public ObjectMapper objectMapper() {\n    ObjectMapper objectMapper = jackson2ObjectMapperBuilder.createXmlMapper(false).build();\n    objectMapper.registerModule(new CustomModule());\n    return objectMapper;\n  }\n\n  @Bean\n  @Primary\n  @SuppressWarnings(&quot;deprecation&quot;)\n  public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter(\n      ObjectMapper objectMapper) {\n    return new MappingJackson2HttpMessageConverter(objectMapper);\n  }\n}\n\nThis\n</code></pre>\n<p>My module provides a TypeModifier that works in conjunction with custom serializers + deserializers:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class CustomModule extends SimpleModule {\n  @Override\n  public String getModuleName() {\n    return &quot;CustomModule&quot;;\n  }\n\n  @Override\n  public Version version() {\n    return Version.unknownVersion();\n  }\n\n  @Override\n  public void setupModule(SetupContext context) {\n    context.addDeserializers(new CustomDeserializers());\n    context.addSerializers(new CustomSerializers());\n    context.addTypeModifier(new UpdateFieldTypeModifier());\n  }\n}\n</code></pre>\n<p>What am I missing to get Spring Boot 4.0.0 to use Jackson 2 just like it used to in v3?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "flask",
+      "multipartform-data",
+      "webclient"
+    ],
+    "owner": {
+      "account_id": 24738041,
+      "reputation": 7,
+      "user_id": 18625144,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a-/AOh14Gj2WRR3Gn5y2sNVoro9Dt17Vhxv66OEkZ3JFginvQ=k-s256",
+      "display_name": "Ania Fijałkowska",
+      "link": "https://stackoverflow.com/users/18625144/ania-fija%c5%82kowska"
+    },
+    "is_answered": false,
+    "view_count": 69,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1762933755,
+    "creation_date": 1762907344,
+    "last_edit_date": 1762933755,
+    "question_id": 79817245,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79817245/webclient-sending-an-empty-multipart-request-to-flask-service",
+    "title": "WebClient sending an empty multipart request to Flask service",
+    "body": "<p>I have a problem with sending multipart/form-data requests from my Java service (using WebClient but same history with RestTemplate) to Flask service. It seems like a sent body is just empty as I get empty Immutablemultidict([]). I dont think that's revelant but I host java app locally on my machine and Flask app is run in docker container. Does anyone see what can be an issue?</p>\n<p>Controller:</p>\n<pre><code>@RequestMapping(&quot;/api/biometric&quot;)\n@RequiredArgsConstructor\npublic class BiometricController {\n\n    private final BiometricClient biometricClient;\n\n    @PostMapping(&quot;/register&quot;)\n    public ResponseEntity&lt;String&gt; registerUser(\n            @RequestParam(&quot;user_id&quot;) String userId,\n            @RequestParam(&quot;image&quot;) MultipartFile image) throws IOException {\n        String response = biometricClient.register(userId, image);\n        return ResponseEntity.ok(response);\n    }\n    \n}\n</code></pre>\n<p>WebClient:</p>\n<pre><code>@Component\npublic class BiometricClient {\n\n    private final WebClient webClient;\n\n    public BiometricClient() {\n        this.webClient = WebClient.builder()\n                .baseUrl(&quot;http://localhost:5001&quot;)\n                .build();\n    }\n\n    public String register(String userId, MultipartFile image) {\n        try {\n            Resource file = new org.springframework.core.io.ByteArrayResource(image.getBytes()) {\n                @Override\n                public String getFilename() {\n                    return image.getOriginalFilename();\n                }\n            };\n\n            MultipartBodyBuilder builder = new MultipartBodyBuilder();\n            builder.part(&quot;user_id&quot;, userId); // string part\n            builder.part(&quot;image&quot;, file);\n            MultiValueMap&lt;String, org.springframework.http.HttpEntity&lt;?&gt;&gt; multipartData = builder.build();\n\n            String response = webClient.post()\n                    .uri(&quot;/register&quot;)\n                    .contentType(MediaType.MULTIPART_FORM_DATA)\n                    .body(BodyInserters.fromMultipartData(multipartData))\n                    .retrieve()\n                    .bodyToMono(String.class)\n                    .block();\n\n            return response;\n\n        } catch (WebClientResponseException e) {\n            throw e;\n        } catch (IOException e) {\n            throw new RuntimeException(e);\n        }\n    }\n}\n</code></pre>\n<p>Flask endpoint:</p>\n<pre><code>@app.route(&quot;/register&quot;, methods=[&quot;POST&quot;])\ndef register_user():\n    &quot;&quot;&quot;Receive image, extract embedding, save to DB&quot;&quot;&quot;\n\n    # Extract data\n    file = request.files.get(&quot;image&quot;)\n    user_id = request.form.get(&quot;user_id&quot;)\n\n    if not file or not user_id:\n        print(&quot;❌ Missing image or user_id&quot;)\n        return jsonify({&quot;error&quot;: &quot;Missing image or user_id&quot;}), 400\n\n    # Example: process file\n    # embedding = engine.get_embedding(file.read())\n    # save_embedding(db_session, user_id, embedding)\n\n    return jsonify({&quot;message&quot;: &quot;Embedding registered&quot;}), 200\n</code></pre>\n<p>Curl request to java service:</p>\n<pre><code>curl -F &quot;user_id=123&quot; -F &quot;image=@face1.jpg&quot; http://localhost:8080/api/biometric/register\n</code></pre>\n<p>Log:</p>\n<pre><code>❌ Missing image or user_id\nchunked encoding error while discarding request body. client=172.23.0.1 request=&quot;POST /register HTTP/1.1&quot; error=&quot;invalid literal for int() with base 16: b''&quot;\n172.23.0.1 - - [12/Nov/2025 00:14:47] &quot;POST /register HTTP/1.1&quot; 400 159 0.084201\n</code></pre>\n<p>Also, when trying to hardcode filename in webclient service (not pass from controller), it doesnt work or when trying to sent just user_id.</p>\n<p>Curl request directly to Flask service:</p>\n<pre><code>curl -F &quot;image=@face1.jpg&quot; -F &quot;user_id=123&quot; http://localhost:5001/register\n</code></pre>\n<p>It returns then 200.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

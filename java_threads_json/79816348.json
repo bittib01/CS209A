@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "database",
+      "logging",
+      "quarkus"
+    ],
+    "owner": {
+      "account_id": 44635457,
+      "reputation": 3,
+      "user_id": 31855812,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/469e8deed036952b99e9b5bba8127437?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "user31855812",
+      "link": "https://stackoverflow.com/users/31855812/user31855812"
+    },
+    "is_answered": true,
+    "view_count": 119,
+    "accepted_answer_id": 79818797,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1763033953,
+    "creation_date": 1762846527,
+    "question_id": 79816348,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79816348/write-logs-to-database-in-quarkus-application",
+    "title": "Write logs to database in quarkus application",
+    "body": "<p>How can I write my log messages to database in my quarkus application?</p>\n<p>I tried to create a ExtHandler like this:</p>\n<pre><code>package org.myorg;\n\nimport io.agroal.api.AgroalDataSource;\nimport jakarta.enterprise.context.ApplicationScoped;\nimport jakarta.inject.Inject;\nimport org.jboss.logmanager.ExtHandler;\nimport org.jboss.logmanager.ExtLogRecord;\n\nimport java.sql.Connection;\nimport java.sql.PreparedStatement;\nimport java.sql.SQLException;\n\n@ApplicationScoped\npublic class DatabaseLogHandler extends ExtHandler {\n\n  @Inject\n  private AgroalDataSource dataSource;\n\n  @Override\n  protected void doPublish(final ExtLogRecord record) {\n    try (final Connection conn = this.dataSource.getConnection();\n         final PreparedStatement ps = conn.prepareStatement(\n             &quot;INSERT INTO logs(timestamp, level, logger, message) VALUES (?, ?, ?, ?)&quot;)) {\n\n      ps.setLong(1, record.getMillis());\n      ps.setString(2, record.getLevel().toString());\n      ps.setString(3, record.getLoggerName());\n      ps.setString(4, record.getMessage());\n      ps.executeUpdate();\n\n    } catch (final SQLException e) {\n      e.printStackTrace();\n    }\n  }\n}\n</code></pre>\n<p>and added</p>\n<pre><code>quarkus.log.handler.database=DatabaseLogHandler\n</code></pre>\n<p>to my application.properties but the code is not being executed.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

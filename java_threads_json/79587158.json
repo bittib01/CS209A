@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "python",
+      "java",
+      "pyspark"
+    ],
+    "owner": {
+      "account_id": 15669236,
+      "reputation": 37,
+      "user_id": 11306228,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/44b6d2d8b6a95ad3dbf80e2abdd785bf?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "lecarusin",
+      "link": "https://stackoverflow.com/users/11306228/lecarusin"
+    },
+    "is_answered": false,
+    "view_count": 61,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1745351323,
+    "creation_date": 1745344631,
+    "last_edit_date": 1745351323,
+    "question_id": 79587158,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79587158/error-pysparkruntimeerror-java-gateway-exited-in-script-to-upload-to-redshift",
+    "title": "Error PySparkRuntimeError: [JAVA_GATEWAY_EXITED] in script to upload to redshift",
+    "body": "<p>I need help with an error I get when running a local pyspark notebook in VSC with miniforge. I have installed:</p>\n<ul>\n<li>VSC</li>\n<li>Java 8 + Java SDK11</li>\n<li>Downloaded into c:/spark spark 3.4.4, and created folder c:/hadoop/bin where I added a winutil and hadoop dll file</li>\n<li>Python 3.11.0</li>\n<li>Latest version of miniforge</li>\n<li>minforge/conda kernel: Python 3.10.17</li>\n</ul>\n<p>I have code to start the spark session, and add a config option to run a jar for redshift. I currently have working code without that:</p>\n<pre><code>import os\nimport sys\nimport glob\nimport json\nimport urllib3\nimport requests\nimport findspark\nimport pandas as pd\nfrom pyspark.sql.types import *\nfrom pyspark.sql import DataFrame\nfrom pyspark.sql.functions import *\nfrom pyspark.sql import SparkSession\nfrom datetime import datetime, timedelta\nfrom functools import reduce as py_reduce\nurllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)\n\nfindspark.init()\n\nos.environ[&quot;JAVA_HOME&quot;] = &quot;C:/Program Files/Java/jdk-11&quot;\nos.environ[&quot;SPARK_HOME&quot;] = &quot;C:/spark&quot;\nos.environ[&quot;HADOOP_HOME&quot;] = &quot;C:/hadoop&quot;\n\nspark = SparkSession.builder.master(&quot;local[*]&quot;).appName(&quot;SAP&quot;).getOrCreate()\n</code></pre>\n<p>And it works, since Ive been able to create a spark session like that. However, when I modify the last line into:</p>\n<pre><code>spark = SparkSession.builder \\\n    .appName(&quot;Redshift Connection with PySpark&quot;) \\\n    .config(&quot;spark.jars&quot;, &quot;C:/vsc_projects/drivers/redshift-jdbc42-2.1.0.22.jar&quot;) \\\n    .getOrCreate()\n</code></pre>\n<p>It does not work, giving me the following error:</p>\n<pre><code>PySparkRuntimeError                       Traceback (most recent call last)\nCell In[2], line 10\n      4 os.environ[&quot;HADOOP_HOME&quot;] = &quot;C:/hadoop&quot;\n      6 # crear sess spark con redshift\n      7 spark = SparkSession.builder \\\n      8     .appName(&quot;Redshift Connection with PySpark&quot;) \\\n      9     .config(&quot;spark.jars&quot;, &quot;C:/vsc_projects/drivers/redshift-jdbc42-2.1.0.22.jar&quot;) \\\n---&gt; 10     .getOrCreate()\n\nFile c:\\Users\\Felipe\\.conda\\envs\\sap\\lib\\site-packages\\pyspark\\sql\\session.py:497, in SparkSession.Builder.getOrCreate(self)\n    495     sparkConf.set(key, value)\n    496 # This SparkContext may be an existing one.\n--&gt; 497 sc = SparkContext.getOrCreate(sparkConf)\n    498 # Do not update `SparkConf` for existing `SparkContext`, as it's shared\n    499 # by all sessions.\n    500 session = SparkSession(sc, options=self._options)\n\nFile c:\\Users\\Felipe\\.conda\\envs\\sap\\lib\\site-packages\\pyspark\\context.py:515, in SparkContext.getOrCreate(cls, conf)\n    513 with SparkContext._lock:\n    514     if SparkContext._active_spark_context is None:\n--&gt; 515         SparkContext(conf=conf or SparkConf())\n    516     assert SparkContext._active_spark_context is not None\n    517     return SparkContext._active_spark_context\n\nFile c:\\Users\\Felipe\\.conda\\envs\\sap\\lib\\site-packages\\pyspark\\context.py:201, in SparkContext.__init__(self, master, appName, sparkHome, pyFiles, environment, batchSize, serializer, conf, gateway, jsc, profiler_cls, udf_profiler_cls, memory_profiler_cls)\n    195 if gateway is not None and gateway.gateway_parameters.auth_token is None:\n    196     raise ValueError(\n    197         &quot;You are trying to pass an insecure Py4j gateway to Spark. This&quot;\n    198         &quot; is not allowed as it is a security risk.&quot;\n    199     )\n--&gt; 201 SparkContext._ensure_initialized(self, gateway=gateway, conf=conf)\n    202 try:\n    203     self._do_init(\n    204         master,\n    205         appName,\n   (...)\n    215         memory_profiler_cls,\n    216     )\n\nFile c:\\Users\\Felipe\\.conda\\envs\\sap\\lib\\site-packages\\pyspark\\context.py:436, in SparkContext._ensure_initialized(cls, instance, gateway, conf)\n    434 with SparkContext._lock:\n    435     if not SparkContext._gateway:\n--&gt; 436         SparkContext._gateway = gateway or launch_gateway(conf)\n    437         SparkContext._jvm = SparkContext._gateway.jvm\n    439     if instance:\n\nFile c:\\Users\\Felipe\\.conda\\envs\\sap\\lib\\site-packages\\pyspark\\java_gateway.py:107, in launch_gateway(conf, popen_kwargs)\n    104     time.sleep(0.1)\n    106 if not os.path.isfile(conn_info_file):\n--&gt; 107     raise PySparkRuntimeError(\n    108         error_class=&quot;JAVA_GATEWAY_EXITED&quot;,\n    109         message_parameters={},\n    110     )\n    112 with open(conn_info_file, &quot;rb&quot;) as info:\n    113     gateway_port = read_int(info)\n\nPySparkRuntimeError: [JAVA_GATEWAY_EXITED] Java gateway process exited before sending its port number.\n</code></pre>\n<p>What can I do to fix this?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

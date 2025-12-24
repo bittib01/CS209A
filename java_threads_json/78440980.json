@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "micronaut",
+      "micronaut-data",
+      "microstream",
+      "eclipse-store"
+    ],
+    "owner": {
+      "account_id": 1189122,
+      "reputation": 17456,
+      "user_id": 1162409,
+      "user_type": "registered",
+      "accept_rate": 40,
+      "profile_image": "https://i.sstatic.net/YSzYR.jpg?s=256",
+      "display_name": "San Jaisy",
+      "link": "https://stackoverflow.com/users/1162409/san-jaisy"
+    },
+    "is_answered": false,
+    "view_count": 61,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1716967444,
+    "creation_date": 1715068835,
+    "question_id": 78440980,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78440980/ecllipse-store-update-store-not-working-with-records-and-micronaut",
+    "title": "Ecllipse store update store not working with records and micronaut",
+    "body": "<p><strong>Root object</strong></p>\n<pre><code>public class Root {\n    private Map&lt;UUID, Country&gt; country = new HashMap&lt;&gt;();\n\n    @NonNull\n    public Map&lt;UUID, Country&gt; getCountry() {\n        return this.country;\n    }\n}\n</code></pre>\n<p><strong>Country Entity</strong></p>\n<pre><code>public record Country(UUID id,\n                      String name,\n                      String shortName,\n                      String url,\n                      Optional&lt;Integer&gt; matchPlayed,\n                      Optional&lt;Integer&gt; win,\n                      Optional&lt;Integer&gt; draw,\n                      Optional&lt;Integer&gt; lost,\n                      Optional&lt;Integer&gt; points) {\n}\n</code></pre>\n<p><strong>Repository</strong></p>\n<pre><code>@Singleton\npublic non-sealed class CountryRepository implements ICountryRepository {\nprivate final RootProvider&lt;Root&gt; rootProvider;\npublic CountryRepository(RootProvider&lt;Root&gt; rootProvider,\n                         CountryToResponseMapper countryToResponseMapper,\n                         RequestToCountryMapper requestToCountryMapper) {\n    this.rootProvider = rootProvider;\n    this.countryToResponseMapper = countryToResponseMapper;\n    this.requestToCountryMapper = requestToCountryMapper;\n}\n\n@Override\npublic Optional&lt;CountryResponse&gt; patch(UUID id, CountryRequest request) {\n    Country country = rootProvider.root().getCountry().get(id);\n    if (country == null)\n        throw new RuntimeException(Constants.NO_Record_Found);\n    var updateCountry = updateCountry(country,request);\n    return Optional.of(this.countryToResponseMapper.apply(updateCountry));\n}\n\n\n@StoreReturn\nprotected Country updateCountry(Country country, CountryRequest request) {\n    return this.requestToCountryMapper.apply(request, country);\n}\n}\n</code></pre>\n<p><strong>RequestToCountryMapper</strong></p>\n<pre><code>@Singleton\npublic record RequestToCountryMapper() implements BiFunction&lt;CountryRequest,Country, Country&gt; {\n    @Override\n    public Country apply(CountryRequest countryRequest, Country country) {\n        return new Country(country.id(),\n                countryRequest.name(),\n                countryRequest.shortName(),\n                countryRequest.url(),\n                countryRequest.matchPlayed(),\n                countryRequest.win(),\n                countryRequest.draw(),\n                countryRequest.lost(),\n                countryRequest.points());\n    }\n}\n</code></pre>\n<p>The updated value <strong>Belgium</strong> is changed to <strong>Belgiumm</strong></p>\n<p><a href=\"https://i.sstatic.net/CTJ33srk.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/CTJ33srk.png\" alt=\"enter image description here\" /></a></p>\n<p>When I do a get request again, the old value is trigger. The update didn't happen</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

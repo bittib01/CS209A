@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "environment-variables",
+      "telegram"
+    ],
+    "owner": {
+      "account_id": 30889138,
+      "reputation": 3,
+      "user_id": 23707615,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/4bd73858f387b35c3b72714ada59362e?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Yaroslav Radevych-Vynnytskyi",
+      "link": "https://stackoverflow.com/users/23707615/yaroslav-radevych-vynnytskyi"
+    },
+    "is_answered": true,
+    "view_count": 481,
+    "accepted_answer_id": 78737965,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1720738794,
+    "creation_date": 1711918976,
+    "question_id": 78252827,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78252827/org-telegram-telegrambots-meta-exceptions-telegramapiexception-bot-token-and-us",
+    "title": "org.telegram.telegrambots.meta.exceptions.TelegramApiException: Bot token and username can&#39;t be empty",
+    "body": "<p>I am working on Java Spring Boot project which includes simple Telegram Bot. My problem: I don't want to push credentials such as bot username and bot token to my remote repository. To achieve this, I simply put <em><strong>.env</strong></em> file into <em><strong>.gitignore</strong></em>, but without creds, Java CI can't build project. I get quite natural root exception: <code>org.telegram.telegrambots.meta.exceptions.TelegramApiException: Bot token and username can't be empty</code></p>\n<p>Here is the code of my bot:</p>\n<pre><code>\nimport application.carsharingapp.exception.NotificationSendingException;\nimport application.carsharingapp.service.notification.NotificationService;\nimport io.github.cdimascio.dotenv.Dotenv;\nimport lombok.RequiredArgsConstructor;\nimport org.springframework.stereotype.Service;\nimport org.telegram.telegrambots.bots.TelegramLongPollingBot;\nimport org.telegram.telegrambots.meta.api.methods.send.SendMessage;\nimport org.telegram.telegrambots.meta.api.objects.Update;\nimport org.telegram.telegrambots.meta.exceptions.TelegramApiException;\n\n@RequiredArgsConstructor\n@Service\npublic class TelegramNotificationService extends TelegramLongPollingBot\n        implements NotificationService {\n    private static final Dotenv DOTENV = Dotenv.configure().ignoreIfMissing().load();\n    private static final String BOT_USERNAME = DOTENV.get(&quot;BOT_USERNAME&quot;);\n    private static final String BOT_TOKEN = DOTENV.get(&quot;BOT_TOKEN&quot;);\n    private static final String TARGET_CHAT_ID = DOTENV.get(&quot;TARGET_CHAT_ID&quot;);\n\n    @Override\n    public void sendNotification(String message) {\n        SendMessage sendMessage = new SendMessage();\n        sendMessage.setText(message);\n        sendMessage.setChatId(TARGET_CHAT_ID);\n        try {\n            execute(sendMessage);\n        } catch (TelegramApiException e) {\n            throw new NotificationSendingException(&quot;Can't send notification &quot;\n                    + &quot;to chat: &quot; + sendMessage.getChatId(), e);\n        }\n    }\n\n    @Override\n    public void onUpdateReceived(Update update) {\n    }\n\n    @Override\n    public String getBotUsername() {\n        return BOT_USERNAME;\n    }\n\n    @Override\n    public String getBotToken() {\n        return BOT_TOKEN;\n    }\n}\n</code></pre>\n<p>And here is code of my bot's config:</p>\n<pre><code>\nimport application.carsharingapp.service.notification.impl.TelegramNotificationService;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\nimport org.telegram.telegrambots.meta.TelegramBotsApi;\nimport org.telegram.telegrambots.meta.exceptions.TelegramApiException;\nimport org.telegram.telegrambots.updatesreceivers.DefaultBotSession;\n\n@Configuration\npublic class TelegramBotConfig {\n    @Bean\n    public TelegramBotsApi telegramBotsApi(TelegramNotificationService telegramNotificationService)\n            throws TelegramApiException {\n        TelegramBotsApi api = new TelegramBotsApi(DefaultBotSession.class);\n        api.registerBot(telegramNotificationService);\n        return api;\n    }\n}\n</code></pre>\n<p>I would really like to hear some advice or tips on how to solve this problem and what are the possible solutions.</p>\n<p>To solve this problem I tried to set some mock values for credentials, but that I got 404 Not found error</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

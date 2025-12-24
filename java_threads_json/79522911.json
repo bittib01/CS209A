@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "c#",
+      "dll",
+      "quarkus",
+      "graalvm"
+    ],
+    "owner": {
+      "account_id": 20656604,
+      "reputation": 21,
+      "user_id": 15165549,
+      "user_type": "registered",
+      "profile_image": "https://lh5.googleusercontent.com/-mSyTBLJvXVo/AAAAAAAAAAI/AAAAAAAAAAA/AMZuucnZIfEJ0uizLhQH5DmcuMZLmvvQUw/s96-c/s256-rj/photo.jpg",
+      "display_name": "AppWebDeveloper",
+      "link": "https://stackoverflow.com/users/15165549/appwebdeveloper"
+    },
+    "is_answered": false,
+    "view_count": 89,
+    "answer_count": 0,
+    "score": 2,
+    "last_activity_date": 1742473036,
+    "creation_date": 1742473036,
+    "question_id": 79522911,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79522911/how-to-create-a-dll-in-quarkus-to-be-consumed-in-a-c-application",
+    "title": "How to create a dll in Quarkus to be consumed in a C# application?",
+    "body": "<p>I need to create a dll file from a quarkus application.\nI have tried several approaches that didn't work (IKVM, IKVM.net, JNI,...)\nMy current approach is by using GraalVM.\nI'm able to compile the Java classes using the command:</p>\n<pre><code>javac *.java\n</code></pre>\n<p>and I'm able to generate the dll using the command:</p>\n<pre><code>native-image --shared -H:Name=dbexample -H:-CheckToolchain --enable-native-access=ALL-UNNAMED --no-fallback\n</code></pre>\n<p>and when looking inside the generated dlls I can see that the java methods are there, inside the dll, using the command:</p>\n<pre><code>dumpbin /EXPORTS dbexample.dll\n</code></pre>\n<p>But when calling the method I get an error. A kind of a generic error, probably accessing the memory. Something like &quot;Exited Thread 44280&quot;</p>\n<p>This is my Java application</p>\n<pre><code>import org.graalvm.nativeimage.IsolateThread;\nimport org.graalvm.nativeimage.c.function.CEntryPoint;\n\nimport org.graalvm.nativeimage.Isolates;\nimport org.graalvm.nativeimage.Isolates.CreateIsolateParameters;\n\npublic final class LogicConnectionImpl implements LogicConnection {\n\n    @CEntryPoint(name = &quot;IsolateCreate&quot;)\n    public static IsolateThread createIsolate(@SuppressWarnings(&quot;unused&quot;) IsolateThread thread) {\n    var context = Isolates.createIsolate(CreateIsolateParameters.getDefault());\n    return context;\n    }\n\n    @CEntryPoint(name = &quot;doSomething&quot;)\n    public static void doSomething(@SuppressWarnings(&quot;unused&quot;) IsolateThread thread) {\n        System.out.println(&quot;Hello, World from inside JAVA!&quot;);\n    }\n\n    @CEntryPoint(name = &quot;test&quot;)\n    public static int test(@SuppressWarnings(&quot;unused&quot;) IsolateThread thread) {\n        return 23;\n    }\n\n    @CEntryPoint(name = &quot;test2&quot;)\n    public static void test2(@SuppressWarnings(&quot;unused&quot;) IsolateThread thread, int value) {\n        int value2 = value + 1;\n        System.out.println(&quot;Hello, World from inside JAVA!&quot;);\n    }\n\n    public void test3(String thisTest) {\n        System.out.println(&quot;Hello, World from inside JAVA! &quot; + thisTest);\n    }\n}\n</code></pre>\n<p>And this is my C# application:</p>\n<pre><code>using System;\nusing System.Runtime.InteropServices;\n\nclass Program\n{\n    // Define the P/Invoke signatures\n    [DllImport(&quot;dbexample.dll&quot;, EntryPoint = &quot;doSomething&quot;)]\n    public static extern void DoSomething(IntPtr thread);\n\n    [DllImport(&quot;dbexample.dll&quot;, EntryPoint = &quot;test&quot;)]\n    public static extern int Test(IntPtr thread);\n\n    [DllImport(&quot;dbexample.dll&quot;, EntryPoint = &quot;test2&quot;)]\n    public static extern void Test2(IntPtr thread, int value);\n\n    [DllImport(&quot;dbexample.dll&quot;, EntryPoint = &quot;IsolateCreate&quot;)]\n    public static extern IntPtr IsolateCreate(IntPtr thread);\n\n\n    static void Main(string[] args)\n    {\n        try\n        {\n            IntPtr isolateThread = IsolateCreate(IntPtr.Zero);\n\n            if (isolateThread == IntPtr.Zero)\n            {\n                Console.WriteLine(&quot;Failed to create IsolateThread.&quot;);\n                return;\n            }\n        \n            // Call the methods from the DLL\n            DoSomething(isolateThread);\n            int result = Test(isolateThread);\n            Console.WriteLine(&quot;Result from test: &quot; + result);\n            Test2(isolateThread, 42);\n        }\n        catch (Exception ex)\n        {\n            Console.WriteLine(&quot;An error occurred: &quot; + ex.Message);\n        }\n    }\n}\n</code></pre>\n<p>The error happens on the following line:</p>\n<pre><code>IntPtr isolateThread = IsolateCreate(IntPtr.Zero);\n</code></pre>\n<p>I believe that it happens due to the method parameter (IntPtr.Zero).\nFrom what I saw, I need to have the &quot;IsolateCreate&quot; comming from the Java application.\nMeaning that I cannot call the following methods like for instance DoSomething with IntPtr.Zero, like this:</p>\n<pre><code>DoSomething(IntPtr.Zero);\n</code></pre>\n<p>Because if I do it that way, then the error will be in that line of code\nFor that same reason I should call DoSomething with the &quot;IsolateThread&quot; coming from the Java application (method createIsolate), as it is from the examples I show above. However, by doing so, the method &quot;createIsolate&quot; that also must have the decorator &quot;@CEntryPoint&quot;, so that it is exported to the dll, must also have a parameter of type &quot;IsolateThread&quot;, which in turn in C# I need to pass a parameter &quot;IsolateThread&quot; and I'm calling it with &quot;IntPtr.Zero&quot;.</p>\n<p>I feel I'm close to importing the Java dll in C# but there is some tweak here that I'm missing.\nCan you please help?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

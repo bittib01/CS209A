@@ -1,0 +1,31 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "drools"
+    ],
+    "owner": {
+      "account_id": 35381897,
+      "reputation": 13,
+      "user_id": 27171133,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/0ddb43ceaecbdc007d43d8a8e6a5ac88?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Alekxios94",
+      "link": "https://stackoverflow.com/users/27171133/alekxios94"
+    },
+    "is_answered": false,
+    "view_count": 387,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1730377202,
+    "creation_date": 1728336018,
+    "question_id": 79063668,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79063668/add-new-rules-at-runtime-with-rule-unit-api",
+    "title": "add new rules at runtime with Rule Unit API",
+    "body": "<p>IS'm trying to switch to a new set of rules at runtime. Is it possible to implement that with Rule Unit API and without using KIE API?</p>\n<p>Current documentation states &quot;Previous sections in this chapter explained traditional KIE APIs to use Drools rule engine. <strong>However, as introduced in First Rule Project, Rule Unit is a new and recommended style for implementing rules in Drools 8.</strong>&quot; but I was not able to find any solutions on to how to do it with Rule Unit API. Test projects using KIE do not using rule Unit data and I myself was not able to make them work.</p>\n<h3>My attempts</h3>\n<p>Rules.drl (to emulate the new file simply remove &quot;test_rule_2&quot; from the file</p>\n<pre><code>package rulesAndScenarios.services.ruleDrools;\n\nunit TestRuleUnit;\n\nimport rulesAndScenarios.models.drools.*;\n\nrule &quot;test_rule_1&quot;\n    when\n        /simpleObjects\n    then\n        System.out.println(&quot;test_rule_1 triggered&quot;);\nend\n\nrule &quot;test_rule_2&quot;\n    when\n        /simpleObjects\n    then\n        System.out.println(&quot;test_rule_2 triggered&quot;);\nend\n</code></pre>\n<p>Rule Unit (TestRuleUnit):</p>\n<pre><code>package rulesAndScenarios.services.ruleDrools;\n\nimport org.drools.ruleunits.api.DataSource;\nimport org.drools.ruleunits.api.DataStore;\nimport org.drools.ruleunits.api.RuleUnitData;\n\npublic class TestRuleUnit implements RuleUnitData {\n\n    private final DataStore&lt;String&gt; simpleObjects;\n\n    public TestRuleUnit() {\n        this(DataSource.createStore());\n    }\n\n    public TestRuleUnit(DataStore&lt;String&gt; simpleObjects) {\n        this.simpleObjects = simpleObjects;\n    }\n\n    public DataStore&lt;String&gt; getSimpleObjects() {\n        return simpleObjects;\n    }\n}\n</code></pre>\n<p>What I've tried doing:</p>\n<p>1. Creating two instances and adding new file to a directory:</p>\n<p>Test:</p>\n<pre><code>    public void testSimpleRule() throws Exception {\n        TestRuleUnit testRuleUnit = new TestRuleUnit();\n        testRuleUnit.getSimpleObjects().add(&quot;test_1&quot;);\n        RuleUnitInstance&lt;TestRuleUnit&gt; instance = RuleUnitProvider.get().createRuleUnitInstance(testRuleUnit);\n        try {\n            instance.fire();\n        } finally {\n            instance.close();\n        }\n        Files.move(Paths.get(&quot;C:/Java folder/testRules2.drl&quot;), Paths.get(&quot;C:/Users/aleks/my-project/target/classes/testRules.drl&quot;), StandardCopyOption.REPLACE_EXISTING);\n\n        TestRuleUnit testRuleUnit2 = new TestRuleUnit();\n        testRuleUnit2.getSimpleObjects().add(&quot;test_1&quot;);\n        RuleUnitInstance&lt;TestRuleUnit&gt; instance2 = RuleUnitProvider.get().createRuleUnitInstance(testRuleUnit);\n        try {\n            instance2.fire();\n        } finally {\n            instance2.close();\n        }\n    }\n</code></pre>\n<p>With the following test despite creating a new instance and providing new file, the instance is still checked against previous set of rules.</p>\n<p>2. Apadpting existing test projects with KIE APIs with the usage of rule unit API but was not able to make the rules work - there were no errors but at the same time nothing was triggered. Rules themselves are correct which I've checked with a simple test without KIE sessions. The project in question - <a href=\"https://www.baeldung.com/drools\" rel=\"nofollow noreferrer\">https://www.baeldung.com/drools</a>.</p>\n<p>3. Researching open sources about the problem. Found the following thread <a href=\"https://groups.google.com/g/drools-usage/c/G6A3EMbec90\" rel=\"nofollow noreferrer\">https://groups.google.com/g/drools-usage/c/G6A3EMbec90</a> but cant comprehend how method invalidateRuleUnits should be used, could not find documentation on Drools portals outside this single thread and provided links. Not even sure if it is what I need</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "antlr4",
+      "grammar"
+    ],
+    "owner": {
+      "account_id": 94736,
+      "reputation": 51840,
+      "user_id": 258483,
+      "user_type": "registered",
+      "accept_rate": 46,
+      "profile_image": "https://www.gravatar.com/avatar/dd4dee2094dcd427aaec8ee329d9cfd6?s=256&d=identicon&r=PG",
+      "display_name": "Dims",
+      "link": "https://stackoverflow.com/users/258483/dims"
+    },
+    "is_answered": true,
+    "view_count": 103,
+    "answer_count": 1,
+    "score": 3,
+    "last_activity_date": 1740305960,
+    "creation_date": 1740184238,
+    "last_edit_date": 1740249615,
+    "question_id": 79458895,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79458895/is-it-possible-to-understand-when-do-semantic-predicates-work-and-when-they-don",
+    "title": "Is it possible to understand, when do semantic predicates work and when they don&#39;t?",
+    "body": "<p>Below are two grammars.</p>\n<p>In this grammar, semantic predicates do &quot;work&quot;. I.e. if they are false, rules don't match and if they are true, rules do match:</p>\n<pre><code>expr\n    : term\n    | expr asterisk expr (asterisk expr)*\n    | expr plus expr (plus expr)*\n    ;\n\nplus: {_input.LT(1).getText().equals(&quot;+&quot;)}? SPECID;\nasterisk: {_input.LT(1).getText().equals(&quot;*&quot;)}? SPECID;\n\n\nterm\n    : ALNUMID\n    | STRID\n    | LPAREN expr RPAREN\n    ;\n</code></pre>\n<p>and in this grammar, semantic predicates don't work. I.e. if they are false, rules still match bu error is printed.</p>\n<pre><code>expr\n    : add\n    | mult\n    | term\n    ;\n\n\nmult\n    : term (asterisk) term ((asterisk) term)*\n    ;\n\nadd\n    : (term|mult) plus (term|mult) (plus (term|mult))*\n    ;\n\n\nplus: {_input.LT(1).getText().equals(&quot;+&quot;)}? SPECID;\nasterisk: {_input.LT(1).getText().equals(&quot;*&quot;)}? SPECID;\n\n\n\nterm\n    : ALNUMID\n    | STRID\n    | LPAREN expr RPAREN\n    ;\n</code></pre>\n<p>In both cases I am trying to run simple tests to parse <code>2 + 2</code> and <code>2 * 2</code>.</p>\n<p>Is it possible to understand beforehand, will definition work or not? What is the logic here?</p>\n<hr />\n<p>I tried the suggestion of @MickeLischke, but it didn't work</p>\n<p>Here is my grammar</p>\n<pre><code>expr\n    : add\n    | mult\n    | term\n    ;\n\n\nmult\n    : term asterisk term ((asterisk) term)*\n    ;\n\nadd\n    : (term|mult) plus (term|mult) (plus (term|mult))*\n    ;\n\n\nplus\n    : {_input.LT(1).getText().equals(&quot;+&quot;)}? SPECID\n    | // Empty by design\n    ;\n\nasterisk\n    :\n    {_input.LT(1).getText().equals(&quot;*&quot;)}? SPECID\n    | // Empty by design\n    ;\n\n\n\nterm\n    : ALNUMID\n    | STRID\n    | LPAREN expr RPAREN\n    ;\n</code></pre>\n<p>here are testing code</p>\n<pre><code>public class MyParserTest {\n\n    private static MyParser parse(String input) {\n        CharStream charStream = CharStreams.fromString(input);\n\n        // Create lexer\n        MyLexer lexer = new MyLexer(charStream);\n\n        // Create token stream\n        CommonTokenStream tokens = new CommonTokenStream(lexer);\n\n        // Create parser\n        MyParser parser = new MyParser(tokens);\n\n        parser.addErrorListener(new BaseErrorListener() {\n            @Override\n            public void syntaxError(Recognizer&lt;?, ?&gt; recognizer, Object offendingSymbol,\n                                    int line, int charPositionInLine, String msg,\n                                    RecognitionException e) {\n                System.err.println(&quot;Rule stack: &quot; + ((Parser)recognizer).getRuleInvocationStack());\n                System.err.println(&quot;line &quot; + line + &quot;:&quot; + charPositionInLine + &quot; &quot; + msg);\n\n                // Get and print all tokens\n                CommonTokenStream tokens = (CommonTokenStream) ((Parser)recognizer).getTokenStream();\n                tokens.fill();\n                System.err.println(&quot;Tokens:&quot;);\n                for (Token token : tokens.getTokens()) {\n                    System.err.println(token);\n                }\n            }\n        });\n\n        // Parse starting at 'expr' rule\n        return parser;\n    }\n\n    private static String parseToLisp(String input) {\n        MyParser parser = parse(input);\n        return parser.expr().toStringTree(parser);\n    }\n\n    @Test\n    public void testSimpleMultiplication() throws Exception {\n        String value = &quot;1 * 2&quot;;\n        String actual = parseToLisp(value);\n        String expected = &quot;(expr (expr (term 1)) (mul *) (expr (term 2)))&quot;;\n\n        assertEquals(expected, actual);\n    }\n\n    @Test\n    public void testSimpleAddition() throws Exception {\n        String value = &quot;1 + 2&quot;;\n        String actual = parseToLisp(value);\n        String expected = &quot;(expr (add (term 1) (plus +) (term 2)))&quot;;\n\n        assertEquals(expected, actual);\n    }\n</code></pre>\n<p>the output for multiplication is</p>\n<pre><code>line 1:2 no viable alternative at input '*'\nRule stack: [plus, add, expr]\nline 1:2 no viable alternative at input '*'\nTokens:\n[@0,0:0='1',&lt;11&gt;,1:0]\n[@1,2:2='*',&lt;12&gt;,1:2]\n[@2,4:4='2',&lt;11&gt;,1:4]\n[@3,5:4='&lt;EOF&gt;',&lt;-1&gt;,1:5]\n\nExpected :(expr (expr (term 1)) (mul *) (expr (term 2)))\nActual   :(expr (add (term 1) (plus *) (term 2)))\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

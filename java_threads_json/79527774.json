@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "graph-theory",
+      "computer-science",
+      "game-development"
+    ],
+    "owner": {
+      "account_id": 31252382,
+      "reputation": 31,
+      "user_id": 24059181,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/hbpJo.jpg?s=256",
+      "display_name": "wsn",
+      "link": "https://stackoverflow.com/users/24059181/wsn"
+    },
+    "is_answered": false,
+    "view_count": 52,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1742662360,
+    "creation_date": 1742662360,
+    "question_id": 79527774,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79527774/infinite-execute-in-a-for-8-puzzle",
+    "title": "Infinite execute in A* for 8 puzzle",
+    "body": "<p>This is the hint of my 8 puzzle problem (Tells player which tile they should move in this state). I tried to use the current board that the player are playing as an input(2D array) but it always caused an infinite loop. I don't know why because I've already check the recent node with hashSet.</p>\n<p>Thank you to anyone that takes the time to help.</p>\n<pre><code>class HintGenerator {\n    int[][] finalBoard = {\n            {0, 1, 2},\n            {3, 4, 5},\n            {6, 7, 8}\n    };\n    int dimension;\n    int[][] board;\n    int[] moveRow = {-1, 1, 0, 0};\n    int[] moveCol = {0, 0, -1, 1};\n    Grid curGrid;\n\n    HintGenerator(int[][] board, int dimension) {\n        this.dimension = dimension;\n        DeepCopy(board);\n    }\n\n    private void DeepCopy(int[][] board) {\n        this.board = new int[dimension][dimension];\n        for (int i = 0; i &lt; dimension; i++) {\n            this.board[i] = board[i].clone();\n        }\n    }\n\n    class Node {\n        int[][] board;\n        int coRow, coCol, cost, depth;\n        Node parent;\n\n        Node(int[][] b, int x, int y, int d, Node node) {\n            this.board = new int[b.length][b.length];\n            for (int i = 0; i &lt; b.length; i++) {\n                this.board[i] = b[i].clone();\n            }\n\n            coRow = x; coCol = y;\n            cost = Manhattan(b) + d; depth = d;\n            parent = node;\n        }\n\n    }\n\n    private int Manhattan(int[][] b) {\n        int distance = 0;\n        for (int i = 0; i &lt; dimension; i++) {\n            for (int j = 0; j &lt; dimension; j++) {\n                if (b[i][j] == -1) continue;\n                int negRow = (b[i][j] - 1) / 3;\n                int negCol = (b[i][j] - 1) % 3;\n                distance += Math.abs(negRow - i) + Math.abs(negCol - j);\n            }\n        }\n\n        return distance;\n    }\n\n    private boolean isFinal(int[][] board) {\n        for (int i = 0; i &lt; dimension; i++) {\n            for (int j = 0; j &lt; dimension; j++) {\n                if (board[i][j] != finalBoard[i][j]) {\n                    return false;\n                }\n            }\n        }\n        return true;\n    }\n\n    private int[] NegCoordinate(int target, int[][] b) {\n        for (int i = 0; i &lt; dimension; i++) {\n            for (int j = 0; j &lt; dimension; j++) {\n                if (b[i][j] == -1) {\n                    return new int[]{i, j};\n                }\n            }\n        }\n\n        return new int[]{-1, -1};\n    }\n\n    public void Hintgenerate() {\n        PriorityQueue&lt;Node&gt; Tree = new PriorityQueue&lt;&gt;(\n            new Comparator&lt;Node&gt;() {\n                @Override\n                public int compare(Node n1, Node n2) {\n                    return n1.cost - n2.cost;\n                }\n        });\n        HashSet&lt;Node&gt; DeadEnd = new HashSet&lt;&gt;();\n        ArrayList&lt;Integer&gt; step = new ArrayList&lt;&gt;();\n\n        int[] negCo = NegCoordinate(-1, board);\n        Tree.add(new Node(board, negCo[0], negCo[1], 0, null));\n\n        Node goal = null;\n\n        while (!Tree.isEmpty()) {\n            System.out.println(&quot;Hello from Tree Spanning&quot;);\n            Node span = Tree.poll();\n            board = span.board;\n\n            if (DeadEnd.contains(span)) continue;\n\n            if (isFinal(board)) {\n                goal = span;\n                return;\n            }\n\n            DeadEnd.add(span);\n\n            for (int i = 0; i &lt; 4; i++) {\n                int nextRow = span.coRow + moveRow[i];\n                int nextCol = span.coCol + moveCol[i];\n                if (nextCol &gt; -1 &amp;&amp; nextCol &lt; dimension &amp;&amp; nextRow &gt; -1 &amp;&amp; nextRow &lt; dimension) {\n                    int[][] instBoard = new int[dimension][dimension];\n\n                    for (int r = 0; r &lt; dimension; r++) {\n                        instBoard[r] = board[r].clone();\n                    }\n\n                    instBoard[span.coRow][span.coCol] = instBoard[nextRow][nextCol];\n                    instBoard[nextRow][nextCol] = -1;\n\n                    Node newNode = new Node(instBoard, nextRow, nextCol, span.depth + 1, span);\n                \n                    if (!DeadEnd.contains(newNode)) {\n                        Tree.add(newNode);\n                    }\n                }\n            }\n        }\n\n        if (goal == null) {\n            System.out.println(&quot;There is no goal&quot;);\n            return;\n        }\n\n        Node cur = goal;\n        while (cur.parent != null) {\n            step.add(cur.parent.board[cur.coRow][cur.coCol]);\n            cur = cur.parent;\n        }\n\n        Collections.reverse(step);\n        if (step.size() &gt; 1) System.out.println(step.get(1));\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

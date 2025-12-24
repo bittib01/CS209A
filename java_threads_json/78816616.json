@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "amazon-web-services",
+      "aws-lambda"
+    ],
+    "owner": {
+      "account_id": 34470653,
+      "reputation": 21,
+      "user_id": 26587664,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/672c541b7076a190a85fac5ac8204ef4?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "dgrzyska",
+      "link": "https://stackoverflow.com/users/26587664/dgrzyska"
+    },
+    "is_answered": false,
+    "view_count": 379,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1729001461,
+    "creation_date": 1722432413,
+    "question_id": 78816616,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78816616/aws-lambda-snapstart-timeout-breaks-snapstart-runtime-environment",
+    "title": "AWS lambda snapstart. Timeout breaks snapstart runtime environment",
+    "body": "<p>I have a problem with snapstart on AWS lambda. It seems that timeout breaks snapstart feature. At the next invocation after timeout the objects initialized during <code>beforeCheckpoint</code> are nulls. Im using java 21. I have prepared a sample project that allows to reproduce this issue: <a href=\"https://github.com/dfgrzyska/lambda-timeout-snapstart\" rel=\"nofollow noreferrer\">https://github.com/dfgrzyska/lambda-timeout-snapstart</a></p>\n<pre><code>public class SimpleHandler implements Resource, RequestHandler&lt;Map&lt;String, Object&gt;, String&gt; {\n    private final Logger logger = Logger.getLogger(this.getClass().getName());\n    private SimpleService simpleService;\n\n    public SimpleHandler() {\n        Core.getGlobalContext().register(this);\n    }\n\n    @Override\n    public String handleRequest(Map&lt;String, Object&gt; input, Context context) {\n        logger.log(Level.INFO, &quot;is simple service null? &quot; + (simpleService == null));\n        var type = input.get(&quot;httpMethod&quot;);\n        if (type.equals(&quot;GET&quot;)) {\n            simpleService.handleGet();\n        } else {\n            simpleService.handlePost();\n        }\n        return &quot;OK&quot;;\n    }\n\n    @Override\n    public void beforeCheckpoint(org.crac.Context&lt;? extends Resource&gt; context)\n            throws Exception {\n        simpleService = new SimpleService();\n        System.out.println(&quot;Before checkpoint&quot;);\n    }\n\n    @Override\n    public void afterRestore(org.crac.Context&lt;? extends Resource&gt; context)\n            throws Exception {\n        System.out.println(&quot;After restore&quot;);\n    }\n}\n</code></pre>\n<pre><code>public class SimpleService {\n    public void handleGet(){\n\n    }\n\n    public void handlePost(){\n        try {\n            TimeUnit.SECONDS.sleep(10);\n        } catch (InterruptedException e) {\n            throw new RuntimeException(e);\n        }\n    }\n}\n</code></pre>\n<p><strong>What im doing:</strong></p>\n<ul>\n<li><p>Uploading mentioned project to aws lambda with enabled snapstart feature</p>\n</li>\n<li><p>Lambda has set 8s timeout</p>\n</li>\n<li><p>Publish new version</p>\n</li>\n<li><p>Using aws console i run lambda with the following <strong>Event JSON:</strong></p>\n<pre><code>{\n  &quot;httpMethod&quot;: &quot;GET&quot;\n}\n</code></pre>\n</li>\n<li><p>Using aws console i run lambda with the following <strong>Event JSON:</strong></p>\n<pre><code>{\n  &quot;httpMethod&quot;: &quot;POST&quot;\n}\n</code></pre>\n</li>\n<li><p>Using aws console i run lambda with the following <strong>Event JSON:</strong></p>\n<pre><code>{\n  &quot;httpMethod&quot;: &quot;GET&quot;\n}\n</code></pre>\n</li>\n</ul>\n<p><strong>What im expecting:</strong></p>\n<ul>\n<li>Third request returning &quot;OK&quot;</li>\n</ul>\n<p><strong>What resulted:</strong></p>\n<ul>\n<li><p>First request returns &quot;OK&quot;</p>\n</li>\n<li><p>Second request ends with timeout(as expected)</p>\n</li>\n<li><p>Third requests ends with the following exception: <code>&quot;errorMessage&quot;: &quot;Cannot invoke \\&quot;test.lambda.timeout.application.SimpleService.handleGet()\\&quot; because \\&quot;this.simpleService\\&quot; is null&quot;,</code></p>\n</li>\n</ul>\n<p>I know that during lambda timeout a runtime env is recreated. It seems that during this recreation snapstart restore is not being used. Is this normal? Am I missing something?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

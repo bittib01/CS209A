@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-data-jpa",
+      "graphql",
+      "criteria-api"
+    ],
+    "owner": {
+      "account_id": 23307791,
+      "reputation": 133,
+      "user_id": 17387507,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/fb43e7c0006869cc165d380663d02d61?s=256&d=identicon&r=PG",
+      "display_name": "Vitor Hugo",
+      "link": "https://stackoverflow.com/users/17387507/vitor-hugo"
+    },
+    "is_answered": false,
+    "view_count": 45,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1734815465,
+    "creation_date": 1730691137,
+    "last_edit_date": 1734815465,
+    "question_id": 79154136,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79154136/query-dynamic-fields-from-db-with-requested-fields-on-graphql-query",
+    "title": "Query dynamic fields from DB with requested fields on GraphQL query",
+    "body": "<p>I'm trying to fetch GraphQL requested fields on DB using Criteria API, but when a look in debug or print the class every fields from my MediaModel class as being fetched.</p>\n<pre class=\"lang-java prettyprint-override\"><code>public abstract class Utils {\n    public static Map&lt;String, List&lt;String&gt;&gt; getRequestedFields(DataFetchingEnvironment environment) {\n        return environment.getSelectionSet().getFields().stream()\n                .collect(Collectors.toMap(\n                        SelectedField::getName,\n                        field -&gt; field.getSelectionSet().getFields().stream()\n                                .map(SelectedField::getName)\n                                .collect(Collectors.toList())));\n    }\n}\n</code></pre>\n<p>This util method get requested fields and subfields from GraphQL into a Map.</p>\n<p>Example:</p>\n<pre class=\"lang-none prettyprint-override\"><code>query Media {\n    tvserie(name: &quot;Stranger Things&quot;) {\n       id\n       title\n       genres {\n         name\n       }\n    }\n}\n</code></pre>\n<p>Will turn into this JSON:</p>\n<pre class=\"lang-json prettyprint-override\"><code>{\n  &quot;media&quot;: [\n    &quot;id&quot;,\n    &quot;title&quot;,\n    &quot;genres&quot;\n  ],\n  &quot;genres&quot;: [\n    &quot;name&quot;\n  ]\n}\n</code></pre>\n<p>My repository:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Repository\npublic class MediaRepositoryCustomImpl implements MediaRepositoryCustom {\n    @PersistenceContext\n    private EntityManager entityManager;\n\n    @Override\n    public List&lt;MediaModel&gt; findMediaByNameOrAlternativeTitleAndMediaCategory(\n            String name,\n            String alternativeTitle,\n            Integer category,\n            Map&lt;String, List&lt;String&gt;&gt; requestedFields) {\n        CriteriaBuilder cb = entityManager.getCriteriaBuilder();\n        CriteriaQuery&lt;MediaModel&gt; query = cb.createQuery(MediaModel.class);\n        Root&lt;MediaModel&gt; mediaRoot = query.from(MediaModel.class);\n        Join&lt;MediaModel, AlternativeTitleModel&gt; altTitlesJoin = mediaRoot.join(&quot;alternativeTitles&quot;, JoinType.LEFT);\n\n        query.select(mediaRoot);\n\n        requestedFields.forEach((field, subFields) -&gt; {\n            if (Utils.isJoinableField(mediaRoot, field)) {\n                Join&lt;Object, Object&gt; join = mediaRoot.join(field, JoinType.LEFT);\n                subFields.forEach(subField -&gt; join.fetch(subField, JoinType.LEFT));\n            } else {\n                mediaRoot.get(field);\n            }\n        });\n\n        List&lt;Predicate&gt; predicates = new ArrayList&lt;&gt;();\n        if (category != null) {\n            predicates.add(cb.equal(mediaRoot.get(&quot;mediaCategory&quot;).get(&quot;id&quot;), category));\n        }\n\n        List&lt;Predicate&gt; namePredicates = new ArrayList&lt;&gt;();\n        if (name != null &amp;&amp; !name.isEmpty()) {\n            predicates.add(cb.like(mediaRoot.get(&quot;name&quot;), &quot;%&quot; + name + &quot;%&quot;));\n        }\n        if (alternativeTitle != null) {\n            predicates.add(cb.like(altTitlesJoin.get(&quot;name&quot;), &quot;%&quot; + alternativeTitle + &quot;%&quot;));\n        }\n\n        if (!namePredicates.isEmpty()) {\n            Predicate orPredicate = cb.or(namePredicates.toArray(new Predicate[0]));\n            predicates.add(orPredicate);\n        }\n\n        if (!predicates.isEmpty()) {\n            query.where(cb.and(predicates.toArray(new Predicate[0])));\n        }\n\n        return entityManager.createQuery(query).getResultList();\n    }\n}\n</code></pre>\n<p>MediaModel class:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Entity\n@Table(name = &quot;medias&quot;, indexes = {@Index(name = &quot;idx_name_media&quot;, columnList = &quot;name_media&quot;, unique = true)})\n@Getter\n@Setter\npublic class MediaModel implements Serializable {\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    @Column(name = &quot;id_media&quot;)\n    private Integer id;\n\n    @Column(name = &quot;name_media&quot;)\n    private String name;\n\n    @Column(name = &quot;episode_count&quot;)\n    private Integer totalEpisodes;\n\n    @Column(name = &quot;episode_length_in_minutes&quot;)\n    private Integer episodeLength;\n\n    @Column(name = &quot;about&quot;, length = 10000)\n    private String about;\n\n    @Column(name = &quot;url_cover&quot;)\n    private String cover;\n\n    @Column(name = &quot;url_banner&quot;)\n    private String banner;\n\n    @JoinColumn(name = &quot;id_category&quot;, nullable = false)\n    @ManyToOne\n    @NotNull\n    private MediaCategoryModel mediaCategory;\n\n    @OneToMany(mappedBy = &quot;media&quot;, fetch = FetchType.LAZY, orphanRemoval = true)\n    @NotNull\n    private List&lt;ExternalReferenceModel&gt; externalReference;\n\n    @ManyToMany(fetch = FetchType.LAZY)\n    @JoinTable(\n        name = &quot;medias_has_companies&quot;,\n        joinColumns = @JoinColumn(name = &quot;medias_id_media&quot;),\n        inverseJoinColumns = @JoinColumn(name = &quot;companies_id_company&quot;))\n    private List&lt;CompanyModel&gt; company;\n\n    // ...\n}\n</code></pre>\n<p>For example if I Query Media requesting id, name, about and I print ou look into debug all fields of the class as filled. I already have tried with EAGER, but the result are the same.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

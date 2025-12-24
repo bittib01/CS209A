@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hibernate",
+      "jpa"
+    ],
+    "owner": {
+      "account_id": 22794733,
+      "reputation": 73,
+      "user_id": 16948466,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/2e83f79e585c31e24361a4a244aee676?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "ghosted",
+      "link": "https://stackoverflow.com/users/16948466/ghosted"
+    },
+    "is_answered": false,
+    "view_count": 66,
+    "answer_count": 0,
+    "score": 2,
+    "last_activity_date": 1742384268,
+    "creation_date": 1742378453,
+    "last_edit_date": 1742384268,
+    "question_id": 79519822,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79519822/jpa-sorting-for-a-one-to-many-relationship",
+    "title": "JPA sorting for a one to many relationship",
+    "body": "<p>basically I need to write a JPA specification that would return all Parent entities ordered by Child's parameter (LocalDate date).</p>\n<pre><code>@Entity\npublic class Parent {\n    @Id\n    private UUID id;\n    @OneToMany(mappedBy = &quot;parent&quot;, cascade = CascadeType.MERGE)\n    private List&lt;Child&gt; children = new ArrayList&lt;&gt;();\n}\n\n\n@Entity\npublic class Child {\n    @Id\n    private UUID id;\n    @ManyToOne\n    private Parent parent;\n    private LocalDate date;\n}\n</code></pre>\n<p>I also don't understand why this approach wouldn't work:</p>\n<pre><code>return (root, query, builder) -&gt; {\n    Join&lt;Parent, Children&gt; childrenJoin = root.join(&quot;children&quot;, JoinType.LEFT);\n\n    query.orderBy(sortOrder.equals(&quot;asc&quot;) ? \n        builder.asc(builder.max(childrenJoin.get(&quot;date&quot;))) : \n        builder.desc(builder.max(childrenJoin.get(&quot;date&quot;))));\n\n    return builder.conjunction();\n};\n</code></pre>\n<p>Using SQL the query needs to look like this:</p>\n<pre><code>SELECT p.id, max(c.date) FROM schema.parent p\nLEFT JOIN schema.child c ON c.parent_id = p.id\nGROUP BY p.id\nORDER BY MAX(c.date) DESC;\n</code></pre>\n<p>Thanks in advance!</p>\n<p>EDIT:\nThe SQL query sorts all the records in the correct order (by date ascending or descending). Using the provided specification, repository.findAll(specification) returns records in a different (not correct) order than the SQL query.</p>\n<p>I guess what I'm asking is if it is the correct way to implement such query using JPA specifications or is there something that I'm missing. I'm sure there is because of the difference between SQL query result and the JPA specification result.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

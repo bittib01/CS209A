@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jdbc",
+      "ssh",
+      "jsch",
+      "pem"
+    ],
+    "owner": {
+      "account_id": 8200512,
+      "reputation": 1,
+      "user_id": 6172019,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/CA2vi.jpg?s=256",
+      "display_name": "Will Preston",
+      "link": "https://stackoverflow.com/users/6172019/will-preston"
+    },
+    "is_answered": true,
+    "view_count": 64,
+    "accepted_answer_id": 79760918,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1757511177,
+    "creation_date": 1751450681,
+    "last_edit_date": 1751458964,
+    "question_id": 79687233,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79687233/connecting-to-vertica-db-via-ssh-tunnel-with-pem-file-using-java-automation",
+    "title": "Connecting to Vertica DB via SSH Tunnel with PEM file using Java automation",
+    "body": "<p>I'm trying to connect to a remote Vertica DB using Java and connecting to it involves an SSH tunnel with the addition of a PEM file as a Public Key.</p>\n<p>However, after creating a port forwarding session using JSch AND THEN creating a connection to the DB using JDBC, I am faced with the following error:</p>\n<blockquote>\n<p>java.sql.SQLNonTransientConnectionException: [Vertica]VJDBC Failed to connect to host 10.13.3.213 on port 5433. Reason: Failed to establish a connection to the primary server or any backup address due to network error</p>\n</blockquote>\n<p>The code were I am trying to connect is bellow and after that is the PortForwarder.openConnection method:</p>\n<pre><code>int localBindingPort = PortForwarder.openConnection();\n        JDBCurl = String.format(JDBCClass + &quot;%s:%s/%s&quot;, Host, localBindingPort, Schema);\n        return DriverManager.getConnection(JDBCurl,\n                username,password);\n</code></pre>\n<p>JDBCurl value ends up as &quot;jdbc:vertica://10.13.3.213:5433/DATA_SERVICES&quot;</p>\n<pre><code>public class PortForwarder extends DBConfig {\nstatic String portsString = Port + &quot;:&quot; + Host + &quot;:&quot; + SSHPort; // port:host:hostport\n\nstatic Session session = null;\n\npublic static int openConnection() {\n\n    int assigned_port = -1;\n\n    JSch jsch = new JSch();\n\n    try {\n\n\n        int lport;\n        String rhost;\n        int rport;\n\n        String[] portParams;\n\n\n        portParams = portsString.split(&quot;:&quot;);\n\n        lport = Integer.parseInt(portParams[0]);\n        rhost = portParams[1];\n        rport = Integer.parseInt(portParams[2]);\n\n        jsch.addIdentity(pemFile);\n\n        session = jsch.getSession(SSHUsername, SSHHost, 22);\n\n        session.setConfig(&quot;StrictHostKeyChecking&quot;, &quot;no&quot;);\n        session.setPassword(password);\n\n        session.connect();\n\n        assigned_port = session.setPortForwardingL(lport, rhost, rport);\n\n    } catch (Exception e) {\n        System.err.println(e);\n        System.exit(1);\n    }\n\n    return assigned_port;\n}\n\npublic static void closeConnection() {\n    if (session != null) {\n        session.disconnect();\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

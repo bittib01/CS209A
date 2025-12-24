@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "adobe",
+      "pdfbox",
+      "digital-signature",
+      "x509certificate"
+    ],
+    "owner": {
+      "account_id": 30760577,
+      "reputation": 23,
+      "user_id": 23590147,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/a6b4356b12e8aed8e51b646dd5a1aac0?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Deep Morker",
+      "link": "https://stackoverflow.com/users/23590147/deep-morker"
+    },
+    "is_answered": false,
+    "view_count": 137,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1727086785,
+    "creation_date": 1726665203,
+    "last_edit_date": 1727086785,
+    "question_id": 78998412,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78998412/invalid-digital-certificate-and-certificate-details-missing",
+    "title": "Invalid digital certificate and certificate details missing",
+    "body": "<p>I am trying to attach the certificate in the digitally signed pdf document with PDFBOX in JAVA.</p>\n<p>I didn't get any error during the whole process of attaching the certificate and signature. I am using a certificate and signature the Certificate Authority (CA) provided.</p>\n<p>Then, when I try to open that PDF in Acrobat Adobe, it gives an error that says the certificate is invalid and the certificate details are not present in the signature panel.</p>\n<p>I tried to check if the signature field is present or not with this line of code and I can say the signature field is present in pdf file.</p>\n<p><strong>What could be the cause of the not showing the certificate details?</strong></p>\n<p><a href=\"https://i.sstatic.net/kExOV7Bb.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/kExOV7Bb.png\" alt=\"signature panel is visible but it doesn't open the certificate details popup\" /></a></p>\n<p>The signature details pop should be visible the certificate should be valid, and it should say that the file is certified by XXXX.</p>\n<pre><code>private void attachNotariusVerifiedCertificate(String signRequestId, FileOutputStream output, PDDocument unsignedDocument) throws Exception\n   {\n      loadExternalCert(eSignCertProvider.getCertificateChain());\n      ExternalSigningSupport externalSigningSupport = unsignedDocument.saveIncrementalForExternalSigning(output);\n      byte[] cmsSignature = signExternally(externalSigningSupport.getContent(), signRequestId);\n      externalSigningSupport.setSignature(cmsSignature);\n   }\n\nprivate byte[] signExternally(InputStream content, String signRequestId) throws IOException\n   {\n      List&lt;Certificate&gt; externalCertificates;\n      JcaCertStore jcaCertStore;\n      CMSSignedDataGenerator generator;\n      MessageDigest messageDigest;\n      byte[] documentHash;\n      byte[] signedDocumentHash;\n      ContentSigner contentSigner;\n      JcaSignerInfoGeneratorBuilder jcaSignerInfoGeneratorBuilder;\n      try {\n         externalCertificates = new ArrayList&lt;&gt;(Arrays.asList(externalCertificateChain));\n         jcaCertStore = new JcaCertStore(externalCertificates);\n         generator = new CMSSignedDataGenerator();\n         generator.addCertificates(jcaCertStore);\n         messageDigest = MessageDigest.getInstance(&quot;SHA-256&quot;);\n         documentHash = messageDigest.digest(content.readAllBytes());\n         signedDocumentHash = eSignCertProvider.signDocumentHash(documentHash, signRequestId);\n         contentSigner = new ContentSigner()\n         {\n            @Override\n            public byte[] getSignature() {\n               return signedDocumentHash;\n            }\n\n            @Override\n            public OutputStream getOutputStream() {\n               return new ByteArrayOutputStream();\n            }\n\n            @Override\n            public AlgorithmIdentifier getAlgorithmIdentifier() {\n               return new DefaultSignatureAlgorithmIdentifierFinder().find(&quot;SHA256WithRSA&quot;);\n            }\n         };\n         jcaSignerInfoGeneratorBuilder = new JcaSignerInfoGeneratorBuilder(new JcaDigestCalculatorProviderBuilder().build());\n         jcaSignerInfoGeneratorBuilder.setDirectSignature(true);\n         org.bouncycastle.asn1.x509.Certificate certificateX509 = org.bouncycastle.asn1.x509.Certificate.getInstance(ASN1Primitive.fromByteArray(externalCertificateChain[0].getEncoded()));\n         generator.addSignerInfoGenerator(jcaSignerInfoGeneratorBuilder.build(contentSigner, new X509CertificateHolder(org.bouncycastle.asn1.x509.Certificate.getInstance(X509CertificateStructure.getInstance(certificateX509)))));\n         CMSSignedData signedData = generator.generate(new CMSAbsentContent(), false);\n         return signedData.getEncoded();\n      } catch (Exception e) {\n         loggingService.error(LOGGER_NAME, &quot;Exception in signExternally()&quot;, e);\n         throw new IOException(e);\n      }\n   }\n\npublic byte[] signDocumentHash(byte[] hash, String signRequestId) throws Exception\n    {\n        byte[] signedDocumentHash;\n        ASN1EncodableVector digestInfoVector;\n        DERSequence derSequence;\n        String base64DigestInfo;\n        String requestBodyJson;\n        String signedPayload;\n        String response;\n        String signatureBase64;\n        try {\n            digestInfoVector = new ASN1EncodableVector();\n            digestInfoVector.add(new AlgorithmIdentifier(NISTObjectIdentifiers.id_sha256, DERNull.INSTANCE));\n            digestInfoVector.add(new DEROctetString(hash));\n            derSequence = new DERSequence(digestInfoVector);\n            base64DigestInfo = Base64.getEncoder().encodeToString(derSequence.getEncoded());\n            requestBodyJson = signRequestPayload(base64DigestInfo, signRequestId);\n            signedPayload = signedPayload(requestBodyJson, serverConfig.geteSignConfig().getSignatureKey());\n            response = sign(signedPayload).getBody();\n            ObjectMapper objectMapper = new ObjectMapper();\n            Map map = objectMapper.readValue(response, Map.class);\n            signatureBase64 = map.get(&quot;sig&quot;).toString();\n            signedDocumentHash = Base64.getDecoder().decode(String.valueOf(signatureBase64.toCharArray()));\n            return signedDocumentHash;\n        } catch (Exception ex) {\n            loggingService.error(LOGGER_NAME, &quot;Exception in sign document hash reason:: &quot; + ex.getMessage(), ex);\n            throw ex;\n        }\n    }\n\n</code></pre>\n<p>This is the whole code we use.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "multithreading",
+      "kotlin",
+      "executorservice"
+    ],
+    "owner": {
+      "account_id": 11384536,
+      "reputation": 194,
+      "user_id": 8346472,
+      "user_type": "registered",
+      "accept_rate": 0,
+      "profile_image": "https://www.gravatar.com/avatar/b401b437e88fb874f16039d5ba2ef75e?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "J.Doe",
+      "link": "https://stackoverflow.com/users/8346472/j-doe"
+    },
+    "is_answered": true,
+    "view_count": 287,
+    "accepted_answer_id": 78589404,
+    "answer_count": 3,
+    "score": 1,
+    "last_activity_date": 1719105390,
+    "creation_date": 1717707525,
+    "last_edit_date": 1719105390,
+    "question_id": 78589035,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78589035/execution-service-out-of-memory",
+    "title": "Execution service out of memory",
+    "body": "<p>I have an application that reads very large CSV files, with over 100 million records in one file, and sends appropriately formatted JSON to another service. When I run this code, it initially processes smoothly, but after a few seconds, the processing starts to slow down until it eventually comes to a halt, and an 'out of memory' error occurs. How can I prevent this error?</p>\n<pre><code>private val nThreads = 10 \n    private val executorService = Executors.newFixedThreadPool(nThreads)\n    private val manager = PoolingHttpClientConnectionManager()\n    private val httpClient = HttpClients.custom()\n        .setConnectionManager(manager)\n        .build()\n\n    fun send(body: String) {\n        val post = HttpPost(URI.create(&quot;url&quot;))\n        post.setHeader(&quot;Content-Type&quot;, &quot;application/json&quot;)\n        post.entity = StringEntity(body)\n        httpClient.execute(post)\n    }\n\n\n    fun process() {\n        val lines = AtomicInteger()\n        ResourceUtils.getFile(&quot;classpath:file.csv&quot;).bufferedReader().forEachLine {\n            lines.getAndIncrement()\n            if (lines.get() &gt; 1) {\n                val records = it.split(&quot;,&quot;)\n                executorService.execute {\n                    send(generate(records[0], records[1], records[2], records[3]))\n                }\n                if (lines.get() % 10000 == 0) println(lines)\n            }\n        }\n        executorService.shutdown()\n        try {\n            if (!executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS)) {\n                executorService.shutdownNow()\n            }\n        } catch (e: InterruptedException) {\n            System.err.println(e.message)\n            executorService.shutdownNow()\n            Thread.currentThread().interrupt()\n        }\n    }\n    private fun generate(id: String, firstName: String, lastName: String, dateTime: String): String {\n&quot;&quot;&quot;JSON TEXT &quot;&quot;&quot;\n }\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

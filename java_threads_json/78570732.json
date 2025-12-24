@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "junit5"
+    ],
+    "owner": {
+      "account_id": 13987380,
+      "reputation": 51,
+      "user_id": 14934228,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/fda1f6ded941471fbce2738e74cf6b78?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "zeluzel",
+      "link": "https://stackoverflow.com/users/14934228/zeluzel"
+    },
+    "is_answered": true,
+    "view_count": 350,
+    "accepted_answer_id": 78995876,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1726678432,
+    "creation_date": 1717422931,
+    "question_id": 78570732,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78570732/sharing-instance-of-a-class-between-multiple-tests-running-in-parallel-in-junit5",
+    "title": "Sharing instance of a class between multiple tests running in parallel in Junit5",
+    "body": "<p>I'm working on a test framework for a project that consists of multiple APIs. For each of them I have a different client that needs to authorize with different token. Tests are run in parallel.</p>\n<p>My solution was creating a class that holds tokens in a map, mapping client to his/her tokens for different services.</p>\n<pre><code>public class TokenManager {\n    private static final Map&lt;Client, Map&lt;String, Token&gt;&gt; tokens = new EnumMap&lt;&gt;(Client.class);\n    \n    public static String getToken(Client client, String service) {\n        if (isTokenExpired(client, service)) {\n            renewToken(client, service);\n        }\n        return tokens.get(client).get(service).getAccessToken();\n}\n</code></pre>\n<p>...and call the <code>getToken()</code> in a @BeforeEach method of a base class that each test then extends, like so</p>\n<pre><code>class BaseTest {\n    \n    @BeforeEach\n    void setUp() {\n        TokenManager.getToken(clientFoo, serviceBar);\n    }\n}\n</code></pre>\n<pre><code>class SomeTestClass extends BaseTest {\n    \n   @Override\n   void setUp() {\n        super.setUp();\n        // test-specific setup\n    }\n\n    @Test\n    void someTest() {\n        assertTrue(true);\n    }\n\n    @Test\n    void otherTest() {\n        assertTrue(false);\n    }\n</code></pre>\n<p>My assumption was that an instance of TokenManager class was created once, before a run of all tests (either through maven, or Intellij runner). In reality, it's created for each test class. So tokens are shared between different tests of the same class, but not between tests of different classes. As mentioned before, tests are run in parallel.</p>\n<p>My problems are:</p>\n<ol>\n<li><p>Each test class creates new tokens, when I'd like the instance of TokenManager to be created once and supply all tests with proper tokens, that are only refreshed when expired</p>\n</li>\n<li><p>Once in a while I get NullPointerException stating:</p>\n<pre><code>java.lang.NullPointerException: Cannot invoke &quot;Token.getAccessToken()&quot; because the return value of &quot;java.util.Map.get(Object)&quot; is null\n at TokenManager.getToken(TokenManager.java:57)\n at BaseTest.setUp(BaseTest.java:9)\n at SomeTest.setUp(SomeTest.java:37)\n</code></pre>\n</li>\n</ol>\n<p>My questions are:</p>\n<ol>\n<li><p>What should I do to force Junit share an instance of TokenManager class between different test classes?</p>\n</li>\n<li><p>Is there a better solution to this problem?</p>\n</li>\n</ol>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "integration-testing",
+      "testcontainers",
+      "spring-boot-configuration"
+    ],
+    "owner": {
+      "account_id": 30385046,
+      "reputation": 11,
+      "user_id": 23285155,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocLDxyvwLUAtyWNptSuhmaob2Mk1yUSh-kTzWtBCPkXAIj0=k-s256",
+      "display_name": "Ilnyr Nasibullin",
+      "link": "https://stackoverflow.com/users/23285155/ilnyr-nasibullin"
+    },
+    "is_answered": false,
+    "view_count": 1075,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1711001041,
+    "creation_date": 1705994660,
+    "last_edit_date": 1705998089,
+    "question_id": 77864590,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77864590/cannot-register-bean-definition-for-bean-that-is-already-defined-in-testconfigur",
+    "title": "Cannot register bean definition for bean that is already defined in TestConfiguration",
+    "body": "<p>I have a DataJpaTest with testcontainers for testing my database repositories, such as</p>\n<pre><code>@DataJpaTest  \n@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)  \n@Testcontainers \n@ActiveProfiles(&quot;test&quot;)  \nclass OrderRepositoryTest\n</code></pre>\n<p>I'm using @ActiveProfiles(&quot;test&quot;) to be able to config my test application via application-test.yml</p>\n<p>Also I have a test configuration class for entities and repositories</p>\n<pre><code>@SpringBootConfiguration\n@EnableJpaRepositories(basePackages = {\n        &quot;com.sample.logistics&quot;\n})\n@EntityScan(basePackages = {\n        &quot;com.sample.logistics&quot;\n})\n@ActiveProfiles(&quot;test&quot;)\npublic class TestConfig {\n\n    @Value(&quot;${spring.datasource.username}&quot;)\n    private String userName;\n\n    @Value(&quot;${spring.datasource.url}&quot;)\n    private String url;\n\n    @Value(&quot;${spring.datasource.password}&quot;)\n    private String password;\n\n    @Value(&quot;${spring.datasource.schema}&quot;)\n    private String schema;\n\n    @Bean\n    public DataSource getTestDataSource() {\n        DriverManagerDataSource dataSourceBuilder = new DriverManagerDataSource();\n        dataSourceBuilder.setUrl(url);\n        dataSourceBuilder.setSchema(schema);\n        dataSourceBuilder.setUsername(userName);\n        dataSourceBuilder.setPassword(password);\n        return dataSourceBuilder;\n    }\n\n}\n</code></pre>\n<p>Tests are working well, but I have a problem with launching my main Spring Boot Application, it falls with the following problem.</p>\n<p><code>Cannot register bean definition for bean 'orderRequestTemplateRepository' since there is already [Root bean: class ; scope=; abstract=false; lazyInit=false; autowireMode=0; dependencyCheck=0; autowireCandidate=true; primary=false; factoryBeanName=null; factoryMethodName=null; initMethodNames=null; destroyMethodNames=null; defined in com.sample.logistics.order_requests.dao.repository.OrderRequestTemplateRepository defined in @EnableJpaRepositories declared on TestConfig] bound.</code></p>\n<p>Seems like some beans were registered by my TestConfig class, but I have no idea, why did TestConfig actually work here. I was expecting that it will be ignored because it's located in src.test.java package.</p>\n<p>How can I ignore TestConfig in my main application?</p>\n<p>I tried to set parameter spring.main.allow-bean-definition-overriding=true, but it didn't work.</p>\n<p>With this parameter I had the following problem:\n`\nParameter 0 of constructor in com.sample.logistics.order_requests.service.OrderRequestServiceImpl required a bean named 'entityManagerFactory' that could not be found.</p>\n<p>Consider defining a bean named 'entityManagerFactory' in your configuration.`</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

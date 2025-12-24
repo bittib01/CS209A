@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "kotlin",
+      "hazelcast"
+    ],
+    "owner": {
+      "account_id": 14402741,
+      "reputation": 319,
+      "user_id": 10403839,
+      "user_type": "registered",
+      "profile_image": "https://lh5.googleusercontent.com/-Yu4bH1bRTgo/AAAAAAAAAAI/AAAAAAAAA-w/3QkWXGZ5qnM/s256-rj/photo.jpg",
+      "display_name": "Dominique M",
+      "link": "https://stackoverflow.com/users/10403839/dominique-m"
+    },
+    "is_answered": false,
+    "view_count": 96,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1765877922,
+    "creation_date": 1765877922,
+    "question_id": 79848393,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79848393/hazelcast-5-6-0-and-client-configuration",
+    "title": "Hazelcast 5.6.0 and client configuration",
+    "body": "<p>Our application is leveraging dependencies <code>com.hazelcast:hazelcast</code> and <code>com.hazelcast:hazelcast-spring</code> to connect to a Hazelcast cluster. In the process of upgrading their versions from 5.5.0 to 5.6.0, we noticed that our application no longer would start successfully.</p>\n<p>The following error is now displayed:</p>\n<pre><code>java.lang.UnsupportedOperationException: Client config object only supports adding new data structure configurations\n    at com.hazelcast.client.impl.clientside.ClientDynamicClusterConfig.getMapConfigs(ClientDynamicClusterConfig.java:496)\n    at com.hazelcast.spring.BeanExporter.postProcessBeanDefinitionRegistry(BeanExporter.java:75)\n    at org.springframework.context.support.PostProcessorRegistrationDelegate.invokeBeanDefinitionRegistryPostProcessors(PostProcessorRegistrationDelegate.java:349)\n    at org.springframework.context.support.PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(PostProcessorRegistrationDelegate.java:148)\n    at org.springframework.context.support.AbstractApplicationContext.invokeBeanFactoryPostProcessors(AbstractApplicationContext.java:791)\n    at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:609)\n    at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146)\n    at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:752)\n    at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:439)\n    at org.springframework.boot.SpringApplication.run(SpringApplication.java:318)\n    at org.springframework.boot.SpringApplication.run(SpringApplication.java:1361)\n    at org.springframework.boot.SpringApplication.run(SpringApplication.java:1350)\n    at com.z.y.x.SpringBootSandboxApplicationKt.main(SpringBootSandboxApplication.kt:13)\n</code></pre>\n<p>Checking out the <a href=\"https://docs.hazelcast.com/hazelcast/5.6/release-notes/community#5.6.0\" rel=\"nofollow noreferrer\">Hazelcast release notes</a>, the following enhancement is the only thing we could imagine being related to the issue we are facing:</p>\n<blockquote>\n<p>Exposed Hazelcast objects as Spring beans: This update allows you to\nexpose Hazelcast maps (IMap) and other distributed objects as Spring\nbeans, improving consistency with XML-based configuration and\nsimplifying Java configuration. Users can now easily autowire these\nobjects without the need for custom bean definitions for each\ndistributed object, enhancing integration and usability.</p>\n</blockquote>\n<p>When we get rid of <code>com.hazelcast:hazelcast-spring</code>, and only leverage <code>com.hazelcast:hazelcast</code>, the issue disappears. But this is undesirable, because our application uses some components from the <code>hazelcast-spring</code> dependency.</p>\n<p>Here is a simplified code snippet that we use to configure our client against the Hazelcast cluster:</p>\n<pre class=\"lang-kotlin prettyprint-override\"><code>import com.hazelcast.client.HazelcastClient\nimport com.hazelcast.client.config.ClientConfig\nimport com.hazelcast.core.HazelcastInstance\nimport org.springframework.context.annotation.Bean\nimport org.springframework.context.annotation.Configuration\n\n@Configuration\nclass CacheConfig {\n\n    val clusterName: String = &quot;dev&quot;\n    val addresses: List&lt;String&gt; = listOf(&quot;127.0.0.1&quot;)\n\n    @Bean\n    fun hazelcastInstance(): HazelcastInstance {\n        val clientConfig = ClientConfig()\n        clientConfig.setClusterName(clusterName)\n        clientConfig.networkConfig.setAddresses(addresses)\n        return HazelcastClient.newHazelcastClient(clientConfig)\n    }\n}\n\n</code></pre>\n<p>The above code successfully authenticates and connects to the cluster, but throws the error afterwards.</p>\n<p>What are our options? We cannot find similar issues, so perhaps it's something we do wrong. Please share your thoughts and suggestions.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

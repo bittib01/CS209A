@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "http-status-code-401"
+    ],
+    "owner": {
+      "account_id": 38688627,
+      "reputation": 1,
+      "user_id": 28901430,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/050ccd9aaf61c8e7dc9525371b9c0f7e?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Даниил Матюшин",
+      "link": "https://stackoverflow.com/users/28901430/%d0%94%d0%b0%d0%bd%d0%b8%d0%b8%d0%bb-%d0%9c%d0%b0%d1%82%d1%8e%d1%88%d0%b8%d0%bd"
+    },
+    "is_answered": false,
+    "view_count": 69,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1734964301,
+    "creation_date": 1734948845,
+    "last_edit_date": 1734964301,
+    "question_id": 79302775,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79302775/401-error-in-postman-issue-with-spring-backend",
+    "title": "401 Error in Postman: Issue with Spring Backend",
+    "body": "<p>I am trying to build a backend using Spring. When I register a user, the API works fine, and the record is successfully created in the database. However, when I try to make a GET request, I receive a 401 Unauthorized error.</p>\n<p>I have enabled basic authentication in Postman, where I input the credentials of an existing user, but the 401 error persists. Can someone please help me understand what might be going wrong?</p>\n<p>Below is the relevant code:</p>\n<p>0.SecurityConfig</p>\n<pre class=\"lang-java prettyprint-override\"><code>package com.example.new_messager.config;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\nimport org.springframework.security.config.annotation.web.builders.HttpSecurity;\nimport org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;\nimport org.springframework.security.web.SecurityFilterChain;\n@Configuration\npublic class SecurityConfig {\n    @Bean\n    public BCryptPasswordEncoder passwordEncoder() {\n\n        return new BCryptPasswordEncoder();\n\n    }\n    @Bean\n    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {\n\n        http\n\n            .csrf().disable() // Disabled CSRF for testing (configure it properly in production)\n\n            .authorizeHttpRequests(authorize -&gt; authorize\n            .requestMatchers(&quot;/api/users/register&quot;).permitAll() // Allow registration without authentication\n\n                .anyRequest().authenticated() // Require authentication for other endpoints\n\n            )\n\n            .httpBasic(); // Use basic authentication\n        return http.build();\n\n    }\n}\n</code></pre>\n<p>1.UserController</p>\n<pre class=\"lang-java prettyprint-override\"><code>package com.example.new_messager.controller;\n\nimport com.example.new_messager.model.User;\nimport com.example.new_messager.service.UserService;\nimport org.springframework.beans.factory.annotation.Autowired;\nimport org.springframework.web.bind.annotation.*;\n\n@RestController\n@RequestMapping(&quot;/api/users&quot;)\npublic class UserController {\n    private final UserService userService;\n\n    @Autowired\n    public UserController(UserService userService) {\n        this.userService = userService;\n    }\n\n    @PostMapping(&quot;/register&quot;)\n    public void registerUser(@RequestBody User user) {\n        userService.register(user);\n    }\n\n    @GetMapping(&quot;/{username}&quot;)\n    public User findByUsername(@PathVariable String username) {\n        return userService.findByUsername(username);\n    }\n}\n</code></pre>\n<p>2.User</p>\n<pre class=\"lang-java prettyprint-override\"><code>package com.example.new_messager.model;\n\nimport jakarta.persistence.*;\n\n@Entity\n@Table(name = &quot;app_user&quot;)\npublic class User {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n\n    @Column(unique = true, nullable = false)\n    private String username;\n\n    @Column(nullable = false)\n    private String password;\n\n    public void setPassword(String encode) {\n        this.password = encode;\n    }\n\n    public String getUsername() {\n        return username;\n    }\n\n    public String getPassword() {\n        return password;\n    }\n}\n</code></pre>\n<ol start=\"3\">\n<li>UserService</li>\n</ol>\n<pre class=\"lang-java prettyprint-override\"><code>package com.example.new_messager.service;\n\nimport com.example.new_messager.model.User;\nimport com.example.new_messager.repository.UserRepository;\nimport org.springframework.beans.factory.annotation.Autowired;\nimport org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;\n\nimport org.springframework.stereotype.Service;\n\n@Service\npublic class UserService {\n\n    private final UserRepository userRepository;\n\n    private final BCryptPasswordEncoder passwordEncoder;\n\n    @Autowired\n    public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {\n        this.userRepository = userRepository;\n        this.passwordEncoder = passwordEncoder;\n    }\n\n    public void register(User user) {\n\n        if (user.getPassword() == null || user.getPassword().isEmpty()) {\n            throw new IllegalArgumentException(&quot;Password cannot be null or empty&quot;);\n        }\n\n        if (user.getUsername() == null || user.getPassword() == null) {\n            throw new IllegalArgumentException(&quot;Username and password must not be null&quot;);\n        }\n\n       String encodedPassword = passwordEncoder.encode(user.getPassword());\n       user.setPassword(encodedPassword);\n       userRepository.save(user);\n    }\n\n    public boolean validatePassword(String rawPassword, String encodedPassword) {\n        return passwordEncoder.matches(rawPassword, encodedPassword);\n    }\n\n    public User findByUsername(String username) {\n\n        return userRepository.findByUsername(username)\n                .orElseThrow(() -&gt; new RuntimeException(&quot;User not found&quot;));\n    }\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>package com.example.new_messager.repository;\n\nimport com.example.new_messager.model.User;\n\nimport org.springframework.data.jpa.repository.JpaRepository;\nimport java.util.Optional;\n\npublic interface UserRepository extends JpaRepository&lt;User, Long&gt; {\n\n    Optional&lt;User&gt; findByUsername(String username);\n\n}\n</code></pre>\n<p>I tried it without encoding the password, but the problem remains. If you allow unauthorized users to make requests, the request passes.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

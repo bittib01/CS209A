@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "javafx",
+      "webview"
+    ],
+    "owner": {
+      "account_id": 6081376,
+      "reputation": 3068,
+      "user_id": 4747043,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/XBdDU.png?s=256",
+      "display_name": "alan ocallaghan",
+      "link": "https://stackoverflow.com/users/4747043/alan-ocallaghan"
+    },
+    "is_answered": true,
+    "view_count": 163,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1721761438,
+    "creation_date": 1719593845,
+    "last_edit_date": 1721574648,
+    "question_id": 78683647,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78683647/interacting-with-a-webview-when-it-may-or-may-not-be-loaded",
+    "title": "Interacting with a webview when it may or may not be loaded",
+    "body": "<p>I have a Java class that loads content into a <code>WebView</code>. This WebView contains a JavaScript program that I need to query to, eg, populate lists of GUI components, call methods that return primitives, etc.</p>\n<p>The problem for me is that WebViews can only be interacted with on the JavaFX application thread, and loading happens on a background thread. This means that the JS program loads ~500ms after my class is initialised, so for this period, my class is invalid and any method calls that query the JS program will return some sort of exception (eg, because the DOM object does not yet exist). However, I can't wait on it, because that locks the JavaFX application thread and loading never completes.</p>\n<p>I want to be able to query the JS program in such a way that calling classes can get a handle on a future of an answer, but  any attempt I've made at this ends up deadlocking the JavaFX application thread.</p>\n<p>In case it helps to demonstrate an answer, this is a minimal example of a similar class, that loads a CDN'ed JS text editor, and queries a variable defined once the page is loaded.</p>\n<p>In this example, I want a way for classes interacting with <code>WithWebView</code> objects to be able to call <code>getX</code> in a &quot;safe&quot; way such that they (eventually) get the answer. I gather I should use <code>CompletableFuture&lt;?&gt;</code> here to do this, but I'm somehow not getting my head around how I can wait for the page to finish loading and still return a value in the future. The only &quot;safe&quot; way is the one shown below, where I add a callback to the <code>stateProperty</code> of the <code>WebEngine</code>'s <code>loadWorker</code>.</p>\n<pre class=\"lang-java prettyprint-override\"><code>package com.example.demowebview;\n\nimport javafx.concurrent.Worker;\nimport javafx.scene.Parent;\nimport javafx.scene.web.WebView;\n\npublic class WithWebView {\n    private WebView webView;\n\n    WithWebView() {\n        webView = new WebView();\n        String content = &quot;&quot;&quot;\n        &lt;html&gt;\n        &lt;script src=&quot; https://cdn.jsdelivr.net/npm/ace-builds@1.35.1/src-min-noconflict/theme-chrome.min.js &quot;&gt;&lt;/script&gt;\n        &lt;script&gt;\n        x = &quot;Answer&quot;\n        &lt;/script&gt;\n        \n        &lt;/html&gt;\n        &quot;&quot;&quot;;\n        webView.getEngine().loadContent(content);\n        // System.out.println(getX()); // this will throw an exception, because loading takes some time\n        webView.getEngine().getLoadWorker().stateProperty().addListener((v, o, n) -&gt; {\n            if (n == Worker.State.SUCCEEDED) {\n                System.out.println(getX()); // this will work because I'm waiting on the loadworker to finish\n            }\n        });\n\n    }\n\n    Parent getParent() {\n        return webView;\n    }\n\n    public String getX() {\n        return (String)webView.getEngine().executeScript(&quot;x&quot;);\n    }\n}\n</code></pre>\n<p>with a simple application wrapper:</p>\n<pre class=\"lang-java prettyprint-override\"><code>package com.example.demowebview;\n\nimport javafx.application.Application;\nimport javafx.scene.Scene;\nimport javafx.stage.Stage;\n\npublic class HelloApplication extends Application {\n\n    @Override\n    public void start(Stage stage) {\n        WithWebView wwv = new WithWebView();\n        Scene scene = new Scene(wwv.getParent(), 320, 240);\n        stage.setTitle(&quot;Hello!&quot;);\n        stage.setScene(scene);\n        stage.show();\n    }\n\n    public static void main(String[] args) {\n        launch();\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

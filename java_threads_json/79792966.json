@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "resteasy"
+    ],
+    "owner": {
+      "account_id": 5955901,
+      "reputation": 10682,
+      "user_id": 4682610,
+      "user_type": "registered",
+      "accept_rate": 29,
+      "profile_image": "https://i.sstatic.net/sMhnZ.jpg?s=256",
+      "display_name": "Florian Schaetz",
+      "link": "https://stackoverflow.com/users/4682610/florian-schaetz"
+    },
+    "is_answered": false,
+    "view_count": 43,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1760859373,
+    "creation_date": 1760695214,
+    "last_edit_date": 1760859373,
+    "question_id": 79792966,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79792966/resteasy-mapping-client-vs-server-exceptions",
+    "title": "RestEasy mapping Client vs. Server Exceptions",
+    "body": "<p>We're using, for historic reasons, RestEasy 5.0.10 here in some services and I problem sometimes:</p>\n<p>When the user send bad input, be it wrongly formatted json, wrong types for <code>@FormParam</code>s or whatever, typically we want to return 400 with the underlying message. Not a huge problem with <code>ExceptionMapper</code>s, can be done.</p>\n<p>In case of <code>@FormParam</code> problems, for example, RestEasy already throws nice <code>BadRequestExceptions</code> when this happens, so an <code>ExceptionMapper</code> can simply return the response of them.</p>\n<p>But we also use RestEasy for further api calls, so, for example...</p>\n<ul>\n<li>User A calls (our) service X</li>\n<li>Service X calls service Y (may or may not be ours)</li>\n</ul>\n<p>Now, when a <code>BadRequestException</code> occurs, one of two possibilities can be true (ignoring catching exception in between):</p>\n<ul>\n<li>The the request from User A was somehow &quot;wrong&quot;</li>\n<li>The the request service X sent to service Y was somehow &quot;wrong&quot;</li>\n</ul>\n<p>Both cases would result in a <code>BadRequestException</code>.</p>\n<p>So the question is, can I somehow differentiate between the first and the second case, since in the second case, I would prefer a 500 error instead of a 400 seen by the user? What I can, of course, do is parse the stacktrace and see if it happened in a client or core library, but honestly, that seems... unwise.</p>\n<p>So does RestEasy have a good way of knowing which exceptions happened before they reach our code (when processing the request on a purely technical level) and which exceptions happen afterward, in the &quot;business&quot; code, so to speak?</p>\n<hr />\n<p>Example... Let's assume we provide an arbitrary api endpoint, defined by...</p>\n<pre><code>@POST\n@Path(&quot;someEndpoint&quot;)\n@Consumes(MediaType.APPLICATION_FORM_URLENCODED)\nString someMethod(@FormParam(&quot;id&quot;) long id, @FormParam(&quot;status&quot;) String status);\n</code></pre>\n<p>Sending, for example &quot;abc&quot; as <code>id</code> would result in a BadRequestException (wrapping the Long.parse Exception) the services that goes into my ExceptionMapper and can, of course, be directly given to the client as the included 400 Response. No real problem here... Imagine now this being implemented in my code...</p>\n<pre><code>public String someMethod(long id, String status) {\n    // do some random stuff\n\n    // now let's build a (RestEasy) client via clientBuilder...\n    var client = clientBuilder.build().target(thirdPartyBaseUrl).proxy(clientClass);\n   \n    var existingObjects = client.get(new ArbitraryFilterDto(status));\n\n    // etc.\n}\n</code></pre>\n<p>Now assume that there is a bug in my <code>ArbitraryFilterDto</code> mapping and the call to the client under <code>thirdPartyBaseUrl</code> leads to a 400 response. This ALSO gets translated into a <code>BadRequestException</code>. But THIS one I of course do not want to send to MY client, since it's not really their problem and nothing they can fix.</p>\n<p>What I can do here is add code to my ExceptionMapper and do something like...</p>\n<pre><code>boolean isClientException = Arrays.stream(webApplicationException.getStackTrace())\n.anyMatch(s -&gt; s.getClassName().startsWith(&quot;org.jboss.resteasy.client&quot;));\n</code></pre>\n<p>...by relying on the fact that the client stack will be org.jboss.resteasy.client.*, but honestly, that sounds... awful.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

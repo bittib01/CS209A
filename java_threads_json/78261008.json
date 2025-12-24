@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-mvc",
+      "swagger",
+      "spring-restcontroller"
+    ],
+    "owner": {
+      "account_id": 18044315,
+      "reputation": 1775,
+      "user_id": 13115701,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/YjiT5Pfx.jpg?s=256",
+      "display_name": "Paul Marcelin Bejan",
+      "link": "https://stackoverflow.com/users/13115701/paul-marcelin-bejan"
+    },
+    "is_answered": true,
+    "view_count": 826,
+    "accepted_answer_id": 78263235,
+    "answer_count": 3,
+    "score": 3,
+    "last_activity_date": 1725443196,
+    "creation_date": 1712057785,
+    "question_id": 78261008,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78261008/java-springboot-pathvariable-on-restcontroller",
+    "title": "Java SpringBoot @PathVariable on RestController",
+    "body": "<p>I have the following @RestController:</p>\n<pre><code>package io.github.paulmarcelinbejan.coandaairlines.reservationsystem.adapters.inbound.controller.rest;\n\nimport java.util.List;\n\nimport org.springframework.http.MediaType;\nimport org.springframework.web.bind.annotation.GetMapping;\nimport org.springframework.web.bind.annotation.PathVariable;\nimport org.springframework.web.bind.annotation.RequestMapping;\nimport org.springframework.web.bind.annotation.RestController;\n\nimport io.github.paulmarcelinbejan.coandaairlines.reservationsystem.adapters.inbound.impl.rest.CurrencyInboundAdapterRestImpl;\nimport io.github.paulmarcelinbejan.coandaairlines.reservationsystem.ports.currency.domain.CurrencyDTO;\nimport io.github.paulmarcelinbejan.davinci.adapters.api.DavinciApiResponse;\n\nimport lombok.RequiredArgsConstructor;\n\n@RestController\n@RequiredArgsConstructor\n@RequestMapping(&quot;/api/currency&quot;)\npublic class CurrencyRestController {\n\n    private final CurrencyInboundAdapterRestImpl currencyInboundAdapterRestImpl;\n\n    @GetMapping(value = &quot;/id/{id}&quot;, produces = MediaType.APPLICATION_JSON_VALUE)\n    public DavinciApiResponse&lt;CurrencyDTO&gt; findById(@PathVariable Integer id) {\n        return currencyInboundAdapterRestImpl.findById(id);\n    }\n\n    @GetMapping(value = &quot;/code/{code}&quot;, produces = MediaType.APPLICATION_JSON_VALUE)\n    public DavinciApiResponse&lt;CurrencyDTO&gt; findByCode(@PathVariable String code) {\n        return currencyInboundAdapterRestImpl.findByCode(code);\n    }\n\n    @GetMapping(value = &quot;/&quot;, produces = MediaType.APPLICATION_JSON_VALUE)\n    public DavinciApiResponse&lt;List&lt;CurrencyDTO&gt;&gt; findAll() {\n        return currencyInboundAdapterRestImpl.findAll();\n    }\n\n}\n</code></pre>\n<p>but when I access Swagger, it doesn't show me the space to insert the pathVariable:</p>\n<p><a href=\"https://i.sstatic.net/zCbDV.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/zCbDV.png\" alt=\"enter image description here\" /></a></p>\n<p>If I try to execute I have the following exception:</p>\n<pre><code>{\n  &quot;status&quot;: &quot;KO&quot;,\n  &quot;errors&quot;: {\n    &quot;timestampUTC&quot;: &quot;2024-04-02T11:24:45.416132Z&quot;,\n    &quot;exceptionType&quot;: &quot;IllegalArgumentException&quot;,\n    &quot;message&quot;: &quot;Name for argument of type [java.lang.Integer] not specified, and parameter name information not available via reflection. Ensure that the compiler uses the '-parameters' flag.&quot;\n  }\n}\n</code></pre>\n<p>same issue also from postman:</p>\n<p><a href=\"https://i.sstatic.net/diKYy.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/diKYy.png\" alt=\"enter image description here\" /></a></p>\n<p>If I remove the @PathVariable then on swagger I can see it:</p>\n<p><a href=\"https://i.sstatic.net/Dwjm5.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/Dwjm5.png\" alt=\"enter image description here\" /></a></p>\n<p>but still same error:</p>\n<pre><code>{\n  &quot;status&quot;: &quot;KO&quot;,\n  &quot;errors&quot;: {\n    &quot;timestampUTC&quot;: &quot;2024-04-02T11:26:56.186060Z&quot;,\n    &quot;exceptionType&quot;: &quot;IllegalArgumentException&quot;,\n    &quot;message&quot;: &quot;Name for argument of type [java.lang.Integer] not specified, and parameter name information not available via reflection. Ensure that the compiler uses the '-parameters' flag.&quot;\n  }\n}\n</code></pre>\n<p>On another project, I have similar @RestController:</p>\n<pre><code>package com.hyperbank.types.currency.controller;\n\nimport java.util.List;\n\nimport org.springframework.http.MediaType;\nimport org.springframework.web.bind.annotation.DeleteMapping;\nimport org.springframework.web.bind.annotation.GetMapping;\nimport org.springframework.web.bind.annotation.PathVariable;\nimport org.springframework.web.bind.annotation.PostMapping;\nimport org.springframework.web.bind.annotation.PutMapping;\nimport org.springframework.web.bind.annotation.RequestBody;\nimport org.springframework.web.bind.annotation.RequestMapping;\nimport org.springframework.web.bind.annotation.ResponseBody;\nimport org.springframework.web.bind.annotation.RestController;\n\nimport com.hyperbank.types.currency.dto.CurrencyResponse;\nimport com.hyperbank.types.currency.dto.CurrencySaveRequest;\nimport com.hyperbank.types.currency.dto.CurrencyUpdateRequest;\nimport com.hyperbank.types.currency.mapper.CurrencyMapper;\nimport com.hyperbank.types.currency.service.CurrencyService;\n\nimport io.github.paulmarcelinbejan.toolbox.exception.functional.FunctionalException;\nimport io.github.paulmarcelinbejan.toolbox.utils.validation.ValidatorUtils;\nimport io.github.paulmarcelinbejan.toolbox.web.response.OkResponse;\nimport jakarta.validation.Valid;\nimport lombok.RequiredArgsConstructor;\n\n@RestController\n@RequiredArgsConstructor\n@RequestMapping(&quot;/api/currency&quot;)\npublic class CurrencyRestController {\n\n    private final CurrencyService currencyService;\n    \n    private final CurrencyMapper currencyMapper;\n\n    @GetMapping(value = &quot;/{id}&quot;, produces = MediaType.APPLICATION_JSON_VALUE)\n    public @ResponseBody CurrencyResponse findById(@PathVariable Integer id) throws FunctionalException {\n        return currencyMapper.toResponse(currencyService.findById(id));\n    }\n\n    @GetMapping(value = &quot;/&quot;, produces = MediaType.APPLICATION_JSON_VALUE)\n    public @ResponseBody List&lt;CurrencyResponse&gt; findAll() {\n        return currencyMapper.toResponses(currencyService.findAll());\n    }\n\n}\n</code></pre>\n<p>and on that one, there are no issue:</p>\n<p><a href=\"https://i.sstatic.net/XH2SW.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/XH2SW.png\" alt=\"enter image description here\" /></a></p>\n<p>any idea ?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-test",
+      "mapstruct"
+    ],
+    "owner": {
+      "account_id": 6916783,
+      "reputation": 1314,
+      "user_id": 5310721,
+      "user_type": "registered",
+      "accept_rate": 81,
+      "profile_image": "https://i.sstatic.net/ME0Lv.jpg?s=256",
+      "display_name": "Alvaro Pedraza",
+      "link": "https://stackoverflow.com/users/5310721/alvaro-pedraza"
+    },
+    "is_answered": true,
+    "view_count": 150,
+    "accepted_answer_id": 79742024,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1755766094,
+    "creation_date": 1755724653,
+    "question_id": 79741597,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79741597/springboottest-context-with-mapstruct-mapper-bean",
+    "title": "SpringBootTest context with mapstruct.Mapper bean",
+    "body": "<p>I'm working in an application where I need to map some input to an entity class and I'm using mapstruct like this:</p>\n<pre><code>import org.mapstruct.Mapper;\nimport org.mapstruct.Mapping;\nimport org.mapstruct.MappingConstants;\nimport org.mapstruct.NullValueCheckStrategy;\n\nimport java.math.BigDecimal;\n\n@Mapper(componentModel = MappingConstants.ComponentModel.SPRING,\n        nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)\npublic interface MyEntityMapper {\n\n    @Mapping(source = &quot;source1&quot;, target = &quot;target1&quot;)\n    @Mapping(source = &quot;source2&quot;, target = &quot;target2&quot;)\n    MyEntity toMyEntity(MyInput input);\n}\n</code></pre>\n<p>And then I'm adding a SpringBoot test to check the mapping is being done as expected</p>\n<pre><code>import org.junit.jupiter.api.DisplayName;\nimport org.junit.jupiter.api.Test;\nimport org.springframework.beans.factory.annotation.Autowired;\nimport org.springframework.boot.test.context.SpringBootTest;\nimport org.springframework.test.context.ActiveProfiles;\n\nimport java.math.BigDecimal;\n\nimport static org.assertj.core.api.Assertions.assertThat;\n\n@SpringBootTest(classes = MyEntityMapper.class)\nclass MyEntityMapperTest {\n\n    @Autowired\n    private MyEntityMapper underTest;\n\n    @Test\n    @DisplayName(&quot;Entity mapped when input provided&quot;)\n    void test_toMyEntity_returnsMappedEntity_whenInputProvided() {\n        MyEntity result = underTest.toMyEntity(MyInputRepository.basicInput());\n        assertThat(result).isNotNull();\n        // more asserts if needed\n    }\n}\n</code></pre>\n<p>But when I run this test I get the following error:</p>\n<pre><code>org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'com.example.mapper.MyEntityMapperTest': Unsatisfied dependency expressed through field 'underTest'; nested exception is org.springframework.beans.factory.NoSuchBeanDefinitionException: No qualifying bean of type 'com.example.mapper.MyEntityMapper' available: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {@org.springframework.beans.factory.annotation.Autowired(required=true)}\n    at ...\n</code></pre>\n<p>Checking logs in detail and doing some web research I found it may be a context initialization issue. Seems that SpringBoot uses some listeners to prepare some beans. When Spring is starting I find the following message:</p>\n<pre><code>{\n    &quot;logger_name&quot;: &quot;com.example.mapper.MyEntityMapperTest&quot;,\n    &quot;message&quot;: &quot;Started MyEntityMapperTest in 0.849 seconds (JVM running for 2.076)&quot;,\n    &quot;log_level&quot;: &quot;INFO&quot;,\n    &quot;log_type&quot;: &quot;DEFAULT&quot;,\n    &quot;thread_name&quot;: &quot;main&quot;,\n    &quot;stack_trace&quot;: &quot;-&quot;\n}\n\n\n\n============================\nCONDITIONS EVALUATION REPORT\n============================\n\n\nPositive matches:\n-----------------\n\n    None\n\n\nNegative matches:\n-----------------\n\n    None\n\n\nExclusions:\n-----------\n\n    None\n\n\nUnconditional classes:\n----------------------\n\n    None\n\n\n\n{\n    &quot;logger_name&quot;: &quot;org.springframework.test.context.TestContextManager&quot;,\n    &quot;message&quot;: &quot;Caught exception while allowing TestExecutionListener [org.springframework.boot.test.autoconfigure.SpringBootDependencyInjectionTestExecutionListener@1852a3ff] to prepare test instance [com.example.mapper.MyEntityMapperTest@3ce53f6a]&quot;,\n    &quot;log_level&quot;: &quot;ERROR&quot;,\n    &quot;log_type&quot;: &quot;DEFAULT&quot;,\n    &quot;thread_name&quot;: &quot;main&quot;,\n    &quot;stack_trace&quot;: &quot;o.s.b.f.NoSuchBeanDefinitionException: ...&quot;\n}\n</code></pre>\n<p><strong>Note</strong>: formatted log messages in JSON for better readability</p>\n<h2>Workaround</h2>\n<p>I found a way to workaround this by simply loading the complete Spring context. It seems that Spring, in such circumstances, runs correctly all the bootstraping and loads my mapper bean correctly. However, this implies a lot of time to run a simple test and the need to add an innecessary test configuration, like:</p>\n<pre><code>@SpringBootTest\n@ActiveProfiles(&quot;test&quot;)\nclass MyEntityMapperTest {...}\n</code></pre>\n<p>With this my test runs correctly BUT with the disadvantages described before.</p>\n<h2>The question</h2>\n<p>Is there any way to tell Spring to bootstrap such that the mapper bean is ready when instantiating the test class bean?</p>\n<p>Thanks in advance for your answers/comments</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

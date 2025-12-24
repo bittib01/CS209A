@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "generics"
+    ],
+    "owner": {
+      "account_id": 6508,
+      "reputation": 16597,
+      "user_id": 10973,
+      "user_type": "registered",
+      "accept_rate": 94,
+      "profile_image": "https://www.gravatar.com/avatar/6d8b216e6afd93a0bf480d3cb9fe9707?s=256&d=identicon&r=PG",
+      "display_name": "Kevin Day",
+      "link": "https://stackoverflow.com/users/10973/kevin-day"
+    },
+    "is_answered": true,
+    "view_count": 151,
+    "accepted_answer_id": 79820535,
+    "answer_count": 3,
+    "score": 3,
+    "last_activity_date": 1763227948,
+    "creation_date": 1763157124,
+    "last_edit_date": 1763161488,
+    "question_id": 79820460,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79820460/symbol-not-found-error-with-complex-generics-and-lambda-arrangement",
+    "title": "Symbol not found error with complex generics and lambda arrangement",
+    "body": "<p>The following test renders fine in my IDE (Eclipse), but fails to compile when building via Maven.</p>\n<p>The compiler error is shown in the comment line in the code block below.</p>\n<p>It looks like the compiler is unable to determine the type of the 'o' input to the lambda.  And if I cast o to the MyObj class, then it compiles fine.</p>\n<p>I realize that this is a somewhat convoluted situation (we really do need this complexiy, though).  And there really <em>should</em> be enough type info here for the compiler to determine the type (and the built-in compiler in Eclipse does so).</p>\n<p>Am I doing something wrong with the generics declarations?</p>\n<p>JDK is 21.0.5</p>\n<pre><code>public class AnotherTestClass {\n\n    public static class MyObj{\n        private final String arg1;\n        \n        public MyObj(String arg1) {\n            this.arg1 = arg1;\n        }\n        \n        public String getArg1() { return arg1; }\n    }\n\n    public static class MyFunctionHolder&lt;T, R&gt;{\n        Function&lt;T, R&gt; f;\n\n        public MyFunctionHolder(Function&lt;T, R&gt; f) {\n            this.f = f;\n        }\n        \n    }\n    \n    public static &lt;C extends Collection&lt;E&gt;, E, R&gt; MyFunctionHolder&lt;C, R&gt; forCollectionOfType(Class&lt;? extends C&gt; collectionClass, Class&lt;E&gt; elementClass, Function&lt;C, R&gt; function){\n        return new MyFunctionHolder&lt;C, R&gt;(function);\n    }\n\n    \n    @Test\n    public void testMultiLevelStreams() {\n        List&lt;MyObj&gt; list = Arrays.asList(new MyObj(&quot;one&quot;), new MyObj(&quot;two&quot;));\n        \n        MyFunctionHolder&lt;List&lt;MyObj&gt;, List&lt;String&gt;&gt; fh = forCollectionOfType(   List.class, \n                                                    MyObj.class, \n                                                    l -&gt; l.stream()\n                                                    .map(o -&gt; o.getArg1())  // compile error &quot;cannot find symbol\\n  symbol:   method getArg1()\\n  variable o of type java.lang.Object&quot;\n                                                    .toList()\n                            );\n        \n        List&lt;String&gt; rslt = fh.f.apply(list);\n        \n    }\n\n}\n</code></pre>\n<p>The objective is to have the static forCollectionOfType method accept the class of a collection, the class of the elements in the collection, and a function to apply to the collection itself.</p>\n<p>One potentially useful data point is that when I do this, I get compile errors in Eclipse as well - so I'm really thinking I must be doing something wrong with the generics:</p>\n<pre><code>    Function&lt;List&lt;MyObj&gt;, List&lt;String&gt;&gt; listFunction = l -&gt; l.stream().map(o -&gt; o.getArg1()).toList();\n    \n    MyFunctionHolder&lt;List&lt;MyObj&gt;, List&lt;String&gt;&gt; fh2 = forCollectionOfType(  List.class, \n            MyObj.class, \n            listFunction\n            );\n</code></pre>\n<hr />\n<p>Update</p>\n<p>After reading this:  <a href=\"https://stackoverflow.com/questions/4343202/difference-between-super-t-and-extends-t-in-java\">Difference between &lt;? super T&gt; and &lt;? extends T&gt; in Java</a></p>\n<p>I wound up making a small change to the generics in the method declaration:</p>\n<p>Instead of <code>Class&lt;? extends C&gt; collectionClass</code>, I changed it to <code>Class&lt;? super C&gt; collectionClass</code></p>\n<p>The compiler error is now gone.  However, I can now pass Object.class to the static method - and there is no compile time check to make sure the function generic parameters are consistent with the collection and element classes we pass in:</p>\n<pre><code>    MyFunctionHolder&lt;List&lt;MyObj&gt;, List&lt;String&gt;&gt; fh = forCollectionOfType(   Object.class, // Whoa - that's not a Collection!\n                                                MyObj.class, \n                                                l -&gt; l.stream()\n                                                .map(o -&gt; o.getArg1())\n                                                .toList()\n</code></pre>\n<p>It actually seems like I could remove the collection type entirely (the generic type checking is going to come from the function type).</p>\n<p>However, we have downstream reasons for needing the collection class - but it looks like there is no way to ensure that the collection type is consistent with the function.</p>\n<p>Let me know if I'm wrong or missing something!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

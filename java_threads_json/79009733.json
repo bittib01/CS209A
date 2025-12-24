@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "multithreading",
+      "concurrency",
+      "java-threads"
+    ],
+    "owner": {
+      "account_id": 35788728,
+      "reputation": 11,
+      "user_id": 27402209,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/4c34fb8a259f9fed9d8d86d050c43b5f?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Anonimni Gost",
+      "link": "https://stackoverflow.com/users/27402209/anonimni-gost"
+    },
+    "is_answered": false,
+    "view_count": 63,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1740601203,
+    "creation_date": 1726927358,
+    "last_edit_date": 1726929861,
+    "question_id": 79009733,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79009733/daemon-thread-set-to-enter-a-command-to-stop-user-threads",
+    "title": "Daemon thread set to enter a command to stop user threads",
+    "body": "<p>I need help solving this problem which I have, so if anyone had a similar problem, that will help me a lot. The problem is related to concurrent programming in Java.</p>\n<p>I have a Ball class, and a Test class. I have created a daemon thread that requires input, and if the command 'STOP' is entered, all threads stop running, and the program should print &quot;Jumping aborted&quot; and the program should terminate. On the other hand, if I do not enter anything, it is necessary for the program to print that &quot;All balls have jumped&quot;, and for the program to finish working.</p>\n<p>Here's my code:</p>\n<pre><code>Ball.java\n</code></pre>\n<pre><code>public class Ball extends Thread {\n    public int id;\n    public static volatile boolean flag = false;\n    public static volatile Object lock = new Object();\n    public boolean isJumped = false;\n\n    public Ball(int id) {\n        this.id = id;\n    }\n\n    public void pauseThread() {\n        flag = true;\n    }\n\n    @Override\n    public void run() {\n        while (!flag) {\n            synchronized (lock) {\n                if (flag) {\n                    lock.notifyAll();\n                    break;\n                }\n                if (!isJumped) {\n                    System.out.println(&quot;Ball &quot; + id + &quot; jumping...&quot;);\n                    isJumped = true;\n                    try {\n                        Thread.sleep(1000);\n                    } catch (InterruptedException e) {\n                        e.printStackTrace();\n                    }\n                }\n            }\n        }\n    }\n}\n</code></pre>\n<pre><code>Test.java\n</code></pre>\n<pre><code>import java.io.IOException;\nimport java.lang.reflect.Array;\nimport java.nio.file.*;\nimport java.util.*;\nimport java.util.stream.Collectors;\n\npublic class Test\n{\n   private static volatile boolean on = true;\n   public static Object lock = new Object();\n   public static void main(String args[])\n   {\n    List&lt;Ball&gt; balls  =  new ArrayList&lt;&gt;();\n    for(int i = 0; i &lt; 50; i++)\n    {\n        Ball ball = new Ball(i);\n        balls.add(ball);\n\n    }\n    for(Ball ball : balls)\n    {\n        ball.start();\n    }\n\n\n    // Create a deamon thread:\n\n    Thread inputThread = new Thread(() -&gt; {\n        while (true) {\n            Scanner scanner = new Scanner(System.in);\n            String input = scanner.nextLine().toUpperCase();\n\n            if (input.equals(&quot;STOP&quot;)) {\n                for (Ball ball : balls) {\n                    ball.pauseThread();\n                }\n                on = false;\n                System.out.println(&quot;Jumping Aborted...&quot;);\n                break;\n            }\n        }\n\n    });\n    inputThread.setDaemon(true);\n    inputThread.start();\n\n\n    if (on) {\n        for (Ball ball : balls) {\n            try {\n                ball.join();\n            } catch (InterruptedException ie) {\n                ie.printStackTrace();\n            }\n        }\n        System.out.println(&quot;All balls are jumped...&quot;);\n    }\n\n}\n}\n</code></pre>\n<p>What I want is that when I enter 'STOP' it says &quot;Jumping Aborted&quot;, and the program ends. Also, I want when I don't enter anything, it should print &quot;All balls jumped&quot; and the program should end.\nI find this behavior strange, because if I don't input anything, which causes the program to still wait for me to input something, shouldn't this daemon thread terminate when the other user threads and main thread terminate?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

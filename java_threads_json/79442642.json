@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "exception",
+      "antlr4"
+    ],
+    "owner": {
+      "account_id": 24678894,
+      "reputation": 7,
+      "user_id": 18572905,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a-/AOh14GjCeK0g7bfgH5ahs3mSSMsNB_fh6oxaatqpp3zEGA=k-s256",
+      "display_name": "Willo678",
+      "link": "https://stackoverflow.com/users/18572905/willo678"
+    },
+    "is_answered": false,
+    "view_count": 79,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1747731967,
+    "creation_date": 1739684703,
+    "last_edit_date": 1747731967,
+    "question_id": 79442642,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79442642/java-antlr4-parsecancellationexception-ignored",
+    "title": "Java Antlr4 ParseCancellationException Ignored",
+    "body": "<p>I'm working on a mini compiler project, and I was attempting to throw a <code>ParseCancellationException</code> in a <code>parseListener</code> class or similar exception to halt parsing upon encountering a fatal error, however this simply gets ignored during execution.</p>\n<p>I was wondering if anyone knew a way to successfully halt parsing upon throwing an exception.</p>\n<p>I have verified through debugging that the exception is in fact thrown, though it seems to be ignored. I have also attempted throwing <code>RuntimeExceptions</code> instead, to no avail.</p>\n<p>My program uses a <code>stack</code> to store results of expressions, and for some reason <code>EmptyStackExceptions</code> seem to successfully halt parsing.</p>\n<p>Here is the code of my method I am experiencing issues with:</p>\n<pre><code> @Override\n    public void exitAddExpr(BasicLangParser.AddExprContext ctx) {\n        Util.Value left = stack.pop();\n        Util.Value right = stack.pop();\n\n        if (left.datatype==right.datatype) {\n            String result = switch (left.datatype) {\n                case INT, FLOAT -&gt; String.valueOf((Double)left.getValue() + (Double)right.getValue());\n                case STRING, CHAR -&gt; (String)left.getValue() + (String)right.getValue();\n                default -&gt; throw new ParseCancellationException(&quot;Addition Error - Invalid Datatype (&quot;+left.datatype.toString()+&quot;,&quot;+right.datatype.toString()+&quot;)&quot;);\n            };\n            stack.push(Util.Value.newValue(result));\n        } else {\n            throw new ParseCancellationException(&quot;Addition Error - Mismatched Datatypes (&quot;+left.datatype.toString()+&quot;,&quot;+right.datatype.toString()+&quot;)&quot;);\n        }\n\n        super.exitAddExpr(ctx);\n    }\n\n</code></pre>\n<p>Because this code does in fact throw an exception, the 12th line <code>stack.push()</code> does not run, and so later in my program I encounter the aforementioned empty stack exception.</p>\n<p>Edit:\nI am not currently attempting to catch the <code>ParseCancellationException</code> within my code for now; I simply caught this exception using Intellij's debugger and enabling exception breakpoints.</p>\n<p>I'm working on a single threaded application, so the exception is definitely not thrown on the UI thread.</p>\n<p>I have not blocked exception propagation within my code, though I am unaware as to whether Antlr4 does this, hence my question.</p>\n<p>The only other exception is a caught exception where I attempt to parse a String as a double in order to determine whether it is numeric.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

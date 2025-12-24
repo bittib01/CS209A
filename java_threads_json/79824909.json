@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "windows",
+      "keycloak"
+    ],
+    "owner": {
+      "account_id": 4519669,
+      "reputation": 389,
+      "user_id": 3673331,
+      "user_type": "registered",
+      "accept_rate": 88,
+      "profile_image": "https://graph.facebook.com/100003090005476/picture?type=large",
+      "display_name": "Mihai",
+      "link": "https://stackoverflow.com/users/3673331/mihai"
+    },
+    "is_answered": false,
+    "view_count": 35,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1764752902,
+    "creation_date": 1763584810,
+    "question_id": 79824909,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79824909/keycloak-server-login-error-when-accessing-server-on-windows",
+    "title": "KeyCloak Server LOGIN_ERROR when accessing server on Windows",
+    "body": "<p>Running KeyCloak 26.4.2 or 26.4.5 and jdk-21 on Windows 10.</p>\n<pre><code>    // script to generate and install certificate\nfunction Generate-Certificate{\n    $keycloakInstallationDir = &quot;C:\\PathToCertificate&quot;\n    try{\n      $certFileName = &quot;keycloakCertificate.pfx&quot;\n      $certFileFullPath=&quot;$keycloakInstallationDir\\\\$certFileName&quot;\n      # Use only safe characters: A-Z, a-z, 0-9, and basic symbols (no quotes, backticks, backslashes, etc.)\n      $safeChars = &quot;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%*+-=?&quot;\n      $password = -join ((1..32) | ForEach-Object { $safeChars[(Get-Random -Maximum $safeChars.Length)] })\n      # Define the DNS name of the certificate\n      $dnsName = &quot;VMA-XXXXXX&quot;\n      Get-ChildItem -Path Cert:\\LocalMachine\\ROOT | Where-Object { $_.Subject -match $dnsName } | Remove-Item\n      if (-not (Get-ChildItem -Path Cert:\\LocalMachine\\ROOT | Where-Object { $_.Subject -match $dnsName })) {\n          $cert = New-SelfSignedCertificate `\n              -Subject $dnsName `\n              -DnsName $dnsName `\n              -NotAfter (Get-Date).AddYears(1) `\n              -KeyAlgorithm RSA `\n              -KeyLength 4096 `\n              -HashAlgorithm &quot;SHA512&quot;\n              \n          $pfxPassword = ConvertTo-SecureString -String $password -Force -AsPlainText\n          Export-PfxCertificate -Cert $cert -FilePath &quot;$certFileFullPath&quot; -Password $pfxPassword\n          Import-PfxCertificate -FilePath &quot;$certFileFullPath&quot; -CertStoreLocation Cert:\\LocalMachine\\ROOT -Password $pfxPassword\n          \n          # Store password in a file next to the certificate\n          $passwordFilePath = &quot;$keycloakInstallationDir\\\\keycloakCertificate.pwd&quot;\n          Set-Content -Path $passwordFilePath -Value $password -NoNewline\n      }\n      else {\n          Write-Host &quot;Certificate with DNS name $dnsName already exists&quot;\n      }\n    }\n    catch {\n        Write-Host &quot;$($MyInvocation.MyCommand.Name) - $_.Exception.Message&quot;\n    }\n}\n</code></pre>\n<p>Terminal command to start keycloak:</p>\n<pre><code>kc.bat start --verbose --https-key-store-file=&quot;C:/PathToCertificate/keycloakCertificate.pfx&quot; --https-key-store-password=&quot;XXXXXXXX&quot; --https-key-store-type=PKCS12 --hostname=VMA-XXXXXXXX --log-level=debug &gt; log.txt\n</code></pre>\n<p>Admin user creation is accessed at https://localhost:8443, after creating the admin user I get:</p>\n<p>&quot;We are sorry... Invalid parameter: redirect_uri\n« Back to Application&quot;</p>\n<p>Error in terminal:</p>\n<pre><code>2025-11-19 20:59:54,604 WARN  [org.keycloak.events] (executor-thread-3) type=&quot;LOGIN_ERROR&quot;, realmId=&quot;dd01824c-d9be-4ace-822e-5c1232dc1577&quot;, realmName=&quot;master&quot;, clientId=&quot;security-admin-console&quot;, userId=&quot;null&quot;, ipAddress=&quot;10.113.157.61&quot;, error=&quot;invalid_redirect_uri&quot;, redirect_uri=&quot;https://vma-bf27cbdfbe:8443/admin/master/console/&quot;\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

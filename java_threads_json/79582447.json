@@ -1,0 +1,37 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "postgresql",
+      "view",
+      "migration",
+      "liquibase"
+    ],
+    "owner": {
+      "account_id": 176410,
+      "reputation": 320,
+      "user_id": 407088,
+      "user_type": "registered",
+      "accept_rate": 75,
+      "profile_image": "https://www.gravatar.com/avatar/4a8632084a26acb9c096afd674ad773d?s=256&d=identicon&r=PG",
+      "display_name": "mcpierce",
+      "link": "https://stackoverflow.com/users/407088/mcpierce"
+    },
+    "is_answered": true,
+    "view_count": 106,
+    "accepted_answer_id": 79583652,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1745324762,
+    "creation_date": 1745069493,
+    "last_edit_date": 1745249889,
+    "question_id": 79582447,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79582447/view-created-fine-before-now-fails-every-time-on-postgres-using-liquibase",
+    "title": "View created fine before, now fails every time on Postgres using Liquibase",
+    "body": "<p>This is the view:</p>\n<pre class=\"lang-sql prettyprint-override\"><code>SELECT DISTINCT d.comic_book_id   as comic_book_id,\n                            d.comic_detail_id as comic_detail_id,\n                            d.archive_type    as archive_type,\n                            d.comic_state     as comic_state,\n                            CASE\n                                WHEN EXISTS(SELECT *\n                                            FROM comic_metadata_sources s\n                                            WHERE s.comic_book_id = d.comic_book_id)\n                                    THEN false\n                                ELSE true END AS is_unscraped,\n                            d.comic_type      as comic_type,\n                            d.publisher       as publisher,\n                            d.series          as series,\n                            d.volume          as volume,\n                            d.issue_number    as issue_number,\n                            d.description     as description,\n                            d.notes           as notes,\n                            (SELECT RIGHT(CONCAT('0000000000', d.issue_number), 10)) as sortable_issue_number, d.title as title, (\n            SELECT COUNT(*)\n            FROM comic_pages cp\n            WHERE cp.comic_book_id = d.comic_book_id) as page_count\n                , d.cover_date as cover_date\n                , CASE WHEN d.cover_date IS NULL THEN 0 ELSE MONTH (cover_date)\n            END\n            as month_published\n                    , CASE WHEN d.cover_date IS NULL THEN 0 ELSE YEAR (cover_date)\n            END\n            as year_published,\n                            d.store_date as store_date,\n                            d.added_date as added_date\n            FROM comic_details d\n</code></pre>\n<p>In v2 of our project, this view created and worked just fine.</p>\n<p>I'm currently working on v3 of the project, and part of the requirement is to provide a new set of migrations to let users create the tables from scratch and have them look identical to what an existing user would get. So I copied the contents of the view from our v2 codebase into the migration for v3.</p>\n<p>When I run the migration on all other supported databases (H2, MySQL, Mariadb) it, and all related operations, works fine.</p>\n<p>But, when I run it on Postgres, it errors out with:</p>\n<pre class=\"lang-none prettyprint-override\"><code>Caused by: org.postgresql.util.PSQLException: ERROR: function month(date) does not exist\n  Hint: No function matches the given name and argument types. You might need to add explicit type casts.\n</code></pre>\n<p>But, when I go back to our v2 code and run <strong>the exact same Liquibase migration content</strong> it works just fine, no problems. I even copied the body of the old migration into the new one and it <strong>fails</strong>. But the old code still works on the same Postgres instance and creates a working view.</p>\n<p>I tried replacing the call to <code>month()</code> and <code>year()</code> with:</p>\n<pre class=\"lang-sql prettyprint-override\"><code>THEN SELECT EXTRACT(MONTH FROM cover_date)\n</code></pre>\n<p>and:</p>\n<pre class=\"lang-sql prettyprint-override\"><code>THEN SELECT EXTRACT(YEAR FROM cover_date)\n</code></pre>\n<p>The view gets created fine then, but the runtime replaces them with a call to <code>MONTH()</code> and <code>YEAR()</code> respectively and Postgres again gives the same error message.</p>\n<p>Another difference between our v2 and v3 code is that v3 is that we migrated from Spring Boot 3.2.3 to 3.4.1. I'm not sure if the Liquibase version changed between them, but could there be some kind of bug in the newer LB version? I'm assuming Spring bumped it to a newer version.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

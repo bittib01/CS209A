@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-poi"
+    ],
+    "owner": {
+      "account_id": 81822,
+      "reputation": 206055,
+      "user_id": 230513,
+      "user_type": "registered",
+      "accept_rate": 100,
+      "profile_image": "https://www.gravatar.com/avatar/632732029bf05854c17d0dea6c82dcb4?s=256&d=identicon&r=PG",
+      "display_name": "trashgod",
+      "link": "https://stackoverflow.com/users/230513/trashgod"
+    },
+    "is_answered": true,
+    "view_count": 101,
+    "accepted_answer_id": 79574061,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1744667707,
+    "creation_date": 1730160033,
+    "last_edit_date": 1730245294,
+    "question_id": 79135438,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79135438/illegalstateexception-when-invoking-evaluate-on-workday-function",
+    "title": "IllegalStateException when invoking evaluate on WORKDAY function",
+    "body": "<p><strong>Problem</strong>: Using <a href=\"/questions/tagged/apache-poi\" class=\"s-tag post-tag\" title=\"show questions tagged &#39;apache-poi&#39;\" aria-label=\"show questions tagged &#39;apache-poi&#39;\" rel=\"tag\" aria-labelledby=\"tag-apache-poi-tooltip-container\" data-tag-menu-origin=\"Unknown\">apache-poi</a> v5.3.0, the minimal example below throws <code>IllegalStateException</code> when invoking <a href=\"https://poi.apache.org/apidocs/dev/org/apache/poi/ss/formula/BaseFormulaEvaluator.html#evaluate-org.apache.poi.ss.usermodel.Cell-\" rel=\"nofollow noreferrer\"><code>evaluate()</code></a> on a formula containing the <a href=\"https://support.microsoft.com/en-us/office/workday-function-f764a5b7-05fc-4494-9486-60d494efbf33\" rel=\"nofollow noreferrer\"><code>WORKDAY</code></a> function. The text of the formula includes a <em>cell reference</em> for the <code>Days</code> parameter.</p>\n<p><strong>Mitigation</strong>: The issue does <em>not</em> arise when the <code>Days</code> parameter is either a <em>constant</em> or a <em>function call</em>, as seen in the commented lines; either produces the expected result. When traversing a spreadsheet and catching the <code>IllegalStateException</code>, invoking <a href=\"https://poi.apache.org/apidocs/dev/org/apache/poi/ss/usermodel/Cell.html#getNumericCellValue--\" rel=\"nofollow noreferrer\"><code>getNumericCellValue()</code></a> on the relevant <code>Cell</code> returns &quot;the pre-calculated value,&quot; as expected.</p>\n<p><strong>Question</strong>: Is this a bug, or have I misunderstood the API?</p>\n<p><strong>Addendum</strong>: @PJ Fanning has submitted this as <a href=\"https://bz.apache.org/bugzilla/show_bug.cgi?id=69418\" rel=\"nofollow noreferrer\"><em>Bug 69418</em></a>.</p>\n<p><strong>Code</strong>:</p>\n<pre><code>package org.example.poi;\n\nimport org.apache.poi.ss.usermodel.CellType;\nimport org.apache.poi.ss.usermodel.DateUtil;\nimport org.apache.poi.xssf.usermodel.XSSFWorkbook;\n\n/** @see &lt;a href=&quot;https://stackoverflow.com/q/79135438/230513&quot;&gt;Q&amp;A&lt;/a&gt; */\npublic class FormulaISE {\n\n    private static final String LOG_KEY = &quot;log4j2.loggerContextFactory&quot;;\n    private static final String LOG_VALUE\n        = &quot;org.apache.logging.log4j.simple.SimpleLoggerContextFactory&quot;;\n\n    public static void main(String[] args) {\n        System.setProperty(LOG_KEY, LOG_VALUE);\n        var book = new XSSFWorkbook();\n        var sheet = book.createSheet();\n        var row = sheet.createRow(0);\n        var cellA1 = row.createCell(0);\n        cellA1.setCellValue(3);\n        var cellB1 = row.createCell(1);\n        \n        //cellB1.setCellFormula(&quot;WORKDAY(TODAY(), 3)&quot;);\n        cellB1.setCellFormula(&quot;WORKDAY(TODAY(), A1)&quot;);\n        //cellB1.setCellFormula(&quot;WORKDAY(TODAY(), INT(A1))&quot;);\n\n        var eval = book.getCreationHelper().createFormulaEvaluator();\n        var cellValue = eval.evaluate(cellB1);\n        if (cellValue.getCellType().equals(CellType.NUMERIC)) {\n            System.out.println(DateUtil.getLocalDateTime(cellValue.getNumberValue()));\n        }\n    }\n}\n</code></pre>\n<p><strong>Stack trace</strong>:</p>\n<pre><code>Exception in thread &quot;main&quot; java.lang.IllegalStateException: Failed to evaluate cell: Sheet0!B1, value: WORKDAY(TODAY(), A1)\n    at org.apache.poi.xssf.usermodel.BaseXSSFFormulaEvaluator.evaluateFormulaCellValue(BaseXSSFFormulaEvaluator.java:76)\n    at org.apache.poi.ss.formula.BaseFormulaEvaluator.evaluate(BaseFormulaEvaluator.java:109)\n    at org.example.poi.FormulaISE.main(FormulaISE.java:27)\nCaused by: java.lang.IllegalStateException: Unexpected arg eval type (org.apache.poi.ss.formula.LazyRefEval)\n    at org.apache.poi.ss.formula.eval.OperandResolver.coerceValueToDouble(OperandResolver.java:270)\n    at org.apache.poi.ss.formula.atp.ArgumentsEvaluator.evaluateNumberArg(ArgumentsEvaluator.java:116)\n    at org.apache.poi.ss.formula.atp.WorkdayFunction.evaluate(WorkdayFunction.java:67)\n    at org.apache.poi.ss.formula.UserDefinedFunction.evaluate(UserDefinedFunction.java:77)\n    at org.apache.poi.ss.formula.OperationEvaluatorFactory.evaluate(OperationEvaluatorFactory.java:135)\n    at org.apache.poi.ss.formula.WorkbookEvaluator.evaluateFormula(WorkbookEvaluator.java:537)\n    at org.apache.poi.ss.formula.WorkbookEvaluator.evaluateAny(WorkbookEvaluator.java:264)\n    at org.apache.poi.ss.formula.WorkbookEvaluator.evaluate(WorkbookEvaluator.java:205)\n    at org.apache.poi.xssf.usermodel.BaseXSSFFormulaEvaluator.evaluateFormulaCellValue(BaseXSSFFormulaEvaluator.java:63)\n    ... 2 more\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

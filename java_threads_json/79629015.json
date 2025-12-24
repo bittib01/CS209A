@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "google-oauth",
+      "spring-oauth2"
+    ],
+    "owner": {
+      "account_id": 29897314,
+      "reputation": 407,
+      "user_id": 22911863,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/z1YDCFM5.jpg?s=256",
+      "display_name": "authorizeduser",
+      "link": "https://stackoverflow.com/users/22911863/authorizeduser"
+    },
+    "is_answered": true,
+    "view_count": 192,
+    "accepted_answer_id": 79638279,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1748231100,
+    "creation_date": 1747667062,
+    "question_id": 79629015,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79629015/spring-boot-oauth2-does-not-invoke-successhandler-and-always-redirects-to-af",
+    "title": "Spring boot oauth2 does not invoke successHandler and always redirects to &quot;/&quot; after authentication",
+    "body": "<p>I am trying to set up a basic google oauth setup for a spring boot app. My idea is that frontend will redirect to a url like http://localhost:8081/oauth2/authorization/google and after authentication, the backend creates user, user session then redirects back to localhost:3000 (frontend)</p>\n<p>I have written a Oauth2SuccessHandler and Oauth2FailureHandler for this purpose.\nThis is my SecurityConfig.</p>\n<pre><code>import lombok.RequiredArgsConstructor;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.security.config.annotation.web.builders.HttpSecurity;\nimport org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;\nimport org.springframework.security.web.SecurityFilterChain;\n\n@EnableWebSecurity\n@RequiredArgsConstructor\npublic class SecurityConfig {\n\n    private final OAuth2SuccessHandler successHandler;\n    private final OAuth2FailureHandler failureHandler;\n\n    @Bean\n    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {\n        http\n                .csrf().disable()\n                .authorizeHttpRequests(auth -&gt; auth\n                        .requestMatchers(&quot;/oauth2/**&quot;,&quot;/auth/**&quot;).permitAll()\n                        .anyRequest().authenticated()\n                )\n                .oauth2Login(oauth -&gt; oauth\n                        .successHandler(successHandler)\n                        .failureHandler(failureHandler)\n                );\n        return http.build();\n    }\n\n}\n</code></pre>\n<p>It mostly seems to work however after authentication, the Oauth2successHandler is not invoked. It looks like this</p>\n<pre><code>@Component\n@RequiredArgsConstructor\npublic class OAuth2SuccessHandler implements AuthenticationSuccessHandler {\n\n@Override\npublic void onAuthenticationSuccess(HttpServletRequest request,\n        HttpServletResponse response,\n        Authentication authentication) throws IOException {\n//My logic\n}\n}\n</code></pre>\n<p>&quot;My logic&quot; never gets executed. The authentication seems to be successful, I am able to see my google account details in the logs. After that, it redirects to &quot;/&quot; (localhost:8081/) instead of going to my success handler.</p>\n<p>In case application.properties is useful,</p>\n<pre><code>spring.security.oauth2.client.registration.google.client-id=\nspring.security.oauth2.client.registration.google.client-secret=\nspring.security.oauth2.client.registration.google.scope=openid,email,profile\nspring.security.oauth2.client.registration.google.redirect-uri={baseUrl}/login/oauth2/code/{registrationId}\n\nspring.security.oauth2.client.provider.google.authorization-uri=https://accounts.google.com/o/oauth2/v2/auth\nspring.security.oauth2.client.provider.google.token-uri=https://oauth2.googleapis.com/token\nspring.security.oauth2.client.provider.google.user-info-uri=https://openidconnect.googleapis.com/v1/userinfo\nspring.security.oauth2.client.provider.google.user-name-attribute=sub\n</code></pre>\n<p>My question is to understand why my SuccessHandler is not invoked and how to fix it.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

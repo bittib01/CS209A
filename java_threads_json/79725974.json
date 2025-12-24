@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "quarkus",
+      "rest-assured",
+      "reactive"
+    ],
+    "owner": {
+      "account_id": 13299918,
+      "reputation": 712,
+      "user_id": 9601720,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/5b100b700e1dfc241325589fd704c25a?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "thmasker",
+      "link": "https://stackoverflow.com/users/9601720/thmasker"
+    },
+    "is_answered": false,
+    "view_count": 57,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1754389853,
+    "creation_date": 1754389853,
+    "question_id": 79725974,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79725974/quarkus-test-reactive-failure",
+    "title": "Quarkus test reactive failure",
+    "body": "<p>I have the following resource:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Path(&quot;/config&quot;)\n@RequiredArgsConstructor\npublic class Resource {\n\n  private final Service service;\n\n  @PUT\n  @Consumes(MediaType.APPLICATION_JSON)\n  @Produces(MediaType.APPLICATION_JSON)\n  public Uni&lt;Response&gt; putConfig(List&lt;Config&gt; configs) {\n    return service.updateConfig(configs)\n        .map(ignored -&gt; Response.noContent().build())\n        .onFailure().recoverWithItem(ignored -&gt; Response.serverError().build());\n  }\n\n}\n</code></pre>\n<p>and the corresponding tests:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@QuarkusTest\nclass ResourceTest {\n\n  @InjectMock\n  Service service;\n\n  @Test\n  void putConfigOk() {\n    final var request = mockConfig();\n\n    when(service.updateConfig(request)).thenReturn(Uni.createFrom().voidItem());\n\n    given()\n        .body(request)\n        .contentType(MediaType.APPLICATION_JSON)\n        .when().put(&quot;/config&quot;)\n        .then()\n        .statusCode(204);\n  }\n\n  @Test\n  void putConfigFails() {\n    final var request = mockConfig();\n\n    when(service.updateConfig(request)).thenReturn(Uni.createFrom().failure(RuntimeException::new));\n\n    given()\n        .body(request)\n        .contentType(MediaType.APPLICATION_JSON)\n        .when().put(&quot;/config&quot;)\n        .then()\n        .statusCode(500);\n  }\n\n  private List&lt;Config&gt; mockConfig() {\n    return List.of(new Config());\n  }\n\n}\n</code></pre>\n<p>First test runs perfectly, returns 204. However, second test still returns 204. I don't know what I'm doing wrong. In fact, running test with coverage shows failure part is never covered... Any ideas?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

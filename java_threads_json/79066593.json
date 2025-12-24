@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot"
+    ],
+    "owner": {
+      "account_id": 374414,
+      "reputation": 572,
+      "user_id": 724604,
+      "user_type": "registered",
+      "accept_rate": 68,
+      "profile_image": "https://www.gravatar.com/avatar/17be131b37b5154047f20a42af958a62?s=256&d=identicon&r=PG",
+      "display_name": "buddyp450",
+      "link": "https://stackoverflow.com/users/724604/buddyp450"
+    },
+    "is_answered": true,
+    "view_count": 110,
+    "accepted_answer_id": 79067167,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1745664112,
+    "creation_date": 1728399626,
+    "last_edit_date": 1728402262,
+    "question_id": 79066593,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79066593/how-can-i-fix-typeconvertersupport-for-spring-boot-3-x-when-using-contextconfigu",
+    "title": "How can I fix TypeConverterSupport for Spring Boot 3.x when using ContextConfiguration classes?",
+    "body": "<p>I have some basic yaml like</p>\n<pre><code>myThing:\n  someValue: 10\n</code></pre>\n<p>and I'm running my tests and running into formatting exceptions surrounding</p>\n<p><code>TypeConverterSupport.convertIfNecessary(TypeConverterSupport.java:80)</code></p>\n<p>where it's trying to parse strings to Integers, or Integers to Strings, or Strings to LocalDate, all things that my application is able to do fine when it boots up the entire Spring Boot context with an annotation like <code>@SpringBootTest</code></p>\n<p>edit: I'm thinking I'm just missing a necessary class for this behavior in <code>@ContextConfiguration</code> but I can't find it for the life of me and I've spent hours on this.</p>\n<pre class=\"lang-java prettyprint-override\"><code>package com.example.demo;\n\nimport org.springframework.beans.factory.annotation.Value;\nimport org.springframework.stereotype.Component;\n\n@Component\npublic class MyThing {\n    @Value(&quot;${myThing.myValue}&quot;)\n    private Integer myValue;\n\n    public Integer getMyValue() {\n        return myValue;\n    }\n}\n\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>package com.example.demo;\n\nimport org.junit.jupiter.api.Test;\nimport org.junit.jupiter.api.extension.ExtendWith;\nimport org.springframework.beans.factory.annotation.Autowired;\nimport org.springframework.test.context.ContextConfiguration;\nimport org.springframework.test.context.junit.jupiter.SpringExtension;\n\nimport static org.junit.jupiter.api.Assertions.assertEquals;\n\n@ExtendWith(SpringExtension.class)\n@ContextConfiguration(classes = {MyThing.class}) // Won't be able to load the context\nclass DemoApplicationTests {\n\n    @Autowired\n    private MyThing myThing;\n\n    @Test\n    void contextLoads() {\n        assertEquals(10, myThing.getMyValue());\n    }\n\n}\n</code></pre>\n<pre class=\"lang-yaml prettyprint-override\"><code>myThing:\n  myValue: 10\n</code></pre>\n<blockquote>\n<p>Caused by: java.lang.NumberFormatException: For input string: &quot;${myThing.myValue}&quot;\nat java.base/java.lang.NumberFormatException.forInputString(NumberFormatException.java:67)\nat java.base/java.lang.Integer.parseInt(Integer.java:654)\nat java.base/java.lang.Integer.valueOf(Integer.java:999)\nat org.springframework.util.NumberUtils.parseNumber(NumberUtils.java:203)\nat org.springframework.beans.propertyeditors.CustomNumberEditor.setAsText(CustomNumberEditor.java:115)\nat org.springframework.beans.TypeConverterDelegate.doConvertTextValue(TypeConverterDelegate.java:439)\nat org.springframework.beans.TypeConverterDelegate.doConvertValue(TypeConverterDelegate.java:412)\nat org.springframework.beans.TypeConverterDelegate.convertIfNecessary(TypeConverterDelegate.java:161)\nat org.springframework.beans.TypeConverterSupport.convertIfNecessary(TypeConverterSupport.java:80)\n... 39 more</p>\n</blockquote>\n<p>Using <code>@SpringBootTest</code> loads the full context with the converter service and the test passes.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

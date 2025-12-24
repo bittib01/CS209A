@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "logging",
+      "interceptor"
+    ],
+    "owner": {
+      "account_id": 10642398,
+      "reputation": 7588,
+      "user_id": 7836976,
+      "user_type": "registered",
+      "accept_rate": 95,
+      "profile_image": "https://www.gravatar.com/avatar/a57c0f1a2af768690957df659cc28f0f?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "runnerpaul",
+      "link": "https://stackoverflow.com/users/7836976/runnerpaul"
+    },
+    "is_answered": false,
+    "view_count": 123,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1754030387,
+    "creation_date": 1752674570,
+    "last_edit_date": 1754030387,
+    "question_id": 79703537,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79703537/mdc-clear-in-dependency-not-working-with-interceptor",
+    "title": "MDC.clear() in dependency not working with interceptor",
+    "body": "<p>I have this class in my Spring Boot app:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Configuration\npublic class LogContextCleanerConfig {\n\n  @Bean\n  public LogContextCleaner logContextCleaner() {\n    return new LogContextCleaner();\n  }\n}\n\n</code></pre>\n<p>I also have WebConfig:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Configuration\npublic class WebConfig implements WebMvcConfigurer {\n  @Autowired private LogContextCleaner logContextCleaner;\n\n  @Override\n  public void addInterceptors(InterceptorRegistry registry) {\n    registry.addInterceptor(loggingInterceptor(logContextCleaner);\n  }\n\n  private HandlerInterceptor loggingInterceptor(LogContextCleaner logContextCleaner) {\n    return new HandlerInterceptor() {\n      @Override\n      public void afterCompletion(HttpServletRequest req, HttpSerletResponse res, Object hander, Exception ex) throws Exception {\n        logContextCleaner.afterCompletion(req, res, handler, ex);\n      }\n    };\n  } \n}\n</code></pre>\n<p>The afterCompletion is in a dependency and looks like this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Component\npublic class LogContextCleaner implements HandlerInterceptor {\n  @Override\npublic void afterCompletion(HttpServletRequest req, HttpServletResponse res, Object handler, Exception ex) throws Exception {\n    MDC.clear();\n}\n</code></pre>\n<p>The <code>MDC.clear()</code> never seems to get executed though. I can't figure out why. Any pointers woud be greatly appreciated.</p>\n<p><strong>UPDATE</strong></p>\n<p>I was wrong to add <code>loggingInterceptor</code> and have now removed it. Also, I was clearing the wrong MDC above. The correct MDC is in OrdersLogContext. OrdersLogContext has the below method which I can see is getting executed but I still have the issue:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public void flush() {\n   try {\n      MDC.clear();\n   { catch(Exception e) {\n      LOGGER.errror(&quot;Unable to clear context&quot;, ex);\n   }\n}\n</code></pre>\n<p>I added <code>LOGGER.info(&quot;clear(): %s.formatted(MDC.getCopyOfContextMap());</code> above <code>MDC.clear()</code> to see if it shows anything. Strangely I'm now unable to recreate the issue. The context is clearing correctly. Is there any reason why this could be happening?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

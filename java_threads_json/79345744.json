@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "oracle-database",
+      "spring-boot",
+      "spring-jms",
+      "oracle-aq"
+    ],
+    "owner": {
+      "account_id": 994221,
+      "reputation": 53,
+      "user_id": 1010595,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/b3f67ee19305a9c261e6cb3ba5ab5053?s=256&d=identicon&r=PG",
+      "display_name": "thomjah",
+      "link": "https://stackoverflow.com/users/1010595/thomjah"
+    },
+    "is_answered": false,
+    "view_count": 90,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1740019290,
+    "creation_date": 1736513054,
+    "question_id": 79345744,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79345744/jms-application-unable-to-consume-from-oracle-sharded-queue",
+    "title": "JMS application unable to consume from Oracle Sharded Queue",
+    "body": "<p>We have a system that successfully send messages across a normal, non-sharded Oracle Advanced Queue (AQ), but when we change to a Sharded Queue, the Java application is unable to consume the messages. The messages are posted from PL/SQL.</p>\n<p><strong>Working Setup</strong></p>\n<p>Create Queues</p>\n<pre><code>begin\n  dbms_aqadm.create_queue_table(\n    queue_table =&gt; 'poc_queue_source.nps_transactions_qt',\n    queue_payload_type =&gt; 'SYS.AQ$_JMS_TEXT_MESSAGE',\n    multiple_consumers =&gt; FALSE\n  );\n  dbms_aqadm.create_queue(\n    queue_name =&gt; 'poc_queue_source.nps_transactions_queue',\n    queue_table =&gt; 'poc_queue_source.nps_transactions_qt'\n  );\n  dbms_aqadm.start_queue(\n    queue_name =&gt; 'poc_queue_source.nps_transactions_queue'\n  );\nend;\n/\n</code></pre>\n<p>Posting in PL/SQL (in a trigger):</p>\n<pre><code>declare\n  row_json            varchar2(4000);\n  enqueue_options     dbms_aq.enqueue_options_t;\n  message_properties  dbms_aq.message_properties_t;\n  message_handle      RAW(16);\n  message             SYS.AQ$_JMS_TEXT_MESSAGE := SYS.AQ$_JMS_TEXT_MESSAGE.construct;\nbegin\n  row_json := json_object(\n    'transactionId'  value  :NEW.transactionid,\n    'srcaccountid'  value  :NEW.srcaccountid,\n    'dstaccountid'  value  :NEW.dstaccountid\n    -- More stuff here\n    null on null\n  );\n  message.set_text(row_json);\n  dbms_aq.enqueue(\n    queue_name =&gt; 'poc_queue_source.nps_transactions_queue',\n    enqueue_options =&gt; enqueue_options,\n    message_properties =&gt; message_properties,\n    payload =&gt; message,\n    msgid =&gt; message_handle\n  );\nend;\n</code></pre>\n<p>The receiving part is a Spring Boot application using Spring JMS. The last part in the JMSConfiguration class is:</p>\n<pre><code>@Bean\npublic DefaultMessageListenerContainer jmsListenerContainer(\n    DefaultJmsListenerContainerFactory jmsListenerContainerFactory,\n    JmsMessageListenerImpl messageListener,\n    @Value(&quot;${application.jms.listener.queue-name}&quot;) String queueName,\n    @Value(&quot;${application.jms.listener.idle-receives-per-task-limit}&quot;) Integer idleReceivesLimit\n) {\n    SimpleJmsListenerEndpoint endpoint = new SimpleJmsListenerEndpoint();\n    endpoint.setMessageListener(messageListener);\n    endpoint.setDestination(queueName);\n\n    DefaultMessageListenerContainer container = jmsListenerContainerFactory.createListenerContainer(endpoint);\n    // Setting idleReceivesPerTaskLimit makes the Listener scale down concurrency when the queue is idle.\n    container.setIdleReceivesPerTaskLimit(idleReceivesLimit);\n    return container;\n}\n</code></pre>\n<p>Here <code>JmsMessageListenerImpl</code> is our own Component that implements the JMS MessageListener interface.</p>\n<p>Library use:</p>\n<pre><code>&lt;dependency&gt;\n    &lt;groupId&gt;com.oracle.database.messaging&lt;/groupId&gt;\n    &lt;artifactId&gt;aqapi-jakarta&lt;/artifactId&gt;\n    &lt;version&gt;23.2.1.0&lt;/version&gt;\n&lt;/dependency&gt;\n</code></pre>\n<p>This setup works. The database posts messages to the queue, and the MessageListener receives them.</p>\n<p><strong>Failing Setup</strong></p>\n<p>But if I change to a Sharded Queue, it no longer receives them.</p>\n<p>Sharded Queue setup:</p>\n<pre><code>begin\n  dbms_aqadm.create_sharded_queue(\n    queue_name =&gt; 'poc_queue_source.nps_transactions_shdqueue',\n    multiple_consumers =&gt; FALSE,\n    queue_payload_type =&gt; DBMS_AQADM.JMS_TYPE\n  );\n  dbms_aqadm.start_queue(\n    queue_name =&gt; 'poc_queue_source.nps_transactions_shdqueue'\n  );\nend;\n/\n</code></pre>\n<p>PL/SQL is exactly the same except the queue name is changed:</p>\n<pre><code>declare\n  row_json            varchar2(4000);\n  enqueue_options     dbms_aq.enqueue_options_t;\n  message_properties  dbms_aq.message_properties_t;\n  message_handle      RAW(16);\n  message             SYS.AQ$_JMS_TEXT_MESSAGE := SYS.AQ$_JMS_TEXT_MESSAGE.construct;\nbegin\n  row_json := json_object(\n    'transactionId'  value  :NEW.transactionid,\n    'srcaccountid'  value  :NEW.srcaccountid,\n    'dstaccountid'  value  :NEW.dstaccountid\n    -- More stuff here\n    null on null\n  );\n  message.set_text(row_json);\n  dbms_aq.enqueue(\n    queue_name =&gt; 'poc_queue_source.nps_transactions_queue_shdqueue',\n    enqueue_options =&gt; enqueue_options,\n    message_properties =&gt; message_properties,\n    payload =&gt; message,\n    msgid =&gt; message_handle\n  );\nend;\n</code></pre>\n<p>And in the JMS app the queue name of the Destination is updated.</p>\n<p>I see messages appear in the Queue table in the database, but the <code>MessageConsumer.receive</code> call within <code>org.springframework.jms.support.destination.JmsDestinationAccessor#receiveFromConsumer</code> receives no Messages.</p>\n<p>Is there something wrong with my configuration and setup? I see the queue table structure between Non-Sharded and Sharded Queues are different.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

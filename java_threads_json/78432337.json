@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-mvc",
+      "spring-cloud",
+      "spring-cloud-feign"
+    ],
+    "owner": {
+      "account_id": 30005711,
+      "reputation": 1,
+      "user_id": 22994667,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocJmKi4XvCNjMejrA_YJz4jQ8XMqdeZKtjxUVLuLN1aTeA=k-s256",
+      "display_name": "Yu Yang",
+      "link": "https://stackoverflow.com/users/22994667/yu-yang"
+    },
+    "is_answered": false,
+    "view_count": 229,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1734895196,
+    "creation_date": 1714915154,
+    "last_edit_date": 1714915956,
+    "question_id": 78432337,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78432337/cyclic-http-400-errors-in-spring-boot-application-using-feign-client-for-schedul",
+    "title": "Cyclic HTTP 400 errors in Spring Boot application using Feign client for scheduled tasks",
+    "body": "<p>I am encountering a cyclic error pattern in a Spring Boot application utilizing a Feign client for inter-service communication. This issue specifically arises with scheduled tasks that make HTTP POST requests at one-minute intervals. The behavior observed is distinctly cyclic: if the application starts and the first scheduled request returns an HTTP 400 (Bad Request), all subsequent requests in that session continue to return HTTP 400 errors. If I terminate the process and restart the application, the behavior reverses — this time, all requests succeed without any errors. This pattern repeats every time the application is restarted: a session starts with errors will consistently have errors, and a session that starts correctly will run correctly throughout.</p>\n<p>This cyclical problem persists without any changes to the server, which is configured to handle requests consistently.</p>\n<p>Example Scenario:</p>\n<p>Start the application - the first request returns HTTP 400.</p>\n<p>All following requests in this session also return HTTP 400.</p>\n<p>Kill the application process and restart.</p>\n<p>This time, the first request after restarting is successful.</p>\n<p>All subsequent requests in this new session are successful.</p>\n<p>Kill and restart the process, and the issue from step 1 repeats.</p>\n<p>Here is the simplified version of my client and server code involved in the communication:</p>\n<pre class=\"lang-java prettyprint-override\"><code>    @FeignClient(name = &quot;withdraw-feign-client&quot;, url = &quot;127.0.0.1:8081&quot;)\n    public interface WithdrawFeignClient {\n        @PostMapping(&quot;/withdraw/pullWithdraw&quot;)\n        @ResponseBody\n        CommonResult&lt;List&lt;WithdrawVO&gt;&gt; pullWithdraw(@RequestBody RequestData&lt;PullWithdrawReq&gt; req);\n    }\n\n\n    RequestData requestData = new RequestData();\n    requestData.setChain(Chain.FIL);\n    requestData.setDataString(&quot;123&quot;);\n    requestData.setData(pullWithdrawReq);\n    CommonResult&lt;List&lt;com.dhlfy.financerpcclient.WithdrawVO&gt;&gt; result =     withdrawFeignClient.pullWithdraw(requestData);\n\n\n    @PostMapping(&quot;/pullWithdraw&quot;)\n    public CommonResult&lt;List&lt;WithdrawVO&gt;&gt; pullWithdraw(@RequestBody RequestData&lt;PullWithdrawReq&gt; req) {\n        String k = formatParma(req);\n        PullWithdrawReq withdrawReq = JSONObject.parseObject(k, PullWithdrawReq.class);\n        checkSign(withdrawReq);\n        return CommonResult.success(withdrawService.pullWithdraw(req.getChain().name(), withdrawReq));\n    }\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

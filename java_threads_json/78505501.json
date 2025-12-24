@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-batch"
+    ],
+    "owner": {
+      "account_id": 3011114,
+      "reputation": 1477,
+      "user_id": 2554622,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/zTcZN.jpg?s=256",
+      "display_name": "Ashish Shetkar",
+      "link": "https://stackoverflow.com/users/2554622/ashish-shetkar"
+    },
+    "is_answered": true,
+    "view_count": 84,
+    "accepted_answer_id": 78543511,
+    "answer_count": 1,
+    "score": -2,
+    "last_activity_date": 1716892297,
+    "creation_date": 1716193875,
+    "last_edit_date": 1716267526,
+    "question_id": 78505501,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78505501/jdbcpagingitemreader-is-missing-to-read-few-records-when-used-with-simpleasyncta",
+    "title": "JdbcPagingItemReader is missing to read few records when used with SimpleAsyncTaskExecutor",
+    "body": "<p>I am trying to read from table and dump the data in file</p>\n<p>My job configuration looks like this</p>\n<p>Task executor --&gt;</p>\n<pre><code>   @Bean\n    public TaskExecutor tvlTaskExecutor() {\n\n        SimpleAsyncTaskExecutor asyncTaskExecutor = new SimpleAsyncTaskExecutor();\n        asyncTaskExecutor.setConcurrencyLimit(5);\n        return asyncTaskExecutor;\n    }\n</code></pre>\n<p>Step config --&gt;</p>\n<pre><code>@Bean\npublic Step tvlFileCreationStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) throws Exception {\n    return new StepBuilder(&quot;tvl-file-creation-step&quot;, jobRepository)\n            .&lt;String, String&gt;chunk(50, transactionManager)\n            .reader(tvlTableDataItemReader())\n            .writer(tvlFileWriter)\n            .listener(tvlStepExecutionListener)\n            .taskExecutor(tvlTaskExecutor())\n            .build();\n}\n</code></pre>\n<p>job config --&gt;</p>\n<pre><code>@Bean(name=&quot;tvlRunJob&quot;)\npublic Job tvlRunJob( JobRepository jobRepository,  Step tvlFileCreationStep) {\n    return new JobBuilder(&quot;tvlFileCreationJob&quot;, jobRepository)\n            .start(tvlFileCreationStep)\n            .build();\n\n}\n</code></pre>\n<p>and finally the reader --&gt;</p>\n<pre><code>public JdbcPagingItemReader&lt;String&gt; jdbcPagingItemReader(DataSource dataSource) throws Exception {\n\n    // reading ITAG keys records using JDBC in a paging fashion\n    JdbcPagingItemReader&lt;String&gt; reader = new JdbcPagingItemReader&lt;String&gt;();\n    reader.setDataSource(dataSource);\n    reader.setPageSize(50);\n    reader.setSaveState(true);\n    reader.setQueryProvider(createQuery(dataSource));\n    reader.setRowMapper(new TVLRowMapper());\n    return reader;\n\n\n\n}\n\nprivate PagingQueryProvider createQuery(DataSource dataSource) throws Exception {\n    final Map&lt;String, Order&gt; sortKeys = new HashMap&lt;&gt;();\n    sortKeys.put(&quot;TAG_SERIAL_NUMBER&quot;, Order.ASCENDING);\n\n    final SqlPagingQueryProviderFactoryBean queryProvider = new SqlPagingQueryProviderFactoryBean();\n    queryProvider.setDataSource(dataSource);\n    queryProvider.setSelectClause(&quot; TAG_SERIAL_NUMBER &quot;);\n    queryProvider.setFromClause(&quot; ITAGENTITY_10052024 &quot;);\n    queryProvider.setWhereClause(&quot; TAG_SERIAL_NUMBER like '09900%' &quot;);\n    queryProvider.setSortKeys(sortKeys);\n    return queryProvider.getObject();\n}\n</code></pre>\n<p>My writer config looks like --&gt;</p>\n<pre><code>using XMLOutputFactory2 - from the stax2\nand using XMLStreamWriter2 as writer - from stax2 implementaion \nwhich is thread safe as per documentation \npackage path - org.codehaus.stax2.*;\n</code></pre>\n<p>When i use single threaded approach - it reads all records , but when i use taskExecutor - it is missing out on few records , it is missing 4-5 records out of 700 records</p>\n<p>( Note - actual volume is huge - So i need to implement multi threaded approach .)</p>\n<p>Please let me know if i have done anything incorrect or wrong.\nAny help is appreciated , thank you</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

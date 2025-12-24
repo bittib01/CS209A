@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "docker",
+      "kubernetes"
+    ],
+    "owner": {
+      "account_id": 21504728,
+      "reputation": 1,
+      "user_id": 15848290,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AATXAJyNB7tqvtyF-Bw17FHi-PTPT7ukJK3xrxKMI8sQ=k-s256",
+      "display_name": "tao zheng",
+      "link": "https://stackoverflow.com/users/15848290/tao-zheng"
+    },
+    "is_answered": true,
+    "view_count": 56,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1715262653,
+    "creation_date": 1704533220,
+    "last_edit_date": 1715262653,
+    "question_id": 77768859,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77768859/using-k8s-a-service-and-deployment-were-created-but-the-pod-cannot-be-accessed",
+    "title": "Using k8s, a service and deployment were created, but the pod cannot be accessed using the IP of the service",
+    "body": "<p>I am a k8s beginner, I am practicing using k8s to run a springboot application, I used kubeadm to install a single k8s node. I confirmed that k8s has been installed. The following is the version information:</p>\n<pre class=\"lang-bash prettyprint-override\"><code>[root@devops1722021165 k8s]# kubectl version\nClient Version: version.Info{Major:&quot;1&quot;, Minor:&quot;17&quot;, GitVersion:&quot;v1.17.3&quot;, GitCommit:&quot;06ad960bfd03b39c8310aaf92d1e7c12ce618213&quot;, GitTreeState:&quot;clean&quot;, BuildDate:&quot;2020-02-11T18:14:22Z&quot;, GoVersion:&quot;go1.13.6&quot;, Compiler:&quot;gc&quot;, Platform:&quot;linux/amd64&quot;}\nServer Version: version.Info{Major:&quot;1&quot;, Minor:&quot;17&quot;, GitVersion:&quot;v1.17.17&quot;, GitCommit:&quot;f3abc15296f3a3f54e4ee42e830c61047b13895f&quot;, GitTreeState:&quot;clean&quot;, BuildDate:&quot;2021-01-13T13:13:00Z&quot;, GoVersion:&quot;go1.13.15&quot;, Compiler:&quot;gc&quot;, Platform:&quot;linux/amd64&quot;}\n[root@devops1722021165 k8s]# kubectl get nodes\nNAME               STATUS   ROLES    AGE   VERSION\ndevops1722021165   Ready    master   23d   v1.17.3\n</code></pre>\n<p>I have the simplest springboot application:</p>\n<pre class=\"lang-java prettyprint-override\"><code>/**\n * @author zhengtao on 2023/12/2\n */\n@RestController\npublic class TestController {\n\n    @RequestMapping(&quot;/hello&quot;)\n    public String helloWorld() {\n        return &quot;hello world&quot;;\n    }\n}\n</code></pre>\n<p>I've made it an image and uploaded it to dockerhub，then wrote a <code>docker-study-deployment.yaml</code>:</p>\n<pre class=\"lang-yaml prettyprint-override\"><code>apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: docker-study-deployment\nspec:\n  selector:\n    matchLabels:\n      app: docker-study-deployment\n  replicas: 2\n  strategy:\n    type: RollingUpdate\n    rollingUpdate:\n      maxSurge: 1\n      maxUnavailable: 1\n  template:\n    metadata:\n      labels:\n        app: docker-study-deployment\n    spec:\n      containers:\n      - name: docker-study\n        image: wzgl998877/docker-study\n        ports:\n        - containerPort: 80\n</code></pre>\n<p>and I executed <code>kubectl apply -f docker-study-deployment.yaml</code> command.</p>\n<p>Then I wrote a <code>docker-study-svc.yaml</code>:</p>\n<pre class=\"lang-yaml prettyprint-override\"><code>apiVersion: v1\nkind: Service\nmetadata:\n  name: docker-study-svc\n\nspec:\n  selector:\n    app: docker-study-deployment\n\n  ports:\n  - port: 80\n    targetPort: 8080\n    protocol: TCP\n  type: NodePort\n</code></pre>\n<p>and I executed <code>kubectl apply -f docker-study-svc.yaml</code> command.\n<code>docker-study-deployment</code> and <code>docker-study-svc</code> are running.</p>\n<p>But when I execute <code>curl http://10.97.154.229:30577/hello</code>, it's not responding. When I go inside the pod, execute <code>curl http://10.97.154.229:8080/hello</code>, the response is <code>curl: (7) Failed to connect to 10.97.154.229 port 8080: Connection refused.</code></p>\n<p>I hope you can help me solve this problem，thank you!!!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

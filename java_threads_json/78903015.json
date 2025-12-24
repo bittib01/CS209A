@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "encoding",
+      "printing",
+      "bitmap",
+      "zebra-printers"
+    ],
+    "owner": {
+      "account_id": 35063214,
+      "reputation": 9,
+      "user_id": 26956319,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/4a3235511e9e68c9efd892535fc91232?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Luis Beltr&#227;o",
+      "link": "https://stackoverflow.com/users/26956319/luis-beltr%c3%a3o"
+    },
+    "is_answered": false,
+    "view_count": 80,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1724351438,
+    "creation_date": 1724351438,
+    "question_id": 78903015,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78903015/zebra-epl-gw-command-problem-with-bitmap-to-byte-array-conversion",
+    "title": "ZEBRA EPL GW Command - Problem with bitmap to byte array conversion",
+    "body": "<p>I'm trying to make my Android JAVA app print using a GC420t zebra printer, everything related to the USB connection works just fine, but when it comes to printing i'm facing a problem when converting my image to a byte array to send it to the printer with the GW command, when printing using all the other commands it works fine, but when adding the image or it doesn't print anything where the image should be, or it print only random lines.</p>\n<p>I think there's a problem with how i'm encoding it, i can see the image just fine inside the bitmap, but i have no idea of what to do to fix the result of the conversion, have anybody faced a similar problem?</p>\n<p>This is the code i'm using:</p>\n<pre><code>private String processEPLCommands(String[] eplCommands) {\n        StringBuilder processedCommands = new StringBuilder();\n        for (String command : eplCommands) {\n            if (command.startsWith(&quot;[IMG]&quot;)) {\n                String[] parts = command.split(&quot;;&quot;);\n                if (parts.length == 5) {\n                    x = Integer.valueOf(parts[1]);\n                    y = Integer.valueOf(parts[2]);\n                    String imageUrl = parts[4];\n                    int rotation = Integer.parseInt(parts[3]);\n                    String cmdImg = sendImageToPrinter(x,y,downloadAndRotateImage(imageUrl, rotation));\n                    if(cmdImg != null) {\n                        processedCommands.append(cmdImg);\n                    }\n                }\n            } else {\n                processedCommands.append(command);\n                processedCommands.append(&quot;\\n&quot;);\n            }\n        }\n        return processedCommands.toString();\n    }\n\n    private Bitmap downloadAndRotateImage(String imageUrl, int rotation) {\n        AtomicBoolean isRunning = new AtomicBoolean(true);\n        AtomicReference&lt;Bitmap&gt; bitmap = new AtomicReference&lt;Bitmap&gt;();\n        new Thread(() -&gt; {\n            try {\n                bitmap.set(BitmapFactory.decodeStream(new URL(imageUrl).openStream()));\n                isRunning.set(false);\n            } catch (IOException e) {\n                Log.e(&quot;printer&quot;, &quot;Failed to download or process image&quot;, e);\n                isRunning.set(false);\n            }\n        }).start();\n        while(isRunning.get()){\n\n        }\n        return bitmap.get() == null?null:rotateBitmap(bitmap.get(), rotation);\n    }\n\n    private Bitmap rotateBitmap(Bitmap bitmap, int rotation) {\n        Matrix matrix = new Matrix();\n        matrix.postRotate(rotation);\n        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);\n    }\n\n    public static String sendImageToPrinter(int top, int left, Bitmap bitmap) {\n        ByteArrayOutputStream baos = new ByteArrayOutputStream();\n        try {\n            int p3 = (int) Math.ceil((double) bitmap.getWidth() / 8);\n\n            String header = String.format(&quot;GW%d,%d,%d,%d,&quot;, top, left, p3, bitmap.getHeight());\n            baos.write(header.getBytes(&quot;US-ASCII&quot;));\n\n            int canvasWidth = p3 * 8;\n\n            for (int y = 0; y &lt; bitmap.getHeight(); ++y) {\n                for (int x = 0; x &lt; canvasWidth;) {\n                    byte abyte = 0;\n                    for (int b = 0; b &lt; 8; ++b, ++x) {\n                        int dot = 1;\n                        if (x &lt; bitmap.getWidth()) {\n                            int color = bitmap.getPixel(x, y);\n                            int luminance = (int) ((Color.red(color) * 0.3) + (Color.green(color) * 0.59) + (Color.blue(color) * 0.11));\n                            dot = luminance &gt; 127 ? 1 : 0;\n                        }\n                        abyte |= (byte) (dot &lt;&lt; (7 - b));\n                    }\n                    baos.write(abyte);\n                }\n            }\n\n            return new String(baos.toByteArray(), &quot;windows-1252&quot;);\n        } catch (IOException e) {\n            e.printStackTrace();\n            return null;\n        }\n    }\n\n</code></pre>\n<p>Example of what i'm receiving from the conversion: <code>GW512,590,16,125,���������������������������������</code></p>\n<p>I've tried changing the encoding &quot;windows-1252&quot;, and tried using a base64 to convert the bitmap to a byte array, but it didn't work.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

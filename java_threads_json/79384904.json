@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-el"
+    ],
+    "owner": {
+      "account_id": 5569841,
+      "reputation": 8674,
+      "user_id": 4415625,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/0ea1713807527aa1cf52e40579e35ec4?s=256&d=identicon&r=PG",
+      "display_name": "dani-vta",
+      "link": "https://stackoverflow.com/users/4415625/dani-vta"
+    },
+    "is_answered": true,
+    "view_count": 48,
+    "accepted_answer_id": 79384905,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1748274258,
+    "creation_date": 1737734363,
+    "last_edit_date": 1748274106,
+    "question_id": 79384904,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79384904/spel-auto-grow-null-references-throws-spelevaluationexception-with-null-element",
+    "title": "SpEL Auto Grow Null References throws SpelEvaluationException with null element",
+    "body": "<p>I was looking at the Spring Framework Reference, specifically the <a href=\"https://docs.spring.io/spring-framework/reference/core/expressions/evaluation.html#expressions-parser-configuration\" rel=\"nofollow noreferrer\">Parser Configuration</a> section, which states:</p>\n<blockquote>\n<p>The configuration object controls the behavior of some of the expression components. For example, if you <strong>index into a collection</strong> and <strong>the element at the specified index is null</strong>, <strong>SpEL can automatically create the element</strong>. This is useful when using expressions made up of a chain of property references.</p>\n</blockquote>\n<p>The extract refers to the <code>autoGrowNullReferences</code> property, and it seems to suggest that if an element at the specified index of a collection is <code>null</code>, SpEL will replace it with an initialized instance (assuming that its class provides a default constructor).</p>\n<p>However, if I add <code>null</code> to the field <code>List&lt;AnotherBean&gt;</code> of a <code>MyBean</code> object, and then reference the first element of the collection, SpEL throws a <code>SpelEvaluationException</code> with error message:</p>\n<blockquote>\n<p>EL1007E: Property or field 'id' cannot be found on null.</p>\n</blockquote>\n<p>Despite what is described in the docs, SpEL doesn't replace the <code>null</code> element with a default instance of <code>AnotherBean</code>, even though the class offers a no-arg constructor. Why does SpEL behave like this?</p>\n<pre><code>@Data\n@NoArgsConstructor\n@AllArgsConstructor\npublic class AnotherBean {\n    private int id;\n}\n\npublic class MyBean {\n    public List&lt;AnotherBean&gt; list = new ArrayList&lt;&gt;();\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        MyBean myBean = new MyBean();\n        myBean.list.add(null);\n\n        // enable auto grow null references\n        // disable auto grow collections\n        SpelParserConfiguration config = new SpelParserConfiguration(true, false);\n\n        // since AnotherBean has a default constructor, \n        // the null element should be replaced with a default instance\n        ExpressionParser parser = new SpelExpressionParser(config);\n        Expression expression = parser.parseExpression(&quot;list[0].id&quot;);\n\n        // Instead throws a SpelEvaluationException...\n        Integer i = expression.getValue(myBean, Integer.class);\n        System.out.println(i);\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

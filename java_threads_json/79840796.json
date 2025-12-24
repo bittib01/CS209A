@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "power-management",
+      "background-thread"
+    ],
+    "owner": {
+      "account_id": 10781545,
+      "reputation": 11,
+      "user_id": 9089026,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/bbc1ae9bf7e2909ee1f83e089b05ef12?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "ves",
+      "link": "https://stackoverflow.com/users/9089026/ves"
+    },
+    "is_answered": false,
+    "view_count": 146,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1765291755,
+    "creation_date": 1765186511,
+    "last_edit_date": 1765200427,
+    "question_id": 79840796,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79840796/wrong-behavior-of-background-thread-execution-in-android",
+    "title": "Wrong behavior of background thread execution in android",
+    "body": "<p>I have an app with a background thread which must send periodically a message to MQTT broker to keep the connection aliave. (see this post <a href=\"https://stackoverflow.com/questions/79835732/paho-android-mqtt-client-does-not-send-pingreq-to-broker-when-phone-screen-is-of\">paho Android MQTT client does not send PINGREQ to broker when phone screen is off</a>)  The periodicity of the messages is not critical and i use Thread.sleep() in a loop to send these messages.<br>\nHere is the java code of the thread</p>\n<pre><code>public class HeartBeat extends Thread {\n  private boolean bloop;\n  private Thread t_wait;\n  private long sleepTime;\n  private MQTTService mqtts;\n  private final String TAG = &quot;HB&quot;;\n  private final String topic_hb = &quot;wmon01/hb&quot;;\n  private long slt = 0, dt = 0;\n  private SimpleDateFormat sdf = new SimpleDateFormat(&quot;yyyy-MM-dd HH:mm:ss.SSS&quot;);\n  public HeartBeat(MQTTService m, int st) {\n    bloop = false;\n    // sleepTime = st * 1000 / 10;\n    sleepTime = 20000;\n    mqtts = m;\n    slt = System.currentTimeMillis();\n    Log.d(TAG, sdf.format(slt) + &quot;new HeartBeat&quot;);\n  }\n  public void startLoop() {\n    if (bloop == false) {\n      bloop = true;\n      t_wait = new Thread((Runnable) this);\n      t_wait.setPriority(Thread.MAX_PRIORITY);\n      t_wait.start();\n      slt = System.currentTimeMillis();\n      mqtts.sendMessage(topic_hb, sdf.format(slt) + &quot; t_wait.start()&quot;);\n      Log.d(TAG, sdf.format(slt) + &quot; t_wait.start()&quot;);\n    }\n  }\n  public void stopLoop() {\n    bloop = false;\n  }\n  public void run() {\n    while (bloop) {\n      try {\n        Thread.sleep(sleepTime);\n      } catch (InterruptedException e) {\n        e.printStackTrace();\n        slt = System.currentTimeMillis();\n        mqtts.sendMessage(topic_hb, sdf.format(slt) + &quot; / t_wait thread exception: &quot; + e.getMessage());\n        Log.d(TAG, sdf.format(slt) + &quot; / t_wait thread exception: &quot; + e.getMessage());\n      }\n      if (!bloop)\n        break;\n      slt = System.currentTimeMillis();\n      dt = slt - dt;\n      mqtts.sendMessage(topic_hb, sdf.format(slt) + &quot; / &quot; + dt + &quot; / HB message&quot;);\n      dt = slt;\n      Log.d(TAG, sdf.format(slt) + &quot; / &quot; + dt + &quot; / HB message&quot;);\n    }\n    slt = System.currentTimeMillis();\n    mqtts.sendMessage(topic_hb, sdf.format(slt) + &quot; / &quot; + dt + &quot; / bloop = false&quot;);\n    Log.d(TAG, sdf.format(slt) + &quot; / &quot; + dt + &quot; / bloop = false&quot;);\n  }\n}\n</code></pre>\n<p>The messages are logged on server side so I can see the message timestamp and time difference between them.\nAfter few days of testing it shows complete random values of delta t between messages.<br>\nInitially, after first start after app installation, if the screen is on, or connected to a charger, with a sleep time of 20000 msec, the message frequency looks ok</p>\n<pre><code>…\n//---------TS---------- / --dt-- / \n2025-12-07 19:30:56.612 / 20033 / HB message\n2025-12-07 19:31:16.644 / 20032 / HB message\n2025-12-07 19:31:36.675 / 20031 / HB message\n2025-12-07 19:31:56.703 / 20028 / HB message\n2025-12-07 19:32:16.730 / 20027 / HB message\n2025-12-07 19:32:36.761 / 20031 / HB message\n…\n</code></pre>\n<p>When screen is off and no charger connected, then delta t gets random and much much higher than expected value.</p>\n<pre><code>…\n//-----------TS---------------- / --dt-- / \n2025-12-07 20:11:11.689 / 82275 / HB message\n2025-12-07 20:12:29.939 / 78250 / HB message\n2025-12-07 20:13:48.985 / 79046 / HB message\n2025-12-07 20:14:45.506 / 56521 / HB message\n2025-12-07 20:16:07.179 / 81673 / HB message\n…\n</code></pre>\n<p>And the value gets bigger and bigger until the MQTT broker disconnects the client because of inactivity..</p>\n<pre><code>...\n2025-12-08 01:31:59.101 t_wait.start()\n2025-12-08 01:34:16.088 / 2027783 / HB message\n2025-12-08 01:39:04.445 / 288357 / HB message\n2025-12-08 01:45:42.742 t_wait.start()\n2025-12-08 01:45:42.809 / 398364 / HB message\n2025-12-08 01:46:47.515 / 64706 / HB message\n...\n</code></pre>\n<p>More than that, it started to show values lower than 20000 msec sleep time!?!</p>\n<pre><code>...\n2025-12-08 11:04:52.943 / 18120 / HB message\n2025-12-08 11:04:57.501 / 4558 / HB message\n2025-12-08 11:05:13.009 / 15508 / HB message\n2025-12-08 11:05:24.100 / 11091 / HB message\n2025-12-08 11:05:25.411 / 1311 / HB message\n2025-12-08 11:05:40.675 / 15264 / HB message\n...\n</code></pre>\n<p>The application is set either to use battery in unrestricted mode or is set to “never sleep”, the behavior is the same.<br>\nI can understand that power management can have impact on execution, but I cannot understand how sleep(<strong>msec</strong>)  can return before <strong>msec</strong> to elapse!!!<br>\nIs there a way to make this thread to behave consistent?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

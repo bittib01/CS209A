@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "generics",
+      "mapstruct"
+    ],
+    "owner": {
+      "account_id": 2386165,
+      "reputation": 183,
+      "user_id": 2087103,
+      "user_type": "registered",
+      "accept_rate": 75,
+      "profile_image": "https://www.gravatar.com/avatar/3bc5ca681d01539f0f6616a1055d5ef6?s=256&d=identicon&r=PG",
+      "display_name": "user2087103",
+      "link": "https://stackoverflow.com/users/2087103/user2087103"
+    },
+    "is_answered": true,
+    "view_count": 65,
+    "accepted_answer_id": 79733123,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1754998994,
+    "creation_date": 1754997691,
+    "question_id": 79733079,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79733079/mapstruct-generic-mapper-and-default-value-for-null",
+    "title": "Mapstruct - Generic Mapper and default value for null",
+    "body": "<p>I have several DTOResponse class, each one of them extending MiniDTOResponse.</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Data\n@NoArgsConstructor\npublic class MiniDTOResponse extends EmptyDTOResponse {\n    private boolean exists; \n}\n\n@Data\npublic class ServicesDTOResponse extends MiniDTOResponse {\n    private boolean light;\n    private ToiletDTOResponse toilets;\n    private int barCounterNumber;\n}\n@Data\npublic class ToiletDTOResponse extends MiniDTOResponse {\n    private int numMaleRestrooms;\n    private int numFemaleRestrooms;\n}\n@Data\npublic class VIPDTOResponse extends MiniDTOResponse {\n    private int numVIPSeats;\n    private boolean isAccesible;\n}\n</code></pre>\n<p>and so on.\nThere are also bigger DTOs, with Ids and dates of deletion, such as</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Data\n@EqualsAndHashCode(callSuper = true)\npublic class BasicDTOResponse extends BasicDTO {\n    private Date dateDeletion;\n    private String userDeletion;\n}\n\n@Data\npublic class AttendanceDTOResponse extends BasicDTOResponse {\n    private int numStanding;\n    private int numSeats;\n    private ServicesDTOResponse services;\n    private VIPDTOResponse vip;\n}\n\n</code></pre>\n<p>and different Mapstruct mappers for each DTO.</p>\n<p>My goal is to return something like this, assuming there are services and toilets but no vip</p>\n<pre class=\"lang-json prettyprint-override\"><code>{\n    &quot;id&quot;: &quot;39F47F8B83F5653CE0631F1EA8C0D44F&quot;,\n    &quot;dateDeletion&quot;: null,\n    &quot;userDeletion&quot;: null,\n    &quot;numStanding&quot;: 30000,\n    &quot;numSeats&quot;: 20000,\n    &quot;services&quot;: {\n        &quot;exists&quot;: true,\n        &quot;light&quot;: false,\n        &quot;toilets&quot;: {\n            &quot;exists&quot;: true,\n            &quot;numMaleRestrooms&quot; : 5,\n            &quot;numFemaleRestrooms&quot; : 6\n        },\n        &quot;barCounterNumber&quot;: 6,\n    },\n    &quot;vip&quot;: {\n        &quot;exists&quot;: false,\n        &quot;numVIPSeats&quot;: 0,\n        &quot;isAccesible&quot;: false,\n    }\n}\n</code></pre>\n<p>so i created this</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Mapper(componentModel = &quot;spring&quot;)\npublic interface GenericMapper {\n\n    default boolean exists(String id) {\n        return StringUtils.isNotBlank(id);\n    }\n    default boolean active(ZonedDateTime dateDeletion) {\n        return dateDeletion == null;\n    }\n\n    default boolean computeExists(BaseEntity entity) {\n        return entity != null &amp;&amp; exists(entity.getId()) &amp;&amp; active(entity.getFechaBaja());\n    }\n    \n    @AfterMapping\n    default &lt;K extends BaseEntity, T extends MiniDTOResponse&gt; void setExists(@MappingTarget T dto, K entity) {\n        boolean exists = computeExists(entity);\n        dto.setExists(hay);\n    }\n\n    @ObjectFactory\n    default &lt;K extends BaseEntity, T extends MiniDTOResponse&gt; T createDto(K source, @TargetType Class&lt;T&gt; dtoClass) {\n        try {\n            T dto = dtoClass.getDeclaredConstructor().newInstance();\n            setExists(dto, source);\n            return dto;\n        } catch (Exception e) {\n            throw new RuntimeException(&quot;Couldn't create DTO&quot;, e);\n        }\n    }\n\n    default &lt;T extends MiniDTOResponse&gt; T createDTOwithExitsFalse(Class&lt;T&gt; dtoClass) {\n        try {\n            T dto = dtoClass.getDeclaredConstructor().newInstance();\n            dto.setExists(false);\n            return dto;\n        } catch (Exception e) {\n            throw new RuntimeException(&quot;Couldn't create DTO&quot;, e);\n        }\n    }\n}\n\n\npublic interface AttendanceMapper extends GenericMapper {\n    @Mapping(target = &quot;numStanding&quot;, source = &quot;standing&quot;)\n    @Mapping(target = &quot;numSeats&quot;, source = &quot;seats&quot;)\n    @Mapping(target = &quot;services&quot;, source = &quot;installations&quot;, defaultExpression = &quot;java(createDTOwithExitsFalse(ServicesDTOResponse.class))&quot;)\n    @Mapping(target = &quot;vip&quot;, source= &quot;vipFacilities&quot;, defaultExpression = &quot;java(createDTOwithExitsFalse(VIPDTOResponse.class))&quot;)\n    AttendanceDTOResponse toDto (Attendance source);\n}\n</code></pre>\n<p>and works like a charm without having to write lots of defaults on every Mapper.</p>\n<p>My problem is that its not working with Toilets.\nIf I declare that AttendanceMapper uses ToiletsMapper (what is expected) and both of them (ToiletsMapper and AttendanceMapper) extends GenericMapper, i get a\n<code>Ambiguous factory methods found for creating ServicesDTOResponse: T createDto(K source, @TargetType Class&lt;T&gt; dtoClass), T ToiletMapper.createDto(K source, @TargetType Class&lt;T&gt; dtoClass). See https://mapstruct.org/faq/#ambiguous for more info.</code> as both of them are extending the GenericMapper.</p>\n<p>What can I do? I'd love to do it in ageneric way, as there are like 40 DTORespones. Maybe there is a cleaner way of resolving the exists and the default of every attribute without using expressions, I'm willing to know how to do it!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

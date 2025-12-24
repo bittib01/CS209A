@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hibernate",
+      "spring-data-jpa"
+    ],
+    "owner": {
+      "account_id": 21418493,
+      "reputation": 35,
+      "user_id": 15909439,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/pdbKo.jpg?s=256",
+      "display_name": "Arthur Andrade",
+      "link": "https://stackoverflow.com/users/15909439/arthur-andrade"
+    },
+    "is_answered": false,
+    "view_count": 59,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1754936316,
+    "creation_date": 1754080929,
+    "last_edit_date": 1754936316,
+    "question_id": 79722940,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79722940/a-collection-with-cascade-all-delete-orphan-was-no-longer-referenced-by-the-ow",
+    "title": "A collection with cascade=&quot;all-delete-orphan&quot; was no longer referenced by the owning entity instance: ProcedureStep.subSteps",
+    "body": "<p>My Java code is throwing the following error:\n&quot;A collection with cascade='all-delete-orphan' was no longer referenced by the owning entity instance: br.com.unika.pathdetail.entity.ProcedureStep.subSteps.&quot;</p>\n<p>This happens when trying to save an entity that comes from the client (frontend). The collection subSteps is not being modified or reassigned in the Java code; it is received as-is and directly passed to be saved. Despite that, Hibernate still triggers this error, likely interpreting that the original reference to the collection has been replaced or lost.</p>\n<p>I've already tried everything I can think of to resolve this issue, but nothing has worked.</p>\n<pre><code>@Entity\n@Table(name = &quot;procedure_step&quot;, indexes = {\n    @Index(name = &quot;idx_pstep_code&quot;, columnList = &quot;code, procedure_id&quot;),\n})\n@Data\npublic class ProcedureStep extends AbstractEntity&lt;ProcedureStep, ProcedureStepDTO&gt; {\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    @Column(name = &quot;id&quot;)\n    private Long id;\n\n    @AuditableObject(mapBy = &quot;id&quot;)\n    @ManyToOne(fetch = FetchType.EAGER, optional = false)\n    @JoinColumn(name = &quot;account_id&quot;, updatable = false)\n    private Account account;\n\n    @AuditableObject(mapBy = &quot;name&quot;)\n    @ManyToOne(fetch = FetchType.LAZY, optional = false)\n    @JoinColumn(name = &quot;procedure_id&quot;, updatable = false)\n    private Procedure procedure;\n\n    @AuditableObject(mapBy = &quot;name&quot;)\n    @ManyToOne(fetch = FetchType.EAGER)\n    @JoinColumn(name = &quot;parent_step_id&quot;)\n    private ProcedureStep parentStep;\n\n    // ex: 1.1.1\n    @Auditable\n    @Column(nullable = false, length = 20)\n    private String code;\n\n    @Auditable\n    @Column(name = &quot;name&quot;, nullable = false)\n    private String name;\n\n    @Temporal(TemporalType.TIMESTAMP)\n    @Column(nullable = false, name = &quot;created_date&quot;, updatable=false)\n    private Date createdDate = new Date();\n\n    @OneToMany(mappedBy = &quot;step&quot;, cascade = CascadeType.ALL, orphanRemoval = true)\n    private List&lt;StepParameter&gt; parameters = new ArrayList&lt;&gt;();\n\n    @OneToMany(mappedBy = &quot;parentStep&quot;, cascade = CascadeType.ALL, orphanRemoval = true)\n    private List&lt;ProcedureStep&gt; subSteps = new ArrayList&lt;&gt;();\n\n</code></pre>\n<pre><code>    @Transactional(rollbackFor = Exception.class)\n    public List&lt;ProcedureStepDTO&gt; saveMany(List&lt;ProcedureStepDTO&gt; dtoList) throws BusinessRuleException {\n\n        Set&lt;String&gt; newObjs = new HashSet&lt;&gt;();\n\n        // Convert all elements to DTO\n        List&lt;ProcedureStep&gt; toSave = dtoList.stream().map(ProcedureStepDTO::toEntity).toList();\n        for (ProcedureStep entity : toSave) {\n            validateUpdatePermission(entity);\n            if(entity.getId() == null) {\n                newObjs.add(entity.getUuidCheck());\n                beforePersist(entity);\n            } else {\n                beforeSave(entity);\n            }\n            commonValidations(entity);\n        }\n        \n        List&lt;ProcedureStep&gt; saved = repository.saveAll(toSave);\n        for (ProcedureStep s : saved) {\n            if(newObjs.contains(s.getUuidCheck())) {\n                this.afterPersist(s);\n            } else {\n                this.afterSave(s);\n            }\n        }\n        return saved.stream().map(ProcedureStep::toDTO).toList();\n    }\n</code></pre>\n<pre><code>    @Override\n    public ProcedureStep toEntity() {\n        ProcedureStep entity = new ProcedureStep();\n        this.mapCommonFields(entity);\n\n        entity.setCode(this.getCode());\n        entity.setName(this.getName());\n        entity.setCreatedDate(this.getCreatedDate());\n\n        if (this.account != null) {\n            entity.setAccount(this.account.toEntity());\n        }\n\n        if (this.procedure != null) {\n            entity.setProcedure(this.procedure.toEntity());\n        }\n\n        // Update parameters collection\n        if (entity.getParameters() == null) {\n            entity.setParameters(new ArrayList&lt;&gt;());\n        }\n        entity.getParameters().clear();\n        if (this.getParameters() != null &amp;&amp; !this.getParameters().isEmpty()) {\n            this.getParameters().forEach(parameter -&gt;\n                entity.getParameters().add(parameter.toEntity()));\n        }\n\n        // Update subSteps collection\n        if (entity.getSubSteps() == null) {\n            entity.setSubSteps(new ArrayList&lt;&gt;());\n        }\n        entity.getSubSteps().clear();\n        if (this.getSubSteps() != null &amp;&amp; !this.getSubSteps().isEmpty()) {\n            this.getSubSteps().forEach(subStepDTO -&gt;\n                entity.getSubSteps().add(subStepDTO.toEntity()));\n        }\n\n        return entity;\n    }\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

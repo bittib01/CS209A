@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "postgresql",
+      "spring-boot",
+      "entity",
+      "jsonb"
+    ],
+    "owner": {
+      "account_id": 31804822,
+      "reputation": 11,
+      "user_id": 24618991,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/491bf1d1cfe0746814ec3bf524650ccc?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Serge",
+      "link": "https://stackoverflow.com/users/24618991/serge"
+    },
+    "is_answered": false,
+    "view_count": 307,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1748951037,
+    "creation_date": 1713989807,
+    "question_id": 78381011,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78381011/cant-setup-jsonb-type-could-not-determine-recommended-jdbctype-for-java-type",
+    "title": "Can&#39;t setup JSONb type. Could not determine recommended JdbcType for Java type &#39;com.fasterxml.jackson.databind.JsonNode&#39;",
+    "body": "<p>I want to save a data from JSON string in Postgres where I have a column with JSONb type. But I getting exceptions. I'll be glad so much for helping me.</p>\n<p>I have an Entity for game's maps:</p>\n<pre><code>package com.dragon.dungeon.entities;\nimport java.util.UUID;\nimport org.hibernate.annotations.UuidGenerator;\nimport com.fasterxml.jackson.databind.JsonNode;\n\nimport jakarta.persistence.*;\nimport lombok.AllArgsConstructor;\nimport lombok.Builder;\nimport lombok.Getter;\nimport lombok.Setter;\n\n@Entity\n@Table(name = &quot;maps&quot;)\n@Getter\n@Setter\n@Builder\n@AllArgsConstructor\npublic class MapEntity {\n\n    @Id\n    @UuidGenerator\n    private UUID id;\n    \n    @ManyToOne\n    @JoinColumn(name = &quot;owner_id&quot;, nullable = false)\n    private UserEntity ownerId;\n    \n    @Column(name = &quot;data&quot;, columnDefinition = &quot;jsonb&quot;, nullable = false)\n    private JsonNode data;\n\n}\n</code></pre>\n<p>I use Spring Boot 3.2.4, so as I have read I need to use own data type for that. So I created it:</p>\n<pre><code>package com.dragon.dungeon.entities.character;\n\nimport com.fasterxml.jackson.databind.ObjectMapper;\n\nimport org.hibernate.HibernateException;\nimport org.hibernate.engine.spi.SharedSessionContractImplementor;\nimport org.hibernate.usertype.UserType;\n\nimport java.io.Serializable;\nimport java.sql.PreparedStatement;\nimport java.sql.ResultSet;\nimport java.sql.SQLException;\nimport java.sql.Types;\nimport java.util.Objects;\n\n@SuppressWarnings(&quot;rawtypes&quot;)\npublic class JsonNodeUserType implements UserType {\n\n    private final ObjectMapper objectMapper = new ObjectMapper();\n\n    @Override\n    public int getSqlType() {\n        return Types.OTHER;\n    }\n\n    @Override\n    public Class&lt;?&gt; returnedClass() {\n        return Object.class;\n    }\n\n    @Override\n    public boolean equals(Object x, Object y) {\n        return Objects.equals(x, y);\n    }\n\n    @Override\n    public int hashCode(Object x) {\n        return Objects.hashCode(x);\n    }\n    \n    @Override\n    public Object nullSafeGet(ResultSet rs, int position, SharedSessionContractImplementor session, Object owner) throws SQLException {\n        String json = rs.getString(position);\n        if (json != null) {\n            try {\n                return objectMapper.readTree(json);\n            } catch (Exception e) {\n                throw new HibernateException(&quot;Failed to convert JSON string to JsonNode&quot;, e);\n            }\n        }\n        return null;\n    }\n    \n\n    @Override\n    public void nullSafeSet(PreparedStatement st, Object value, int index, SharedSessionContractImplementor session) throws SQLException {\n        if (value != null) {\n            try {\n                String json = objectMapper.writeValueAsString(value);\n                st.setObject(index, json, Types.OTHER);\n            } catch (Exception e) {\n                throw new SQLException(&quot;Failed to convert object to JSON string&quot;, e);\n            }\n        } else {\n            st.setNull(index, Types.OTHER);\n        }\n    }\n\n    @Override\n    public Object deepCopy(Object value) {\n        if (value == null) {\n            return null;\n        }\n        try {\n            String json = objectMapper.writeValueAsString(value);\n            return objectMapper.readTree(json);\n        } catch (Exception e) {\n            throw new HibernateException(&quot;Failed to deep copy JsonNode&quot;, e);\n        }\n    }\n\n    @Override\n    public boolean isMutable() {\n        return true;\n    }\n\n    @Override\n    public Serializable disassemble(Object value) {\n        Object copy = deepCopy(value);\n        if (copy instanceof Serializable) {\n            return (Serializable) copy;\n        }\n        throw new UnsupportedOperationException(&quot;Value is not serializable: &quot; + value);\n    }\n\n    @Override\n    public Object assemble(Serializable cached, Object owner) {\n        return deepCopy(cached);\n    }\n\n    @Override\n    public Object replace(Object original, Object target, Object owner) {\n        return deepCopy(original);\n    }\n\n}\n</code></pre>\n<p>And edited an application.properties like this:</p>\n<pre><code>spring.jpa.properties.hibernate.types.registration.jsonb.type=com.dragon.dungeon.entities.character.JsonNodeUserType\nspring.jpa.properties.hibernate.types.registration.jsonb.package=com.dragon.dungeon.entities.character\n</code></pre>\n<p>But when I want to start my application, I got an error:</p>\n<pre><code>org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'entityManagerFactory' defined in class path resource [org/springframework/boot/autoconfigure/orm/jpa/HibernateJpaConfiguration.class]: Could not determine recommended JdbcType for Java type 'com.fasterxml.jackson.databind.JsonNode'\n</code></pre>\n<p>What should I do? What's wrong with my code?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

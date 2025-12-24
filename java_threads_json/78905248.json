@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "lambda",
+      "java-8"
+    ],
+    "owner": {
+      "account_id": 16914570,
+      "reputation": 1817,
+      "user_id": 12232870,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/Gq8Hn.png?s=256",
+      "display_name": "terrorrussia-keeps-killing",
+      "link": "https://stackoverflow.com/users/12232870/terrorrussia-keeps-killing"
+    },
+    "is_answered": true,
+    "view_count": 224,
+    "closed_date": 1726173769,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1726173774,
+    "creation_date": 1724406136,
+    "last_edit_date": 1724409110,
+    "question_id": 78905248,
+    "link": "https://stackoverflow.com/questions/78905248/why-does-function-identity-return-a-lambda-expression-and-not-a-cast-static-fi",
+    "closed_reason": "Duplicate",
+    "title": "Why does Function.identity() return a lambda expression and not a cast static field that holds the identity lambda?",
+    "body": "<p>As seen in the JDK version I'm using source, <code>Function.identity()</code> is defined like this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>static &lt;T&gt; Function&lt;T, T&gt; identity() {\n    return t -&gt; t;\n}\n</code></pre>\n<p>To me, with old Java 7 and older versions background with their inner classes that can capture too much, it looks like the lambda in the <code>identity</code> function is <em>kind of instantiated</em> every time the <code>Function.identity()</code> function is invoked. I'm wondering what were the differences if the function would return a cast field?</p>\n<p>For example, I have two classes that define lambdas in two ways from the above.</p>\n<pre class=\"lang-java prettyprint-override\"><code>final class DynamicLambda {\n\n    private DynamicLambda() {\n        throw new AssertionError();\n    }\n\n    static Function&lt;Object, Object&gt; identity() {\n        return o -&gt; o;\n    }\n\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>final class StaticLambda {\n\n    private StaticLambda() {\n        throw new AssertionError();\n    }\n\n    static final Function&lt;Object, Object&gt; identity = o -&gt; o;\n\n}\n</code></pre>\n<p>Their <code>javap</code>-ed classes are disassembled like this when using the <code>-p</code> and <code>-c</code> options:</p>\n<pre class=\"lang-java prettyprint-override\"><code>Compiled from &quot;DynamicLambda.java&quot;\nfinal class DynamicLambda {\n  private DynamicLambda();\n    Code:\n       0: aload_0\n       1: invokespecial #1                  // Method java/lang/Object.&quot;&lt;init&gt;&quot;:()V\n       4: new           #7                  // class java/lang/AssertionError\n       7: dup\n       8: invokespecial #9                  // Method java/lang/AssertionError.&quot;&lt;init&gt;&quot;:()V\n      11: athrow\n\n  static java.util.function.Function&lt;java.lang.Object, java.lang.Object&gt; identity();\n    Code:\n       0: invokedynamic #10,  0             // InvokeDynamic #0:apply:()Ljava/util/function/Function;\n       5: areturn\n\n  private static java.lang.Object lambda$identity$0(java.lang.Object);\n    Code:\n       0: aload_0\n       1: areturn\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>Compiled from &quot;StaticLambda.java&quot;\nfinal class StaticLambda {\n  static final java.util.function.Function&lt;java.lang.Object, java.lang.Object&gt; identity;\n\n  private StaticLambda();\n    Code:\n       0: aload_0\n       1: invokespecial #1                  // Method java/lang/Object.&quot;&lt;init&gt;&quot;:()V\n       4: new           #7                  // class java/lang/AssertionError\n       7: dup\n       8: invokespecial #9                  // Method java/lang/AssertionError.&quot;&lt;init&gt;&quot;:()V\n      11: athrow\n\n  private static java.lang.Object lambda$static$0(java.lang.Object);\n    Code:\n       0: aload_0\n       1: areturn\n\n  static {};\n    Code:\n       0: invokedynamic #10,  0             // InvokeDynamic #0:apply:()Ljava/util/function/Function;\n       5: putstatic     #14                 // Field identity:Ljava/util/function/Function;\n       8: return\n}\n</code></pre>\n<p>The only bytecode difference <em>I see</em> is that <code>invokedynamic</code> is invoked either as many times as the <code>DynamicLambda.identity()</code> is invoked, or one time for <code>StaticLambda.identity</code> in its static initializer.</p>\n<p>From the semantic perspective, the advantage of the &quot;dynamic&quot; approach is lambda expression type inference, as the &quot;static&quot; approach would need unchecked type casting. From the call site perspective the only difference is instructions used to get the identity function: <code>invokestatic</code> for the &quot;dynamic&quot; approach, and <code>getstatic</code> for the &quot;static&quot; approach.</p>\n<p>What is the real difference between these two and why is <code>Function.identity()</code> implemented like that? And how may they affect the memory footprint and possibly performance when <code>invokedynamic</code> is called multiple times?</p>\n<hr />\n<p>Edit 1:</p>\n<p>Please, this question is not really supposed to be about <code>Function.identity() == Function.identity()</code>. But true, I'm interested why it also behaves like that.</p>\n<hr />\n<p>Edit 2:</p>\n<p>As far as I understood the comments, it really depends on how a particular JVM optimizes code running at runtime (particularly inlining), and <code>invokedynamic</code> may take some time to lookup the same reference for <code>Function.identity()</code> somehow (how then? what's the identity of the lambda expression then?).</p>\n<p>In short, <strong>what does <code>invokedynamic</code> do in the <code>Function.identity()</code> scenario</strong>?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

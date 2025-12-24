@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "microbenchmark",
+      "jmh"
+    ],
+    "owner": {
+      "account_id": 5542681,
+      "reputation": 407,
+      "user_id": 4398606,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/-YnuEgbNqN_o/AAAAAAAAAAI/AAAAAAAAAoU/aTsjiuToXSQ/s256-rj/photo.jpg",
+      "display_name": "Stanley Wintergreen",
+      "link": "https://stackoverflow.com/users/4398606/stanley-wintergreen"
+    },
+    "is_answered": true,
+    "view_count": 110,
+    "accepted_answer_id": 79820528,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1763756711,
+    "creation_date": 1762980999,
+    "last_edit_date": 1763036054,
+    "question_id": 79818242,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79818242/what-exactly-is-the-difference-between-averagetime-and-singleshottime-in-java-mi",
+    "title": "What exactly is the difference between AverageTime and SingleShotTime in Java Microbenchmark Harness?",
+    "body": "<p>I think I understand the difference between <code>AverageTime</code> and <code>Throughput</code>.\nLet's say we have a method with the following annotations:</p>\n<pre class=\"lang-kotlin prettyprint-override\"><code>@Benchmark\n@Fork(value = 1, warmups = 0)\n@Measurement(iterations = 1, time = 1, timeUnit = TimeUnit.SECONDS)\n</code></pre>\n<p>If I use <code>@BenchmarkMode(Mode.AverageTime)</code>, JMH will launch one fork (because <code>@Fork(value = 1)</code>), perform one iteration (because <code>@Measurement(iterations = 1)</code>), and execute method <code>fooBenchmark</code> as many times as it can complete the invocations (JMH calls it <code>Level.Invocation</code> in <code>org.openjdk.jmh.annotations</code> package) in full in at least one second (because <code>@Measurement(time = 1, timeUnit = TimeUnit.SECONDS)</code>).\nWe divide the elapsed time by invocations.\nThis gives the average time per invocation.</p>\n<p>If I use <code>@BenchmarkMode(Mode.Throughput)</code>, we divide the number of completed invocations by the elapsed time.\nThis gives us the throughput.</p>\n<p>Let's say we have a benchmark class with a state <code>Foo</code>:</p>\n<pre class=\"lang-kotlin prettyprint-override\"><code>@State(Scope.Benchmark)\ninternal open class FooBenchmark {\n    class Foo {\n        private val values = mutableListOf&lt;String&gt;()\n\n        fun add() = values.add(values.size.toString())\n\n        fun size() = values.size\n    }\n\n    private val foo = Foo()\n\n    @Benchmark\n    @Fork(value = 1, warmups = 0)\n    @Measurement(iterations = 1, time = 1, timeUnit = TimeUnit.SECONDS)\n    @BenchmarkMode(Mode.SingleShotTime)\n    fun fooBenchmark(hole: Blackhole) {\n        check(foo.size() == 0)\n        foo.add()\n        check(foo.size() == 1)\n        hole.consume(foo)\n    }\n}\n</code></pre>\n<p>When I use <code>@BenchmarkMode(Mode.SingleShotTime)</code> I expect JMH to make exactly one invocation and measure the time of exactly this one invocation.\nBut for me, for <code>SingleShotTime</code>, JMH calls the method <code>fooBenchmark</code> several times.\n1 fork, 1 iteration, but several invocations.\nAnd it uses the same instance of the <code>FooBenchmark</code> class in different threads.\nThis leads to a conflict when accessing the <code>foo</code> state.</p>\n<p>This is just an example of how multiple calls are definitely happening. I do NOT need to access data from different threads.</p>\n<p>I don't understand how each of the JMH modes works? Or did I configure the <code>SingleShotTime</code> mode incorrectly?</p>\n<p>This is what JMH produces when running the task:</p>\n<pre class=\"lang-none prettyprint-override\"><code>&gt; Task :lib:runBenchmark\n# Detecting actual CPU count: 8 detected\n# JMH version: 1.37\n# VM version: JDK 19.0.1, OpenJDK 64-Bit Server VM, 19.0.1+10-21\n# VM invoker: /opt/jdk-19.0.1/bin/java\n# VM options: -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant\n# Blackhole mode: compiler (auto-detected, use -Djmh.blackhole.autoDetect=false to disable)\n# Warmup: &lt;none&gt;\n# Measurement: 1 iterations, 1 s each\n# Timeout: 10000 ms per iteration\n# Threads: 8 threads\n# Benchmark mode: Single shot invocation time\n# Benchmark: org.kepocnhh.jmh.FooBenchmark.fooBenchmark\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

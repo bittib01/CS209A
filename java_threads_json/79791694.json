@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-aop",
+      "spring-retry"
+    ],
+    "owner": {
+      "account_id": 5640896,
+      "reputation": 407,
+      "user_id": 4464806,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/-2L0zF6wN_Vc/AAAAAAAAAAI/AAAAAAAAABI/G06iSsfPM_0/s256-rj/photo.jpg",
+      "display_name": "Abhinash Jha",
+      "link": "https://stackoverflow.com/users/4464806/abhinash-jha"
+    },
+    "is_answered": true,
+    "view_count": 92,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1760631903,
+    "creation_date": 1760574761,
+    "last_edit_date": 1760587516,
+    "question_id": 79791694,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79791694/how-to-handle-multiple-exceptions-that-can-be-thrown-from-a-retryable-method-in",
+    "title": "How to handle multiple exceptions that can be thrown from a @Retryable method in spring",
+    "body": "<p>I have a simple Service class that makes call to a third party API to create or update the record. I have 2 separate methods in my service class to make the POST and PUT call. The service class first makes a POST call , and if the API throws an exception stating that the property already exists then a PUT call is done. There is no other way to know before hand and hence have to rely on exception from the API. Below are the methods (the retries works fine, so not including the retry configurations)</p>\n<pre><code>@Retryable(retryFor = {TechnicalException.class})\npublic void createPropertyWithRetry(CustomData customData)\n      throws TechnicalException {\n    try {\n      List&lt;CustomDataDetail&gt; response =\n          clientApi.createCustomData(customData);\n\n    } catch (ApiException e) {\n      if (isTechnicalError(e)) {\n        throw new TechnicalException(&quot;Technical error&quot;);\n      }\n    }\n  }\n\n\n@Retryable(retryFor = {TechnicalException.class})\npublic void updatePropertyWithRetry(CustomData customData)\n      throws TechnicalException {\n    try {\n      List&lt;CustomDataDetail&gt; response =\n          clientApi.updateCustomData(customData);\n\n    } catch (ApiException e) {\n      if (isTechnicalError(e)) {\n        throw new TechnicalException(&quot;Technical error&quot;);\n      }\n    }\n  }\n</code></pre>\n<p>Below is my recover method</p>\n<pre><code>@Recover\n  public void recoverFromTechnicalFailure(\n      TechnicalException ex,\n      CustomDataApi customDataApi,\n      CustomDataDetail customDataDetail,\n      String propertyCode) {\n    logErrorMessage(\n        log,\n        &quot;Operation failed after {} retries for property {}&quot;,\n        maxRetryAttempts,\n        propertyCode,\n        ex);\n\n    metricsService.incrementRetriesExhausted();\n    throw new TechnicalException(\n        &quot;Failed to process property &quot; + propertyCode + &quot; after all retries&quot;, ex);\n  }\n</code></pre>\n<p>The retries should only be for <code>TechnicalException</code>.</p>\n<p>Orchestrator method part that calls the above methods</p>\n<pre><code>void makeApiCall(){\ntry {\n      apiService.createPropertyWithRetry(customDataApi);\n    } catch (ApiException apiException) {\n      if (doesPropertyExist(apiException)) { // checks and \n        apiService.updatePropertyWithRetry(customDataApi);\n      } else {\n        // handling / re-throwing other exceptions\n      }\n    }\n}\n</code></pre>\n<p>The issue is following:\nWhat would be the right way to throw <code>ApiException</code> from my retryable method?\nBecause it retries only for <code>TechnicalException</code> if I throw <code>ApiException</code> from those methods, the app throws below exception:</p>\n<blockquote>\n<p>org.springframework.retry.ExhaustedRetryException: Cannot locate\nrecovery method</p>\n</blockquote>\n<p>As a work around, I can wrap the exception in another class and with a boolean variable and then return that and do orchestration. But, I wanted to know if there is a cleaner way to do it.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

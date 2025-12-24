@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "artificial-intelligence",
+      "pgvector",
+      "langchain4j"
+    ],
+    "owner": {
+      "account_id": 25376499,
+      "reputation": 25,
+      "user_id": 19189558,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a-/AOh14GiDI2IRFU4wkwusM1zG7GYFwY8z5AXsSJOh5yDS=k-s256",
+      "display_name": "Caos Develop",
+      "link": "https://stackoverflow.com/users/19189558/caos-develop"
+    },
+    "is_answered": false,
+    "view_count": 1485,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1716445035,
+    "creation_date": 1707486101,
+    "last_edit_date": 1707499475,
+    "question_id": 77968544,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77968544/langchain4j-pgvector-implementation-as-an-embeddingstore",
+    "title": "Langchain4j pgvector implementation as an EmbeddingStore?",
+    "body": "<p>I'm building a RAG based AI service using Langchain4j. I have one microservice that is ingesting and saving my documents (pdfs, csv, words...) in my PostgreSQL DB (with vector extension) as embeddings.</p>\n<p>From the other hand I'm building another microservice to hold the AI conversation logic.</p>\n<p>To do this I'm creating the next beans</p>\n<pre><code>    @Bean\npublic EmbeddingStore&lt;TextSegment&gt; embeddingStore() {\n    return new InMemoryEmbeddingStore&lt;&gt;();\n}\n\n    @Bean\npublic ContentRetriever contentRetriever() {\n    return EmbeddingStoreContentRetriever.builder()\n            .embeddingStore(embeddingStore())\n            .embeddingModel(bedrockTitanEmbeddingModel())\n            .maxResults(10) // on each interaction we will retrieve the 5 most relevant segments\n            .minScore(0.2) // we want to retrieve segments very similar to the user query\n            .build();\n}\n    @Bean\npublic RetrievalAugmentor retrievalAugmentor() {\n    return DefaultRetrievalAugmentor.builder()\n            .queryTransformer(queryTransformer())\n            .contentRetriever(contentRetriever())\n            .build();\n}\n\n    @Bean\npublic AiAgent aiAgent() {\n    return AiServices.builder(ErekyAiAgent.class)\n            .retrievalAugmentor(retrievalAugmentor())\n            .chatLanguageModel(bedrockAnthropicChatModel())\n            .contentRetriever(contentRetriever())\n            .build();\n}\n</code></pre>\n<p>The <code>ContentRetriever</code> is asking me as a mandatory parameter the embeddingStore. Now for testing I'm using the memory one but I saw that Langchain4j has an implementation with pgvector.</p>\n<p>In the flow what I'm doing is:</p>\n<ol>\n<li>Doing the query to my PostgreSQL database with the user asked question</li>\n<li>Returning the document text list found</li>\n<li>Transforming the List of Strings containing the document text I got to a list of <code>List&lt;TextSegment&gt;</code> that is a type of langchain4j library.</li>\n<li>Then I need to transform the <code>List&lt;TextSegment&gt;</code> to embeddings again and add them along with the <code>List&lt;TextSegment&gt;</code> without embedding them to the embedding store I'm using.</li>\n</ol>\n<p>The logic is</p>\n<pre><code>List&lt;String&gt; documentTexts = getDocumentTextsFromUserQuestion(promptDto);\n        List&lt;TextSegment&gt; textSegments = getTextSegments(documentTexts);\n        embeddingStore.addAll(embedComponent.getEmbeddingsFromTextSegments(textSegments), textSegments);\n        return new PromptDTO(aiAgent.answer(documentTexts, promptDto.getText()));\n</code></pre>\n<p>I saw that for some reason the logic always need for me to add that data to the embedding store to be able to give a correct answer based on my data. When I used the pgvector implementation of Langchain4j and did the same thing I saw that the implementation is creating a table in my DB with the data I already had saved before inserted in this new table to give the answer. And the data is being duplicated, there is a way to make this work without that?</p>\n<p>And since I already have the data saved in the DB, I can't directly do the call to the AI with the data found from the user question + the user question?</p>\n<p>I did it like this in Python calling chain.run being documents the data found in the DB and the question being the user question and it works and I don't need this intermmediate embedding store.</p>\n<pre><code>chain = load_qa_chain(llm, chain_type=&quot;stuff&quot;)\n    # Call to the model\n    # response = st.session_state.conversation({'question': user_question})\n    response = chain.run(input_documents=document, question=user_question)\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

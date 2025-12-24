@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "ssl",
+      "redis",
+      "amazon-elasticache",
+      "redisson"
+    ],
+    "owner": {
+      "account_id": 9056575,
+      "reputation": 787,
+      "user_id": 6744675,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/64298d9fb7dffd7c4be5b40faa95c71a?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "IndyStef",
+      "link": "https://stackoverflow.com/users/6744675/indystef"
+    },
+    "is_answered": false,
+    "view_count": 1072,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1715068307,
+    "creation_date": 1707220318,
+    "question_id": 77947486,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77947486/redisson-fails-to-connect-with-ssl-lettuce-does",
+    "title": "Redisson fails to connect with SSL, Lettuce does",
+    "body": "<p>We're trying to secure our ElastiCache/Redis connection with SSL. Part of this is an IT test, against a SSL secured Redis docker container. The container has all necessary certificate and key files, and a secure connection with <code>redis-cli</code> is possible without problems.</p>\n<p>We created a keystore and truststore for use with our Redisson client, and use this as follows:</p>\n<pre><code>@Bean(destroyMethod = &quot;shutdown&quot;)\npublic RedissonClient redissonClient() throws MalformedURLException {\n    File truststore = new File(&quot;docker/certs/truststore.jks&quot;);\n    File keystore = new File(&quot;docker/certs/redis_key_store.p12&quot;);\n\n    Config config = new Config();\n    //SingleServerConfig singleServerConfig = config.useSingleServer();\n    ReplicatedServersConfig elasticacheServersConfig = config.useReplicatedServers();\n    elasticacheServersConfig\n            .setSslProtocols(new String[]{&quot;TLSv1.3&quot;})\n            .setSslCiphers(new String[] { &quot;TLS_AES_256_GCM_SHA384&quot;, &quot;TLS_CHACHA20_POLY1305_SHA256&quot;, &quot;TLS_AES_128_GCM_SHA256&quot; })\n            .setSslEnableEndpointIdentification(false)\n            .setSslKeystorePassword(&quot;password&quot;)\n            .setSslKeystore(keystore.toURI().toURL())\n            .setSslTruststorePassword(&quot;password&quot;)\n            .setSslTruststore(truststore.toURI().toURL())\n            .setPassword(&quot;password&quot;);\n\n\n    redisEndpoints()\n            .stream()\n            .map(endpoint -&gt; &quot;rediss://&quot; + endpoint.getAddress() + &quot;:&quot; + endpoint.getPort())\n            .forEach(elasticacheServersConfig::addNodeAddress);\n\n    return Redisson.create(config);\n}\n</code></pre>\n<p>That, however, fails to connect, with these logs on the server side: <code>Error accepting a client connection: error:0A000416:SSL routines::sslv3 alert certificate unknown</code>. A quick search told me this is a problem the server has, but it is not 100% clear if this is due to the certs/keys (see below why we believe so)</p>\n<p>When I use the same truststore and keystore in Lettuce, this connects without issue. The code for that is this:</p>\n<pre><code>@Bean\npublic RedisConnectionFactory redisConnectionFactory() {\n    File truststore = new File(&quot;docker/certs/truststore.jks&quot;);\n    File keystore = new File(&quot;docker/certs/redis_key_store.p12&quot;);\n\n    var endpoint = new Endpoint().withAddress(&quot;127.0.0.1&quot;).withPort(63798);\n    final RedisStandaloneConfiguration redisStandaloneConfiguration =\n            new RedisStandaloneConfiguration(endpoint.getAddress(), endpoint.getPort());\n    redisStandaloneConfiguration.setPassword(&quot;password&quot;);\n\n    final LettuceClientConfiguration.LettuceClientConfigurationBuilder builder = LettuceClientConfiguration\n            .builder()\n            .readFrom(ReadFrom.MASTER_PREFERRED)\n            .commandTimeout(Duration.of(5000, ChronoUnit.MILLIS))\n            .clientOptions(ClientOptions.builder()\n                    .socketOptions(SocketOptions.builder()\n                            .keepAlive(true)\n                            .build())\n                    .sslOptions(SslOptions.builder()\n                            .keystore(keystore, &quot;password&quot;.toCharArray())\n                            .truststore(truststore, &quot;password&quot;)\n                            .build())\n                    .build());\n    builder.useSsl().disablePeerVerification();\n\n    return new LettuceConnectionFactory(redisStandaloneConfiguration, builder.build());\n}\n</code></pre>\n<p>and with some code using this like:</p>\n<pre><code>var connection = redisConnectionFactory.getConnection();\n\n    connection.set(&quot;test&quot;.getBytes(), &quot;1&quot;.getBytes());\n    byte [] g = connection.get(&quot;test&quot;.getBytes());\n\n    connection.close();\n</code></pre>\n<p>The obvious difference is that in Lettuce we can disable peer verification. Is there any way to make this work with Redisson?</p>\n<p>Unfortunately we have to use Redisson, because of the executor service it offers.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

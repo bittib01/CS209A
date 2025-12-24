@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jersey",
+      "jetty",
+      "resteasy",
+      "server-sent-events"
+    ],
+    "owner": {
+      "account_id": 1235990,
+      "reputation": 4422,
+      "user_id": 1199564,
+      "user_type": "registered",
+      "accept_rate": 71,
+      "profile_image": "https://www.gravatar.com/avatar/2f36dc4c43fc5c181e03498b94bba55c?s=256&d=identicon&r=PG",
+      "display_name": "mgd",
+      "link": "https://stackoverflow.com/users/1199564/mgd"
+    },
+    "is_answered": false,
+    "view_count": 199,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1732292661,
+    "creation_date": 1731948953,
+    "last_edit_date": 1732292661,
+    "question_id": 79200773,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79200773/server-sent-events-sse-wit-resteasy-exhausting-jettys-thread-pool",
+    "title": "Server-Sent Events (SSE) wit RESTEasy exhausting Jetty&#39;s thread pool",
+    "body": "<p><strong>EDIT:</strong></p>\n<ul>\n<li>Got rid of <code>Thread.sleep()</code> using an executor instead.</li>\n<li>Added call to <code>servletHolder.setAsyncSupported(true)</code>.</li>\n</ul>\n<hr />\n<h2>Question</h2>\n<p>We are trying to implement Server-Sent Events (SSE) using</p>\n<ul>\n<li>RESTEasy (6.2.11.Final)</li>\n<li>Jetty (12.0.15)</li>\n</ul>\n<p>but we are having the problem that each SSE subscription consumes and holds on to a thread in Jetty's thread pool for the entire duration of the subscription.</p>\n<p>If we use Jersey instead of RESTEasy, everything works as expected.</p>\n<p>Is there are way to configure RESTEasy to not exhausting Jetty's thread pool?</p>\n<h2>Code implementing SSE using RESTEasy</h2>\n<p>A resource class to handle SSE subscriptions and push events to a subscriber every second:</p>\n<pre class=\"lang-java prettyprint-override\"><code>import java.util.concurrent.Executors;\nimport java.util.concurrent.ScheduledExecutorService;\nimport java.util.concurrent.TimeUnit;\nimport java.util.concurrent.atomic.AtomicInteger;\n\nimport jakarta.ws.rs.GET;\nimport jakarta.ws.rs.Path;\nimport jakarta.ws.rs.Produces;\nimport jakarta.ws.rs.core.Context;\nimport jakarta.ws.rs.sse.OutboundSseEvent;\nimport jakarta.ws.rs.sse.Sse;\nimport jakarta.ws.rs.sse.SseEventSink;\n\n@Path(&quot;/events&quot;)\npublic class EventsResource {\n    private final static ScheduledExecutorService executor = Executors.newScheduledThreadPool(10);\n    private final static AtomicInteger channelIds = new AtomicInteger();\n\n    @GET\n    @Produces(MediaType.SERVER_SENT_EVENTS)\n    public void subscribe(@Context SseEventSink sink, @Context Sse sse) {\n          final int channelId = channelIds.getAndIncrement();\n          final Runnable sendMessage = () -&gt; {\n                final OutboundSseEvent event = sse.newEventBuilder()\n                    .name(&quot;message&quot;)\n                    .data(String.class, &quot;Hello client &quot; + channelId + &quot;!&quot;)\n                    .build();\n                sink.send(event);\n          };\n          executor.scheduleAtFixedRate(sendMessage, 0, 1, TimeUnit.SECONDS);\n    }\n}\n</code></pre>\n<p>The resource class is added to the set of classes in our <code>Application</code> class:</p>\n<pre class=\"lang-java prettyprint-override\"><code>import java.util.HashSet;\nimport java.util.Set;\nimport jakarta.ws.rs.core.Application;\n\npublic class RestApplication extends Application {\n    /** {@inheritDoc} */\n    @Override\n    public Set&lt;Class&lt;?&gt;&gt; getClasses() {\n        Set&lt;Class&lt;?&gt;&gt; classes = new HashSet&lt;&gt;();\n        classes.add(EventsResource.class);\n        return classes;\n    }\n}\n</code></pre>\n<p>Finally, we have our main class where we start Jetty with our application and a minimal thread pool of 5 threads:</p>\n<pre class=\"lang-java prettyprint-override\"><code>import org.eclipse.jetty.ee10.servlet.ServletContextHandler;\nimport org.eclipse.jetty.ee10.servlet.ServletHolder;\nimport org.eclipse.jetty.server.Connector;\nimport org.eclipse.jetty.server.Server;\nimport org.eclipse.jetty.server.ServerConnector;\nimport org.eclipse.jetty.util.thread.QueuedThreadPool;\nimport org.example.rest.RestApplication;\nimport org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;\n\npublic class Main {\n  public static void main(String[] args) throws Exception {\n    Server server = new Server(new QueuedThreadPool(5));\n\n    ServerConnector serverConnector = new ServerConnector(server);\n    serverConnector.setPort(8081);\n    server.setConnectors(new Connector[] { serverConnector });\n\n    ServletHolder servletHolder = new ServletHolder(new HttpServletDispatcher());\n    servletHolder.setInitParameter(&quot;jakarta.ws.rs.Application&quot;, RestApplication.class.getName());\n    servletHolder.setAsyncSupported(true);\n    ServletContextHandler servletContextHandler = new ServletContextHandler(ServletContextHandler.SESSIONS);\n    servletContextHandler.addServlet(servletHolder, &quot;/*&quot;);\n    server.setHandler(servletContextHandler);\n\n    server.start();\n    server.join();\n  }\n}\n</code></pre>\n<h2>Exhausting Jetty's thread pool</h2>\n<p>When subscribing to SSE, we get:</p>\n<pre><code>% curl &quot;http://localhost:8081/events&quot; -H 'Accept: text/event-stream'\n\nevent: message\ndata: 0: Hello client 0!\n\nevent: message\ndata: 1: Hello client 0!\n\nevent: message\ndata: 2: Hello client 0!\n\n...\n</code></pre>\n<p>If we start 2 parallel <code>curl</code> commands, the Jetty thread pool is exhausted and the 3rd request will hang waiting for a thread.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

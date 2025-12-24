@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jackson"
+    ],
+    "owner": {
+      "account_id": 177610,
+      "reputation": 2154,
+      "user_id": 1664198,
+      "user_type": "registered",
+      "accept_rate": 88,
+      "profile_image": "https://graph.facebook.com/100005405439241/picture?type=large",
+      "display_name": "mrog",
+      "link": "https://stackoverflow.com/users/1664198/mrog"
+    },
+    "is_answered": true,
+    "view_count": 155,
+    "answer_count": 3,
+    "score": 2,
+    "last_activity_date": 1760536953,
+    "creation_date": 1731973809,
+    "last_edit_date": 1732108993,
+    "question_id": 79201717,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79201717/how-to-convert-a-mapstring-string-to-a-pojo-using-jackson",
+    "title": "How to convert a Map&lt;String, String&gt; to a POJO using Jackson?",
+    "body": "<p>I need to write some Java code with these requirements:</p>\n<ol>\n<li>Input is received as a <code>Map&lt;String, String&gt;</code>.</li>\n<li>The code needs to use Jackson to convert the input into a POJO.  Some of the POJO's fields contain strings and enums.  For these fields, the map's values are simply the plain strings or the result of calling <code>.toString()</code> on an enum value.  Other fields contain other POJOs, lists of POJOs, etc. These exist as JSON objects in the map.</li>\n<li>Custom code needs to be kept to a minimum.  Ideally, annotations in the POJO classes would contain all the information Jackson needs to do its job.  (If a new field is added to a POJO class with the proper annotations, it should work without additional code changes.)</li>\n<li>The code needs to use an <code>ObjectMapper</code> that's provided using dependency injection.  This limits the places in the code that can use the <code>ObjectMapper</code>. (For example, it's not available in a <code>@JsonSetter</code> method in the POJO class.)</li>\n</ol>\n<p>Sample Classes:</p>\n<pre><code>public enum Color {\n    red,\n    blue\n}\n\n@Data\n@Builder\npublic class MyPojo {\n    private String name;\n    private Color color;\n    private List&lt;String&gt; words;\n    private MyOtherPojo properties;\n}\n\n@Data\n@Builder\npublic class MyOtherPojo {\n    private String text;\n    private String moreText;\n    private MyOtherPojo moreProperties;\n}\n</code></pre>\n<p>Sample input:</p>\n<pre><code>Map&lt;String, String&gt; input = Map.of(\n    &quot;name&quot;, &quot;foo&quot;,\n    &quot;color&quot;, &quot;blue&quot;,\n    &quot;words&quot;, &quot;[\\&quot;banana\\&quot;, \\&quot;desk\\&quot;, \\&quot;cloud\\&quot;]&quot;,\n    &quot;properties&quot;, &quot;{\\&quot;text\\&quot;: \\&quot;sample text\\&quot;, \\&quot;moreText\\&quot;: \\&quot;stuff\\&quot;, \\&quot;moreProperties\\&quot;: {\\&quot;text\\&quot;: \\&quot;Wahoo!\\&quot;}}&quot;\n);\n</code></pre>\n<p>I have it partly working. My conversion code looks like this:</p>\n<pre><code>public class MyPojoConverter {\n    private final ObjectMapper objectMapper;\n\n    public MyPojoConverter(ObjectMapper objectMapper) {\n        this.objectMapper = objectMapper;\n    }\n\n    public MyPojo deserialize(Map&lt;String, String&gt; input) {\n        return objectMapper.convertValue(input, MyPojo.class);\n    }\n}\n</code></pre>\n<p>This implementation works fine for <code>String</code> and enum fields, but not for fields that contain other POJOs. If <code>MyPojo</code> has a field of type <code>MyOtherPojo</code>, I get an error like this:</p>\n<pre><code>java.lang.IllegalArgumentException: Cannot construct instance of `MyOtherPojo` (although at least one Creator exists): no String-argument constructor/factory method to deserialize from String value (...\n</code></pre>\n<p>It seems that Jackson wants a <code>MyOtherPojo</code> constructor that takes a <code>String</code>, but that class doesn't have such a constructor and I can't add one to it.  I would prefer that Jackson automatically handle the other POJO recursively. Is there a way to make it do this?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

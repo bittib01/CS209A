@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-integration-distributed-lock"
+    ],
+    "owner": {
+      "account_id": 15303853,
+      "reputation": 89,
+      "user_id": 11041310,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/-tg3CJDK6ws8/AAAAAAAAAAI/AAAAAAAAAAA/ACevoQP4Twz0pBgduKJJZGggsjNiucxOiA/mo/s256-rj/photo.jpg",
+      "display_name": "santal",
+      "link": "https://stackoverflow.com/users/11041310/santal"
+    },
+    "is_answered": true,
+    "view_count": 2978,
+    "accepted_answer_id": 78172028,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1741190145,
+    "creation_date": 1710596129,
+    "last_edit_date": 1741190145,
+    "question_id": 78171973,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78171973/distributed-lock-in-java-spring-boot",
+    "title": "Distributed lock in Java Spring Boot",
+    "body": "<p>I have 2 instances of containers with scheduled task and I would like to protect against start the same task in every docker container. I decided to make distributed lock using SQL Server.</p>\n<p>I added configuration</p>\n<pre><code>  @Bean\n    public DefaultLockRepository DefaultLockRepository(DataSource dataSource) {\n        return new DefaultLockRepository(dataSource);\n    }\n\n    @Bean\n    public JdbcLockRegistry jdbcLockRegistry(LockRepository lockRepository) {\n        return new JdbcLockRegistry(lockRepository);\n    }\n</code></pre>\n<p>And I'm trying acquire the lock like this:</p>\n<pre><code>   public void doSomething() throws InterruptedException {\n        boolean lockAcquired;\n        var lock = lockRegistry.obtain(&quot;main&quot;);\n\n        try {\n            \n            lockAcquired = lock.tryLock();\n            if (lockAcquired == true) {\n                logger.info(&quot;Locked&quot;);\n            } else {\n                logger.info(&quot;Not locked&quot;);\n            }\n\n        } catch (Exception ex) {\n            lockAcquired = false;\n            logger.info(&quot;Not locked&quot;);\n        }\n\n        Thread.sleep(3600000);\n\n        lock.unlock();\n    }\n</code></pre>\n<p>I started 2 instances of application with identical code.\nWhen I entered to method of first instance of application, lock has been acquired - and I've got &quot;Locked&quot; message - so it's ok</p>\n<p>In database I saw the entry like this:</p>\n<pre><code>LOCK_KEY    REGION  CLIENT_ID   CREATED_DATE\nfad58de7-3664-35db-8650-cfefac2fcd61    DEFAULT c0314b87-0bee-4bdd-8567-a939fd21f0bf    2024-03-16 13:20:43.2559575I saw that in datatabase I've got new entry like this:\n</code></pre>\n<p>When I started second instance of application I expected to get message &quot;Not locked&quot;, because lock has been acquired in first app which still running, but not - I've got log &quot;Locked&quot; again and my database entry has been updated to:</p>\n<pre><code>LOCK_KEY    REGION  CLIENT_ID   CREATED_DATE\nfad58de7-3664-35db-8650-cfefac2fcd61    DEFAULT ad58971d-c991-4709-a03b-9acb39a38c54    2024-03-16 13:24:42.3002365\n</code></pre>\n<p>So my distributed lock doesn't work.</p>\n<p>What I'm doing wrong? How can I protect against execute scheduled task using distributed lock in many docker containers.</p>\n<p>//UPDATE</p>\n<p>When I execute method in two instances in short time between (like less then 5 s) it works, but when I execute method in first instance and I'm trying execute it in second instance after 30s it doesn't work.</p>\n<p>//UPDATE2</p>\n<p>As Alex sugested it was a problem with TTL in DefaultLockRepository.\nThe lock was set to default time 10 seconds.\nAfter the changes, the code now looks like this:</p>\n<pre><code> @Bean\n    public DefaultLockRepository DefaultLockRepository(DataSource dataSource) {\n        var repo = new DefaultLockRepository(dataSource);\n        repo.setTimeToLive(1000 * 100);\n        return repo;\n    }\n</code></pre>\n<p>The lock is set to 100s and during the next 100s other service instance cannot lock the method.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

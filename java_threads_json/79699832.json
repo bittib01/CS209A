@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "security",
+      "boot"
+    ],
+    "owner": {
+      "account_id": 19930050,
+      "reputation": 1,
+      "user_id": 14603791,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/4b588ead980a4a3b7f17eb70d02fb4c5?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Jinsung_Park",
+      "link": "https://stackoverflow.com/users/14603791/jinsung-park"
+    },
+    "is_answered": false,
+    "view_count": 101,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1753108790,
+    "creation_date": 1752394593,
+    "last_edit_date": 1752394700,
+    "question_id": 79699832,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79699832/spring-boot-requestmatchers-permitall-always-return-403",
+    "title": "Spring Boot requestMatchers permitAll always return 403",
+    "body": "<p>Im not sure with rhe reason why spring is keep returning 403 even I added permitAdd in requestMatchers. Im using custom JWTAuthenticationFilter, but I dont think that is causing the issue.</p>\n<p>Tried all different kinds of way to remove this issue but only way I was able to remove this issue was not using Spring Starter Security or anyRequest to permitAll 😭</p>\n<p>Is there anyting im missing out on?</p>\n<p>Security config</p>\n<pre><code> @Configuration\n@EnableWebSecurity\npublic class SecurityConfig {\n\n    @Bean\n    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {\n        http\n            .csrf(CsrfConfigurer::disable)\n            .sessionManagement(sess -&gt; sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))\n            .authorizeHttpRequests(auth -&gt; auth\n                    .requestMatchers(HttpMethod.POST, &quot;/api/user/test&quot;).permitAll()\n                    .requestMatchers(&quot;/error&quot;).permitAll()\n                    .anyRequest().authenticated() // others require JWT\n            )\n   \n            .addFilterBefore(new JWTAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);\n\n        return http.build();\n    }\n}\n</code></pre>\n<p>JWT config</p>\n<pre><code>public class JWTAuthenticationFilter extends OncePerRequestFilter {\n\n    // Define the paths that are permitAll() in SecurityConfig\n    // This list helps the filter decide how to handle invalid/missing tokens\n    private static final List&lt;String&gt; PERMIT_ALL_PREFIXES = Arrays.asList(\n            &quot;/api/user/test&quot;, // Exact match for this path\n            &quot;/public/&quot;,        // Prefix for paths under /public/\n            &quot;/error&quot;\n    );\n\n    @Override\n    protected void doFilterInternal(\n            HttpServletRequest request,\n            HttpServletResponse response,\n            FilterChain filterChain\n    ) throws ServletException, IOException {\n\n        String authHeader = request.getHeader(&quot;Authorization&quot;);\n\n        // Check if an Authorization header with a Bearer token exists\n        if (authHeader != null &amp;&amp; authHeader.startsWith(&quot;Bearer &quot;)) {\n            String jwt = authHeader.substring(7);\n\n//             Validate the JWT\n            if (JWTUtils.isValidToken(jwt)) {\n                // If valid, set authentication in SecurityContextHolder\n                Long userId = JWTUtils.getUserId(jwt);\n                UsernamePasswordAuthenticationToken authenticationToken =\n                        new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());\n                authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));\n                SecurityContextHolder.getContext().setAuthentication(authenticationToken);\n            } else {\n                // Token exists but is invalid\n                System.out.println(&quot;awef&quot;);\n                // If it's a PROTECTED path (not a permitAll path), then an invalid token means UNAUTHORIZED\n//                SecurityContextHolder.clearContext(); // Clear any stale or invalid context\n//                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);\n//                    response.getWriter().write(&quot;{\\&quot;status\\&quot;: \\&quot;401\\&quot;, \\&quot;message\\&quot;: \\&quot;Invalid or Expired Token\\&quot;}&quot;);\n//                    response.getWriter().flush();\n                // If it IS a permitAll path, an invalid token just means no authentication for this request.\n                // We let it proceed to the next filters, relying on the permitAll() rule to allow access.\n            }\n        }\n\n        System.out.println(&quot;After JWT filter, authentication: &quot; + SecurityContextHolder.getContext().getAuthentication());\n        // If no Authorization header is present, or if it's a permitAll path with an invalid token,\n        // we simply continue the filter chain. Spring Security's permitAll() will allow access\n        // for these paths, and authenticated() will trigger the AuthenticationEntryPoint for others.\n        filterChain.doFilter(request, response);\n    }\n}\n</code></pre>\n<p>Debug Log</p>\n<pre><code>    2025-07-13T17:04:09.029+09:00 DEBUG 97916 --- [test] [nio-8080-exec-5] o.s.security.web.FilterChainProxy        : Securing POST /api/user/test\nAfter JWT filter, authentication: null\n2025-07-13T17:04:09.030+09:00 DEBUG 97916 --- [test] [nio-8080-exec-5] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext\n2025-07-13T17:04:09.031+09:00 DEBUG 97916 --- [test] [nio-8080-exec-5] o.s.s.w.a.Http403ForbiddenEntryPoint     : Pre-authenticated entry point called. Rejecting access\n2025-07-13T17:04:09.032+09:00 DEBUG 97916 --- [test] [nio-8080-exec-5] o.s.security.web.FilterChainProxy        : Securing POST /api/error\n2025-07-13T17:04:09.032+09:00 DEBUG 97916 --- [test] [nio-8080-exec-5] o.s.security.web.FilterChainProxy        : Secured POST /api/error\n2025-07-13T17:04:09.034+09:00 DEBUG 97916 --- [test] [nio-8080-exec-5] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

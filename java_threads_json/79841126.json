@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "kubernetes",
+      "micrometer"
+    ],
+    "owner": {
+      "account_id": 3930435,
+      "reputation": 2891,
+      "user_id": 3249257,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/bHOGG.jpg?s=256",
+      "display_name": "Denis Stafichuk",
+      "link": "https://stackoverflow.com/users/3249257/denis-stafichuk"
+    },
+    "is_answered": false,
+    "view_count": 89,
+    "answer_count": 0,
+    "score": 3,
+    "last_activity_date": 1765209289,
+    "creation_date": 1765208631,
+    "last_edit_date": 1765209289,
+    "question_id": 79841126,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79841126/how-can-i-control-the-shutdown-order-of-spring-managed-beans-that-i-don-t-create",
+    "title": "How can I control the shutdown order of Spring-managed beans that I don’t create myself?",
+    "body": "<p>I have a Spring Boot application running in Kubernetes. I’m trying to implement a <em>graceful shutdown</em> flow using a <strong>readiness probe</strong>:</p>\n<ol>\n<li><p>App receives <code>SIGTERM</code>.</p>\n</li>\n<li><p>App should start returning <code>503</code> from <code>/health</code> so Kubernetes stops sending new traffic.</p>\n</li>\n<li><p>Existing requests finish.</p>\n</li>\n<li><p>App shuts down.</p>\n</li>\n</ol>\n<p>I’d like to <strong>record metrics for the last few <code>/health</code> calls</strong> (especially the <code>503</code> responses during shutdown) using Micrometer’s <code>MeterRegistry</code>. However, I’m seeing that the <code>MeterRegistry</code> is already closed while the readiness probe is still hitting <code>/health</code>.</p>\n<p>Relevant k8s config:</p>\n<pre class=\"lang-yaml prettyprint-override\"><code>readinessProbe:\n  initialDelaySeconds: 30\n  periodSeconds: 1\n  failureThreshold: 1\n  httpGet:\n    path: /health\n    port: 9091\n</code></pre>\n<p>Controller:</p>\n<pre class=\"lang-java prettyprint-override\"><code>import io.micrometer.core.instrument.MeterRegistry;\nimport lombok.RequiredArgsConstructor;\nimport lombok.extern.slf4j.Slf4j;\nimport org.springframework.http.ResponseEntity;\nimport org.springframework.web.bind.annotation.GetMapping;\nimport org.springframework.web.bind.annotation.RestController;\n\nimport static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;\n\n@RestController\n@RequiredArgsConstructor\n@Slf4j\npublic class HealthController {\n    private final StatusService statusService;\n    private final MeterRegistry meterRegistry;\n\n    @GetMapping(&quot;/health&quot;)\n    public ResponseEntity&lt;String&gt; health() {\n        Status status = statusService.status();\n        ResponseEntity&lt;String&gt; response = status == Status.OK\n            ? ResponseEntity.ok(status.name())\n            : ResponseEntity.status(SERVICE_UNAVAILABLE).body(status.name());\n\n        int statusCode = response.getStatusCode().value();\n        String statusCodeString = String.valueOf(statusCode);\n        meterRegistry.counter(&quot;health_check_status&quot;, &quot;code&quot;, statusCodeString).increment();\n\n        log.debug(&quot;Health check returned: {}. Status code: {}. meterRegistry.isClosed(): {}&quot;,\n            response, statusCodeString, meterRegistry.isClosed());\n        return response;\n    }\n}\n</code></pre>\n<p>Logs around shutdown:</p>\n<pre><code>2025-12-08 13:15:24.096  Health check returned: &lt;200 OK OK,OK,[]&gt;. Status code: 200. meterRegistry.isClosed(): false\n2025-12-08 13:15:25.092  Health check returned: &lt;200 OK OK,OK,[]&gt;. Status code: 200. meterRegistry.isClosed(): false\n2025-12-08 13:15:26.092  Health check returned: &lt;503 SERVICE_UNAVAILABLE Service Unavailable,SHUTTING_DOWN,[]&gt;. Status code: 503. meterRegistry.isClosed(): true\n2025-12-08 13:15:26.095  Health check returned: &lt;503 SERVICE_UNAVAILABLE Service Unavailable,SHUTTING_DOWN,[]&gt;. Status code: 503. meterRegistry.isClosed(): true\n</code></pre>\n<p>So when my <code>StatusService</code> reports <code>SHUTTING_DOWN</code> and <code>/health</code> starts returning <code>503</code>, <code>meterRegistry.isClosed()</code> is already <code>true</code>, which means I can’t reliably record those <code>503</code> metrics.</p>\n<p>From what I can see:</p>\n<ul>\n<li><p><code>MeterRegistry</code> is created and managed by Spring Boot auto-configuration.</p>\n</li>\n<li><p>On <code>SIGTERM</code>, Spring Boot shuts down and eventually calls <code>MeterRegistry#close()</code>.</p>\n</li>\n<li><p>I don’t directly control the registry bean (no custom bean definition, no <code>@DependsOn</code>, etc.).</p>\n</li>\n</ul>\n<p><strong>Questions</strong></p>\n<ol>\n<li><p><strong>Is there a way in Spring Boot to delay or customize when <code>MeterRegistry.close()</code> is called during shutdown</strong>, so that I can still write metrics during the last readiness probe calls?</p>\n</li>\n<li><p>If not, what is the recommended pattern to:</p>\n<ul>\n<li><p>Keep <code>/health</code> responding with accurate status during shutdown, and</p>\n</li>\n<li><p>Still record metrics for those responses, when <code>MeterRegistry</code> is managed by Spring Boot?</p>\n</li>\n</ul>\n</li>\n</ol>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "maven",
+      "xsd",
+      "jaxb"
+    ],
+    "owner": {
+      "account_id": 2778891,
+      "reputation": 10781,
+      "user_id": 2391849,
+      "user_type": "registered",
+      "accept_rate": 84,
+      "profile_image": "https://www.gravatar.com/avatar/486136ec1516b78c03114a7261413863?s=256&d=identicon&r=PG",
+      "display_name": "Mulgard",
+      "link": "https://stackoverflow.com/users/2391849/mulgard"
+    },
+    "is_answered": true,
+    "view_count": 163,
+    "accepted_answer_id": 79629320,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1747683830,
+    "creation_date": 1747630794,
+    "question_id": 79628098,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79628098/jaxb-maven-plugin-xsd-to-java-how-to-solve-xsd-with-root-element-and-child-elem",
+    "title": "jaxb-maven-plugin xsd to java: how to solve xsd with root element and child element having the same name",
+    "body": "<p>I have a similar structure as this xsd:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;xs:element name=&quot;address&quot;&gt;\n  &lt;xs:complexType&gt;\n    &lt;xs:choice&gt;\n      &lt;xs:element name=&quot;address&quot;&gt;\n        &lt;xs:complexType&gt;\n          &lt;xs:sequence&gt;\n            &lt;!-- ... --&gt;\n          &lt;/xs:sequence&gt;\n        &lt;/xs:complexType&gt;\n      &lt;/xs:element&gt;\n      &lt;xs:element name=&quot;mailbox&quot;&gt;\n        &lt;xs:complexType&gt;\n          &lt;xs:sequence&gt;\n            &lt;!-- ... --&gt;\n          &lt;/xs:sequence&gt;\n        &lt;/xs:complexType&gt;\n      &lt;/xs:element&gt;\n    &lt;/xs:choice&gt;\n  &lt;/xs:complexType&gt;\n&lt;/xs:element&gt;\n</code></pre>\n<p>In my opinion this is a bad schema. You should not name your elements in that way.\nI cannot change this schema since its comming from a third party.\nI have to convert this into a java model. Obviously this wont work out of the box.\nJAXB XSD to Java would try to generate something like this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@XmlAccessorType(XmlAccessType.FIELD)\n@XmlType(name = &quot;&quot;, propOrder = {\n    &quot;address&quot;,\n    &quot;mailbox&quot;\n})\npublic static class Address implements Serializable, Cloneable, CopyTo, Equals, HashCode, MergeFrom, ToString\n{\n\n    Address.Address address;\n    Address.Mailbox mailbox;\n\n    public static class Address implements Serializable, Cloneable, CopyTo, Equals, HashCode, MergeFrom, ToString\n    {\n        // ...\n    }\n    \n    public static class Mailbox implements Serializable, Cloneable, CopyTo, Equals, HashCode, MergeFrom, ToString\n    {\n        // ...\n    }\n}\n</code></pre>\n<p>Ofcourse this results in the java error <code>Duplicate class: 'Address'.</code>\nSince I cannot change the schema I try to change the generated java class.\nI remembered there was a plugin for auto name resolution. So I tried:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;plugin&gt;\n  &lt;groupId&gt;org.jvnet.jaxb&lt;/groupId&gt;\n  &lt;artifactId&gt;jaxb-maven-plugin&lt;/artifactId&gt;\n  &lt;version&gt;4.0.9&lt;/version&gt;\n  &lt;executions&gt;\n    &lt;execution&gt;\n      &lt;goals&gt;\n        &lt;goal&gt;generate&lt;/goal&gt;\n      &lt;/goals&gt;\n      &lt;configuration&gt;\n        &lt;debug&gt;true&lt;/debug&gt;\n        &lt;args&gt;\n          &lt;!-- Enable Equals Generation --&gt;\n          &lt;arg&gt;-Xequals&lt;/arg&gt;\n          &lt;!-- Enable Hashcode Generation --&gt;\n          &lt;arg&gt;-XhashCode&lt;/arg&gt;\n          &lt;!-- Enable ToString Generation --&gt;\n          &lt;arg&gt;-XtoString&lt;/arg&gt;\n          &lt;!-- Enable Builder Generation --&gt;\n          &lt;arg&gt;-Xfluent-api&lt;/arg&gt;\n          &lt;!-- Enable Inheritance Generation --&gt;\n          &lt;arg&gt;-Xinheritance&lt;/arg&gt;\n          &lt;!-- Enable Copy Generation --&gt;\n          &lt;arg&gt;-Xcopyable&lt;/arg&gt;\n          &lt;!-- Enable Merge Generation --&gt;\n          &lt;arg&gt;-Xmergeable&lt;/arg&gt;\n          &lt;!-- auto resolve conflicting names --&gt;\n          &lt;arg&gt;-XautoNameResolution&lt;/arg&gt;\n        &lt;/args&gt;\n        &lt;strict&gt;false&lt;/strict&gt;\n        &lt;extension&gt;true&lt;/extension&gt;\n        &lt;schemaDirectory&gt;src/main/resources/xsd&lt;/schemaDirectory&gt;\n        &lt;bindingDirectory&gt;src/main/resources/xjb&lt;/bindingDirectory&gt;\n        &lt;catalog&gt;src/main/resources/xsd/external/catalog.cat&lt;/catalog&gt;\n        &lt;generateDirectory&gt;${project.build.directory}/generated-sources&lt;/generateDirectory&gt;\n        &lt;plugins&gt;\n          &lt;plugin&gt;\n            &lt;groupId&gt;org.jvnet.jaxb&lt;/groupId&gt;\n            &lt;artifactId&gt;jaxb-plugins&lt;/artifactId&gt;\n            &lt;version&gt;4.0.9&lt;/version&gt;\n          &lt;/plugin&gt;\n          &lt;plugin&gt;\n            &lt;groupId&gt;org.jvnet.jaxb&lt;/groupId&gt;\n            &lt;artifactId&gt;jaxb-plugins-tools&lt;/artifactId&gt;\n            &lt;version&gt;4.0.9&lt;/version&gt;\n          &lt;/plugin&gt;\n        &lt;/plugins&gt;\n      &lt;/configuration&gt;\n    &lt;/execution&gt;\n  &lt;/executions&gt;\n&lt;/plugin&gt;\n</code></pre>\n<p>But that did not change the java class generation at all.\nSo I tried the bindings approach. I did the following:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;jxb:bindings version=&quot;3.0&quot;\n              xmlns:jxb=&quot;http://java.sun.com/xml/ns/jaxb&quot;\n              xmlns:xs=&quot;http://www.w3.org/2001/XMLSchema&quot;&gt;\n  \n  &lt;jxb:bindings schemaLocation=&quot;schema.xsd&quot; node=&quot;/xs:schema/xs:element[@name='address']&quot;&gt;\n    &lt;jxb:class name=&quot;Address&quot;/&gt;\n  &lt;/jxb:bindings&gt;\n\n  &lt;jxb:bindings schemaLocation=&quot;schema.xsd&quot; node=&quot;/xs:schema/xs:element[@name='address']/xs:complexType/xs:choice/xs:element[@name='address']&quot;&gt;\n    &lt;jxb:class name=&quot;AddressDetails&quot;/&gt;\n  &lt;/jxb:bindings&gt;\n\n&lt;/jxb:bindings&gt;\n</code></pre>\n<p>But this results in: <code>Execution default of goal org.jvnet.jaxb:jaxb-maven-plugin:4.0.0:generate failed: Illegal class inheritance loop.  Outer class Address may not subclass from inner class: Address</code></p>\n<p>Im not sure what is really happening there.</p>\n<p>Is there any way to solve that problem?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

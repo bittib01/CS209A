@@ -1,0 +1,31 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot"
+    ],
+    "owner": {
+      "account_id": 18446145,
+      "reputation": 13,
+      "user_id": 13437398,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/z2rsV.png?s=256",
+      "display_name": "Garmin",
+      "link": "https://stackoverflow.com/users/13437398/garmin"
+    },
+    "is_answered": true,
+    "view_count": 45,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1740137569,
+    "creation_date": 1740122234,
+    "question_id": 79456588,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79456588/nested-transactionsynchronizationmanager-registersynchronization-invocation-do",
+    "title": "Nested TransactionSynchronizationManager.registerSynchronization() invocation doesn&#39;t work",
+    "body": "<p>I create three service like below:</p>\n<p>Service one:</p>\n<pre><code>@Service\n@RequiredArgsConstructor\npublic class TransactionAService {\n\n    private final TransactionBService transactionBService;\n\n    private final UserMapper userMapper;\n\n    @Transactional(rollbackFor = Exception.class)\n    public void transactionA() {\n        User user = new User();\n        user.setUsername(&quot;apple-&quot; + UUID.randomUUID().toString().replace(&quot;-&quot;, &quot;&quot;).substring(0, 4));\n        user.setPassword(&quot;abc123&quot;);\n        userMapper.insert(user);\n        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {\n            @Override\n            public void afterCommit() {\n                transactionBService.transactionB();\n            }\n        });\n    }\n}\n</code></pre>\n<p>Service two:</p>\n<pre><code>@Service\n@RequiredArgsConstructor\npublic class TransactionBService {\n\n    private final TransactionCService transactionCService;\n\n    private final UserMapper userMapper;\n\n    @Transactional(rollbackFor = Exception.class)\n    public void transactionB() {\n        User user = new User();\n        user.setUsername(&quot;banana-&quot; + UUID.randomUUID().toString().replace(&quot;-&quot;, &quot;&quot;).substring(0, 4));\n        user.setPassword(&quot;abc123&quot;);\n        userMapper.insert(user);\n        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {\n            @Override\n            public void afterCommit() {\n                transactionCService.transactionC();\n            }\n        });\n    }\n}\n</code></pre>\n<p>Service three:</p>\n<pre><code>@Slf4j\n@Service\n@RequiredArgsConstructor\npublic class TransactionCService {\n\n    private final UserMapper userMapper;\n\n    @Transactional(rollbackFor = Exception.class)\n    public void transactionC() {\n        log.info(&quot;hello cat&quot;);\n        User user = new User();\n        user.setUsername(&quot;cat-&quot; + UUID.randomUUID().toString().replace(&quot;-&quot;, &quot;&quot;).substring(0, 4));\n        user.setPassword(&quot;abc123&quot;);\n        userMapper.insert(user);\n    }\n}\n</code></pre>\n<p>The <strong>transactionCService.transactionC()</strong> method doesn't be called When I invoked transactionAService.transactionA() method.\nSo the db only has two rows(apple-xx and banana-xx ) in the user table finally.\nThe Spring Boot Version is 2.7.18.</p>\n<p>Anybody knows the reason? thanks a lot</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

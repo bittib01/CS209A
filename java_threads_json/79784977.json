@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "jpa",
+      "mysql-connector",
+      "hikaricp"
+    ],
+    "owner": {
+      "account_id": 12875245,
+      "reputation": 637,
+      "user_id": 9312181,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/2b471777c25fc5860d7c904c11f5e26f?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "tusharRawat",
+      "link": "https://stackoverflow.com/users/9312181/tusharrawat"
+    },
+    "is_answered": false,
+    "view_count": 152,
+    "answer_count": 0,
+    "score": -1,
+    "last_activity_date": 1759949617,
+    "creation_date": 1759877798,
+    "last_edit_date": 1759949617,
+    "question_id": 79784977,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79784977/hikaricp-connections-leak-with-mysql-long-running-insert-queries",
+    "title": "HikariCP connections leak with MySQL long-running INSERT queries",
+    "body": "<p>I’m facing an issue where INSERT queries on a MySQL table get stuck in “waiting for lock”, and even after innodb_lock_wait_timeout (50s), the connections are not released back to HikariCP, eventually exhausting the pool.</p>\n<p><strong>Scenario</strong>:</p>\n<p>Executed multiple duplicate inserts on the same table (file_record_v2, unique file_id), with a buffer of 2-3 mins between each query.</p>\n<pre><code>INSERT INTO file_record_v2\n            (iso_country_code,\n             created_at,\n             modified_at,\n             bucket,\n             file_id,\n             file_key,\n             file_name,\n             path,\n             status,\n             upload_date,\n             uploaded_by)\nVALUES      ('IN',\n             '2025-10-01 17:22:39.867',\n             '2025-10-01 17:22:39.867',\n             'Fo/89NveRaWnfjgvfsmrIE5ca7kQ2LkqvV9AKTmn0Qw=',\n             '777a7379-6c96-35d1-b47e-17b1708258f5',\n             'abcdef',\n             '1759316708189.csv',\n             NULL,\n             'success',\n             '2025-10-01',\n             'admin@gmail.com');\n</code></pre>\n<p><strong>What happens:</strong></p>\n<p>The first insert succeded.\n2nd query query throws exception instantly - java.sql.SQLIntegrityConstraintViolationException: Duplicate entry....\nAfter that all the subsequent inserts went into a waiting state for the entire 50 seconds (<code>innodb_lock_wait_timeout</code>).</p>\n<p><strong>MySQL slow logs:</strong></p>\n<pre><code>&gt; User@Host: admin[admin] @ [xx.xxx.xx.216] thread_id: 3225252 server_id: 2921685337 \n&gt; Query_time: 50.939886 Lock_time: 50.939609 Rows_sent: 0 Rows_examined: 0 use \n&gt; shard0; SET timestamp=1759319339; insert into file_record_v2\n&gt; (iso_country_code, created_at, modified_at, bucket, file_id, file_key,\n&gt; file_name, path, status, upload_date, uploaded_by) values ('IN',\n&gt; '2025-10-01 17:18:59.548', '2025-10-01 17:18:59.548',\n&gt; 'Fo/89NveRaWnfjgvfsmrIE5ca7kQ2LkqvV9AKTmn0Qw=',\n&gt; '777a7379-6c96-35d1-b47e-17b1708258f5', 'abcdef', '1759316708189.csv',\n&gt; null, 'success', '2025-10-01', 'admin@gmail.com');\n</code></pre>\n<p>Timeline of all queries :\n<a href=\"https://i.sstatic.net/rUQpp6qk.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/rUQpp6qk.png\" alt=\"enter image description here\" /></a></p>\n<p>After 50 seconds, MySQL times out the waiting queries, but Hikari does not return these connections to the pool.\nEventually, all 5 connections in the pool get exhausted and app started throwing:</p>\n<p><strong>Error:</strong><br />\njava.sql.SQLTransientConnectionException: HikariPool-1 - Connection is not available...</p>\n<p><a href=\"https://i.sstatic.net/kEqN5jjb.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/kEqN5jjb.png\" alt=\"Hikari pool metrics\" /></a></p>\n<p><strong>Code Snippet</strong></p>\n<pre><code>@Override\npublic FileUploadResponse storeFileMetadata(String bucketName, String fileKey, String fileName, String user, String countryCode) throws Exception {\n    String fileId = // create file id;\n    LocalDateTime localDateTime = getLocalDateTime();\n\n    try {\n        // Build entity\n        FileRecordEntity entity = FileRecordEntity.builder()\n                .fileId(fileId)\n                .fileName(fileName)\n                .uploadDate(getDate())\n                .bucket(bucketName)\n                .fileKey(fileKey)\n                .userId(user)\n                .status(FileStatus.SUCCESS.getValue())\n                .countryCode(countryCode)\n                .createdAt(localDateTime)\n                .modifiedAt(localDateTime)\n                .build();\n\n        fileRecordRepository.save(entity); // Only DB query which got latent\n\n        return new FileUploadResponse(fileId, null);\n        \n    } catch (ConstraintViolationException | DataIntegrityViolationException e) {\n        log.error(e.getMessage(), e);\n        if (StringUtils.containsIgnoreCase(e.getCause().getCause().getMessage(), &quot;Duplicate entry&quot;))\n            throw new FileValidationException(String.format(&quot;Duplicate file: %s&quot;, fileName));\n        throw e;\n    }\n}\n</code></pre>\n<p><strong>Recovery</strong> :\nWe recovered after restarting the application to free up the exhausted pool.</p>\n<p><strong>Version</strong> :</p>\n<pre><code>Spring Boot: 2.7.10\nSpring Data JPA: 2.7.10\nHikariCP: 4.0.3 \nHibernate: 5.6.15.Final\nDriver : com.mysql.cj.jdbc.Driver\n</code></pre>\n<p>**HikariCP settings : **</p>\n<pre><code>  driverClassName: com.mysql.cj.jdbc.Driver\n  idleTimeout: '600000'\n  initializationFailTimeout: '1'\n  maxLifetime: '3600000'\n  maximumPoolSize: '5'\n  minIdle: '1'\n  validationQuery: SELECT 1\n</code></pre>\n<p>Rest all all defaults.</p>\n<p>Q. Connection Leak: Why doesn’t HikariCP release connections after MySQL times out the query (as seen in slow logs just after 50s), and how can I force close such connections automatically ?</p>\n<p><strong>DB schema :</strong></p>\n<p>There's one issue we had observed in below legacy table is that column named <code>file_id</code> has 2 unique and 1 non-unique index which could be the reason for slow duplicate inserts such as taking locks on multiple indexes ~ 50s (but still seems too high to update a row with 4 indexes), it seems that somewhere <strong>deadlock</strong> happening here (Reason is all queries started but no query got lock and all got terminated after inno_db lock timeout) here causing wait for 50 seconds to acquire a lock, but that still does not explain part why connection on app side didn't get freed up after 50s and either stuck waiting infinitely or connection got leak somewhere.</p>\n<p><a href=\"https://i.sstatic.net/OPmjYo18.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/OPmjYo18.png\" alt=\"enter image description here\" /></a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

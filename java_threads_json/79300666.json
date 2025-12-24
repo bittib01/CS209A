@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "hibernate",
+      "jpa",
+      "backend"
+    ],
+    "owner": {
+      "account_id": 21729092,
+      "reputation": 55,
+      "user_id": 16038099,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a-/AOh14GjQVwfur0Sa-KDkaDpoBJ-hg_-hUAZ4ayCnDLya=k-s256",
+      "display_name": "Malay Jeena",
+      "link": "https://stackoverflow.com/users/16038099/malay-jeena"
+    },
+    "is_answered": true,
+    "view_count": 98,
+    "accepted_answer_id": 79302254,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1735387343,
+    "creation_date": 1734854894,
+    "question_id": 79300666,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79300666/infinite-response-through-spring-boots-entity-dto",
+    "title": "Infinite response through Spring boot&#39;s entity/dto",
+    "body": "<p>I'm trying to test a controller to store employees and department. But when creating employees with the given payload(post employee):\n{\n&quot;name&quot;: &quot;malay&quot;,\n&quot;dateOfJoining&quot;: &quot;2024-12-18&quot;,\n&quot;isActive&quot;: true,\n&quot;department&quot;: {\n&quot;id&quot;: 1\n}\n}\nIt results in infinite recursive response, but only when commenting <code>private List&lt;employeesDto&gt; employees</code> in department dto, it works fine. But what if, when i want to know the list of employees in a department. And also i've used @JsonManagedReference, @JsonBackReference and @JsonIgnore on necessary fields. But none of them worked.\nSo how can i implement this in a way where i also get the list of employees in a department as well no infinite recursive response (for instance creating employee)</p>\n<p>deptDto</p>\n<pre><code>@Data\n@AllArgsConstructor\n@NoArgsConstructor\npublic class departmentDto {\n    private Integer id;\n    @NonNull\n    private String name;\n    private List&lt;employeeDto&gt; employees;\n    private employeeDto hod;\n//    private Integer hod_id;\n}\n</code></pre>\n<p>empDto</p>\n<pre><code>@Data\n@AllArgsConstructor\n@NoArgsConstructor\npublic class employeeDto {\n    private Integer id;\n    private String name;\n    private LocalDate dateOfJoining;\n    @JsonProperty(&quot;isActive&quot;)\n    private boolean isActive;\n    private departmentDto department;\n}\n</code></pre>\n<p>empService</p>\n<pre><code>public employeeDto createEmployee (employeeDto empDto) {\n//\n        employeeEntity empEntity = modelMapper.map(empDto, employeeEntity.class);\n//        employeeEntity empEntity = new employeeEntity(empDto.getId(),empDto.getName(),empDto.getDateOfJoining(),empDto.isActive());\n        // handling the department relationship\n        if (empDto.getDepartment() != null &amp;&amp; empDto.getDepartment().getId() != null) {\n            departmentEntity deptEntity  = departmentRepository.getReferenceById(empDto.getDepartment().getId());\n            empEntity.setDepartment(deptEntity);\n        }\n        employeeEntity createdEmpEntity = employeeRepository.save(empEntity);\n//        ModelMapper modelMapper = new ModelMapper();\n        employeeDto createdEmpDto = modelMapper.map(createdEmpEntity, employeeDto.class);\n//        employeeDto createdEmpDto = new employeeDto(\n//                createdEmpEntity.getId(),\n//                createdEmpEntity.getName(),\n//                createdEmpEntity.getDateOfJoining(),\n//                createdEmpEntity.isActive()\n//        );\n        return createdEmpDto;\n    }\n</code></pre>\n<p>deptEntity</p>\n<pre><code>@Entity\n//@Table(name=&quot;department&quot;,schema = &quot;spring_emp_dept&quot;)\n@Table(name=&quot;department&quot;)\n@Data\n@NoArgsConstructor\n@AllArgsConstructor\npublic class departmentEntity {\n    @Id\n    @GeneratedValue(strategy = GenerationType.AUTO)\n    private int id;\n    @Column(nullable = false)\n    private String name;\n\n    //relationships\n    @OneToMany(mappedBy = &quot;department&quot;)\n    @JsonManagedReference\n    private List&lt;employeeEntity&gt; employees;\n\n    @ManyToOne\n    @JoinColumn(name = &quot;hod_id&quot;)\n    @JsonBackReference\n    private employeeEntity hod;\n}\n</code></pre>\n<p>empEntity:</p>\n<pre><code>@Entity\n//@Table(name=&quot;employees&quot;,schema=&quot;spring_emp_dept&quot;)\n@Table(name=&quot;employees&quot;)\n@Data\n@AllArgsConstructor\n@NoArgsConstructor\npublic class employeeEntity {\n    @Id\n    @GeneratedValue(strategy = GenerationType.AUTO)\n    private Integer id;\n    @Column(nullable = false)\n    private String name;\n    private LocalDate dateOfJoining;\n    private boolean isActive;\n    // relationships\n    @ManyToOne\n    @JoinColumn(name=&quot;dept_id&quot;)\n    @JsonBackReference\n    private departmentEntity department;\n    @OneToMany(mappedBy = &quot;hod&quot;)\n    @JsonBackReference\n    private List&lt;departmentEntity&gt; hodDept;\n\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

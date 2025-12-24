@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "hibernate"
+    ],
+    "owner": {
+      "account_id": 11350850,
+      "reputation": 33,
+      "user_id": 8321892,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/d78b4c8ca60aaebbebc427cf2d4f8f17?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Cheesy Chameleon",
+      "link": "https://stackoverflow.com/users/8321892/cheesy-chameleon"
+    },
+    "is_answered": false,
+    "view_count": 149,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1747925015,
+    "creation_date": 1747777996,
+    "question_id": 79631220,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79631220/custom-generic-hibernate-idgeneratortype",
+    "title": "Custom generic Hibernate IdGeneratorType",
+    "body": "<p>I want to create a reusable custom ID generator with Hibernate so that I can do something like this:</p>\n<pre><code>@Id\n@CustomId(name = &quot;USR&quot;)\nprivate String id;\n</code></pre>\n<p>and use it across different entity models. Looking at the official docs and online, I haven't found my answer. This is what I have so far:</p>\n<pre><code>import org.hibernate.annotations.IdGeneratorType;\n\nimport java.lang.annotation.Retention;\nimport java.lang.annotation.RetentionPolicy;\nimport java.lang.annotation.Target;\n\nimport static java.lang.annotation.ElementType.FIELD;\nimport static java.lang.annotation.ElementType.METHOD;\n\n@IdGeneratorType(CustomIdGenerator.class)\n@Retention(RetentionPolicy.RUNTIME)\n@Target({FIELD, METHOD})\npublic @interface CustomId {\n    String name();\n    int startWith() default 1;\n    int incrementBy() default 1;\n}\n</code></pre>\n<p>and I would like my <code>CustomIdGenerator</code> class to use the provided values from <code>CustomId</code>:</p>\n<pre><code>import org.hibernate.engine.spi.SharedSessionContractImplementor;\nimport org.hibernate.id.IdentifierGenerator;\n\npublic class CustomIdGenerator implements IdentifierGenerator {\n\n    private static int counter = startWith;\n\n    @Override\n    public Object generate(SharedSessionContractImplementor session, Object object) {\n        String prefix = name;\n        String suffix = String.format(&quot;%05d&quot;, counter += incrementBy);\n        return prefix + suffix;\n    }\n}\n</code></pre>\n<p>The result should be that it generates IDs like &quot;USR00001&quot;, &quot;USR00002&quot;, etc. in this case.</p>\n<p>Does anyone know how to get this to work?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

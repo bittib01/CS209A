@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "mocking",
+      "junit5"
+    ],
+    "owner": {
+      "account_id": 4347577,
+      "reputation": 16,
+      "user_id": 3549113,
+      "user_type": "registered",
+      "accept_rate": 25,
+      "profile_image": "https://www.gravatar.com/avatar/c7d29c570134550090ab30a3675bc627?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "vineeth",
+      "link": "https://stackoverflow.com/users/3549113/vineeth"
+    },
+    "is_answered": false,
+    "view_count": 73,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1760714734,
+    "creation_date": 1760714734,
+    "question_id": 79793210,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79793210/junit-test-case-failing",
+    "title": "Junit test case failing",
+    "body": "<p>I have a springboot maven project in which I have a very simple class which has a static method which takes in a http client, some configs and an object mapper\nThis class is under package com.cs.service.plugins.oauthplugin.oauthresolvers\nunder the <strong>src</strong> folder</p>\n<pre><code>package com.cs.service.plugins.oauthplugin.oauthresolvers;\n\npublic class OAuthResolver {\n    public static String getToken(JavaHttpClientWrapper httpClient, AuthConfig config, String partnerId, String secretsJsonString, ObjectMapper objectMapper) {\n // business logic\n}\n\n}\n</code></pre>\n<p>I have a very simple  test case for this under the  <strong>test</strong> package\nIn the test case I am only mocking the http client.</p>\n<pre><code>package com.cs.service.plugins.oauthplugin.oauthresolvers;\n\nimport com.fasterxml.jackson.databind.ObjectMapper;\nimport org.junit.jupiter.api.Assertions;\nimport org.junit.jupiter.api.BeforeEach;\nimport org.junit.jupiter.api.Test;\nimport org.junit.jupiter.api.extension.ExtendWith;\nimport org.junit.runner.RunWith;\nimport org.mockito.junit.jupiter.MockitoExtension;\nimport org.mockito.junit.jupiter.MockitoSettings;\nimport org.mockito.quality.Strictness;\nimport org.springframework.http.HttpStatusCode;\nimport org.springframework.test.context.junit4.SpringRunner;\n\nimport java.io.IOException;\nimport static org.mockito.ArgumentMatchers.any;\nimport static org.mockito.Mockito.mock;\nimport static org.mockito.Mockito.when;\n\n\n@RunWith(SpringRunner.class)\n@ExtendWith(MockitoExtension.class)\n@MockitoSettings(strictness = Strictness.LENIENT)\nclass OAuthResolverTest {\n\n    private JavaHttpClientWrapper httpClient;\n    private final ObjectMapper objectMapper = new ObjectMapper();\n    private AuthConfig authConfig = new AuthConfig();\n    private String secretString = &quot;{\\&quot;token_client_username\\&quot;:\\&quot;user\\&quot;,\\&quot;token_client_password\\&quot;:\\&quot;pass\\&quot;}&quot;;\n\n       @BeforeEach\n    public void setup() throws TemplateTransformationException, ValidationException, ScenarioConfigException, TargetServiceException, ThirdPartyWrapperException, IOException, ReplaceValueServiceException {\n        httpClient = mock(JavaHttpClientWrapper.class);\n        authConfig.setUrl(&quot;https://url&quot;);\n        ApiResponse&lt;String&gt; apiResponse = new ApiResponse&lt;&gt;();\n        apiResponse.setHttpStatus(HttpStatusCode.valueOf(200));\n        apiResponse.setBody(&quot;{}&quot;);\n\n        when(httpClient.postApiCall(any(), any(), any())).thenReturn(apiResponse);\n    }\n\n\n    @Test\n    public void testGetToken() {\n        String token = OAuthResolver.getToken(httpClient,authConfig, &quot;AR&quot;, secretString, objectMapper);\n        Assertions.assertEquals(&quot;Bearer token&quot;, token);\n    }\n</code></pre>\n<p>When I build the springboot project using mvn clean package -q -DminCoverage=80 in the aws codebuild linux container this test case fails. The same works fine on my mac.\nThe weird thing is if i move the test case to a folder above\n<code>package com.cs.service.plugins.oauthplugin;</code>\nThis works perfectly fine.\nWould anyone be able to explain this behaviour and why this happens</p>\n<ul>\n<li>spring boot version  3.5.6</li>\n<li>junit - 5</li>\n<li>linux machine was the aws codebuild container running on amazon linux</li>\n<li>local mac  m3 pro</li>\n</ul>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "scala",
+      "apache-spark",
+      "left-join",
+      "rdd"
+    ],
+    "owner": {
+      "account_id": 2148997,
+      "reputation": 40,
+      "user_id": 1905910,
+      "user_type": "registered",
+      "accept_rate": 70,
+      "profile_image": "https://www.gravatar.com/avatar/eb0f60a560a41e8fbabe0e0093196448?s=256&d=identicon&r=PG",
+      "display_name": "user1905910",
+      "link": "https://stackoverflow.com/users/1905910/user1905910"
+    },
+    "is_answered": false,
+    "view_count": 245,
+    "answer_count": 2,
+    "score": 2,
+    "last_activity_date": 1717777615,
+    "creation_date": 1710883213,
+    "last_edit_date": 1715775145,
+    "question_id": 78189702,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78189702/spark-left-outer-join-produces-optional-empty-when-it-shouldnt",
+    "title": "Spark Left Outer Join produces Optional.empty when it shouldn&#39;t",
+    "body": "<p>I have an RDD containing pairs of nodes and I need to assign unique IDs to them.</p>\n<p>But I'm getting an NPE and I can't figure out how to solve it.</p>\n<p>I'm basically putting all nodes into a distinct list, and then I assign unique Ids to them. After that, I merge the original pairs with this new assignment.</p>\n<p>The code looks like this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>JavaPairRDD&lt;Node, Node&gt; pairs = // ... assigned previously\nJavaPairRDD&lt;Node, Long&gt; index = pairs\n        .flatMap(tuple -&gt; Arrays.asList(tuple._1(), tuple._2()).iterator())\n        .distinct()\n        .zipWithUniqueId();\n\npairs.leftOuterJoin(index)\n        .mapToPair(new MergeJoinResult())\n        .mapToPair(Tuple2::swap)\n        .leftOuterJoin(index)\n        .mapToPair(new MergeJoinResult())\n        .mapToPair(Tuple2::swap);\n\n/*\n * Given a tuple like (node1, (node2, node1Index))\n * Creates a new tuple (node1, node2) where node1 is initialized with its index\n */\nstatic class MergeJoinResult implements\n        PairFunction&lt;Tuple2&lt;Node, Tuple2&lt;Node, Optional&lt;Long&gt;&gt;&gt;, Node, Node&gt;,\n        Serializable {\n    @Override\n    public Tuple2&lt;Node, Node&gt; call(Tuple2&lt;Node, Tuple2&lt;Node, Optional&lt;Long&gt;&gt;&gt; row) throws Exception {\n        return Tuple2.apply(new Node(row._1(), row._2()._2().get()), row._2()._1());\n    }\n}\n</code></pre>\n<p>The problem I'm having is that <code>row._2()._2().get()</code> returns Optional.empty, and I get the NPE.</p>\n<p>But this should be impossible because I'm deriving the index RDD from the pair's RDD. So a leftOuterJoin between them should always produce a match.</p>\n<p>As a sanity check, I added code to dump the entire RDD to S3 to see the contents of <code>pairs</code> and <code>index</code>. The data is there, all edges, and the proper index entry with its unique Id. I did the dump using <code>toString()</code>.</p>\n<p>Then I thought that the problem would be with the <code>equals</code> implementation and I performed a delombok of the code and added print statements to verify if the comparison\nbetween objects was returning <code>false</code>. In my log, the comparison always returns <code>true</code>, so I have no idea why I'm getting the <code>Optional.empty</code> there.</p>\n<p>Another strange thing I notice is that when I stringfy the objects in the index and perform a group by, I find duplicates in it:</p>\n<pre class=\"lang-java prettyprint-override\"><code>index\n  .groupBy(t -&gt; t._1().toString())\n  .filter(t -&gt; {\n      int size = 0;\n      for (Tuple2&lt;Node, Long&gt; value : t._2()) {\n          size++;\n          if (size &gt;= 2) return true;\n      }\n      return false;\n  });\n</code></pre>\n<p>The same happens if I perform a <code>pairs.cogroup(index)</code>. I get multiple entries with the same K.</p>\n<p>I tried to perform a comparison between these objects after grouping them by their string representation, but their <code>equals</code> and <code>hashCode</code> returns the same result. I'm using Lombok implementation for those.</p>\n<p>I also tried to serialize the RDD before this code to JSON and loaded everything in my machine, but the NPE doesn't occur in my machine after I do this.</p>\n<p>I'm a little lost here.</p>\n<p>My next guess would be that the problem is with the serialization (I'm using Kryo). Another option that I'm going to try is to set a different partitioner for the RDD.</p>\n<p>Any suggestions on what I could do here? I'm using Spark 3.3.1 in AWS Glue.</p>\n<p>Edit: I changed things to serialize all Node objects into JSON strings and used that as a join key, that worked. This hints further to serialization issues, I don't think it's related to equals or hashCode because those are implemented by Lombok.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

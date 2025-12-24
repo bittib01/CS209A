@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "bash",
+      "spring-boot",
+      "maven"
+    ],
+    "owner": {
+      "account_id": 31941351,
+      "reputation": 21,
+      "user_id": 24751273,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/4bd6a01cb644fa2e6df53aa2cc2921d9?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Nicolas Chasnovsky",
+      "link": "https://stackoverflow.com/users/24751273/nicolas-chasnovsky"
+    },
+    "is_answered": false,
+    "view_count": 89,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1747771347,
+    "creation_date": 1747766959,
+    "last_edit_date": 1747771347,
+    "question_id": 79631009,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79631009/trying-to-start-a-java-and-react-app-from-a-bash-script-but-keep-getting-the-sa",
+    "title": "Trying to start a Java and React app from a bash script, but keep getting the same error when executing the script",
+    "body": "<p>Im trying to run this Java app with Spring boot from a script file, the script first connects to a postgreSQL database, then runs the backend and then the frontend made with React of the app.</p>\n<p>This is the script file:</p>\n<pre><code>chmod +x start.sh\nset -e\n\necho &quot;Starting App&quot;\n\nPG_USER=&quot;postgres&quot;\nPG_DB=&quot;notes_db&quot;\nPG_PASS=&quot;1234&quot;\n\n\nPGREADY=$(PGPASSWORD=$PG_PASS psql -U $PG_USER -d $PG_DB -h localhost -c '\\q' 2&gt;&amp;1 || true)\nif [[ $PGREADY == *&quot;could not connect&quot;* ]]; then\necho &quot;PostgreSQL is not running or credentials are incorrect.&quot;\nexit 1\nfi\n\necho &quot;Database Initialized.&quot;\n\necho &quot;Starting Backend&quot;\ncd backend\nchmod +x mvnw\n./mvnw clean install\n./mvnw spring-boot:run\nBACKEND_PID=$!\ncd ..\n\necho &quot;Installing frontend dependencies&quot;\ncd frontend\nnpm install\n\necho &quot;Starting React app&quot;\nnpm start &amp;\nFRONTEND_PID=$!\ncd ..\n\necho &quot;Everything is running.&quot;\necho &quot;Frontend: http://localhost:3000&quot;\necho &quot;Backend:  http://localhost:8080/notes&quot;\n\ntrap &quot;kill $BACKEND_PID $FRONTEND_PID&quot; INT TERM\n\nwait\n</code></pre>\n<p>When it reaches to the backend section, it runs a script called mvwn which should download a .jar file from this url:<a href=\"https://repo.maven.apache.org/maven2/io/takari/maven-wrapper/0.5.6/\" rel=\"nofollow noreferrer\">https://repo.maven.apache.org/maven2/io/takari/maven-wrapper/0.5.6/</a></p>\n<p>However, i keep getting this error when running the mvwn bash file:</p>\n<pre class=\"lang-none prettyprint-override\"><code>$ MVNW_VERBOSE=true ./mvnw -v\nCouldn't find .mvn/wrapper/maven-wrapper.jar, downloading it ...\nDownloading from: https://repo.maven.apache.org/maven2/io/takari/maven-wrapper/0.5.6/maven-wrapper-0.5.6.jar\nFound curl ... using curl\ncurl: (3) URL rejected: Malformed input to a URL function\n/c/Users/Nicolás/Desktop/Java/Full Stack Implementation Exercise/backend\nError: Could not find or load main class org.apache.maven.wrapper.MavenWrapperMain\nCaused by: java.lang.ClassNotFoundException: org.apache.maven.wrapper.MavenWrapperMain\n</code></pre>\n<p>Supposedly, this is because the url is wrong inside my program, but its correctly defined inside my files, even manually downloading the file didnt help, it still tries to download it and fails at it.</p>\n<p>The mvnw file is long, but if needed i will send it here aswell, this is the section which downloads the file.</p>\n<pre><code>if [ &quot;$MVNW_VERBOSE&quot; = true ]; then\n  echo &quot;Couldn't find .mvn/wrapper/maven-wrapper.jar, downloading it ...&quot;\nfi\nif [ -n &quot;$MVNW_REPOURL&quot; ]; then\n  jarUrl=&quot;$MVNW_REPOURL/io/takari/maven-wrapper/0.5.6/maven-wrapper-0.5.6.jar&quot;\nelse\n  jarUrl=&quot;https://repo.maven.apache.org/maven2/io/takari/maven-wrapper/0.5.6/maven-wrapper-0.5.6.jar&quot;\nfi\nwhile IFS=&quot;=&quot; read key value; do\n  case &quot;$key&quot; in (wrapperUrl) jarUrl=&quot;$value&quot;; break ;;\n  esac\ndone &lt; &quot;$BASE_DIR/.mvn/wrapper/maven-wrapper.properties&quot;\nif [ &quot;$MVNW_VERBOSE&quot; = true ]; then\n  echo &quot;Downloading from: $jarUrl&quot;\nfi\nwrapperJarPath=&quot;$BASE_DIR/.mvn/wrapper/maven-wrapper.jar&quot;\nif $cygwin; then\n  wrapperJarPath=`cygpath --path --windows &quot;$wrapperJarPath&quot;`\nfi\n\nif command -v wget &gt; /dev/null; then\n    if [ &quot;$MVNW_VERBOSE&quot; = true ]; then\n      echo &quot;Found wget ... using wget&quot;\n    fi\n    if [ -z &quot;$MVNW_USERNAME&quot; ] || [ -z &quot;$MVNW_PASSWORD&quot; ]; then\n        wget &quot;$jarUrl&quot; -O &quot;$wrapperJarPath&quot;\n    else\n        wget --http-user=$MVNW_USERNAME --http-password=$MVNW_PASSWORD &quot;$jarUrl&quot; -O &quot;$wrapperJarPath&quot;\n    fi\nelif command -v curl &gt; /dev/null; then\n    if [ &quot;$MVNW_VERBOSE&quot; = true ]; then\n      echo &quot;Found curl ... using curl&quot;\n    fi\n    if [ -z &quot;$MVNW_USERNAME&quot; ] || [ -z &quot;$MVNW_PASSWORD&quot; ]; then\n        curl -o &quot;$wrapperJarPath&quot; &quot;$jarUrl&quot; -f\n    else\n        curl --user $MVNW_USERNAME:$MVNW_PASSWORD -o &quot;$wrapperJarPath&quot; &quot;$jarUrl&quot; -f\n    fi\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

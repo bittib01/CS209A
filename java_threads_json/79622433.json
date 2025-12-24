@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "command-line-interface",
+      "spring-shell"
+    ],
+    "owner": {
+      "account_id": 2104828,
+      "reputation": 1363,
+      "user_id": 1871404,
+      "user_type": "registered",
+      "accept_rate": 38,
+      "profile_image": "https://www.gravatar.com/avatar/1a989e8ea9351bcc6637d96baf3da508?s=256&d=identicon&r=PG",
+      "display_name": "Patrick B.",
+      "link": "https://stackoverflow.com/users/1871404/patrick-b"
+    },
+    "is_answered": false,
+    "view_count": 101,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1747919528,
+    "creation_date": 1747266974,
+    "question_id": 79622433,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79622433/how-to-manage-commands-availablity-dynamically-in-a-spring-shell-application",
+    "title": "How to manage commands availablity dynamically in a Spring Shell application?",
+    "body": "<p>I'm building a command-line interface application using Spring Shell.\nIt has :</p>\n<ul>\n<li>5 commands named &quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;, &quot;e&quot;. Each command is defined in its own separate class.</li>\n<li>1 class named Foo.</li>\n</ul>\n<p>I need my commands to be available(<a href=\"https://docs.spring.io/spring-shell/reference/commands/availability.html#_annotation\" rel=\"nofollow noreferrer\">https://docs.spring.io/spring-shell/reference/commands/availability.html#_annotation</a>) based on certain rules :</p>\n<ol>\n<li><p>When the application starts, only commands &quot;a&quot; and &quot;e&quot; are available.</p>\n</li>\n<li><p>Commands &quot;b&quot;, &quot;c&quot; and &quot;d&quot; become available from the moment command &quot;a&quot; is run (and is then made unavailable automatically) to the moment command &quot;d&quot; is run (and becomes unavailable automatically, as well as commands &quot;b&quot; and &quot;c&quot;, while command &quot;a&quot; becomes available again).</p>\n</li>\n<li><p>A single instance of Foo is created when command &quot;a&quot; is run. This Foo instance is available to commands &quot;b&quot;, &quot;c&quot; and &quot;d&quot;. After command &quot;d&quot; is run, the foo instance is &quot;destroyed&quot;</p>\n</li>\n</ol>\n<p>What I've managed to do so far is the first requirement as shown in the code below.</p>\n<pre><code>package com.example.test;\n\nimport org.springframework.boot.autoconfigure.SpringBootApplication;\nimport org.springframework.boot.SpringApplication;\nimport org.springframework.shell.standard.ShellComponent;\nimport org.springframework.shell.standard.ShellMethod;\nimport org.springframework.shell.Availability;\nimport org.springframework.shell.standard.ShellMethodAvailability;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.beans.factory.annotation.Autowired;\n\n@ShellComponent\nclass StartCommand extends AvailabilityHandler {\n\n    @ShellMethod(key=&quot;a&quot;)\n    @Bean\n    public Foo a(){\n        System.out.println(&quot;Command \\&quot;a\\&quot; executed.&quot;);\n        return new Foo();\n    }\n}\n\n@ShellComponent\nclass FirstInBetweenCommand extends AvailabilityHandler {\n\n    @ShellMethod(key=&quot;b&quot;)\n    @ShellMethodAvailability(&quot;commandAHasRun&quot;)\n    public void b(){\n        System.out.println(&quot;Command \\&quot;b\\&quot; executed.&quot;);\n    }\n}\n\n@ShellComponent\nclass SecondInBetweenCommand extends AvailabilityHandler {\n\n    @ShellMethod(key=&quot;c&quot;)\n    @ShellMethodAvailability(&quot;commandAHasRun&quot;)\n    public void c(){\n        System.out.println(&quot;Command \\&quot;c\\&quot; executed.&quot;);\n    }\n}\n\n@ShellComponent\nclass StopCommand extends AvailabilityHandler {\n\n    @ShellMethod(key=&quot;d&quot;)\n    @ShellMethodAvailability(&quot;commandAHasRun&quot;)\n    public void d(){\n        System.out.println(&quot;Command \\&quot;d\\&quot; executed.&quot;);\n    }\n}\n\n@ShellComponent\nclass AsideCommand extends AvailabilityHandler {\n\n    @ShellMethod(key=&quot;e&quot;)\n    public void e(){\n        System.out.println(&quot;Command \\&quot;e\\&quot; executed.&quot;);\n    }\n}\n\n\nclass Foo {\n\n    Foo(){\n        System.out.println(&quot;Foo bean created&quot;);\n    }\n}\n\n@SpringBootApplication\npublic class Demo{\n    public static void main(String[] args){\n        SpringApplication.run(Demo.class, args);\n    }\n}\n\nabstract class AvailabilityHandler {\n    public Availability commandAHasRun(){\n        System.out.println(&quot;Check command availability&quot;);\n        return Availability.unavailable(&quot;Command \\&quot;a\\&quot; has not run yet&quot;);\n    }\n}\n</code></pre>\n<p>How to implement the two other rules?</p>\n<p>My idea is to use the Foo instance to control the availability of commands but I don't know how to do that.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

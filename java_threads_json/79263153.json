@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "websocket",
+      "java-websocket"
+    ],
+    "owner": {
+      "account_id": 1247323,
+      "reputation": 1948,
+      "user_id": 1319938,
+      "user_type": "registered",
+      "accept_rate": 67,
+      "profile_image": "https://i.sstatic.net/Og98Q.jpg?s=256",
+      "display_name": "mah454",
+      "link": "https://stackoverflow.com/users/1319938/mah454"
+    },
+    "is_answered": true,
+    "view_count": 135,
+    "accepted_answer_id": 79265470,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1739305776,
+    "creation_date": 1733684345,
+    "question_id": 79263153,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79263153/java-21-websocket-message-not-received",
+    "title": "Java 21 websocket message not received",
+    "body": "<p>Why this code does not receive any message:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class MainClass {\n    public static void main(String[] args) throws Exception {\n        CountDownLatch latch = new CountDownLatch(1);\n        try (HttpClient client = HttpClient.newHttpClient()) {\n            client.newWebSocketBuilder()\n                    .buildAsync(URI.create(&quot;wss://socket.coinex.com/v2/futures&quot;), new WebSocketClient(latch))\n                    .join();\n            latch.wait();\n        }\n    }\n\n    private record WebSocketClient(CountDownLatch latch) implements WebSocket.Listener {\n\n        @Override\n        public void onOpen(WebSocket webSocket) {\n            System.out.println(&quot;Connected to server&quot;);\n\n            String message = &quot;&quot;&quot;\n                    {\n                        &quot;method&quot;: &quot;state.subscribe&quot;,\n                        &quot;params&quot;: {&quot;market_list&quot;: [&quot;BTCUSDT&quot;]},\n                        &quot;id&quot;: 1\n                    }\n                    &quot;&quot;&quot;;\n\n            webSocket.sendText(message, true);\n            WebSocket.Listener.super.onOpen(webSocket);\n        }\n\n        @Override\n        public CompletionStage&lt;?&gt; onText(WebSocket webSocket, CharSequence data, boolean last) {\n            System.out.println(&quot;Receive: &quot; + data.toString());\n            latch.countDown();\n            return WebSocket.Listener.super.onText(webSocket, data, last);\n        }\n\n        @Override\n        public CompletionStage&lt;?&gt; onClose(WebSocket webSocket, int statusCode, String reason) {\n            System.out.println(&quot;Socket Closed: &quot; + statusCode);\n            latch.countDown();\n            return WebSocket.Listener.super.onClose(webSocket, statusCode, reason);\n        }\n\n        @Override\n        public void onError(WebSocket webSocket, Throwable error) {\n            System.out.println(&quot;Error: &quot; + error.getMessage());\n            latch.countDown();\n            WebSocket.Listener.super.onError(webSocket, error);\n        }\n    }\n}     \n</code></pre>\n<p>I check connection with this command :</p>\n<pre class=\"lang-bash prettyprint-override\"><code>websocat --uncompress-gzip --binary wss://socket.coinex.com/v2/futures\n# After connect enter this message to receive response : \n{&quot;method&quot;: &quot;state.subscribe&quot;,&quot;params&quot;: {&quot;market_list&quot;: [&quot;BTCUSDT&quot;]},&quot;id&quot;: 1}\n</code></pre>\n<p>I know messages should be decompressed on <code>onText()</code> method .<br />\nbut my problem is this method not receive any data from server !</p>\n<p><a href=\"https://docs.coinex.com/api/v2/futures/market/ws/market-state\" rel=\"nofollow noreferrer\">CoinEx Document</a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

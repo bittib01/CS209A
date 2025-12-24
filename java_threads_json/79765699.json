@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "hibernate",
+      "lazy-loading",
+      "lazy-initialization"
+    ],
+    "owner": {
+      "account_id": 6280829,
+      "reputation": 317,
+      "user_id": 5489294,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/0a50a3238ce3c4f5f33f82c49997dc68?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Guppy_00",
+      "link": "https://stackoverflow.com/users/5489294/guppy-00"
+    },
+    "is_answered": true,
+    "view_count": 138,
+    "accepted_answer_id": 79766482,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1758575882,
+    "creation_date": 1757983607,
+    "question_id": 79765699,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79765699/hibernate-lazy-loading-interceptor-returning-null",
+    "title": "Hibernate Lazy Loading Interceptor returning NULL",
+    "body": "<p>I have the following entities:</p>\n<pre><code>class A {\n  @Id\n  String aId;\n  @OneToMany(fetch = FetchType.LAZY)\n  List&lt;B&gt; bsOfA\n  @OneToMany(fetch = FetchType.LAZY)\n  List&lt;C&gt; csOfA\n  \n  public A(String id) {\n    this.aId = id;\n  }\n}\nclass B {\n  @Id\n  String aId;\n  @Id\n  String bId;\n  @ManyToOne(fetch = FetchType.LAZY)\n  A aOfB;\n  @ManyToOne(fetch = FetchType.LAZY)\n  C cOfB                 // this is some member of csOfA\n\n  public B(String id, B sourceB) {\n    this.aId = id;\n    this.bId = sourceB.bId;\n  }\n}\nclass C {\n  @Id\n  String aId;\n  @Id\n  String cId;\n  @OneToMany(fetch = FetchType.LAZY)\n  A aOfC;\n  @ManyToOne(fetch = FetchType.LAZY)\n  List&lt;B&gt; linkedBsToC;\n  public C(String id, C sourceC) {\n    this.aId = id;\n    this.cId = sourceC.cId;\n  }\n}\n</code></pre>\n<p>Now I want to create a copy of A so I proceed as follows</p>\n<pre><code>A sourceA = aRepo.getbyId(sourceAId);\nA copyA = new A(newAId);\n\nList&lt;B&gt; bsOfA = new ArrayList&lt;&gt;(sourceA.getBsOfA.size());\nsourceA.getBsOfA().forEach(b -&gt; bsOfA.add(new B(newAId, b));\ncopyA.setBsOfA(bsOfA)\n\nList&lt;C&gt; csOfA = new ArrayList&lt;&gt;(sourceA.getCsOfA.size());\n// problematic part\nsourceA.getCsOfA().forEach(c -&gt; csOfA.add(new C(newAId, c));  \ncopyA.setCsOfA(csOfA)\n</code></pre>\n<p>Now the issue is: during this copy operation, I am observing that when constructor of C is called, the input c is a hibernate_interceptor object that has null attributes (like in this other post: <a href=\"https://stackoverflow.com/questions/66513959/data-inside-hibernate-interceptor-object-but-null-under-entity-variables-cant\">Data inside hibernate interceptor object but null under entity variables - Can&#39;t save to repository</a>).</p>\n<p>To remedy this situation, I have 3 choices:</p>\n<ol>\n<li>Swap the position of initializing copyA's bsOfA and csOfA:</li>\n</ol>\n<pre><code>List&lt;C&gt; csOfA = new ArrayList&lt;&gt;(sourceA.getCsOfA.size());\nsourceA.getCsOfA().forEach(c -&gt; csOfA.add(new C(newAId, c));  \ncopyA.setCsOfA(csOfA)\n\nList&lt;B&gt; bsOfA = new ArrayList&lt;&gt;(sourceA.getBsOfA.size());\nsourceA.getBsOfA().forEach(b -&gt; bsOfA.add(new B(newAId, b));\ncopyA.setBsOfA(bsOfA)\n</code></pre>\n<ol start=\"2\">\n<li>Set FetchType.EAGER for cOfB</li>\n<li>Modify the constructors</li>\n</ol>\n<pre><code>  public C(String id, C sourceC) {\n    this.aId = id;\n    this.cId = sourceC.getCId();   // How is this different from sourceC.id ?!\n  }\n</code></pre>\n<p>Can someone please enlighten me on this issue? I will most definitely opt for #3 because it seems the easiest to adjust but I still can't figure out what is wrong with the original code. Many thanks in advance :)</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

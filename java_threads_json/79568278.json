@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "mongodb",
+      "tomcat",
+      "servlets",
+      "mongodb-query"
+    ],
+    "owner": {
+      "account_id": 41336027,
+      "reputation": 1,
+      "user_id": 30241516,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/7ec63362e407018f68cd4b7af427c533?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "CHIRSMITA THAKUR",
+      "link": "https://stackoverflow.com/users/30241516/chirsmita-thakur"
+    },
+    "is_answered": false,
+    "view_count": 52,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1749479832,
+    "creation_date": 1744357233,
+    "last_edit_date": 1744746789,
+    "question_id": 79568278,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79568278/mongodb-java-driver-returns-all-documents-instead-of-matching-filter-in-java-ser",
+    "title": "MongoDB Java Driver returns all documents instead of matching filter in Java Servlet",
+    "body": "<p>I'm building an Expense Tracker web app using Java Servlets and MongoDB. I want to filter expense documents based on <code>user</code> and <code>category</code> (e.g., user: &quot;chir&quot;, category: &quot;education&quot;).</p>\n<p>However, when I run the code below, MongoDB returns <strong>all documents</strong> instead of just the ones that match the filter.</p>\n<p>Here’s the code I’m using in the servlet:</p>\n<pre class=\"lang-java prettyprint-override\"><code>protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {\n\n  response.setContentType(&quot;application/json&quot;);\n  response.setCharacterEncoding(&quot;UTF-8&quot;);\n  PrintWriter out = response.getWriter();\n\n  try {\n      String user = request.getParameter(&quot;username&quot;);\n      String category = request.getParameter(&quot;category&quot;);\n\n      if (user == null || user.isEmpty()) {\n          response.setStatus(HttpServletResponse.SC_BAD_REQUEST);\n          out.println(gson.toJson(new ResponseMessage(&quot;❌ User parameter is required&quot;)));\n          return;\n      }\n\n      // ✅ Build MongoDB query\n      Document query = new Document(&quot;user&quot;, user);\n      if (category != null &amp;&amp; !category.trim().isEmpty()) {\n          query.append(&quot;category&quot;, category.trim());\n      }\n\n      System.out.println(&quot;📡 QUERY =&gt; &quot; + query.toJson());\n\n      List&lt;Document&gt; expensesList = new ArrayList&lt;&gt;();\n\n      // ✅ Double check this is correct collection!\n      try (MongoCursor&lt;Document&gt; cursor = expenseCollection.find(query).iterator()) {\n          while (cursor.hasNext()) {\n              Document doc = cursor.next();\n              System.out.println(&quot;✅ Found: &quot; + doc.toJson());\n              expensesList.add(doc);\n          }\n      }\n\n      response.setStatus(HttpServletResponse.SC_OK);\n      out.println(gson.toJson(expensesList));\n\n  } catch (Exception e) {\n      response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);\n      out.println(gson.toJson(new ResponseMessage(&quot;❌ Error fetching expenses: &quot; + e.getMessage())));\n  }\n}\n\n</code></pre>\n<p>Here’s an example document from my MongoDB collection:</p>\n<pre class=\"lang-json prettyprint-override\"><code>{\n  &quot;_id&quot;: { &quot;$oid&quot;: &quot;someid&quot; },\n  &quot;user&quot;: &quot;chir&quot;,\n  &quot;category&quot;: &quot;education&quot;,\n  &quot;amount&quot;: 1000\n}\n</code></pre>\n<p>Despite this, the query returns all documents. I've printed the filter and it looks correct. I also tested similar queries in MongoDB Compass and they work there.</p>\n<p>I expected the <code>find()</code> function to return only the documents that match both the <code>user</code> and <code>category</code>.</p>\n<p>I tried:</p>\n<ul>\n<li>Verifying the database connection</li>\n<li>Printing the query object (<code>filter.toJson()</code>)</li>\n<li>Hardcoding the filter values</li>\n<li>Running the same query in MongoDB Compass (works fine there)</li>\n</ul>\n<p>Still, the query from Java returns all documents regardless of the filter.</p>\n<p>Is there something I'm missing in how the Java MongoDB driver processes filters in a servlet?\n<strong>Environment:</strong></p>\n<ul>\n<li>Java 23</li>\n<li>MongoDB Driver: <code>org.mongodb:mongodb-driver-sync:4.11.1</code></li>\n<li>Servlet running on Apache Tomcat/10.1.39 (2)</li>\n</ul>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

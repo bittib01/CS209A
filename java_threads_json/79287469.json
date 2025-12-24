@@ -1,0 +1,37 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "kotlin",
+      "asynchronous",
+      "ldap",
+      "unboundid-ldap-sdk"
+    ],
+    "owner": {
+      "account_id": 3163862,
+      "reputation": 36864,
+      "user_id": 2674303,
+      "user_type": "registered",
+      "accept_rate": 62,
+      "profile_image": "https://www.gravatar.com/avatar/411d782b77899035a96abb71b64e062a?s=256&d=identicon&r=PG",
+      "display_name": "gstackoverflow",
+      "link": "https://stackoverflow.com/users/2674303/gstackoverflow"
+    },
+    "is_answered": true,
+    "view_count": 58,
+    "accepted_answer_id": 79305463,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1735039947,
+    "creation_date": 1734430668,
+    "last_edit_date": 1734431043,
+    "question_id": 79287469,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79287469/what-is-the-proper-way-to-make-a-search-call-in-async-mode-in-unboundid-ldap-sdk",
+    "title": "What is the proper way to make a search call in async mode in unboundId ldap sdk for java?",
+    "body": "<p>Based on  <a href=\"https://docs.ldap.com/ldap-sdk/docs/getting-started/asynchronous.html\" rel=\"nofollow noreferrer\">https://docs.ldap.com/ldap-sdk/docs/getting-started/asynchronous.html</a></p>\n<p>I try to implement a function which will return entry by DN in async manner. So my code is:</p>\n<pre><code>      val searchRequest = SearchRequest(\n           EmptyAsyncListener(),\n           dn,\n           SearchScope.BASE,\n           DereferencePolicy.NEVER,\n           1,\n           0,\n           false,\n           Filter.createPresenceFilter(&quot;objectClass&quot;),\n           *attributes,\n       )\n       val asyncRequestId = getConnection().asyncSearch(searchRequest)\n       val ldapResult = asyncRequestId.get()\n</code></pre>\n<p>But at this case I see that <code>ldapResult </code> has a type <code>SearchResult</code> but I expect to have a <code>SearchResultEntry</code> (or collection of <code>SearchResultEntry</code>)</p>\n<p><img src=\"https://github.com/user-attachments/assets/7324d8eb-c0c3-4d82-9b34-4d84e7929b4c\" alt=\"image\" /></p>\n<p>Eventually I was able to imlement working example using concurrent primitives from java.util.concurrent:</p>\n<pre><code>        val latch = CountDownLatch(1)\n        val ref = AtomicReference&lt;SearchResultEntry&gt;()\n        val searchRequest = SearchRequest(\n            SimpleAsyncListener(latch, ref),\n            dn,\n            SearchScope.BASE,\n            DereferencePolicy.NEVER,\n            1,\n            0,\n            false,\n            Filter.createPresenceFilter(&quot;objectClass&quot;),\n            *attributes,\n        )\n        getConnection().asyncSearch(searchRequest)\n        latch.await()\n        val entry = ref.get()\n</code></pre>\n<p>listener implementation:</p>\n<pre><code>class SimpleAsyncListener(private val latch: CountDownLatch, private val ref: AtomicReference&lt;SearchResultEntry&gt;) :\n    AsyncSearchResultListener {\n\n\n    override fun searchEntryReturned(@NotNull searchEntry: SearchResultEntry) {\n        ref.set(searchEntry)\n        latch.countDown()\n    }\n\n\n    override fun searchReferenceReturned(\n        @NotNull searchReference: SearchResultReference\n    ) {\n        // No implementation required.\n    }\n\n    override fun searchResultReceived(\n        @NotNull requestID: AsyncRequestID,\n        @NotNull searchResult: SearchResult\n    ) {\n\n    }\n}\n</code></pre>\n<p>It works but I am afraid that it is an overengeeniring. Is there way to achieve the same result in a simpler way ?</p>\n<p><strong>P.S.</strong> Example is artificial just to investigate async API</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

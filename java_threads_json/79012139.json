@@ -1,0 +1,37 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "aop",
+      "aspectj",
+      "spring-aop"
+    ],
+    "owner": {
+      "account_id": 6374796,
+      "reputation": 446,
+      "user_id": 4946127,
+      "user_type": "registered",
+      "accept_rate": 67,
+      "profile_image": "https://www.gravatar.com/avatar/290648c8bfc7c784adae4f7ab8a79f65?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "user2594",
+      "link": "https://stackoverflow.com/users/4946127/user2594"
+    },
+    "is_answered": true,
+    "view_count": 99,
+    "accepted_answer_id": 79025239,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1727318760,
+    "creation_date": 1727023956,
+    "last_edit_date": 1727318760,
+    "question_id": 79012139,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79012139/advice-of-conditional-aspect-configured-via-xml-always-executing",
+    "title": "Advice of @Conditional aspect configured via XML always executing",
+    "body": "<p>I want to conditionally create an Aspect depending on a value read from the properties file. (It is related to profiling, that's why the intended selective use).</p>\n<p>I have tried to create a class that implements Condition and therefore the matches() method that would allow me to perform the validation necessary and set the output to the corresponding Boolean, enabling or disabling it.</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Aspect\n@Component\n@Conditional(AuthFilterCondition.class)\npublic class AuthTokenFilter {\n\n    @Before(&quot;@annotation(org.company.annotations.ValidateAuthToken)&quot;)\n    public void doBefore(JoinPoint joinPoint) {\n        System.out.println(&quot;Loading auth token filter&quot;);\n\n    }\n}\n</code></pre>\n<p>AuthFilterCondition</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class AuthFilterCondition implements Condition {\n\n    private static final String IS_AUTH_FILTER_FEATURE_ENABLED = &quot;org.company.load.auth.filter&quot;;\n\n    @Override\n    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {\n        return (context.getEnvironment().getProperty(IS_AUTH_FILTER_FEATURE_ENABLED).equalsIgnoreCase(&quot;true&quot;));\n    }\n}\n</code></pre>\n<p>Controller</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Path(&quot;/v1&quot;)\n@Produces({ MediaType.APPLICATION_JSON })\n@Consumes({ MediaType.APPLICATION_JSON })\npublic interface HealthService {\n\n    @GET\n    @Path(&quot;/check/health&quot;)\n    Response checkHealth();\n}\n</code></pre>\n<p>ServiceImpl</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class HealthServiceImpl implements HealthService {\n\n    @ValidateAuthToken\n    @Override\n    public Response checkHealth() {\n        return Response.ok().build();\n    }\n}\n</code></pre>\n<p>servercontext.xml</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;\n&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;\n       xmlns:context=&quot;http://www.springframework.org/schema/context&quot;\n       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;\n       xmlns:jaxrs=&quot;http://cxf.apache.org/jaxrs&quot; xmlns:aop=&quot;http://www.springframework.org/schema/aop&quot;\n       xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd\n        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd\n        http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd&quot;&gt;\n\n    &lt;context:component-scan\n            base-package=&quot;org.company&quot; /&gt;\n    &lt;import resource=&quot;classpath:/META-INF/cxf/cxf.xml&quot; /&gt;\n    &lt;import resource=&quot;classpath:/META-INF/cxf/cxf-servlet.xml&quot; /&gt;\n    &lt;import\n        resource=&quot;classpath*:META-INF/rcp/soa-interceptor-context.xml&quot; /&gt;\n    &lt;bean id=&quot;healthService&quot;\n          class=&quot;org.company.services.impl.HealthServiceImpl&quot; /&gt;\n    &lt;bean class=&quot;org.company.services.filter.AuthTokenFilter&quot; lazy-init=&quot;true&quot;&gt;\n   \n     &lt;jaxrs:server address=&quot;/services&quot;&gt;\n        &lt;jaxrs:serviceBeans&gt;\n            &lt;ref bean=&quot;healthService&quot; /&gt;\n        &lt;/jaxrs:serviceBeans&gt;\n    &lt;/jaxrs:server&gt;\n    &lt;aop:aspectj-autoproxy /&gt;\n&lt;/beans&gt;\n</code></pre>\n<p>I'm already using an Aspect with Component to be detected during the component scan and the advise to be skipped if not matched, but it is still executing advise. Please suggest if I am doing something wrong here.</p>\n<p>Here, I am passing a VM argument while running this which has the below value which will make AuthFilterCondition work.</p>\n<pre class=\"lang-none prettyprint-override\"><code>-Dorg.company.load.auth.filter=true \n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

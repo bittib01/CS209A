@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "oracle-database",
+      "tomcat8",
+      "ojdbc",
+      "apache-commons-dbcp"
+    ],
+    "owner": {
+      "account_id": 36453989,
+      "reputation": 1,
+      "user_id": 27749014,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/ddb2db43567a31adaa8c81e5d6626e58?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "avitoria",
+      "link": "https://stackoverflow.com/users/27749014/avitoria"
+    },
+    "is_answered": true,
+    "view_count": 128,
+    "accepted_answer_id": 79420064,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1738918892,
+    "creation_date": 1728648490,
+    "last_edit_date": 1728886656,
+    "question_id": 79078156,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79078156/getting-error-ora-28040-no-matching-authentication-protocol-exception-with-cu",
+    "title": "Getting error &quot;ORA-28040: No matching authentication protocol exception&quot; with custom DataSourceFactory",
+    "body": "<p>I have extended the <strong>BasicDataSourceFactory</strong> (of [Apache Commons] DBCP) as follows:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class MyFactory extends BasicDataSourceFactory {\n\n    public MyFactory () {}\n\n    @Override\n    public Object getObjectInstance(Object obj, Name name, Context nameCtx, Hashtable&lt;?, ?&gt; environment) throws SQLException {\n        return super.getObjectInstance(obj, name, nameCtx, environment);\n    }   \n}\n</code></pre>\n<p>I'm using this class as factory in my Resources's definition in the <strong>context.xml</strong>:</p>\n<pre><code>&lt;Resource name=&quot;MyResource&quot;\n        auth=&quot;Container&quot;\n        type=&quot;javax.sql.DataSource&quot;\n        factory=&quot;path.to.my.factory.MyFactory&quot;\n        username=&quot;myusername&quot;\n        password=&quot;mypassword&quot;\n        driverClassName=&quot;oracle.jdbc.OracleDriver&quot;\n        url=&quot;myUrl&quot;\n        maxTotal=&quot;8&quot;\n        maxIdle=&quot;4&quot;\n        defaultAutoCommit=&quot;true&quot;\n        removeAbandonedOnBorrow=&quot;true&quot;\n        removeAbandonedOnMaintenance=&quot;true&quot;\n        removeAbandonedTimeout=&quot;60&quot;\n        validationQuery=&quot;SELECT 1 FROM DUAL&quot;&gt;\n&lt;/Resource&gt;\n</code></pre>\n<p>Then I try to retrieve <strong>MyResource</strong>:</p>\n<pre><code>Context envCtx = (Context) new InitialContext().lookup(&quot;java:comp/env&quot;);\nds = (DataSource) envCtx.lookup(&quot;MyResource&quot;);\nds.getConnection().setAutoCommit(false);\n</code></pre>\n<p>The DataSource seems to create ok, because <strong>ds</strong> has all the properties defined in the context.xml (user, password, url, driver...). BUT when I call getConnection, I get the <strong>ORA-28040 error</strong>.</p>\n<p>HOWEVER, if I remove the line <code>factory=&quot;path.to.my.factory.MyFactory&quot;</code> from the DataSource resource's definition (I assume it will use a generic factory), getConnection works fine. What am I missing?</p>\n<p>I'm using <strong>ojdbc8/JDK8</strong> with an <strong>Oracle 19</strong> database, which are supposed to be compatible, according to <a href=\"https://docs.oracle.com/en/database/oracle/oracle-database/21/jjdbc/JDBC-getting-started.html#GUID-926E5324-D89A-4A00-B1AE-975C1089F0EA\" rel=\"nofollow noreferrer\">Oracle documentation</a>.</p>\n<p>I've tried with a couple of the latest versions of <strong>ojdbc8</strong>, so my <strong>pom.xml</strong> will look like:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;!-- mvnrepository.com/artifact/com.oracle.database.jdbc/ojdbc8 --&gt;\n&lt;dependency&gt;\n    &lt;groupId&gt;com.oracle.database.jdbc&lt;/groupId&gt;\n    &lt;artifactId&gt;ojdbc8&lt;/artifactId&gt;\n    &lt;version&gt;23.5.0.24.07&lt;/version&gt;\n&lt;/dependency&gt;\n</code></pre>\n<p>Or:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;!-- mvnrepository.com/artifact/com.oracle.database.jdbc/ojdbc8 --&gt;\n&lt;dependency&gt;\n    &lt;groupId&gt;com.oracle.database.jdbc&lt;/groupId&gt;\n    &lt;artifactId&gt;ojdbc8&lt;/artifactId&gt;\n    &lt;version&gt;23.2.0.0&lt;/version&gt;\n&lt;/dependency&gt;\n</code></pre>\n<p>I'm using <strong>Apache Tomcat 8.5.76</strong>.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

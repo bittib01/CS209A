@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "hibernate"
+    ],
+    "owner": {
+      "account_id": 7712763,
+      "reputation": 958,
+      "user_id": 5841551,
+      "user_type": "registered",
+      "accept_rate": 50,
+      "profile_image": "https://www.gravatar.com/avatar/440a5d12fb94495e5b47fa4db544d6d8?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "kladderradatsch",
+      "link": "https://stackoverflow.com/users/5841551/kladderradatsch"
+    },
+    "is_answered": true,
+    "view_count": 50,
+    "accepted_answer_id": 78994884,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1726588668,
+    "creation_date": 1724175496,
+    "question_id": 78893768,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78893768/org-hibernate-lazyinitializationexception-no-session-despite-annotation-org-sp",
+    "title": "org.hibernate.LazyInitializationException (no session) despite annotation org.springframework.transaction.annotation.Transactional",
+    "body": "<p>The issue I have is that it seems that the Transaction of a method annotated with @Transactional seems not to be propagated in the nested methods because the required LazyLoading fails.</p>\n<p>What it makes more strange is that the LazyLoading works in an integration test (via <code>@SpringBootTest</code>) but not in a deployed state (Spring Boot 3.3.2) when the HTTP request comes in.</p>\n<p>The Entities are mapped as follows:</p>\n<pre><code>@Entity\npublic class VtBsoEntity {\n\n  @Id\n  private UUID id;\n\n  @OneToOne(fetch = FetchType.LAZY)\n  @JoinColumn(name = &quot;arriving_train_id&quot;, referencedColumnName = &quot;id&quot;)\n  private VtTrainEntity arrivingTrain;\n\n  @OneToOne(fetch = FetchType.LAZY)\n  @JoinColumn(name = &quot;leaving_train_id&quot;, referencedColumnName = &quot;id&quot;)\n  private VtTrainEntity leavingTrain;\n\n  ...\n\n}\n\n@Entity\npublic class VtTrainEntity {\n  \n  @Id\n  private UUID id;\n\n  private Integer trainNo;\n\n  ...\n}\n</code></pre>\n<p>The REST-Controller looks as follows and is the entry point:</p>\n<pre><code>@RestController\npublic class TemplateMetadataController {\n\n  private final TemplateMetadataService service;\n\n  public ResponseEntity&lt;List&lt;GetTemplateMetadataDto&gt;&gt; findAllTemplates() {\n    final List&lt;TemplateMetadataModel&gt; templates = service.findAll(); // point of failure (stack trace)\n    ...\n  }\n...\n}\n</code></pre>\n<p>The TemplateMetadataService is listed below:</p>\n<pre><code>@Service\npublic class TemplateMetadataService () {\n\n  private final NumberCalculatorService numberCalculatorService;\n\n  @Transactional(isolation = Isolation.READ_COMMITTED, readOnly = true)\n  public List&lt;TemplateMetadataModel&gt; findAll() {\n   ...\n   return mapToModel()\n  }\n\n  private TemplateMetadataModel mapToModel() {\n    ...\n    numberCalculatorService.getNumberModel(templateMetadataEntity); // point of failure (stack trace)\n  }\n\n}\n</code></pre>\n<p>The NumberCalculatorService :</p>\n<pre><code>@Service\npublic class NumberCalculatorService {\n\n  private final VtBsoEntityRepository vtBsoEntityRepository;\n\n  public AggregateBsoNumberModel getNumberModel(TemplateMetadataEntity entity) {\n\n    List&lt;VtBsoEntity&gt; bsoList = vtBsoEntityRepository\n        .findAllByMuWoIdAndActive(entity.getId(), true);\n\n   bsoList.getFirst().getArrivingTrain(); // LazyInitializationException, no session \n\n   ...\n\n  }\n\n}\n</code></pre>\n<p><strong>Question</strong>: Why is the Persistence Context via the Transaction in <code>NumberCalculatorService</code> not present anymore?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

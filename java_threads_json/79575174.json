@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "embedding",
+      "ollama",
+      "spring-ai"
+    ],
+    "owner": {
+      "account_id": 19019461,
+      "reputation": 19,
+      "user_id": 13883808,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/c7904150fbc24f74e9a97d8407647661?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "xiong",
+      "link": "https://stackoverflow.com/users/13883808/xiong"
+    },
+    "is_answered": true,
+    "view_count": 183,
+    "closed_date": 1744986408,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1745577824,
+    "creation_date": 1744720791,
+    "last_edit_date": 1745577824,
+    "question_id": 79575174,
+    "link": "https://stackoverflow.com/questions/79575174/spring-ai-embedding-cannot-search-result-by-method-similaritysearching",
+    "closed_reason": "Not suitable for this site",
+    "title": "Spring-AI embedding, cannot search result by method &#39;similaritySearching&#39;",
+    "body": "<p>I'm using Spring ai to build an app, the stack I chose is jdk 21, spring-boot 3.3.11 ,spring-ai 1.0.0M6. And for both embedding and chat models, I chose to use Ollama, thus the spring-ai-ollama-spring-boot-starter is implemented, and for vector saving, I chose to use neo4j.</p>\n<p>The chat and embedding text and save the result to neo4j modules are working finely, while I had some problem of search content via method vectorStore.similaritySearch which provided by spring-ai framework.</p>\n<p>The embedding model I chose is nomic-embed-text:latest, and the maximum of its dimension is 768, so I set the neo4j-embedding by 768, and surely they save as 768 too.</p>\n<pre><code># embedding\nspring.ai.model.embedding=ollama\nspring.ai.ollama.embedding.options.model=nomic-embed-text:latest\n\n#  Neo4j\nspring.ai.vectorstore.neo4j.initialize-schema=true\nspring.ai.vectorstore.neo4j.database-name=neo4j\nspring.ai.vectorstore.neo4j.index-name=vec_index\nspring.ai.vectorstore.neo4j.distance-type=cosine\nspring.ai.vectorstore.neo4j.dimensions=768\nspring.ai.vectorstore.neo4j.embedding-property=embedding\nspring.ai.vectorstore.neo4j.label=default_doc_label\n</code></pre>\n<p>And the result in neo4j, this shows the embedding size -- which my index is on this property:\n<img src=\"https://i.sstatic.net/DbfwsK4E.png\" alt=\"result of neo4j node\" />\nBut as I use the method similaritySearch which provides in VectorStore, it throws an exception, said the storage's size(which says it is 1536, but 768 in config) of vector is not match the question's size of vector (768):</p>\n<pre><code>&quot;org.neo4j.driver.exceptions.ClientException: \n   Failed to invoke procedure `db.index.vector.queryNodes`: \n   Caused by: java.lang.IllegalArgumentException: \n   Index query vector has 768 dimensions, but indexed vectors have 1536&quot;\n</code></pre>\n<p>I'm wondering how could I get the result by simlaritySearch method, as everything seems right to me, Thanks a lot!! REALLY appreciate if y'all masters could help me. Here is my code:</p>\n<pre><code>import java.util.List;\n\nimport org.springframework.ai.document.Document;\nimport org.springframework.ai.embedding.EmbeddingModel;\nimport org.springframework.ai.embedding.EmbeddingResponse;\nimport org.springframework.ai.vectorstore.SearchRequest;\nimport org.springframework.ai.vectorstore.VectorStore;\nimport org.springframework.beans.factory.annotation.Autowired;\nimport org.springframework.web.bind.annotation.GetMapping;\nimport org.springframework.web.bind.annotation.PostMapping;\nimport org.springframework.web.bind.annotation.RequestParam;\nimport org.springframework.web.bind.annotation.RestController;\n\n@RestController\npublic class EmbeddingApi {\n    @Autowired\n    private EmbeddingModel embeddingModel;\n    @Autowired\n    private VectorStore vectorStore;\n\n    @GetMapping(&quot;/doc/embedding&quot;)\n    public EmbeddingResponse getEmbedding(@RequestParam(&quot;text&quot;) String text) {\n        EmbeddingResponse embeddingResponse = this.embeddingModel.embedForResponse(List.of(text));\n        System.out.println(&quot;demension&quot; + embeddingResponse.getResults().get(0).getOutput().length);\n        return embeddingResponse;\n    }\n\n    @PostMapping(&quot;/doc/store&quot;)\n    public String storeEmbedding(@RequestParam(&quot;text&quot;) String text) {\n        Document doc = new Document(text);\n        vectorStore.add(List.of(doc));\n        return &quot;Stored successfully!&quot;;\n    }\n\n    @PostMapping(&quot;/doc/search&quot;)\n    public List&lt;Document&gt; searchDocument(@RequestParam(&quot;input&quot;)String input){\n        EmbeddingResponse embeddingResponse = this.embeddingModel.embedForResponse(List.of(input));\n        System.out.println(&quot;demension: &quot; + embeddingResponse.getResults().get(0).getOutput().length);\n        System.out.println(&quot;====================================================================&quot;);\n        // float[] embedding = embeddingResponse.getResults().get(0).getOutput();\n\n        List&lt;Document&gt; results = vectorStore.similaritySearch(SearchRequest.builder()\n        .query(input)\n        .topK(1) \n        .build());\n        return results;\n\n    }\n\n}\n</code></pre>\n<p>and the project's GitHub address is: <a href=\"https://github.com/XiongDWM/ai_demo\" rel=\"nofollow noreferrer\">https://github.com/XiongDWM/ai_demo</a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

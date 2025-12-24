@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "angular",
+      "spring"
+    ],
+    "owner": {
+      "account_id": 32173414,
+      "reputation": 65,
+      "user_id": 24970870,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/3ee2e2dcdea08dfea1bae44740296bbb?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Salvatore Montagna",
+      "link": "https://stackoverflow.com/users/24970870/salvatore-montagna"
+    },
+    "is_answered": true,
+    "view_count": 87,
+    "answer_count": 2,
+    "score": 1,
+    "last_activity_date": 1760009703,
+    "creation_date": 1760007071,
+    "question_id": 79786308,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79786308/angular-spring-boot-file-download-blocks-until-fully-received-needs-save-as",
+    "title": "Angular + Spring Boot: file download blocks until fully received (needs “save as” first, then stream in background)",
+    "body": "<p>I have an Angular frontend calling a Spring Boot endpoint that returns a CSV (with JWT auth). The download currently does not start immediately: the browser finishes downloading the whole file in the background, the UI feels blocked until file gets downladed (without “Save As…” dialog pops up). I need the opposite flow: prompt the user first to pick the location/name, then stream the bytes to disk in the background while the user can keep using the app.</p>\n<p><strong>Backend (Spring)</strong></p>\n<pre class=\"lang-java prettyprint-override\"><code>public ResponseEntity&lt;ByteArrayResource&gt; downloadFeedbackCsv(String search, HttpServletRequest request) {\n    List&lt;Feedback&gt; rows = feedbackService.findAllForExport(search, request);\n\n    String csvContent = generateFeedbackCsv(rows);\n    byte[] bytes = csvContent.getBytes(StandardCharsets.UTF_8);\n    ByteArrayResource resource = new ByteArrayResource(bytes);\n\n    String fileName = &quot;feedback&quot; + nowStamp() + &quot;.csv&quot;;\n\n    HttpHeaders headers = new HttpHeaders();\n    headers.add(HttpHeaders.CONTENT_DISPOSITION, &quot;attachment; filename=\\&quot;&quot; + fileName + &quot;\\&quot;&quot;);\n    headers.add(&quot;File-Name&quot;, fileName);\n    headers.add(&quot;Access-Control-Expose-Headers&quot;, &quot;File-Name&quot;);\n\n    return ResponseEntity.ok()\n            .headers(headers)\n            .contentType(MediaType.parseMediaType(&quot;text/csv&quot;))\n            .contentLength(resource.contentLength())\n            .body(resource);\n}\n\nprivate String generateFeedbackCsv(List&lt;Feedback&gt; rows) {\n    StringWriter writer = new StringWriter();\n\n    try (CSVPrinter csv = new CSVPrinter(writer, CSVFormat.DEFAULT\n            .withHeader(&quot;Id&quot;, &quot;Date&quot;, &quot;Creation Date&quot;, &quot;Sensor Code&quot;, &quot;Reading Value&quot;,\n                    &quot;Latitude&quot;, &quot;Longitude&quot;, &quot;Altitude&quot;, &quot;Status value&quot;,\n                    &quot;Battery level&quot;, &quot;Sensor state&quot;))) {\n\n        for (Feedback f : rows) {\n            csv.printRecord(\n                    f.getFeedbackId(),\n                    f.getFeedDate(),\n                    f.getFeedCreationDate(),\n                    f.getSensCode(),\n                    f.getFeedValue(),\n                    f.getLatitude(),\n                    f.getLongitude(),\n                    f.getAltitude(),\n                    f.getFeedAlphanumericValue(),\n                    f.getFeedBattery(),\n                    f.getFeedState()\n            );\n        }\n    } catch (Exception e) {\n        log.error(&quot;Error while generating feedback list CSV&quot;, e);\n    }\n\n    return writer.toString();\n}\n\n@GetMapping(&quot;/download&quot;)\n@Operation(summary = &quot;Download feedback list&quot;, description = &quot;Returns a CSV file with feedback data&quot;)\npublic ResponseEntity&lt;ByteArrayResource&gt; downloadFeedbackList(\n        @RequestParam(defaultValue = &quot;&quot;, name = &quot;search&quot;) String search,\n        HttpServletRequest request) {\n    return utilitiesService.downloadFeedbackCsv(search, request);\n}\n\n</code></pre>\n<p><strong>Frontend (Angular)</strong></p>\n<p>JWT is added by an HTTP interceptor (Bearer token)</p>\n<pre class=\"lang-ts prettyprint-override\"><code>public onDownloadFeedbacks(): void {\n  const filterString = this.dataSource.filterToString(this.filters);\n\n  this.feedbackService.downloadFeedbacks(filterString)\n    .pipe(takeUntil(this.destroy$))\n    .subscribe(event =&gt; {\n      if (event.type == HttpEventType.Response) {\n        saveAs(\n          new File(\n            [event.body!],\n            event.headers.get('File-Name')!,\n            { type: `${event.headers.get('Content-Type')};charset=utf-8` }\n          )\n        );\n      } else {\n        console.log(event);\n      }\n    });\n}\n\ndownloadFeedbacks(filterString: string): Observable&lt;HttpEvent&lt;Blob&gt;&gt; {\n  const url = `${config.apiUrl}/api/feedback/download`;\n\n  return this.http.get(url, {\n    reportProgress: true,\n    observe: 'events',\n    responseType: 'blob',\n    params: new HttpParams().set('search', filterString)\n  })\n  .pipe(tap(() =&gt; console.log(`fetched feedbacks file`)));\n}\n</code></pre>\n<p>What I tried:</p>\n<ol>\n<li>Keeping the current HttpClient + FileSaver approach. But it always needs the full Blob before saving.</li>\n<li>Using an  link, but I have auth problem; also still tends to download first when using XHR/Blob.</li>\n</ol>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-data-jpa",
+      "temporal-workflow"
+    ],
+    "owner": {
+      "account_id": 87230,
+      "reputation": 43293,
+      "user_id": 242042,
+      "user_type": "registered",
+      "accept_rate": 57,
+      "profile_image": "https://www.gravatar.com/avatar/a798a3d661375ece15776f83fbb80c2c?s=256&d=identicon&r=PG",
+      "display_name": "Archimedes Trajano",
+      "link": "https://stackoverflow.com/users/242042/archimedes-trajano"
+    },
+    "is_answered": true,
+    "view_count": 485,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1740387190,
+    "creation_date": 1740108889,
+    "last_edit_date": 1740387190,
+    "question_id": 79456312,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79456312/how-do-i-test-a-temporal-activity-where-the-activity-method-implementation-is-an",
+    "title": "How do I test a Temporal Activity where the activity method implementation is annotated with Spring @Transactional?",
+    "body": "<p>I have an activity + implementation</p>\n<pre class=\"lang-java prettyprint-override\"><code>@ActivityInterface\ninterface Foo {\n  @ActivityMethod\n  long bar();\n}\n\n@Component\n@RequiredArgsConstructor\npublic class FooImpl implements Foo {\n  private final SomeJpaRepository repo;\n  @Transactional\n  public long bar() {\n\n    System.out.println(&quot;Here&quot;);\n    final var processingDate =\n      Instant.ofEpochMilli(\n        Activity.getExecutionContext()\n                .getInfo()\n                .getStartedTimestamp())\n             .atZone(ZoneId.systemDefault())\n             .toLocalDate();\n    System.out.println(processingDate);\n    var ret = repo.someJpaOperation();\n    System.out.println(&quot;There&quot;);\n    return ret;\n  }\n}\n</code></pre>\n<p>I tried to test it like this</p>\n<pre><code>@DataJpaTest\nclass MyTest {\n  @Autowired\n  private FooImpl fooImpl;\n  private TestActivityEnvironment testActivityEnvironment;\n  @BeforeEach\n  void setUpTestActivity() {\n    testActivityEnvironment = TestActivityEnvironment.newInstance();\n    testActivityEnvironment.registerActivitiesImplementations(fooImpl);\n  }\n  @Test\n  void testFoo() {\n    val act = testActivityEnvironment.newActivityStub(Foo.class);\n    assertThat(act.bar()).isPositive();\n  }\n}\n</code></pre>\n<p>But it will only show the <code>Here</code> and the processing date, but not the <code>There</code></p>\n<p>I want to avoid creating a whole workflow, I just wanted to test the activity method.</p>\n<p>Right now my workaround is to simply have a test path.</p>\n<pre><code>\n    long epochMilli;\n    try {\n      epochMilli = Activity.getExecutionContext().getInfo().getStartedTimestamp();\n    } catch (IllegalStateException e) {\n      epochMilli = Instant.now().toEpochMilli();\n    }\n    final var processingDate = Instant.ofEpochMilli(epochMilli).atZone(ZoneId.systemDefault()).toLocalDate();\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "transactions",
+      "project-reactor"
+    ],
+    "owner": {
+      "account_id": 3688497,
+      "reputation": 1558,
+      "user_id": 3071712,
+      "user_type": "registered",
+      "accept_rate": 52,
+      "profile_image": "https://www.gravatar.com/avatar/044d502a7fbaf14979562441b62aa74c?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Marko Taht",
+      "link": "https://stackoverflow.com/users/3071712/marko-taht"
+    },
+    "is_answered": false,
+    "view_count": 156,
+    "answer_count": 2,
+    "score": 1,
+    "last_activity_date": 1754818223,
+    "creation_date": 1734545774,
+    "last_edit_date": 1754818223,
+    "question_id": 79292100,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79292100/how-to-run-transactions-in-parallel-in-java-spring",
+    "title": "How to run transactions in parallel in Java Spring?",
+    "body": "<p>We have a initial transaction that does some prep-work. Now we would like to suspend the initial transaction and spawn N new transactions that do their own thing in parallel and won't interfere with each other.</p>\n<p>Using REQUIRES_NEW will suspend the initial tx and then no more than 1 tx is spawned. NESTED suffers from issue that they all share DB connection so they will interfere with each other.</p>\n<p>As an another layer of complexity, everything is project reactor pipeline with Flux and Mono.</p>\n<p>How can I spawn 10 new Transactions, each with their own DB connections from 1 initial Transaction?</p>\n<h2>Edit</h2>\n<p>After some testing and checking I found some issues that I think are the root of the problem, but I can't figure out how to solve these.</p>\n<pre><code>Flux.fromIterable(ids) &lt;-- Runs ton thread 1\n.parallel(CONSUMER_TREE_PARALLELISM)\n.runOn(Schedulers.parallel())\n.concatMap(id -&gt; {\n      log.info(&quot;Thread {}&quot;, Thread.currentThread().getName()); &lt;-- Logs Thread 2, 3, 4, ...\n      return doSomething() &lt;-- Everything here is still ran on thread 1\n\n}).sequential()\n</code></pre>\n<p>doSomething is also a reactor pipeline with db read and write. I need for it to run on the separate thread and for each thread to have separate transaction.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

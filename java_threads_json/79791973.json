@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "javafx"
+    ],
+    "owner": {
+      "account_id": 10187542,
+      "reputation": 2735,
+      "user_id": 20692967,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/NZSXm.jpg?s=256",
+      "display_name": "Sergey Zolotarev",
+      "link": "https://stackoverflow.com/users/20692967/sergey-zolotarev"
+    },
+    "is_answered": true,
+    "view_count": 204,
+    "answer_count": 3,
+    "score": -1,
+    "last_activity_date": 1760709423,
+    "creation_date": 1760606500,
+    "last_edit_date": 1760685039,
+    "question_id": 79791973,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79791973/updating-combobox-item-rendering",
+    "title": "Updating ComboBox item rendering",
+    "body": "<p>Suppose I have a JavaFX <code>ComboBox</code> that stores custom objects. Objects are rendered in a way that involves their property X.</p>\n<p>I now mutate property X for the selected object. How do I make the combo reflect the change visually? Preferably, in a non-kludgy way, e.g. removing and inserting the item back in its place.</p>\n<p>Keep in mind, the object is a simple data object with multiple properties only a handful of which are involved in rendering. The object class could be used outside of a JavaFX context. It would be a bit weird if some of its properties were of observable JavaFX types, such as <code>StringProperty</code>.</p>\n<pre class=\"lang-java prettyprint-override\"><code>import javafx.application.Application;\nimport javafx.beans.value.ObservableValue;\nimport javafx.geometry.Insets;\nimport javafx.geometry.Pos;\nimport javafx.scene.Scene;\nimport javafx.scene.control.ComboBox;\nimport javafx.scene.control.Label;\nimport javafx.scene.control.TextField;\nimport javafx.scene.layout.HBox;\nimport javafx.scene.layout.VBox;\nimport javafx.stage.Stage;\n\nimport java.util.ArrayList;\nimport java.util.List;\n\npublic class FXComboBoxDemo extends Application {\n\n    static ComboBox&lt;Person&gt; personCombo;\n    static TextField nameField;\n\n    @Override\n    public void start(Stage primaryStage) {\n        VBox root = createRoot();\n        primaryStage.setScene(new Scene(root));\n        primaryStage.setTitle(&quot;ComboBox Demo&quot;);\n        primaryStage.show();\n    }\n\n    private static VBox createRoot() {\n        VBox root = new VBox(10);\n        HBox nameRow = createNameRow();\n        ComboBox&lt;Person&gt; personCombo = createPersonCombo();\n        root.getChildren().add(personCombo);\n        root.getChildren().add(nameRow);\n        root.paddingProperty().setValue(new Insets(10));\n        return root;\n    }\n\n    private static HBox createNameRow() {\n        HBox nameRow = new HBox(10);\n        nameRow.setAlignment(Pos.CENTER_LEFT);\n        Label nameLabel = new Label(&quot;Name&quot;);\n        nameRow.getChildren().add(nameLabel);\n        nameRow.getChildren().add(createNameField());\n        return nameRow;\n    }\n\n    private static TextField createNameField() {\n        nameField = new TextField();\n        nameField.textProperty().addListener(FXComboBoxDemo::onNameChange);\n        return nameField;\n    }\n\n    private static void onNameChange(ObservableValue&lt;? extends String&gt; observable, String oldValue, String newValue) {\n        personCombo.getSelectionModel().getSelectedItem().setName(newValue);\n    }\n\n    private static ComboBox&lt;Person&gt; createPersonCombo() {\n        personCombo = new ComboBox&lt;&gt;();\n        personCombo.getItems().addAll(createPeople());\n        personCombo.valueProperty().addListener(FXComboBoxDemo::onPersonChange);\n        personCombo.getSelectionModel().selectFirst();\n        return personCombo;\n    }\n\n    private static void onPersonChange(ObservableValue&lt;? extends Person&gt; observable, Person oldValue, Person newValue) {\n        nameField.textProperty().set(newValue.getName())\n    }\n\n    private static List&lt;Person&gt; createPeople() {\n        List&lt;Person&gt; people = new ArrayList&lt;&gt;();\n        people.add(new Person(&quot;Alice&quot;));\n        people.add(new Person(&quot;Bob&quot;));\n        people.add(new Person(&quot;Charlie&quot;));\n        return people;\n    }\n\n    public static void main(String[] args) {\n        launch(args);\n    }\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>public class Person {\n\n    // in a more realistic scenario, it would contain more properties\n    private String name;\n\n    public Person(String name) {\n        this.name = name;\n    }\n\n    // getters, setters\n\n    @Override\n    public String toString() {\n        return name;\n    }\n}\n</code></pre>\n<p>Even if I change the name, the rendering in the combo box stays the same. I want it to be updated automatically.</p>\n<p><a href=\"https://i.sstatic.net/GP4pVRPQ.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/GP4pVRPQ.png\" alt=\"enter image description here\" /></a></p>\n<p>Java 8.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

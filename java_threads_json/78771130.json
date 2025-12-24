@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "hibernate",
+      "spring-data-jpa"
+    ],
+    "owner": {
+      "account_id": 1107169,
+      "reputation": 6903,
+      "user_id": 1098361,
+      "user_type": "registered",
+      "accept_rate": 86,
+      "profile_image": "https://i.sstatic.net/EGzlI.jpg?s=256",
+      "display_name": "Zack Macomber",
+      "link": "https://stackoverflow.com/users/1098361/zack-macomber"
+    },
+    "is_answered": true,
+    "view_count": 264,
+    "accepted_answer_id": 78784404,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1721748986,
+    "creation_date": 1721420923,
+    "question_id": 78771130,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78771130/java-lang-classnotfoundexception-could-not-load-requested-class-charset",
+    "title": "java.lang.ClassNotFoundException: Could not load requested class : charset",
+    "body": "<p>I am attempting to add spring data jpa to an existing spring boot 2.7.3 web app. We're using hibernate 5.6.9. I've added spring data jpa as a maven dependency via the spring-boot-starter-data-jpa artifact id which is under the org.springframework.boot group id.</p>\n<p>When I launch my spring boot web app, I eventually get the following error:</p>\n<pre><code>Caused by: java.lang.ClassNotFoundException: Could not load requested class : charset\n    at org.hibernate.boot.registry.classloading.internal.AggregatedClassLoader.findClass(AggregatedClassLoader.java:210) ~[hibernate-core-5.6.10.Final.jar:5.6.10.Final]\n    at java.lang.ClassLoader.loadClass(ClassLoader.java:587) ~[?:?]\n    at java.lang.ClassLoader.loadClass(ClassLoader.java:520) ~[?:?]\n    at java.lang.Class.forName0(Native Method) ~[?:?]\n    at java.lang.Class.forName(Class.java:467) ~[?:?]\n    at org.hibernate.boot.registry.classloading.internal.ClassLoaderServiceImpl.classForName(ClassLoaderServiceImpl.java:130) ~[hibernate-core-5.6.10.Final.jar:5.6.10.Final]\n    at org.hibernate.boot.internal.ClassLoaderAccessImpl.classForName(ClassLoaderAccessImpl.java:67) ~[hibernate-core-5.6.10.Final.jar:5.6.10.Final]\n    at org.hibernate.cfg.annotations.SimpleValueBinder.fillSimpleValue(SimpleValueBinder.java:536) ~[hibernate-core-5.6.10.Final.jar:5.6.10.Final]\n    at org.hibernate.cfg.SetSimpleValueTypeSecondPass.doSecondPass(SetSimpleValueTypeSecondPass.java:25) ~[hibernate-core-5.6.10.Final.jar:5.6.10.Final]\n    at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.processSecondPasses(InFlightMetadataCollectorImpl.java:1653) ~[hibernate-core-5.6.10.Final.jar:5.6.10.Final]\n    at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.processSecondPasses(InFlightMetadataCollectorImpl.java:1621) ~[hibernate-core-5.6.10.Final.jar:5.6.10.Final]\n    at org.hibernate.boot.model.process.spi.MetadataBuildingProcess.complete(MetadataBuildingProcess.java:295) ~[hibernate-core-5.6.10.Final.jar:5.6.10.Final]\n    at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.metadata(EntityManagerFactoryBuilderImpl.java:1460) ~[hibernate-core-5.6.10.Final.jar:5.6.10.Final]\n    at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.build(EntityManagerFactoryBuilderImpl.java:1494) ~[hibernate-core-5.6.10.Final.jar:5.6.10.Final]\n    at org.springframework.orm.jpa.vendor.SpringHibernateJpaPersistenceProvider.createContainerEntityManagerFactory(SpringHibernateJpaPersistenceProvider.java:58) ~[spring-orm-5.3.22.jar:5.3.22]\n    at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.createNativeEntityManagerFactory(LocalContainerEntityManagerFactoryBean.java:365) ~[spring-orm-5.3.22.jar:5.3.22]\n    at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.buildNativeEntityManagerFactory(AbstractEntityManagerFactoryBean.java:409) ~[spring-orm-5.3.22.jar:5.3.22]\n    at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.afterPropertiesSet(AbstractEntityManagerFactoryBean.java:396) ~[spring-orm-5.3.22.jar:5.3.22]\n    at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.afterPropertiesSet(LocalContainerEntityManagerFactoryBean.java:341) ~[spring-orm-5.3.22.jar:5.3.22]\n    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.invokeInitMethods(AbstractAutowireCapableBeanFactory.java:1863) ~[spring-beans-5.3.22.jar:5.3.22]\n    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1800) ~[spring-beans-5.3.22.jar:5.3.22]\n</code></pre>\n<p>Here is my spring data jpa config:</p>\n<pre><code>@Configuration\n@EnableTransactionManagement\n@EnableJpaRepositories(\n        basePackages = &quot;com.bottomline.dm.core.repository.roc&quot;,\n        entityManagerFactoryRef = &quot;rocJpaEntityManagerFactory&quot;,\n        transactionManagerRef = &quot;rocJpaTransactionManager&quot;\n)\npublic class RocJpaDatabaseConfig {\n\n    private final DataSource rocDataSource;\n\n    public RocJpaDatabaseConfig(ROCDataSourceProperties rocDataSourceProperties) {\n        this.rocDataSource = rocDataSourceProperties.getPostgresHikariDataSource();\n        DataSourceInfoLogger infoLogger = new DataSourceInfoLogger(rocDataSource);\n        infoLogger.afterPropertiesSet();\n    }\n\n    @Bean\n    public LocalContainerEntityManagerFactoryBean rocJpaEntityManagerFactory() {\n        LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();\n        factory.setJpaVendorAdapter(new HibernateJpaVendorAdapter());\n        factory.setPackagesToScan(&quot;com.bottomline.dm.core.domain.entity&quot;);\n        factory.setDataSource(rocDataSource);\n        return factory;\n    }\n\n    @Bean\n    public PlatformTransactionManager rocJpaTransactionManager(EntityManagerFactory rocJpaEntityManagerFactory) {\n        JpaTransactionManager txManager = new JpaTransactionManager();\n        txManager.setEntityManagerFactory(rocJpaEntityManagerFactory);\n        return txManager;\n    }\n}\n</code></pre>\n<p>Any ideas how to get passed this class not found on &quot;charset&quot;?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "maven",
+      "domain-driven-design"
+    ],
+    "owner": {
+      "account_id": 15774738,
+      "reputation": 82,
+      "user_id": 11382755,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/Llrpw.jpg?s=256",
+      "display_name": "Robert Gardziński",
+      "link": "https://stackoverflow.com/users/11382755/robert-gardzi%c5%84ski"
+    },
+    "is_answered": false,
+    "view_count": 552,
+    "answer_count": 0,
+    "score": 3,
+    "last_activity_date": 1754498649,
+    "creation_date": 1732009051,
+    "last_edit_date": 1732379461,
+    "question_id": 79202868,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79202868/validate-records-constructor-parameters-values",
+    "title": "Validate record&#39;s constructor parameters values",
+    "body": "<p>I'm playing around with modern Java versions like 17 or 21 alongside Maven based project and I'm wondering is there any way to get constructor parameters values and simply print them or validate them and eventually throw an exception?</p>\n<p>I'm posting the code I currently have:</p>\n<p>An aggregate running validation:</p>\n<pre><code>public record User(\n        Id id,\n        Email email,\n        Password password\n) {\n    public User {\n        try (ValidatorFactory factory = Validation.buildDefaultValidatorFactory()) {\n            Validator validator = factory.getValidator();\n            Map&lt;String, String&gt; validationErrorMessages = new HashMap&lt;&gt;();\n\n            String idViolations = validator.validate(id).stream().map(ConstraintViolation::getMessage).toList().toString();\n            if (!idViolations.equals(&quot;[]&quot;)) {\n                validationErrorMessages.put(id.toString(), idViolations);\n            }\n\n            String emailViolations = validator.validate(id).stream().map(ConstraintViolation::getMessage).toList().toString();\n            if (!emailViolations.equals(&quot;[]&quot;)) {\n                validationErrorMessages.put(email.toString(), emailViolations);\n            }\n\n            String passwordViolations = validator.validate(id).stream().map(ConstraintViolation::getMessage).toList().toString();\n            if (!passwordViolations.equals(&quot;[]&quot;)) {\n                validationErrorMessages.put(password.toString(), passwordViolations);\n            }\n\n            if (!validationErrorMessages.isEmpty()) {\n                throw new ValidationException(validationErrorMessages.toString());\n            }\n        }\n    }\n}\n</code></pre>\n<p>and Value Objects:</p>\n<pre><code>public record Id(@NotNull Long value) {}\n\n@GroupSequence({Email.class, Additional.class})\npublic record Email(\n        @NotNull\n        @Pattern(regexp = &quot;^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\\\.[a-zA-Z0-9-.]+$&quot;,\n                groups = Additional.class,\n                message = &quot;Invalid e-mail format&quot;)\n        String value\n) {\n}\n\n@GroupSequence({Password.class, Additional.class})\npublic record Password(\n        @NotNull\n        @Size(min = 12,\n                message = &quot;must be at least {min} characters long&quot;)\n        @Pattern(regexp = &quot;.*[a-z].*&quot;,\n                groups = Additional.class,\n                message = &quot;must contain a small letter&quot;)\n        @Pattern(regexp = &quot;.*[A-Z].*&quot;,\n                groups = Additional.class,\n                message = &quot;must contain a capital letter&quot;)\n        @Pattern(regexp = &quot;.*\\\\d.*&quot;,\n                groups = Additional.class,\n                message = &quot;must contain a digit&quot;)\n        @Pattern(regexp = &quot;.*[#?!].*&quot;,\n                groups = Additional.class,\n                message = &quot;must contain one of special characters: [#, ?, !]&quot;)\n        String value\n) {\n}\n</code></pre>\n<p>What I want to achieve is to either annotate (with @Aggregate maybe?) the User record and have the validation done under the hood:</p>\n<pre><code>@Aggregate\npublic record User(\n    Id id,\n    Email email,\n    Password password\n) {}\n</code></pre>\n<p>Or even give up on annotation and have every single record stored inside a specific package validated without code duplication or annotations.</p>\n<p>I've read something about annotation processors, byte buddy plugin or seen something about Java 21 constructor hooks, but the more I read the less I understand which solution fits my needs.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

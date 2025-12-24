@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "jms",
+      "amazon-sqs",
+      "spring-jms"
+    ],
+    "owner": {
+      "account_id": 32769279,
+      "reputation": 11,
+      "user_id": 25468727,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/70506a262cd7dc6a790dcce925565a4c?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Bob213",
+      "link": "https://stackoverflow.com/users/25468727/bob213"
+    },
+    "is_answered": false,
+    "view_count": 95,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1763596922,
+    "creation_date": 1717766480,
+    "last_edit_date": 1717766656,
+    "question_id": 78592176,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78592176/how-can-i-achieve-unorder-acknowledgment-using-spring-jms",
+    "title": "How can I achieve UNORDER_ACKNOWLEDGMENT using Spring JMS",
+    "body": "<p>In my spring application, there are a few listeners. I've noticed that when deploying the application, I see the following message pretty rarely:\n<code>Rejecting received message because of the listener container having been stopped in the meantime. </code>\nAnd can see the DLQ grow. The current ack mode is set to the default (so it's auto ack). I want to change this to client ack and have control over the acknowledgement.</p>\n<p>I've got the following beans configured:</p>\n<pre><code>@Bean\npublic DefaultJmsListenerContainerFactory jmsListenerContainerFactory(SQSConnectionFactory sqsConnectionFactory) {\n    DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();\n    factory.setConnectionFactory(sqsConnectionFactory);\n    factory.setDestinationResolver(new DynamicDestinationResolver());\n    factory.setErrorHandler(this::handleError);\n    factory.setSessionAcknowledgeMode(Session.CLIENT_ACKNOWLEDGE);\n    return factory;\n}\n\n@Bean\npublic JmsTemplate jmsTemplate(SQSConnectionFactory sqsConnectionFactory) {\n    return new JmsTemplate(sqsConnectionFactory);\n}\n\n@Bean\npublic AmazonSQS buildAmazonSqs() {\n    return AmazonSQSClientBuilder.standard().withRegion(region).build();\n}\n\n@Bean\npublic SQSConnectionFactory sqsConnectionFactory(AmazonSQS amazonSQS) {\n    return new SQSConnectionFactory(\n            new ProviderConfiguration().withNumberOfMessagesToPrefetch(1),\n            amazonSQS);\n}\n</code></pre>\n<p>But after doing a few experiments, what i've noticed is that even when <code>message.acknowledge();</code> is not executed on the receiving object in my JMSListener, the message is still popped from the queue. It does not get back on the queue. And after looking at datadog and seeing the trace, i can see behind the scenes that the message is being deleted from the queue. Even replacing <code>Session.CLIENT_ACKNOWLEDGMEN</code> with <code>SQSSession.UNORDERED_ACKNOWLEDGE</code>, there is no difference.</p>\n<p>The reason why i want to use UNORDERED_ACKNOWLEDGMENT is because using CLIENT_ACKNOWLEDGMENT will ack preceeding messages as described <a href=\"https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/getting-started.html#using-client-acknowledge-mode\" rel=\"nofollow noreferrer\">here</a>.</p>\n<p>Would i essentially have to use <code>@SqsListener</code> instead of Spring's <code>@JmsListener</code>? If not, then how can i prevent Spring from ack'ing the msg without calling <code>acknowledge()</code> on the receiving message object?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

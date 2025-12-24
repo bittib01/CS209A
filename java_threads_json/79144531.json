@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "garbage-collection",
+      "benchmarking",
+      "microbenchmark",
+      "jmh"
+    ],
+    "owner": {
+      "account_id": 23941076,
+      "reputation": 351,
+      "user_id": 17934180,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/5d07db94b4170b29de8ddb8a60a2bbc1?s=256&d=identicon&r=PG",
+      "display_name": "Dan &#214;z",
+      "link": "https://stackoverflow.com/users/17934180/dan-%c3%96z"
+    },
+    "is_answered": true,
+    "view_count": 378,
+    "accepted_answer_id": 79310550,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1736825509,
+    "creation_date": 1730374267,
+    "question_id": 79144531,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79144531/understanding-the-gc-profiler-in-jmh-java",
+    "title": "Understanding the GC profiler in JMH Java",
+    "body": "<p>I am running some experiments using the Java Microbenchmarking Harness, and in particular I am using the GC profiler. I have three questions about interpreting the results of the GC profiler.</p>\n<p>Here is my benchmark:</p>\n<pre><code>@Benchmark\n    public void benchmarkPiecewiseDNFModel(Blackhole blackhole) {\n        // Run the method and consume the output to avoid dead code elimination\n        PiecewiseCausalModel model = creator.PiecewiseDNFModel(users);\n        blackhole.consume(model);\n    }\n</code></pre>\n<p>The method within the benchmark creates a large collection of Boolean formulas in disjunctive normal form. For a single run of this benchmark, with one warmup, I obtained the following results:</p>\n<pre><code>Benchmark                                                           (users)  Mode  Cnt            Score   Error   Units\nBenchmarkModelCreator.benchmarkPiecewiseDNFModel                         650    ss                77.664            s/op\nBenchmarkModelCreator.benchmarkPiecewiseDNFModel:gc.alloc.rate           650    ss               809.123          MB/sec\nBenchmarkModelCreator.benchmarkPiecewiseDNFModel:gc.alloc.rate.norm      650    ss       65892091888.000            B/op\nBenchmarkModelCreator.benchmarkPiecewiseDNFModel:gc.count                650    ss                61.000          counts\nBenchmarkModelCreator.benchmarkPiecewiseDNFModel:gc.time                 650    ss               332.000              ms\n</code></pre>\n<p>I am trying to interpret these results in the context of a single measurement iteration for this benchmark. I can't seem to find a clear answer to the following questions:</p>\n<p>(1) <strong>What, precisely, is the GC profiler measuring, especially in gc.alloc.rate.norm?</strong> The 65 GB that is being reported is a <strong>cumulative</strong> number, so it seems like the GC profiler is <strong>summing up the memory allocation just before each garbage collection event</strong>? Is that accurate? Is it the average amount of memory allocated per second of my operation?</p>\n<p>(2) <strong>How, precisely, is an <em>operation</em> defined?</strong> In particular, is an operation a single invocation of the method within my benchmark (creator.PiecewiseDNFModel)? Or, is operation defined In a more fine-grained way to do with different parts of the PiecewiseDNFModel itself?</p>\n<p>(3) <strong>Is it not somewhat misleading to use the GC profiler to measure the memory footprint of  a piece of code given its method of cumulative measurement?</strong> For example, if I have an operation which happens to take a long time but that only ever uses up, say, 100MB at a given moment, then the GC profiler will report a large number for gc.alloc.rate.norm, but the actual burden of the process on my machine is very low. It would seem like a profiler which reported on the max memory usage at any one time is more appropriate. If that is right (I am open to objections), then can anyone suggest a more appropriate method of profiling?</p>\n<p>I thank in advance for clarification that can be provided  on these three points.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

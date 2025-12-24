@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "unit-testing",
+      "groovy",
+      "spock"
+    ],
+    "owner": {
+      "account_id": 42381656,
+      "reputation": 11,
+      "user_id": 30726769,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/12fe6d2a47958ffe27f9771f1e8d88c8?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Ilya Pyatizbyantsev",
+      "link": "https://stackoverflow.com/users/30726769/ilya-pyatizbyantsev"
+    },
+    "is_answered": false,
+    "view_count": 172,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1758121746,
+    "creation_date": 1749118477,
+    "last_edit_date": 1749184984,
+    "question_id": 79654247,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79654247/mock-java-constructors-while-testing-java-code",
+    "title": "Mock Java constructors while testing Java-code",
+    "body": "<p>I use Spock to test Java-code. For example, I have the following Java-class:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class Github implements RemoteRepository {\n    @Override\n    public Boolean isBranchExist(String branch) {\n        return new HttpRequest().post();\n    }\n}\n</code></pre>\n<p>The HttpRequest class itself is also my Java-class. I am trying to mock the creation of an instance of the HttpRequest class.</p>\n<p>For this I have the following Groovy unit test:</p>\n<pre class=\"lang-java prettyprint-override\"><code>def &quot;mocking HttpRequest constructor&quot;() {\n     given:\n     RemoteRepository repository = new Github()\n    \n     def request = Mock(HttpRequest)\n     GroovyMock(HttpRequest, global: true)\n    \n     new HttpRequest() &gt;&gt; request\n    \n     and:\n     request.post() &gt;&gt; Boolean.FALSE\n    \n     when:\n     def res = repository.isBranchExist(&quot;branch_exist&quot;)\n    \n     then:\n     res == false\n }\n</code></pre>\n<p>Mocking does not occur, the test fails.\nHowever, if I rewrite all my entities (Github, HttpRequest, RemoteRepository) in Groovy, then mocking works successfully and the test passes.</p>\n<p>I use gradle as a build tool, here is my gradle.build, here you can also see the dependency versions + I use Oracle OpenJDK 23.0.1:</p>\n<pre class=\"lang-java prettyprint-override\"><code>plugins {\n    id 'groovy'\n}\n\ndependencies {\n    implementation 'org.apache.groovy:groovy-all:4.0.27'\n    implementation 'net.bytebuddy:byte-buddy:1.17.5'\n    testImplementation 'org.spockframework:spock-core:2.4-M6-groovy-4.0'\n}\n\ntasks.named('test') {\n    useJUnitPlatform()\n}\n</code></pre>\n<p>P.s. I understand that I can redesign the architecture, pass an instance of HttpClientBuilder to the Github constructor, which will provide the ability to send http requests (as is done in the Apache HttpComponents library) and not create HttpRequest objects directly, but I am interested in this particular case, why it works in Groovy code, but does not work in Java code.</p>\n<p>The code in this case is greatly simplified, is not actually applicable, just a silly example</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot"
+    ],
+    "owner": {
+      "account_id": 18936970,
+      "reputation": 351,
+      "user_id": 13817825,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/cbced2a5eafd2c2cec5f5dd41b288905?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "phildeg31",
+      "link": "https://stackoverflow.com/users/13817825/phildeg31"
+    },
+    "is_answered": true,
+    "view_count": 540,
+    "accepted_answer_id": 79667745,
+    "answer_count": 1,
+    "score": 3,
+    "last_activity_date": 1750103165,
+    "creation_date": 1750074853,
+    "last_edit_date": 1750075613,
+    "question_id": 79667554,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79667554/spring-boot-3-5-0-datasourceproperties-not-defined",
+    "title": "Spring boot 3.5.0: DataSourceProperties not defined",
+    "body": "<p>I used spring boot 3.4.6 before and everything worked fine for my database configuration but now I have an error when I want to use spring boot 3.5.0:</p>\n<pre><code>Description:\n\nParameter 0 of method hikariDataSource in xxx.DatabaseConfiguration required a bean of type 'org.springframework.boot.autoconfigure.jdbc.DataSourceProperties' that could not be found.\n\n\nAction:\n\nConsider defining a bean of type 'org.springframework.boot.autoconfigure.jdbc.DataSourceProperties' in your configuration.\n</code></pre>\n<p>Indeed, to use <code>LazyConnectionDataSourceProxy</code> I did this configuration:</p>\n<p>In application class, I deactivate the auto configuration:</p>\n<pre><code>@EnableAutoConfiguration(exclude = { DataSourceAutoConfiguration.class })\n</code></pre>\n<p>I define my own configuration:</p>\n<pre><code>@Configuration\npublic class DatabaseConfiguration {\n    @Bean\n    @ConfigurationProperties(prefix = &quot;spring.datasource.hikari&quot;)\n    public HikariDataSource hikariDataSource(DataSourceProperties properties) {\n        HikariDataSource hikariDataSource = createDataSource(properties, HikariDataSource.class);\n        if (StringUtils.hasText(properties.getName())) {\n            hikariDataSource.setPoolName(properties.getName());\n        }\n        return hikariDataSource;\n    }\n\n    protected static &lt;T&gt; T createDataSource(DataSourceProperties properties, Class&lt;? extends DataSource&gt; type) {\n        return (T) properties.initializeDataSourceBuilder().type(type).build();\n    }\n\n    @Primary\n    @Bean\n    public DataSource dataSource(HikariDataSource hikariDataSource) {\n        // Wrap hikariDataSource in a LazyConnectionDataSourceProxy\n        LazyConnectionDataSourceProxy lazyDataSource = new LazyConnectionDataSourceProxy();\n        lazyDataSource.setTargetDataSource(hikariDataSource);\n        return lazyDataSource;\n    }\n}\n</code></pre>\n<p>To solve that error, I now have to explicitly add this to application class:</p>\n<pre><code>@EnableConfigurationProperties(DataSourceProperties.class)\n</code></pre>\n<p>Do you know what has changed that can explain this please?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

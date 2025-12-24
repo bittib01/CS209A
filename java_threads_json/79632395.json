@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "oauth-2.0",
+      "smtp",
+      "office365"
+    ],
+    "owner": {
+      "account_id": 17953050,
+      "reputation": 43,
+      "user_id": 22676358,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a-/AOh14GihHLFOTpgXkWLfG95TbM7ESCZlU2_5WFtQINVL=k-s256",
+      "display_name": "ExecutionSommaire",
+      "link": "https://stackoverflow.com/users/22676358/executionsommaire"
+    },
+    "is_answered": false,
+    "view_count": 110,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1747908320,
+    "creation_date": 1747844492,
+    "last_edit_date": 1747908320,
+    "question_id": 79632395,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79632395/office365-smtp-with-oauth2-error-starttls-required-but-not-supported",
+    "title": "Office365 SMTP with OAuth2, error &quot;STARTTLS required but not supported&quot;",
+    "body": "<p>We are trying to make SMTP work with oauth2 for office365 mailboxes on our java client. TLS version is 1.2.</p>\n<p>We are able to get a token using the following parameters:</p>\n<pre class=\"lang-java prettyprint-override\"><code>URL url = new URL(&quot;https://login.microsoftonline.com/&quot; + tenantID + &quot;/oauth2/v2.0/token&quot;);\n\nHashMap&lt;String, String&gt; hm = new HashMap&lt;String, String&gt;();\nhm.put(&quot;client_id&quot;, appID);\nhm.put(&quot;scope&quot;, &quot;https://outlook.office365.com/.default&quot;);\nhm.put(&quot;grant_type&quot;, &quot;client_credentials&quot;);\nhm.put(&quot;client_secret&quot;, secret);\n</code></pre>\n<p>For the Jakarta Mail session we use the following code:</p>\n<pre class=\"lang-java prettyprint-override\"><code>Properties prop = new Properties(System.getProperties());\nprop.put(&quot;mail.debug&quot;, &quot;true&quot;);\nprop.put(&quot;mail.smtp.port&quot;, &quot;587&quot;);\nprop.put(&quot;mail.smtp.host&quot;, &quot;smtp.office365.com&quot;);\nprop.put(&quot;mail.smtp.auth.mechanisms&quot;, &quot;XOAUTH2&quot;);\nprop.put(&quot;mail.smtp.starttls.enable&quot;, &quot;true&quot;);\nprop.put(&quot;mail.smtp.starttls.required&quot;, &quot;true&quot;);\nprop.put(&quot;mail.smtp.auth&quot;, &quot;true&quot;);\nsession = jakarta.mail.Session.getInstance(prop, null);\n</code></pre>\n<p>And the connection fails:</p>\n<pre class=\"lang-java prettyprint-override\"><code>tr = session.getTransport(&quot;smtp&quot;);\ntr.connect(host, username, password);\n</code></pre>\n<p>Here is the log:</p>\n<pre class=\"lang-none prettyprint-override\"><code>DEBUG: Jakarta Mail version 2.0.1\nDEBUG: successfully loaded resource: /META-INF/javamail.default.providers\nDEBUG: Tables of loaded providers\nDEBUG: Providers Listed By Class Name: {com.sun.mail.smtp.SMTPTransport=jakarta.mail.Provider[TRANSPORT,smtp,com.sun.mail.smtp.SMTPTransport,Oracle], com.sun.mail.imap.IMAPSSLStore=jakarta.mail.Provider[STORE,imaps,com.sun.mail.imap.IMAPSSLStore,Oracle], com.sun.mail.pop3.POP3Store=jakarta.mail.Provider[STORE,pop3,com.sun.mail.pop3.POP3Store,Oracle], com.sun.mail.smtp.SMTPSSLTransport=jakarta.mail.Provider[TRANSPORT,smtps,com.sun.mail.smtp.SMTPSSLTransport,Oracle], com.sun.mail.imap.IMAPStore=jakarta.mail.Provider[STORE,imap,com.sun.mail.imap.IMAPStore,Oracle], com.sun.mail.pop3.POP3SSLStore=jakarta.mail.Provider[STORE,pop3s,com.sun.mail.pop3.POP3SSLStore,Oracle]}\nDEBUG: Providers Listed By Protocol: {imap=jakarta.mail.Provider[STORE,imap,com.sun.mail.imap.IMAPStore,Oracle], smtp=jakarta.mail.Provider[TRANSPORT,smtp,com.sun.mail.smtp.SMTPTransport,Oracle], pop3=jakarta.mail.Provider[STORE,pop3,com.sun.mail.pop3.POP3Store,Oracle], imaps=jakarta.mail.Provider[STORE,imaps,com.sun.mail.imap.IMAPSSLStore,Oracle], smtps=jakarta.mail.Provider[TRANSPORT,smtps,com.sun.mail.smtp.SMTPSSLTransport,Oracle], pop3s=jakarta.mail.Provider[STORE,pop3s,com.sun.mail.pop3.POP3SSLStore,Oracle]}\nDEBUG: successfully loaded resource: /META-INF/javamail.default.address.map\nDEBUG: getProvider() returning jakarta.mail.Provider[TRANSPORT,smtp,com.sun.mail.smtp.SMTPTransport,Oracle]\nDEBUG SMTP: useEhlo true, useAuth true\nDEBUG SMTP: trying to connect to host &quot;smtp.office365.com&quot;, port 587, isSSL false\n220 SMTP Welcome\nDEBUG SMTP: connected to host &quot;smtp.office365.com&quot;, port: 587\nEHLO xxx.xxx.xxx\n250-SIZE 10240000\n250-DSN\n250-ENHANCEDSTATUSCODES\n250-8BITMIME\n250 OK\nDEBUG SMTP: Found extension &quot;DSN&quot;, arg &quot;&quot;\nDEBUG SMTP: Found extension &quot;ENHANCEDSTATUSCODES&quot;, arg &quot;&quot;\nDEBUG SMTP: Found extension &quot;8BITMIME&quot;, arg &quot;&quot;\nDEBUG SMTP: Found extension &quot;OK&quot;, arg &quot;&quot;\nDEBUG SMTP: STARTTLS required but not supported\njakarta.mail.MessagingException: STARTTLS is required but host does not support STARTTLS\n    at com.sun.mail.smtp.SMTPTransport.protocolConnect(SMTPTransport.java:744)\n    at jakarta.mail.Service.connect(Service.java:342)\n    at jakarta.mail.Service.connect(Service.java:222)\n...\n</code></pre>\n<p>In Azure portal the application has been granted the SMTP.SendAsApp permission. In the admin.microsoft.com portal we have checked the modern authentication option.</p>\n<p>Any idea what could cause this?</p>\n<p><strong>EDIT: Solved, was a firewall issue.</strong></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "java-stream",
+      "implementation"
+    ],
+    "owner": {
+      "account_id": 4168230,
+      "reputation": 777,
+      "user_id": 4313215,
+      "user_type": "registered",
+      "accept_rate": 100,
+      "profile_image": "https://www.gravatar.com/avatar/bb6994dcd01a0e7d35e83e2b9708af8a?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Koekje",
+      "link": "https://stackoverflow.com/users/4313215/koekje"
+    },
+    "is_answered": false,
+    "view_count": 433,
+    "answer_count": 2,
+    "score": 8,
+    "last_activity_date": 1735575555,
+    "creation_date": 1734563023,
+    "last_edit_date": 1735330174,
+    "question_id": 79292734,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79292734/java-stream-foreachordered-on-parallel-unordered-stream-consumes-in-source-order",
+    "title": "Java Stream forEachOrdered on parallel unordered stream consumes in source order",
+    "body": "<p>I recently implemented a certain algorithm, single consumer and multiple producers, using a blocking queue for sharing state. While implementing a simplified variant, I thought I could perhaps get it to work using a basic Java stream implementation.</p>\n<p>But it did not work as expected. An example reproducing the unexpected behaviour:</p>\n<pre class=\"lang-java prettyprint-override\"><code>LongStream.range(0, 32)\n        .unordered()\n        .parallel()\n        .map(value -&gt; {\n            // 'do some work', which can vary in duration\n            try {\n                Thread.sleep(new Random(value).nextLong(1000));\n            } catch (final InterruptedException e) {\n                Thread.currentThread().interrupt();\n                throw new RuntimeException(e);\n            }\n            System.out.println(&quot;map &quot; + value);\n            return value;\n        }).forEachOrdered(value -&gt; {\n            // actual implementation writes to output stream\n            System.out.println(&quot;&gt;&gt;&gt; &quot; + value);\n            System.out.flush();\n        });\n</code></pre>\n<p>My initial idea was that as soon as each map finishes, it could get consumed by the terminal operation (roughly). And <code>forEachOrdered</code> would process one item before another (so no manual synchronization necessary), compared to using <code>forEach</code>. But when I run the example code, I get the following output:</p>\n<pre><code>map 7\nmap 29\nmap 8\nmap 11\nmap 28\nmap 21\nmap 20\nmap 13\nmap 6\nmap 10\nmap 1\nmap 15\nmap 5\nmap 24\nmap 26\nmap 14\nmap 9\nmap 2\nmap 31\nmap 17\nmap 22\nmap 16\nmap 3\nmap 23\nmap 12\nmap 27\nmap 0\n&gt;&gt;&gt; 0\n&gt;&gt;&gt; 1\n&gt;&gt;&gt; 2\n&gt;&gt;&gt; 3\nmap 4\n&gt;&gt;&gt; 4\n&gt;&gt;&gt; 5\n&gt;&gt;&gt; 6\n&gt;&gt;&gt; 7\n&gt;&gt;&gt; 8\n&gt;&gt;&gt; 9\n&gt;&gt;&gt; 10\n&gt;&gt;&gt; 11\n&gt;&gt;&gt; 12\n&gt;&gt;&gt; 13\n&gt;&gt;&gt; 14\n&gt;&gt;&gt; 15\n&gt;&gt;&gt; 16\n&gt;&gt;&gt; 17\nmap 25\nmap 30\nmap 18\n&gt;&gt;&gt; 18\nmap 19\n&gt;&gt;&gt; 19\n&gt;&gt;&gt; 20\n&gt;&gt;&gt; 21\n&gt;&gt;&gt; 22\n&gt;&gt;&gt; 23\n&gt;&gt;&gt; 24\n&gt;&gt;&gt; 25\n&gt;&gt;&gt; 26\n&gt;&gt;&gt; 27\n&gt;&gt;&gt; 28\n&gt;&gt;&gt; 29\n&gt;&gt;&gt; 30\n&gt;&gt;&gt; 31\n</code></pre>\n<p>As you can see, the elements are mapped out of order, but the terminal operation is called in order of the stream source. You could exacerbate the problem by just sleeping for a very long time when encountering value 0, and not sleeping for all other values. The order however, does <strong>not</strong> matter.</p>\n<p>This confuses me, because I declare the stream to be unordered. And as I understand it, <code>forEachOrdered</code> doesn't necessarily process in order when used with an unordered stream.\nOf course, this does not mean it can't, so the current behaviour as far as I can tell is perfectly fine. Just not usable in my case.</p>\n<p>Am I misunderstanding something? Is it to be expected, and if so, what causes it and why? Is it something where the Streams implementation could be improved?</p>\n<p><strong>Update:</strong>\nIn response to the questions, a little bit more detail:</p>\n<p>In my original implementation I have a task queue containing tasks, producer threads taking tasks from this queue and pushing the results to a single consumer queue. Each producer thread processes a lot of tasks, so will also produce multiple values. The consumer thread processes 1 result at a time which is important, because it writes to an output stream, so the calls should be serialized/synchronized.</p>\n<p>For the stream implementation, my idea was to stream the tasks, let the producers be the map tasks, and writing to output in a terminal call. The reason I used <code>forEachOrdered</code> is that it promises\nto process 1 element at a time. But it does not promise order, when the stream has no defined encounter order, which is fine. This last bit, together with declaring the stream <code>unordered</code> and <code>parallel</code>, made me think it should allow for unordered parallel processing. But it doesn't.</p>\n<p>Maybe it just happens to be an implementation detail why it currently doesn't. Or maybe I'm misunderstanding. Note that if I change <code>forEachOrdered</code> to <code>forEach</code> and synchronize inside the <code>forEach</code>, it works as expected.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "subclass",
+      "mapstruct"
+    ],
+    "owner": {
+      "account_id": 17515496,
+      "reputation": 11,
+      "user_id": 12702572,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/6d7bd7a173dc88731672bac51be95a7b?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Jermeel",
+      "link": "https://stackoverflow.com/users/12702572/jermeel"
+    },
+    "is_answered": false,
+    "view_count": 464,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1724568974,
+    "creation_date": 1718915117,
+    "question_id": 78649460,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78649460/can-mapstruct-subclassmapping-annotation-be-combined-with-an-mapping-for-the-s",
+    "title": "Can mapstruct @SubclassMapping annotation be combined with an @Mapping for the subclass?",
+    "body": "<p>Using mapstruct v. 1.5.5, java v. 22.</p>\n<p>Let's say I have some entities that I am wanting to map to DTOs.  The DTOs are java records.</p>\n<p>My base entity looks like this (simplified):</p>\n<pre><code>public abstract class DateRule implements Predicate&lt;LocalDate&gt;\n{\n    @Id\n    @GeneratedValue(strategy = GenerationType.AUTO)\n    protected Long id;\n\n}\n</code></pre>\n<p>Let's say I then have two subclasses from DateRule:  AnnuaDateRule and DayOfWeekRule.  I then have two java records for AnnualDateRuleDTO and DayOfWeekRuleDTO.  The records are defined as follows:</p>\n<pre><code>public record AnnualDateRuleDTO(Long id, String name, @NotNull Month targetMonth, @NotNull DayOfWeek targetDayOfWeek, @NotNull int nthOccurrence) implements DateRuleDTO {}\n\n\npublic record DayOfWeekRuleDTO(Long id, String name, @NotNull DayOfWeek dayToMatch) implements DateRuleDTO {}\n</code></pre>\n<p>My mapper class is defined as follows:</p>\n<pre><code>@Mapper(componentModel = &quot;spring&quot;, subclassExhaustiveStrategy = SubclassExhaustiveStrategy.RUNTIME_EXCEPTION)\npublic interface DateRuleDTOMapper\n{\n    @SubclassMapping(source = AnnualDateRule.class, target = AnnualDateRuleDTO.class)\n    @SubclassMapping(source = DayOfWeekRule.class, target = DayOfWeekRuleDTO.class)\n    DateRuleDTO dateRuleToDTO(DateRule rule);\n\n    @SubclassMapping(source = AnnualDateRuleDTO.class, target = AnnualDateRule.class)\n    @SubclassMapping(source = DayOfWeekRuleDTO.class, target = DayOfWeekRule.class)\n    DateRule dateRuleFromDTO(DateRuleDTO dto);\n}\n</code></pre>\n<p>According to the <a href=\"https://mapstruct.org/documentation/1.5/api/org/mapstruct/SubclassMapping.html\" rel=\"nofollow noreferrer\">javadocs for the @SubclassMapping annotation</a>, &quot;This annotation can be combined with @Mapping annotations.&quot;  However, I don't see any documentation on how to do so.</p>\n<p>At compile time, I get warnings that the id field is unmapped <code>DateRuleDTOMapper.java:18: warning: Unmapped target property: &quot;id&quot;. Mapping from SubclassMapping for us.lawyertools.datecalculator.core.AnnualDateRule &quot;AnnualDateRule annualDateRule&quot; to &quot;AnnualDateRuleDTO annualDateRuleDTO&quot;. DateRuleDTO dateRuleToDTO(DateRule rule);</code>  I get similar warnings for the other classes.</p>\n<p>So, even though the AnnualDateRule inherits the 'id' field from its parent, DateRule, mapstruct is not mapping it to the target 'id' property on AnnualDateRuleDTO.</p>\n<p>At runtime, as you would expect given the warning, the mapper returns the DTO records with id being null.</p>\n<p>My attempt to annotate the above dateRuleToDTO method with an @Mapping results in a compiler error.  With the @Mapping annotation, the mapper looks as follows:</p>\n<pre><code>@Mapper(componentModel = &quot;spring&quot;, subclassExhaustiveStrategy = SubclassExhaustiveStrategy.RUNTIME_EXCEPTION)\npublic interface DateRuleDTOMapper\n{\n    @SubclassMapping(source = AnnualDateRule.class, target = AnnualDateRuleDTO.class)\n    @SubclassMapping(source = DayOfWeekRule.class, target = DayOfWeekRuleDTO.class)\n    @Mapping(source=&quot;id&quot;, target=&quot;id&quot;)\n    DateRuleDTO dateRuleToDTO(DateRule rule);\n\n    @SubclassMapping(source = AnnualDateRuleDTO.class, target = AnnualDateRule.class)\n    @SubclassMapping(source = DayOfWeekRuleDTO.class, target = DayOfWeekRule.class)\n    DateRule dateRuleFromDTO(DateRuleDTO dto);\n}\n</code></pre>\n<p>The compiler error: <code>DateRuleDTOMapper.java:18: error: No property named &quot;id&quot; exists in source parameter(s). Did you mean &quot;name&quot;? @Mapping(source=&quot;id&quot;, target=&quot;id&quot;) ^</code></p>\n<p>If I change DateRule's id field to be public, the compiler next errors out:  <code>DateRuleDTOMapper.java:18: error: Unknown property &quot;id&quot; in result type DateRuleDTO. Did you mean &quot;null&quot;? @Mapping(source=&quot;id&quot;, target=&quot;id&quot;) ^</code></p>\n<p>I am trying to find a solution that does not require me to write a custom mapper for each record that implements my DateRuleDTO interface, because that would defeat the purpose of using mapstruct's annotations in the first place.  I have found a way to more or less accomplish this using a decorator with (imho) ugly reflection.  I would like to see if I can get the result I am looking for (automatic mapping of each record's id field) with annotations or minimal additional customization.</p>\n<p>I should also mention that I am using lombok as well, and have included the lombok-mapstruct-binding dependency in my gradle build file:</p>\n<pre><code>    implementation &quot;org.mapstruct:mapstruct:1.5.5.Final&quot;\n    annotationProcessor &quot;org.mapstruct:mapstruct-processor:1.5.5.Final&quot;\n    // https://mvnrepository.com/artifact/org.projectlombok/lombok-mapstruct-binding\n    implementation group: 'org.projectlombok', name: 'lombok-mapstruct-binding', version: '0.2.0'\n    annotationProcessor(group: 'org.projectlombok', name: 'lombok-mapstruct-binding', version: '0.2.0')\n    // If you are using mapstruct in test code\n    testAnnotationProcessor &quot;org.mapstruct:mapstruct-processor:1.5.5.Final&quot;\n</code></pre>\n<p>Thank you for any help!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

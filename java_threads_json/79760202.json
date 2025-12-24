@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "oracle-database",
+      "hibernate",
+      "spring-data-jpa",
+      "criteriabuilder"
+    ],
+    "owner": {
+      "account_id": 8172883,
+      "reputation": 1,
+      "user_id": 6152690,
+      "user_type": "registered",
+      "profile_image": "https://graph.facebook.com/477324899133454/picture?type=large",
+      "display_name": "Dev Gupta",
+      "link": "https://stackoverflow.com/users/6152690/dev-gupta"
+    },
+    "is_answered": false,
+    "view_count": 99,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1757715524,
+    "creation_date": 1757444836,
+    "last_edit_date": 1757445042,
+    "question_id": 79760202,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79760202/issue-using-oracle-trunc-numtodsinterval-in-jpa-criteriabuilder",
+    "title": "Issue using Oracle TRUNC + NUMTODSINTERVAL in JPA CriteriaBuilder?",
+    "body": "<p>I’m trying to replicate the following Oracle SQL expression inside a JPA CriteriaQuery using CriteriaBuilder (Hibernate + Oracle DB):</p>\n<p><code>TRUNC(tktworkdate - NUMTODSINTERVAL(4, 'HOUR'))</code></p>\n<p>Basically:\nSubtract 4 hours from a TIMESTAMP column (tktworkdate)\nTruncate the result to the nearest day.</p>\n<p>Here's the code that I wrote in my specification:</p>\n<pre><code>public static Specification&lt;ReportView&gt; betweenWorkDate(LocalDate from, LocalDate to, String offset) {\n        return (root, query, cb) -&gt; {\n            Expression&lt;Date&gt; workDate = root.get(&quot;tktWorkDate&quot;); // Assuming tktWorkDate is the field\n            Expression&lt;Object&gt; intervalExpr = cb.function(&quot;NUMTODSINTERVAL&quot;,\n                    Object.class,\n                    cb.literal(-Integer.parseInt(offset)),\n                    cb.literal(&quot;HOUR&quot;));\n            Expression&lt;Object&gt; datePlusInterval = cb.function(\n                    &quot;+&quot;,\n                    Object.class,\n                    workDate,\n                    intervalExpr\n            );\n            Expression&lt;Date&gt; truncatedDate = cb.function(\n                    &quot;TRUNC&quot;,\n                    Date.class,\n                    cb.function(\n                            &quot;(&quot; + workDate.getAlias() + &quot; + ?)&quot;,\n                            Date.class,\n                            intervalExpr\n                    )\n            );\n\n            // Convert LocalDate to java.util.Date\n            Date fromDate = Date.from(from.atStartOfDay(ZoneId.systemDefault()).toInstant());\n            Date toDate = Date.from(to.atStartOfDay(ZoneId.systemDefault()).toInstant());\n\n            // Return the between predicate\n            return cb.between(truncatedDate, fromDate, toDate);\n        };\n    }\n</code></pre>\n<p><strong>But Hibernate throws errors like:</strong></p>\n<pre><code>Parameter 1 of function 'trunc()' has type 'NUMERIC', \nbut argument is of type 'java.sql.Timestamp' mapped to 'TIMESTAMP'\n</code></pre>\n<p>I tried using below approaches:</p>\n<ol>\n<li><p>Using cb.function(&quot;+&quot;, …) → fails, because + isn’t a valid SQL function.</p>\n</li>\n<li><p>Tried casting to DATE using cb.function(&quot;CAST&quot;, …) but Hibernate doesn’t handle it properly.</p>\n</li>\n</ol>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

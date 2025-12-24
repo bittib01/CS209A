@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "ssh",
+      "apache-mina"
+    ],
+    "owner": {
+      "account_id": 1099417,
+      "reputation": 512,
+      "user_id": 1092198,
+      "user_type": "registered",
+      "accept_rate": 29,
+      "profile_image": "https://www.gravatar.com/avatar/f52c3ce467c84b779c8d0d467deaa949?s=256&d=identicon&r=PG",
+      "display_name": "Clive Galway",
+      "link": "https://stackoverflow.com/users/1092198/clive-galway"
+    },
+    "is_answered": false,
+    "view_count": 122,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1758636104,
+    "creation_date": 1758565503,
+    "last_edit_date": 1758636104,
+    "question_id": 79771945,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79771945/apache-mina-ssh-client-in-shell-mode-non-printable-escape-characters-pollutin",
+    "title": "Apache MINA SSH client in Shell mode - non-printable /escape characters polluting stream",
+    "body": "<p>I have some Java code that uses the Apache MINA SSH client to connect to a Windows server running OpenSSH.<br />\nThe objective is to get an <strong>interactive</strong> prompt (One that I can issue a command, get a response, then issue another command).<br />\nI have this working, however, the response I am getting from the stream has a load of extra stuff in it.<br />\n<strong>Please no answers suggesting to use exec() and chain multiple commands on one line using eg &amp;&amp; - this is NOT what I want. Some of the commands that I execute modify environment variables, etc, so if I started a new session for each command, those would get lost</strong><br />\nSome sample code:</p>\n<pre><code>        SshResponse response;\n        shell = session.createShellChannel();\n        shell.open();\n\n        in = shell.getInvertedOut();\n        response = getResponse();\n        System.out.println(String.join(&quot;\\r\\n&quot;, response.responseLines));\n\n        // Not really relevant to this question, but this is the kind of stuff I will be doing:\n        out = shell.getInvertedIn();       \n        out.write(&quot;setenv.bat\\r\\n&quot;.getBytes()); // Do something which sets some env variables\n        out.flush();\n        response = getResponse();\n        // Analyse response\n        out.write(&quot;dosomething_else\\r\\n&quot;.getBytes());\n        // etc\n\n        session.close(false);\n        client.stop();\n</code></pre>\n<p>See linked Gist at end of post for full working code.<br />\nTo summarise - essentially all <code>getResponse()</code> does is read <code>in</code> (The InputStream) character by character into a <code>StringBuilder</code>, and when it encounters a new line, adds that line to <code>responseLines</code> (A <code>List&lt;String&gt;</code>).<br />\nIt knows when to end by looking for the command prompt, eg, <code>C:\\Users\\Administrator&gt;</code><br />\nIt does not add the prompt line to the <code>responseLines</code>.</p>\n<p>Therefore, <code>responseLines</code> should only contain two lines:</p>\n<pre><code>Microsoft Windows [Version 10.0.26100.3775]\n(c) Microsoft Corporation. All rights reserved.\n</code></pre>\n<p>However, what I get is this:<br />\n<a href=\"https://i.sstatic.net/OlAqsP81.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/OlAqsP81.png\" alt=\"enter image description here\" /></a><br />\nLine 0 is pure pollution and should not be present at all.<br />\nLine 1 starts with some escape characters and something about conhost.exe, and then after that contains the Windows version number as it should.<br />\nLine 2 is 100% correct.<br />\nLine 3 is also pure pollution, again, some escape characters, and something to do with conhost.exe</p>\n<p>However, note in my code that do al <code>System.out.println(String.join(&quot;\\r\\n&quot;, response.responseLines));</code> - when I do this, it looks as per above - just the 2 copyright lines<br />\n<a href=\"https://i.sstatic.net/zOJ8cSU5.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/zOJ8cSU5.png\" alt=\"enter image description here\" /></a></p>\n<p>So my question is - what are these extra characters? I <em>think</em> they are maybe some kind of control characters - formatting or something? Each of the bad sequences starts with an <code>ESC</code> character, and there's also a <code>BEL</code> in there, too.<br />\nHow can I get rid of them from the response? Obviously, you could use Regexes or something to remove them, but ideally, I would prefer some method that means they don't even get in the response at all. I have written code which uses the exact same approach using the SSHJ library (Hell, <code>getResponse()</code> is identical in my SSHJ implementation), and I don't get this problem with SSHJ (Although unfortunately SFTP upload is broken in SSHJ - hence me looking into using Apache MINA instead), so I am guessing that this is something which is Apache MINA specific, and can maybe just be fixed with some configuration change.</p>\n<p>UPDATE: Here is a Gist which demonstrates the issue: <a href=\"https://gist.github.com/evilC/8c977c735dca358e944c3deed4a236a3\" rel=\"nofollow noreferrer\">https://gist.github.com/evilC/8c977c735dca358e944c3deed4a236a3</a><br />\nThe behaviour is slightly different in terms of the number of response lines (Sometimes 2 lines, sometimes 3, but not 4 like in the picture), however it does show the exact same escape characters. You will need to edit the machineName, userName, password etc to match your system.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

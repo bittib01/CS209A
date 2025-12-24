@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "mongodb",
+      "spring-batch",
+      "configure"
+    ],
+    "owner": {
+      "account_id": 8362217,
+      "reputation": 13,
+      "user_id": 6280099,
+      "user_type": "registered",
+      "profile_image": "https://lh6.googleusercontent.com/-4xmq7H_ORCM/AAAAAAAAAAI/AAAAAAAAAAA/YnATq5fJwUg/s256-rj/photo.jpg",
+      "display_name": "Etienne Jouannic",
+      "link": "https://stackoverflow.com/users/6280099/etienne-jouannic"
+    },
+    "is_answered": true,
+    "view_count": 1063,
+    "accepted_answer_id": 79381383,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1737888402,
+    "creation_date": 1737628361,
+    "last_edit_date": 1737888402,
+    "question_id": 79380680,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79380680/initializing-spring-batch-metadata-with-mongodb-job-repository",
+    "title": "Initializing Spring Batch metadata with MongoDB job repository",
+    "body": "<p>I am working on a Spring Batch project that needs to read from an XML and write data into a MongoDB.</p>\n<p>I was happily surprised to see that Spring Batch has a brand new <a href=\"https://docs.spring.io/spring-batch/reference/whatsnew.html#mongodb-job-repository-support\" rel=\"nofollow noreferrer\">job repository support for MongoDB</a>, so I decided to try it.</p>\n<p>Unfortunately, I can't figure out how to configure Spring to have the batch metadata automatically initialized with the first start of the batch. I must specify that I don't want an embedded data source for this batch, but an external one to handle the retry process on failure for a potentially long process.</p>\n<p>I have been initializing my project with this configuration:</p>\n<pre><code>@Bean\npublic JobLauncher jobLauncher(JobRepository jobRepository) {\n    TaskExecutorJobLauncher jobLauncher = new TaskExecutorJobLauncher();\n    jobLauncher.setJobRepository(jobRepository);\n    return jobLauncher;\n}\n\n@Bean\npublic MongoDatabaseFactory mongoDatabaseFactory(){\n    return new SimpleMongoClientDatabaseFactory(&quot;&lt;myMongoDBconnectionString&gt;&quot;);\n}\n\n@Bean\npublic MongoTemplate mongoTemplate(MongoDatabaseFactory databaseFactory) {\n    return new MongoTemplate(databaseFactory);\n}\n\n@Bean\npublic MongoTransactionManager transactionManager(MongoDatabaseFactory databaseFactory) {\n    MongoTransactionManager mongoTransactionManager = new MongoTransactionManager();\n    mongoTransactionManager.setDatabaseFactory(databaseFactory);\n    mongoTransactionManager.afterPropertiesSet();\n    return mongoTransactionManager;\n}\n\n@Bean\npublic JobRepository jobRepository(MongoTemplate mongoTemplate, MongoTransactionManager transactionManager) throws Exception {\n    MongoJobRepositoryFactoryBean jobRepositoryFactoryBean = new MongoJobRepositoryFactoryBean();\n    jobRepositoryFactoryBean.setMongoOperations(mongoTemplate);\n    jobRepositoryFactoryBean.setTransactionManager(transactionManager);\n    jobRepositoryFactoryBean.afterPropertiesSet();\n    return jobRepositoryFactoryBean.getObject();\n}\n</code></pre>\n<p>When I execute my SpringBatchApplication, I get this exception:</p>\n<pre class=\"lang-none prettyprint-override\"><code>java.lang.NullPointerException: Cannot invoke &quot;org.bson.Document.getLong(Object)&quot; because the return value of &quot;com.mongodb.client.MongoCollection.findOneAndUpdate(org.bson.conversions.Bson, org.bson.conversions.Bson, com.mongodb.client.model.FindOneAndUpdateOptions)&quot; is null\nat org.springframework.batch.core.repository.dao.MongoSequenceIncrementer.lambda$nextLongValue$0(MongoSequenceIncrementer.java:51) \\~\\[spring-batch-core-5.2.1.jar:5.2.1\\]\nat org.springframework.data.mongodb.core.MongoTemplate.execute(MongoTemplate.java:603) \\~\\[spring-data-mongodb-4.4.1.jar:4.4.1\\]\nat org.springframework.batch.core.repository.dao.MongoSequenceIncrementer.nextLongValue(MongoSequenceIncrementer.java:47) \\~\\[spring-batch-core-5.2.1.jar:5.2.1\\]\nat org.springframework.batch.core.repository.dao.MongoJobInstanceDao.createJobInstance(MongoJobInstanceDao.java:80) \\~\\[spring-batch-core-5.2.1.jar:5.2.1\\]\nat org.springframework.batch.core.repository.support.SimpleJobRepository.createJobExecution(SimpleJobRepository.java:168) \\~\\[spring-batch-core-5.2.1.jar:5.2.1\\]\nat java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) \\~\\[na:na\\]\nat java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) \\~\\[na:na\\]\nat java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) \\~\\[na:na\\]\nat java.base/java.lang.reflect.Method.invoke(Method.java:568) \\~\\[na:na\\]\nat org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:359) \\~\\[spring-aop-6.2.1.jar:6.2.1\\]\nat org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196) \\~\\[spring-aop-6.2.1.jar:6.2.1\\]\nat org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163) \\~\\[spring-aop-6.2.1.jar:6.2.1\\]\nat org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:380) \\~\\[spring-tx-6.2.1.jar:6.2.1\\]\nat org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119) \\~\\[spring-tx-6.2.1.jar:6.2.1\\]\nat org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) \\~\\[spring-aop-6.2.1.jar:6.2.1\\]\nat org.springframework.batch.core.repository.support.AbstractJobRepositoryFactoryBean.lambda$getObject$0(AbstractJobRepositoryFactoryBean.java:204) \\~\\[spring-batch-core-5.2.1.jar:5.2.1\\]\nat org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) \\~\\[spring-aop-6.2.1.jar:6.2.1\\]\nat org.springframework.aop.framework.JdkDynamicAopProxy.invoke(JdkDynamicAopProxy.java:223) \\~\\[spring-aop-6.2.1.jar:6.2.1\\]\nat jdk.proxy2/jdk.proxy2.$Proxy41.createJobExecution(Unknown Source) \\~\\[na:na\\]\nat org.springframework.batch.core.launch.support.TaskExecutorJobLauncher.run(TaskExecutorJobLauncher.java:143) \\~\\[spring-batch-core-5.2.1.jar:5.2.1\\]\nat com.docoon.update_annuaire_replica.SpringBatchApplication.run(SpringBatchApplication.java:39) \\~\\[classes/:na\\]\n</code></pre>\n<p>It seems like it is looking for a particular sequence in the metadata collection, but cannot find it because the schema hasn't been intialized yet. I know that with an SQL configuration this property can be set:\n<code>spring.main.batch.jdbc.initalize-schema: true</code></p>\n<p>Is there any equivalence for this for a MongoDB config that I am missing?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-security",
+      "jwt",
+      "jackson-databind",
+      "jjwt"
+    ],
+    "owner": {
+      "account_id": 36559576,
+      "reputation": 21,
+      "user_id": 27800652,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/929d8b94ad540e3f6901653e1f4da1ef?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Mat M",
+      "link": "https://stackoverflow.com/users/27800652/mat-m"
+    },
+    "is_answered": false,
+    "view_count": 456,
+    "answer_count": 2,
+    "score": 2,
+    "last_activity_date": 1759239328,
+    "creation_date": 1728985764,
+    "question_id": 79089383,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79089383/how-to-add-null-claims-to-jwt-token-in-jjwt-jackson",
+    "title": "How to add null claims to JWT token in JJWT (Jackson)",
+    "body": "<p>I'm trying to set a bunch of claims, many of which contain null values. These properties must exist and are necessary for the user not to be rejected in the client app, even if they are null.\nThe problem is that by default JJWT doesn't include null values into the JWT (or at least this seems to be the case). Despite this, inner serialized objects do contain null properties.</p>\n<p>This is how I'm adding them, and the solution I've tried to implement, which is to configure an ObjectMapper and use it in the JWT builder.</p>\n<pre class=\"lang-java prettyprint-override\"><code>public String generateTokenFromJwtUserDetails(JwtUserDetails userDetails) {\n        Date now = new Date();\n        Date expiryDate = new Date(now.getTime() + jwtExpiration);\n\n        Map&lt;String, Object&gt; claims = new HashMap&lt;&gt;();\n        claims.put(&quot;name&quot;, userDetails.getName()); // null, will not appear in jwt\n        claims.put(&quot;id&quot;, userDetails.getId()); // not null, appears\n        claims.put(&quot;tenant&quot;, userDetails.getTenant()); // contains null values that do end up in jwt\n\n        // rest of claims...\n\n        // here I tried to set serialization inclusion in a custom object mapper, doesn't work\n        ObjectMapper objectMapper = new ObjectMapper();\n        objectMapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);\n\n        // I also tried this, but won't work either\n        //objectMapper.enable(SerializationFeature.WRITE_NULL_MAP_VALUES);\n\n        try{\n            return Jwts.builder()\n                    .json(new JacksonSerializer&lt;&gt;(objectMapper))\n                    .claims(claims)\n                    .subject(userDetails.getUsername())\n                    .issuedAt(now)\n                    .expiration(expiryDate)\n                    .signWith(getSignInKey())\n                    .issuer(jwtIssuer)\n                    .compact();\n        }catch(Exception e){ // ...\n}\n</code></pre>\n<p>Further clarification:</p>\n<ol>\n<li>I'm also including entities inside my JWT, these entities are serialized by jackson with all of their fields (so I have nested objects with null values, but it's the outer JWT which doesn't accept them). For example:</li>\n</ol>\n<pre class=\"lang-json prettyprint-override\"><code>{\n  &quot;id&quot;: &quot;ibn12u3bio412i&quot;,\n  &quot;tenant&quot;: {\n    &quot;deletedOn&quot;: null,\n  }\n}\n</code></pre>\n<ol start=\"2\">\n<li>The HashMap does contain all of the keys and values even when null.</li>\n<li>I'm aware that JWTs are not supposed to contain null data, but I don't have control over the client in this situation.</li>\n</ol>\n<p>Thank you for your time!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

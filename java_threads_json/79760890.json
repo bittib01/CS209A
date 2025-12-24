@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "swing",
+      "assertj-swing"
+    ],
+    "owner": {
+      "account_id": 10187542,
+      "reputation": 2735,
+      "user_id": 20692967,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/NZSXm.jpg?s=256",
+      "display_name": "Sergey Zolotarev",
+      "link": "https://stackoverflow.com/users/20692967/sergey-zolotarev"
+    },
+    "is_answered": true,
+    "view_count": 90,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1760457992,
+    "creation_date": 1757509431,
+    "question_id": 79760890,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79760890/asserting-on-jtable-cell-tooltips",
+    "title": "Asserting on JTable cell tooltips",
+    "body": "<p>I want to make an assertion that my table's cell renderer component has an expected tooltip.</p>\n<p>How do I do it with AssertJ Swing?</p>\n<p>My attempt:</p>\n<pre class=\"lang-java prettyprint-override\"><code>class GuiCheckBoxCellRendererTest extends SwingTest {\n\n    JFrame frame;\n\n    @AfterEach\n    void tearDown() {\n        runAndWait(frame::dispose);\n    }\n\n    @Test\n    void getTableCellRendererComponent_givenValue_returnsExpectedCheckBox() {\n        String tooltip = &quot;Some tooltip&quot;;\n        CheckBoxCellRenderer renderer = callAndWait(() -&gt; CheckBoxCellRenderer.from(tooltip));\n        DefaultTableModel tableModel = callAndWait(() -&gt; new DefaultTableModel(new Object[][]{{1, &quot;Alex&quot;}}, new String[]{&quot;Status&quot;, &quot;Name&quot;}));\n        table = callAndWait(() -&gt; new JTable(tableModel));\n        runAndWait(() -&gt; table.setDefaultRenderer(Object.class, renderer));\n        frame = createFrame(table);\n        robot.showWindow(frame);\n        robot.focusAndWaitForFocusGain(frame);\n        assumeThat(callAndWait(frame::isVisible)).isTrue();\n        assumeThat(callAndWait(frame::isShowing)).isTrue();\n        assumeThat(callAndWait(table::isVisible)).isTrue();\n        assumeThat(callAndWait(table::isShowing)).isTrue();\n        JTableFixture tableFixture = new JTableFixture(robot, table);\n        \n        tableFixture.cell(TableCell.row(0).column(0)).select();\n        robot.waitForIdle();\n        tableFixture.requireToolTip(tooltip); // requires tooltip for the entire table, apparently\n    }\n\n    JFrame createFrame(JComponent component) {\n        return callAndWait(() -&gt; {\n            JFrame frame = new JFrame();\n            JScrollPane scrollPane = new JScrollPane(component);\n            scrollPane.setPreferredSize(new Dimension(200, 150));\n            frame.add(scrollPane);\n            frame.pack();\n            return frame;\n        });\n    }\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>import javax.swing.JCheckBox;\nimport javax.swing.JTable;\nimport javax.swing.table.DefaultTableCellRenderer;\nimport java.awt.Color;\nimport java.awt.Component;\nimport java.util.function.Function;\n\npublic class CheckBoxCellRenderer extends DefaultTableCellRenderer {\n\n    private final JCheckBox checkBox;\n    private final Function&lt;Boolean, String&gt; tooltipFunction;\n\n    private CheckBoxCellRenderer(Function&lt;Boolean, String&gt; tooltipFunction) {\n        this.checkBox = new JCheckBox();\n        this.tooltipFunction = tooltipFunction;\n        this.checkBox.setToolTipText(tooltipFunction.apply(checkBox.isSelected()));\n    }\n\n    public static CheckBoxCellRenderer from(String tooltip) {\n        return from(selected -&gt; tooltip);\n    }\n\n    public static CheckBoxCellRenderer from(Function&lt;Boolean, String&gt; tooltipFunction) {\n        return new CheckBoxCellRenderer(tooltipFunction);\n    }\n\n    @Override\n    public Component getTableCellRendererComponent(JTable table, Object value,\n                                                   boolean isSelected, boolean hasFocus, int row, int column) {\n        checkBox.setSelected(value instanceof Number &amp;&amp; ((Number) value),intValue() == 1);\n        checkBox.setToolTipText(tooltipFunction.apply(checkBox.isSelected()));\n        return checkBox;\n    }\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>import org.assertj.swing.core.Robot;\nimport org.assertj.swing.edt.FailOnThreadViolationRepaintManager;\nimport org.assertj.swing.edt.GuiActionRunner;\nimport org.assertj.swing.edt.GuiQuery;\nimport org.assertj.swing.edt.GuiTask;\nimport org.junit.jupiter.api.AfterAll;\nimport org.junit.jupiter.api.AfterEach;\nimport org.junit.jupiter.api.BeforeAll;\nimport org.junit.jupiter.api.BeforeEach;\n\nimport javax.swing.SwingUtilities;\n\npublic abstract class SwingTest {\n\n    protected Robot robot;\n\n    @BeforeAll\n    static void superSetUpOnce() {\n        FailOnThreadViolationRepaintManager.install();\n    }\n\n    @AfterAll\n    static void superTearDownOnce() {\n        FailOnThreadViolationRepaintManager.uninstall();\n    }\n\n    @BeforeEach\n    void superSetUp() {\n        robot = BasicRobot.robotWithCurrentAwtHierarchy();\n    }\n\n    @AfterEach\n    void superTearDown() {\n        robot.cleanUp();\n    }\n\n    protected static void runLater(Runnable edtRunnable) {\n        SwingUtilities.invokeLater(() -&gt; {\n            try {\n                edtRunnable.run();\n            } catch (Throwable e) {\n                throw new RuntimeException(e);\n            }\n        });\n    }\n\n    protected static void runAndWait(Runnable edtRunnable) {\n        GuiActionRunner.execute(new GuiTask() {\n            @Override\n            protected void executeInEDT() throws Throwable {\n                edtRunnable.run();\n            }\n        });\n    }\n\n    protected static &lt;T&gt; T callAndWait(Callable&lt;T&gt; edtCallable) {\n        return GuiActionRunner.execute(new GuiQuery&lt;T&gt;() {\n            @Override\n            protected T executeInEDT() throws Throwable {\n                return edtCallable.call();\n            }\n        });\n    }\n}\n</code></pre>\n<pre><code>java.lang.AssertionError: [javax.swing.JTable[name=null, rowCount=1, columnCount=1, enabled=true, visible=true, showing=true] - property:'toolTipText'] \nExpecting:\n null\nto match pattern:\n &quot;Some tooltip&quot;\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

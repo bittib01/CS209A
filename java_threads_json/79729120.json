@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "minecraft",
+      "minecraft-fabric"
+    ],
+    "owner": {
+      "account_id": 34412753,
+      "reputation": 13,
+      "user_id": 26554673,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/1bf88c6f3e1082c51a2fda202f54aa53?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "DevKnochen",
+      "link": "https://stackoverflow.com/users/26554673/devknochen"
+    },
+    "is_answered": false,
+    "view_count": 54,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1754761988,
+    "creation_date": 1754599685,
+    "last_edit_date": 1754761988,
+    "question_id": 79729120,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79729120/1-21-8-rendering-motd-text-on-directconnectscreen",
+    "title": "1.21.8 rendering MOTD / Text on DirectConnectScreen",
+    "body": "<p>I want to display the servers MOTD, player count and ping on the DirectConnectScreen, similar to how it is in the multiplayer server list.  Ive created a mixin for the DirectConnectScreen to draw the information. Im able to successfully fetch the servers icon and display it.\nI can also fetch the MOTD and print it to the console, so I know the information is being retrieved correctly. My main issue is that I cant seem to render any text on the screen. The icon appears, but the MOTD, player count, and ping icon do not. I'm not getting any errors in the logs related to rendering. Here is some of my code:</p>\n<p>DirectConnectScreenMixin.java:</p>\n<pre><code>Java@Mixin(DirectConnectScreen.class)\npublic abstract class DirectConnectScreenMixin extends Screen {\n    @Shadow\n    private ServerAddress serverAddress;\n\n    private DirectConnectScreenMOTDHelper directConnectScreenMOTDHelper;\n\n    protected DirectConnectScreenMixin(Text title) {\n        super(title);\n    }\n\n    @Inject(method = &quot;init&quot;, at = @At(&quot;TAIL&quot;))\n    private void onInit(CallbackInfo ci) {\n        this.directConnectScreenMOTDHelper = new DirectConnectScreenMOTDHelper(this.client, (DirectConnectScreen) (Object) this, this.serverAddress);\n    }\n\n    @Inject(method = &quot;render&quot;, at = @At(&quot;TAIL&quot;))\n    private void onRender(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {\n        if (this.directConnectScreenMOTDHelper != null) {\n            this.directConnectScreenMOTDHelper.draw(context, mouseX, mouseY, delta);\n        }\n    }\n\n    @Inject(method = &quot;tick&quot;, at = @At(&quot;TAIL&quot;))\n    private void onTick(CallbackInfo ci) {\n        if (this.directConnectScreenMOTDHelper != null) {\n            this.directConnectScreenMOTDHelper.tick();\n        }\n    }\n}\n</code></pre>\n<p>DirectConnectScreenMOTDHelper.java (The drawing part):</p>\n<pre><code>Javapublic class DirectConnectScreenMOTDHelper {\n    // ... (fields for client, screen, serverAddress, serverInfo, etc.)\n\n    public void draw(DrawContext context, int mouseX, int mouseY, float delta) {\n        if (this.serverInfo != null) {\n            if (this.serverInfo.getIcon() != null) {\n                // this works\n                this.drawIcon(context, 0, 0, this.serverInfo.getIcon());\n            }\n\n            // doesnt display\n            if (this.serverInfo.getMotd() != null) {\n                this.client.textRenderer.draw(this.serverInfo.getMotd(), 35.0F, 1.0F, 16777215, false, context.getMatrices().peek().getPositionMatrix(), context.getVertexConsumers(), TextRenderer.TextLayerType.NORMAL, 0, 15728880);\n            }\n        }\n    }\n\n    // ... (other methods for ticking, fetching info, etc.)\n}\n</code></pre>\n<p>Maybe Im missing something fundamental about how text rendering works? Is there a different way I should be rendering text because its a MOTD?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

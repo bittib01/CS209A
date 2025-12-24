@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "algorithm"
+    ],
+    "owner": {
+      "account_id": 31187804,
+      "reputation": 794,
+      "user_id": 23993901,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/7417aaad0c8ece3fac44f06d05a8ba8b?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "CodeCrusader",
+      "link": "https://stackoverflow.com/users/23993901/codecrusader"
+    },
+    "is_answered": true,
+    "view_count": 135,
+    "answer_count": 2,
+    "score": -3,
+    "last_activity_date": 1750527517,
+    "creation_date": 1750459583,
+    "last_edit_date": 1750489545,
+    "question_id": 79674017,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79674017/toy-wrapping-with-bonus-stations",
+    "title": "Toy Wrapping with Bonus Stations",
+    "body": "<p>This is the task description:</p>\n<blockquote>\n<p>Imagine you have a bunch of toys that need to be wrapped as presents.\nEach toy takes a different amount of energy to wrap — some are easy,\nsome are harder. You have some wrapping stations (like gift-wrapping\ntables), and each one has a special rule:</p>\n<p>If you wrap a certain number of toys at that station, the station\ngives you 2 extra toys that you can wrap for free, but only if those\ntoys are not harder to wrap than the easiest one you've already\nwrapped there.</p>\n<p>The task is to wrap all the toys using the least amount of energy.</p>\n<p>We can: Use any wrapping station. Wrap any toy at any station. Only\nuse each toy once.</p>\n<p>The Goal: Pick toys and stations in a smart way, so that you use the\nleast total energy to wrap all the toys!</p>\n<p>Example: You have 5 toys. Their energy needs are:</p>\n<p>Toys = [50, 50, 30, 50, 20] You have 2 stations: Station 1: wrap 2\ntoys → get 2 easy ones free Station 2: wrap 3 toys → get 2 easy ones\nfree</p>\n<p>Smart Plan:</p>\n<p>Use Station 1 to wrap Toy 1 and Toy 2 (each takes 50 energy). That\nunlocks 2 free ones! You use the free wraps on Toy 3 (30 energy) and\nToy 4 (50 energy).</p>\n<p>Wrap Toy 5 (20 energy) anywhere.</p>\n<p>Total energy used = 50 + 50 + 20 = 120</p>\n<p>constraints:</p>\n<p>1 &lt;= n &lt;= 10^5 , n is the size of stationRules list 1 &lt;=\nstationRules[i] &lt;= 10^5 1 &lt;= m &lt;= 10^5, m is the size of toyWrapEffort\nlist 1 &lt;= toyWrapEffort[i] &lt;= 10^4</p>\n</blockquote>\n<p>This is what I have tried for this task:</p>\n<p>I have used greedy approach, here is my logic:</p>\n<p>I started by sorting the toys in descending order of energy cost. The intuition behind this was to pay for the hardest toys first — the ones with the highest energy cost — because those are the most expensive and least likely to qualify for free wrapping due to the constraint that free toys must be no harder than the easiest one paid for at the same station.</p>\n<p>By wrapping the most expensive toys early, I hoped to unlock free wraps for cheaper toys — ideally ones that are close in effort (‘nearest hardest’), but still under the minimum threshold. This way, we reduce the total energy cost by using the free wraps on toys that would otherwise still be relatively expensive.</p>\n<p>After running the code, I observed that while my approach passed some initial test cases, it failed 4 hidden ones out of 15. This indicated that the logic I used wasn’t fully correct or didn’t account for all edge cases. I didn’t properly enforce the condition that free toys must be no harder than the easiest paid toy at the same station. This oversight likely caused invalid toy assignments in those failing cases.</p>\n<p>Time complexity is [O(n * log(n)) + O(m * log(m)) + m]</p>\n<pre><code>import java.util.*;\n\nclass Main {\n    public static int wrapToysSmartly(List&lt;Integer&gt; stationRules, List&lt;Integer&gt; toyWrapEffort) {    \n        Collections.sort(toyWrapEffort, Collections.reverseOrder());\n        Collections.sort(stationRules);\n        int m = toyWrapEffort.size(), n = stationRules.size();\n        long output = 0;\n        int free = 0, index = 0, count = 0;\n        for (int i = 0; i &lt; m; i++) {\n            int e = toyWrapEffort.get(i);\n            if (free &gt; 0) {\n                free--;\n            } else {\n                output += e;\n                count++;\n                \n                // if we collected enough toys the move to next station and collect next 2 free toys\n                if (index &lt; n &amp;&amp; count &gt;= stationRules.get(index)) {\n                    free += 2;\n                    count -= stationRules.get(index);\n                    index++;\n                }\n            }\n        }\n        return (int) output;\n    }\n\n    public static void main(String... args) {\n        System.out.println(wrapToysSmartly(Arrays.asList(2, 3), Arrays.asList(50, 50, 30, 50, 20))); // Output: 120\n        System.out.println(wrapToysSmartly(Arrays.asList(5, 5, 2), Arrays.asList(48, 75, 20, 46, 33))); // Output: 143\n        System.out.println(wrapToysSmartly(Arrays.asList(4, 4, 7), Arrays.asList(64, 38, 95, 34, 33, 96, 10, 59))); // Output: 357\n    }\n}\n</code></pre>\n<p>I added 3 test cases in the main method to check my code, and it worked for those. But when I ran it on Hackerrank, 4 out of 15 test cases failed. The ones that failed are hidden, so I can’t see what went wrong.</p>\n<p>What is the correct approach to solve this task in less time complexity.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

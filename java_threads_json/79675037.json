@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "kerberos",
+      "gssapi"
+    ],
+    "owner": {
+      "account_id": 40679980,
+      "reputation": 31,
+      "user_id": 29899930,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/f0515dfaa58bfbc4c61dc4c4737eb593?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Tal Dulberg",
+      "link": "https://stackoverflow.com/users/29899930/tal-dulberg"
+    },
+    "is_answered": true,
+    "view_count": 135,
+    "accepted_answer_id": 79691793,
+    "answer_count": 2,
+    "score": 1,
+    "last_activity_date": 1751813107,
+    "creation_date": 1750584656,
+    "last_edit_date": 1750586324,
+    "question_id": 79675037,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79675037/how-to-use-a-cached-kerberos-tgs-ticket-with-gss-api-in-java",
+    "title": "How to use a cached Kerberos TGS ticket with GSS API in Java?",
+    "body": "<p>I am trying to get a Kerberos TGS ticket from the cache (without contacting the KDC).\nI create a TGT ticket using kinit and a TGS ticket, using kvno cifs/.\nTo ensure I have cached the tickets, I use klist and get the following result:</p>\n<pre><code>Ticket cache: FILE:/tmp/krb5cc_0\nDefault principal: Administrator@PROXYREALM.TEST\n\nValid starting     Expires            Service principal\n22/06/25 12:48:10  22/06/25 22:48:10  krbtgt/PROXYREALM.TEST@PROXYREALM.TEST\n    renew until 29/06/25 12:48:06\n22/06/25 12:49:02  22/06/25 22:48:10  cifs/DC1.proxyrealm.test@PROXYREALM.TEST\n    renew until 29/06/25 12:48:06\n</code></pre>\n<p>But when I try to use the Java GSS API to load the tickets from the cache and use them. The only ticket found is the TGT:</p>\n<pre><code>Java config name: null\nNative config name: /etc/krb5.conf\nLoading config file from /etc/krb5.conf\nLoading krb5 profile at /etc/krb5.conf\nlogging = {\n}\nlibdefaults = {\ndefault_realm = PROXYREALM.TEST\ndns_lookup_kdc = false\ndns_lookup_realm = false\nticket_lifetime = 24h\nrenew_lifetime = 7d\nforwardable = true\n}\nrealms = {\nPROXYREALM.TEST = {\ndefault_domain = PROXYREALM.TEST\nkdc = https://kdcproxy.proxyrealm.test/KdcProxy\nadmin_server = kdcproxy.proxyrealm.test\nhttp_anchors = FILE:/etc/ssl/certs/ca-certificates.crt\n}\n}\ndomain_realm = {\n.PROXYREALM.TEST = PROXYREALM.TEST\nPROXYREALM.TEST = PROXYREALM.TEST\n.proxyrealm.test = PROXYREALM.TEST\nproxyrealm.test = PROXYREALM.TEST\n}\nappdefaults = {\npam = {\ndebug = false\nticket_lifetime = 36000\nrenew_lifetime = 36000\nforwardable = true\nkrb4_convert = false\n}\n}\nLoaded from native config\n&gt;&gt;&gt;KinitOptions cache name is /tmp/krb5cc_0\n&gt;&gt;&gt;DEBUG &lt;CCacheInputStream&gt;  client principal is Administrator@PROXYREALM.TEST\n&gt;&gt;&gt;DEBUG &lt;CCacheInputStream&gt; server principal is krbtgt/PROXYREALM.TEST@PROXYREALM.TEST\n&gt;&gt;&gt;DEBUG &lt;CCacheInputStream&gt; key type: 18\n&gt;&gt;&gt;DEBUG &lt;CCacheInputStream&gt; auth time: Sun Jun 22 12:48:10 IDT 2025\n&gt;&gt;&gt;DEBUG &lt;CCacheInputStream&gt; start time: Sun Jun 22 12:48:10 IDT 2025\n&gt;&gt;&gt;DEBUG &lt;CCacheInputStream&gt; end time: Sun Jun 22 22:48:10 IDT 2025\n&gt;&gt;&gt;DEBUG &lt;CCacheInputStream&gt; renew_till time: Sun Jun 29 12:48:06 IDT 2025\n&gt;&gt;&gt; CCacheInputStream: readFlags()  FORWARDABLE; RENEWABLE; INITIAL; PRE_AUTH;\n&gt;&gt;&gt;DEBUG &lt;CCacheInputStream&gt;  client principal is Administrator@PROXYREALM.TEST\n&gt;&gt;&gt;DEBUG &lt;CCacheInputStream&gt; server principal is krb5_ccache_conf_data/pa_type/krbtgt/PROXYREALM.TEST\\@PROXYREALM.TEST@X-CACHECONF:\n&gt;&gt;&gt;DEBUG &lt;CCacheInputStream&gt; key type: 0\n&gt;&gt;&gt;DEBUG &lt;CCacheInputStream&gt; auth time: Thu Jan 01 02:00:00 IST 1970\n&gt;&gt;&gt;DEBUG &lt;CCacheInputStream&gt; start time: null\n&gt;&gt;&gt;DEBUG &lt;CCacheInputStream&gt; end time: Thu Jan 01 02:00:00 IST 1970\n&gt;&gt;&gt;DEBUG &lt;CCacheInputStream&gt; renew_till time: null\n&gt;&gt;&gt; CCacheInputStream: readFlags() \n&gt;&gt;&gt;DEBUG &lt;CCacheInputStream&gt;  client principal is Administrator@PROXYREALM.TEST\n&gt;&gt;&gt;DEBUG &lt;CCacheInputStream&gt; server principal is cifs/DC1.proxyrealm.test@PROXYREALM.TEST\n&gt;&gt;&gt;DEBUG &lt;CCacheInputStream&gt; key type: 18\n&gt;&gt;&gt;DEBUG &lt;CCacheInputStream&gt; auth time: Sun Jun 22 12:48:10 IDT 2025\n&gt;&gt;&gt;DEBUG &lt;CCacheInputStream&gt; start time: Sun Jun 22 12:49:02 IDT 2025\n&gt;&gt;&gt;DEBUG &lt;CCacheInputStream&gt; end time: Sun Jun 22 22:48:10 IDT 2025\n&gt;&gt;&gt;DEBUG &lt;CCacheInputStream&gt; renew_till time: Sun Jun 29 12:48:06 IDT 2025\n&gt;&gt;&gt; CCacheInputStream: readFlags()  FORWARDABLE; RENEWABLE; PRE_AUTH;\nget normal credential\nFound ticket for Administrator@PROXYREALM.TEST to go to krbtgt/PROXYREALM.TEST@PROXYREALM.TEST expiring on Sun Jun 22 22:48:10 IDT 2025\nEntered Krb5Context.initSecContext with state=STATE_NEW\nService ticket not found in the subject\n</code></pre>\n<p>I tried using the following class to authenticate with the cached Kerberos tickets:</p>\n<pre><code>public class GSSKdcProxyClient {\n\n  public static final Oid KRB5_MECH_OID;\n    static {\n        try {\n            KRB5_MECH_OID = new Oid(&quot;1.2.840.113554.1.2.2&quot;); // Kerberos V5 OID\n        } catch (Exception e) {\n            throw new RuntimeException(&quot;Failed to initialize Kerberos OID&quot;, e);\n        }\n    }\n    \npublic static void main(String[] args) throws GSSException {\n     System.setProperty(&quot;javax.security.auth.useSubjectCredsOnly&quot;,&quot;false&quot;);\n     System.setProperty(&quot;sun.security.krb5.debug&quot;, &quot;true&quot;); \n    try {\n        \n      GSSManager manager = GSSManager.getInstance();\n      \n       GSSName serverName = manager.createName(&quot;cifs/DC1.proxyrealm.test@PROXYREALM.TEST&quot;,GSSName.NT_HOSTBASED_SERVICE);\n       // Acquire credentials and create context\n       GSSContext context = manager.createContext(serverName,KRB5_MECH_OID, null, GSSContext.DEFAULT_LIFETIME);\n       context.requestMutualAuth(false);\n       context.initSecContext(new byte[0], 0, 0);\n     \n     if (context.isEstablished()) {\n         System.out.println(&quot;GSS context established with: &quot; + context.getSrcName());\n     }\n     context.dispose();\n        \n\n    } catch (Exception e) {\n        e.printStackTrace();\n    }\n}\n</code></pre>\n<p>I Also tried a different name convention with:</p>\n<pre><code>GSSName serverName = manager.createName(&quot;DC1.proxyrealm.test&quot;,KRB5_PRINCIPAL_NT);\n</code></pre>\n<p>I tried to use many different configurations, but always got the same result: &quot;Service ticket not found in the subject&quot;.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

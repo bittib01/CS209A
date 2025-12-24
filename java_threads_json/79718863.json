@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jobrunr"
+    ],
+    "owner": {
+      "account_id": 6343837,
+      "reputation": 91,
+      "user_id": 4924981,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/-dGEFkWlFgWA/AAAAAAAAAAI/AAAAAAAAACw/4s2yqrWoEMo/s256-rj/photo.jpg",
+      "display_name": "Christina Unger",
+      "link": "https://stackoverflow.com/users/4924981/christina-unger"
+    },
+    "is_answered": false,
+    "view_count": 153,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1755523279,
+    "creation_date": 1753802741,
+    "last_edit_date": 1755523279,
+    "question_id": 79718863,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79718863/jobrunr-doesnt-execute-recurring-jobs-after-upgrade-to-8-0-1",
+    "title": "JobRunr doesn&#39;t execute recurring jobs after upgrade to 8.0.1",
+    "body": "<p><em>Edit: This is resolved now; see comments.</em></p>\n<p>I upgraded to JobRunr 8.0.1 (from 6.3.5), using it in a plain Java application with a MongoDB storage provider.</p>\n<p>Start up looks fine:</p>\n<pre><code>INFO VirtualThreadJobRunrExecutor - ThreadManager of type 'VirtualThreadPerTask' started\nINFO BackgroundJobServer - JobRunr BackgroundJobServer (8ef68125-5bb4-4a95-abfb-c5f1fe24ff54) using MongoDBStorageProvider and 256 BackgroundJobPerformers started successfully\nINFO ServerZooKeeper - Server 8ef68125-5bb4-4a95-abfb-c5f1fe24ff54 is master (this BackgroundJobServer)\n</code></pre>\n<p>Then I schedule three recurring jobs, one for execution every hour, two for execution every minute.</p>\n<p>After that, nothing happens anymore. On some run, it restarted the background job server after one minute, but nothing more.</p>\n<p>My set up code looks like this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>MongoDBStorageProvider storage = new MongoDBStorageProvider(\n    MongoDatastore.get().getMongoClient(),\n    databaseName\n);\n\nJobScheduler scheduler = JobRunr.configure()\n    .useStorageProvider(storage)\n    .useBackgroundJobServer()\n    .initialize()\n    .getJobScheduler();\n</code></pre>\n<p>When creating the job, I do something like this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>scheduler.scheduleRecurrently(uuid.toString(), Duration.ofMinutes(1), this::execute);\n</code></pre>\n<p>In the Mongo shell, I see that the documents have been properly created (or so it seems; the IDs are different from the ones in the logs because I copied them from different runs):</p>\n<pre><code>jobrunr&gt; db.background_job_servers.find()\n[\n  {\n    _id: UUID('1e09cc9e-9c58-47f0-84a1-bd31cda21a77'),\n    name: '4efbddd3c64e',\n    workerPoolSize: 256,\n    pollIntervalInSeconds: 15,\n    deleteSucceededJobsAfter: 'PT36H',\n    permanentlyDeleteDeletedJobsAfter: 'PT72H',\n    firstHeartbeat: '2025-07-29T14:38:47.870647198Z',\n    lastHeartbeat: '2025-07-29T14:45:33.073824205Z',\n    running: true,\n    systemTotalMemory: Long('12352139264'),\n    systemFreeMemory: Long('647979008'),\n    systemCpuLoad: 0.04534611688589821,\n    processMaxMemory: Long('3089104896'),\n    processFreeMemory: Long('3035388512'),\n    processAllocatedMemory: Long('53716384'),\n    processCpuLoad: 0.00012545477355413372\n  }\n]\njobrunr&gt; db.recurring_jobs.find()\n[\n  {\n    _id: '5f1a3bae-d048-3e86-adf7-d284b0849ad5',\n    version: 0,\n    jobAsJson: '{&quot;version&quot;:0,&quot;jobSignature&quot;:&quot;...DataSource.execute()&quot;,&quot;jobName&quot;:&quot;...DataSource.execute()&quot;,&quot;labels&quot;:[],&quot;jobDetails&quot;:{&quot;className&quot;:&quot;...DataSource&quot;,&quot;methodName&quot;:&quot;execute&quot;,&quot;jobParameters&quot;:[],&quot;cacheable&quot;:true},&quot;id&quot;:&quot;5f1a3bae-d048-3e86-adf7-d284b0849ad5&quot;,&quot;scheduleExpression&quot;:&quot;PT1H&quot;,&quot;zoneId&quot;:&quot;UTC&quot;,&quot;createdBy&quot;:&quot;API&quot;,&quot;createdAt&quot;:&quot;2025-07-29T14:38:47.923161385Z&quot;}',\n    createdAt: Long('1753799927923')\n  },\n  {\n    _id: 'e56fa5b7-30e9-3b22-9ca5-d8d44396955d',\n    version: 0,\n    jobAsJson: '{&quot;version&quot;:0,&quot;jobSignature&quot;:&quot;...Simulation.execute()&quot;,&quot;jobName&quot;:&quot;...Simulation.execute()&quot;,&quot;labels&quot;:[],&quot;jobDetails&quot;:{&quot;className&quot;:&quot;...Simulation&quot;,&quot;methodName&quot;:&quot;execute&quot;,&quot;jobParameters&quot;:[],&quot;cacheable&quot;:true},&quot;id&quot;:&quot;e56fa5b7-30e9-3b22-9ca5-d8d44396955d&quot;,&quot;scheduleExpression&quot;:&quot;PT1M&quot;,&quot;zoneId&quot;:&quot;UTC&quot;,&quot;createdBy&quot;:&quot;API&quot;,&quot;createdAt&quot;:&quot;2025-07-29T14:38:47.976590979Z&quot;}',\n    createdAt: Long('1753799927976')\n  },\n  {\n    _id: '62f55b7f-2ad7-340f-87aa-98fdd0660269',\n    version: 0,\n    jobAsJson: '{&quot;version&quot;:0,&quot;jobSignature&quot;:&quot;...DatabaseListener.execute()&quot;,&quot;jobName&quot;:&quot;...DatabaseListener.execute()&quot;,&quot;labels&quot;:[],&quot;jobDetails&quot;:{&quot;className&quot;:&quot;...DatabaseListener&quot;,&quot;methodName&quot;:&quot;execute&quot;,&quot;jobParameters&quot;:[],&quot;cacheable&quot;:true},&quot;id&quot;:&quot;62f55b7f-2ad7-340f-87aa-98fdd0660269&quot;,&quot;scheduleExpression&quot;:&quot;PT1M&quot;,&quot;zoneId&quot;:&quot;UTC&quot;,&quot;createdBy&quot;:&quot;API&quot;,&quot;createdAt&quot;:&quot;2025-07-29T14:38:47.980927767Z&quot;}',\n    createdAt: Long('1753799927980')\n  }\n]\n</code></pre>\n<p>When I revert back to 6.3.5 (not changing any of the code), it runs fine again. So I'm a bit lost...</p>\n<p>I checked the documentation for breaking changes in the newest version - probably I'm missing something? (Maybe connected to the job IDs? That's the only part of the code I had to change for the upgrade, because I initially used descriptive names and now have to use UUIDs.)</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

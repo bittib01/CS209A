@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "grpc",
+      "grpc-java"
+    ],
+    "owner": {
+      "account_id": 18217048,
+      "reputation": 1,
+      "user_id": 13258541,
+      "user_type": "registered",
+      "profile_image": "https://lh4.googleusercontent.com/-lu-VvNmZuXA/AAAAAAAAAAI/AAAAAAAAAAA/AAKWJJNJoxJ2VVpmXm-qy8LHP3egeSyqEw/s256-rj/photo.jpg",
+      "display_name": "The Beast",
+      "link": "https://stackoverflow.com/users/13258541/the-beast"
+    },
+    "is_answered": false,
+    "view_count": 481,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1730715591,
+    "creation_date": 1728221073,
+    "question_id": 79059191,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79059191/getting-a-io-grpc-statusruntimeexception-cancelled-io-grpc-context-was-cancell",
+    "title": "Getting a io.grpc.StatusRuntimeException: CANCELLED: io.grpc.Context was cancelled without error",
+    "body": "<p>I have written this simple gRPC code that should run the commit stub on every server. Here is the code -</p>\n<pre><code>private Boolean sendCommit(List&lt;Transaction&gt; allTransactions) {\n        for (int cur_server_number = 1; cur_server_number &lt;= totalServers; cur_server_number++) {\n            if (cur_server_number == SERVER_NUMBER) {\n                continue;\n            }\n            try{\n                ManagedChannel channel = serverChannels[cur_server_number];\n                DistributedBankGrpc.DistributedBankStub stub = DistributedBankGrpc.newStub(channel);\n                BallotData ballot = BallotData.newBuilder()\n                        .setBallotNum(this.ballotNumber)\n                        .setServerNum(SERVER_NUMBER)\n                        .build();\n                CommitRequest commitRequest = CommitRequest.newBuilder()\n                        .setBallot(ballot)\n                        .addAllTransactions(allTransactions)\n                        .build();\n\n                final int serverNumber = cur_server_number;\n                stub.commit(commitRequest, new StreamObserver&lt;Empty&gt;() {\n                    @Override\n                    public void onNext(Empty emptyResponse) {\n                        System.out.println(&quot;Commited on server &quot; + serverNumber);\n                    }\n\n                    @Override\n                    public void onError(Throwable t) {\n                        System.err.println(&quot;Commit request to Server &quot; + serverNumber + &quot; failed: &quot; + t.getMessage());\n                        t.printStackTrace();\n                    }\n\n                    @Override\n                    public void onCompleted() {\n                        System.out.println(&quot;Commit request to Server &quot; + serverNumber + &quot; completed.&quot;);\n                    }\n                });\n            } catch (Exception e) {\n                System.out.println(&quot;An exception occurred: &quot; + e.getMessage());\n            }\n        }\n\n        return true;\n    }\n\n    @Override\n    public void commit(CommitRequest request, StreamObserver&lt;Empty&gt; responseObserver) {\n        BallotData ballot = request.getBallot();\n        System.out.println(&quot;Got commit - &quot; + ballot);\n        this.acceptedBallotNumber = -1;\n        this.acceptedServer = -1;\n        this.acceptedTransactions = null;\n        Empty response = Empty.newBuilder().build();\n        responseObserver.onNext(response);\n        responseObserver.onCompleted();\n    }\n</code></pre>\n<p>However, everytime I run this, I am getting a  io.grpc.StatusRuntimeException: CANCELLED: io.grpc.Context was cancelled without error.</p>\n<p>I read that we can use latches to wait for individual calls to complete. But this degrades the performance of the application. I want to implement something like a &quot;Fire and Forget&quot;, where I send RPC calls to the servers and immediately return from the calling function.</p>\n<p>How can I implement this?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

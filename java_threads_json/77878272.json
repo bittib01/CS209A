@@ -1,0 +1,31 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-arrow"
+    ],
+    "owner": {
+      "account_id": 2620876,
+      "reputation": 29,
+      "user_id": 2268908,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/c4e5032c458aff916e26285d4ac7c625?s=256&d=identicon&r=PG",
+      "display_name": "user2268908",
+      "link": "https://stackoverflow.com/users/2268908/user2268908"
+    },
+    "is_answered": false,
+    "view_count": 264,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1719189538,
+    "creation_date": 1706169148,
+    "question_id": 77878272,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77878272/apache-arrow-not-all-nodes-and-buffers-were-consumed-error-when-writing-a-map",
+    "title": "Apache Arrow - not all nodes and buffers were consumed error when writing a map field",
+    "body": "<p>I have a java code that writes a map field to a file and then read from the file by using Apache Arrow. During the read, when loading the record batch I got the not all nodes and buffers were consumed error. Below is the code:</p>\n<pre><code>File file = new File(&quot;/temp/test.arrow&quot;);\nSchema schema;\n\n      try (BufferAllocator allocator = new RootAllocator()) {\n         Field keyField = new Field(&quot;id&quot;, FieldType.notNullable(new ArrowType.Int(64, true)), null);\n         Field valueField = new Field(&quot;value&quot;, FieldType.nullable(new ArrowType.Int(64, true)), null);\n         Field structField =\n               new Field(&quot;entry&quot;, FieldType.notNullable(ArrowType.Struct.INSTANCE), List.of(keyField, valueField));\n         Field mapIntToIntField = new Field(&quot;mapFieldIntToInt&quot;, FieldType.notNullable(new ArrowType.Map(false)), List.of(structField));\n\n         schema = new Schema(Arrays.asList(mapIntToIntField));\n         try (\n               VectorSchemaRoot vectorSchemaRoot = VectorSchemaRoot.create(schemaPerson, allocator);\n               MapVector mapVector = (MapVector) vectorSchemaRoot.getVector(&quot;mapFieldIntToInt&quot;)) {\n            UnionMapWriter mapWriter = mapVector.getWriter();\n            mapWriter.setPosition(0);\n            mapWriter.startMap();\n            for (int i = 0; i &lt; 3; i++) {\n               mapWriter.startEntry();\n               mapWriter.key().bigInt().writeBigInt(i);\n               mapWriter.value().bigInt().writeBigInt(i * 7);\n               mapWriter.endEntry();\n            }\n            mapWriter.endMap();\n            mapWriter.setValueCount(1);\n            vectorSchemaRoot.setRowCount(1);\n\n            try (\n                  FileOutputStream fileOutputStream = new FileOutputStream(file);\n                  ArrowFileWriter writer = new ArrowFileWriter(vectorSchemaRoot, null, fileOutputStream.getChannel())) {\n               writer.start();\n               writer.writeBatch();\n               writer.end();\n            } catch (IOException e) {\n               e.printStackTrace();\n            }\n         }\n      }\n\n      // Deserialize Arrow data from a file\n      try (\n            BufferAllocator rootAllocator = new RootAllocator();\n            FileInputStream fileInputStream = new FileInputStream(file);\n            ArrowFileReader reader = new ArrowFileReader(fileInputStream.getChannel(), rootAllocator)) {\n         for (ArrowBlock arrowBlock : reader.getRecordBlocks()) {\n            reader.loadRecordBatch(arrowBlock);  // error thrown here\n            VectorSchemaRoot vectorSchemaRootRecover = reader.getVectorSchemaRoot();\n\n            System.out.print(vectorSchemaRootRecover.contentToTSVString());\n\n            int totalCount = vectorSchemaRootRecover.getRowCount();\n            Schema schema = vectorSchemaRootRecover.getSchema();\n\n            for (int i = 0; i &lt; totalCount; i++) {\n               for (Field field : schema.getFields()) {\n                  String fieldName = field.getName();\n                  Object arrowValue = vectorSchemaRootRecover.getVector(field).getObject(i);\n                  System.out.println(&quot;fieldName: &quot; + fieldName + &quot;, arrowValue: &quot; + arrowValue);\n               }\n            }\n         }\n      } catch (IOException e) {\n         e.printStackTrace();\n      }\n</code></pre>\n<p>Any hint would be appreciated. Thanks!</p>\n<p>By debugging the code, looks like write works as expected. I can see the correct data in <code>vectorSchemaRoot</code>, not sure if any setting is missing during the write that caused the error in loading the file.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

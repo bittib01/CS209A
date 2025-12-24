@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-ai"
+    ],
+    "owner": {
+      "account_id": 28879742,
+      "reputation": 10,
+      "user_id": 27588520,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/oGcTrIA4.png?s=256",
+      "display_name": "Gokul Krishnan J",
+      "link": "https://stackoverflow.com/users/27588520/gokul-krishnan-j"
+    },
+    "is_answered": false,
+    "view_count": 67,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1765267623,
+    "creation_date": 1765262196,
+    "last_edit_date": 1765267623,
+    "question_id": 79841586,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79841586/how-to-make-the-spring-ai-chat-client-to-wait-for-chat-memory-advisor-to-finish",
+    "title": "How to make the Spring AI chat client to wait for chat memory advisor to finish its work before returning the response?",
+    "body": "<p>I am using Sprig AI and Google Gemini's model, and I am using Spring AI chat client to interact with the LLM model, When I call the LLM model the <code>MessageChatMemoryAdvisor</code> writes the message in the MongoDB (customised storage) and the response from the chat client is returned before the message storing operation completes.</p>\n<p>Now I want to make the ChatClient to wait for memory write operation to complete before returning the response.</p>\n<p>I tried of creating custom <code>MessageChatMemoryAdvisor</code> and overriding the method which is responsible for storing the chat memory in MongoDB, but the method is with access specifier private. How can I make the chatClient to wait for the completion of chat memory storing logic in the MongoDB?</p>\n<p>MessageChatMemoryAdvisorMethod:</p>\n<pre><code>private AdvisedRequest before(AdvisedRequest request) {\n \n    String conversationId = this.doGetConversationId(request.adviseContext());\n \n     int chatMemoryRetrieveSize = this.doGetChatMemoryRetrieveSize(request.adviseContext());\n \n     // 1. Retrieve the chat memory for the current conversation.\n     List&lt;Message&gt; memoryMessages = this.getChatMemoryStore().get(conversationId, chatMemoryRetrieveSize);\n \n     // 2. Advise the request messages list.\n     List&lt;Message&gt; advisedMessages = new ArrayList&lt;&gt;(request.messages());\n     advisedMessages.addAll(memoryMessages);\n \n     // 3. Create a new request with the advised messages.\n     AdvisedRequest advisedRequest = AdvisedRequest.from(request).messages(advisedMessages).build();\n \n     // 4. Add the new user input to the conversation memory.\n     UserMessage userMessage = new UserMessage(request.userText(), request.media());\n     this.getChatMemoryStore().add(this.doGetConversationId(request.adviseContext()), userMessage);\n \n     return advisedRequest;\n}\n</code></pre>\n<p>ChatClientConfiguration:</p>\n<pre><code>@Bean\n@Lazy\npublic ChatClient.Builder chatClientBuilder(OpenAiChatModel geminiModel) {\n    return ChatClient.builder(geminiModel);\n}\n \n@Bean\npublic ChatClient chatClient(ChatClient.Builder chatClientBuilder) {\n    return  chatClientBuilder\n             .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())\n            .build();\n}\n</code></pre>\n<p>ChatMemoryConfig:</p>\n<pre><code>private UserChatMemoryRepository  userChatMemoryRepository;\n\npublic ChatMemoryAdvisors(UserChatMemoryRepository userChatMemoryRepository) {\n    this.userChatMemoryRepository = userChatMemoryRepository;\n}\n \n@Bean\npublic CustomChatMemory chatMemory() {\n    return CustomChatMemory.builder()\n            .setUserChatMemoryRepository(userChatMemoryRepository)\n            .setMaxMessage(Integer.MAX_VALUE)\n            .build();\n}\n</code></pre>\n<p>LLM Model call:</p>\n<pre><code>ChatResponse chatResponse= chatClient.prompt(prompt)\n        .advisors(a-a.param(MessageChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY, conversationId))\n        .call()\n        .chatResponse();\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

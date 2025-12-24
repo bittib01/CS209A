@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "validation",
+      "orm",
+      "dynamicquery"
+    ],
+    "owner": {
+      "account_id": 1169336,
+      "reputation": 21,
+      "user_id": 1146848,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/5327037325f18648036ec7f257afd825?s=256&d=identicon&r=PG",
+      "display_name": "ForbY",
+      "link": "https://stackoverflow.com/users/1146848/forby"
+    },
+    "is_answered": false,
+    "view_count": 70,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1750513189,
+    "creation_date": 1750305590,
+    "last_edit_date": 1750478723,
+    "question_id": 79671503,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79671503/bean-validation-vs-dynamic-queries",
+    "title": "Bean validation vs Dynamic queries",
+    "body": "<p>I found that parameter validation and dynamic query construction share very similar code structures.</p>\n<p>For example, given a simple class:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class User {\n    private String name;\n    private Integer age;\n\n    // getters and setters\n}\n</code></pre>\n<p>Validation Code (Manual)</p>\n<pre><code>public void validate(User user) {\n    if (user.getName() == null || user.getName().isBlank()) {\n        throw new IllegalArgumentException(&quot;name can not be empty&quot;);\n    }\n    if (user.getAge() == null) {\n        throw new IllegalArgumentException(&quot;age can not be empty&quot;);\n    }\n    if (user.getAge() &lt; 18 || user.getAge() &gt; 60) {\n        throw new IllegalArgumentException(&quot;age should be between 18 and 60&quot;);\n    }\n\n    // business logic\n}\n</code></pre>\n<p>And the dynamic query code looks like:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public static String buildWhere(UserQuery query, List&lt;Object&gt; argList) {\n    StringJoiner where = new StringJoiner(&quot; AND &quot;, &quot; WHERE &quot;, &quot; &quot;);\n    where.setEmptyValue(&quot; &quot;);\n\n    if (query.getName() != null &amp;&amp; !query.getName().isBlank()) {\n        where.add(&quot;name LIKE ?&quot;);\n        argList.add(query.getName());\n    }\n\n    if (query.getAge() != null) {\n        where.add(&quot;age = ?&quot;);\n        argList.add(query.getAge());\n    }\n\n    return where.toString();\n}\n</code></pre>\n<p>It looks similar to use Specification:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public List&lt;User&gt; query(User query) {\n    Specification&lt;User&gt; spec = (root, cq, cb) -&gt; {\n        List&lt;Predicate&gt; predicates = new ArrayList&lt;&gt;();\n        if (query.getName() != null &amp;&amp; !query.getNameLike().isBlank()) {\n            predicates.add(cb.like(root.get(&quot;name&quot;), &quot; % &quot; + query.getName() + &quot; % &quot;));\n        }\n        if (query.getAge() != null) {\n            predicates.add(cb.eq(root.get(&quot;age&quot;), query.getAge()));\n        }\n        //...\n        return cb.and(predicates.toArray(new Predicate[0]));\n    };\n    return userRepository.findAll(spec);\n}\n</code></pre>\n<p>The validation code can easily be replaced with a declarative validation framework like <a href=\"https://jakarta.ee/specifications/bean-validation/\" rel=\"nofollow noreferrer\"><em>Jakarta Validation</em></a> (formerly <em>Bean Validation</em>):</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class User {\n    @NotBlank\n    private String name;\n\n    @NotNull\n    @Range(min = 18, max = 60)\n    private Integer age;\n\n    // getters and setters\n}\n</code></pre>\n<p>So, is there a similar solution for dynamic query generation to map the condition by annotations like:</p>\n<pre><code>public class UserQuery {\n    @Condition(&quot;name LIKE ?)\n    private String name;\n\n    @Condition(&quot;age = ?&quot;)\n    private Integer age;\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

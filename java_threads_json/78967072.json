@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "http",
+      "httpclient"
+    ],
+    "owner": {
+      "account_id": 26289969,
+      "reputation": 545,
+      "user_id": 19957114,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/er744.jpg?s=256",
+      "display_name": "dev-rifaii",
+      "link": "https://stackoverflow.com/users/19957114/dev-rifaii"
+    },
+    "is_answered": false,
+    "view_count": 254,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1727675471,
+    "creation_date": 1725913052,
+    "question_id": 78967072,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78967072/enforcing-javas-built-in-http-client-to-reuse-connection",
+    "title": "Enforcing Java&#39;s built in HTTP client to reuse connection",
+    "body": "<p>I'm implementing my own HTTP server in Java using ServerSocket. I want to start implementing pipelining so I wrote a test that I'm expecting to fail first.</p>\n<pre class=\"lang-java prettyprint-override\"><code>void sendMultipleRequestsOnSameConnection() throws URISyntaxException, InterruptedException, ExecutionException {\n        HttpRequest httpRequest = HttpRequest.newBuilder()\n            .POST(BodyPublishers.ofString(&quot;LOREM&quot;))\n            .uri(new URI(&quot;http://127.0.0.1/wait2&quot;))\n            .version(Version.HTTP_1_1)\n            .build();\n\n        HttpRequest httpRequest2 = HttpRequest.newBuilder()\n            .POST(BodyPublishers.ofString(&quot;LOREM&quot;))\n            .uri(new URI(&quot;http://127.0.0.1/wait&quot;))\n            .version(Version.HTTP_1_1)\n            .build();\n\n        CompletableFuture&lt;HttpResponse&lt;String&gt;&gt; future1 = httpClient.sendAsync(httpRequest, BodyHandlers.ofString());\n        Thread.sleep(500);\n        CompletableFuture&lt;HttpResponse&lt;String&gt;&gt; future2 = httpClient.sendAsync(httpRequest2, BodyHandlers.ofString());\n</code></pre>\n<p>My server logs each time it accepts a new connection. After running this test I noticed that the server is accepting 2 connections, I was expecting 1 connection only since I have another test that does something similar and it's opening only 1 connection with the server.</p>\n<p>This is the test that is working as expected:</p>\n<pre class=\"lang-java prettyprint-override\"><code>    @Test\n    void sendMultipleRequestsOnSameConnection() throws URISyntaxException, IOException, InterruptedException {\n        HttpRequest httpRequest = HttpRequest.newBuilder()\n            .POST(BodyPublishers.ofString(&quot;LOREM&quot;))\n            .uri(new URI(&quot;http://127.0.0.1/&quot;))\n            .version(Version.HTTP_1_1)\n            .build();\n\n        String responseBody1 = httpClient.send(httpRequest, BodyHandlers.ofString()).body();\n        String responseBody2 = httpClient.send(httpRequest, BodyHandlers.ofString()).body();\n\n        Assertions.assertEquals(&quot;HELLO WORLD&quot;, responseBody1);\n        Assertions.assertEquals(&quot;HELLO WORLD&quot;, responseBody2);\n    }\n</code></pre>\n<p>Any idea why this is happening? Is there a way I can enforce the HTTP client to reuse the same connection from the first request? If not then is there any external Java HTTP client that allows this or will I need to use Socket directly to ensure only 1 connection gets opened?</p>\n<p>this is a link to the repository: <a href=\"https://github.com/dev-rifaii/http-from-scratch/tree/pipelining\" rel=\"nofollow noreferrer\">https://github.com/dev-rifaii/http-from-scratch/tree/pipelining</a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

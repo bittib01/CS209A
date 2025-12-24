@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "reactive-streams",
+      "mutiny",
+      "quarkus-reactive"
+    ],
+    "owner": {
+      "account_id": 5851066,
+      "reputation": 501,
+      "user_id": 4609725,
+      "user_type": "registered",
+      "accept_rate": 43,
+      "profile_image": "https://www.gravatar.com/avatar/7bcc5c9f9afbddfb706ddffde17145f0?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "robyp7",
+      "link": "https://stackoverflow.com/users/4609725/robyp7"
+    },
+    "is_answered": false,
+    "view_count": 49,
+    "answer_count": 1,
+    "score": -3,
+    "last_activity_date": 1728824771,
+    "creation_date": 1724705207,
+    "last_edit_date": 1724784145,
+    "question_id": 78916244,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78916244/how-to-guarantee-that-stages-don-t-drop-elements-when-first-upstream-errors-arri",
+    "title": "how to guarantee that stages don’t drop elements when first upstream errors arrive (and break computation)",
+    "body": "<p>Question1: i have a reactive code, this is an example: i need to divide 100 for each number in list and i don't want to break a computation when &quot;divide by zero&quot; happens. I want to proceed to next number untill all numbers in list  was consumed. How a can modify it for accomplish this?</p>\n<pre><code>List&lt;Integer&gt; list = List.of(1, 2, 3, 4, 5, 0, 7, 8, 9, 10);\n    CompletionStage&lt;Integer&gt; future = ReactiveStreams.fromIterable(list)\n            .map(i -&gt; 100 / i)\n            .collect(Collectors.summingInt(i -&gt; i))\n            .run();\n    future.whenComplete((res, err) -&gt; {\n        if (err != null) {\n            System.out.println(&quot;error &quot; + err);\n        } else\n            System.out.println(&quot;res: &quot; + res);\n        });\n</code></pre>\n<p>Console result:</p>\n<pre><code>error java.lang.ArithmeticException: / by zero\n</code></pre>\n<p>Question 2: I replaced the previous code with this similar one (below), but using mutiny librarym and i want to accomplish the same result, but the same thing happens: the first error break the computation and after the numer 5 the computation stop. How to fix this? This is the code:</p>\n<pre><code>Multi.createFrom().items(1, 2, 3, 4, 5, 0, 7, 8, 9, 10)\n                .onRequest().invoke(req -&gt; System.out.println(&quot;Got a request: &quot; + req))\n                .onItem().transform(i -&gt; 100/i)\n                .subscribe().withSubscriber(new Flow.Subscriber&lt;Integer&gt;() {\n\n                                                private Flow.Subscription subscription;\n\n                                                @Override\n                                                public void onSubscribe(Flow.Subscription s) {\n                                                    this.subscription = s;\n                                                    s.request(1);\n                                                }\n\n                                                @Override\n                                                public void onNext(Integer item) {\n                                                    System.out.println(&quot;Got item &quot; + item);\n                                                    subscription.request(1);\n                                                }\n\n                                                @Override\n                                                public void onError(Throwable t) {\n                                                    System.out.println(&quot;error &quot; + t);\n                                                }\n\n                                                @Override\n                                                public void onComplete() {\n                                                    System.out.println(&quot;finish&quot;);\n                                                }\n                                            }\n                );\n</code></pre>\n<p>Console output:</p>\n<pre><code>   Got a request: 1 //1\n    Got item 100\n    Got a request: 1 //2\n    Got item 50\n    Got a request: 1 //3\n    Got item 33\n    Got a request: 1 //4\n    Got item 25\n    Got a request: 1 //5\n    Got item 20   // 100/5 =20\n    Got a request: 1 //0! and the stop\n    error java.lang.ArithmeticException: / by zero\n</code></pre>\n<blockquote>\n<p>The error of division is trivial because can be a casual events..For example it can be a call to n http links and one goes in error. i want to simulate a situation that could be happens..but i would IGNORE if it happens..</p>\n</blockquote>\n<p>I'll try use\n.onFailure().recoverWithItem(0) but after that it completes and stop instead of continue!</p>\n<pre><code>Got a request: 1\nGot item 100\nGot a request: 1\nGot item 50\nGot a request: 1\nGot item 33\nGot a request: 1\nGot item 25\nGot a request: 1\nGot item 20\nGot a request: 1\nGot item 0\nfinish\n</code></pre>\n<p>Code:</p>\n<pre><code>Multi.createFrom().items(1, 2, 3, 4, 5, 0, 7, 8, 9, 10)\n                .onRequest().invoke(req -&gt; System.out.println(&quot;Got a request: &quot; + req))\n                .onItem().transform(i -&gt; 100/i)\n                .onFailure().recoverWithItem(0) \n                .subscribe().withSubscriber(new Flow.Subscriber&lt;Integer&gt;() {\n\n                                                private Flow.Subscription subscription;\n\n                                                @Override\n                                                public void onSubscribe(Flow.Subscription s) {\n                                                    this.subscription = s;\n                                                    s.request(1);\n                                                }\n\n                                                @Override\n                                                public void onNext(Integer item) {\n                                                    System.out.println(&quot;Got item &quot; + item);\n                                                    subscription.request(1);\n                                                }\n\n                                                @Override\n                                                public void onError(Throwable t) {\n                                                    System.out.println(&quot;error &quot; + t);\n                                                }\n\n                                                @Override\n                                                public void onComplete() {\n                                                    System.out.println(&quot;finish&quot;);\n                                                }\n                                            }\n                );\n</code></pre>\n<p>Thanks\nRoby</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

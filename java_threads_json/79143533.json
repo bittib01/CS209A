@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "firebase",
+      "android-studio",
+      "artificial-intelligence",
+      "google-gemini"
+    ],
+    "owner": {
+      "account_id": 30460415,
+      "reputation": 21,
+      "user_id": 23342907,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/a661e97a282a26e22eaff0b3ce3559e2?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "NotFound4020",
+      "link": "https://stackoverflow.com/users/23342907/notfound4020"
+    },
+    "is_answered": false,
+    "view_count": 493,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1738551647,
+    "creation_date": 1730349837,
+    "question_id": 79143533,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79143533/how-to-add-gemini-tuned-model-to-my-app-in-android-studio",
+    "title": "How to add gemini tuned model to my app in android studio",
+    "body": "<p>I am developing a mobile emergency app for Android as part of my computer engineering thesis. I have integrated the Gemini API to create a first aid assistance system, and I have already generated an API key and tested the initial code.</p>\n<p>My problem is that the model responds to any input, not just emergencies. I tried to solve it by creating a prompt with a specific dataset for emergencies, generating a tuned model. However, by changing the <code>modelName</code> parameter inside <code>GenerativeModel gm = new GenerativeModel(modelName, apiKey);</code> to the ID of the generated tuned model <code>tunedModels/first-aid-123example123</code>, the tuned model does not give any answers.</p>\n<p>How should I adjust the code to use the tuned model instead of the standard Gemini generative model?</p>\n<p>This is my actual code:</p>\n<pre><code>//imports\n\npublic class AssistanceActivity extends AppCompatActivity {\n\n    private EditText emergencyInput;\n    private TextView responseView;\n    private Button sendButton;\n    private GenerativeModelFutures model;\n\n    @Override\n    protected void onCreate(Bundle savedInstanceState) {\n        super.onCreate(savedInstanceState);\n        EdgeToEdge.enable(this);\n        setContentView(R.layout.activity_assistance);\n\n        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -&gt; {\n            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());\n            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);\n            return insets;\n        });\n\n        emergencyInput = findViewById(R.id.emergencyInput);\n        responseView = findViewById(R.id.response);\n        sendButton = findViewById(R.id.send);\n\n        GenerativeModel gm = new GenerativeModel(&quot;gemini-1.5-flash&quot;, &quot;GeminiApiKey&quot;);\n        model = GenerativeModelFutures.from(gm);\n\n        sendButton.setOnClickListener(new View.OnClickListener() {\n            @Override\n            public void onClick(View v) {\n                String query = emergencyInput.getText().toString().trim();\n                if (!query.isEmpty()) {\n                    modelCall(query);\n                } else {\n                    responseView.setText(&quot;Por favor ingrese una consulta.&quot;);\n                }\n            }\n        });\n    }\n\n    private void modelCall(String query) {\n        Content content = new Content.Builder()\n                .addText(query)\n                .build();\n\n        ListenableFuture&lt;GenerateContentResponse&gt; response = model.generateContent(content);\n        Futures.addCallback(\n                response,\n                new FutureCallback&lt;GenerateContentResponse&gt;() {\n                    @Override\n                    public void onSuccess(GenerateContentResponse result) {\n                        String resultText = result.getText();\n\n                        SpannableStringBuilder spannable = new SpannableStringBuilder();\n\n                        String[] lines = resultText.split(&quot;\\n&quot;);\n\n                        for (String line : lines) {\n                            if (line.startsWith(&quot;**&quot;)) {\n                                String boldText = line.replace(&quot;**&quot;, &quot;&quot;);\n                                SpannableString spannableBold = new SpannableString(boldText + &quot;\\n&quot;);\n                                spannableBold.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), 0, boldText.length(), 0);\n                                spannable.append(spannableBold);\n                            } else if (line.startsWith(&quot;*&quot;)) {\n                                String listItem = &quot;• &quot; + line.replace(&quot;*&quot;, &quot;&quot;) + &quot;\\n&quot;;\n                                spannable.append(listItem);\n                            } else {\n                                spannable.append(line + &quot;\\n&quot;);\n                            }\n                        }\n\n                        runOnUiThread(() -&gt; responseView.setText(spannable));\n                    }\n\n                    @Override\n                    public void onFailure(Throwable t) {\n                        t.printStackTrace();\n                        runOnUiThread(() -&gt; responseView.setText(&quot;Error al obtener respuesta. Intente nuevamente.&quot;));\n                    }\n                }, getMainExecutor());\n    }\n}\n\n</code></pre>\n<p>I tried to integrate a tuned model into my emergency app using the Gemini API, by changing the id of the tuned model in the ModelName parameter inside the GenerativeModel. I expected the tuned model to only respond to emergency related queries, but now it doesn't respond to any queries.</p>\n<p>I had it print the error via console and I get this:</p>\n<pre><code>Unexpected Response:\n}\n  &quot;error&quot;: {\n  &quot;code&quot;: 403,\n  &quot;message&quot;: &quot;You do not have permission to access tuned model tuned Models/ first-aid-123example123.&quot;,\n }\n}\n&quot;status&quot;: &quot;PERMISSION_DENIED&quot;\nkotlinx.serialization.MissingFieldException:\nField 'details' is required for type with serial name 'com.google.ai.client.generativeai.commo n.server.GRpcError', but it was missing at path:\n$.error\n</code></pre>\n<p>And I get this error when I have already added the access to the project:\n<a href=\"https://i.sstatic.net/MraMq6pB.jpg\" rel=\"nofollow noreferrer\">Project Access Permission</a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

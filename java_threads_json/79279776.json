@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "kotlin",
+      "kotlin-coroutines",
+      "pulsar"
+    ],
+    "owner": {
+      "account_id": 162583,
+      "reputation": 3371,
+      "user_id": 384137,
+      "user_type": "registered",
+      "accept_rate": 59,
+      "profile_image": "https://www.gravatar.com/avatar/95e7439332def9c8b26802e40f6a5993?s=256&d=identicon&r=PG",
+      "display_name": "dmonopoly",
+      "link": "https://stackoverflow.com/users/384137/dmonopoly"
+    },
+    "is_answered": true,
+    "view_count": 91,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1755244862,
+    "creation_date": 1734131399,
+    "last_edit_date": 1734277926,
+    "question_id": 79279776,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79279776/catching-completionexception-from-kotlin-function",
+    "title": "Catching CompletionException from kotlin function",
+    "body": "<p>My ultimate goal is to find the number of partitions for a Pulsar topic (<a href=\"https://stackoverflow.com/questions/79279743/getting-number-of-partitions-of-a-pulsar-topic-could-not-be-parsed-into-a-prope\">Getting number of partitions of a Pulsar topic: could not be parsed into a proper Uri, missing scheme</a>) but in the process of an alternative method, encountered something peculiar.</p>\n<p>I have a hack where I loop up through the max number of partitions and keep trying to create a reader until an error happens.</p>\n<pre><code>        for (i in 0..MAX_NUM_PARTITIONS) {\n            val topicPartition = &quot;$topic-partition-$i&quot;\n            var partitionReader: Reader&lt;ByteArray&gt;? = null\n            try {\n                partitionReader =\n                    client\n                        .newReader(BYTES)\n                        .startMessageId(MessageId.latest)\n                        .topic(topicPartition)\n                        .create()\n            } catch (e: Exception) {\n                // TODO: This still prints a CompletionException error to the console unnecessarily.\n                // Either catch that or calculate # partitions in a cleaner way.\n                break\n            }\n\n            if (partitionReader != null) {\n                readers.add(partitionReader)\n            }\n        }\n</code></pre>\n<blockquote>\n<p>java.util.concurrent.CompletionException:\norg.apache.pulsar.client.api.PulsarClientException$NotAllowedException:\n{&quot;errorMsg&quot;:&quot;Illegal topic partition name ...</p>\n</blockquote>\n<p>I would like to catch the exception above and not have it print to the console. Despite the try-catch above, it still prints. Why? Is this a Kotlin coroutine related phenomenon? The code does run in a suspend function.</p>\n<p>Update: More of the error message: <a href=\"https://pastebin.com/NqMDU5vR\" rel=\"nofollow noreferrer\">https://pastebin.com/NqMDU5vR</a></p>\n<p>It's specifically the long stacktrace of the CompletionException I don't want to print. The point is to have a better console debug output experience.</p>\n<p>The error perhaps is thrown from the Pulsar API internally and there isn't a way to stop that from printing?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

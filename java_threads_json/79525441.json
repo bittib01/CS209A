@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "postgresql",
+      "spring-boot",
+      "multithreading",
+      "entitymanager"
+    ],
+    "owner": {
+      "account_id": 30996914,
+      "reputation": 1,
+      "user_id": 23811279,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/b06af0270c19dd8865dee7ac70aa2db7?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Dmitry Tish",
+      "link": "https://stackoverflow.com/users/23811279/dmitry-tish"
+    },
+    "is_answered": false,
+    "view_count": 66,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1742562948,
+    "creation_date": 1742560285,
+    "last_edit_date": 1742562948,
+    "question_id": 79525441,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79525441/entitymanager-sometimes-returns-wrong-result",
+    "title": "EntityManager sometimes returns wrong result",
+    "body": "<p>I use <code>Spring Boot 2.7.18</code>, <code>Java 17</code>, <code>EntityManager</code>, <code>Criteria API</code> and <code>Executors.newFixedThreadPool(20)</code>. My <strong>database contains data with different types</strong> of payments (<em>for example, <code>&quot;expense&quot;</code> and <code>&quot;replenishment&quot;</code></em>).</p>\n<p>I have a <strong>method which calculates statistics grouping payments by types</strong>. I try to execute requests to the database asynchronously. I use <strong>local EntityManager</strong> for each request to avoid problems with threads.</p>\n<p>And <strong>sometimes I get correct data</strong>, which contains <strong>both</strong> <code>&quot;expense&quot;</code> and <code>&quot;replenishment&quot;</code> payments, and <strong>sometimes I get wrong data</strong>, which contains <strong>only</strong> <code>&quot;replenishment&quot;</code> payments. So one request in one monent returns one data, and the same request in another moment returns another data.</p>\n<p>I tried many different approaches, but still I get unexpected result.</p>\n<p><strong>Asynchronous code</strong>:</p>\n<pre><code>CompletableFuture&lt;List&lt;PaymentCountDto&gt;&gt; paymentCountsFuture = CompletableFuture.supplyAsync(() -&gt; {\n            EntityManager entityManager = entityManagerFactory.createEntityManager();\n            try {\n                entityManager.getTransaction().begin();\n                List&lt;PaymentCountDto&gt; result = paymentService.getPaymentCounts(entityManager, paymentRequest, specification);\n                entityManager.getTransaction().commit();\n                return result;\n            } finally {\n                if (entityManager.isOpen()) {\n                    entityManager.close();\n                }\n            }\n        }, executor);\n</code></pre>\n<p><strong>Custom repository</strong>:</p>\n<pre><code>@PersistenceContext\n    private EntityManager entityManager;\n\n    @Override\n    public List&lt;StatusStatisticPayment&gt; getStatusStatisticPaymentsBySpecificationAndCurrency(EntityManager entityManager, Specification&lt;Payment&gt; specification, Currency currency) {\n        if (entityManager == null) {\n            entityManager = this.entityManager;\n        }\n        entityManager.clear();\n        CriteriaBuilder builder = entityManager.getCriteriaBuilder();\n        CriteriaQuery&lt;StatusStatisticPayment&gt; query = builder.createQuery(StatusStatisticPayment.class);\n        Root&lt;Payment&gt; root = query.from(Payment.class);\n        Predicate specificationPredicate = specification.toPredicate(root, query, builder);\n        Predicate currencyPredicate = builder.equal(root.get(&quot;cardCurrency&quot;), currency.getCurrency());\n        query.where(builder.and(specificationPredicate, currencyPredicate));\n        Expression&lt;String&gt; groupByStatus = root.get(&quot;status&quot;);\n        Expression&lt;BigDecimal&gt; sumTransactionSum = builder.sum(root.get(&quot;transactionSum&quot;));\n        Expression&lt;BigDecimal&gt; sumTransactionCommission = builder.sum(root.get(&quot;transactionCommission&quot;));\n        Expression&lt;BigDecimal&gt; sumTransactionValue = builder.sum(root.get(&quot;transactionValue&quot;));\n        Expression&lt;Long&gt; count = builder.count(root);\n        query.select(builder.construct(StatusStatisticPayment.class, groupByStatus, sumTransactionSum, sumTransactionCommission, sumTransactionValue, count));\n        query.groupBy(groupByStatus);\n        return entityManager.createQuery(query).getResultList();\n    }\n</code></pre>\n<p>Please could anyone help me with this problem? I spent several days on this.</p>\n<p><strong>Thank you in advance!</strong></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

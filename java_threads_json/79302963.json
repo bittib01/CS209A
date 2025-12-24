@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "validation"
+    ],
+    "owner": {
+      "account_id": 23254839,
+      "reputation": 35,
+      "user_id": 20723756,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AATXAJynlIHj1y477w6WVyBnPlyd_atQWSrSEgjx9VM=k-s256",
+      "display_name": "Norbi",
+      "link": "https://stackoverflow.com/users/20723756/norbi"
+    },
+    "is_answered": true,
+    "view_count": 107,
+    "accepted_answer_id": 79303176,
+    "answer_count": 3,
+    "score": 0,
+    "last_activity_date": 1734961765,
+    "creation_date": 1734954155,
+    "question_id": 79302963,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79302963/validation-of-custom-query-path-variables-in-spring-boot",
+    "title": "Validation of custom query path variables in spring boot",
+    "body": "<p>I am trying to validate two custom query path variables in this custom query:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Slf4j\n@AllArgsConstructor\n@RestController\n@Validated\n@RequestMapping(&quot;api/standing_orders&quot;)\npublic class StandingOrderController {\n...\n@GetMapping(&quot;/by_validity_date_from_to&quot;)\n    public ResponseEntity&lt;List&lt;StandingOrderResponseDTO&gt;&gt; getByValidFromBetween(\n            @StartDateBeforeEndDate @RequestParam LocalDate startDate, @StartDateBeforeEndDate @RequestParam LocalDate endDate) {\n        log.info(&quot;Received request to find standing order valid from {} to {}&quot;, startDate, endDate);\n        List&lt;StandingOrderResponseDTO&gt; orders = standingOrderService.findByValidFromBetween(startDate, endDate);\n        log.info(orders.toString());\n        return ResponseEntity.ok(orders);\n    }\n</code></pre>\n<p>This custom query is for showing the standing orders between two dates. I want to make sure that the starting date is not later than the ending date, so I am making a ConstraintValidator for it:</p>\n<pre class=\"lang-java prettyprint-override\"><code>package sk.softec.akademia.demo.validation;\n\nimport jakarta.validation.Constraint;\nimport jakarta.validation.Payload;\nimport java.lang.annotation.ElementType;\nimport java.lang.annotation.Retention;\nimport java.lang.annotation.RetentionPolicy;\nimport java.lang.annotation.Target;\n\n@Target({ ElementType.PARAMETER })\n@Retention(RetentionPolicy.RUNTIME)\n@Constraint(validatedBy = StartDateBeforeEndDateValidator.class)\npublic @interface StartDateBeforeEndDate {\n    String message() default &quot;Start date cannot be later than end date&quot;;\n    Class&lt;?&gt;[] groups() default {};\n    Class&lt;? extends Payload&gt;[] payload() default {};\n}\n</code></pre>\n<p>and</p>\n<pre class=\"lang-java prettyprint-override\"><code>package sk.softec.akademia.demo.validation;\n\nimport jakarta.validation.ConstraintValidator;\nimport jakarta.validation.ConstraintValidatorContext;\nimport sk.softec.akademia.demo.DTO.StandingOrderRequestDTO;\n\nimport java.time.LocalDate;\n\npublic class StartDateBeforeEndDateValidator implements ConstraintValidator&lt;StartDateBeforeEndDate, Object[]&gt; {\n    @Override\n    public void initialize(StartDateBeforeEndDate value) {}\n\n    @Override\n    public boolean isValid(Object[] values, ConstraintValidatorContext context) {\n        if (values == null || values.length &lt; 2 || !(values[0] instanceof LocalDate) || !(values[1] instanceof LocalDate)) {\n            return true;\n        }\n        LocalDate startDate = (LocalDate) values[0];\n        LocalDate endDate = (LocalDate) values[1];\n        return startDate == null || endDate == null || !startDate.isAfter(endDate);\n    }\n</code></pre>\n<p>Unfortunately, it doesn't work as intented, because I get this:\nNo validator could be found for constraint ...demo.validation.StartDateBeforeEndDate' validating type 'java.time.LocalDate'. Check configuration for 'getByValidFromBetween.startDate'</p>\n<p>I don't want to make a new DTO for it, so my question is, is it actually possible to validate two request parameters together?</p>\n<p>Any help would be much appreciated.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "urlencode"
+    ],
+    "owner": {
+      "account_id": 110440,
+      "reputation": 11659,
+      "user_id": 292233,
+      "user_type": "registered",
+      "accept_rate": 65,
+      "profile_image": "https://www.gravatar.com/avatar/f019e9eda50ab50b72bafa7b2f9f03e1?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Philipp",
+      "link": "https://stackoverflow.com/users/292233/philipp"
+    },
+    "is_answered": false,
+    "view_count": 86,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1760950571,
+    "creation_date": 1760950571,
+    "question_id": 79794732,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79794732/normalize-urls-which-might-be-encoded-or-not",
+    "title": "Normalize URLs which might be encoded or not",
+    "body": "<p>I have an app where users enter WebDav URLs. In some cases, these URLs are properly encoded, but in some cases they are not.</p>\n<pre><code>    String[] testUrls = {\n                // Plain, unencoded\n                &quot;https://exämple.com/földer/file 1.txt&quot;,\n                // Properly encoded\n                &quot;https://example.com/f%C3%B6lder/file%201.txt&quot;,\n                // Partially encoded\n                &quot;https://example.com/f%C3%B6lder/file 1.txt&quot;,\n                // Invalid percent sequence\n                &quot;https://example.com/100%done.txt&quot;,\n                // Percent at end\n                &quot;https://example.com/file%&quot;,\n                // Space and umlaut unencoded\n                &quot;https://example.com/ä ö ü.txt&quot;,\n                // Nested folders with mixed encoding\n                &quot;https://example.com/a%20b/c d/e%20f.txt&quot;\n        };\n</code></pre>\n<p>With</p>\n<pre><code>public static String normalizeUrl(String url) {\n        if (url == null) return null;\n        try {\n            // Step 1: sanitize invalid % sequences\n            String safe = url.replaceAll(&quot;%(?![0-9A-Fa-f]{2})&quot;, &quot;%25&quot;);\n\n            // Step 2: decode and re-encode safely (UTF-8)\n            String decoded = URLDecoder.decode(safe, &quot;UTF-8&quot;);\n            String encoded = URLEncoder.encode(decoded, &quot;UTF-8&quot;);\n\n            // Step 3: URLEncoder encodes spaces as '+', but URLs use '%20'\n            encoded = encoded.replace(&quot;+&quot;, &quot;%20&quot;);\n\n            // Step 4: URLEncoder encodes '/' and : — undo that\n            encoded = encoded.replace(&quot;%2F&quot;, &quot;/&quot;);\n            encoded = encoded.replace(&quot;%3A&quot;, &quot;:&quot;);\n\n            return encoded;\n        } catch (IllegalArgumentException | UnsupportedEncodingException e) {\n            // fallback: return original URL unchanged\n            return url;\n        }\n</code></pre>\n<p>I get expected results:</p>\n<pre><code>Original:   https://exämple.com/földer/file 1.txt\nNormalized: https://ex%C3%A4mple.com/f%C3%B6lder/file%201.txt\n-------------------------------\nOriginal:   https://example.com/f%C3%B6lder/file%201.txt\nNormalized: https://example.com/f%C3%B6lder/file%201.txt\n-------------------------------\nOriginal:   https://example.com/f%C3%B6lder/file 1.txt\nNormalized: https://example.com/f%C3%B6lder/file%201.txt\n-------------------------------\nOriginal:   https://example.com/100%done.txt\nNormalized: https://example.com/100%25done.txt\n-------------------------------\nOriginal:   https://example.com/file%\nNormalized: https://example.com/file%25\n-------------------------------\nOriginal:   https://example.com/ä ö ü.txt\nNormalized: https://example.com/%C3%A4%20%C3%B6%20%C3%BC.txt\n-------------------------------\nOriginal:   https://example.com/a%20b/c d/e%20f.txt\nNormalized: https://example.com/a%20b/c%20d/e%20f.txt\n</code></pre>\n<p>but this implementation feels fragile and weird, as it encodes everything and then replaces some characters back (but probably should also replace back other reserved characters?).</p>\n<p>I like the general idea of decoding first such that I have &quot;normalized to unencoded&quot; and then encoding again, but it seems suprisingly difficult to come up with a robust implementation. Is there a standard solution to this problem?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

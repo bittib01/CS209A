@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "mongodb",
+      "spring-boot",
+      "websocket",
+      "spring-websocket"
+    ],
+    "owner": {
+      "account_id": 30154756,
+      "reputation": 21,
+      "user_id": 23109308,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/2beeb5843c4f9fe668dbd1c5d2407f7c?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Hubert Kiszka",
+      "link": "https://stackoverflow.com/users/23109308/hubert-kiszka"
+    },
+    "is_answered": false,
+    "view_count": 247,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1727390237,
+    "creation_date": 1713119478,
+    "question_id": 78324859,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78324859/failed-to-handle-genericmessage-issue-with-websockets-and-mongodb",
+    "title": "Failed to handle GenericMessage issue with WebSockets and MongoDB",
+    "body": "<p>I want to do simple chat service for my project, which has multiple input users but one end user who get messages from all of them.\nI have such classes</p>\n<pre><code>@Service\npublic class ChatUserService {\n\n    private final ChatUserRepository chatUserRepository;\n\n    @Autowired\n    public ChatUserService(ChatUserRepository chatUserRepository) {\n        this.chatUserRepository = chatUserRepository;\n    }\n\n    public void saveChatUser(ChatUser chatUser){\n        chatUser.setStatus(Status.ONLINE);\n        chatUserRepository.save(chatUser);\n    }\n    public void disconnect(ChatUser chatUser){\n        var connectedChatUser = chatUserRepository.findById(chatUser.getEmail())\n                .orElse(null);\n        if(connectedChatUser != null){\n            connectedChatUser.setStatus(Status.OFFLINE);\n            chatUserRepository.save(connectedChatUser);\n        }\n\n    }\n    public List&lt;ChatUser&gt; findConnectedChatUsers(){\n        return chatUserRepository.findAllByStatus(Status.ONLINE);\n    }\n}\n</code></pre>\n<p>.</p>\n<pre><code>@Controller\npublic class UserController {\n    private final ChatUserService chatUserService;\n\n@Autowired\npublic UserController(ChatUserService chatUserService) {\n    this.chatUserService = chatUserService;\n}\n\n@MessageMapping(&quot;user.addUser&quot;)\n@SendTo(&quot;/user/topic&quot;) \npublic ChatUser addUser(@Payload ChatUser chatUser){\n    chatUserService.saveChatUser(chatUser);\n    return chatUser;\n}\n</code></pre>\n<p>such config of message broker</p>\n<pre><code>@Configuration\n@EnableWebSocketMessageBroker\npublic class WebSocketConfig implements WebSocketMessageBrokerConfigurer {\n    @Override\n    public void configureMessageBroker(MessageBrokerRegistry registry) {\n        registry.enableSimpleBroker(&quot;/user&quot;);\n        registry.setApplicationDestinationPrefixes(&quot;/app&quot;);\n        registry.setUserDestinationPrefix(&quot;/user&quot;);\n    }\n\n    @Override\n    public void registerStompEndpoints(StompEndpointRegistry registry) {\n        registry.addEndpoint(&quot;/ws&quot;).withSockJS();\n    }\n\n    @Override\n    public boolean configureMessageConverters(List&lt;MessageConverter&gt; messageConverters) {\n        var resolver = new DefaultContentTypeResolver();\n        resolver.setDefaultMimeType(MimeTypeUtils.APPLICATION_JSON);\n        var converter = new MappingJackson2MessageConverter();\n        converter.setObjectMapper(new ObjectMapper());\n        converter.setContentTypeResolver(resolver);\n        messageConverters.add(converter);\n        return false;\n    }\n}\n</code></pre>\n<p>and such client code</p>\n<pre><code>async function connect(event){\n        email = await fetchAdminEmail()\n        const socket = new SockJS('/ws');\n        stompClient = Stomp.over(socket);\n        stompClient.connect({},onConnected,onError);\n        event.preventDefault();\n    }\n    function onConnected() {\n        stompClient.subscribe(`/user/${email}/queue/messages`, onMessageReceived);\n        stompClient.subscribe(`/user/public`, onMessageReceived); \n        stompClient.send('/app/user.addUser',\n            {},\n            JSON.stringify({email: email,status:'ONLINE'})\n        ); \n        findAndDisplayConnectedUsers().then();\n    }\n    async function findAndDisplayConnectedUsers(){\n        const connectedUserResponse = await fetch('/users');\n        let connectedUsers = await connectedUserResponse.json();\n        connectedUsers = connectedUsers.filter(user =&gt; user.email !== email);\n        const connectedUsersList = document.querySelector('#connectedUsers');\n        connectedUsersList.innerHTML = '';\n        connectedUsers.forEach(user =&gt; {\n            appendUserElement(user, connectedUsersList);\n            if (connectedUsers.indexOf(user) &lt; connectedUsers.length-1){\n                const separator = document.createElement('li');\n                separator.classList.add('separator');\n                connectedUsersList.appendChild(separator);\n            }\n        });\n    }\n    function appendUserElement(user, connectedUsersList) {\n        const listItem = document.createElement('li');\n        listItem.classList.add('user-item');\n        listItem.id = user.email;\n        const emailSpan = document.createElement('span');\n        emailSpan.textContent = user.email;\n        const receivedMessages = document.createElement('span');\n        receivedMessages.textContent = '';\n        receivedMessages.classList.add('nbr-msg','hidden');\n        listItem.append(emailSpan);\n        listItem.append(receivedMessages);\n        connectedUsersList.appendChild(listItem);\n    }\n    async function fetchAdminEmail(){\n        try{\n            const repsonse = await fetch('/admin');\n            const data = await repsonse.json();\n            return data.email;\n        } catch (error){\n            console.error(&quot;error: &quot;,error);\n            return null;\n        }\n    }\n    document.addEventListener('DOMContentLoaded',function (){\n        connect(event);\n    });\n</code></pre>\n<p>As soon as i enter my website i recieve such spring boot error</p>\n<pre><code>Failed to handle GenericMessage [payload=byte[47], headers={simpMessageType=MESSAGE, conversionHint=method 'addUser' parameter -1, contentType=application/json, \nsimpSessionId=xmuzd12r, simpDestination=/user/topic}] to org.springframework.messaging.support.ExecutorSubscribableChannel$SendTask@3ad5d640 in UserDestinationMessageHandler[DefaultUserDestinationResolver[prefix=/user/]]\n</code></pre>\n<p>in the web browser console there seems to be no errors only logs of subscribing etc. Can it be a problem with mongodb configuration? Because no collections are being made but they should;</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hibernate",
+      "jpa",
+      "criteria",
+      "criteria-api"
+    ],
+    "owner": {
+      "account_id": 31527656,
+      "reputation": 1,
+      "user_id": 24348853,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/09278382e471d460e61f4f1872bb9b5f?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Tydrao_Xalys",
+      "link": "https://stackoverflow.com/users/24348853/tydrao-xalys"
+    },
+    "is_answered": true,
+    "view_count": 643,
+    "accepted_answer_id": 78364952,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1744634644,
+    "creation_date": 1713184911,
+    "last_edit_date": 1713775544,
+    "question_id": 78328465,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78328465/jpa-criteria-aliases-that-does-not-work-on-aggregation-selection",
+    "title": "JPA Criteria - Aliases that does not work on aggregation selection",
+    "body": "<p>In a project that uses Hibernate 6.4, I am using the Criteria API provided through Jakarta persistence API (a dependency of Hibernate). However, I encountered a bug while using aliases on aggregation functions on selections.</p>\n<p>Let's consider that we have an entity MyEntity with the following attributes :</p>\n<ul>\n<li><code>id</code> of type Integer (we do not need it for this issue)</li>\n<li><code>attr1</code> of type String</li>\n<li><code>attr2</code> of type Integer</li>\n</ul>\n<p>We will assume that the annotated class is correctly written accordingly to this description, and correctly imported during the execution of the application.</p>\n<p>What I want to do here is to select the <code>attr1</code> values and the sum of <code>attr2</code> values from the table associated to this entity and order the result by the sum of <code>attr2</code> values.</p>\n<p>Here is the code corresponding to what I wrote in my project (I cannot give you the exact code, so I illustrate what I have done with this example) :</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class MyClass {\n    public List&lt;Object[]&gt; myMethod(Session session, String orderAttribute) {\n        CriteriaBuilder cb = session.getCriteriaBuilder();\n        CriteriaQuery&lt;?&gt; cq = cb.createQuery(Object[].class);\n        Root&lt;MyEntity&gt; root = cq.from(MyEntity.class);\n\n        List&lt;Selection&lt;?&gt;&gt; selections = new ArrayList&lt;&gt;();\n\n        selections.add(root.get(&quot;attr1&quot;));\n\n        Selection&lt;Number&gt; sumAttr2 = cb.sum(root.get(&quot;attr2&quot;)).alias(&quot;sumAttr2&quot;);\n        selections.add(sumAttr2);\n\n        cq.multiselect(selections);\n        cq.orderBy(cb.asc(root.get(orderAttribute)));\n\n        Query&lt;Object[]&gt; query = session.createQuery(cq);\n        List&lt;Object[]&gt; result = query.getResultList();\n\n        return result;\n    }\n}\n</code></pre>\n<p>When I execute that with <code>orderAttribute=&quot;attr1&quot;</code>, it works as expected.\nBut when I execute the query with <code>orderAttribute=&quot;sumAttr2&quot;</code>, it fails and give me the following error :</p>\n<pre><code>org.hibernate.query.sqm.PathElementException: Could not resolve attribute 'sumAttr2' of 'com.example.MyClass'\n</code></pre>\n<p>I don't have the SQL query generated during the error case because it seems to fail at the generation of the query and not during its execution. However, I have the query of the case <code>orderAttribute=&quot;attr1&quot;</code> which correspond to this one :</p>\n<pre class=\"lang-sql prettyprint-override\"><code>select me1_0.attr1,sum(me1_0.attr2) from my_entity me1_0 order by 1\n</code></pre>\n<p>I suppose that the issue is due to the alias, because it does not appear in the query (I don't have <code>sum(me1_0.attr2) as sumAttr2</code>), and when I try to order the result according to this missing alias, I have the error because the API &quot;think&quot; it should be an attribute of the entity.</p>\n<p>I have tried multiples ways to write the alias, but none of them worked.</p>\n<pre class=\"lang-java prettyprint-override\"><code>Selection&lt;Number&gt; sumAttr2 = cb.sum(root.get(&quot;attr2&quot;)).alias(&quot;sumAttr2&quot;);\nselections.add(sumAttr2);\n\nExpression&lt;Number&gt; sumAttr2 = criteriaBuilder.sum(root.get(&quot;attr2&quot;));\nSelection&lt;Number&gt; sumAttr2Selection = sumAttr2.alias(&quot;sumAttr2&quot;);\nselections.add(sumAttr2Selection);\n\nExpression&lt;Number&gt; sumAttr2 = criteriaBuilder.sum(root.get(&quot;attr2&quot;));\nsumAttr2.alias(&quot;sumAttr2&quot;);\nselections.add(sumAttr2)\n</code></pre>\n<p>Can you help me ?\nWhat I want is to get something equivalent to the following query using Criteria API :</p>\n<pre class=\"lang-sql prettyprint-override\"><code>select me1_0.attr1,sum(me1_0.attr2) as sumAttr2 from my_entity me1_0 order by sumAttr2\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "methods",
+      "enums"
+    ],
+    "owner": {
+      "account_id": 26398162,
+      "reputation": 55,
+      "user_id": 20048980,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/ba8b7ff1fb2058f642847beedde24d5a?s=256&d=identicon&r=PG",
+      "display_name": "Pai",
+      "link": "https://stackoverflow.com/users/20048980/pai"
+    },
+    "is_answered": true,
+    "view_count": 74,
+    "accepted_answer_id": 79086788,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1763656828,
+    "creation_date": 1728918725,
+    "last_edit_date": 1763656828,
+    "question_id": 79086720,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79086720/a-generic-method-for-judge-whether-some-parameter-are-attributes-of-one-of-enum",
+    "title": "A generic method for judge whether some parameter are attributes of one of enum value in an enum class",
+    "body": "<p>When I'm developing a SpringBoot project, I find that I'm often need to write code to judge whether the parameters from the API are my expected attribute of the enum value or not.<br />\nSuch as:</p>\n<pre><code>@Getter\npublic enum Sample2Enum {\n    A(&quot;a&quot;),\n    B(&quot;b&quot;),\n    C(&quot;c&quot;),\n    ;\n\n    private final String str;\n\n    Sample2Enum(String str) {\n        this.str = str;\n    }\n    \n    public static boolean isAttributeEquals(String value) {\n        boolean isAttributeEquals = false;\n        for (Sample2Enum sample2Enum : Sample2Enum.values()) {\n            if (sample2Enum.getStr().equals(value)) {\n                isAttributeEquals = true;\n                break;\n            }\n        }\n        return isAttributeEquals;\n    }\n}\n</code></pre>\n<p>I think the implementation logic of the <code>isAttributeEquals</code> method in any enum class is similar.<br />\nSo I want to explore a generic method that can judge whether some parameter are attributes of one of enum value in an enum class.\nIn my opinion, the generic method is like this:</p>\n<pre><code>    /**\n     * Judge whether the given parameter is an attribute of an enum value in the given enum class.\n     * @param enumClass Target enum class\n     * @param methodReference The judge method reference\n     * @param values the parameters need to be checked\n     * @return true if the parameter is an attribute of an enum value in the given enum class, false otherwise\n     */\n    public static &lt;T&gt; boolean isValidEnumAttribute(Class&lt;T&gt; enumClass, MethodReference methodReference, Object... values) {\n        T[] enums = enumClass.getEnumConstants();\n        boolean isEnum = false;\n        for (T enumValue : enums) {\n            isEnum = methodReference(values); // call method reference to judge whether the enum value's attribute matches the attribute\n            if (isEnum) break;\n        }\n        return isEnum;\n    }\n</code></pre>\n<p>Note: because some enum value will have more than one attributes, the parameter <code>values</code> is corresponding the multiple attributes of one enum value.</p>\n<p>The <code>methodReference</code> is a parameter I imaged. In my vision, the judge step should be left to the caller to decide.</p>\n<p>Such as I can define two methods in the <code>Sample2Enum</code> like this:</p>\n<pre><code>public boolean isAttributeEquals2(String value) {\n        if (this.equals(Sample2Enum.B)) {\n            return false;\n        }\n        return this.getStr().equals(value);\n}\npublic boolean isAttributeEquals3(String value) {\n        return this.getStr().equals(value);\n}\n</code></pre>\n<p>And then, I can call the <code>isValidEnumAttribute</code> method like this (Just as an example, don't care about the details):</p>\n<pre><code>EnumUtils.isValidEnumAttribute(Sample2Enum.class, Sample2Enum::isAttributeEquals2, &quot;a&quot;);\nEnumUtils.isValidEnumAttribute(Sample2Enum.class, Sample2Enum::isAttributeEquals3, &quot;b&quot;);\n</code></pre>\n<p>If this generic function has already been implemented, we just need to define some 'judge step' in the enum class, and then call the <code>isValidEnumAttribute</code> method.</p>\n<p>But it is not that simple.</p>\n<p>I don't know how to deliver the 'judge step method' from external to the <code>isValidEnumAttribute</code>.</p>\n<p>The only easy way is seems like the caller need to hard code to give 'judge step method name' to <code>isValidEnumAttribute</code> method, and use reflect to get the real 'judge step method' in <code>isValidEnumAttribute</code> method.</p>\n<p>It works like this:</p>\n<pre><code>/**\n * Judge whether the given parameter is an attribute of an enum value in the given enum class.\n * @param enumClass Target enum class\n * @param methodName the name of the method to be called\n * @param values the parameters need to be checked\n * @return true if the parameter is an attribute of an enum value in the given enum class, false otherwise\n */\npublic static &lt;T&gt; boolean isValidEnumAttribute(Class&lt;T&gt; enumClass, String methodName, Object... values) throws Exception {\n    T[] enums = enumClass.getEnumConstants();\n    Class&lt;?&gt;[] params = new Class[values.length];\n    for (int i = 0; i &lt; values.length; i++) {\n        params[i] = values[i].getClass();\n    }\n    Method method = enumClass.getMethod(methodName, params);\n    boolean isEnum = false;\n    for (T enumValue : enums) {\n        isEnum = (boolean) method.invoke(enumValue, values);\n        if (isEnum) break;\n    }\n    return isEnum;\n}\n</code></pre>\n<p>The call is here:</p>\n<pre><code>System.out.println(EnumUtils.isValidEnumAttribute(Sample2Enum.class, &quot;isAttributeEquals2&quot;, &quot;a&quot;));\n</code></pre>\n<p>This is not my expectation, I don't expect appear the hard code. Anyone know how to optimize that? Or who has a better way to implement my thought?</p>\n<p>I also doubt that the <code>isValidEnumAttribute</code> method I imaged whether there will be performance penalty as a result. But now I just want to know there is a way to do my expect or not.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

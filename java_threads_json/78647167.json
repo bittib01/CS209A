@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jdbc",
+      "dynamic-sql"
+    ],
+    "owner": {
+      "account_id": 31721919,
+      "reputation": 59,
+      "user_id": 24538360,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/2d51bae571394cab64afcb9b9e67dd91?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Mohan mohan",
+      "link": "https://stackoverflow.com/users/24538360/mohan-mohan"
+    },
+    "is_answered": true,
+    "view_count": 103,
+    "closed_date": 1719135461,
+    "accepted_answer_id": 78648158,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1746134925,
+    "creation_date": 1718882640,
+    "last_edit_date": 1746134925,
+    "question_id": 78647167,
+    "link": "https://stackoverflow.com/questions/78647167/how-to-detect-if-a-java-class-contains-a-foreign-key-field-when-generating-a-mys",
+    "closed_reason": "Needs details or clarity",
+    "title": "How to detect if a Java class contains a foreign key field when generating a MySQL CREATE TABLE query?",
+    "body": "<h2>User.java</h2>\n<pre><code>// User.java\npublic class User {\n    private int userId;\n    private String userName;\n    private String userEmail;\n    private String userPassword;\n\n    // getters and setters\n}\n\n</code></pre>\n<h2>Post.java</h2>\n<pre><code>// Post.java\npublic class Post {\n    private int postId;\n    private String postCategory;\n    private String postTitle;\n    private String post;\n\n    private int userId; // foreign key reference to User\n\n    // getters and setters\n}\n\n</code></pre>\n<p>I'm generating the SQL query using a createTable() method like this:</p>\n<pre><code>public String createTable(Class&lt;?&gt; users) throws IllegalAccessException {\n    String message = &quot;&quot;;\n    String className = printClassName(users); // assumes it returns the class name\n\n    StringBuilder sql = new StringBuilder(&quot;CREATE TABLE IF NOT EXISTS &quot; + className);\n    sql.append(&quot;(&quot;);\n\n    Field[] fields = users.getDeclaredFields();\n    for (int i = 0; i &lt; fields.length; i++) {\n        if (fields[i].getType() == int.class &amp;&amp; fields[i].getName().equals(&quot;userId&quot;)) {\n            sql.append(fields[i].getName()).append(&quot; INT AUTO_INCREMENT NOT NULL&quot;);\n        } else if (fields[i].getType() == int.class) {\n            sql.append(fields[i].getName()).append(&quot; INT NOT NULL&quot;);\n        } else if (fields[i].getType() == String.class) {\n            sql.append(fields[i].getName()).append(&quot; VARCHAR(255) NOT NULL&quot;);\n        }\n\n        if (i &lt; fields.length - 1) {\n            sql.append(&quot;, &quot;);\n        }\n\n        if (i == fields.length - 1) {\n            sql.append(&quot;PRIMARY KEY (&quot;).append(fields[0].getName()).append(&quot;)&quot;);\n        }\n    }\n\n    sql.append(&quot;);&quot;);\n    System.out.println(&quot;Executing SQL Query: &quot; + sql.toString());\n\n    try {\n        dataBaseConnection.pstmt = dataBaseConnection.conn.prepareStatement(sql.toString());\n        int i = dataBaseConnection.pstmt.executeUpdate();\n        message = (i &gt; 0) ? &quot;Table created with name: &quot; + className + &quot; successfully.&quot; : &quot;Something went wrong.&quot;;\n    } catch (Exception e) {\n        e.printStackTrace();\n    }\n\n    return message;\n}\n\n</code></pre>\n<p>This approach works fine for simple tables, but now I want to detect and handle foreign key relationships without using annotations. I know I could use annotations (like @ForeignKey), but I’m explicitly avoiding that due to processing overhead and a preference for reflection-based solutions.</p>\n<p><strong>My Question:</strong>\nHow can I programmatically detect if a class has a field that should be treated as a foreign key (e.g., userId in Post referencing User), and modify my createTable() method to automatically add foreign key constraints in the generated SQL?</p>\n<p>Any guidance, strategy, or pattern recognition (based on field names, relationships, etc.) would be helpful.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

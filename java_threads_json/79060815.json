@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "itext",
+      "watermark"
+    ],
+    "owner": {
+      "account_id": 189816,
+      "reputation": 33241,
+      "user_id": 429377,
+      "user_type": "registered",
+      "accept_rate": 91,
+      "profile_image": "https://i.sstatic.net/n8DwZ.jpg?s=256",
+      "display_name": "Mahmoud Saleh",
+      "link": "https://stackoverflow.com/users/429377/mahmoud-saleh"
+    },
+    "is_answered": true,
+    "view_count": 78,
+    "accepted_answer_id": 79065717,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1734051588,
+    "creation_date": 1728282578,
+    "last_edit_date": 1734051588,
+    "question_id": 79060815,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79060815/watermark-rtl-text-appears-incorrect",
+    "title": "Watermark RTL text appears incorrect",
+    "body": "<p>I am using Itext 5 and I am trying to add non removable watermark text as follows, but the issue is that the RTL text appears incorrectly:</p>\n<pre><code>ByteArrayOutputStream baos = new ByteArrayOutputStream();\n\nPdfReader reader = new PdfReader(byteArray);\nPdfStamper stamper = new PdfStamper(reader, baos);\n\nBaseFont baseFont = BaseFont.createFont(BaseFont.HELVETICA_OBLIQUE, BaseFont.WINANSI, false);\nString watermarkText = &quot;مسودة&quot;;\n\nint numberOfPages = reader.getNumberOfPages();\nfor (int i = 1; i &lt;= numberOfPages; i++) {\n    Rectangle pageSize = reader.getPageSizeWithRotation(i);\n\n    // get handle for existing page content\n    PdfImportedPage pageContent = stamper.getImportedPage(reader, i);\n    // store that content as form XObject\n    stamper.getWriter().addToBody(pageContent.getFormXObject(stamper.getWriter().getCompressionLevel()), pageContent.getIndirectReference());\n    pageContent.setCopied();\n    // reset page content\n    reader.getPageN(i).put(PdfName.CONTENTS, null);\n\n    // create pattern with former page content\n    PdfPatternPainter bodyPainter = stamper.getOverContent(i).createPattern(pageSize.getWidth(),\n            pageSize.getHeight());\n    bodyPainter.addTemplate(pageContent, 0, 0);\n\n    // add watermark to pattern\n    PdfGState state = new PdfGState();\n    state.setFillOpacity(0.3f);\n    bodyPainter.saveState();\n    bodyPainter.setGState(state);\n    for (float x = 70f; x &lt; pageSize.getWidth(); x += 100) {\n        for (float y = 90; y &lt; pageSize.getHeight(); y += 100) {\n            bodyPainter.beginText();\n            bodyPainter.setTextRenderingMode(PdfPatternPainter.TEXT_RENDER_MODE_FILL);\n            bodyPainter.setFontAndSize(baseFont, 13);\n            bodyPainter.showTextAlignedKerned(Element.ALIGN_MIDDLE, watermarkText, x, y, 45f);\n            bodyPainter.endText();\n        }\n    }\n    bodyPainter.restoreState();\n\n    // create new page content\n    PdfContentByte canvas = stamper.getUnderContent(i);\n    // add pseudo-content\n    canvas.beginText();\n    canvas.setFontAndSize(baseFont, 13);\n    canvas.showTextAlignedKerned(Element.ALIGN_MIDDLE, &quot;        &quot;, 0, 0, 45f);\n    canvas.endText();\n    // fill with pattern holding former page content\n    canvas.setColorFill(new PatternColor(bodyPainter));\n    canvas.rectangle(pageSize.getLeft(), pageSize.getBottom(), pageSize.getWidth(),\n            pageSize.getHeight());\n    canvas.fill();\n}\n\nstamper.close();\nreader.close();\nbyteArray = baos.toByteArray();\n</code></pre>\n<p>The watermark appears incorrectly as follows:</p>\n<p><a href=\"https://i.sstatic.net/k4LFnRb8.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/k4LFnRb8.png\" alt=\"enter image description here\" /></a></p>\n<p>How can I fix this issue?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "akka",
+      "pekko"
+    ],
+    "owner": {
+      "account_id": 3902502,
+      "reputation": 103,
+      "user_id": 3229969,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/8456ab2715a32c9023fd8e36d86b67bf?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "skinnydan72",
+      "link": "https://stackoverflow.com/users/3229969/skinnydan72"
+    },
+    "is_answered": false,
+    "view_count": 59,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1747650773,
+    "creation_date": 1747389041,
+    "last_edit_date": 1747650773,
+    "question_id": 79624926,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79624926/issue-getting-akka-or-pekko-testkit-eventfilter-to-work-as-expected",
+    "title": "Issue getting akka or pekko TestKit EventFilter to work as expected",
+    "body": "<p>I have a simple 'classic' actor that just recieves a message and logs string Bingo to INFO. In my test I setup an InfoFilter EventFilter to verify the log.info message call. Debugging I can see that the log statement is hit, but the intercept times out waiting for it. Note I can recreate this on Akka 2.6.21 as well.</p>\n<p>What is wrong with my test code?</p>\n<p>The simple actor</p>\n<pre><code>package au.com.hsl.bet.pekko.bet.actors;\n\nimport org.apache.pekko.actor.UntypedAbstractActor;\nimport org.apache.pekko.event.Logging;\nimport org.apache.pekko.event.LoggingAdapter;\n\npublic class SimpleActor extends UntypedAbstractActor {\n\n    private final LoggingAdapter log = Logging.getLogger(getContext().system(), &quot;MyLogger&quot;);\n\n    @Override\n    public void onReceive(Object message) throws Throwable {\n        log.info(&quot;Bingo&quot;);\n    }\n}\n</code></pre>\n<p>And the Test</p>\n<pre><code>    @Test\n    void Test(){\n\n        ActorSystem mySystem = ActorSystem.create(&quot;testSystem&quot;, ConfigFactory.parseString(&quot;pekko.loggers = [org.apache.pekko.testkit.TestEventListener]&quot;));\n\n        try {\n            new TestKit(mySystem) {\n                {\n                    TestActorRef&lt;SimpleActor&gt; testActor = TestActorRef.create(mySystem, Props.create(SimpleActor.class));\n\n                    \n                    EventFilter\n                            .info(&quot;Bingo&quot;,\n                                    &quot;MyLogger&quot;,\n                                    null,\n                                    null,\n                                    1)\n                            .intercept(\n                                    () -&gt; {\n                                        testActor.tell(&quot;Hello&quot;, ActorRef.noSender());\n                                        return null;\n                                    },\n                                    mySystem\n                            );\n                }\n            };\n        } finally {\n            TestKit.shutdownActorSystem(mySystem);\n        }\n    }\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

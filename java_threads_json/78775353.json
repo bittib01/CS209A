@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "google-cloud-platform",
+      "jmx",
+      "jconsole"
+    ],
+    "owner": {
+      "account_id": 19872543,
+      "reputation": 1,
+      "user_id": 14558334,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/NlRGV.png?s=256",
+      "display_name": "bua",
+      "link": "https://stackoverflow.com/users/14558334/bua"
+    },
+    "is_answered": false,
+    "view_count": 102,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1722603207,
+    "creation_date": 1721569242,
+    "last_edit_date": 1722603207,
+    "question_id": 78775353,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78775353/connecting-jconsole-to-java-app-on-gcp-via-ssl-connect-to-jmx-through-jndi",
+    "title": "Connecting Jconsole to java app on GCP via SSL ( connect to JMX through JNDI )",
+    "body": "<p>I'm trying to make a connection to my java app, using Jconsole. I want to secure that by SSL. At the end I want to move this app to GKE and make the same connection.</p>\n<p>What I have:\nSimple springboot app, which is printing &quot;hello world&quot; when opened via browser. Literally one controller and empty main class.</p>\n<p>starting parameters (VM options):</p>\n<pre><code>-Dcom.sun.management.jmxremote\n-Dcom.sun.management.jmxremote.port=1234\n-Dcom.sun.management.jmxremote.rmi.port=12345\n-Dcom.sun.management.jmxremote.authenticate=false\n-Dcom.sun.management.jmxremote.ssl=false\n-Dcom.sun.management.jmxremote.registry.ssl=false\n-Dcom.sun.management.jmxremote.ssl.need.client.auth=false\n-Dcom.sun.management.jmxremote.local.only=false\n-Djava.rmi.server.hostname=127.0.0.1\n-Djava.rmi.server.host=127.0.0.1\n</code></pre>\n<p>With that, I can open Jconsole, use &quot;<strong>remote connection</strong>&quot; option and connect to **localhost:1234 **without SSL.\nAlso, I'm able to use &quot;<strong>service:jmx:rmi:///jndi/rmi://localhost:1234/jmxrmi</strong>&quot; syntax.\nIt works.</p>\n<p>Next step, I want to turn on SSL:</p>\n<p>creating keys using this document: <a href=\"https://unix.stackexchange.com/questions/347116/how-to-create-keystore-and-truststore-using-self-signed-certificate\">https://unix.stackexchange.com/questions/347116/how-to-create-keystore-and-truststore-using-self-signed-certificate</a></p>\n<p>Changing starting parameters to</p>\n<pre><code>-Dcom.sun.management.jmxremote=true\n-Dcom.sun.management.jmxremote.port=1234\n-Dcom.sun.management.jmxremote.rmi.port=1234\n-Dcom.sun.management.jmxremote.registry.ssl=true\n-Dcom.sun.management.jmxremote.authenticate=false\n-Djavax.net.ssl.keyStore=cert/server.keystore\n-Djavax.net.ssl.keyStorePassword=qweasd\n-Djavax.net.ssl.trustStore=cert/server.truststore\n-Djavax.net.ssl.trustStorePassword=qweasd\n</code></pre>\n<p>Trying to run jConsole using\n<code>jconsole -debug -J-Djavax.net.ssl.trustStore=client.truststore -J-Djavax.net.ssl.trustStorePassword=qweasd localhost:1234</code></p>\n<p>Connection works with syntax &quot;localhost:1234&quot;.</p>\n<p>Next step, I want to connect with this app locally using &quot;<strong>service:jmx:rmi:///jndi/rmi://localhost:1234/jmxrmi</strong>&quot; syntax.\nGetting following error:</p>\n<pre><code>java.io.IOException: Failed to retrieve RMIServer stub: javax.naming.CommunicationException [Root exception is java.rmi.ConnectIOException: non-JRMP server at remote endpoint]\n    at java.management.rmi/javax.management.remote.rmi.RMIConnector.connect(RMIConnector.java:370)\n    at java.management/javax.management.remote.JMXConnectorFactory.connect(JMXConnectorFactory.java:270)\n    at jdk.jconsole/sun.tools.jconsole.ProxyClient.tryConnect(ProxyClient.java:357)\n    at jdk.jconsole/sun.tools.jconsole.ProxyClient.connect(ProxyClient.java:313)\n    at jdk.jconsole/sun.tools.jconsole.VMPanel$2.run(VMPanel.java:296)\nCaused by: javax.naming.CommunicationException [Root exception is java.rmi.ConnectIOException: non-JRMP server at remote endpoint]\n    at jdk.naming.rmi/com.sun.jndi.rmi.registry.RegistryContext.lookup(RegistryContext.java:138)\n    at java.naming/com.sun.jndi.toolkit.url.GenericURLContext.lookup(GenericURLContext.java:220)\n    at java.naming/javax.naming.InitialContext.lookup(InitialContext.java:409)\n    at java.management.rmi/javax.management.remote.rmi.RMIConnector.findRMIServerJNDI(RMIConnector.java:1839)\n    at java.management.rmi/javax.management.remote.rmi.RMIConnector.findRMIServer(RMIConnector.java:1813)\n    at java.management.rmi/javax.management.remote.rmi.RMIConnector.connect(RMIConnector.java:302)\n    ... 4 more\nCaused by: java.rmi.ConnectIOException: non-JRMP server at remote endpoint\n    at java.rmi/sun.rmi.transport.tcp.TCPChannel.createConnection(TCPChannel.java:252)\n    at java.rmi/sun.rmi.transport.tcp.TCPChannel.newConnection(TCPChannel.java:204)\n    at java.rmi/sun.rmi.server.UnicastRef.newCall(UnicastRef.java:344)\n    at java.rmi/sun.rmi.registry.RegistryImpl_Stub.lookup(RegistryImpl_Stub.java:116)\n    at jdk.naming.rmi/com.sun.jndi.rmi.registry.RegistryContext.lookup(RegistryContext.java:134)\n    ... 9 more\n</code></pre>\n<p>Could anyone tell me, what I'm missing?</p>\n<p>How the syntax should looks like?</p>\n<p>At the end I want to dockerize this app, publish it on GCP and make the same connection, so I assume it should be &quot;service:jmx:rmi:///jndi/rmi://localhost:1234/jmxrmi&quot; one.</p>\n<p>But want to make it works locally first. Any help?</p>\n<p>I've tried:\nAdding this options to SSL connection</p>\n<pre><code>-Djava.rmi.server.hostname=localhost\n-Djava.rmi.server.host=localhost\n-Dcom.sun.management.jmxremote.local.only=false\n</code></pre>\n<p>Looking at documentation:\n<a href=\"https://docs.oracle.com/javadb/10.10.1.2/adminguide/radminjmxenablepwdssl.html\" rel=\"nofollow noreferrer\">https://docs.oracle.com/javadb/10.10.1.2/adminguide/radminjmxenablepwdssl.html</a>\nSearching at the web, but most of docs that I've found are using &quot;localhost:port&quot; syntax or not using SSL</p>\n<p>What I'm expecting:\nUse Jconsole to connect with my app working on GKE cluster. It needs SSL.</p>\n<p>Edit: I've figured out how to connect to dockerized app hosted on GCP using SSL encryption. I've used host:port syntax, so I think the whole question is not needed anymore. Closing</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

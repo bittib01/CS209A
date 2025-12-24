@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "libgdx",
+      "tiled"
+    ],
+    "owner": {
+      "account_id": 29622230,
+      "reputation": 11,
+      "user_id": 22702897,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocK3kFZGJsvL5Z6gZwXqCRLl5GK3RY-QaM0fewJuzJ3p3KI=k-s256",
+      "display_name": "TheDogOfChaos",
+      "link": "https://stackoverflow.com/users/22702897/thedogofchaos"
+    },
+    "is_answered": false,
+    "view_count": 42,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1713557310,
+    "creation_date": 1710764184,
+    "last_edit_date": 1713557310,
+    "question_id": 78180133,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78180133/multiple-tiledmap-layers-not-rendering",
+    "title": "Multiple TiledMap layers not rendering",
+    "body": "<p>I'm having trouble with rendering multiple tile layers in a single programatically generated TiledMap within LibGDX.</p>\n<p>I tried to make it so that a floor layer (the first for loop) gets generated underneath the procedurally generated layers (second for loop), but it only  renders what was added before the first invocation of <code>layers.add();</code>, which is my floor layer. Is there something I'm blatently missing here?</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class WorldGenerator {\n    private static Texture tiles;\n    private static TiledMap map;\n    public static TiledMap GenerateWorld(int mapWidth, int mapHeight, int tileWidth, int tileHeight, int exponent, int mapLayers, String noiseType) {\n        int x; int y; int l;\n        tiles = new Texture(Gdx.files.internal(&quot;spriteAtlas.png&quot;));\n        TextureRegion[][] splitTiles = TextureRegion.split(tiles, tileWidth, tileHeight);\n        map = new TiledMap();\n        TiledMapTileLayer layer = new TiledMapTileLayer(mapWidth, mapHeight, tileWidth, tileHeight);\n        MapLayers layers = map.getLayers();\n        x=0;y=0;\n        for (int i = 0; i &lt; (mapWidth * mapHeight); i++) {\n            Cell cell = new Cell();\n            cell.setTile(new StaticTiledMapTile(splitTiles[1][0]));\n            layer.setCell(x, y, cell);\n            x++;\n            if (x == mapWidth) {\n                y++;\n                x = 0;\n            }\n        }\n        layers.add(layer);\n        for (l = 0; l &lt; mapLayers; l++) {\n            double[] noise;\n            switch (noiseType) {\n                case &quot;perlin&quot;:\n                    noise = NoiseGenerator.normalise(NoiseGenerator.perlinNoise(mapWidth, mapHeight, exponent));\n                    break;\n                case &quot;smooth&quot;:\n                     noise = NoiseGenerator.normalise(NoiseGenerator.smoothNoise(mapWidth, mapHeight, exponent));\n                    break;\n                case &quot;turbulence&quot;:\n                     noise = NoiseGenerator.normalise(NoiseGenerator.turbulence(mapWidth, mapHeight, exponent));\n                    break;\n                default:\n                    throw new IllegalStateException(&quot;Unexpected value: &quot; + noiseType);\n            }\n            for (double v : noise) {\n                Cell cell = new Cell();\n                if (Math.round(v) == 1) {\n                    cell.setTile(new StaticTiledMapTile(splitTiles[0][1]));\n                }\n                layer.setCell(x, y, cell);\n                x++;\n                if (x == mapWidth) {\n                    y++;\n                    x = 0;\n                }\n            }\n            layers.add(layer);\n        }\n        return map;\n    }\n}\n</code></pre>\n<h2>Update (19/04/2024):</h2>\n<p>i have given up with trying to do this via <code>TiledMap</code>s, and have instead just resorted to a 3D Array</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

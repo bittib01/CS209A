@@ -1,0 +1,37 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "parallel-processing",
+      "java-21",
+      "project-loom",
+      "structured-concurrency"
+    ],
+    "owner": {
+      "account_id": 206243,
+      "reputation": 3420,
+      "user_id": 455417,
+      "user_type": "registered",
+      "accept_rate": 60,
+      "profile_image": "https://www.gravatar.com/avatar/e85c3cf7d454f62037e3e575d8961006?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "mdrg",
+      "link": "https://stackoverflow.com/users/455417/mdrg"
+    },
+    "is_answered": true,
+    "view_count": 1085,
+    "accepted_answer_id": 78080818,
+    "answer_count": 4,
+    "score": 7,
+    "last_activity_date": 1736794726,
+    "creation_date": 1709111197,
+    "last_edit_date": 1709730995,
+    "question_id": 78073182,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78073182/java-21-structured-concurrency-need-predictable-subtask-exception-ordering",
+    "title": "Java 21 structured concurrency, need predictable subtask exception ordering",
+    "body": "<p>I'm rather new to parallel code, and I tried to convert some code based on executors to structured concurrency, but I lost an important property that I must somehow keep.</p>\n<p>Given the following code using structured concurrency with Java 21 preview:</p>\n<pre><code>try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {\n    Subtask&lt;Data1&gt; d1Subtask = scope.fork(() -&gt; getData1(input));\n    Subtask&lt;Data2&gt; d2Subtask = scope.fork(() -&gt; getData2(input));\n\n    scope.join().throwIfFailed(); // [1]\n\n    var data1 = d1Subtask.get(); // [2]\n    var data2 = d2Subtask.get();\n\n    return new Response(data1, data2);\n}\n</code></pre>\n<p>In <code>[1]</code> an eventual first exception out of the two subtasks is thrown, and I don't want that. I need to run both tasks in parallel but I need the result of <code>d1Subtask</code> first in case it fails. In other words:</p>\n<ul>\n<li>if <code>d1Subtask</code> fails, I need to throw its exception (<code>d2Subtask</code> might be running, be successful or failed and none of it matters, exceptions from <code>d1Subtask</code> make the second task irrelevant);</li>\n<li>if <code>d1Subtask</code> succeeds and <code>d2Subtask</code> fail, I need the exception from <code>d2Subtask</code>;</li>\n<li>if both succeed, combine the results of both.</li>\n</ul>\n<p>If I change it to <code>scope.join();</code> then <code>[2]</code> can fail if <code>d1Subtask</code> is not done. There is <code>d1Subtask.state()</code> but waiting for it to leave the <code>State.UNAVAILABLE</code> state seems against the idea of structured concurrency.</p>\n<p>This can be achieved with Executors and pure <code>StructuredTaskScope</code>, but that means potentially running <code>d2Subtask</code> to completion even when the scope could be shut down and that task aborted.</p>\n<p>Given that, is possible to modify the code above to wait for the result of <code>d1Subtask</code> in a clean, readable way? I imagined that something like <code>scope.join(d1Subtask)</code> or <code>d1Subtask.join()</code> would be the way of doing it, or maybe a different policy, if that API existed.</p>\n<hr />\n<p>Edit: clearer explanation of the desired logic with each possible outcome.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

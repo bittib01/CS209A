@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "java-memory-model",
+      "jls"
+    ],
+    "owner": {
+      "account_id": 2092899,
+      "reputation": 1354,
+      "user_id": 1862286,
+      "user_type": "registered",
+      "accept_rate": 100,
+      "profile_image": "https://i.sstatic.net/2DZnD.jpg?s=256",
+      "display_name": "yaskovdev",
+      "link": "https://stackoverflow.com/users/1862286/yaskovdev"
+    },
+    "is_answered": true,
+    "view_count": 117,
+    "answer_count": 2,
+    "score": 1,
+    "last_activity_date": 1735113906,
+    "creation_date": 1734916649,
+    "question_id": 79301954,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79301954/why-does-the-java-memory-model-allow-reads-to-observe-future-writes",
+    "title": "Why does the Java Memory Model allow reads to observe future writes?",
+    "body": "<p>There seems to be a similar question (<a href=\"https://stackoverflow.com/q/51757474/1862286\">Java Specification: reads see writes that occur later in the execution order</a>), but it focuses on a different example.</p>\n<hr />\n<p>The Java Memory Model states in <a href=\"https://docs.oracle.com/javase/specs/jls/se23/html/jls-17.html#jls-17.4.8\" rel=\"nofollow noreferrer\">§17.4.8</a>:</p>\n<blockquote>\n<p>Although allowing reads to see writes that come later in the execution order is sometimes undesirable, <strong>it is also sometimes necessary</strong>.</p>\n</blockquote>\n<p>It then refers to a program and an execution trace from <a href=\"https://docs.oracle.com/javase/specs/jls/se23/html/jls-17.html#jls-17.4.5\" rel=\"nofollow noreferrer\">§17.4.5</a> as an example where this behaviour is necessary.</p>\n<p>Here's the program:</p>\n<div class=\"s-table-container\"><table class=\"s-table\">\n<thead>\n<tr>\n<th>Thread 1</th>\n<th>Thread 2</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>B = 1;</td>\n<td>A = 2;</td>\n</tr>\n<tr>\n<td>r2 = A;</td>\n<td>r1 = B;</td>\n</tr>\n</tbody>\n</table></div>\n<p>And the corresponding execution trace:</p>\n<pre><code>1: r2 = A;  // sees write of A = 2\n3: r1 = B;  // sees write of B = 1\n2: B = 1;\n4: A = 2;\n</code></pre>\n<p>The specification explains:</p>\n<blockquote>\n<p>The trace in Table 17.4.5-A requires some reads to see writes that occur later in the execution order. Since the reads come first in each thread, the very first action in the execution order must be a read. If that read cannot see a write that occurs later, then it cannot see any value other than the initial value for the variable it reads. This is clearly not reflective of all behaviors.</p>\n</blockquote>\n<p>Could someone help clarify what this means? Why can't we simply declare executions that allow reads to observe future writes as illegal?</p>\n<p>For instance, if we disallow such executions, wouldn't we still be able to produce the result <code>r1 == 1</code> and <code>r2 == 2</code> through the following legal execution?</p>\n<pre><code>B = 1;\nA = 2;\nr2 = A;  // sees write of A = 2\nr1 = B;  // sees write of B = 1\n</code></pre>\n<p>What would be lost or break if we restricted the model to disallow reads from seeing future writes?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

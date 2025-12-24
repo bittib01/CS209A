@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "authentication",
+      "google-cloud-storage"
+    ],
+    "owner": {
+      "account_id": 42089134,
+      "reputation": 1,
+      "user_id": 30588643,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/639ff63279541586f233e697a71820be?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "ivan",
+      "link": "https://stackoverflow.com/users/30588643/ivan"
+    },
+    "is_answered": false,
+    "view_count": 119,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1747938737,
+    "creation_date": 1747742606,
+    "last_edit_date": 1747938737,
+    "question_id": 79630397,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79630397/error-getting-access-token-for-service-account-connection-refused-connect-iss",
+    "title": "Error getting access token for service account: Connection refused: connect, iss: [...]",
+    "body": "<p>I was having some issues with configuring google cloud storage and i cannot for the life of me figure out what the issue is.</p>\n<p>So initially, i implemented everything with with wrapper classes and an interface like this</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class GoogleCloudStorageServiceImpl implements StorageService {\n\n    private static final Logger LOGGER = LogManager.getLogger(GoogleCloudStorageServiceImpl.class);\n    private final Storage storage;\n\n    public GoogleCloudStorageServiceImpl() {\n        this.storage = StorageOptions.newBuilder()\n                .setProjectId(&quot;redacted&quot;)\n                .build().getService();\n    }\n\n    @Override\n    public void store(File file) {\n        LOGGER.info(&quot;Attempting to store file: {}&quot;, file.getAbsolutePath());\n\n        if (this.fileExistsInGcs(file, storage)) {\n            LOGGER.warn(&quot;File already exists in GCS: {}&quot;, file.getName());\n            throw new TechException(&quot;Error: File already exists in GCS&quot;);\n        }\n\n        byte[] bytes = this.convertFileToByteArray(file);\n\n        BlobInfo blobInfo = BlobInfo.newBuilder(&quot;redacted&quot;, file.getName()).build();\n\n        storage.create(blobInfo, bytes);\n\n        LOGGER.info(&quot;Successfully uploaded file '{}' to bucket '{}'&quot;, file.getName(), &quot;redacted&quot;);\n    }\n// helper methods\n\n}\n</code></pre>\n<p>and after writing a main method within the ServiceImpl and also making a new class outside ServiceImpl, when running it in normal mode, I always get a Connection refused exception.</p>\n<pre><code>Exception in thread &quot;main&quot; com.google.cloud.storage.StorageException: Error getting access token for service account: Connection refused: connect, iss: redacted\n    at com.google.cloud.storage.StorageException.translate(StorageException.java:230)\n    at com.google.cloud.storage.spi.v1.HttpStorageRpc.translate(HttpStorageRpc.java:360)\n    at com.google.cloud.storage.spi.v1.HttpStorageRpc.get(HttpStorageRpc.java:598)\n    at com.google.cloud.storage.StorageImpl.lambda$internalGetBlob$70(StorageImpl.java:1678)\n    at com.google.cloud.storage.StorageImpl$$Lambda$149/412925308.call(Unknown Source)\n    at com.google.cloud.storage.Retrying$DefaultRetrier.run(Retrying.java:165)\n    at com.google.cloud.storage.Retrying$HttpRetrier.run(Retrying.java:206)\n    at com.google.cloud.storage.StorageImpl.run(StorageImpl.java:1619)\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>File file1 = File.createTempFile(&quot;test-upload&quot;, &quot;.txt&quot;);\n\ntry (FileWriter writer = new FileWriter(file1)) {\n    writer.write(&quot;This is a test file for upload.&quot;);\n}\n\nstorageService.store(file1);\n</code></pre>\n<p>I've tried with the newest oracle jdk, java 1.8 oracle and java 1.8 coretto neither of which have made a difference. It however runs in debug mode perfectly fine. I've also tried <code>Thread.sleep()</code> without any luck.</p>\n<p>Now comes the weird part, after moving everything from the wrapper into the main method, without deleting the wrapper methods, it refused to work, however as soon as i deleted everything other than the main method it suddenly works, this also happens if i make a brand new project, as soon as i add the wrapper the same issue occurs.</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class GoogleCloudStorageServiceImpl {\n\n    public static void main(String... args) throws IOException {\n        // The ID of your GCP project\n        String projectId = &quot;redacted&quot;;\n\n        // The ID of your GCS bucket\n        String bucketName = &quot;redacted&quot;;\n\n        Storage storage = StorageOptions.newBuilder().setProjectId(projectId).build().getService();\n\n        File file1 = File.createTempFile(&quot;test-upload&quot;, &quot;.txt&quot;);\n\n        try (FileWriter writer = new FileWriter(file1)) {\n            writer.write(&quot;This is a test file for upload.&quot;);\n        }\n\n        byte[] file = Files.readAllBytes(file1.toPath());\n\n        BlobInfo blobInfo = BlobInfo.newBuilder(&quot;redacted&quot;, file1.getName()).build();\n\n        storage.create(blobInfo, file);\n\n        Page&lt;Blob&gt; blobs = storage.list(bucketName);\n\n        for (Blob blob : blobs.iterateAll()) {\n            System.out.println(blob.getName());\n            System.out.println(new String(blob.getContent()));\n        }\n    }\n}\n</code></pre>\n<p>Any help would be appreciated! &lt;3</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

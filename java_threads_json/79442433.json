@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot"
+    ],
+    "owner": {
+      "account_id": 21332,
+      "reputation": 5489,
+      "user_id": 51754,
+      "user_type": "registered",
+      "accept_rate": 76,
+      "profile_image": "https://i.sstatic.net/qP9ow.jpg?s=256",
+      "display_name": "Bob Rivers",
+      "link": "https://stackoverflow.com/users/51754/bob-rivers"
+    },
+    "is_answered": true,
+    "view_count": 776,
+    "accepted_answer_id": 79446607,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1741966727,
+    "creation_date": 1739665703,
+    "last_edit_date": 1739826837,
+    "question_id": 79442433,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79442433/spring-boot-application-properties-not-working",
+    "title": "Spring boot application.properties not working",
+    "body": "<p>I'm having trouble getting spring boot (3.4.1) to read some parameters from a properties file. I was trying to use the default mechanism, naming my file <code>application.properties</code> and putting it in the resources folder. But since I couldn't get it to work, I decided to go the way of <strong>externalizing</strong> the properties file. So my code looks like this:</p>\n<pre><code>@PropertySource(&quot;file:/home/user/myapp/myapp.properties&quot;)\n@SpringBootApplication\npublic class MyApplication {\n    public static void main(String... args) {\n        SpringApplication.run(MyApplication.class, args);\n    }\n}\n</code></pre>\n<p>This seems to be correct because, if I delete (or rename) the <code>myapp.properties</code> file, when I try to initialize the application, it generates an error: <code>APPLICATION FAILED TO START Config data resource 'file [/home/user/myapp/myapp.properties]' via location 'file:///home/user/myapp/myapp.properties' does not exist</code></p>\n<p>So, assuming that spring is able to find the file, I configured my component to read a parameter like this:</p>\n<pre><code>@RestController\npublic class MyAppController {\n\n    @Value(&quot;${staticRepo}&quot;)\n    private String staticRepo;\n\n    @GetMapping(value = &quot;/api/myapp&quot;)\n    List&lt;Foo&gt; getFoo() {\n        if (staticRepo== null || staticRepo.trim().isEmpty()) {\n            throw new InternalServerErrorException(&quot;MyApp is not configured properlly. Missing 'staticRepo' parameter in 'myapp.properties'&quot;);\n        }\n        return FooUtils.load(staticRepo);\n    }\n</code></pre>\n<p>I double checked the <code>myapp.properties</code> and it does have a <code>staticRepo</code> parameter (the file contains only 1 line: <code>staticRepo=/home/user/myapp/repo/</code>)</p>\n<p>I found several posts with the same problem, but none solved my issue. From one of those posts, I tried to specify the properties file into the command line as follows, but without luck...</p>\n<pre><code>java -jar /home/user/myapp/myapp.jar --spring.config.location=file:///home/user/myapp/myapp.properties\n</code></pre>\n<p>So my question is: what am i doing wrong?</p>\n<p><strong>EDIT</strong></p>\n<p>As suggested, I renamed the variable to <code>repo</code> and it still didn't work and I also verified the the <code>@Value</code> annotation. I'm using <code>org.springframework.beans.factory.annotation.Value</code>.</p>\n<p>And no, it isn't a dumbed down version. Yes, I changed the path and renamed the app, but the application is just what I posted. To be sure, using the VS Code (v1.96.2) wizard (Spring Initializr Java Support v0.11.2) I generated a new application from scratch. The wizard itself created an <code>application.properties</code> file and placed it into <code>/src/main/resources</code> with the property <code>spring.application.name=demo</code>. And yes, it prints <code>null</code> to the <code>System.out</code>... So probably my setup is messed up... By the way, it is an Ubuntu 24.04.2 LTS with openjdk 21.0.6.</p>\n<pre><code>@SpringBootApplication\npublic class DemoApplication {\n\n    @Value(&quot;${spring.application.name}&quot;)\n    private String name;\n\n    public static void main(String[] args) {\n        DemoApplication demo = new DemoApplication();\n        System.out.println(demo.getName());\n\n        SpringApplication.run(DemoApplication.class, args);\n    }\n\n    public String getName() {\n        return name;\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

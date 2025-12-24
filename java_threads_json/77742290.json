@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "java-8",
+      "microservices"
+    ],
+    "owner": {
+      "account_id": 21542770,
+      "reputation": 89,
+      "user_id": 15880209,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/cad3a0c0e0b1a3db13ad2bf60f754ad1?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Rajeev",
+      "link": "https://stackoverflow.com/users/15880209/rajeev"
+    },
+    "is_answered": true,
+    "view_count": 901,
+    "answer_count": 4,
+    "score": 0,
+    "last_activity_date": 1745928891,
+    "creation_date": 1704121601,
+    "question_id": 77742290,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77742290/in-microservices-using-restclient-how-to-call-url-dynamically-using-application",
+    "title": "In microservices, using RestClient how to call url dynamically using application name?",
+    "body": "<p>I'm working on a UserService app that fetches data from Rating and Hotel services using Spring Boot. I want to replace hardcoded URLs with application names for dynamic service discovery.\nCurrent approach (with hardcoded URLs):</p>\n<pre><code>List&lt;Rating&gt; ratingsOfUser = client.get().uri(&quot;http://localhost:8083/ratings/user/&quot; + user.getUserId())\n        .retrieve()\n        .body(typeRef);\n</code></pre>\n<p>Desired approach (with application name):</p>\n<pre><code>List&lt;Rating&gt; ratingsOfUser = client.get().uri(&quot;http://RATING-SERVICE/ratings/user/&quot; + user.getUserId())\n        .retrieve()\n        .body(typeRef);\n\n</code></pre>\n<p>Attempted solutions:</p>\n<ol>\n<li>@LoadBalanced annotation with RestClient:</li>\n</ol>\n<pre><code>@Configuration\npublic class MyConfig {\n\n   @Bean\n   @LoadBalanced\n   public RestClient restClient() {\n       return RestClient.builder()\n               .build();\n   }\n}\n\n</code></pre>\n<p>This didn't work.</p>\n<ol start=\"2\">\n<li>WebClient with load balancing:</li>\n</ol>\n<pre><code>@Bean\npublic WebClient.Builder loadBalancedWebClientBuilder() {\n    return WebClient.builder().filter(loadBalancerExchangeFilterFunction());\n}\n\n</code></pre>\n<p>I added the spring-cloud-starter-loadbalancer dependency, but I'm getting a &quot;Cannot resolve symbol 'WebClient'&quot; error.</p>\n<pre><code>&lt;dependency&gt;\n    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;\n    &lt;artifactId&gt;spring-cloud-starter-loadbalancer&lt;/artifactId&gt;\n    &lt;version&gt;4.0.4&lt;/version&gt;\n&lt;/dependency&gt;\n</code></pre>\n<p>Spring Boot version = 3.2.1</p>\n<p>MyConfig.class</p>\n<pre><code>@Configuration\npublic class MyConfig {\n\n\n    @Bean\n    @LoadBalanced\n    public RestClient restClient(){\n        return RestClient.builder()\n                .build();\n    }\n\n    @Bean\n    public WebClient.Builder loadBalancedWebClientBuilder() {\n        return WebClient.builder().filter(loadBalancerExchangeFilterFunction());\n    }\n\n}\n\n</code></pre>\n<p>getUser Method</p>\n<pre><code> @Override\n    public User getUser(String userId) {\n\n        //get user from the db with the help of user Repo\n        User user = userRepository.findById(userId)\n                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;User not found: &quot; + userId));\n        // fetch Rating of the above user from Rating Service\n\n        ParameterizedTypeReference&lt;List&lt;Rating&gt;&gt; typeRef = new ParameterizedTypeReference&lt;List&lt;Rating&gt;&gt;() {};\n     //   List&lt;Rating&gt; ratingsOfUser = client.get().uri(&quot;http://RATING-SERVICE/ratings/user/&quot; +user.getUserId())\n        List&lt;Rating&gt; ratingsOfUser = client.get().uri(&quot;http://localhost:8083/ratings/user/&quot; +user.getUserId())\n                .retrieve()\n                .body(typeRef);\n\n        // for each rating fetch Hotel\n\n         List&lt;Rating&gt; ratingList = ratingsOfUser.stream().map(rating -&gt; {\n             //api call to get hotel service\n             //Hotel hotels =  client.get().uri(&quot;http://HOTEL-SERVICE/hotels/&quot;+rating.getHotelId())\n             Hotel hotels =  client.get().uri(&quot;http://localhost:8081/hotels/&quot;+rating.getHotelId())\n               .retrieve()\n                .body(new ParameterizedTypeReference&lt;Hotel&gt;() {});\n\n          //set the hotel to the rating\n           rating.setHotel(hotels);\n          // return the rating\n           return rating;\n\n        }).collect(Collectors.toList());\n\n\n        user.setRatings(ratingList);\n        logger.info(&quot;{} &quot;,ratingsOfUser);\n        return user;\n    }\n\n</code></pre>\n<p>Please let me know, if any additional information required. Thank you</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

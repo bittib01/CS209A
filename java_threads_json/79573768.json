@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "libgdx"
+    ],
+    "owner": {
+      "account_id": 18823042,
+      "reputation": 11,
+      "user_id": 13728605,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a-/AOh14Ggt8wXa2lXj-jDLY_H31s-PrFGFgJbZ68YfSzpYfg=k-s256",
+      "display_name": "anwar",
+      "link": "https://stackoverflow.com/users/13728605/anwar"
+    },
+    "is_answered": true,
+    "view_count": 46,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1757430831,
+    "creation_date": 1744653885,
+    "question_id": 79573768,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79573768/libgdx-pool-obtain-returns-null-action",
+    "title": "Libgdx Pool.obtain() returns null Action",
+    "body": "<p><strong>sometimes</strong> i get NPE when calling <code>flipMotion()</code> inside an <code>Actor</code>:</p>\n<pre><code>{\n    ParallelAction parallel = parallel(...);\n    \n    parallel.addAction(flipMotion(duration));\n    addAction(after(parallel));\n}\n\nprivate SequenceAction flipMotion(float duration) {\n    RunnableAction flip = faceUp ? run(this::flipDown) : run(this::flipUp);\n    return sequence(\n            scaleTo(0, 1, duration / 2),\n            flip,\n            scaleTo(1, 1, duration / 2));\n}\n</code></pre>\n<p>Note: <em>parallel()</em>, <em>after()</em>, <em>run()</em>, <em>sequence()</em> and <em>scaleTo()</em> are static Libgdx Actions methods.</p>\n<p>the issue happens when calling <code>Actions.run()</code> which tries to call the code below from Libgdx <code>Actions</code> class:</p>\n<pre><code>static public RunnableAction run (Runnable runnable) {\n    RunnableAction action = action(RunnableAction.class);\n    action.setRunnable(runnable);\n    return action;\n}\n\nstatic public &lt;T extends Action&gt; T action (Class&lt;T&gt; type) {\n    Pool&lt;T&gt; pool = Pools.get(type);\n    T action = pool.obtain();\n    action.setPool(pool);\n    return action;\n}\n</code></pre>\n<p>but for some reason, i get this error:</p>\n<pre><code>java.lang.NullPointerException: Attempt to invoke virtual method 'void setPool(Pool)' on a null object reference\ncom.badlogic.gdx.scenes.scene2d.actions.Actions.action(Actions.java:36)\ncom.badlogic.gdx.scenes.scene2d.actions.Actions.run(Actions.java:451)\ncom.example.game.elements.Card.flipMotion(Card.java:113)\n</code></pre>\n<p>I'm using <code>gdxVersion = '1.13.1'</code>, I appreciate any help.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "sorting",
+      "recursion",
+      "javafx"
+    ],
+    "owner": {
+      "account_id": 10442921,
+      "reputation": 17,
+      "user_id": 7698965,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/ba39eb90a1fb1600de4dc29d9ea2a860?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Liam",
+      "link": "https://stackoverflow.com/users/7698965/liam"
+    },
+    "is_answered": true,
+    "view_count": 171,
+    "accepted_answer_id": 79015504,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1727550402,
+    "creation_date": 1727091092,
+    "last_edit_date": 1727092836,
+    "question_id": 79014420,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79014420/javafx-sorting-visualiser",
+    "title": "JavaFx sorting visualiser",
+    "body": "<p>I'm working on a <strong>sorting visualiser project in JavaFX</strong>. I have managed to get a bubble sort and insertion sort working however I am having issues with implementing the quicksort.</p>\n<p>the code below is my quick sort implementation. The logic works when removing the visual side.</p>\n<pre><code>    private void quickSort(int[] arr, int high) {\n        new Thread(() -&gt; {\n            enableButton(true);\n            quickSortHelper(arr, 0, high);\n        }).start();\n    }\n\n    private void quickSortHelper(int[] arr, int low, int high) {\n        if (low &lt; high) {\n            int pi = partition(arr, low, high);\n            quickSortHelper(arr, low, pi - 1);\n            quickSortHelper(arr, pi + 1, high);\n        }\n    }\n\n    private void qSwapHelper(int[] arr, int i, int j) {\n        CountDownLatch latch = new CountDownLatch(1);\n        Platform.runLater(() -&gt; {\n            swapBarsWithAnimation((Rectangle) mainAPane.getChildren().get(i), (Rectangle) mainAPane.getChildren().get(j), latch);\n        });\n\n        try {\n            latch.await();\n        } catch (Exception _) {\n        }\n\n        int temp = arr[i];\n        arr[i] = arr[j];\n        arr[j] = temp;\n    }\n\n    private int partition(int[] arr, int low, int high) {\n        // choose the pivot\n        int pivot = arr[high];\n\n        int i = low-1;\n\n        for (int j = low; j &lt; high; j++) {\n            if (arr[j] &lt; pivot) {\n                i++;\n                qSwapHelper(arr, i, j);\n            }\n        }\n        qSwapHelper(arr, i+1, high);\n        return (i+1);\n    }\n</code></pre>\n<p>below is how I manage the animations. I'm using 2 translation transitions which run simultaneously with a parallel transition. On completion, the anchors are updated in the anchor pane and the bars are removed before being readded in their swapped positions to reflect the visual state logically.</p>\n<pre><code>    private void swapBarsWithAnimation(Rectangle bar1, Rectangle bar2, CountDownLatch latch) {\n        double bar1Pos = AnchorPane.getLeftAnchor(bar1);\n        double bar2Pos = AnchorPane.getLeftAnchor(bar2);\n\n        TranslateTransition bar1ToBar2Transition = new TranslateTransition(Duration.millis(DURATION_TIME), bar1);\n        bar1ToBar2Transition.setByX(bar2Pos - bar1Pos);\n\n        TranslateTransition bar2ToBar1Transition = new TranslateTransition(Duration.millis(DURATION_TIME), bar2);\n        bar2ToBar1Transition.setByX(bar1Pos - bar2Pos);\n\n        ParallelTransition pt = new ParallelTransition(bar1ToBar2Transition, bar2ToBar1Transition);\n\n        Double finalBar2Pos = bar2Pos;\n        Double finalBar1Pos = bar1Pos;\n        pt.setOnFinished(_ -&gt; {\n            AnchorPane.setLeftAnchor(bar1, finalBar2Pos);\n            AnchorPane.setLeftAnchor(bar2, finalBar1Pos);\n\n            ObservableList&lt;Node&gt; children = mainAPane.getChildren();\n\n            int indexOfBar1 = children.indexOf(bar1);\n            int indexOfBar2 = children.indexOf(bar2);\n\n            children.removeAll(bar1, bar2);\n            children.add(indexOfBar1, bar2);\n            children.add(indexOfBar2, bar1);\n\n            bar1.setTranslateX(0);\n            bar2.setTranslateX(0);\n\n            latch.countDown();\n        });\n\n        pt.play();\n    }\n</code></pre>\n<p>my understanding is that anything visual needs to run on the JavaFX main thread so I've used <code>Platform.RunLater()</code> to achieve this. As mentioned before my bubble sort and insertion are working great so it must be something to do with the use of recursion maybe?</p>\n<p>I was thinking add the transitions to a queue or list then executing them, this way they would definitely run in order?</p>\n<p>I am intending to add more sorts including merge sort and I assume I'll have to same issue.</p>\n<p>Any help is greatly appreciated I'm a bit stuck.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

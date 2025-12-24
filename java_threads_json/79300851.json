@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "spring-security",
+      "jwt"
+    ],
+    "owner": {
+      "account_id": 34151759,
+      "reputation": 1,
+      "user_id": 26428501,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/b5c2628cff36fb67c55a18b66ab301fa?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Rogelio Olarte",
+      "link": "https://stackoverflow.com/users/26428501/rogelio-olarte"
+    },
+    "is_answered": true,
+    "view_count": 514,
+    "accepted_answer_id": 79302130,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1734927872,
+    "creation_date": 1734864659,
+    "last_edit_date": 1734866225,
+    "question_id": 79300851,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79300851/error-while-using-a-rsa-keys-with-springboot-and-jjwt",
+    "title": "Error while using a RSA keys with Springboot and JJWT",
+    "body": "<p>I am currently following this flow to create and use my RSA keys</p>\n<p>First I create my RSA keys with the following bash script.</p>\n<pre><code># Generate pem private key in PEM-encoded X.509 format\nopenssl genrsa -out refresh.pem 4096\n# generate public key\nopenssl rsa -in refresh.pem -out refresh.pub -pubout\n# Convert the private key to PKCS#8 format\nopenssl pkcs8 -topk8 -inform PEM -in refresh.pem -outform PEM -out refresh.key -nocrypt\n\nPRIVATE_KEY=$(sed '1d;$d' refresh.key | tr -d '\\n' | base64 -w 0)\nPUBLIC_KEY=$(sed '1d;$d' refresh.pub | tr -d '\\n' | base64 -w 0)\n\necho &quot;JWT_BE_PRIVATE_KEY=${PRIVATE_KEY}&quot;\necho &quot;JWT_BE_PUBLIC_KEY=${PUBLIC_KEY}&quot;\n</code></pre>\n<p>Then with the variables in the terminal, I add them to a .env file</p>\n<pre><code>JWT_BE_PRIVATE_KEY=MIIJKA...\nJWT_BE_PUBLIC_KEY=MIICIjA...\n</code></pre>\n<p>Then in my application.properties I add the following to use the environment variables.</p>\n<pre><code>jwt.private.key=${JWT_BE_PRIVATE_KEY}\njwt.public.key=${JWT_BE_PUBLIC_KEY}\n</code></pre>\n<p>Finally I use these variables in my component</p>\n<pre><code>@Component\npublic class JJwtManager {\n\n    private final SignatureAlgorithm alg = Jwts.SIG.RS512;\n    private final RSAPrivateKey privateKey;\n    private final RSAPublicKey publicKey;\n\n    public JJwtManager(@Value(&quot;${jwt.private.key}&quot;) @NonNull String privateKeyStr,\n                       @Value(&quot;${jwt.public.key}&quot;) @NonNull String publicKeyStr)\n            throws Exception {\n        KeyFactory keyFactory = KeyFactory.getInstance(&quot;RSA&quot;);\n        this.privateKey = (RSAPrivateKey) keyFactory.generatePrivate(new PKCS8EncodedKeySpec\n                (Decoders.BASE64.decode(privateKeyStr)));\n        this.publicKey = (RSAPublicKey) keyFactory.generatePublic(new X509EncodedKeySpec\n                (Decoders.BASE64.decode(publicKeyStr)));\n    }\n}\n</code></pre>\n<p>However, I get the following error:</p>\n<pre><code>Caused by: java.security.spec.InvalidKeySpecException: java.security.InvalidKeyException: Unable to decode key\n    at java.base/sun.security.rsa.RSAKeyFactory.engineGeneratePublic(RSAKeyFactory.java:241) ~[na:na]\n    at java.base/java.security.KeyFactory.generatePublic(KeyFactory.java:351) ~[na:na]\n    at com.example.security.manager.JJwtManager.&lt;init&gt;(JJwtManager.java:45) ~[classes/:na]\n    at java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62) ~[na:na]\n    at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:502) ~[na:na]\n    at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:486) ~[na:na]\n    at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:209) ~[spring-beans-6.2.0.jar:6.2.0]\n    ... 37 common frames omitted\nCaused by: java.security.InvalidKeyException: Unable to decode key\n    at java.base/sun.security.x509.X509Key.decode(X509Key.java:375) ~[na:na]\n    at java.base/sun.security.rsa.RSAPublicKeyImpl.&lt;init&gt;(RSAPublicKeyImpl.java:146) ~[na:na]\n    at java.base/sun.security.rsa.RSAPublicKeyImpl.newKey(RSAPublicKeyImpl.java:78) ~[na:na]\n    at java.base/sun.security.rsa.RSAKeyFactory.generatePublic(RSAKeyFactory.java:324) ~[na:na]\n    at java.base/sun.security.rsa.RSAKeyFactory.engineGeneratePublic(RSAKeyFactory.java:237) ~[na:na]\n    ... 43 common frames omitted\nCaused by: java.io.IOException: extra data at the end\n    at java.base/sun.security.util.DerValue.&lt;init&gt;(DerValue.java:432) ~[na:na]\n    at java.base/sun.security.util.DerValue.&lt;init&gt;(DerValue.java:344) ~[na:na]\n    at java.base/sun.security.x509.X509Key.decode(X509Key.java:373) ~[na:na]\n    ... 47 common frames omitted\n</code></pre>\n<p>I would be very grateful in advance to anyone who can help me.</p>\n<p>Currently the component constructor code has been changed several times according to other implementations but they are similar or give the same error.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

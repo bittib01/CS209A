@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "junit",
+      "mocking",
+      "apache-beam",
+      "junit5"
+    ],
+    "owner": {
+      "account_id": 9873421,
+      "reputation": 1,
+      "user_id": 7312119,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/-6rSUKTPYU5k/AAAAAAAAAAI/AAAAAAAAACQ/Klu--UIBoqw/s256-rj/photo.jpg",
+      "display_name": "CyberDreadWing",
+      "link": "https://stackoverflow.com/users/7312119/cyberdreadwing"
+    },
+    "is_answered": false,
+    "view_count": 23,
+    "closed_date": 1729577091,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1729649326,
+    "creation_date": 1729576642,
+    "last_edit_date": 1729649326,
+    "question_id": 79112613,
+    "link": "https://stackoverflow.com/questions/79112613/not-able-to-mock-a-class-used-within-processelement-of-an-apache-beam-pipline",
+    "closed_reason": "Duplicate",
+    "title": "Not able to mock a class used within ProcessElement of an Apache Beam pipline",
+    "body": "<p>I can mock a static method in a class from my test case, but when I test pipelines, the same is not mocked. The same class is referenced while static mocking directly from my test case and also while mocking pipelines (the static methods are called from <code>@ProcessElement</code> annotated methods i.e they will be called when <code>pipeline.run()</code> command is called).</p>\n<p>Here is an example to explain it in more details:</p>\n<p>Class to be tested:</p>\n<pre><code>public class BuildResponse extends DoFn&lt;String, String&gt; {\n\n    @ProcessElement\n    public void processElement(ProcessContext c, OutputReceiver&lt;String&gt; out)\n    {\n        String element = c.element();\n        String output = response(element);\n        out.output(output);\n    }\n\n    private String response(String s) {\n        var time = TableUtil.getCurrentTS(); // I cannot see my mock object when I debug leading to incorrect output\n        return time + s;\n    }\n}\n</code></pre>\n<p>Class with static method:</p>\n<pre><code>public class TableUtil implements Serializable {\n    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd'T'HH:mm:ss.SSS'Z'&quot;, Locale.ENGLISH).withZone(ZoneId.of(&quot;UTC&quot;));\n\n    public static String getCurrentTS(){\n        return dateTimeFormatter.format(Instant.now());\n    }\n}\n</code></pre>\n<p>Test Case:</p>\n<pre><code>@ExtendWith(MockitoExtension.class)\n@MockitoSettings(strictness = Strictness.LENIENT)\nclass BuildResponseTest {\n\n    private static MockedStatic&lt;TableUtil&gt; tableUtilMockedStatic;\n    private static String currentTime;\n    @BeforeAll\n    static void setUp() {\n        currentTime  = Instant.now().toString().concat(&quot;test&quot;);\n        tableUtilMockedStatic = Mockito.mockStatic(TableUtil.class);\n        tableUtilMockedStatic.when(TableUtil::getCurrentTS).thenReturn(currentTime);\n    }\n\n    @AfterAll\n    static void tearDown() {\n        tableUtilMockedStatic.close();\n    }\n\n    @Test\n    public void BuildResponseProcessTest() throws Exception{\n        tableUtilMockedStatic.when(TableUtil::getCurrentTS).thenReturn(currentTime);\n        System.out.println(&quot;currentTime -&gt; &quot;+ currentTime);\n        System.out.println(&quot;table time -&gt; &quot;+ TableUtil.getCurrentTS()); // this gives the correct mocked output \n\n        TestPipeline p = TestPipeline.create().enableAbandonedNodeEnforcement(false);\n\n        String s = &quot;Element&quot;;\n\n        PCollection&lt;String&gt; input = p.apply(Create.of(s));\n\n        PCollection&lt;String&gt; output = input.apply(ParDo.of(new BuildResponse()));\n        String expectedOutput = currentTime + s;\n        PAssert.that(output).containsInAnyOrder(expectedOutput);\n\n        p.run().waitUntilFinish(); // this when runs gives the incorrect output\n    }\n}\n</code></pre>\n<p>Error:</p>\n<pre class=\"lang-none prettyprint-override\"><code>java.lang.AssertionError: ParDo(BuildResponseNew)/ParMultiDo(BuildResponseNew).output: \nExpected: iterable with items [&quot;2024-10-22T05:13:02.035ZtestElement&quot;] in any order\n     but: not matched: &quot;2024-10-22T05:13:04.755ZElement&quot;\n</code></pre>\n<p>I tried using <code>InjectMocks</code> for <code>BuildResponse</code> class but the outcome was the same. I also tried using inline static mock but the outcome was the same.</p>\n<p>I was expecting to static mock the <code>TableUtil.getCurrentTS()</code> call in <code>BuildResponse</code> class, how to achieve such mock strategy.</p>\n<p>Can someone please help me with what is the right approach to test such pipelines?</p>\n<p>The question that marked this post duplicate, I have also tried that workaround but was not able to mock (also it requires changes in main code). My exact question revolves around if I have to do some changes in the test code what possibilities are there that I do not have to change the main code.</p>\n<p>Also, PowerMockito.mockStatic used to work, but while migrating to junit5 MockedStatic somehow is not working.</p>\n<p>Also, tried DI approach, without any wrapper. Still throwing the same error.\nJust to note that this technique removes static call completely, and the issue remains same, so it is not just occurring because of static method call.\nIf someone want to have a look, I have uploaded the code to github.\n<a href=\"https://github.com/paramaanu235/testRepo/blob/main/src/test/java/org/apachetest/response/BuildResponseTest.java\" rel=\"nofollow noreferrer\">Github link for testcase</a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

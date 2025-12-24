@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "logging",
+      "backend",
+      "splunk"
+    ],
+    "owner": {
+      "account_id": 35817599,
+      "reputation": 11,
+      "user_id": 27416620,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/2dd9c3fa33d915041085a538c7643c6c?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "vivek kumar",
+      "link": "https://stackoverflow.com/users/27416620/vivek-kumar"
+    },
+    "is_answered": false,
+    "view_count": 81,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1727075945,
+    "creation_date": 1727074972,
+    "last_edit_date": 1727075945,
+    "question_id": 79013488,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79013488/uuid-i-am-getting-in-logs-but-not-for-each-thread-only-getting-in-main-thread",
+    "title": "uuid, I am getting in logs but not for each thread. only getting in main thread. Have to add in splunk logs",
+    "body": "<p>So, first time I have worked on splunk part where I have integrated myspringboot application with splunk.\nTo uniquely identify my logs for application execution, I tried to add one uuid, for that, I modified log4j2.xml.</p>\n<p><code>file path:- src/main/resources/log4j2.xml</code></p>\n<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;\n&lt;Configuration status=&quot;WARN&quot;&gt;\n    &lt;Properties&gt;\n        &lt;Property name=&quot;logging.file.name&quot;&gt;info-log&lt;/Property&gt;\n        &lt;Property name=&quot;logging.file.path&quot;&gt;./&lt;/Property&gt;\n    &lt;/Properties&gt;\n    &lt;Appenders&gt;\n        &lt;!-- Console Appender --&gt;\n        &lt;Console name=&quot;CONSOLE&quot; target=&quot;SYSTEM_OUT&quot;&gt;\n            &lt;PatternLayout pattern=&quot;%d{yyyy-MM-dd HH:mm:ss.SSS} [thread - %thread] [%-5level] | uuid='%X{uuid}' | [Method Name - %M] -- %logger{36} - %msg%n&quot;/&gt;\n        &lt;/Console&gt;\n        &lt;!-- File Appender to read from info-log file --&gt;\n        &lt;File name=&quot;INFO_FILE&quot; fileName=&quot;${logging.file.path}/${logging.file.name}&quot;&gt;\n            &lt;PatternLayout pattern=&quot;%d{yyyy-MM-dd HH:mm:ss.SSS} [thread - %thread] [%-5level] | uuid='%X{uuid}' | [Method Name - %M] -- %logger{36} - %msg%n&quot;/&gt;\n        &lt;/File&gt;\n        &lt;!-- SplunkHttp Appender to send logs to Splunk --&gt;\n        &lt;SplunkHttp\n                name=&quot;splunkhttp&quot;\n                url=&quot;http://localhost:8088&quot;\n                token=&quot;f873377f-b48b-4022-88c9-922564ae9854&quot;\n                host=&quot;localhost&quot;\n                index=&quot;order_api_dev&quot;\n                type=&quot;raw&quot;\n                source=&quot;http-event-logs&quot;\n                sourcetype=&quot;log4j&quot;\n                messageFormat=&quot;text&quot;\n                disableCertificateValidation=&quot;true&quot;&gt;\n            &lt;PatternLayout pattern=&quot;%m&quot; /&gt;\n        &lt;/SplunkHttp&gt;\n    &lt;/Appenders&gt;\n\n    &lt;Loggers&gt;\n        &lt;Root level=&quot;INFO&quot;&gt;\n            &lt;AppenderRef ref=&quot;CONSOLE&quot;/&gt;\n            &lt;AppenderRef ref=&quot;INFO_FILE&quot;/&gt;\n            &lt;AppenderRef ref=&quot;splunkhttp&quot;/&gt;\n        &lt;/Root&gt;\n        &lt;Logger name=&quot;com.example&quot; level=&quot;INFO&quot;&gt;\n            &lt;AppenderRef ref=&quot;splunkhttp&quot;/&gt;\n        &lt;/Logger&gt;\n    &lt;/Loggers&gt;\n&lt;/Configuration&gt;\n</code></pre>\n<p>After that I was able to generate uuid in console but the moment my method executed which I have written in controller or service class, for that uuid we are getting empty.</p>\n<pre><code>2024-09-23 11:55:57.631 [thread - main] [WARN ] | uuid='5ed72e5b-c6b4-44c1-b9ce-dbd59bc6bd09' | [Method Name - openEntityManagerInViewInterceptor] -- org.springframework.boot.autoconfigure.orm.jpa.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning\n2024-09-23 11:55:58.599 [thread - main] [INFO ] | uuid='5ed72e5b-c6b4-44c1-b9ce-dbd59bc6bd09' | [Method Name - log] -- org.apache.coyote.http11.Http11NioProtocol - Starting ProtocolHandler [&quot;http-nio-8080&quot;]\n2024-09-23 11:55:58.674 [thread - main] [INFO ] | uuid='5ed72e5b-c6b4-44c1-b9ce-dbd59bc6bd09' | [Method Name - start] -- org.springframework.boot.web.embedded.tomcat.TomcatWebServer - Tomcat started on port(s): 8080 (http) with context path ''\n2024-09-23 11:55:58.687 [thread - main] [INFO ] | **uuid='5ed72e5b-c6b4-44c1-b9ce-dbd59bc6bd09'** | [Method Name - logStarted] -- com.example.DemoApplication - Started DemoApplication in 10.893 seconds (JVM running for 13.985)\n2024-09-23 11:56:29.092 [thread - http-nio-8080-exec-2] [INFO ] | **uuid=''** | [Method Name - log] -- org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'\n2024-09-23 11:56:29.092 [thread - http-nio-8080-exec-2] [INFO ] | uuid='' | [Method Name - initServletBean] -- org.springframework.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'\n2024-09-23 11:56:29.100 [thread - http-nio-8080-exec-2] [INFO ] | uuid='' | [Method Name - initServletBean] -- org.springframework.web.servlet.DispatcherServlet - Completed initialization in 8 ms\n2024-09-23 11:56:29.341 [thread - http-nio-8080-exec-2] [INFO ] | uuid='' | [Method Name - createDepartment] -- com.example.controller.DepartmentController - Entering createDepartment method with request: /departments\n2024-09-23 11:56:29.342 [thread - http-nio-8080-exec-2] [INFO ] | uuid='' | [Method Name - createDepartment] -- com.example.controller.DepartmentController - Request Parameter: Computer\n2024-09-23 11:56:29.521 [thread - http-nio-8080-exec-2] [INFO ] | uuid='' | [Method Name - writeLog] -- net.ttddyy.dsproxy.listener.logging.CommonsQueryLoggingListener - Name:Proxy DataSource, Connection:4, Time:8, Success:True, Type:Prepared, Batch:False, QuerySize:1, BatchSize:0, Query:[&quot;insert into department (id, name) values (default, ?)&quot;], Params:[(Computer)]\n</code></pre>\n<p>Well, I have modified the main file to generate <strong>UUID</strong></p>\n<pre><code>@SpringBootApplication\npublic class DemoApplication {\n\n    public static void main(String[] args) {\n        String uuid = java.util.UUID.randomUUID().toString();\n\n        // Put the UUID value into the ThreadContext map\n        ThreadContext.put(&quot;uuid&quot;, uuid);\n        SpringApplication.run(DemoApplication.class, args);\n    }\n\n}\n</code></pre>\n<p>What could be the issue?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

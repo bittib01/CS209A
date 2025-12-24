@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "deadlock",
+      "virtual-threads"
+    ],
+    "owner": {
+      "account_id": 242649,
+      "reputation": 2545,
+      "user_id": 514306,
+      "user_type": "registered",
+      "accept_rate": 84,
+      "profile_image": "https://www.gravatar.com/avatar/a83c7fe95c9d4fe0ec1b9c20c7894aee?s=256&d=identicon&r=PG",
+      "display_name": "milan",
+      "link": "https://stackoverflow.com/users/514306/milan"
+    },
+    "is_answered": true,
+    "view_count": 2322,
+    "answer_count": 3,
+    "score": 11,
+    "last_activity_date": 1729129706,
+    "creation_date": 1705942526,
+    "last_edit_date": 1707561635,
+    "question_id": 77861482,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77861482/java-virtual-threads-and-concurrenthashmap",
+    "title": "Java Virtual threads and ConcurrentHashMap",
+    "body": "<p>I stumbled upon a problem with Virtual threads and ConcurrentHashMap.</p>\n<p>As the code below demonstrates, if you enter a lock within the <code>computeIfAbsent</code>, the VT may not awake, ever. It really depends how the VT are scheduled on carrier threads, but I can reproduce this easily.</p>\n<p>I'm aware that ConcurrentHashMap uses <code>synchronized</code>, and VT doesn't play well with <code>synchronized</code>, but nowhere it says to avoid <code>ConcurrentHashMap</code>, as that would be quite disappointing.</p>\n<pre class=\"lang-java prettyprint-override\"><code>class Scratch {\n    public static void main(String[] args) throws InterruptedException {\n        var lock = new ReentrantLock();\n        var map = new ConcurrentHashMap&lt;Integer, String&gt;();\n\n        var callables = new ArrayList&lt;Callable&lt;Void&gt;&gt;();\n        for (int i = 0; i &lt; 32 /* more than threads in FJ pool */; i++) {\n            callables.add(() -&gt; {\n                System.out.println(&quot;Spawned thread &quot; + Thread.currentThread().threadId());\n                map.computeIfAbsent(1, k -&gt; {\n                    System.out.println(&quot;on lock() &quot; + Thread.currentThread().threadId());\n                    lock.lock();\n                    try {\n                        System.out.println(&quot;within lock() &quot; + Thread.currentThread().threadId());\n                    } finally {\n                        lock.unlock();\n                    }\n                    return &quot;&quot;;\n                });\n                System.out.println(&quot;Exiting &quot; + Thread.currentThread().threadId());\n                return null;\n            });\n        }\n\n        new Thread(() -&gt; {\n            System.out.println(&quot;locking &quot; + Thread.currentThread().threadId());\n            lock.lock();\n            try {\n                Thread.sleep(2000);\n            } catch (InterruptedException e) {\n                throw new RuntimeException(e);\n            }\n            System.out.println(&quot;unlocking &quot; + Thread.currentThread().threadId());\n            lock.unlock();\n            System.out.println(&quot;unlocked &quot; + Thread.currentThread().threadId());\n        }).start();\n\n        while (!lock.isLocked()) {\n            Thread.sleep(10);\n        }\n\n        // it works with Executors.newCachedThreadPool()\n        try (var es = Executors.newVirtualThreadPerTaskExecutor()) {\n            es.invokeAll(callables);\n        }\n        System.out.println(&quot;done&quot;);\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

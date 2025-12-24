@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "performance",
+      "time"
+    ],
+    "owner": {
+      "account_id": 978760,
+      "reputation": 1482,
+      "user_id": 999043,
+      "user_type": "registered",
+      "accept_rate": 83,
+      "profile_image": "https://www.gravatar.com/avatar/46dcbe74fe2244b03e9ed5f221f60354?s=256&d=identicon&r=PG",
+      "display_name": "Ralf H",
+      "link": "https://stackoverflow.com/users/999043/ralf-h"
+    },
+    "is_answered": true,
+    "view_count": 172,
+    "accepted_answer_id": 78885703,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1724375771,
+    "creation_date": 1724015725,
+    "last_edit_date": 1724375771,
+    "question_id": 78885682,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78885682/nanotime-drift-vs-currenttimemillis",
+    "title": "nanoTime drift vs currentTimeMillis",
+    "body": "<p>Time measurements relative of a starting point taken with nanoTime vs currentTimeMillis diverge after at most three minutes.</p>\n<p>This concerns Windows implementations of JDK11++, possibly earlier. Linux doesn’t seem to be affected.\nSince the most likely culprit is Windows and I believe <code>currentTimeMillis</code> to be the stable time function while <code>nanoTime</code> is off, I’d like to know how Java obtains those timestamps.</p>\n<p>Under Linux, we see differences stemming from the way how we scale up the millis to nanos. The differences are well-behaved and within millisecond accuracy.</p>\n<p>Since both values are computed against their respective starting point, taken within a few µs of each other, one would think that they stay within millisecond accuracy like it happens under Linux. Any irregularities regarding the timer cadence shouldn’t matter as the timer only serves to give a slow, readable progression of measurements where the exact timing doesn’t matter.</p>\n<pre><code>import java.text.*;\nimport java.util.*;\nimport java.util.concurrent.*;\n\npublic class ClockWatch {\n\n    static final long StartNS = System.nanoTime();\n    static final long StartMS = System.currentTimeMillis();\n\n    public static void main(String[] args) {\n        NumberFormat nf = NumberFormat.getNumberInstance( Locale.US);\n        nf.setMaximumFractionDigits( 3);\n        nf.setGroupingUsed( true);\n\n        DateFormat df = new SimpleDateFormat( &quot;HH:mm:ss&quot;);\n        df.setTimeZone( TimeZone.getTimeZone( &quot;GMT&quot;));\n        ScheduledExecutorService ses = new ScheduledThreadPoolExecutor( 1);\n\n        Runnable compareJob = () -&gt; {\n            long nowNS = System.nanoTime() - StartNS;\n            long nowMS = System.currentTimeMillis() - StartMS;\n            long tookNS = ( System.nanoTime() - StartNS) - nowNS;\n            long diffNS = 1_000_000 * nowMS - nowNS;\n            double driftPercent = 100.0 * diffNS / nowNS;\n            System.out.println( df.format( new Date( nowMS))\n                + &quot; currentTimeMillis is &quot;\n                + ( diffNS &lt; 0 ? &quot;&quot; : &quot; &quot;)\n                + nf.format( 1e-6 * diffNS)\n                + &quot; ms faster than nanoTime, took &quot;\n                + nf.format( tookNS) + &quot; ns, drift &quot;\n                + nf.format( driftPercent) + &quot; % since start&quot;\n            );\n        };\n        ses.scheduleAtFixedRate( compareJob, 1, 3, TimeUnit.SECONDS);\n    }\n}\n</code></pre>\n<p>The reason why this bothers me is that I want to reuse an existing nano timestamp and convert it into an equivalent to currentTimeMillis without calling the latter. I know, it only takes 4 ns under Windows on recent hardware.</p>\n<hr />\n<p>Perhaps I should provide some more background after reading the comments. All machines I used had been up for days and have pretty accurate clocks, thanks to chrony and ntp, in the sub-millisecond range. So I wouldn’t expect any sudden jumps.</p>\n<p>I am aware of the quirks of <code>nanoTime</code> and <code>currentTimeMillis</code>. I shall perhaps get rid of both in favor of <code>Instant.now</code>, so thanks for reminding me.</p>\n<p>My main reason was that I wanted to log events using log4j2 (configured with a full timestamp). There are many threads logging into the same file, asynchonously. This is one of the bigger machines. Under certain circumstances, the logging threads would clog up since log4j can’t keep up, thereby slowing down the logging threads. In order to alleviate this, I moved the calls to log4j into a queue serviced by another thread. Since I now expected this thread to incur queue latencies, I wanted to add another timestamp to those log messages, reflecting the time when they were added to the log queue. For this inner timestamp, I have an existing nano-Timestamp, that I wanted to reuse in a way that matches the log4j-timestamp as part of the log message pattern.</p>\n<p>I have since gotten around this problem by obtaining another <code>currentTimeMillis</code> timestamp, but this involved adding another <code>long</code> field to many objects and one more measurement, both I’d like to avoid. Since I need my measurements to be compatible with whatever log4j uses, it looks like I need to experiment with <code>Instant.now</code> now.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

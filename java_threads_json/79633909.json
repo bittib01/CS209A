@@ -1,0 +1,31 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "mapstruct"
+    ],
+    "owner": {
+      "account_id": 10187542,
+      "reputation": 2735,
+      "user_id": 20692967,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/NZSXm.jpg?s=256",
+      "display_name": "Sergey Zolotarev",
+      "link": "https://stackoverflow.com/users/20692967/sergey-zolotarev"
+    },
+    "is_answered": true,
+    "view_count": 95,
+    "answer_count": 3,
+    "score": 0,
+    "last_activity_date": 1748099559,
+    "creation_date": 1747922330,
+    "question_id": 79633909,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79633909/making-mapstruct-extract-value-from-source-return-as-target-value",
+    "title": "Making MapStruct extract value from source, return as target value",
+    "body": "<p>MapStruct can take a plain value and set it to a target object's field.</p>\n<p>However, it seems, it can't do the opposite: extract a value and return it as a target object.</p>\n<pre class=\"lang-java prettyprint-override\"><code>import com.example.pixel_user_api.data.entity.EmailData;\nimport org.mapstruct.Mapper;\nimport org.mapstruct.Mapping;\n\n@Mapper\npublic interface EmailMapper {\n    @Mapping(source = &quot;email&quot;, target = &quot;.&quot;)\n    String toString(EmailData emailData); // doesn't work\n\n    @Mapping(source = &quot;.&quot;, target = &quot;email&quot;)\n    EmailData toEmailData(String email); // works\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>import lombok.Getter;\nimport lombok.Setter;\n\n@Getter\n@Setter\npublic class EmailData {\n    private Long id;\n    private String email;\n}\n</code></pre>\n<p>Here's what MapStruct generated:</p>\n<pre class=\"lang-java prettyprint-override\"><code>    @Override\n    public String toString(EmailData emailData) {\n        if ( emailData == null ) {\n            return null;\n        }\n\n        String string = new String();\n\n        return string;\n    }\n\n    @Override\n    public EmailData toEmailData(String email) {\n        if ( email == null ) {\n            return null;\n        }\n\n        EmailData emailData = new EmailData();\n\n        emailData.setEmail( email );\n\n        return emailData;\n    }\n</code></pre>\n<p>While <code>toString(EmailData)</code> is straightforward to implement yourself (<code>return emailData.getEmail()</code>), I'm curious: can I make the first method to work too?</p>\n<p>A test that has to pass:</p>\n<pre class=\"lang-java prettyprint-override\"><code>import com.example.pixel_user_api.mapper.EmailMapper;\nimport org.junit.jupiter.api.Test;\nimport org.mapstruct.factory.Mappers;\n\nimport static org.assertj.core.api.Assertions.assertThat;\n\nclass EmailDataTest {\n    \n    @Test\n    void testMapper() {\n        String expectedEmail = &quot;example@mail.com&quot;;\n        EmailData emailData = new EmailData();\n        emailData.setEmail(expectedEmail);\n        EmailMapper mapper = Mappers.getMapper(EmailMapper.class);\n        String actualEmail = mapper.toString(emailData);\n        assertThat(actualEmail).isEqualTo(expectedEmail); // fails here\n    }\n}\n</code></pre>\n<pre><code>org.opentest4j.AssertionFailedError: \nexpected: &quot;example@mail.com&quot;\n but was: &quot;&quot;\nExpected :&quot;example@mail.com&quot;\nActual   :&quot;&quot;\n</code></pre>\n<p>Java 17, MapStruct 1.6.3</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

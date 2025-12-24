@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-kafka",
+      "apache-kafka-streams"
+    ],
+    "owner": {
+      "account_id": 21380278,
+      "reputation": 33,
+      "user_id": 15770126,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/4756c3342334be37c0c368a1edd3146b?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Sergei Nazarov",
+      "link": "https://stackoverflow.com/users/15770126/sergei-nazarov"
+    },
+    "is_answered": true,
+    "view_count": 635,
+    "accepted_answer_id": 78282249,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1718041698,
+    "creation_date": 1711903514,
+    "question_id": 78252098,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78252098/handling-and-ignore-unknown-topic-or-partition-error-in-kafka-streams",
+    "title": "Handling and ignore UNKNOWN_TOPIC_OR_PARTITION error in Kafka Streams",
+    "body": "<p>I'm working with a Kafka Streams application where we use dynamic topic determination based on message headers. In our setup, it's normal for topics to be deleted while the application is running. Messages for a deleted topic might still occasionally arrive, but I want to simply ignore them. However, even after receiving just one message for a non-existent topic, I encounter an infinite loop of errors:</p>\n<pre><code>[kafka-producer-network-thread | stream-example-producer] WARN org.apache.kafka.clients.NetworkClient -- [Producer clientId=stream-example-producer] Error while fetching metadata with correlation id 74 : {test1=UNKNOWN_TOPIC_OR_PARTITION}\n\norg.apache.kafka.common.errors.TimeoutException: Topic test1 not present in metadata after 60000 ms.\n\n[kafka-producer-network-thread | stream-example-producer] WARN org.apache.kafka.clients.NetworkClient -- [Producer clientId=stream-example-producer] Error while fetching metadata with correlation id 79 : {test1=UNKNOWN_TOPIC_OR_PARTITION}\n</code></pre>\n<p>This infinite loop of errors essentially causes the application to stop working. How can I configure my Kafka Streams application to ignore messages for deleted topics without entering an infinite loop of errors? Is there a way to handle this situation?\nHere's a simplified example of my application code:</p>\n<pre><code>StreamsBuilder builder = new StreamsBuilder();\nList&lt;String&gt; dynamicTopics = List.of(&quot;good_topic&quot;, &quot;deleted_topic&quot;);\nbuilder.stream(&quot;source_topic&quot;).to((k, v, c) -&gt; dynamicTopics.get(new Random().nextInt(dynamicTopics.size()))); //in real application from header\nKafkaStreams streams = new KafkaStreams(builder.build(), props);\nstreams.start();\n</code></pre>\n<p><code>Automatic topic creation is disabled. </code></p>\n<p><strong>I tried the following to handle and ignore the error:</strong></p>\n<ol>\n<li><p>Use KafkaAdmin: However, between checks for existing topics, a topic can be deleted, which doesn't solve the issue.</p>\n</li>\n<li><p>Set UncaughtExceptionHandler:</p>\n</li>\n</ol>\n<pre><code>streams.setUncaughtExceptionHandler(new StreamsUncaughtExceptionHandler() {\n    @Override\n    public StreamThreadExceptionResponse handle(Throwable throwable) {\n        return StreamThreadExceptionResponse.SHUTDOWN_APPLICATION;\n    }\n});\n</code></pre>\n<p>But the code doesn't even reach this handler.</p>\n<ol start=\"3\">\n<li>Set ProductionExceptionHandler:</li>\n</ol>\n<pre><code>props.put(StreamsConfig.DEFAULT_PRODUCTION_EXCEPTION_HANDLER_CLASS_CONFIG,\n          CustomProductionExceptionHandler.class.getName());\n</code></pre>\n<p>Again, the code doesn't reach this handler.</p>\n<ol start=\"4\">\n<li>Set Producer Interceptor:</li>\n</ol>\n<pre><code>props.put(StreamsConfig.producerPrefix(ProducerConfig.INTERCEPTOR_CLASSES_CONFIG), ErrorInterceptor.class.getName());\n</code></pre>\n<p>The code reaches this interceptor, but I'm unable to resolve the issue from here.</p>\n<ol start=\"5\">\n<li>Configure Producer Properties:</li>\n</ol>\n<pre><code>props.put(StreamsConfig.RETRY_BACKOFF_MS_CONFIG, &quot;5000&quot;); \nprops.put(StreamsConfig.producerPrefix(ProducerConfig.MAX_BLOCK_MS_CONFIG), &quot;8000&quot;);\nprops.put(StreamsConfig.producerPrefix(ProducerConfig.LINGER_MS_CONFIG), &quot;0&quot;);\nprops.put(StreamsConfig.producerPrefix(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG), &quot;10000&quot;);\nprops.put(StreamsConfig.producerPrefix(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG), &quot;10000&quot;);\nprops.put(StreamsConfig.producerPrefix(ProducerConfig.RETRIES_CONFIG), 0);\n</code></pre>\n<p>I tried adjusting these producer properties, but Kafka Streams still attempts to handle the error indefinitely</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

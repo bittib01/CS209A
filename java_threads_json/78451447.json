@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "tensorflow-lite",
+      "android-bitmap"
+    ],
+    "owner": {
+      "account_id": 29558624,
+      "reputation": 1,
+      "user_id": 22653693,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/99a6d19c51907c8a326f60af8d6080d6?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Ethan W",
+      "link": "https://stackoverflow.com/users/22653693/ethan-w"
+    },
+    "is_answered": false,
+    "view_count": 80,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1727131254,
+    "creation_date": 1715207904,
+    "last_edit_date": 1727131254,
+    "question_id": 78451447,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78451447/buffer-size-is-not-large-enough-for-pixels-for-analysis-in-tensorflow-lite",
+    "title": "Buffer size is not large enough for pixels for analysis in TensorFlow Lite",
+    "body": "<p>I have been trying to put a TensorFlow Lite model into an app that I have been working on in Java on Android Studio. I have got the model into the app, but whenever it takes a picture and sends it through it, I get errors about the Buffer size not being large enough for the pixels.</p>\n<p>Here is the Java:</p>\n<pre><code>@androidx.camera.core.ExperimentalGetImage\n    private void takeAndAnalyzeImage() {\n        if (imageCapture != null) {\n            imageCapture.takePicture(cameraExecutor, new ImageCapture.OnImageCapturedCallback() {\n                @Override\n                public void onCaptureSuccess(ImageProxy image) {\n                    super.onCaptureSuccess(image);\n                    Log.d(&quot;CameraXApp&quot;, &quot;Image capture success. Processing image...&quot;);\n                    Image mediaImage = image.getImage();\n                    if (mediaImage != null) {\n                        Log.d(&quot;CameraXApp&quot;, &quot;Captured image received. Dimensions: &quot; + mediaImage.getWidth() + &quot;x&quot; + mediaImage.getHeight());\n                        try {\n                            Log.d(&quot;CameraXApp&quot;, &quot;Converting to Bitmap...&quot;);\n                            Bitmap bitmap = toBitmap(mediaImage);\n                            if (bitmap != null) { // Check if bitmap is not null\n                                Log.d(&quot;CameraXApp&quot;, &quot;Bitmap conversion successful. Resizing...&quot;);\n                                // Resize the bitmap to fit the model input size (224x224)\n                                Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 224, 224, true);\n                                TensorImage tensorImage = TensorImage.fromBitmap(resizedBitmap);\n                                runInference(tensorImage);\n                            } else {\n                                Log.e(&quot;CameraXApp&quot;, &quot;Bitmap is null. Cannot resize image.&quot;);\n                            }\n                        } catch (Exception e) {\n                            Log.e(&quot;CameraXApp&quot;, &quot;Error converting image to Bitmap: &quot; + e.getMessage());\n                        }\n                    }\n                    image.close();\n                }\n\n\n                @Override\n                public void onError(ImageCaptureException exception) {\n                    Log.e(&quot;CameraXApp&quot;, &quot;Photo capture failed: &quot; + exception.getMessage());\n                }\n            });\n        } else {\n            Log.e(&quot;CameraXApp&quot;, &quot;imageCapture is null. Cannot capture image.&quot;);\n        }\n    }\n    \n    private Bitmap toBitmap(Image image) {\n        try {\n            ByteBuffer buffer = image.getPlanes()[0].getBuffer();\n            int width = image.getWidth();\n            int height = image.getHeight();\n            int pixelStride = image.getPlanes()[0].getPixelStride();\n            int rowStride = image.getPlanes()[0].getRowStride();\n            int pixelFormat = image.getFormat();\n\n            // Calculate the expected size based on image dimensions and pixel format\n            int expectedSize;\n            switch (pixelFormat) {\n                case ImageFormat.YUV_420_888:\n                    expectedSize = width * height * 3 / 2; // YUV_420_888 format\n                    break;\n                case ImageFormat.JPEG:\n                    expectedSize = buffer.capacity(); // JPEG format\n                    break;\n                default:\n                    expectedSize = width * height * 4; // Default to ARGB_8888 format\n                    break;\n            }\n\n            Log.d(&quot;CameraXApp&quot;, &quot;Buffer size: &quot; + buffer.capacity() + &quot;, Expected size: &quot; + expectedSize);\n\n            // Ensure the buffer size is large enough for the pixels\n            if (buffer.capacity() &lt; expectedSize) {\n                Log.e(&quot;CameraXApp&quot;, &quot;Buffer not large enough for pixels&quot;);\n                return null;\n            }\n\n            // Check if pixelStride is zero to avoid divide by zero error\n            int adjustedWidth = pixelStride != 0 ? width + (rowStride / pixelStride - 1) : width;\n            Bitmap bitmap = Bitmap.createBitmap(adjustedWidth, height, Bitmap.Config.ARGB_8888);\n            bitmap.copyPixelsFromBuffer(buffer);\n            return bitmap;\n        } catch (Exception e) {\n            Log.e(&quot;CameraXApp&quot;, &quot;Error converting image to Bitmap: &quot; + e.getMessage());\n            return null;\n        }\n    }\n\n\n    private void runInference(TensorImage tensorImage) {\n        try {\n            FinalModel.Outputs outputs = model.process(tensorImage.getTensorBuffer());\n            TensorBuffer outputFeature0 = outputs.getOutputFeature0AsTensorBuffer();\n            // Process the output as needed\n\n            // Add a log message to indicate successful analysis\n            Log.d(&quot;ImageAnalysis&quot;, &quot;Image analysis completed successfully&quot;);\n\n        } catch (Exception e) {\n            Log.e(&quot;Error&quot;, &quot;Error running inference: &quot; + e.getMessage());\n        }\n    }\n</code></pre>\n<p>I have tried to convert the photos to JPEGs once they have been taken, changing the way that the buffer size is calculated, changing how the pixelStride and rowStride are calculated, rewinding the bitmap and calculating a larger one, as well as changing how the rowPadding is calculated and used. All of it has led to the same error of the buffer size not being large enough for the pixels and stopping processing once it tries to convert the image to a bitmap.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

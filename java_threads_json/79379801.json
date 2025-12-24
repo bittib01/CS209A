@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "solana"
+    ],
+    "owner": {
+      "account_id": 31110360,
+      "reputation": 11,
+      "user_id": 23919600,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/0a4739292f7b2676c58d9370d1b6a782?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Chao Wei",
+      "link": "https://stackoverflow.com/users/23919600/chao-wei"
+    },
+    "is_answered": false,
+    "view_count": 88,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1738018634,
+    "creation_date": 1737604870,
+    "last_edit_date": 1738018634,
+    "question_id": 79379801,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79379801/how-can-i-send-usdt-on-solana-chain-through-solanaj",
+    "title": "How can I send usdt on solana chain through solanaj",
+    "body": "<p>I used solansj version 1.20.2 to send usdt on the Solana chain, but after generating signature, I couldn't find the relevant record on the chain. Is there any problem with the code?</p>\n<p>The real problem is: signature (transaction hash) can be generated normally, and no errors are reported, but the transaction is not found on the blockchain.</p>\n<p>Solanaj version:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;dependency&gt;\n   &lt;groupId&gt;com.mmorrell&lt;/groupId&gt;\n   &lt;artifactId&gt;solanaj&lt;/artifactId&gt;\n   &lt;version&gt;1.20.2&lt;/version&gt;\n&lt;/dependency&gt;\n</code></pre>\n<p>The code is below:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public static String transferUsdt(CryptoAccount fromAccount, String toAddress, long amount) {\n    RpcClient rpcClient = new RpcClient(Cluster.MAINNET);\n    String senderPrivateKeyBase58 = fromAccount.getPrivateKey();\n    Account senderAccount = new Account(Base58.decode(senderPrivateKeyBase58));\n    try {\n        PublicKey usdtPublicKey = PublicKey.valueOf(&quot;Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB&quot;);\n        PublicKey tokenAccountFrom = rpcClient.getApi().getTokenAccountsByOwner(senderAccount.getPublicKey(), usdtPublicKey);\n        PublicKey tokenAccountTo = rpcClient.getApi().getTokenAccountsByOwner(new PublicKey(toAddress), usdtPublicKey);\n\n        Transaction transaction = new Transaction();\n        transaction.addInstruction(\n                ComputeBudgetProgram.setComputeUnitPrice(80000) \n        );\n        transaction.addInstruction(\n                TokenProgram.transfer(\n                        tokenAccountFrom,         \n                        tokenAccountTo,   \n                        amount, \n                        senderAccount.getPublicKey()\n\n                )\n        );\n\n        \n        String signature = rpcClient.getApi().sendTransaction(transaction, senderAccount);\n\n        \n        ConfirmedTransaction confirmedTransaction = rpcClient.getApi().getTransaction(signature);\n        \n        long start = System.currentTimeMillis();\n        while (Objects.isNull(confirmedTransaction) &amp;&amp; (System.currentTimeMillis() - start) &lt; 120000) {\n            Thread.sleep(5000);\n            SignatureStatuses signatureStatuses = rpcClient.getApi().getSignatureStatuses(List.of(signature), true);\n            if (Objects.isNull(signatureStatuses)) {\n                System.out.println(&quot;transaction fail&quot;);\n                break;\n            }\n            confirmedTransaction = rpcClient.getApi().getTransaction(signature);\n        }\n        if (Objects.nonNull(confirmedTransaction) &amp;&amp; Objects.isNull(confirmedTransaction.getMeta().getErr())) {\n            \n            return signature;\n        }\n    } catch (RpcException e) {\n    } catch (InterruptedException e) {\n        throw new RuntimeException(e);\n    }\n    return null;\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

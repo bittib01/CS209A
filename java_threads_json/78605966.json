@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "hibernate",
+      "jpa",
+      "spring-data-jpa"
+    ],
+    "owner": {
+      "account_id": 15062605,
+      "reputation": 1267,
+      "user_id": 10870817,
+      "user_type": "registered",
+      "profile_image": "https://lh5.googleusercontent.com/-8goHuYmYzvs/AAAAAAAAAAI/AAAAAAAAAAA/AKxrwcYE17avw1xet-xvMk8poXH7hb8Y8A/mo/s256-rj/photo.jpg",
+      "display_name": "SoT",
+      "link": "https://stackoverflow.com/users/10870817/sot"
+    },
+    "is_answered": true,
+    "view_count": 407,
+    "accepted_answer_id": 78668405,
+    "answer_count": 3,
+    "score": 0,
+    "last_activity_date": 1719481861,
+    "creation_date": 1718090603,
+    "last_edit_date": 1719481861,
+    "question_id": 78605966,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78605966/jpql-how-to-join-fetch-a-list-with-anymatch-condition-against-the-list",
+    "title": "JPQL how to JOIN FETCH a List with anymatch condition against the List",
+    "body": "<p>Given Entities:</p>\n<pre><code>@Entity\n@Data\npublic class Collection {\n\n  @Id\n  @GeneratedValue(strategy = GenerationType.IDENTITY)\n  private Long id;\n\n  private String createdBy;\n\n  @OneToMany(mappedBy = &quot;collection&quot;)\n  private List&lt;CollectionAccess&gt; collectionAccesses;\n\n}\n\n@Entity\n@Data\npublic class CollectionAccess {\n\n  @Id\n  @GeneratedValue(strategy = GenerationType.IDENTITY)\n  private Long id;\n\n  @ManyToOne\n  @JoinColumn(\n      foreignKey =\n          @ForeignKey(\n              value = ConstraintMode.PROVIDER_DEFAULT,\n              name = &quot;fk_collectionaccess_collection_collections_id&quot;))\n  private Collection collection;\n\n  private Integer accessType;\n  private LocalDateTime expirationAtUtc;\n}\n</code></pre>\n<p>Given database:</p>\n<pre><code>select id, created_by from collection;\n+----+------------+\n| id | created_by |\n+----+------------+\n| 40 |   ABC123   |\n+----+------------+\n\nselect * from collection_access;\n+----+-------------+----------------------------+---------------+\n| id | access_type | expiration_at_utc          | collection_id |\n+----+-------------+----------------------------+---------------+\n|  2 |           0 | 2011-12-03 03:15:30.000000 |            40 |\n|  3 |           1 | 2011-12-03 03:15:30.000000 |            40 |\n+----+-------------+----------------------------+---------------+\n</code></pre>\n<p>As you guys can see, the collection 40 has 2 collection_access 2 and 3.</p>\n<p>I want to do JPQL <code>select</code> a <code>Collection</code> that:</p>\n<ol>\n<li>Has id value is 40 AND</li>\n<li><code>join fetch</code> its <code>CollectionAccess</code> with a condition: if (<code>createdBy</code> match) OR (any <code>CollectionAccess</code> has <code>accessType = 1</code> AND <code>expirationAtUtc &lt;= now</code>). Why join fetch? Because of N + 1</li>\n<li>The conditions against <code>CollectionAccess</code> is for matching <code>Collection</code>, NOT for filtering out any <code>CollectionAccess</code> inside <code>Collection</code></li>\n</ol>\n<p>(JOIN FETCH prevents N + 1 queries issue):</p>\n<pre><code>createQuery(\n      &quot;SELECT c FROM Collection c &quot;\n          + &quot;LEFT JOIN FETCH c.collectionAccesses ca WHERE c.id = ?1 &quot;\n          + &quot;AND (c.createdBy = ?2 OR (ca.accessType = ?3 AND ca.expirationAtUtc &lt;= ?4))&quot;,\n      Collection.class)\n  .setParameter(1, id)\n  .setParameter(2, &quot;DUMMY DATA&quot;)\n  .setParameter(3, 1)\n  .setParameter(4, now)\n  getSingleResult();\n</code></pre>\n<p>I expect that after executing this query, I will get a <code>Collection</code> have id 40 and its TWO <code>CollectionAccess</code>, but it give me ONLY ONE <code>CollectionAccess</code> which has id 3. PLEASE NOTE THAT I SET A DUMMY/WRONG DATA TO ?2</p>\n<p>I have done some research and found <a href=\"https://stackoverflow.com/a/51177569/10870817\">this Stackoverflow topic</a> (main idea is we will have both JOIN and JOIN FETCH).</p>\n<p>Based on that, I changed the query to:</p>\n<pre><code>createQuery(&quot;SELECT c FROM Collection c LEFT JOIN c.collectionAccesses ca &quot;\n          + &quot;LEFT JOIN FETCH c.collectionAccesses WHERE c.id = ?1 &quot;\n          + &quot;AND (c.createdBy = ?2 OR (ca.accessType = ?3 AND ca.expirationAtUtc &lt;= ?4))&quot;,\n      Collection.class)\n  .setParameter(1, id)\n  .setParameter(2, &quot;ABC123&quot;)  //NOW I SET CORRECT DATA TO ?2\n  .setParameter(3, 1)\n  .setParameter(4, now)\n  getSingleResult();\n</code></pre>\n<p>Now it return to me DUPLICATED <a href=\"https://i.sstatic.net/gwXlqd3I.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/gwXlqd3I.png\" alt=\"CollectionAccess\" /></a> that seems to be wrong!!</p>\n<p>Then I decided to write nesting <code>select</code> and hope that it will work:</p>\n<pre><code>createQuery(\n      &quot;SELECT t FROM (SELECT c FROM Collection c &quot;\n              + &quot;LEFT JOIN c.collectionAccesses ca WHERE c.id = ?1 &quot;\n              + &quot;AND (c.createdBy = ?2 OR (ca.accessType = ?3 AND ca.expirationAtUtc &lt;= ?4))) t &quot;\n              + &quot;JOIN FETCH t.collectionAccesses &quot;,\n      Collection.class)\n  .setParameter(1, id)\n  .setParameter(2, &quot;ABC123&quot;)\n  .setParameter(3, 1)\n  .setParameter(4, now)\n  getSingleResult();\n</code></pre>\n<p>BUT NO LUCK:</p>\n<pre><code>java.lang.IllegalArgumentException: org.hibernate.query.SemanticException: Select item at position 1 in select list has no alias (aliases are required in CTEs and in subqueries occurring in from clause)\n    at org.hibernate.internal.ExceptionConverterImpl.convert(ExceptionConverterImpl.java:143) ~[hibernate-core-6.4.4.Final.jar:6.4.4.Final]\n</code></pre>\n<p>How can i archive this goal?</p>\n<blockquote>\n<p>I want to do JPQL select a Collection that:</p>\n<ol>\n<li>Has id value is 40 AND</li>\n<li>join fetch its CollectionAccess with a condition: if (createdBy match) OR (any CollectionAccess has accessType = 1 AND expirationAtUtc\n&lt;= now)</li>\n<li>The conditions against CollectionAccess is for matching Collection, NOT for filtering out any CollectionAccess inside\nCollection</li>\n</ol>\n</blockquote>\n<blockquote>\n<p>I expect that after executing this query, I will get a <code>Collection</code> have id 40 and its TWO <code>CollectionAccess</code></p>\n</blockquote>\n<p>Is it possible via JPQL? If not, could you suggest a solution?</p>\n<p>Please help, thank you so much!!</p>\n<p>========================================================<br />\nUPDATE:\nUse <code>Exists</code> like Olivier suggested works, but 2 queries generated. Could it cause performace issue?\n<a href=\"https://i.sstatic.net/fjdqKO6t.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/fjdqKO6t.png\" alt=\"enter image description here\" /></a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

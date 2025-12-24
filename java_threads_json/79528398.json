@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-webflux",
+      "handler"
+    ],
+    "owner": {
+      "account_id": 13518651,
+      "reputation": 21,
+      "user_id": 9752551,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/1965f13ba747f2eba223e93ff66e6e4c?s=256&d=identicon&r=PG",
+      "display_name": "jclaros",
+      "link": "https://stackoverflow.com/users/9752551/jclaros"
+    },
+    "is_answered": false,
+    "view_count": 27,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1742699613,
+    "creation_date": 1742699613,
+    "question_id": 79528398,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79528398/spring-web-flux-routeget-handlermethod-detects-handlermethod-as-an",
+    "title": "Spring Web Flux route(GET..., handler::method) -&gt; detects handler::method as an Object. Why?",
+    "body": "<p>I have a routerClass defined with a route( Request,handlerMethod) but when Im going to compile it detects the handler method as if it were an Object instead of a handler Method is there anything I miss here?.</p>\n<p>Router Class:</p>\n<pre><code>import org.springframework.beans.factory.annotation.Autowired;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\nimport org.springframework.web.reactive.function.server.RouterFunction;\nimport org.springframework.web.reactive.function.server.RouterFunctions;\nimport org.springframework.web.reactive.function.server.ServerResponse;\nimport org.springframework.web.servlet.function.RequestPredicates;\nimport org.springframework.web.reactive.function.server.ServerRequest;\n\n\nimport com.scotiabank.app.controllers.Handler.AlumnoHandler;\n\nimport static org.springframework.web.reactive.function.server.RouterFunctions.route;\nimport static org.springframework.web.reactive.function.server.RequestPredicates.*;\n\n@Configuration\npublic class AlumnoRouterFunctionConfig {\n    \n    \n    @Bean\n    public RouterFunction&lt;ServerResponse&gt; routes(AlumnoHandler handler){\n        return route(GET(&quot;/api/alumnos/getAlumno&quot;),handler::listar);\n        \n    }\n\n}\n</code></pre>\n<p>Handler class:</p>\n<pre><code>\nimport org.springframework.beans.factory.annotation.Autowired;\nimport org.springframework.http.MediaType;\nimport org.springframework.stereotype.Component;\nimport org.springframework.web.reactive.function.server.ServerRequest;\nimport org.springframework.web.servlet.function.ServerResponse;\n\nimport com.scotiabank.app.business.AlumnoService;\nimport reactor.core.publisher.Mono;\n\nimport static org.springframework.web.reactive.function.BodyInserters.*;\n\n\n@Component\npublic class AlumnoHandler {\n    @Autowired\n    private AlumnoService alumnoService;\n    \n    public Mono&lt;ServerResponse&gt; listar (ServerRequest request){\n        return alumnoService.getActiveAlumnos()\n                .collectList()\n                .flatMap(alumnos-&gt;{\n                    if(alumnos.isEmpty()) {return Mono.just(ServerResponse.notFound().build());}\n                    else {return Mono.just(ServerResponse.ok()\n                            .contentType(MediaType.APPLICATION_JSON)\n                            .body(fromObject(alumnos)));}\n                });\n    }\n\n}\n</code></pre>\n<p>I tried changing the list method on the handler and searched I have to do something more so it is detected as a handler and not as an object.\nI also tried to auto wire but it equally detected as an object.</p>\n<p>Thank you very much.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

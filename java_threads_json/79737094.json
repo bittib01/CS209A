@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "maven",
+      "graalvm",
+      "spring-native"
+    ],
+    "owner": {
+      "account_id": 2876792,
+      "reputation": 2123,
+      "user_id": 2468620,
+      "user_type": "registered",
+      "accept_rate": 56,
+      "profile_image": "https://i.sstatic.net/gwxRJV7I.jpg?s=256",
+      "display_name": "Jardo",
+      "link": "https://stackoverflow.com/users/2468620/jardo"
+    },
+    "is_answered": false,
+    "view_count": 139,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1755416141,
+    "creation_date": 1755338790,
+    "last_edit_date": 1755385089,
+    "question_id": 79737094,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79737094/specify-march-in-a-spring-boot-native-build",
+    "title": "Specify `--march` in a Spring Boot Native Build",
+    "body": "<p>I am building a Spring Boot native image using <code>mvn spring-boot:build-image</code> in a GitHub workflow.</p>\n<p>When I try running the image on my VM, I get the following error:</p>\n<blockquote>\n<p>The current machine does not support all of the following CPU features that are required by the image: [CX8, CMOV, FXSR, MMX, SSE, SSE2, SSE3, SSSE3, SSE4_1, SSE4_2, POPCNT, LZCNT, AVX, AVX2, BMI1, BMI2, FMA].<br />\nPlease rebuild the executable with an appropriate setting of the -march option.</p>\n</blockquote>\n<p>I tried specifying <code>--march=--march=x86_64</code> in multiple ways, but none of them seems to work.</p>\n<p>In <code>pom.xml</code>:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;profiles&gt;\n    &lt;profile&gt;\n        &lt;id&gt;native&lt;/id&gt;\n        &lt;build&gt;\n            &lt;pluginManagement&gt;\n                &lt;plugins&gt;\n                    &lt;plugin&gt;\n                        &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;\n                        &lt;artifactId&gt;native-maven-plugin&lt;/artifactId&gt;\n                        &lt;executions&gt;\n                            &lt;execution&gt;\n                                &lt;goals&gt;\n                                    &lt;goal&gt;build&lt;/goal&gt;\n                                &lt;/goals&gt;\n                                &lt;configuration&gt;\n                                    &lt;buildArgs&gt;\n                                        &lt;buildArg&gt;--march=x86-64&lt;/buildArg&gt;\n                                    &lt;/buildArgs&gt;\n                                &lt;/configuration&gt;\n                            &lt;/execution&gt;\n                        &lt;/executions&gt;\n                    &lt;/plugin&gt;\n                    &lt;plugin&gt;\n                        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n                        &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;\n                        &lt;executions&gt;\n                            &lt;execution&gt;\n                                &lt;id&gt;process-aot&lt;/id&gt;\n                                &lt;configuration&gt;\n                                    &lt;profiles&gt;native&lt;/profiles&gt;\n                                &lt;/configuration&gt;\n                            &lt;/execution&gt;\n                        &lt;/executions&gt;\n                    &lt;/plugin&gt;\n                &lt;/plugins&gt;\n            &lt;/pluginManagement&gt;\n        &lt;/build&gt;\n    &lt;/profile&gt;\n&lt;/profiles&gt;\n</code></pre>\n<p>Also in different ways with the build command:</p>\n<pre class=\"lang-bash prettyprint-override\"><code>mvn -B -P native spring-boot:build-image -Dspring-boot.build-image.nativeArgs=&quot;--march=x86_64&quot;\n\nmvn -B -P native spring-boot:build-image -Dspring-boot.build-image.nativeArgs=--march=x86_64\n\nmvn -B -P native spring-boot:build-image -Dspring.native.build-args=--march=x86-64\n</code></pre>\n<p>What is the correct way to specify the <code>--march</code> argument?</p>\n<p>Spring Boot version: 3.4.3</p>\n<p>GraalVM version: 21</p>\n<p><strong>Edit</strong></p>\n<p>After responses from Elliott Frisch and Raul Lapeira Herrero I also tried these options, which didn't work:</p>\n<pre class=\"lang-bash prettyprint-override\"><code>mvn -B -P native spring-boot:build-image -Dspring-boot.build-image.nativeArgs=-march=x86-64\n\nmvn -B -P native spring-boot:build-image -Dspring.native.build-args=-march=x86-64\n</code></pre>\n<p>Also this failed in <code>pom.xml</code>:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;plugin&gt;\n    &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;\n    &lt;artifactId&gt;native-maven-plugin&lt;/artifactId&gt;\n    &lt;executions&gt;\n        &lt;execution&gt;\n            &lt;goals&gt;\n                &lt;goal&gt;build&lt;/goal&gt;\n            &lt;/goals&gt;\n            &lt;configuration&gt;\n                &lt;buildArgs&gt;\n                    &lt;buildArg&gt;-march=x86-64&lt;/buildArg&gt;\n                &lt;/buildArgs&gt;\n            &lt;/configuration&gt;\n        &lt;/execution&gt;\n    &lt;/executions&gt;\n&lt;/plugin&gt;\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

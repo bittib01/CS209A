@@ -1,0 +1,37 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "jackson",
+      "objectmapper",
+      "jackson-dataformat-xml"
+    ],
+    "owner": {
+      "account_id": 4647011,
+      "reputation": 45082,
+      "user_id": 3764965,
+      "user_type": "registered",
+      "accept_rate": 94,
+      "profile_image": "https://i.sstatic.net/7O3Pe.jpg?s=256",
+      "display_name": "Nikolas",
+      "link": "https://stackoverflow.com/users/3764965/nikolas"
+    },
+    "is_answered": true,
+    "view_count": 578,
+    "accepted_answer_id": 78781556,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1722511355,
+    "creation_date": 1721664787,
+    "last_edit_date": 1721665389,
+    "question_id": 78779767,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78779767/how-to-force-xmlmapper-to-retain-the-root-element",
+    "title": "How to force XmlMapper to retain the root element?",
+    "body": "<p>I have the following minimal code:</p>\n<pre class=\"lang-java prettyprint-override\"><code>final var xmlString = &quot;&lt;parent&gt;&lt;child&gt;data&lt;/child&gt;&lt;/parent&gt;&quot;;\n\nfinal var xmlMapper = XmlMapper.xmlBuilder()\n    .enable(SerializationFeature.INDENT_OUTPUT)\n    .build();\n\nfinal var tree = xmlMapper.reader().readTree(xmlString);\n\nfinal var formattedXmlString = xmlMapper.writeValueAsString(tree);\n\nSystem.out.println(formattedXmlString);\n</code></pre>\n<p>My goal is to parse and beautify the XML string for the sake of logging. I have available <code>xmlString</code> on the input.</p>\n<p>The code yields the XML beautified, but it ignores the root node caused by parsing to JSON tree (that is the default behavior of <code>ObjectMapper</code> that is a parent of <code>XmlMapper</code>).</p>\n<blockquote>\n<pre><code>&lt;ObjectNode&gt;\n  &lt;child&gt;data&lt;/child&gt;\n&lt;/ObjectNode&gt;\n</code></pre>\n</blockquote>\n<p>I expect the following instead:</p>\n<blockquote>\n<pre><code>&lt;parent&gt;\n  &lt;child&gt;data&lt;/child&gt;\n&lt;/parent&gt;\n</code></pre>\n</blockquote>\n<p>How to change <code>&lt;ObjectNode&gt;</code> root to the original <code>&lt;parent&gt;</code>? I have experimented with wrapping and unwrapping, but no luck. I also don't have any POJO object to annotate and use as the content of <code>xmlString</code> can be anything XML-ish.</p>\n<p>I want to avoid manual parsing of the root element name and Regex substitution. Although this workaround works, it feels completely wrong:</p>\n<pre class=\"lang-java prettyprint-override\"><code>final var tree = xmlMapper.reader().readTree(&quot;&lt;_&gt;&quot; + xmlString + &quot;&lt;/_&gt;&quot;);\n\nfinal var formattedXmlString = xmlMapper\n    .writeValueAsString(tree)\n    .replaceFirst(&quot;^&lt;ObjectNode&gt;\\n&quot;, &quot;&quot;)\n    .replaceAll(&quot;&lt;/ObjectNode&gt;$&quot;, &quot;&quot;)\n    .replaceAll(&quot; {2}(.*)&quot;, &quot;$1&quot;);\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "linux",
+      "bash",
+      "service",
+      "systemd"
+    ],
+    "owner": {
+      "account_id": 19887325,
+      "reputation": 45,
+      "user_id": 14570079,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/175a9ff4f948b04848ec23f7755479ff?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "VicVerevita",
+      "link": "https://stackoverflow.com/users/14570079/vicverevita"
+    },
+    "is_answered": true,
+    "view_count": 119,
+    "accepted_answer_id": 79533623,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1742904378,
+    "creation_date": 1742555604,
+    "last_edit_date": 1742570700,
+    "question_id": 79525280,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79525280/running-a-java-application-via-a-systemd-service-doesnt-see-additional-director",
+    "title": "Running a java application via a systemd service doesn&#39;t see additional directories (Rocky Linux)",
+    "body": "<p>I am trying to make a local machine restart to the new version control build of my java application. Let me run you through the flow:</p>\n<ul>\n<li>.jar file is uploaded via ssh to a directory</li>\n<li>a service is running a script that checks if the file has been changed/uploaded/etc</li>\n<li>after the script checks that the file has been fully downloaded, it restarts the troublesome service</li>\n<li>the troublesome service runs a shell script that only checks if the file is there and runs <code>java -jar &lt;build-file&gt;.jar</code>.</li>\n</ul>\n<p>What I am stuck upon is that I have a media directory in the working folder (where the jar file is as well). The application runs normal, compiled videos but from time to time it also runs videos from the media directory (I need that because I have an external video source as well).</p>\n<p>When I start the file with the command by myself, it works. When I start the script by myself, it works. But when the service starts it, the directory isn't seen.</p>\n<p>This is the service:</p>\n<pre><code>[Unit]\nDescription=DMR Service\n\n[Service]\nWorkingDirectory=/home/ops/DMR\nExecStart=sh run.sh\nRestart=on-failure\nRestartSec=15s\nStartLimitInterval=500\nStartLimitBurst=15\nTimeoutSec=300\nStandardOutput=journal\nStandardError=journal\nEnvironment=DISPLAY=:0\nEnvironment=XAUTHORITY=/home/ops/.Xauthority\nUser=ops\nGroup=ops\n\n[Install]\nWantedBy=multi-user.target\n</code></pre>\n<p>I checked the path, it's the same because the application runs. I checked the rights to the directory and I have access with my user. What am I missing?</p>\n<p>Edit: Added the script /home/ops/DMR/run.sh to leave out the possibility of subdirectories without rights</p>\n<pre><code>#!/bin/sh\nset -e\n\ncd /home/ops/DMR\nls -l\n\nfile=$(find . -maxdepth 1 -type f -name &quot;*.jar&quot; | head -n 1)\n\nif [ -z &quot;$file&quot; ]; then\n    echo &quot;No .jar file found in the directory.&quot;\n    exit 1\nfi\n\necho &quot;$file is a .jar file&quot;\njava -jar $file\n</code></pre>\n<p>I will put an emphasis again on the fact that if I run the script as ops user, the whole thing works.</p>\n<p><code>ls -l</code> output on working directory:</p>\n<pre><code>drwxr-xr-x. 4 ops ops        29 Mar 20 15:25 data\n-rw-r--r--. 1 ops ops 263641531 Mar 21 10:31 &lt;application-name&gt;.jar\ndrwxr-xr-x. 2 ops ops      4096 Mar 21 10:59 logs\n-rwxr-xr-x. 1 ops ops       235 Mar 21 10:34 run.sh\n</code></pre>\n<p>Edit 2 - what I think could be the problem:</p>\n<p>I am suspecting that the problem is some environment variable about ffmpeg. I need it only for the videos in the external directory to be played - this was the problem before installing it. The pre-compiled videos in the jar file are still played and running - as expected - but the ones that require ffmpeg are not.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

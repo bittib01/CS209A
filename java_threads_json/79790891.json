@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "completable-future"
+    ],
+    "owner": {
+      "account_id": 44318710,
+      "reputation": 41,
+      "user_id": 31691468,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/430ba9a3db506e5470966ffb64d14219?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Chris Hou",
+      "link": "https://stackoverflow.com/users/31691468/chris-hou"
+    },
+    "is_answered": true,
+    "view_count": 116,
+    "closed_date": 1760740265,
+    "accepted_answer_id": 79790985,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1760519883,
+    "creation_date": 1760513274,
+    "last_edit_date": 1760519883,
+    "question_id": 79790891,
+    "link": "https://stackoverflow.com/questions/79790891/why-the-method-allof-in-completablefuture-java-is-implemented-by-using-somethi",
+    "closed_reason": "Needs more focus",
+    "title": "Why the method allOf() in CompletableFuture.java is implemented by using something like balanced tree?",
+    "body": "<p>I find that the method allOf() in CompletableFuture.java is implemented by using something like balanced tree.\nI'm curious why it's implemented like that?\nCan it be implemented by using something else, such as ConcurrentHashMap and AutomicInteger?</p>\n<p>I checked the source code of that class.</p>\n<pre><code>/** Recursively constructs a tree of completions. */\nstatic CompletableFuture&lt;Void&gt; andTree(CompletableFuture&lt;?&gt;[] cfs, int lo, int hi) {\n    CompletableFuture&lt;Void&gt; d = new CompletableFuture&lt;Void&gt;();\n\n    if (lo &gt; hi) // empty\n        d.result = NIL;\n    else {\n        CompletableFuture&lt;?&gt; a, b;\n        int mid = (lo + hi) &gt;&gt;&gt; 1;\n\n        if ((a = (lo == mid ? cfs[lo] :\n                  andTree(cfs, lo, mid))) == null ||\n            (b = (lo == hi ? a : (hi == mid+1) ? cfs[hi] :\n                  andTree(cfs, mid+1, hi)))  == null)\n            throw new NullPointerException();\n\n        if (!d.biRelay(a, b)) {\n            BiRelay&lt;?,?&gt; c = new BiRelay&lt;&gt;(d, a, b);\n            a.bipush(b, c);\n            c.tryFire(SYNC);\n        }\n    }\n    return d;\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

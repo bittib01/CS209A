@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "kotlin",
+      "gradle"
+    ],
+    "owner": {
+      "account_id": 30637324,
+      "reputation": 39,
+      "user_id": 23486478,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/d1647d7de6770064990c56ddf6ebb092?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "BloodFury",
+      "link": "https://stackoverflow.com/users/23486478/bloodfury"
+    },
+    "is_answered": false,
+    "view_count": 67,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1757935490,
+    "creation_date": 1757675267,
+    "question_id": 79762850,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79762850/maven-publication-mavenjava-cannot-include-multiple-components-but-mavenkotli",
+    "title": "Maven publication &#39;mavenJava&#39; cannot include multiple components, but mavenKotlin works",
+    "body": "<p>I am trying to build springframework jars from source, for <code>spring-context</code> jar I tried publishing using mavenJava but it fails with error-</p>\n<pre><code>Maven publication 'mavenJava' cannot include multiple components\n</code></pre>\n<p>now when I change <code>mavenJava</code> to <code>mavenKotlin</code> this works and the artifacts are published to our local repository...</p>\n<p>but during our application but we are observing these error messages for multiple spring components -</p>\n<pre><code>Errors occurred while building effective model from /scratch/home/user/.gradle/caches/modules-2/files-2.1/org.springframework/spring-context/6.2.9/8cf50d5d6ff3b7e50628549e6a944bb90c5b7531/spring-context-6.2.9.pom:\n        'dependencies.dependency.version' for io.micrometer:micrometer-observation:jar is missing. in org.springframework:spring-context:6.2.9\n</code></pre>\n<p>I noticed that the pom generated under <code>mavenKotlin</code> does not have <code>micrometer-observation</code> version mentioned where as the one under <code>mavenJava</code> does. This seems more of a warning than an error because the application builds successfully but would like to get rid of this.</p>\n<p>I tried to make few changes to build.gradle but nothing seems to be working... help me understand the issue and fix it.</p>\n<p>modified spring-context build.gradle:</p>\n<pre><code>plugins {\n    id 'org.springframework.build.runtimehints-agent'\n    id &quot;maven-publish&quot;\n}\n\ndescription = &quot;Spring Context&quot;\n\napply plugin: &quot;kotlin&quot;\n\ndependencies {\n    api(project(&quot;:spring-aop&quot;))\n    api(project(&quot;:spring-beans&quot;))\n    api(project(&quot;:spring-core&quot;))\n    api(project(&quot;:spring-expression&quot;))\n    api(&quot;io.micrometer:micrometer-observation&quot;)\n    optional(project(&quot;:spring-instrument&quot;))\n    optional(&quot;io.micrometer:context-propagation&quot;)\n    optional(&quot;io.projectreactor:reactor-core&quot;)\n    optional(&quot;jakarta.annotation:jakarta.annotation-api&quot;)\n    optional(&quot;jakarta.ejb:jakarta.ejb-api&quot;)\n    optional(&quot;jakarta.enterprise.concurrent:jakarta.enterprise.concurrent-api&quot;)\n    optional(&quot;jakarta.inject:jakarta.inject-api&quot;)\n    optional(&quot;jakarta.interceptor:jakarta.interceptor-api&quot;)\n    optional(&quot;jakarta.validation:jakarta.validation-api&quot;)\n    optional(&quot;javax.annotation:javax.annotation-api&quot;)\n    optional(&quot;javax.inject:javax.inject&quot;)\n    optional(&quot;javax.money:money-api&quot;)\n    optional(&quot;org.apache.groovy:groovy&quot;)\n    optional(&quot;org.apache-extras.beanshell:bsh&quot;)\n    optional(&quot;org.aspectj:aspectjweaver&quot;)\n    optional(&quot;org.crac:crac&quot;)\n    optional(&quot;org.hibernate:hibernate-validator&quot;)\n    optional(&quot;org.jetbrains.kotlin:kotlin-reflect&quot;)\n    optional(&quot;org.jetbrains.kotlin:kotlin-stdlib&quot;)\n    optional(&quot;org.jetbrains.kotlinx:kotlinx-coroutines-core&quot;)\n    optional(&quot;org.reactivestreams:reactive-streams&quot;)\n    testFixturesApi(&quot;org.junit.jupiter:junit-jupiter-api&quot;)\n    testFixturesImplementation(testFixtures(project(&quot;:spring-beans&quot;)))\n    testFixturesImplementation(&quot;com.google.code.findbugs:jsr305&quot;)\n    testFixturesImplementation(&quot;io.projectreactor:reactor-test&quot;)\n    testFixturesImplementation(&quot;org.assertj:assertj-core&quot;)\n    testImplementation(project(&quot;:spring-core-test&quot;))\n    testImplementation(testFixtures(project(&quot;:spring-aop&quot;)))\n    testImplementation(testFixtures(project(&quot;:spring-beans&quot;)))\n    testImplementation(testFixtures(project(&quot;:spring-core&quot;)))\n    testImplementation(&quot;jakarta.inject:jakarta.inject-tck&quot;)\n    testImplementation(&quot;org.apache.commons:commons-pool2&quot;)\n    testImplementation(&quot;org.apache.groovy:groovy-jsr223&quot;)\n    testImplementation(&quot;org.apache.groovy:groovy-xml&quot;)\n    testImplementation(&quot;org.awaitility:awaitility&quot;)\n    testImplementation(&quot;org.jetbrains.kotlinx:kotlinx-coroutines-core&quot;)\n    testImplementation(&quot;org.jetbrains.kotlinx:kotlinx-coroutines-reactor&quot;)\n    testImplementation(&quot;io.reactivex.rxjava3:rxjava&quot;)\n    testImplementation('io.micrometer:context-propagation')\n    testImplementation(&quot;io.micrometer:micrometer-observation-test&quot;)\n    testRuntimeOnly(&quot;jakarta.xml.bind:jakarta.xml.bind-api&quot;)\n    testRuntimeOnly(&quot;org.glassfish:jakarta.el&quot;)\n    // Substitute for javax.management:jmxremote_optional:1.0.1_04 (not available on Maven Central)\n    testRuntimeOnly(&quot;org.glassfish.external:opendmk_jmxremote_optional_jar&quot;)\n    testRuntimeOnly(&quot;org.javamoney:moneta&quot;)\n    testRuntimeOnly(&quot;org.junit.vintage:junit-vintage-engine&quot;) // for @Inject TCK\n}\n\ntest {\n    description = &quot;Runs JUnit Jupiter tests and the @Inject TCK via JUnit Vintage.&quot;\n    useJUnitPlatform {\n        includeEngines &quot;junit-jupiter&quot;, &quot;junit-vintage&quot;\n    }\n}\n\npublishing {\n    repositories {\n        maven {\n            name = 'osdmc-local'\n            url = uri(&quot;repo-link&quot;)\n            credentials {\n                username = &quot;username&quot;\n                password = &quot;password&quot;\n            }\n        }\n    }\n \n    publications {\n        mavenKotlin(MavenPublication) {\n            from components.java\n        }\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

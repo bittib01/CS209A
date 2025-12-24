@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "syntax",
+      "android-credential-manager"
+    ],
+    "owner": {
+      "account_id": 30583010,
+      "reputation": 23,
+      "user_id": 23442479,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/FrrlE.png?s=256",
+      "display_name": "Akhil Akella",
+      "link": "https://stackoverflow.com/users/23442479/akhil-akella"
+    },
+    "is_answered": true,
+    "view_count": 1703,
+    "accepted_answer_id": 78509740,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1716268126,
+    "creation_date": 1708913839,
+    "question_id": 78058379,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78058379/struggling-with-java-syntax-while-making-android-app-with-credential-manager",
+    "title": "Struggling with java syntax while making android app with Credential Manager",
+    "body": "<pre><code>package com.coding.studentsparks;\n\nimport static android.content.ContentValues.TAG;\n\nimport android.content.Context;\nimport android.os.Bundle;\nimport android.util.Log;\nimport android.widget.Toast;\n\nimport androidx.appcompat.app.AppCompatActivity;\nimport androidx.credentials.Credential;\nimport androidx.credentials.CredentialManager;\nimport androidx.credentials.CredentialManagerCallback;\nimport androidx.credentials.CustomCredential;\nimport androidx.credentials.GetCredentialRequest;\nimport androidx.credentials.GetCredentialResponse;\nimport androidx.credentials.PasswordCredential;\nimport androidx.credentials.PublicKeyCredential;\nimport androidx.credentials.exceptions.GetCredentialException;\n\nimport com.google.android.libraries.identity.googleid.GetGoogleIdOption;\nimport com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;\n\n\npublic class Login extends AppCompatActivity {\n\n    Context context = getApplicationContext();\n\n\n    @Override\n    protected void onCreate(Bundle savedInstanceState) {\n        super.onCreate(savedInstanceState);\n        setContentView(R.layout.activity_login);\n        // Use your app or activity context to instantiate a client instance of\n// CredentialManager.\n        CredentialManager credentialManager = CredentialManager.create(context);\n        GetGoogleIdOption googleIdOption = new GetGoogleIdOption.Builder()\n                .setFilterByAuthorizedAccounts(true)\n                .setServerClientId(&quot;505459091506-bsdgueokr5s2rtoc08bkvj7s5qg4284s.apps.googleusercontent.com&quot;)\n                .build();\n        GetCredentialRequest request = new GetCredentialRequest.Builder()\n                .addCredentialOption(googleIdOption)\n                .build();\n\n// Launch sign in flow and do getCredential Request to retrieve the credentials\n        credentialManager.getCredentialAsync(context, request, new CredentialManagerCallback&lt;GetCredentialResponse, GetCredentialException&gt;() {\n\n            @Override\n            public void onResult(GetCredentialResponse result) {\n                handleSignIn(result);\n            }\n\n            @Override\n            public void onError(GetCredentialException e) {\n                handleFailure(e);\n            }\n        });\n\n\n    }\n\n    private void handleFailure(GetCredentialException e) {\n        Toast.makeText(getApplicationContext(), &quot;Failure&quot;, Toast.LENGTH_SHORT).show();\n    }\n\n    public void handleSignIn(GetCredentialResponse result) {\n        // Handle the successfully returned credential.\n        Credential credential = result.getCredential();\n\n        if (credential instanceof PublicKeyCredential) {\n            String responseJson = ((PublicKeyCredential) credential).getAuthenticationResponseJson();\n            // Share responseJson i.e. a GetCredentialResponse on your server to validate and authenticate\n        } else if (credential instanceof PasswordCredential) {\n            String username = ((PasswordCredential) credential).getId();\n            String password = ((PasswordCredential) credential).getPassword();\n            // Use id and password to send to your server to validate and authenticate\n        } else if (credential instanceof CustomCredential) {\n            if (GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL.equals(credential.getType())) {\n                // Use googleIdTokenCredential and extract id to validate and\n                // authenticate on your server\n                GoogleIdTokenCredential googleIdTokenCredential = GoogleIdTokenCredential.createFrom(((CustomCredential) credential).getData());\n            } else {\n                // Catch any unrecognized custom credential type here.\n                Log.e(TAG, &quot;Unexpected type of credential&quot;);\n            }\n        } else {\n            // Catch any unrecognized credential type here.\n            Log.e(TAG, &quot;Unexpected type of credential&quot;);\n        }\n    }\n\n}\n</code></pre>\n<p>This is my code, it has an error in these lines:</p>\n<pre><code>credentialManager.getCredentialAsync(context, request, new CredentialManagerCallback&lt;GetCredentialResponse, GetCredentialException&gt;() {\n\n            @Override\n            public void onResult(GetCredentialResponse result) {\n                handleSignIn(result);\n            }\n\n            @Override\n            public void onError(GetCredentialException e) {\n                handleFailure(e);\n            }\n        });\n</code></pre>\n<p>I need help as I am a beginner and I do not know how to solve this problem, the error says 'cannot resolve method'</p>\n<p>I have tried many things, and Android studio suggested adding parentheses and whatnot. This has not helped much. I would appreciate any help with any of the code.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

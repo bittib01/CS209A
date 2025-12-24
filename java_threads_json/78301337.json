@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "network-programming",
+      "minecraft",
+      "bukkit",
+      "minecraft-forge"
+    ],
+    "owner": {
+      "account_id": 20670651,
+      "reputation": 1,
+      "user_id": 24153904,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/70ed27c79a34a34d84b26125f868ce8f?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "owoPeef",
+      "link": "https://stackoverflow.com/users/24153904/owopeef"
+    },
+    "is_answered": false,
+    "view_count": 207,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1761498627,
+    "creation_date": 1712701659,
+    "last_edit_date": 1761498627,
+    "question_id": 78301337,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78301337/bukkit-forge-network-messages",
+    "title": "Bukkit -&gt; Forge network messages",
+    "body": "<p>I send the packet via the Bukkit plugin. Package Send Code:</p>\n<pre><code>public static boolean sendPacket(Player player, String message) {\n    try {\n        String full_msg = &quot;Text(&quot; + message + &quot;)&quot;;\n        byte[] data = full_msg.getBytes(StandardCharsets.UTF_8);\n\n        MinecraftKey channel = new MinecraftKey(&quot;chilove&quot;, &quot;main&quot;);\n\n        PacketContainer packet = new PacketContainer(PacketType.Play.Server.CUSTOM_PAYLOAD);\n        packet.getMinecraftKeys().write(0, channel);\n\n        ByteBuf byteBuf = Unpooled.wrappedBuffer(data);\n        Object serializer = MinecraftReflection.getPacketDataSerializer(byteBuf);\n\n        packet.getModifier().withType(ByteBuf.class).write(0, serializer);\n\n        ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet);\n        return true;\n    } catch (Exception exception) {\n        Bukkit.getLogger().info(ConsoleColor.ANSI_RED + &quot;Error on TextPacket: &quot; + ConsoleColor.ANSI_CYAN + &quot; (&quot; + exception.getMessage() + &quot;)&quot; + ConsoleColor.ANSI_RESET);\n        exception.printStackTrace();\n    }\n    return false;\n}\n</code></pre>\n<p>The packet itself is sent unconditionally... But the handler on the mod doesn't work at all. The code for trying to create a handler is:</p>\n<pre><code>private static final String PROTOCOL_VERSION = &quot;1&quot;;\n    public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(\n            new ResourceLocation(&quot;chilove&quot;, &quot;main&quot;),\n            () -&gt; PROTOCOL_VERSION,\n            PROTOCOL_VERSION::equals,\n            PROTOCOL_VERSION::equals\n    );\n\n    public static void register() {\n//        INSTANCE.registerMessage(0, TextPacket.class, TextPacket::encode, TextPacket::decode, TextPacket::handle);\n\n        int id = 0;\n        INSTANCE.messageBuilder(TextPacket.class, id++, NetworkDirection.PLAY_TO_SERVER)\n                .decoder(TextPacket::decode)\n                .consumerMainThread(TextPacket::handle)\n                .add();\n        INSTANCE.registerMessage(id++, TextPacket.class, TextPacket::encode, TextPacket::decode, TextPacket::handle);\n        INSTANCE.messageBuilder(TextPacket.class, id++, NetworkDirection.PLAY_TO_CLIENT)\n                .decoder(TextPacket::decode)\n                .consumerMainThread(TextPacket::handle)\n                .add();\n    }\n</code></pre>\n<p>TextPacket.class:</p>\n<pre><code>public class TextPacket {\n    private String text;\n\n    public TextPacket() { }\n\n    public TextPacket(String text) {\n        this.text = text;\n    }\n\n    public String getText() {\n        return text;\n    }\n\n    public static TextPacket decode(FriendlyByteBuf buffer) {\n        byte[] bytes = buffer.readByteArray();\n        String text = new String(bytes, StandardCharsets.UTF_8);\n        ChiloveMod.LOGGER.info(&quot;Decoded text: {}&quot;, text);\n        return new TextPacket(text);\n    }\n\n    public void encode(FriendlyByteBuf buffer) {\n        byte[] bytes = text.getBytes(StandardCharsets.UTF_8);\n        buffer.writeByteArray(bytes);\n    }\n\n    public void handle(Supplier&lt;NetworkEvent.Context&gt; ctx) {\n        ctx.get().enqueueWork(() -&gt; {\n            ChiloveMod.LOGGER.info(&quot;Received message: {}&quot;, text);\n        });\n        ctx.get().setPacketHandled(true);\n    }\n}\n\n</code></pre>\n<p>I've tried a LOT of options, and searched the internet for everything I can about SimpleImpl. Usually, when sending a packet, I get 2 errors in the console:</p>\n<pre class=\"lang-none prettyprint-override\"><code> - [15:15:32] [Netty Client IO #1/ERROR] [ne.mi.ne.si.IndexedMessageCodec/SIMPLENET]: Received invalid discriminator byte 84 on channel chilove:main\n - [15:15:32] [Render thread/WARN] [minecraft/ClientPacketListener]: Unknown custom packet identifier: chilove:main\n</code></pre>\n<p>I don't know what to do anymore, I've really rummaged through everything I can. I'm asking for help...\nMinecraft Version: 1.19.3</p>\n<p>Tried through events such as ClientboundCustomPayloadEvent.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

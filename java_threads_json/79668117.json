@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "validation",
+      "spring-validator",
+      "spring-validation"
+    ],
+    "owner": {
+      "account_id": 2492679,
+      "reputation": 23196,
+      "user_id": 2169845,
+      "user_type": "registered",
+      "accept_rate": 91,
+      "profile_image": "https://i.sstatic.net/XoDg6.gif?s=256",
+      "display_name": "zappee",
+      "link": "https://stackoverflow.com/users/2169845/zappee"
+    },
+    "is_answered": true,
+    "view_count": 210,
+    "accepted_answer_id": 79668243,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1750108374,
+    "creation_date": 1750101136,
+    "question_id": 79668117,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79668117/possible-to-overwrite-the-default-validation-message-in-spring-s-validator",
+    "title": "Possible to overwrite the default validation message in Spring’s Validator?",
+    "body": "<p>I am learning how to effectively use the Spring’s Bean Validator in my REST project.</p>\n<p>I have the following POJO:</p>\n<pre><code>public class Project {\n\n    @NotBlank(message = &quot;%s is mandatory&quot;)\n    private String projectName;\n\n\n    @NotBlank(message = &quot;%s is mandatory&quot;)\n    private String maintainerName;\n\n    @NotBlank(message = &quot;%s is mandatory&quot;)\n    private String maintainerEmail;\n\n    ...\n}\n</code></pre>\n<p>And this is my <code>GlobalExceptionHandler</code> that handles the <code>MethodArgumentNotValidException</code> and generates a proper HTTP response based on the validation messages:</p>\n<pre><code>@ControllerAdvice\npublic class GlobalExceptionHandler {\n\n    @ExceptionHandler(MethodArgumentNotValidException.class)\n    public ResponseEntity&lt;String&gt; handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {\n        log.warn(e.getMessage());\n\n        StringBuilder sb = new StringBuilder();\n        AtomicReference&lt;String&gt; separator = new AtomicReference&lt;&gt;(&quot;&quot;);\n        e.getBindingResult().getAllErrors().forEach((error) -&gt; {\n            sb.append(separator.get());\n            sb.append(String.format(error.getDefaultMessage(),  ((FieldError) error).getField()));\n            separator.set(&quot;, &quot;);\n        });\n        return new ResponseEntity&lt;&gt;(sb.toString(), HttpStatus.BAD_REQUEST);\n    }\n}\n</code></pre>\n<p>The code above works properly and it generates the expected response:</p>\n<pre><code>HTTP/1.1 400 \nContent-Type: text/plain;charset=UTF-8\nContent-Length: 57\nDate: Mon, 16 Jun 2025 19:07:22 GMT\nConnection: close\n\nmaintainerEmail is mandatory, maintainerName is mandatory\n</code></pre>\n<p>But, let's suppose I have ten POJOs with 50 fields that I would like to validate with the same <code>@NotBlank(message = &quot;%s is mandatory&quot;)</code> annotation. To write down 50 times the same\n<code>message = &quot;%s is mandatory&quot;</code> line looks like ugly for me.</p>\n<p>Is that possible to overwrite Spring Validator’s default message to <code>&quot;%s is mandatory&quot;</code>?\nThat could be so elegant solution instead of writing down the same error message string millions of time.</p>\n<p>I would like to hardcode somehow my error message in a Spring config bean and have this simple code:</p>\n<pre><code>public class Project {\n\n    @NotBlank\n    private String projectName;\n\n\n    @NotBlank\n    private String maintainerName;\n\n    @NotBlank\n    private String maintainerEmail;\n\n    ...\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

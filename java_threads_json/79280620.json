@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "algorithm",
+      "isometric"
+    ],
+    "owner": {
+      "account_id": 26197329,
+      "reputation": 19,
+      "user_id": 24123140,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/b193caa23f7a677923b01369c366ed40?s=256&d=identicon&r=PG",
+      "display_name": "Pax",
+      "link": "https://stackoverflow.com/users/24123140/pax"
+    },
+    "is_answered": true,
+    "view_count": 124,
+    "answer_count": 2,
+    "score": 2,
+    "last_activity_date": 1750441834,
+    "creation_date": 1734178989,
+    "last_edit_date": 1750441834,
+    "question_id": 79280620,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79280620/z-order-problem-while-displaying-isometric-tiles",
+    "title": "Z-Order problem while displaying isometric tiles",
+    "body": "<p>I have a little problem while displaying isometric tiles in my school game.\nThe fact is that I suppose everything is ok with my code...</p>\n<p>Here is how it's organised:</p>\n<ul>\n<li>architecture: MVC + ECS</li>\n<li>everything is displayed in my render method of the GameView class</li>\n<li>I use bases and vetors to make conversions between the two bases (orthogonal one and isometric one)</li>\n</ul>\n<p>Here is the code:</p>\n<pre><code>public void render() {\n    try {\n        final Entity[] entities = this.controller.getEntities();\n\n        // Sort entities by isometric depth\n        Arrays.sort(entities, (e1, e2) -&gt; {\n            PositionComponent p1 = e1.getComponent(PositionComponent.class);\n            PositionComponent p2 = e2.getComponent(PositionComponent.class);\n\n            // Calculate depth as the sum of cartesian x + y\n            double depth1 = p1.getX() + p1.getY();\n            double depth2 = p2.getX() + p2.getY();\n\n            // Primary sorting criterion: depth\n            int result = Double.compare(depth1, depth2);\n\n            // Secondary sorting: cartesian Y coordinate\n            if (result == 0) {\n                result = Double.compare(p1.getY(), p2.getY());\n            }\n\n            // Tertiary sorting: cartesian X coordinate\n            if (result == 0) {\n                result = Double.compare(p1.getX(), p2.getX());\n            }\n\n            // Fallback sorting: hashCode\n            if (result == 0) {\n                result = Integer.compare(e1.hashCode(), e2.hashCode());\n            }\n\n            return result;\n        });\n\n        for (Entity entity : entities) {\n            // Get position component\n            PositionComponent position = entity.getComponent(PositionComponent.class);\n\n            // Convert to isometric coordinates\n            Vector isoPos = this.gameBase.mulByVect(\n                new Vector2D(position.getX(), position.getY())\n            );\n\n            // Debug: print isometric position\n            // System.out.println(&quot;Isometric Position: &quot; + isoPos);\n\n            // Get texture component\n            ImageIcon image = entity.getComponent(TextureComponent.class).getTexture();\n\n            // Create label for the entity\n            JLabel label = new JLabel(image);\n\n            // Set bounds based on isometric position\n            label.setBounds(\n                (int) isoPos.getEntry(0),\n                (int) isoPos.getEntry(1),\n                image.getIconWidth(),\n                image.getIconHeight()\n            );\n\n            this.panel.add(label);\n        }\n\n        // Revalidate and repaint after adding all entities\n        this.panel.revalidate();\n        this.panel.repaint();\n\n    } catch (Exception e) {\n        e.printStackTrace();\n    }\n}\n</code></pre>\n<p>However, the tiles are not displaying well. In fact the farthest one are displayed after the closest so it seems flipped...</p>\n<p>Do you have any idea?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

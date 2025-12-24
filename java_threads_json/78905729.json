@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "nashorn"
+    ],
+    "owner": {
+      "account_id": 111681,
+      "reputation": 13382,
+      "user_id": 1480018,
+      "user_type": "registered",
+      "accept_rate": 87,
+      "profile_image": "https://www.gravatar.com/avatar/adc85b2c054f3eb102da8eb68545dca4?s=256&d=identicon&r=PG",
+      "display_name": "Paul Taylor",
+      "link": "https://stackoverflow.com/users/1480018/paul-taylor"
+    },
+    "is_answered": false,
+    "view_count": 168,
+    "answer_count": 2,
+    "score": -1,
+    "last_activity_date": 1752445116,
+    "creation_date": 1724413337,
+    "last_edit_date": 1752445116,
+    "question_id": 78905729,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78905729/nashorn-hitting-limit-with-key-value-pairs",
+    "title": "Nashorn hitting limit with key value pairs?",
+    "body": "<p>I'm suddenly hitting a problem with Nashorn since making change, but I'm not sure of the actual underlying cause of the problem <strong>but it seems to be related to how many key value pairs are added to engine</strong>.</p>\n<p>I use the Nashorn (Nashorn 15.3) JavaScript engine in my Java application to allow customers to rename their music files based on metadata by defining a mask using known mask variables, there are about <strong>200 mask variables</strong>.</p>\n<p>For example user specifies a mask as <em>artist - album</em></p>\n<p>Then for each song we do the following:</p>\n<pre><code>ScriptEngine engine = new org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory().getScriptEngine();\nfor(SongFieldName next:SongFieldName.values())\n{\n  engine.put(next.getScriptVar(), song.getFieldValue(next.getSongFieldKey());\n}\nfile.setFilename((String)engine.eval(mask));\n</code></pre>\n<p>So we get the script engine, and then for the song we put key value pairs containing mask variable (e.g artist) and actual value in song (e.g Stevie Wonder), then we evaluate the mask and use it to set the filename, this has worked fine for many years.</p>\n<p>However, values can be multi value. For example the artist value may contain multiple people so I wanted there to be an easy way for use to just get the indexed value. So for each variable I created 10 versions each mapped to the next indexed value or blank if has no value as follows.</p>\n<pre><code>List&lt;String&gt; values = song.getFieldValues(next.getSongFieldKey());\nfor(int i=0; i &lt; 10;i++)\n{\n    if(values.size()&gt;i)\n    {\n        engine.put(next.getScriptVar() + &quot;_index&quot; + i,values.get(i));\n    }\n    else\n    {\n        engine.put(next.getScriptVar() + &quot;_index&quot; + i, &quot;&quot;);\n    }\n}\n</code></pre>\n<p>This seemed fine but customer reported an issue, and I have replicated the issue that only occurs when this extra code is added.</p>\n<p>JavascriptEngine seemingly randomly complains that <em>discno</em> field is not known variable even though it is always added.</p>\n<pre><code>javax.script.ScriptException: ReferenceError: &quot;discno&quot; is not defined in &lt;eval&gt; at line number 81\n    at org.openjdk.nashorn.api.scripting.NashornScriptEngine.throwAsScriptException(NashornScriptEngine.java:463)\n    at org.openjdk.nashorn.api.scripting.NashornScriptEngine.evalImpl(NashornScriptEngine.java:447)\n    at org.openjdk.nashorn.api.scripting.NashornScriptEngine.evalImpl(NashornScriptEngine.java:399)\n    at org.openjdk.nashorn.api.scripting.NashornScriptEngine.evalImpl(NashornScriptEngine.java:395)\n    at org.openjdk.nashorn.api.scripting.NashornScriptEngine.eval(NashornScriptEngine.java:151)\n    at java.scripting/javax.script.AbstractScriptEngine.eval(AbstractScriptEngine.java:262)\n</code></pre>\n<p>So it seems that maybe I am hitting some limit and it is getting overwritten now that instead of adding 200 variables I'm adding approximately 2000 variables to the engine?</p>\n<p>For each song I tried clearing out the all value pairs first with <code>engine.getBindings(ScriptContext.ENGINE_SCOPE).clear()</code> and it still failed.</p>\n<p>Or do I need to synchronize use of ScriptEngine since it is returned from a factory?</p>\n<h2>Update</h2>\n<ol>\n<li><p>I added synchronization code and it appeared to be working okay, but at about 10,000 songs it then started erroring with same error for every song.</p>\n</li>\n<li><p>The factory getScriptEngine() code is as follows</p>\n</li>\n</ol>\n\n<pre><code>public ScriptEngine getScriptEngine() \n{\n    try {\n        return new NashornScriptEngine(this, DEFAULT_OPTIONS, getAppClassLoader(), (ClassFilter)null);\n    } catch (RuntimeException var2) {\n        RuntimeException e = var2;\n        if (Context.DEBUG) {\n            e.printStackTrace();\n        }\n\n        throw e;\n    }\n}\n</code></pre>\n<p>so we are not reusing same script engine, but maybe script engine is sharing variable cache?</p>\n<ol start=\"3\">\n<li>If I remove the new <em>_index</em> variables then it works without error but then I lose the functionality I was trying to add in the first place.</li>\n</ol>\n<h2>Update 2</h2>\n<p>I changed the code for the indexed variables to store an array for each fieldname, and that has resolved issue, although I don't know why.</p>\n<pre><code>    engine.put(next.getScriptVar(), cleanValue(next.getSongFieldKey(), song.getFieldValueSemiColonAndSpaceSeparatedOrEmptyString(next.getSongFieldKey())));\n    addIndexedValues( engine, song,  next);\n\n    private static void addIndexedValues( ScriptEngine engine, Song song, SongFieldName fieldName)\n        {\n            List&lt;String&gt; values = song.getFieldValues(fieldName.getSongFieldKey());\n            String[] value = new String[INDEX_SIZE];\n            for(int i=0; i &lt; INDEX_SIZE;i++)\n            {\n                if(values.size()&gt;i)\n                {\n                    value[i] = cleanValue(fieldName.getSongFieldKey(), values.get(i));\n                }\n                else\n                {\n                    value[i] = &quot;&quot;;\n                }\n            }\n            engine.put(fieldName.getScriptVar() + &quot;_index&quot;, value);\n        }\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

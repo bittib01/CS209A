@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "amazon-web-services",
+      "httpsurlconnection",
+      "amazon-fsx"
+    ],
+    "owner": {
+      "account_id": 27683867,
+      "reputation": 11,
+      "user_id": 21132017,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/af72a0cf94ad5b467503f618e393255f?s=256&d=identicon&r=PG",
+      "display_name": "Meiruko",
+      "link": "https://stackoverflow.com/users/21132017/meiruko"
+    },
+    "is_answered": true,
+    "view_count": 115,
+    "accepted_answer_id": 78930944,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1725004027,
+    "creation_date": 1724150975,
+    "last_edit_date": 1724301229,
+    "question_id": 78892008,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78892008/how-to-fetch-response-from-the-amazon-fsx-describefilecaches-api",
+    "title": "How to fetch response from the Amazon Fsx DescribeFileCaches API?",
+    "body": "<p>I am trying to fetch the response for DescribeFileCaches API using HttpsURLConnection in Java. When using the AWS SDK, I am able to get the response but when hitting the API using the same headers in Java, I am getting 404 - <code>&lt;UnknownOperationException/&gt;</code> (This is the error response returned).</p>\n<p>As I am new to Java HttpsURLConnection, let me know if I am missing anything in my end.</p>\n<pre class=\"lang-java prettyprint-override\"><code>try {\n    String url = &quot;https://fsx.us-east-1.amazonaws.com&quot;;\n\n    /**\n     * Add host without http or https protocol.\n     * You can also add other parameters based on your amazon service requirement.\n     */\n    TreeMap&lt;String, String&gt; awsHeaders = new TreeMap&lt;String, String&gt;();\n    awsHeaders.put(&quot;content-length&quot;, &quot;2&quot;);\n    awsHeaders.put(&quot;content-type&quot;, &quot;application/x-amz-json-1.1&quot;);\n    awsHeaders.put(&quot;host&quot;, &quot;fsx.us-east-1.amazonaws.com&quot;);\n    String target = &quot;AWSSimbaAPIService_v20180301.DescribeFileCaches&quot;;\n    awsHeaders.put(&quot;x-amz-target&quot;, target);\n    \n    TreeMap&lt;String, String&gt; queryParameters = new TreeMap&lt;String, String&gt;();            \n    \n    AWSV4Auth aWSV4Auth = new AWSV4Auth.Builder(&quot;&quot;, &quot;&quot;)\n            .regionName(&quot;us-east-1&quot;)\n            .serviceName(&quot;fsx&quot;) // es - elastic search. use your service name\n            .httpMethodName(&quot;POST&quot;) //GET, PUT, POST, DELETE, etc...\n            .canonicalURI(&quot;/&quot;) //end point\n            .queryParametes(queryParameters) //query parameters if any\n            .awsHeaders(awsHeaders) //aws header parameters\n            .payload(&quot;{}&quot;) // payload if any\n            .debug() // turn on the debug mode\n            .build();\n\n    /* Get header calculated for request */\n    Map&lt;String, String&gt; header = aWSV4Auth.getHeaders();\n    System.out.println(header.toString());\n    \n    \n    URL urlobj = new URL(url);\n    HttpsURLConnection httpsURLConnection = (HttpsURLConnection) urlobj.openConnection();\n    httpsURLConnection.setRequestMethod(&quot;POST&quot;);\n    httpsURLConnection.setDoOutput(true);\n    for(String headerName : header.keySet()) {\n        httpsURLConnection.setRequestProperty(headerName, header.get(headerName));\n    }\n    httpsURLConnection.setRequestProperty(&quot;Accept&quot;, &quot;application/json&quot;);\n    \n    try (DataOutputStream wr = new DataOutputStream(httpsURLConnection.getOutputStream())) {\n        wr.write(&quot;{}&quot;.getBytes());\n        wr.flush();\n        wr.close();\n    }\n    //httpsURLConnection.setRequestProperty(&quot;Accept&quot;, &quot;text/xml&quot;);\n    if (httpsURLConnection.getResponseCode() != 200) {\n            System.out.println(&quot;http response code is &quot; + httpsURLConnection.getResponseCode() +&quot; - &quot; + httpsURLConnection.getResponseMessage());\n        InputStream errorStream = httpsURLConnection.getErrorStream();\n        if (errorStream != null) {\n            BufferedReader errorReader = new BufferedReader(new InputStreamReader(errorStream));\n            String errorResponse;\n            while ((errorResponse = errorReader.readLine()) != null) {\n                System.out.println(errorResponse);\n            }\n            errorReader.close();\n        }\n    } else {\n        InputStream in = httpsURLConnection.getInputStream();\n        InputStreamReader reader = new InputStreamReader(in);\n        BufferedReader bufferedReader = new BufferedReader(reader);\n        String response = null;\n        String line = (response = bufferedReader.readLine());\n        while(line != null) {\n            line = bufferedReader.readLine();\n            if (line != null) {\n                response += line;\n            }\n        }\n        System.out.println(response);\n    }\n} catch (Exception e) {\n    e.printStackTrace();\n}\n</code></pre>\n<p>I have copied all the headers from the SDK and used it here. No use and I am getting same error response.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

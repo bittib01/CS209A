@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "java-8",
+      "concurrency",
+      "completable-future"
+    ],
+    "owner": {
+      "account_id": 15585153,
+      "reputation": 2002,
+      "user_id": 11243901,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/42606bfbbdd5cd8479cc84e486f961d6?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Arun Sai",
+      "link": "https://stackoverflow.com/users/11243901/arun-sai"
+    },
+    "is_answered": false,
+    "view_count": 380,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1714892696,
+    "creation_date": 1712066980,
+    "question_id": 78261896,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78261896/completablefuture-not-working-as-expected-and-having-more-number-of-extra-thread",
+    "title": "CompletableFuture not working as expected and having more number of extra threads",
+    "body": "<p>I'm trying to parallelize the below operation of fetching all the records with 50000 records in each iteration with pagination and writing them into a CSV file on an s3 file.</p>\n<p><strong>Before Parallelism:</strong></p>\n<pre><code>public void generateStudentFiles(){\n\n  int pageCount =0;\n  boolean isEndOfFile=false;\n  while(isEndOfFile){\n    // step1: fetch the records from the db with pagination\n    List&lt;StudentEntity&gt; result = repo.getStudentDataWithPagination(50000,pageCount);\n    if(CollectionUtils.isEmpty(result) || result.size() &lt; 50000){\n         isEndOfFile = true;\n    } else {\n      // step2: void method to write records into csv file on s3 location\n      writeResultToS3(result);\n    }\n    pageCount++;\n\n   }\n\n}\n</code></pre>\n<p><strong>After Parallelism:</strong></p>\n<p>I want to write the files up to a maximum of 5 threads concurrently.</p>\n<pre><code>public void generateStudentFiles(){\n     \n      // created 5 threads for concurrency or parallelis \n      ForkJoinPool customPool = new ForkJoinPool(5);    \n      CompletableFuture&lt;Void&gt; future = new CompletableFuture&lt;&gt;();\n\n      int pageCount =0;\n      boolean isEndOfFile=false;\n      while(isEndOfFile){\n\n      CompletableFuture.runAsync(() -&gt; {\n          \n        // step1: fetch the records from the db with pagination\n        List&lt;StudentEntity&gt; result = repo.getStudentDataWithPagination(50000,pageCount);\n        if(CollectionUtils.isEmpty(result) || result.size() &lt; 50000){\n             isEndOfFile = true;\n        } else {\n          // step2: void method to write records into csv file on s3 location\n          writeResultToS3(result);\n        }\n        pageCount++;          \n\n      }, customPool);\n        \n    \n       }\n\nfuture.complete(null);\n    \n}\n</code></pre>\n<p><strong>Expected output of the above parallelism code:</strong></p>\n<p>The whole operation of fetching the records from the Database and writing on the s3 location should be running parallelly on 5 threads and reduce the time taken for writing the file</p>\n<p><strong>Actual output of the above parallelism code:</strong></p>\n<p>There were more than 5 threads(not sure why there are extra threads) running randomly and generating many empty CSV files on the s3 location. for example, instead of seeing 50 files, there were 200 files where 150 files were blank and 50 files had data and thread execution was never getting ended. Any suggestion please on how to resolve this issue?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

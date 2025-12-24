@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "kotlin"
+    ],
+    "owner": {
+      "account_id": 225067,
+      "reputation": 30772,
+      "user_id": 485337,
+      "user_type": "registered",
+      "accept_rate": 91,
+      "profile_image": "https://i.sstatic.net/VAz9B.jpg?s=256",
+      "display_name": "Adam Arold",
+      "link": "https://stackoverflow.com/users/485337/adam-arold"
+    },
+    "is_answered": true,
+    "view_count": 147,
+    "accepted_answer_id": 79785233,
+    "answer_count": 1,
+    "score": 3,
+    "last_activity_date": 1759912107,
+    "creation_date": 1759842946,
+    "question_id": 79784582,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79784582/what-is-the-proper-way-of-closing-sse-connections-when-doing-a-graceful-shutdown",
+    "title": "What is the proper way of closing SSE connections when doing a graceful shutdown in Spring?",
+    "body": "<p>I have a small service that handles SSE connections:</p>\n<pre class=\"lang-kt prettyprint-override\"><code>class SSEService : AutoCloseable {\n    private val emitters: MutableMap&lt;SSEEventType, MutableList&lt;SseEmitter&gt;&gt; = ConcurrentHashMap()\n    private var running = true\n\n    @PreDestroy\n    override fun close() {\n        running = false\n        logger.info(&quot;Shutting down SSE service...&quot;)\n        emitters.values.flatMap { it }.forEach (SseEmitter::complete)\n        emitters.clear()\n    }\n\n    fun newEmitterFor(type: SSEEventType): SseEmitter {\n        val emitter = SseEmitter(Long.MAX_VALUE)\n        val list = CopyOnWriteArrayList&lt;SseEmitter&gt;()\n        emitters.getOrPut(type) { list }.add(emitter)\n        emitter.onCompletion {\n            // cleanup ...\n        }\n        emitter.onTimeout {\n            // cleanup ...\n        }\n        emitter.onError { e: Throwable -&gt;\n             // cleanup ...\n        }\n        return emitter\n    }\n\n    fun emitServiceStatus(statusList: List&lt;ServiceStatusDTO&gt;) {\n        // ...\n    }\n}\n</code></pre>\n<p>I have a <code>@PreDestroy</code> method that completes all <code>SseEmitter</code>s but I've noticed that the hot code replace is not working properly since I added SSE to my project.</p>\n<pre><code>[ionShutdownHook] o.s.b.w.e.undertow.UndertowWebServer     : Commencing graceful shutdown. Waiting for active requests to complete\n                                                                                            ------ after 30 seconds ------\n[ionShutdownHook] o.s.c.support.DefaultLifecycleProcessor  : Shutdown phase 2147482623 ends with 1 bean still running after timeout of 30000ms: [webServerGracefulShutdown]\n[ionShutdownHook] o.s.b.w.e.undertow.UndertowWebServer     : Graceful shutdown aborted with one or more requests still active\n[ionShutdownHook] io.undertow                              : stopping server: Undertow - 2.3.19.Final\n[ionShutdownHook] io.undertow.servlet                      : Destroying Spring FrameworkServlet 'dispatcherServlet'\n[ionShutdownHook] o.s.b.f.support.DisposableBeanAdapter    : Invocation of destroy method failed on bean with name 'inMemoryDatabaseShutdownExecutor': org.springframework.boot.autoconfigure.jdbc.DataSourceProperties$DataSourceBeanCreationException: Failed to determine a suitable driver class\n[ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...\n[ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.\n                                                                                            ------ this is my @PreDestroy call ------\n[ionShutdownHook] org.hexworks.photon.service.SSEService   : Shutting down SSE service...\n[ionShutdownHook] .s.c.a.CommonAnnotationBeanPostProcessor : Destroy method on bean with name 'sseService' threw an exception: java.lang.NullPointerException: Cannot invoke &quot;io.undertow.servlet.api.Deployment.getServletContext()&quot; because the return value of &quot;io.undertow.servlet.api.DeploymentManager.getDeployment()&quot; is null\n\nProcess finished with exit code 130\n\n</code></pre>\n<p>I checked the logs and what happens is that when I initiate the shutdown it hangs for 30 seconds, then it calls my <code>@PreDestroy</code> method which can't run properly since the underlying connection was terminated elsewhere.</p>\n<p>I checked the Spring docs and there is little to no info on how to use SSE properly. What am I doing wrong? How can I properly terminate the SSE connections?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

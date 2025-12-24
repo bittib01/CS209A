@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "authentication",
+      "jboss",
+      "wildfly",
+      "elytron"
+    ],
+    "owner": {
+      "account_id": 1861409,
+      "reputation": 41,
+      "user_id": 1685944,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/ab9bea2ab670573ed4ad31e4d8697410?s=256&d=identicon&r=PG",
+      "display_name": "peatle_pp",
+      "link": "https://stackoverflow.com/users/1685944/peatle-pp"
+    },
+    "is_answered": false,
+    "view_count": 196,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1752704669,
+    "creation_date": 1738258466,
+    "last_edit_date": 1740732893,
+    "question_id": 79400747,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79400747/multi-module-ear-and-elytron-a-securitydomain-has-already-been-associated-with",
+    "title": "multi-module ear and elytron - A SecurityDomain has already been associated with the specified ClassLoader",
+    "body": "<p>I have an ear with at least 2 WARs inside. One should be none restricted, so no auth at all, and the other one should be restricted by keycloak. This is done via an overlay-file for just this WAR.\nDeploying this ear leads to the error:</p>\n<pre><code>ttp-wf     |     &quot;jboss.deployment.subunit.\\&quot;test-ear-2024.3.0-SNAPSHOT.ear\\&quot;.\\&quot;test-web-2024.3.0-SNAPSHOT.war\\&quot;.undertow-deployment.UndertowDeploymentInfoService&quot; =&gt; &quot;Failed to start service\nttp-wf     |     Caused by: java.lang.IllegalStateException: ELY01148: A SecurityDomain has already been associated with the specified ClassLoader&quot;,\n</code></pre>\n<p>We know it has been working till wildfly 26, after that it was &quot;jakarta&quot;-time. This may be some hint.</p>\n<p><strong>Overlay:</strong></p>\n<pre><code>&lt;login-config&gt;\n    &lt;auth-method&gt;OIDC&lt;/auth-method&gt;\n&lt;/login-config&gt;\n...\n&lt;security-constraint&gt;\n        &lt;display-name&gt;security-domain&lt;/display-name&gt;\n        &lt;web-resource-collection&gt;\n            &lt;web-resource-name&gt;security-domain&lt;/web-resource-name&gt;\n            &lt;url-pattern&gt;/html/internal/admin/*&lt;/url-pattern&gt;\n        &lt;/web-resource-collection&gt;\n        &lt;auth-constraint&gt;\n            &lt;role-name&gt;role.admin&lt;/role-name&gt;\n        &lt;/auth-constraint&gt;\n    &lt;/security-constraint&gt;\n</code></pre>\n<p><strong>jboss-cli</strong></p>\n<pre><code>deployment-overlay add \\\n        --name=configKeycloakAuth \\\n        --content=/WEB-INF/web.xml=/entrypoint-wildfly-cli/config_oidc_web.xml \\\n        --deployments=config-web-*.war \\\n        --redeploy-affected\n    set configVersion=2024.1.0\n    /subsystem=elytron-oidc-client/secure-deployment=config-web-$configVersion.war:add( \\\n        provider-url=$ttpWebKeycloakBaseUrl/realms/$ttpWebKeycloakRealm, \\\n        client-id=$ttpWebKeycloakClientId, \\\n        ssl-required=$ttpWebKeycloakSslRequired, \\\n        confidential-port=$ttpWebKeycloakConfidentialPort, \\\n        use-resource-role-mappings=$ttpWebKeycloakUseResourceRoleMappings \\\n    )\n</code></pre>\n<p>The EAR also has <code>ear-subdeployments-isolated=false</code> and it should be like that.</p>\n<p>The web.xml in the non-restricted WAR does not declare any security-domain. But setting <code>security-domain=none</code> is also not allowed.</p>\n<p>Wildfly: 35</p>\n<p>The wildfly on DEBUG-Log does not tell me more.</p>\n<p>Is it even possible to do it like this or there should be maybe some new way doing that, but I couldn't figure it out. I appriciate any help, thanks.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

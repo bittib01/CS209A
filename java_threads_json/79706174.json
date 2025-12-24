@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "eclipse",
+      "swt",
+      "eclipse-rcp",
+      "graphicscontext"
+    ],
+    "owner": {
+      "account_id": 16636999,
+      "reputation": 2264,
+      "user_id": 12023442,
+      "user_type": "registered",
+      "profile_image": "https://lh6.googleusercontent.com/-DPog7zvNrN4/AAAAAAAAAAI/AAAAAAAAAAA/ACHi3reyB3ylHFgM44calnY635b5hnl_AA/s256-rj/photo.jpg",
+      "display_name": "ArunJose",
+      "link": "https://stackoverflow.com/users/12023442/arunjose"
+    },
+    "is_answered": false,
+    "view_count": 130,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1752841937,
+    "creation_date": 1752841937,
+    "question_id": 79706174,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79706174/why-does-copying-an-swt-image-before-its-gc-is-disposed-result-in-a-blank-black",
+    "title": "Why does copying an SWT Image before its GC is disposed result in a blank/black image?",
+    "body": "<p>Using eclipse SWT. When I draw on an image, and then create a copy of it before disposing of the GC, the copied image does not contain the new drawing.</p>\n<p>My goal was to create an original image (image1), draw a red rectangle on it, and then make two copies (image2 and image3). I expected all three images to be identical red squares.\nHowever, the final result is different: the first copy (image2) is black, while the second copy (image3), which is created after gc.dispose(), is red as expected.\nHere is a minimal, reproducible example that demonstrates the issue:</p>\n<pre><code>import org.eclipse.swt.SWT;\nimport org.eclipse.swt.graphics.GC;\nimport org.eclipse.swt.graphics.Image;\nimport org.eclipse.swt.layout.FillLayout;\nimport org.eclipse.swt.widgets.Canvas;\nimport org.eclipse.swt.widgets.Display;\nimport org.eclipse.swt.widgets.Shell;\n\npublic class GcDrawingTiming {\n\n    public static void main(String[] args) {\n        Display display = new Display();\n        Shell shell = new Shell(display);\n        shell.setLayout(new FillLayout());\n        shell.setText(&quot;SWT GC Timing Question&quot;);\n\n        int width = 40, height = 40;\n\n        // 1. Create the original image\n        Image image1 = new Image(display, width, height);\n\n        // 2. Get a GC to draw on it\n        GC gc = new GC(image1);\n        gc.setBackground(display.getSystemColor(SWT.COLOR_RED));\n        gc.fillRectangle(0, 0, width, height);\n\n        // 3. Create the first copy BEFORE gc.dispose()\n        Image image2 = new Image(display, image1, SWT.IMAGE_COPY);\n\n        // 4. Dispose of the GC\n        gc.dispose();\n\n        // 5. Create the second copy AFTER gc.dispose()\n        Image image3 = new Image(display, image1, SWT.IMAGE_COPY);\n\n        // Canvas to display the results\n        Canvas canvas = new Canvas(shell, SWT.NONE);\n        canvas.addListener(SWT.Paint, e -&gt; {\n            // image1 is red (as expected)\n            e.gc.drawImage(image1, 10, 10);\n            \n            // image2 is black (unexpected)\n            e.gc.drawImage(image2, 60, 10);\n            \n            // image3 is red (as expected)\n            e.gc.drawImage(image3, 110, 10);\n        });\n\n        shell.setSize(200, 100);\n        shell.open();\n        while (!shell.isDisposed()) {\n            if (!display.readAndDispatch()) display.sleep();\n        }\n        \n      \n    }\n}\n</code></pre>\n<p>Why is the image created befroe disposing gc not having whatever is drawn by GC.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

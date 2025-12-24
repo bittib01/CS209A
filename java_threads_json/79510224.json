@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "gradle",
+      "code-generation",
+      "rest-assured"
+    ],
+    "owner": {
+      "account_id": 1912441,
+      "reputation": 3452,
+      "user_id": 1725871,
+      "user_type": "registered",
+      "accept_rate": 88,
+      "profile_image": "https://www.gravatar.com/avatar/06e1c4b46656313883eda6e96e9ab4e9?s=256&d=identicon&r=PG",
+      "display_name": "JoSSte",
+      "link": "https://stackoverflow.com/users/1725871/josste"
+    },
+    "is_answered": true,
+    "view_count": 84,
+    "accepted_answer_id": 79512675,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1742767008,
+    "creation_date": 1741986418,
+    "last_edit_date": 1742647705,
+    "question_id": 79510224,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79510224/generating-compiling-and-executing-junit-on-the-fly",
+    "title": "Generating, compiling and executing JUnit on the fly",
+    "body": "<p>I have a class that generates Restassured JUnit tests in a specific subfolder of my build/tests/ structure, based on some postman test collections.</p>\n<p>I have written a test to take all the <code>*.postman_collection.json</code> files in my <code>src/test/resources/testCollections</code> folder. If I want to verify that the generated files work I have to run the test again. I'd like to be able to run everything with <code>mvn clean test</code>.</p>\n<p>Furthermore, I clear out the generated folder every time I run <code>mvn clean</code>, which I would have to undo if I had to run the tests twice.</p>\n<p>Code is <a href=\"https://github.com/JoSSte/PostmanToRestAssured/tree/feature/VariableSupport\" rel=\"nofollow noreferrer\">on github</a> (I had issues picking out a minimalistic snippet to understand it from).</p>\n<h2>Update: switch to gradle</h2>\n<p>I tried to follow the suggestions from @chubbsondubs but something is not working as I expect it to.</p>\n<h3>build.gradle</h3>\n<pre class=\"lang-yaml prettyprint-override\"><code>plugins {\n    id 'java-library'\n    id 'jacoco'\n}\n\nrepositories {\n    mavenLocal()\n    maven {\n        url = uri('https://repo.maven.apache.org/maven2/')\n    }\n}\n\ndependencies {\n    api 'com.fasterxml.jackson.core:jackson-databind:2.18.3'\n    api 'org.slf4j:slf4j-api:2.0.17'\n    api 'ch.qos.logback:logback-classic:1.5.13'\n\n    testImplementation 'org.junit.jupiter:junit-jupiter:5.12.1'\n    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.12.1'\n    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.12.1'\n    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.12.1'\n\n    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'\n    \n    testImplementation 'io.rest-assured:rest-assured:5.5.1'\n    testImplementation 'io.rest-assured:rest-assured-common:5.5.1'\n    \n    testImplementation 'org.jacoco:org.jacoco.core:0.8.11'\n    testImplementation 'org.jacoco:org.jacoco.agent:0.8.11'\n    testImplementation 'org.jacoco:org.jacoco.report:0.8.11'\n\n}\n\ngroup = 'dk.kodeninjaer.testing'\nversion = '1.0-SNAPSHOT'\ndescription = 'postman-to-restassured'\njava {\n   sourceCompatibility = '21'\n}\n\ntest {\n    finalizedBy jacocoTestReport // report is always generated after tests run\n}\n\ntasks.withType(JavaCompile) {\n    options.encoding = 'UTF-8'\n}\n\ntasks.withType(Javadoc) {\n    options.encoding = 'UTF-8'\n}\n\ntasks.named('test', Test) {\n    useJUnitPlatform()\n}\n\njacocoTestReport {\n    dependsOn test // tests are required to run before generating the report\n    // exclude Main.class from the coverage report\n    afterEvaluate {\n        classDirectories.setFrom(files(classDirectories.files.collect {\n            fileTree(dir: it, exclude: [\n                &quot;dk/kodeninjaer/testing/converter/Main.class&quot;\n            ])\n        }))\n    }\n}\n\njacoco {\n    toolVersion = &quot;0.8.11&quot;\n    //reportsDirectory = layout.buildDirectory.dir('customJacocoReportDir')\n}\n\n\n/* generate and compile */\n\n// register a new directory for source files\nsourceSets {\n    generatedTests {\n        java.srcDir 'build/generated/gradle'\n        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath + sourceSets.test.compileClasspath\n        runtimeClasspath += sourceSets.main.output + sourceSets.main.compileClasspath + sourceSets.test.compileClasspath\n    }\n}\n\n// a task to execute the generatedTests source set\ntasks.register(&quot;runGeneratedTests&quot;,Test) {\n    description = 'Runs the generated tests.'\n    group = 'verification'\n    testClassesDirs = sourceSets.generatedTests.output.classesDirs\n    classpath = sourceSets.main.runtimeClasspath + sourceSets.generatedTests.runtimeClasspath\n    useJUnitPlatform()\n\n    // run this after you run the test task\n    shouldRunAfter test\n}\n\ntasks.register(&quot;generateUnitTests&quot;, JavaExec) {\n    description = 'Generates dynamic unit tests from Postman collections'\n    group = 'verification'\n    classpath = sourceSets.main.runtimeClasspath\n    mainClass = &quot;dk.kodeninjaer.testing.converter.Main&quot;\n    args = [\n            // your args to generate the program\n            &quot;src/test/resources/TestCollection.postman_collection.json&quot;,\n            &quot;dk.kodeninjaer.gradle.testing&quot;,\n            &quot;PostmanToRestAssuredGenerator&quot;\n        ]\n    //shouldRunBefore generatedTests\n}\n\n\n\n// when check task is run we add our generatedTests that way if test task \n// is run it will also run our generatedTests\ntasks.named('check') {\n   dependsOn(tasks.runGeneratedTests)\n}\n\n</code></pre>\n<h2>Error</h2>\n<blockquote>\n<pre><code> Could not create task ':generateUnitTests'.\n    &gt; No signature of method: org.gradle.api.tasks.JavaExec.mustRunBefore() is applicable for argument types: (org.gradle.api.tasks.compile.JavaCompile_Decorated) values: [task ':compileTestJava']\n      Possible solutions: mustRunAfter([Ljava.lang.Object;), mustRunAfter([Ljava.lang.Object;)\n</code></pre>\n</blockquote>\n<h2>Update 2</h2>\n<p>If I run <code>./gradlew generateUnitTests</code> and <code>./gradlew runGeneratedTests</code> or <code>./gradlew check</code> it executes, but no testreport is generated...</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

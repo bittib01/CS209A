@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-kafka",
+      "classloader",
+      "confluent-schema-registry"
+    ],
+    "owner": {
+      "account_id": 21986966,
+      "reputation": 9,
+      "user_id": 16261068,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a-/AOh14GhIDZ6sd1oTnFp6soY9UNnbVZzKgc4CA-lXxA6vlg=k-s256",
+      "display_name": "bilalchetaba",
+      "link": "https://stackoverflow.com/users/16261068/bilalchetaba"
+    },
+    "is_answered": false,
+    "view_count": 1226,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1721018265,
+    "creation_date": 1714048124,
+    "last_edit_date": 1721018265,
+    "question_id": 78384650,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78384650/invalid-value-io-confluent-kafka-serializers-context-nullcontextnamestrategy-dur",
+    "title": "Invalid value io.confluent.kafka.serializers.context.NullContextNameStrategy during runtime when producing a Kafka event using schema registry",
+    "body": "<p>I get the following error message during runtime, every time a Kafka event is generated in my production environment. Please note that the same code works in my local setup without any issues and all Jenkins builds are successful. The error is the following:</p>\n<p><code>\\nCaused by: o.a.k.c.c.ConfigException: Invalid value io.confluent.kafka.serializers.context.NullContextNameStrategy for configuration context.name.strategy: Class io.confluent.kafka.serializers.context.NullContextNameStrategy could not be found.\\n\\&quot;}</code></p>\n<p>This is my Kafka config class</p>\n<pre><code>    @Bean\n    @Qualifier(&quot;json-schema&quot;)\n    public KafkaTemplate&lt;String, MyEvent&lt;?&gt;&gt; jsonSchemaKafkaTemplate() throws ClassNotFoundException {\n        return new KafkaTemplate&lt;&gt;(new DefaultKafkaProducerFactory&lt;&gt;(setCommonProducerProperties(),\n                new StringSerializer(),\n                new KafkaJsonSchemaSerializer&lt;&gt;()));\n    }\n\n\n    private  Map&lt;String, Object&gt; setCommonProducerProperties(){\n        // Setting common properties\n        Map&lt;String, Object&gt; configProps = setBrokerProperties();\n        configProps.put(ProducerConfig.RETRIES_CONFIG, KafkaPropertiesConfiguration.JsonSchemaProperties.RETRIES);\n        configProps.put(ProducerConfig.CLIENT_ID_CONFIG, \n        return configProps;\n    }\n\n    private Map&lt;String, Object&gt; setBrokerProperties() {\n        Map&lt;String, Object&gt; brokerProperties = new HashMap&lt;&gt;();\n        brokerProperties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaPropertiesConfiguration.getBroker().getBootstrapServers());\n        brokerProperties.put(SCHEMA_REGISTRY_URL_CONFIG, kafkaPropertiesConfiguration.getBroker().getSchemaRegistryUrl());\n\n        KafkaPropertiesConfiguration.SecurityProperties securityProperties = kafkaPropertiesConfiguration.getBroker().getSecurity();\n(... Keystore and Truststore credentials)\n\n        return brokerProperties;\n    }\n</code></pre>\n<p>Im using the following versions in my POMS:</p>\n<pre><code>        &lt;spring-kafka.version&gt;3.1.0&lt;/spring-kafka.version&gt;\n        &lt;kafka-client.version&gt;3.6.1&lt;/kafka-client.version&gt;\n        &lt;confluent.version&gt;7.0.1&lt;/confluent.version&gt;\n</code></pre>\n<pre><code>    &lt;!-- Kafka --&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.springframework.kafka&lt;/groupId&gt;\n            &lt;artifactId&gt;spring-kafka&lt;/artifactId&gt;\n            &lt;version&gt;${spring-kafka.version}&lt;/version&gt;\n        &lt;/dependency&gt;\n\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.springframework.kafka&lt;/groupId&gt;\n            &lt;artifactId&gt;spring-kafka-test&lt;/artifactId&gt;\n            &lt;version&gt;${spring-kafka.version}&lt;/version&gt;\n            &lt;scope&gt;test&lt;/scope&gt;\n        &lt;/dependency&gt;\n\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.apache.kafka&lt;/groupId&gt;\n            &lt;artifactId&gt;kafka-clients&lt;/artifactId&gt;\n            &lt;version&gt;${kafka-client.version}&lt;/version&gt;\n        &lt;/dependency&gt;\n\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.apache.kafka&lt;/groupId&gt;\n            &lt;artifactId&gt;kafka-clients&lt;/artifactId&gt;\n            &lt;version&gt;${kafka-client.version}&lt;/version&gt;\n            &lt;classifier&gt;test&lt;/classifier&gt;\n            &lt;scope&gt;test&lt;/scope&gt;\n        &lt;/dependency&gt;\n\n        &lt;!-- Confluent Schema Registry Client --&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;io.confluent&lt;/groupId&gt;\n            &lt;artifactId&gt;kafka-json-schema-serializer&lt;/artifactId&gt;\n            &lt;version&gt;${confluent.version}&lt;/version&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;io.confluent&lt;/groupId&gt;\n            &lt;artifactId&gt;kafka-schema-registry-client&lt;/artifactId&gt;\n            &lt;version&gt;${confluent.version}&lt;/version&gt;\n        &lt;/dependency&gt;\n</code></pre>\n<p>It is worth mentioning that some Kafka classes could not be found and loaded by the context loader during runtime, such as the &quot;StringSerializer&quot; class &quot;KafkaJsonSchemaSerializer&quot;, for this reason I have used the contstructor for both classes in my Kafka template. Otherwise I get the same error message that these classes could not be found.</p>\n<p>It's worth noting that I have another service that uses the exact same configuration, but the producer works.</p>\n<p>I have tried to run my Producer but it fails, stating that some Kafka classes could not be found. Although the necessary dependencies are included in the .jar file</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

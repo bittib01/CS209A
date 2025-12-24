@@ -1,0 +1,37 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "c++",
+      "c",
+      "ffi",
+      "java-ffm"
+    ],
+    "owner": {
+      "account_id": 26796672,
+      "reputation": 53,
+      "user_id": 20389311,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/nJOCH.jpg?s=256",
+      "display_name": "Morgoth",
+      "link": "https://stackoverflow.com/users/20389311/morgoth"
+    },
+    "is_answered": true,
+    "view_count": 222,
+    "closed_date": 1758907414,
+    "accepted_answer_id": 79776226,
+    "answer_count": 1,
+    "score": 3,
+    "last_activity_date": 1760966890,
+    "creation_date": 1758905015,
+    "last_edit_date": 1758906093,
+    "question_id": 79776201,
+    "link": "https://stackoverflow.com/questions/79776201/java-ffm-unexpected-behavior-with-pointers",
+    "closed_reason": "Duplicate",
+    "title": "Java FFM - Unexpected behavior with &quot;pointers&quot;",
+    "body": "<p>To try out the Java 25 FFM API, I wanted to call C++ code through a C wrapper.</p>\n<p>To do that, I created a small C++ class and a C wrapper following an example from <a href=\"https://stackoverflow.com/questions/78461891/how-to-represent-c-class-in-java-to-be-used-via-ffi\">here</a>.</p>\n<p>Printer.h</p>\n<pre class=\"lang-cpp prettyprint-override\"><code>#pragma once\n\n#include &lt;iostream&gt;\n\nclass Printer\n{\npublic:\n    void print(const std::string&amp; message);\n};\n</code></pre>\n<p>Printer.cpp</p>\n<pre class=\"lang-cpp prettyprint-override\"><code>#include &quot;Printer.h&quot;\n\nvoid Printer::print(const std::string&amp; message)\n{\n    std::cout &lt;&lt; message &lt;&lt; &quot;\\n&quot;;\n}\n</code></pre>\n<p>PrinterWrapper.h</p>\n<pre class=\"lang-cpp prettyprint-override\"><code>#pragma once\n\n#ifdef __cplusplus\nextern &quot;C&quot; {\n#endif\n\ntypedef struct Printer Printer;\n\n__declspec(dllexport)\nPrinter* newPrinter();\n\n__declspec(dllexport)\nvoid Printer_print(Printer*, const char []);\n\n__declspec(dllexport)\nvoid deletePrinter(Printer*);\n\n#ifdef __cplusplus\n}\n#endif\n</code></pre>\n<p>PrinterWrapper.cpp</p>\n<pre class=\"lang-cpp prettyprint-override\"><code>#include &quot;Printer.h&quot;\n#include &quot;PrinterWrapper.h&quot;\n\nextern &quot;C&quot; {\n\nPrinter* newPrinter()\n{\n    return new Printer();\n}\n\nvoid Printer_print(Printer* printer, const char message[])\n{\n    printer-&gt;print(message);\n}\n\nvoid deletePrinter(Printer* printer)\n{\n    delete printer;\n}\n\n}\n</code></pre>\n<p>Printer.java</p>\n<pre class=\"lang-java prettyprint-override\"><code>import java.lang.foreign.Arena;\nimport java.lang.foreign.FunctionDescriptor;\nimport java.lang.foreign.Linker;\nimport java.lang.foreign.MemorySegment;\nimport java.lang.foreign.SymbolLookup;\nimport java.lang.foreign.ValueLayout;\nimport java.lang.invoke.MethodHandle;\n\npublic class Printer {\n\n    private static final MethodHandle NEW_PRINTER;\n    private static final MethodHandle PRINTER_PRINT;\n    private static final MethodHandle DELETE_PRINTER;\n\n    private MemorySegment printerPointer;\n\n    static {\n        System.load(&quot;Path/to/shared/library&quot;);\n\n        Linker linker = Linker.nativeLinker();\n        SymbolLookup lookup = SymbolLookup.loaderLookup();\n\n        NEW_PRINTER = linker.downcallHandle(lookup.findOrThrow(&quot;newPrinter&quot;),\n                FunctionDescriptor.of(ValueLayout.ADDRESS));\n        PRINTER_PRINT = linker.downcallHandle(lookup.findOrThrow(&quot;Printer_print&quot;),\n                FunctionDescriptor.ofVoid(ValueLayout.ADDRESS, ValueLayout.ADDRESS));\n        DELETE_PRINTER = linker.downcallHandle(lookup.findOrThrow(&quot;deletePrinter&quot;),\n                FunctionDescriptor.ofVoid(ValueLayout.ADDRESS));\n    }\n\n    public Printer() {\n        try {\n            printerPointer = (MemorySegment) NEW_PRINTER.invoke();\n        } catch (Throwable e) {\n            e.printStackTrace();\n        }\n    }\n\n    public void print(String message) {\n        try (Arena arena = Arena.ofConfined()) {\n            MemorySegment nativeString = arena.allocateFrom(message);\n            PRINTER_PRINT.invokeExact(printerPointer, nativeString);\n        } catch (Throwable e) {\n            e.printStackTrace();\n        }\n    }\n\n    public void delete() {\n        try {\n            DELETE_PRINTER.invokeExact(printerPointer);\n        } catch (Throwable e) {\n            e.printStackTrace();\n        }\n    }\n\n}\n</code></pre>\n<p>Main.java</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class Main {\n    public static void main(String[] args) {    \n        Printer printer = new Printer();\n        printer.print(&quot;Hello World!&quot;);\n        printer.delete();\n    }\n}\n</code></pre>\n<p>If I run the program, everything works fine. But, here is the unexpected behavior: If I change the variable <code>printerPointer</code> to <code>MemorySegment.NULL</code> or any zero-length memory segment (see <a href=\"https://cr.openjdk.org/%7Emcimadamore/jdk/8295044/v3/javadoc/java.base/java/lang/foreign/MemorySegment.html#wrapping-addresses\" rel=\"nofollow noreferrer\">zero-length memory segments</a> in the java documentation) of any address, e.g. <code>MemorySegment.ofAddress(73928298)</code>, the program still executes correctly.</p>\n<p>First change:</p>\n<pre class=\"lang-java prettyprint-override\"><code>    public Printer() {\n        printerPointer = MemorySegment.NULL;\n    }\n</code></pre>\n<p>Second change:</p>\n<pre class=\"lang-java prettyprint-override\"><code>    public Printer() {\n        printerPointer = MemorySegment.ofAddress(73928298);\n    }\n</code></pre>\n<p>Both times, <code>Hello World!</code> is printed on the console. But I don't know why it is working both times, as my expectation was that it does not. Is there something wrong with the wrapper? (As I learned, calling C++ code produces undefined behavior). Or, is this intended, for whatever reason? Or, is it just a bug in the API?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

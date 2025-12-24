@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "youtube-api"
+    ],
+    "owner": {
+      "account_id": 2892707,
+      "reputation": 86,
+      "user_id": 2481102,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/ea0734b31312712ad96d05d745d32e6b?s=256&d=identicon&r=PG",
+      "display_name": "Chicken Pro",
+      "link": "https://stackoverflow.com/users/2481102/chicken-pro"
+    },
+    "is_answered": false,
+    "view_count": 44,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1721840304,
+    "creation_date": 1721619479,
+    "last_edit_date": 1721840304,
+    "question_id": 78776872,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78776872/the-response-time-for-playlist-requests-is-very-slow-exceeding-1-minute-80-sec",
+    "title": "The response time for playlist requests is very slow, exceeding 1 minute (80 seconds)",
+    "body": "<p>Here is my code to load youtube playlistitem. It's working and I can get the result.</p>\n<pre class=\"lang-java prettyprint-override\"><code>private static final int MAX_RESULTS_PER_PAGE = 50;\npublic static List&lt;PlaylistItemSnippet&gt; loadPlaylistItems(String playlistId) throws IOException {\n    List&lt;PlaylistItemSnippet&gt; allItems = new ArrayList&lt;&gt;();\n    YouTube youtube = YouTubeSingleton.getYouTube();\n\n    long startTime = System.currentTimeMillis();  // Start time for logging\n\n    String nextPageToken = null;\n    do {\n        // Batch request for playlist items and status\n        YouTube.PlaylistItems.List playlistItemsListRequest = youtube.playlistItems().list(&quot;snippet,status&quot;);\n        playlistItemsListRequest.setPlaylistId(playlistId);\n        playlistItemsListRequest.setMaxResults((long) MAX_RESULTS_PER_PAGE);\n        playlistItemsListRequest.setPageToken(nextPageToken);\n        playlistItemsListRequest.setKey(DeveloperKey.getDeveloperKey());\n\n        // Execute the batched request\n        PlaylistItemListResponse playlistItemListResponse = playlistItemsListRequest.execute();\n\n        long apiCallDuration = System.currentTimeMillis() - startTime;  // Duration of API call\n        Log.d(&quot;text&quot;, &quot;API_call_duration_for_token &quot; + &quot;: &quot; + apiCallDuration + &quot; ms&quot;);\n\n        List&lt;PlaylistItemSnippet&gt; snippets = new ArrayList&lt;&gt;();\n        for (PlaylistItem item : playlistItemListResponse.getItems()) {\n            // Get the snippet object from the PlaylistItem\n            PlaylistItemSnippet snippet = item.getSnippet();\n            snippets.add(snippet);\n\n            PlaylistItemStatus status = item.getStatus();\n            if (status != null &amp;&amp; status.getPrivacyStatus().equals(&quot;public&quot;)) { // Check privacy status\n                allItems.add(snippet);\n                if (allItems.size() &gt;= MAX_RESULTS_PER_PAGE) {\n                    break;\n                }\n            }\n        }\n\n        nextPageToken = playlistItemListResponse.getNextPageToken();\n    } while (nextPageToken != null);\n\n    return allItems;\n}\n</code></pre>\n<p>I've also used direct http request with okhttp client.</p>\n<p>But the trouble is here the time request response is very slow now. It's more than 80s. I don't know why ?</p>\n<p>How to improve it ? User can't wait too long to get the result</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

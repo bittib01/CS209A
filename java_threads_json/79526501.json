@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "multithreading",
+      "synchronization"
+    ],
+    "owner": {
+      "account_id": 26389,
+      "reputation": 9917,
+      "user_id": 68612,
+      "user_type": "registered",
+      "accept_rate": 81,
+      "profile_image": "https://i.sstatic.net/gCXRz.jpg?s=256",
+      "display_name": "Gandalf",
+      "link": "https://stackoverflow.com/users/68612/gandalf"
+    },
+    "is_answered": false,
+    "view_count": 71,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1742633952,
+    "creation_date": 1742587593,
+    "last_edit_date": 1742633952,
+    "question_id": 79526501,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79526501/trying-to-remove-synchronization-from-thread-heavy-workload",
+    "title": "Trying to remove synchronization from thread-heavy workload",
+    "body": "<p>I came across some code in our code base that seems not wrong, but terribly inefficient due the the nature of our platform (a lot of threads could be accessing these two methods simultaneously).</p>\n<pre class=\"lang-java prettyprint-override\"><code>ConcurrentMap&lt;String, Post&gt; postById = new ConcurrentHashMap&lt;&gt;();\nArrayDeque&lt;Post&gt; posts = new Dequeue&lt;&gt;();\n\nsynchronized public Post addPost(String postId, Date createdAt, String link, String profileId) {\n    Post post = new Post(postId, link, createdAt, profileId);\n    if (postsById.containsKey(postId)) {\n        postsById.replace(postId, post);\n        for (Post removeCandidate: posts) {\n            if (removeCandidate.getId().equals(postId)) {\n                posts.remove(removeCandidate);\n                break;\n            }\n        }\n    }\n    if (posts.size() &gt;= maxPostsPerUser) {\n        Post removed = posts.removeLast();\n        postsById.remove(removed.getId());\n    }\n    postsById.put(postId, post);\n    posts.addFirst(post);   \n    \n    return post;\n}\n\nsynchronized public Post addUpdate(String postId, Date createdAt, long numReplies, long numReposts, long numLikes, String link, String profileId) {\n    Post post = postsById.get(postId);\n    if (post != null) {\n        post.setNumReplies(numReplies);\n        post.setNumReposts(numReposts);\n        post.setNumLikes(numLikes);\n    } else {\n        post = new Post(postId, link, createdAt, profileId);\n        post.setNumReplies(numReplies);\n        if (posts.size() &gt;= maxPostsPerUser) {\n            Post removed = posts.removeLast();\n            postsById.remove(removed.getId());\n        }\n        postsById.put(postId, post);\n        posts.addFirst(post);           \n    }\n    \n    return post;\n}\n</code></pre>\n<p>I personally hate synchronized blocks anywhere (yes, sometimes it's the only way, rarely)</p>\n<p>But in this scenario I am at a slight loss.  I was thinking of locking access on the <code>postId</code> somehow, so contention would be at a much finer grain.  Not sure if String.intern() would make this possible.  Looking for suggestions.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "multithreading"
+    ],
+    "owner": {
+      "account_id": 29845114,
+      "reputation": 133,
+      "user_id": 22872363,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocIpN5w5guiiGEOgNe5kFxs2WaWMz7wzMU6xXna6W1_s=k-s256",
+      "display_name": "Mark Avreliy",
+      "link": "https://stackoverflow.com/users/22872363/mark-avreliy"
+    },
+    "is_answered": true,
+    "view_count": 127,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1747741278,
+    "creation_date": 1747735549,
+    "last_edit_date": 1747738652,
+    "question_id": 79630226,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79630226/multithreading-simple-queue",
+    "title": "Multithreading simple queue",
+    "body": "<p>I'm practicing with multithreading. I've a task:</p>\n<p>Create a message queue that N threads write to (the number of threads is specified via args) and N threads read from, using only the java.util.concurrent package. Thread names must be meaningful, using constructions with wait/notify is prohibited.</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class MessageQueueApp {\n\n    private static final int MESSAGE_COUNT = 5; \n\n    public static void main(String[] args) {\n        if (args.length &lt; 1) {\n            System.err.println(&quot;Set number of threds through args&quot;);\n            return;\n        }\n\n        int threadCount;\n        try {\n            threadCount = Integer.parseInt(args[0]);\n        } catch (NumberFormatException e) {\n            System.err.println(&quot;Invalid format number: &quot; + args[0]);\n            return;\n        }\n\n        BlockingQueue&lt;String&gt; queue = new LinkedBlockingQueue&lt;&gt;();\n\n        ExecutorService writerPool = Executors.newFixedThreadPool(threadCount);\n        ExecutorService readerPool = Executors.newFixedThreadPool(threadCount);\n\n        // Writers\n        for (int i = 0; i &lt; threadCount; i++) {\n            String writerName = &quot;Writer-&quot; + (i + 1);\n            writerPool.submit(() -&gt; {\n                for (int j = 1; j &lt;= MESSAGE_COUNT; j++) {\n                    String message = writerName + &quot; message &quot; + j;\n                    try {\n                        queue.put(message);\n                        System.out.println(writerName + &quot; put: &quot; + message);\n                        Thread.sleep(2000); //Simulation\n                    } catch (InterruptedException e) {\n                        Thread.currentThread().interrupt();\n                    }\n                }\n            });\n        }\n\n        // Readers\n        for (int i = 0; i &lt; threadCount; i++) {\n            String readerName = &quot;Reader-&quot; + (i + 1);\n            readerPool.submit(() -&gt; {\n                int received = 0;\n                while (received &lt; MESSAGE_COUNT) {\n                    try {\n                        String message = queue.take();\n                        System.out.println(readerName + &quot; got: &quot; + message);\n                        received++;\n                        Thread.sleep(500); //Simulation\n                    } catch (InterruptedException e) {\n                        Thread.currentThread().interrupt();\n                    }\n                }\n            });\n        }\n\n        writerPool.shutdown();\n        readerPool.shutdown();\n    }\n}\n</code></pre>\n<p>When I open logs I see:</p>\n<pre><code>Reader-6 got: Writer-1 message 1\nWriter-1 put: Writer-1 message 1\n</code></pre>\n<p>Why Reader appears before Writer? Does it mean that my app doesnt work as it should? Or I should place <code>readers</code> and <code>writers</code> inside one loop? What fixes should I make?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

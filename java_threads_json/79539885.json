@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "oauth-2.0"
+    ],
+    "owner": {
+      "account_id": 23191660,
+      "reputation": 39,
+      "user_id": 17287932,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AATXAJzB04xz7vUh8um55g6ne1FwW_N6M7ZyzES6ppyA=k-s256",
+      "display_name": "Michal Hodul",
+      "link": "https://stackoverflow.com/users/17287932/michal-hodul"
+    },
+    "is_answered": false,
+    "view_count": 123,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1753300780,
+    "creation_date": 1743104673,
+    "last_edit_date": 1753300780,
+    "question_id": 79539885,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79539885/spring-security-oauth-invalid-credentials",
+    "title": "Spring security OAUTH - Invalid credentials",
+    "body": "<p>Struggling with this error, while I trying login  via OAUTH GOOGLE.</p>\n<p><a href=\"https://i.sstatic.net/Jn5rQM2C.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/Jn5rQM2C.png\" alt=\"enter image description here\" /></a></p>\n<p>My <code>securityfilterchain</code>:</p>\n<pre><code>    @Bean\n    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {\n        //http.cors(cors -&gt; cors.configurationSource(corsConfigurationSource()));\n        http.cors(cors -&gt; cors.disable());\n        http.csrf(csrf -&gt;csrf.ignoringRequestMatchers(&quot;/oauth/*&quot;, &quot;/auth/user&quot;));\n        http.authorizeHttpRequests(request -&gt; request.requestMatchers(&quot;/oauth/*&quot;,&quot;/auth/user&quot;).permitAll().anyRequest().authenticated());\n        http.oauth2Login(login -&gt; login.successHandler(((request, response, authentication) -&gt; response.sendRedirect(&quot;/auth/user&quot;))));\n\n        return http.build();\n    }\n</code></pre>\n<p>In <code>application.properties</code>, I have:</p>\n<pre><code>spring.security.oauth2.client.registration.google.client-id= my client id\nspring.security.oauth2.client.registration.google.client-secret= my client secret \n</code></pre>\n<p>Is there something else what I have to configure ?</p>\n<p><strong>EDIT</strong> (SOLVED)</p>\n<p>The reason for the 'Invalid credentials' was my sessions, which was 'null'. Reason of this null was automatically set up 'sameSite' cookies by this @Bean</p>\n<pre><code>@Bean\npublic CookieSameSiteSupplier applicationCookieSameSiteSupplier() {\n    return CookieSameSiteSupplier.ofStrict();\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "multithreading",
+      "thread-safety",
+      "activemq-artemis"
+    ],
+    "owner": {
+      "account_id": 24416,
+      "reputation": 5960,
+      "user_id": 62072,
+      "user_type": "registered",
+      "accept_rate": 84,
+      "profile_image": "https://www.gravatar.com/avatar/1b60fc4645b020bc304e0e04395d0b89?s=256&d=identicon&r=PG",
+      "display_name": "Tom Hunter",
+      "link": "https://stackoverflow.com/users/62072/tom-hunter"
+    },
+    "is_answered": true,
+    "view_count": 107,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1745523618,
+    "creation_date": 1745243661,
+    "last_edit_date": 1745268997,
+    "question_id": 79584759,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79584759/activemqmessageconsumer-receive-stuck-at-timed-waiting",
+    "title": "ActiveMQMessageConsumer.receive() stuck at TIMED_WAITING",
+    "body": "<p>A third-party, multi-threaded application is interacting with a remote ActiveMQ queue and is getting stuck with threads waiting at:</p>\n<pre><code>java.lang.Thread.State: TIMED_WAITING (on object monitor)\n  at java.lang.Object.wait(Native Method)\n  at org.apache.activemq.artemis.core.client.impl.ClientConsumerImpl.receive(ClientConsumerImpl.java:258)\n  - locked &lt;0x00000000f541f548&gt; (a org.apache.activemq.artemis.core.client.impl.ClientConsumerImpl)\n  at org.apache.activemq.artemis.core.client.impl.ClientConsumerImpl.receive(ClientConsumerImpl.java:385)\n  at org.apache.activemq.artemis.jms.client.ActiveMQMessageConsumer.getMessage(ActiveMQMessageConsumer.java:198)\n  at org.apache.activemq.artemis.jms.client.ActiveMQMessageConsumer.receive(ActiveMQMessageConsumer.java:118)\n  ...(...:384)\n</code></pre>\n<p>I've decompiled the application and reviewed TRACE logs and it seems that the <code>queueReceiver.receive()</code> method doesn't get/see the same number of messages returned by the <code>queueBrowser</code>.</p>\n<pre><code>/* 375 */       queueBrowser = queueSession.createBrowser(queue, messageSelector);\n/* 376 */       Enumeration e = queueBrowser.getEnumeration();\n/* 377 */       int iMesgCount = 0;\n/* 378 */       while (e.hasMoreElements()) {\n/* 379 */         iMesgCount++;\n/* 380 */         e.nextElement();\n/*     */       } \n/* 382 */       queueReceiver = queueSession.createReceiver(queue, messageSelector);\n/* 383 */       for (int i = 0; i &lt; iMesgCount; i++) {\n/* 384 */         Message ipMessage = queueReceiver.receive();\n/*     */       }\n</code></pre>\n<p>Why might this be and is there anything I can do to add concurrency control around the ActiveMQ objects? I don't believe there are any other threads or processes removing the messages from the queue. I believe the issue is multi-threaded use of the ActiveMQ objects.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

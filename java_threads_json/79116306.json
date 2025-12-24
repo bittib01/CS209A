@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-test",
+      "spring-context"
+    ],
+    "owner": {
+      "account_id": 21724606,
+      "reputation": 1441,
+      "user_id": 16034206,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/MRBdT.jpg?s=256",
+      "display_name": "pebble unit",
+      "link": "https://stackoverflow.com/users/16034206/pebble-unit"
+    },
+    "is_answered": true,
+    "view_count": 481,
+    "accepted_answer_id": 79132179,
+    "answer_count": 3,
+    "score": 0,
+    "last_activity_date": 1740120935,
+    "creation_date": 1729654331,
+    "last_edit_date": 1730101380,
+    "question_id": 79116306,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79116306/how-can-i-stub-a-method-before-spring-applicationreadyevent",
+    "title": "How can I stub a method before Spring ApplicationReadyEvent?",
+    "body": "<p>I have the following components in my application code. On application startup, I want to call some init methods. However, during testing, I want to do nothing when these methods are called.</p>\n<pre><code>    import lombok.extern.slf4j.Slf4j;\n    import org.springframework.beans.factory.annotation.Autowired;\n    import org.springframework.boot.context.event.ApplicationReadyEvent;\n    import org.springframework.context.event.EventListener;\n    import org.springframework.stereotype.Service;\n    \n    @Slf4j\n    @Service\n    public class ManagementService {\n        @Autowired\n        private Temp temp;\n    \n        @EventListener(ApplicationReadyEvent.class)\n        public void startup() {\n            log.info(&quot;Startup on application ready.&quot;);\n            temp.print();\n        }\n    }\n    \n    @Slf4j\n    @Component\n    public class Temp {\n        public void print() {\n            log.info(&quot;Inside temp&quot;);\n        }\n    }\n</code></pre>\n<p>I used @BeforeEach to stub the methods like so:</p>\n<pre><code>    @SpringBootTest\n    public abstract class SpringIntegrationBaseTest {\n        @SpyBean\n        protected ManagementService service;\n        @SpyBean\n        protected Temp temp;\n       \n    \n        @BeforeEach\n        public void preventConnection() throws SQLException {\n            Mockito.doNothing().when(temp).print();\n        }\n    }\n</code></pre>\n<p>However, I noticed that the logs from the first unit test shows:</p>\n<pre><code>    2024-10-23 10:24:16.675  INFO 23628 [           main] o.a.c.l.i.Jdk14Logger                    : Started ManagementServiceTests in 3.382 seconds (process running for 4.907)\n    2024-10-23 10:24:16.694  INFO 23628 [           main] c.c.s.ManagementService                  : Startup on application ready.\n    2024-10-23 10:24:16.696  INFO 23628 [           main] c.c.s.Temp                               : Inside temp\n</code></pre>\n<p>and on the second unit test it correctly does nothing for print().</p>\n<pre><code>    2024-10-23 10:36:36.799  INFO 17496 [           main] o.a.c.l.i.Jdk14Logger                    : Started RestControllerTest in 0.821 seconds (process running for 5.924)\n    2024-10-23 10:36:36.801  INFO 17496 [           main] c.c.s.ManagementService                  : Startup on application ready.\n</code></pre>\n<p>On further inspection, I noticed that the stubbing is only done directly before the test, and when application context initialized, the print() method is still called because the stubbing is not done yet, but on the next test, the previous stubbing is carried over.</p>\n<p>I think it would look something like this:</p>\n<blockquote>\n<p>application context initialize --&gt; Event Listener called --&gt; BeforeEach stubbing --&gt; Test</p>\n</blockquote>\n<p>I would like something like this:</p>\n<blockquote>\n<p>??? --&gt; stubbing --&gt; ??? --&gt; Event Listener called --&gt; ??? --&gt; Test</p>\n</blockquote>\n<p>where ??? is any intermediate step</p>\n<p>I found that I can use @MockBean to just mock Temp and do nothing for all methods by default, however, during testing I need to use the actual behavior of some methods which is why I would like to use @SpyBean to not have to stub all methods used in testing.</p>\n<p>Edit:\nI have also tried using a @PostConstruct inside the SpringIntegrationBaseTest like so:</p>\n<pre><code>@PostConstruct\npublic void init() throws Exception {\n    log.info(&quot;postconstruct init&quot;);\n    Mockito.doNothing().when(temp).print();\n}\n</code></pre>\n<p>However, this also executes <em>AFTER</em> the event listener annotated method.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

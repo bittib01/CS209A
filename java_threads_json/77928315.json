@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "amazon-sqs",
+      "testcontainers",
+      "localstack"
+    ],
+    "owner": {
+      "account_id": 3173452,
+      "reputation": 580,
+      "user_id": 2681876,
+      "user_type": "registered",
+      "accept_rate": 75,
+      "profile_image": "https://i.sstatic.net/Tn3oA.png?s=256",
+      "display_name": "BillyBadBoy",
+      "link": "https://stackoverflow.com/users/2681876/billybadboy"
+    },
+    "is_answered": true,
+    "view_count": 1386,
+    "accepted_answer_id": 77929282,
+    "answer_count": 2,
+    "score": 1,
+    "last_activity_date": 1720105281,
+    "creation_date": 1706889567,
+    "last_edit_date": 1707144130,
+    "question_id": 77928315,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77928315/cant-get-attributes-of-aws-sqs-queue-using-java-testcontainers",
+    "title": "Can&#39;t get attributes of AWS SQS queue using Java &amp; TestContainers",
+    "body": "<p>The code below reproduces a problem I'm seeing in some of our tests. We</p>\n<ul>\n<li>start up a test container</li>\n<li>create an SQS client</li>\n<li>use that client to create a queue</li>\n<li>attempt to look up the queue ARN</li>\n</ul>\n<p>The queue creation appears to be successful, and returns this URL:</p>\n<p><code>http://sqs.us-east-1.localhost:4566/000000000000/my-queue</code></p>\n<p>But, attempting to query the queue attributes results in:</p>\n<p><code>java.net.UnknownHostException: sqs.us-east-1.localhost</code></p>\n<pre><code>public class Main {\n\n    private static final LocalStackContainer localStack =\n            new LocalStackContainer(DockerImageName.parse(\n                    &quot;localstack/localstack:3.1&quot;)).withServices(SQS);\n\n    public static void main(String[] args) {\n\n        localStack.start();\n\n        // create SQS client\n        AmazonSQSAsync sqs = AmazonSQSAsyncClientBuilder\n                .standard()\n                .withEndpointConfiguration(new EndpointConfiguration(\n                        localStack.getEndpointOverride(SQS).toString(),\n                        localStack.getRegion()))\n                .withCredentials(new AWSStaticCredentialsProvider(\n                        new BasicAWSCredentials(\n                                localStack.getAccessKey(),\n                                localStack.getSecretKey())))\n                .build();\n\n        // create a new queue\n        String url = sqs.createQueue(&quot;my-queue&quot;).getQueueUrl();\n\n        // get ARN of new queue \n        String arn = sqs.getQueueAttributes(url, List.of(&quot;QueueArn&quot;))\n                .getAttributes().get(&quot;QueueArn&quot;);\n    }\n}\n</code></pre>\n<p>The code above is part of maven project with these (and only these) dependencies:</p>\n<pre><code>&lt;dependency&gt;\n    &lt;groupId&gt;com.amazonaws&lt;/groupId&gt;\n    &lt;artifactId&gt;aws-java-sdk-sqs&lt;/artifactId&gt;\n    &lt;version&gt;1.12.646&lt;/version&gt;\n&lt;/dependency&gt;\n&lt;dependency&gt;\n    &lt;groupId&gt;org.testcontainers&lt;/groupId&gt;\n    &lt;artifactId&gt;localstack&lt;/artifactId&gt;\n    &lt;version&gt;1.19.4&lt;/version&gt;\n&lt;/dependency&gt;\n</code></pre>\n<p>I can't figure out why <code>createQueue()</code> works, but <code>getQueueAttributes()</code> doesn't. What am I doing wrong here?</p>\n<p>[In the 'real' code I can't change the <code>aws-java-sdk-sqs</code> version, but I'm happy to change the TestContainers and LocalStack versions if that would help]</p>\n<p>Update: fixed by Thrau's suggestion (see below). Need to use the latest LocalStack and set <code>SQS_ENDPOINT_STRATEGY</code> to <code>dynamic</code>:</p>\n<pre><code>LocalStackContainer localStack =\n  new LocalStackContainer(DockerImageName.parse(&quot;localstack/localstack:latest&quot;))\n    .withEnv(&quot;SQS_ENDPOINT_STRATEGY&quot;, &quot;dynamic&quot;)\n    .withServices(SQS);\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

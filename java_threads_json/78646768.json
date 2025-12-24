@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "debugging",
+      "memory-leaks",
+      "classloader",
+      "metaspace"
+    ],
+    "owner": {
+      "account_id": 32367103,
+      "reputation": 1,
+      "user_id": 25139926,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/e9b9134a93a6141c9b9748b9173b73d4?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "kyle wang",
+      "link": "https://stackoverflow.com/users/25139926/kyle-wang"
+    },
+    "is_answered": false,
+    "view_count": 183,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1720574272,
+    "creation_date": 1718877493,
+    "last_edit_date": 1720574272,
+    "question_id": 78646768,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78646768/why-debugging-leads-to-metaspace-memory-leak-in-java",
+    "title": "Why debugging leads to MetaSpace memory leak in Java?",
+    "body": "<p>Debugging a class loaded by a ClassLoader created by a user will cause the class to be referenced by JNI global, and the ClassLoader cannot be uninstalled. Repeating this operation for many times will eventually cause MetaSpace overflow.</p>\n<p>The fllow image shows TenantClassLoader is referenced by JNI Global(logwire.products.crm.action.customer.ChangeCustomerOwnerUserAction), Why the ClassLoader is referenced by a Class JNI Global, and how to uninstall the ClassLoader?</p>\n<p><a href=\"https://i.sstatic.net/A2cLJPr8.png\" rel=\"nofollow noreferrer\">enter image description here</a></p>\n<p>I try to break debug when recreate TenantClassLoader, but the old TenantClassLoader still not uninstalled.</p>\n<p>There is a minimal reproducible example, but it does not fully reproduce the online scene.</p>\n<p>Steps to Reproduce:<br />\nDebugging the source code, if I don't add any breakpoints, then the ClassLoader can be properly garbage collected, and the console prints 'ClassLoader count: 0'. However, if I add a debugging breakpoint inside the 'run' method of 'MyTask', after the program runs, the ClassLoader is not garbage collected.</p>\n<pre class=\"lang-java prettyprint-override\"><code>package test;\n\nimport java.io.FileNotFoundException;\nimport java.io.IOException;\nimport java.io.InputStream;\nimport java.lang.ref.WeakReference;\nimport java.lang.reflect.Constructor;\nimport java.net.URL;\nimport java.net.URLClassLoader;\nimport java.security.ProtectionDomain;\nimport java.time.LocalDateTime;\n\npublic class TestClassLoaderLeaks {\n\n    private static WeakReference&lt;ClassLoader&gt; classLoaderRef = null;\n\n    private static void createClassLoader() throws Exception {\n        ClassLoader classLoader = new MyClassLoader(new URL[]{});\n        classLoaderRef = new WeakReference&lt;&gt;(classLoader);\n\n        Class&lt;?&gt; clazz = Class.forName(MyTask.class.getName(), true, classLoader);\n        Constructor&lt;?&gt; constructor = clazz.getConstructor();\n        Runnable runnable = (Runnable) constructor.newInstance();\n        runnable.run();\n    }\n\n    public static void main(String[] args) throws Exception {\n        createClassLoader();\n        for (int i = 0; i &lt; 10; i++) {\n            gcAndPrintClassLoaderCount(500);\n        }\n\n    }\n\n    private static void gcAndPrintClassLoaderCount(long sleepTime) throws InterruptedException {\n        System.gc();\n        Thread.sleep(sleepTime);\n        ClassLoader classLoader = classLoaderRef.get();\n        LocalDateTime now = LocalDateTime.now();\n        System.out.println(now + &quot;: ClassLoader : &quot; + classLoader);\n    }\n\n    public static class MyClassLoader extends URLClassLoader {\n\n        private Class&lt;?&gt; clazz;\n\n        public MyClassLoader(URL[] urls) {\n            super(urls);\n        }\n\n        @Override\n        protected Class&lt;?&gt; loadClass(String name, boolean resolve) throws ClassNotFoundException {\n            if (name.equals(MyTask.class.getName())) {\n                if (clazz == null) {\n                    String className = MyTask.class.getName();\n                    String classPath = className.replace(&quot;.&quot;, &quot;/&quot;) + &quot;.class&quot;;\n                    ClassLoader classLoader = TestClassLoaderLeaks.class.getClassLoader();\n                    try (InputStream resourceAsStream = classLoader.getResourceAsStream(classPath)) {\n                        if (resourceAsStream == null) {\n                            throw new FileNotFoundException(&quot;File &quot; + classPath + &quot; not found&quot;);\n                        }\n                        ProtectionDomain protectionDomain = new ProtectionDomain(null, null);\n                        byte[] bytes = resourceAsStream.readAllBytes();\n                        clazz = defineClass(className, bytes, 0, bytes.length, protectionDomain);\n                    } catch (IOException e) {\n                        throw new RuntimeException(e);\n                    }\n                }\n                return clazz;\n            } else {\n                return super.loadClass(name, resolve);\n            }\n        }\n    }\n\n    public static class MyTask implements Runnable {\n\n        @Override\n        public void run() {\n            MyClassLoader classLoader = (MyClassLoader) this.getClass().getClassLoader();\n            System.out.println(&quot;This is ClassLoader: &quot; + classLoader);\n        }\n    }\n\n}\n\n</code></pre>\n<p>JDK version:</p>\n<pre class=\"lang-bash prettyprint-override\"><code>openjdk version &quot;17.0.10&quot; 2024-01-16\nOpenJDK Runtime Environment Temurin-17.0.10+7 (build 17.0.10+7)\nOpenJDK 64-Bit Server VM Temurin-17.0.10+7 (build 17.0.10+7, mixed mode)\n</code></pre>\n<p>Why do I need this classloader for?<br />\nI need to frequently hot-load java code written by developers so that they can write java immediately as if they were writing JavaScript without restarting java</p>\n<p>This happens only while debugging?<br />\nYes, this only happens when debugging, but if we don't debug, No matter how many ClassLoaders are created and loaded, there has never been a ClassLoader leak.</p>\n<p>Debugging tool:<br />\nIntelliJ IDEA 2024.1</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "react-native",
+      "react-native-pdf"
+    ],
+    "owner": {
+      "account_id": 43073446,
+      "reputation": 1,
+      "user_id": 31060440,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/ff55b3dbd54eccbb0bd75d3a2f42a919?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Mayur Sancheti",
+      "link": "https://stackoverflow.com/users/31060440/mayur-sancheti"
+    },
+    "is_answered": false,
+    "view_count": 306,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1755771027,
+    "creation_date": 1755764758,
+    "question_id": 79742036,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79742036/app-crashes-showing-error-java-lang-illegalstateexception-already-closed",
+    "title": "App Crashes showing error - java.lang.IllegalStateException: Already closed",
+    "body": "<p>I am using react native pdf, its working &amp; showing pdf but if I scrolling fast OR PDF in loading phase and i press back button of navigation bar or device back button quickly then app crashes,\nI check in adb logcat &amp; sentry also to check error it shows java.lang.IllegalStateException: Already closed.</p>\n<p><strong>I tried below code</strong>,</p>\n<pre><code>import Pdf from 'react-native-pdf';\n&lt;View style={{flex: 1}}&gt;\n        &lt;Pdf\n          trustAllCerts={false}\n          onError={error =&gt; {\n            showToast(0, t('PdfView.FailedToLoad'));\n          }}\n          source={source}\n          onLoadComplete={(\n            numberOfPages,\n            path,\n            {width, height},\n            tableContents,\n          ) =&gt; {\n            setPdfLoading(false);\n            if (params?.type === 'crop') {\n              let data = {\n                id: params?.id,\n                cachedUrl: path,\n              };\n              dispatch(saveCachedPdfs(data));\n            }\n            if (params?.type === 'product') {\n              let data = {\n                id: params?.id,\n                cachedUrl: path,\n              };\n              dispatch(saveProducCachedPdfs(data));\n            }\n\n            if (Platform.OS === 'ios') {\n              let fileName = params?.url.substring(\n                params?.url.lastIndexOf('/') + 1,\n                params?.url.lastIndexOf('.'),\n              );\n\n              ReactNativeBlobUtil.fs\n                .cp(\n                  path,\n                  ReactNativeBlobUtil.fs.dirs.DocumentDir + `/${fileName}.pdf`,\n                )\n                .then(() =&gt; {})\n                .catch(() =&gt; {});\n            }\n          }}\n          renderActivityIndicator={(progress: number) =&gt; {\n            return (\n              &lt;View style={progressContainer}&gt;\n                &lt;LottieView\n                  source={require('../../../assets/loader/spinner.json')}\n                  style={gifStyle}\n                  autoPlay\n                  loop\n                /&gt;\n                &lt;Body1\n                  text={`${parseInt(progress * 100)}%`}\n                  style={{\n                    color: Colors.PrimaryBlue,\n                    marginTop: Sizes._15,\n                    fontSize: Sizes._32,\n                    lineHeight: Sizes._40,\n                    textAlign: 'center',\n                  }}\n                /&gt;\n                &lt;View style={{marginTop: Sizes._15, width: '100%'}}&gt;\n                  &lt;ProgressBar progress={parseInt(progress * 100)} /&gt;\n                &lt;/View&gt;\n              &lt;/View&gt;\n            );\n          }}\n          style={pdfStyle}\n        /&gt;\n&lt;/View&gt;\n</code></pre>\n<p><strong>Error message</strong> -  java.lang.IllegalStateException: Already closed.</p>\n<p><strong>when the error happens</strong>  -</p>\n<ol>\n<li>When Pdf is loading stage, if user quickly pressing back button, instead of wait, that case app crashes.</li>\n<li>suppose user speedily scroll page and quickly press back button in this case also app crashes.</li>\n</ol>\n<p>Adb Logcat OR sentry report - <strong>Logs</strong></p>\n<pre class=\"lang-none prettyprint-override\"><code>java.lang.IllegalStateException: Already closed\n       at io.legere.pdfiumandroid.util.ConfigKt.handleAlreadyClosed(Config.kt:20)\n       at io.legere.pdfiumandroid.PdfPage.renderPageBitmap(PdfPage.kt:358)\n       at io.legere.pdfiumandroid.PdfPage.renderPageBitmap$default(PdfPage.kt:349)\n       at io.legere.pdfiumandroid.PdfiumCore.renderPageBitmap(PdfiumCore.kt:407)\n       at com.github.barteksc.pdfviewer.PdfFile.renderPageBitmap(PdfFile.java:301)\n       at com.github.barteksc.pdfviewer.RenderingHandler.proceed(RenderingHandler.java:109)\n       at com.github.barteksc.pdfviewer.RenderingHandler.handleMessage(RenderingHandler.java:66)\n       at android.os.Handler.dispatchMessage(Handler.java:106)\n       at android.os.Looper.loop(Looper.java:223)\n       at android.os.HandlerThread.run(HandlerThread.java:67)\n       Suppressed: java.lang.IllegalStateException: Already closed\n               at io.legere.pdfiumandroid.util.ConfigKt.handleAlreadyClosed(Config.kt:20)\n               at io.legere.pdfiumandroid.PdfPage.close(PdfPage.kt:582)\n               at kotlin.io.CloseableKt.closeFinally(Closeable.kt:59)\n               at io.legere.pdfiumandroid.PdfiumCore.renderPageBitmap(PdfiumCore.kt:406)\n               ... 6 more\n</code></pre>\n<pre class=\"lang-none prettyprint-override\"><code>java.lang.IllegalStateException: Already closed\n       at io.legere.pdfiumandroid.util.ConfigKt.handleAlreadyClosed(Config.kt:20)\n       at io.legere.pdfiumandroid.PdfPage.close(PdfPage.kt:582)\n       at kotlin.io.CloseableKt.closeFinally(Closeable.kt:56)\n       at io.legere.pdfiumandroid.PdfiumCore.renderPageBitmap(PdfiumCore.kt:406)\n       at com.github.barteksc.pdfviewer.PdfFile.renderPageBitmap(PdfFile.java:301)\n       at com.github.barteksc.pdfviewer.RenderingHandler.proceed(RenderingHandler.java:109)\n       at com.github.barteksc.pdfviewer.RenderingHandler.handleMessage(RenderingHandler.java:66)\n       at android.os.Handler.dispatchMessage(Handler.java:106)\n       at android.os.Looper.loop(Looper.java:223)\n       at android.os.HandlerThread.run(HandlerThread.java:67)\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

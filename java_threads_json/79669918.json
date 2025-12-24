@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "quartz-scheduler",
+      "quartz"
+    ],
+    "owner": {
+      "account_id": 3037691,
+      "reputation": 13,
+      "user_id": 2575372,
+      "user_type": "registered",
+      "profile_image": "https://graph.facebook.com/100004328679347/picture?type=large",
+      "display_name": "Artem S",
+      "link": "https://stackoverflow.com/users/2575372/artem-s"
+    },
+    "is_answered": false,
+    "view_count": 37,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1750234438,
+    "creation_date": 1750209369,
+    "question_id": 79669918,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79669918/scheduler-deletejobjobkey-does-not-remove-job-in-clustered-setup",
+    "title": "scheduler.deleteJob(jobKey) does not remove job in clustered setup",
+    "body": "<p>I'm using Quartz (Java) with a JDBC <code>JobStore</code> in a clustered setup — two application instances and one shared database. When I call <code>scheduler.deleteJob(jobKey)</code>, the job is <strong>not removed</strong> from the database tables and <strong>continues firing repeatedly</strong>, as if deletion never happened.</p>\n<h4>Environment</h4>\n<ul>\n<li>Quartz version: 2.3.2</li>\n<li>Job store: JDBC (JobStoreTX)</li>\n<li>Clustered: ✅ Two instances, using the same DB</li>\n<li>Transactional: JobStoreTX</li>\n</ul>\n<h4>What I Do</h4>\n<p>This is how I create and schedule the job:</p>\n<pre><code>JobDataMap jobDataMap = new JobDataMap();\njobDataMap.put(&quot;someKey&quot;, &quot;someValue&quot;);\n\nJobDetail job = JobBuilder.newJob(jobClass)\n    .withIdentity(jobKey)\n    .usingJobData(jobDataMap)\n    .build();\n\nTrigger trigger = TriggerBuilder.newTrigger()\n    .withIdentity(triggerKey)\n    .withSchedule(SimpleScheduleBuilder.simpleSchedule()\n        .withIntervalInSeconds(intervalInSeconds)\n        .repeatForever())\n    .startAt(DateBuilder.futureDate(\n        ThreadLocalRandom.current().nextInt(1, intervalInSeconds), \n        DateBuilder.IntervalUnit.SECOND))\n    .build();\n\nscheduler.scheduleJob(job, trigger);\n</code></pre>\n<p>Later, I attempt to delete the job:</p>\n<p><code>scheduler.deleteJob(jobKey);</code></p>\n<p><strong>Expected Result</strong>\nThe job is removed from the database and does not fire anymore.</p>\n<p><strong>Actual Result</strong>\nThe job continues to fire at its scheduled interval.</p>\n<p>I verified the deleteJob(jobKey) call returns true.</p>\n<p>However, the job still appears in QRTZ_TRIGGERS and continues firing. It is not recreated because I see that the start_time in JOB_DETAILS table remained 2 weeks ago when it was created.</p>\n<p>I'm assuming this may be due to some kind of race condition in the cluster?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

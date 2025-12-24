@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "udp",
+      "torrent"
+    ],
+    "owner": {
+      "account_id": 30413014,
+      "reputation": 25,
+      "user_id": 23306543,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/m2msl.jpg?s=256",
+      "display_name": "Paulo Alves",
+      "link": "https://stackoverflow.com/users/23306543/paulo-alves"
+    },
+    "is_answered": true,
+    "view_count": 94,
+    "accepted_answer_id": 78246836,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1711772936,
+    "creation_date": 1706356251,
+    "last_edit_date": 1706363463,
+    "question_id": 77891075,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77891075/java-udp-create-connection-request-with-tracker-never-returns-a-response",
+    "title": "Java UDP create connection request with tracker never returns a response",
+    "body": "<p>Im implementing an app for downloading torrent from .torrent files as a study project for CLI tools and native applications using GraalVM. Im having problems when trying to create a connection with a UDP tracker. Im able to send the connection request but the receive request is ranging forever. I researched everywhere but i couldn’t find why it’s not working.\nThis is the java class responsible for connecting to the UDP tracker:</p>\n<pre><code>package org.jtorr.service.impl;\n\nimport com.dampcake.bencode.Bencode;\nimport org.jtorr.component.generator.TransactionIdGenerator;\nimport org.jtorr.exception.TrackerServiceException;\nimport org.jtorr.model.bencode.BencodeData;\nimport org.jtorr.model.bencode.TrackerResponse;\nimport org.jtorr.model.tracker.TrackerUDPConnect;\nimport org.jtorr.service.TrackerService;\n\nimport java.io.IOException;\nimport java.net.DatagramPacket;\nimport java.net.DatagramSocket;\nimport java.net.InetAddress;\nimport java.net.SocketException;\nimport java.net.URI;\nimport java.net.URISyntaxException;\nimport java.net.UnknownHostException;\n\npublic class UdpTrackerServiceImpl implements TrackerService {\n    private static final int DEFAULT_PORT = 6969;\n\n    private final DatagramSocket datagramSocket;\n    private final TransactionIdGenerator transactionIdGenerator;\n    private final Bencode bencode;\n\n    public UdpTrackerServiceImpl() {\n        try {\n            datagramSocket = new DatagramSocket(DEFAULT_PORT);\n            transactionIdGenerator = new TransactionIdGenerator();\n            bencode = new Bencode();\n        } catch (SocketException e) {\n            throw new TrackerServiceException(&quot;Error instantiating service: &quot; + e.getMessage(), e);\n        }\n    }\n\n    @Override\n    public TrackerResponse getPeersInfoFromTracker(BencodeData bencodeData, String peerId, String infoHash) {\n        var uri = announceToURI(bencodeData.announce());\n        createConnectionRequest(uri);\n\n        return null;\n    }\n\n    private URI announceToURI(String announce) {\n        try {\n            return new URI(announce);\n        } catch (URISyntaxException e) {\n            throw new TrackerServiceException(&quot;Error creating URI from announce: &quot; + e.getMessage(), e);\n        }\n    }\n\n    private void createConnectionRequest(URI uri) {\n        try {\n            var transactionId = transactionIdGenerator.generate();\n            var buff = TrackerUDPConnect.builder()\n                    .transactionId(transactionId)\n                    .build()\n                    .getBytes();\n\n            var address = InetAddress.getByName(uri.getHost());\n            var packet = new DatagramPacket(buff, buff.length, address, uri.getPort());\n            datagramSocket.send(packet);\n\n            packet = new DatagramPacket(buff, buff.length);\n            datagramSocket.receive(packet);\n\n            var response = new String(packet.getData(), 0, packet.getLength());\n            System.out.println(response);\n        } catch (UnknownHostException e) {\n            throw new TrackerServiceException(&quot;Error connecting to host: &quot; + e.getMessage(), e);\n        } catch (IOException e) {\n            throw new TrackerServiceException(&quot;Error creating connection with tracker: &quot; + e.getMessage(), e);\n        }\n    }\n}\n</code></pre>\n<p>I’ve thought that maybe ubuntu was blocking the UDP connection somehow. I’ve tried freeing up the port by doing the following: <code>sudo ufw allow 38438/udp</code>.</p>\n<p>But that had no effect in the problem.</p>\n<p>I`ve checked to see if it was a firewall problem but firewall is disabled in ubuntu.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "constraintviolationexception"
+    ],
+    "owner": {
+      "account_id": 1954650,
+      "reputation": 418,
+      "user_id": 1757949,
+      "user_type": "registered",
+      "accept_rate": 43,
+      "profile_image": "https://www.gravatar.com/avatar/578e8d3763dae63627a5674df7c87708?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "senderj",
+      "link": "https://stackoverflow.com/users/1757949/senderj"
+    },
+    "is_answered": false,
+    "view_count": 55,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1758251020,
+    "creation_date": 1758243795,
+    "last_edit_date": 1758251020,
+    "question_id": 79769022,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79769022/jpa-constraint-violation-message-cannot-be-shown-in-web-tier",
+    "title": "jpa constraint violation message cannot be shown in web tier",
+    "body": "<p>I have an old system (java8 jee7 glassfish5 spring5) that includes ejb and web tiers. I recently moved it to new system (java17 jee10 glassfish7 spring6). After all coding and configuration changes I finally make most of it works, except for propagating jpa validation result to web tier. Here is my coding. In an entity I have</p>\n<pre><code>@Entity\npublic class Student {\n...\n@NotNull\nprivate String name;\n@Max(20)\nprivate int age;\n</code></pre>\n<p>In the old system I have spring's dispatcher-servlet.xml</p>\n<pre><code>&lt;bean id=&quot;messageSource&quot; class=&quot;org.springframework.context.support.ReloadableResourceBundleMessageSource&quot;&gt;\n    &lt;property name=&quot;basename&quot; value=&quot;/WEB-INF/messages&quot; /&gt;\n&lt;/bean&gt;\n</code></pre>\n<p>In the new system I use WebConfig class instead</p>\n<pre><code>@Bean\npublic MessageSource messageSource() {\n    ReloadableResourceBundleMessageSource source = new ReloadableResourceBundleMessageSource();\n    source.setBasename(&quot;/WEB-INF/messages&quot;);\n    source.setDefaultEncoding(&quot;UTF-8&quot;);\n    return source;\n}\n</code></pre>\n<p>and added this to the web.xml</p>\n<pre><code>&lt;init-param&gt;\n    &lt;param-name&gt;contextConfigLocation&lt;/param-name&gt;\n    &lt;param-value&gt;test.config.WebConfig&lt;/param-value&gt;\n&lt;/init-param&gt;\n</code></pre>\n<p>I've checked that <code>messages.properties</code> is under <code>/WEB-INF/</code> in the war file, and contains</p>\n<pre><code>NotNull.studentForm.name = must not be blank\nMax.studentForm.age = must not be older than {value}\ntypeMismatch.studentForm.age = must be numeric\n</code></pre>\n<p>In the spring controller</p>\n<pre><code>@Controller\npublic class StudentMaint {\n....\n@RequestMapping(value = &quot;/StudentMaintEdit.htm&quot;)\npublic String edit(@ModelAttribute(&quot;studentForm&quot;) @Valid StudentForm form,\n        BindingResult result, Map model, HttpServletRequest request) throws Exception {\n    if (result.hasErrors()) {\n        form.setMode(&quot;show&quot;);\n        return &quot;StudentMaint&quot;;\n    }\n    ....... (no validation coding here)\n    studentFacade.edit(student);     (no try/catch for any exception here)\n</code></pre>\n<p>The StudentFacade also doesn't have any validation related coding</p>\n<p>In StudentForm</p>\n<pre><code>@Component\npublic class StudentForm {\n....\n@Valid\nprivate String name;\n@Valid\nprivate int age;\n</code></pre>\n<p>The only difference between old and new system is the use of config class instead of xml. Other validation related coding have no change at all. In the old system validation error messages are correctly set by controller and showed through the jsp: <code>name</code> will have <code>must not be blank</code> and <code>age</code> will have <code>must be numeric</code> or <code>must be less than or equal to 20</code> (note: the last one is not from messages.properties). But in the new system, only the first two violations are showed correctly, the last one causes constraints violation exception and shows the stack trace. My understanding is the first two are spring validation at the web tier while the last one is jpa validation at the ejb tier. But somehow in the old system the jpa violation can be propagated to the web tier with the default message <code>must be less than or equal to 20</code> while in the new system it didn't. What have I missed?</p>\n<p>The old system was built with ant library and the new one with maven which may not be relevant. I've also added a catcher in the controller to catch the violation</p>\n<pre><code>@ExceptionHandler(ConstraintViolationException.class)\npublic String handleConstraintViolation(ConstraintViolationException ex,\n        Model model, HttpServletRequest request) {\n    Set&lt;ConstraintViolation&lt;?&gt;&gt; violations = ex.getConstraintViolations();\n    List&lt;String&gt; errors = new ArrayList&lt;&gt;();\n    for (ConstraintViolation&lt;?&gt; violation : violations) {\n        ConstraintDescriptor des = violation.getConstraintDescriptor();\n        Annotation atn = des.getAnnotation();\n        log.info(&quot;atn = &quot; + atn.toString());\n        log.info(&quot;msg = &quot; + violation.getMessage());\n        errors.add(violation.getMessage());\n    }\n</code></pre>\n<p>I got</p>\n<pre><code>atn = @jakarta.validation.constraints.Max(message=&quot;{jakarta.validation.constraints.Max.message}&quot;, payload={}, groups={}, value=20L)\nmsg = must be less than or equal to 20\n</code></pre>\n<p>so I added to messages.properties</p>\n<pre><code>jakarta.validation.constraints.Max.message = must be &lt;= {value}\n</code></pre>\n<p>but still doesn't work. Please help.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

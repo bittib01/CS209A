@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "amazon-sqs"
+    ],
+    "owner": {
+      "account_id": 26766832,
+      "reputation": 49,
+      "user_id": 20363840,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/ALm5wu2gflM13ggtSis8mjefOe9Wee4-QEe5s5grwDwW=k-s256",
+      "display_name": "IronMan",
+      "link": "https://stackoverflow.com/users/20363840/ironman"
+    },
+    "is_answered": false,
+    "view_count": 63,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1763718818,
+    "creation_date": 1763634551,
+    "question_id": 79825389,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79825389/how-to-retry-sending-a-message-to-aws-sqs-in-spring-boot-and-then-send-it-to-a",
+    "title": "How to retry sending a message to AWS SQS in Spring Boot, and then send it to a DLQ if all retries fail?",
+    "body": "<p>I am working on a Spring Boot 3.5.0 application that publishes messages to an AWS SQS FIFO queue.</p>\n<p>My requirement is:</p>\n<ol>\n<li><p>When sending a message to SQS:</p>\n<ul>\n<li><p>If it fails (network error, AWS error etc.), the application should retry <strong>X times</strong> with <strong>Y seconds delay</strong>.</p>\n</li>\n<li><p>If all retries fail, the message should be automatically sent to another SQS queue which acts as a <strong>DLQ</strong>.</p>\n</li>\n</ul>\n</li>\n<li><p><strong>(Phase 2)</strong> – When the DLQ accumulates <strong>10 messages</strong>, I want to send an email notification about the messages currently sitting in the DLQ.<br />\nBut this is secondary; my main concern is the retry + DLQ logic in Spring Boot.</p>\n</li>\n</ol>\n<hr />\n<h3>What I have tried so far</h3>\n<p>I am using Spring Retry and have something like:</p>\n<pre><code>@Retryable(\n    value = Exception.class,\n    maxAttempts = 4,\n    backoff = @Backoff(delay = 1000, multiplier = 2)\n)\npublic void sendEventToOrderInformationQueue(OrderInformationDto dto, String groupId) {\n    sqsTemplate.send(...);  // simplified\n}\n\n@Recover\npublic void recover(Exception ex, OrderInformationDto dto, String groupId) {\n    // send to DLQ\n}\n</code></pre>\n<p>This works when I test locally, but I want to confirm:</p>\n<ol>\n<li><p>Is this a recommended/idiomatic way to implement retry + DLQ forwarding in Spring Boot?</p>\n</li>\n<li><p>Should the retry logic live inside the SQS client bean, or should it be in a separate service layer?</p>\n</li>\n<li><p>Is @Retryable the right approach for production workloads, or should I use RetryTemplate / AWS SDK retry mechanisms instead?</p>\n</li>\n</ol>\n<p>For phase 2 (email when DLQ has 10 messages), I am thinking of a scheduled job that polls DLQ count and triggers an alert — is this the right direction?</p>\n<hr />\n<h3>What is the best practice for implementing:</h3>\n<ul>\n<li><p>Retry sending SQS messages</p>\n</li>\n<li><p>Forward to a custom DLQ after all retries fail</p>\n</li>\n<li><p>Future extension for DLQ notifications</p>\n</li>\n</ul>\n<p>Thanks for any guidance!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

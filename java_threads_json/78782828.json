@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "service"
+    ],
+    "owner": {
+      "account_id": 8232617,
+      "reputation": 626,
+      "user_id": 6192861,
+      "user_type": "registered",
+      "profile_image": "https://lh4.googleusercontent.com/-1COrHmOZR1A/AAAAAAAAAAI/AAAAAAAAACM/JKuc5CVgAE0/s256-rj/photo.jpg",
+      "display_name": "Simon Huckett",
+      "link": "https://stackoverflow.com/users/6192861/simon-huckett"
+    },
+    "is_answered": false,
+    "view_count": 271,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1722609910,
+    "creation_date": 1721729093,
+    "question_id": 78782828,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78782828/runtime-checks-required-for-foreground-service-special-use",
+    "title": "Runtime checks required for FOREGROUND_SERVICE_SPECIAL_USE",
+    "body": "<p>I'm using foreground service special with updates for Android 14 as per <a href=\"https://developer.android.com/about/versions/14/changes/fgs-types-required\" rel=\"nofollow noreferrer\">Google</a> guidelines.</p>\n<p>On most Android 14 devices this works fine, but on certain devices I get the following exception\nwhich I'm catching:</p>\n<pre><code>Non-fatal Exception: java.lang.SecurityException\nStarting FGS with type specialUse callerApp=ProcessRecord{a5fde95 20787:com.myapp/u0a432} targetSDK=34 requires permissions: all of the permissions allOf=true [android.permission.FOREGROUND_SERVICE_SPECIAL_USE]\n</code></pre>\n<p>This is triggered by the following code:</p>\n<pre><code>if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.UPSIDE_DOWN_CAKE)\n{\n  ServiceCompat.startForeground(this, COUNTDOWN_SERVICE_ID, notification, FOREGROUND_SERVICE_TYPE_SPECIAL_USE);\n}\nelse\n{\n  startForeground(COUNTDOWN_SERVICE_ID, notification);\n}\n</code></pre>\n<p>I've seen issues with other bits of code whereby I have to explicitly check for the service permission at runtime on Samsung devices even though it's granted, so I added the following:</p>\n<pre><code>if (ContextCompat.checkSelfPermission(this, Manifest.permission.FOREGROUND_SERVICE) == PackageManager.PERMISSION_GRANTED)\n{\n  // start foreground service\n</code></pre>\n<p>but that hasn't fixed it.  If I check for <code>if (ContextCompat.checkSelfPermission(this, Manifest.permission.FOREGROUND_SERVICE_SPECIAL_USE) == PackageManager.PERMISSION_GRANTED)</code> then it returns false on the Android 14 devices I've tested.</p>\n<p>For completeness my Manifest has the following:</p>\n<pre><code>    &lt;uses-permission android:name=&quot;android.permission.FOREGROUND_SERVICE&quot; /&gt;\n    &lt;uses-permission android:name=&quot;android.permission.FOREGROUND_SERVICE_SPECIAL_USE&quot;/&gt;\n\n...\n     &lt;service\n        android:name=&quot;.CountService&quot;\n        android:foregroundServiceType=&quot;specialUse&quot;\n        android:exported=&quot;false&quot;&gt;\n        &lt;property\n            android:name=&quot;android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE&quot;\n            android:value=&quot;[Description of why foreground service is needed]&quot; /&gt;\n        &lt;/service&gt;\n\n</code></pre>\n<p>Google explicitly says there are <a href=\"https://developer.android.com/about/versions/14/changes/fgs-types-required#special-use\" rel=\"nofollow noreferrer\">no runtime checks</a> needed for FGS specialUse.  Anyone know what's missing?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

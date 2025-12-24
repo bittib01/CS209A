@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "server-sent-events"
+    ],
+    "owner": {
+      "account_id": 24597859,
+      "reputation": 15,
+      "user_id": 18501038,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/FjlA5.jpg?s=256",
+      "display_name": "Ares",
+      "link": "https://stackoverflow.com/users/18501038/ares"
+    },
+    "is_answered": false,
+    "view_count": 235,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1750235568,
+    "creation_date": 1750170652,
+    "last_edit_date": 1750235568,
+    "question_id": 79669275,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79669275/the-meaning-of-the-timeout-for-spring-sseemitter",
+    "title": "The meaning of the timeout for Spring SseEmitter",
+    "body": "<p><code> SseEmitter sseEmitter = new SseEmitter(30000L)</code></p>\n<ol>\n<li><p>Indicates the maximum amount of time (in milliseconds) that the server can hold an SSE connection idle. If no data is sent to the client within 30 seconds, the server will automatically trigger an onTimeout and close the connection.</p>\n</li>\n<li><p>Once an SSE connection is established, it will be closed after 30 seconds, regardless of whether <code>sseEmitter.send()</code> was called.</p>\n</li>\n</ol>\n<p>Does the timeout mean 1 or 2?</p>\n<pre><code>&lt;!DOCTYPE html&gt;\n    &lt;html lang=&quot;en&quot;&gt;\n    &lt;head&gt;\n        &lt;meta charset=&quot;UTF-8&quot;&gt;\n        &lt;title&gt;SSE&lt;/title&gt;\n    &lt;/head&gt;\n    &lt;body&gt;\n    &lt;div id=&quot;con&quot;&gt;&lt;/div&gt;\n    &lt;script&gt;\n        let chat = document.getElementById(&quot;con&quot;);\n        if (window.EventSource) {\n            const eventSource = new EventSource('http://localhost:8080/peace/subscribe?uid=456');\n    \n            eventSource.onopen = function () {\n                console.log('SSE seccuss');\n            };\n    \n            eventSource.onmessage = function (event) {\n                console.log(&quot;message:&quot;, event.data);\n            };\n    \n            eventSource.onerror = function (error) {\n                console.log('SSE error', error);\n            };\n        } else {\n            alert(&quot;你的浏览器不支持SSE&quot;);\n        }\n    &lt;/script&gt;\n    &lt;/body&gt;\n    &lt;/html&gt;\n</code></pre>\n<p>This is my JAVA code：</p>\n<pre><code>public SseEmitter subscribe(String uid) {\n\n    SseEmitter sseEmitter = new SseEmitter(10000L);\n\n    sseEmitter.onCompletion(() -&gt; {\n        sseEmitterMap.remove(uid);\n    });\n\n    sseEmitter.onTimeout(() -&gt; {\n        System.out.println(Calendar.getInstance().getTime());\n    });\n\n    sseEmitter.onError(throwable -&gt; {\n                try {     \n                    sseEmitter.send(SseEmitter.event().id(uid)\n                            .name(&quot;has error！&quot;)\n                            .data(&quot;has error！&quot;)\n                            .reconnectTime(3000));\n                    sseEmitterMap.put(uid, sseEmitter);\n                } catch (IOException e) {\n                    e.printStackTrace();\n                }\n            });\n    sseEmitterMap.put(uid, sseEmitter);\n\n    return sseEmitter;\n}\n\n public boolean sseChat(String uid, String messageId, String message) {\n        SseEmitter sseEmitter = sseEmitterMap.get(uid);\n        if (sseEmitter == null) {\n            return false;\n        }\n        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -&gt; {\n            try {\n                sseEmitter.send(&quot;Data at &quot; + System.currentTimeMillis());\n                System.out.println(&quot;Data sent successfully&quot;);\n            } catch (IOException e) {\n                sseEmitter.completeWithError(e);\n            }\n        }, 0, 1, TimeUnit.SECONDS);\n        return true;\n    }\n</code></pre>\n<p>I find that as soon as the timeout period is reached, an error will be output：\n<a href=\"https://i.sstatic.net/4jp5YWLj.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/4jp5YWLj.png\" alt=\"enter image description here\" /></a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

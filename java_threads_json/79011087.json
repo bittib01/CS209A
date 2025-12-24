@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jpeg",
+      "javax.imageio"
+    ],
+    "owner": {
+      "account_id": 27875242,
+      "reputation": 162,
+      "user_id": 21284883,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/87b7b2f8b484600ca153a61eddff7d68?s=256&d=identicon&r=PG",
+      "display_name": "mickleness",
+      "link": "https://stackoverflow.com/users/21284883/mickleness"
+    },
+    "is_answered": true,
+    "view_count": 223,
+    "accepted_answer_id": 79013189,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1727200307,
+    "creation_date": 1726990014,
+    "question_id": 79011087,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79011087/how-to-use-javas-imageio-to-write-jpeg-with-large-embedded-thumbnail",
+    "title": "How to use Java&#39;s ImageIO to write JPEG with large embedded thumbnail?",
+    "body": "<p>I'm using <code>javax.imageio.ImageIO</code> to write JPEGs. By default: if I try to write an image with a thumbnail that thumbnail is clipped to 255x255.</p>\n<p>Is it possible using only ImageIO classes to embed a thumbnail that is 300x300px?</p>\n<p>I (think I) understand that this is because ImageIO's implementation uses an old-fashioned APP0 marker (using JFIF, instead of the more modern EXIF), and the width and height MUST be expressed as bytes.</p>\n<p>However:\nI'm looking through Sun's code, and I think (?) it should be possible to embed larger thumbnails if I can trigger the code that will use the <code>JFIFThumbJPEG</code> implementation. The default thumbnail is written as a raw table of RGB bytes, but the <code>JFIFThumbJPEG</code> will (I think) embed a separate mini JPEG in the file. Which should be capable of having a width &amp; height that are not constrained to 1 byte.</p>\n<p>Here is a unit test that demonstrates the failure:</p>\n<pre><code>import junit.framework.TestCase;\nimport org.junit.Test;\n\nimport javax.imageio.IIOImage;\nimport javax.imageio.ImageIO;\nimport javax.imageio.ImageReader;\nimport javax.imageio.ImageWriter;\nimport javax.imageio.stream.ImageOutputStream;\nimport java.awt.image.BufferedImage;\nimport java.io.ByteArrayInputStream;\nimport java.io.ByteArrayOutputStream;\nimport java.io.IOException;\nimport java.util.Arrays;\nimport java.util.Iterator;\n\n\n/**\n * This demonstrates that ImageIO fails to write a JPEG thumbnail that is larger than 255x255.\n * &lt;p&gt;\n * However, when I did through the implementation/specification, it looks like ImageIO *is*\n * capable of supporting different types of thumbnails. I think if I can figure out\n * how to write IIOMetaData to use a JFIFThumbJPEG then I may (?) be able to write thumbnails\n * of arbitrary size.\n * &lt;/p&gt;\n */\npublic class TestThumbnails extends TestCase {\n\n    @Test\n    public void testImageIOThumbnailSizes() throws IOException {\n        BufferedImage largeImage = new BufferedImage(1000, 1000, BufferedImage.TYPE_INT_RGB);\n\n        // a value smaller than 255 will work:\n        BufferedImage goodThumbnail = new BufferedImage(200, 200, BufferedImage.TYPE_INT_RGB);\n\n        // a value larger than 255 will be cropped to 255\n        BufferedImage badThumbnail = new BufferedImage(300, 300, BufferedImage.TYPE_INT_RGB);\n\n        testThumbnail(largeImage, goodThumbnail);\n        System.out.println(&quot;first thumbnail passed&quot;);\n\n        testThumbnail(largeImage, badThumbnail);\n        System.out.println(&quot;second thumbnail passed&quot;);\n    }\n\n    private void testThumbnail(BufferedImage largeImage, BufferedImage thumbnail) throws IOException {\n        Iterator&lt;ImageWriter&gt; iter = ImageIO.getImageWritersBySuffix(&quot;jpg&quot;);\n        ImageWriter w = iter.next();\n\n        byte[] jpegData;\n        try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream()) {\n            IIOImage iioImage = new IIOImage(largeImage, Arrays.asList(thumbnail), null);\n\n            ImageOutputStream stream = ImageIO.createImageOutputStream(byteOut);\n            w.setOutput(stream);\n            w.write(iioImage);\n            jpegData = byteOut.toByteArray();\n        }\n\n        testReadingThumbnail(jpegData, thumbnail.getWidth(), thumbnail.getHeight());\n    }\n\n    private void testReadingThumbnail(byte[] jpegData, int expectedThumbnailWidth, int expectedThumbnailHeight) throws IOException {\n        Iterator&lt;ImageReader&gt; iter = ImageIO.getImageReadersBySuffix(&quot;jpg&quot;);\n        ImageReader reader = iter.next();\n\n        try (ByteArrayInputStream byteIn = new ByteArrayInputStream(jpegData)) {\n            reader.setInput(ImageIO.createImageInputStream(byteIn));\n\n            // Thumbnails larger than 255x255 are trimmed. I want to read back\n            // a thumbnail that uses the dimensions I passed in:\n\n            assertEquals(expectedThumbnailWidth, reader.getThumbnailWidth(0, 0));\n            assertEquals(expectedThumbnailHeight, reader.getThumbnailHeight(0, 0));\n        }\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

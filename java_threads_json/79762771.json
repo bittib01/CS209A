@@ -1,0 +1,37 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "kotlin",
+      "opencv",
+      "memory-leaks",
+      "garbage-collection"
+    ],
+    "owner": {
+      "account_id": 7557680,
+      "reputation": 3196,
+      "user_id": 5736633,
+      "user_type": "registered",
+      "accept_rate": 71,
+      "profile_image": "https://i.sstatic.net/rM1Fw.png?s=256",
+      "display_name": "vatbub",
+      "link": "https://stackoverflow.com/users/5736633/vatbub"
+    },
+    "is_answered": true,
+    "view_count": 182,
+    "accepted_answer_id": 79764867,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1757923036,
+    "creation_date": 1757669442,
+    "last_edit_date": 1757862911,
+    "question_id": 79762771,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79762771/native-objects-do-not-trigger-garbage-collection",
+    "title": "Native objects do not trigger garbage collection",
+    "body": "<p>I am trying to do some linear algebra in Kotlin/JVM and I have two ways of doing it:</p>\n<ol>\n<li>Using Apache commons-math, which implements matrix multiplication purely on the JVM</li>\n<li>Using OpenCV's <code>Mat</code> class and linear algebra functions</li>\n</ol>\n<p>The advantage of doing it with OpenCV is of course speeeeeed, but the disadvantage is, that <code>Mat</code> objects are in native memory, not in JVM memory. Apache-commons on the other hand implements linear algebra purely on the JVM, which is slow, but at least memory is managed properly.</p>\n<p>To get around the memory issue of OpenCV, I wrapped the <code>Mat</code> in a wrapper class. That wrapper class registers a <code>Cleaner</code> which in turn calls <code>Mat.release()</code>, thus freeing up the memory:</p>\n<pre class=\"lang-kotlin prettyprint-override\"><code>import nu.pattern.OpenCV\nimport org.opencv.core.Core\nimport org.opencv.core.CvType\nimport org.opencv.core.Mat\nimport java.lang.ref.Cleaner\n\nval cleaner: Cleaner by lazy {\n    Cleaner.create()\n}\n\nfun main() {\n    OpenCV.loadLocally()\n    val initial = OpenCVMatrixDataContainer(Mat.eye(3, 3, CvType.CV_64F))\n    var running = OpenCVMatrixDataContainer(Mat.eye(3, 3, CvType.CV_64F))\n    repeat(10000) {\n        // Old running-objects are constantly going out-of-scope, yet the cleaner is never called. \n        // Instead, the JVM just quits.\n        val oldRunning = running\n        running += initial\n        // only when uncommenting this is the cleaner actually called. \n        // oldRunning.close()\n    }\n}\n\nclass OpenCVMatrixDataContainer(\n    private val mat: Mat,\n) : AutoCloseable {\n    private val cleanable: Cleaner.Cleanable = cleaner.register(this, CleanRunnable(mat))\n\n    operator fun plus(other: OpenCVMatrixDataContainer): OpenCVMatrixDataContainer {\n        val result = Mat()\n        Core.add(this.mat, other.mat, result)\n        return OpenCVMatrixDataContainer(result)\n    }\n\n    // This class has more members to perform linear algebra operations which I left out here for brevity\n\n    override fun close() {\n        cleanable.clean()\n    }\n\n    private class CleanRunnable(\n        val mat: Mat,\n    ) : Runnable {\n        override fun run() {\n            println(&quot;Cleaner called #$cleanerCallCount&quot;)\n            cleanerCallCount++\n            mat.release()\n        }\n    }\n}\n\n// For demonstration only\nprivate var cleanerCallCount = 0\n\n</code></pre>\n<p>When running my application, I realized, that RAM usage went through the roof when doing linear algebra with OpenCV. I therefore switched back to apache commons-math, which is much slower, but RAM usage was reasonable. I therefore started investigating if my <code>OpenCVMatrixDataContainer</code> class is leaking memory. I took a heap dump and examined the heapdump in VisualVM and found the following:</p>\n<ol>\n<li>100.802.138 objects were pending for finalization</li>\n<li>When sorting by object size in bytes, 58% of the heap was taken up by <code>java.lang.ref.Finalizer</code> and 22% by <code>org.opencv.core.Mat</code>.</li>\n<li>When sorting by instance count, both, <code>Finalizer</code> and <code>Mat</code> take up 40% each.</li>\n</ol>\n<p>I am still in the process of investigating this, but most of those <code>Mat</code>-instances seem to be dead, but not yet garbage collected.</p>\n<p>Additionally, I found the following things:</p>\n<ol>\n<li>When connecting VisualVM to the JVM directly, pressing the button &quot;Perform GC&quot; instantly cleans up the heap (RAM usage drops instantly by multiple GB)</li>\n<li>Calling <code>System.gc()</code> in my code seems to help sometimes, but not always (I know about all the caveats of calling <code>System.gc()</code>, no need to educate me about that in the comments).</li>\n</ol>\n<p>My conclusions are therefore as follows:</p>\n<ul>\n<li>The objects are not leaking per se, as they are eligible for finalization and forcing GC to run through VisualVM seems to clean those objects up</li>\n<li>Since <code>Mat</code> objects store the data in native memory, their memory footprint in JVM memory is tiny (it's basically just a pointer). I am guessing that GC only sees this tiny memory usage and does not see the need to run itself.</li>\n</ul>\n<p>Because this does not seem to be a memory leak in the classical sense, I am out of ideas on how I could proceed.</p>\n<ul>\n<li>Is there any way how GC can be made aware of this larger footprint?</li>\n<li>Are there any JVM options to run GC more often?</li>\n</ul>\n<p>For context, here is more information about my JVM:</p>\n<pre class=\"lang-bash prettyprint-override\"><code>root@dcdee140fe0e:/home# java -version\nPicked up JAVA_TOOL_OPTIONS: -Xmx120G\nopenjdk version &quot;21.0.8&quot; 2025-07-15\nOpenJDK Runtime Environment (build 21.0.8+9-Ubuntu-0ubuntu122.04.1)\nOpenJDK 64-Bit Server VM (build 21.0.8+9-Ubuntu-0ubuntu122.04.1, mixed mode, sharing)\n</code></pre>\n<p>The application is launched with the following command line:</p>\n<pre class=\"lang-bash prettyprint-override\"><code>java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005 -classpath &quot;server.jar:lib/*:libProject/*:.&quot; server.MainKt\n</code></pre>\n<p><strong>Edit:</strong>\nI investigated the heapdump some more and found that there are at least 1000 Mat instances that are only referenced by their <code>CleanRunnable</code> and <code>Finalizer</code> and are thus eligible for GC.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

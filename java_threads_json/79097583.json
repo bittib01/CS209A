@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-webflux"
+    ],
+    "owner": {
+      "account_id": 2796529,
+      "reputation": 2177,
+      "user_id": 2405663,
+      "user_type": "registered",
+      "accept_rate": 48,
+      "profile_image": "https://www.gravatar.com/avatar/ded7b79bc778bdbd87e808c0e9664796?s=256&d=identicon&r=PG",
+      "display_name": "bircastri",
+      "link": "https://stackoverflow.com/users/2405663/bircastri"
+    },
+    "is_answered": false,
+    "view_count": 39,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1730258008,
+    "creation_date": 1729159756,
+    "question_id": 79097583,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79097583/java-webflux-r2dbc-might-not-have-been-inizialized-repository-interface",
+    "title": "Java WebFlux r2dbc might not have been inizialized repository interface",
+    "body": "<p>I m building a Java SpringBoot Application with WebFlux.\nSo in this application I need to make some APIs to get data from database TSQL using r2dbc.</p>\n<p>So I create this code, this is my interface Repository:</p>\n<pre><code>import it.silver.data.pojo.Percorsi;\nimport org.springframework.data.jpa.repository.Query;\nimport org.springframework.data.repository.reactive.ReactiveCrudRepository;\nimport reactor.core.publisher.Flux;\n\npublic interface PercorsiRepository extends ReactiveCrudRepository&lt;Percorsi, Integer&gt; {\n\n    @Query(&quot;SELECT * FROM PRC_Percorsi&quot;)\n    Flux&lt;Percorsi&gt; getRepository();\n}\n</code></pre>\n<p>This is my Percorsi class that map table:</p>\n<pre><code>import lombok.*;\nimport org.apache.james.mime4j.dom.datetime.DateTime;\nimport org.springframework.data.annotation.Id;\n\n@Data\n@ToString\n@Builder\n@AllArgsConstructor\n@Table(schema = &quot;PRC_Percorsi&quot;)\npublic class Percorsi {\n    @Id\n    @Column(name = &quot;ID&quot;)\n    private Integer id;\n\n    @Column(name = &quot;Nome&quot;)\n    private String nome;\n\n    @Column(name = &quot;Descrizione&quot;)\n    private String descrizione;\n\n    @Column(name = &quot;IDPaese&quot;)\n    private Integer idPaese;\n    @Column(name = &quot;IDRegione&quot;)\n    private Integer idRegione;\n    @Column(name = &quot;IDProvincia&quot;)\n    private Integer idProvincia;\n    @Column(name = &quot;IDComune&quot;)\n    private Integer idComune;\n    @Column(name = &quot;Distanza&quot;)\n    private Double distanza;\n    @Column(name = &quot;IDLivelloDifficolta&quot;)\n    private Integer idLivelloDifficolta;\n    @Column(name = &quot;AltitudineMax&quot;)\n    private Double altitudineMax;\n    @Column(name = &quot;AltitudineMin&quot;)\n    private Double altitudineMin;\n    @Column(name = &quot;IDTipoPercorso&quot;)\n    private Integer idTipoPercorso;\n    @Column(name = &quot;TempoMovimento&quot;)\n    private Integer tempoMovimento;\n    @Column(name = &quot;TempoTotale&quot;)\n    private Integer tempoTotale;\n    @Column(name = &quot;Dislivello&quot;)\n    private Integer dislivello;\n    @Column(name = &quot;NVisualizzazioni&quot;)\n    private Integer nVisualizzazioni;\n    @Column(name = &quot;NVisitatori&quot;)\n    private Integer nVisitatori;\n    @Column(name = &quot;MapName&quot;)\n    private String mapName;\n    @Column(name = &quot;MapPath&quot;)\n    private String mapPath;\n    @Column(name = &quot;CreationUserId&quot;)\n    private Integer creationUserId;\n    @Column(name = &quot;CreationDate&quot;)\n    private DateTime creationDate;\n    @Column(name = &quot;LastChangeUserId&quot;)\n    private Integer lastChangeUserId;\n    @Column(name = &quot;LastChangeDate&quot;)\n    private DateTime lastChangeDate;\n    @Column(name = &quot;FileStateID&quot;)\n    private Integer fileStateId;\n\n}\n</code></pre>\n<p>This is my Handler class that which exposes the methods to be called externally:</p>\n<pre><code>import lombok.extern.slf4j.Slf4j;\nimport org.keycloak.admin.client.resource.RealmResource;\nimport org.keycloak.admin.client.resource.UsersResource;\nimport org.springframework.beans.factory.annotation.Autowired;\nimport org.springframework.lang.NonNull;\nimport org.springframework.stereotype.Component;\nimport org.springframework.util.RouteMatcher;\nimport org.springframework.web.reactive.function.BodyInserters;\nimport org.springframework.web.reactive.function.server.ServerRequest;\nimport org.springframework.web.reactive.function.server.ServerResponse;\nimport reactor.core.publisher.Flux;\nimport reactor.core.publisher.Mono;\n\nimport java.util.ArrayList;\nimport java.util.List;\n\nimport static org.springframework.http.MediaType.APPLICATION_JSON;\nimport static org.springframework.web.reactive.function.BodyInserters.fromObject;\n\n@Slf4j\n@Component\npublic class SilverMountainHandler extends AbstractTenantAwareHandler {\n\n    @Autowired\n    private KeycloakClientProvider clientProvider;\n\n    @Autowired\n    private KeycloakProperties keycloakProperties;\n\n    @Autowired\n    private ServiceProperties serviceProperties;\n\n    @Autowired\n    private ObjectMapper objectMapper;\n\n    private final PercorsiRepository percorsiRepository;\n\n\n    protected SilverMountainHandler(final ServiceProvider serviceProvider) {\n        super(serviceProvider);\n    }\n\n    private SilverMountainService silverMountainService(final UserInfo userInfo) {\n        return super.getService(userInfo, SilverMountainService.class);\n    }\n\n    public Mono&lt;ServerResponse&gt; routes(final ServerRequest request) {\n        Flux&lt;Percorsi&gt; people = this.percorsiRepository.findAll();\n        return people.collectList().flatMap(p-&gt;\n                p.size() &lt; 1 ?\n                        ServerResponse.status(404).build()\n                        :ServerResponse.ok().contentType(APPLICATION_JSON).body(fromObject(p))\n        );\n    }\n    // endregion\n}\n</code></pre>\n<p>Now I have this issue:\n<a href=\"https://i.sstatic.net/fzXRgav6.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/fzXRgav6.png\" alt=\"enter image description here\" /></a></p>\n<p>how can I fixed it?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

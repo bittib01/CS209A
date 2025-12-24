@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-iotdb"
+    ],
+    "owner": {
+      "account_id": 28057989,
+      "reputation": 56,
+      "user_id": 21432697,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/p2y5S.jpg?s=256",
+      "display_name": "Ava Kim",
+      "link": "https://stackoverflow.com/users/21432697/ava-kim"
+    },
+    "is_answered": false,
+    "view_count": 39,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1760634090,
+    "creation_date": 1760633308,
+    "last_edit_date": 1760634090,
+    "question_id": 79792387,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79792387/why-can-i-only-subscribe-to-data-that-existed-before-creating-the-topic-in-apach",
+    "title": "Why can I only subscribe to data that existed before creating the topic in Apache IoTDB, but not new data?",
+    "body": "<p>I'm using data subscription feature in IoTDB 1.3.4, but I've encountered an issue where I can only subscribe to data that existed before the topic was created, and cannot receive newly inserted data.</p>\n<p>The measurement data structure is as follows:</p>\n<pre class=\"lang-sql prettyprint-override\"><code>  CREATE DATABASE `root.sg`;\n  CREATE DEVICE TEMPLATE t1 aligned (lat FLOAT, lng FLOAT);\n  SET DEVICE TEMPLATE t1 TO `root.sg`;\n  CREATE TIMESERIES USING DEVICE TEMPLATE ON `root.sg.hk.d1`;\n  CREATE TOPIC tpc1 WITH ('path' = '`root.sg`.**');\n  insert into `root.sg.hk.d1`(timestamp, lat, lng) aligned values (1,30.2,122.2);\n  insert into `root.sg.hk.d1`(timestamp, lat, lng) aligned values (2,30.2,122.2);\n  insert into `root.sg.hk.d1`(timestamp, lat, lng) aligned values (3,30.2,122.2);\n  insert into `root.sg.hk.d1`(timestamp, lat, lng) aligned values (4,30.2,122.2);\n  insert into `root.sg.hk.d1`(timestamp, lat, lng) aligned values (5,30.2,122.2);\n  insert into `root.sg.hk.d1`(timestamp, lat, lng) aligned values (6,30.2,122.2);\n  insert into `root.sg.hk.d1`(timestamp, lat, lng) aligned values (7,30.2,122.2);\n  insert into `root.sg.hk.d1`(timestamp, lat, lng) aligned values (8,30.2,122.2);\n  insert into `root.sg.hk.d1`(timestamp, lat, lng) aligned values (9,30.2,122.2);\n  insert into `root.sg.hk.d1`(timestamp, lat, lng) aligned values (10,30.2,122.2);\n  insert into `root.sg.hk.d1`(timestamp, lat, lng) aligned values (11,30.2,122.2);\n  insert into `root.sg.hk.d1`(timestamp, lat, lng) aligned values s (12,30.2,122.2);\n\n</code></pre>\n<p>The subscription source code is as follows:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@SneakyThrows\nprivate static void pullTest(String topic) {\n   int retryCount = 0;\n   // Subscription: property-style ctor\n   final Properties config = new Properties();\n   config.put(ConsumerConstant.HOST_KEY, &quot;192.168.**.**&quot;);\n   config.put(ConsumerConstant.PORT_KEY, 6667);\n   config.put(ConsumerConstant.USERNAME_KEY,&quot;root&quot;);\n   config.put(ConsumerConstant.PASSWORD_KEY, &quot;root&quot;);\n   config.put(ConsumerConstant.CONSUMER_GROUP_ID_KEY, &quot;cg2&quot;);\n   config.put(ConsumerConstant.CONSUMER_ID_KEY, &quot;c2&quot;);\n   try (final SubscriptionTreePullConsumer consumer = new SubscriptionTreePullConsumer(config)){\n       consumer.open();\n       consumer.subscribe(topic);\n       while (true) {\n           final List&lt;SubscriptionMessage&gt; messages = consumer.poll(10_000L);\n           if (messages.isEmpty() {\n               retryCount++;\n               if (retryCount &gt;= Integer.MAX_VALUE) {\n                   break;\n                }\n            }\n           for (final SubscriptionMessage message : messages) {\n               for (final SubscriptionSessionDataSet dataSet : message.getSessionDataSetsHandler()){\n                   System.out.println(dataSet.getColumnNames());\n                   System.out.println(dataSet.getColumnTypes());\n                   while (dataSet.hasNext()){\n                       System.out.println(dataSet.next();\n                   }\n                }\n           }\n           // Auto commit\n       }\n   }\n}\n \npublic static void main(String[] args) {\n   pullTest(&quot;tpc1&quot;);\n}\n</code></pre>\n<p>First, 10 records were inserted, and then more data was inserted via SQL. However, the Java program could not subscribe to the new data (records with timestamp 11 and 12).</p>\n<p>Output:</p>\n<pre class=\"lang-java prettyprint-override\"><code>  10:35:29.740 [main] INFO org.apache.iotdb.session.subscription.consumer.base. SubscriptionExecutorServiceManager -- Launching SubscriptionDownStreamDataFlowExecutor with core pool size 10\\...\n  [`Time`, `root.sg.hk.d1.lat`, `root.sg.hk.d1.lng`]\n  [INT64, FLOAT, FLOAT]\n  1 30.2 122.2\n  2 30.2 122.2\n  3 30.2 122.2\n  4 30.2 122.2\n  5 30.2 122.2\n  6 30.2 122.2\n  7 30.2 122.2\n  8 30.2 122.2\n  9 30.2 122.2\n  10 30.2 122.2\n</code></pre>\n<p>Is there any issue with my Java code? How can I modify it?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

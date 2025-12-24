@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "gitlab",
+      "schemathesis"
+    ],
+    "owner": {
+      "account_id": 33031123,
+      "reputation": 1,
+      "user_id": 25623875,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/6653b2829d175e1f3a359636cd27c6a5?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "kmanka",
+      "link": "https://stackoverflow.com/users/25623875/kmanka"
+    },
+    "is_answered": false,
+    "view_count": 291,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1731483886,
+    "creation_date": 1718734698,
+    "question_id": 78639042,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78639042/schemathesis-job-failure-on-gitlab-ci-pipeline",
+    "title": "Schemathesis Job Failure on GitLab CI Pipeline",
+    "body": "<p>I have created a Spring Boot application with a GitLab CI pipeline that builds the Maven jar file, uses Schemathesis to test the API endpoints based on an OpenAPI specification, and deploys to Amazon EKS. However, the job responsible for running Schemathesis is failing.</p>\n<p>To test the application, Schemathesis queries the live application, so I created a <code>start-api</code> job to run the application in <code>.gitlab-ci.yml</code>:</p>\n<pre><code>start-api:\n  stage: test\n  image: maven:3.6.3-jdk-11\n  script:\n    - mvn spring-boot:run &amp;\n    - sleep 60\n  tags:\n    - aks\n</code></pre>\n<p>Then, I pull the latest Schemathesis Docker image (as per the <a href=\"https://schemathesis.readthedocs.io/en/stable/continuous_integration.html#gitlab-ci\" rel=\"nofollow noreferrer\">documentation</a>), and run the test command with an <code>api-tests</code> job:</p>\n<pre><code>api-tests:\n  stage: test\n  image:\n    name: schemathesis/schemathesis:stable\n    entrypoint: ['']\n  needs:\n    - job: start-api\n  tags:\n    - aks\n  script:\n    - sleep 30\n    - st run ./api.yml --checks=all --report --base-url=http://127.0.0.1:8081/api/v3/\n</code></pre>\n<p>The <code>start-api</code> job passes successfully, but the <code>api-tests</code> job fails with the following run:</p>\n<pre><code>Running with gitlab-runner 16.10.0 (...)\n  on gitlab-runner-(...), system ID: (...)\n  feature flags: FF_KUBERNETES_HONOR_ENTRYPOINT:true\nResolving secrets\nPreparing the &quot;kubernetes&quot; executor\nUsing Kubernetes namespace: helm-gitlabrunners\nUsing Kubernetes executor with image schemathesis/schemathesis:stable ...\nUsing attach strategy to execute scripts...\nPreparing environment\nUsing FF_USE_POD_ACTIVE_DEADLINE_SECONDS, the Pod activeDeadlineSeconds will be set to the job timeout: 1h0m0s...\nWaiting for pod helm-gitlabrunners/runner-(...) to be running, status is Pending\nWaiting for pod helm-gitlabrunners/runner-(...) to be running, status is Pending\n    ContainersNotReady: &quot;containers with unready status: [build helper]&quot;\n    ContainersNotReady: &quot;containers with unready status: [build helper]&quot;\nERROR: Job failed (system failure): prepare environment: setting up trapping scripts on emptyDir: unable to upgrade connection: container not found (&quot;build&quot;). Check https://docs.gitlab.com/runner/shells/index.html#shell-profile-loading for more information\n</code></pre>\n<p>What could be causing this error? Any assistance is appreciated!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

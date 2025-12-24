@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "rabbitmq",
+      "spring-amqp",
+      "spring-rabbit"
+    ],
+    "owner": {
+      "account_id": 16680070,
+      "reputation": 13,
+      "user_id": 12055407,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/c5f6cf783cc7365fd43f2f7c2c79d1eb?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "purrfessor",
+      "link": "https://stackoverflow.com/users/12055407/purrfessor"
+    },
+    "is_answered": true,
+    "view_count": 349,
+    "accepted_answer_id": 78770467,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1721407785,
+    "creation_date": 1714579068,
+    "last_edit_date": 1714579117,
+    "question_id": 78414725,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78414725/spring-amqp-client-does-not-recover-after-broker-restart-with-idle-channels-gett",
+    "title": "Spring-AMQP client does not recover after broker restart with idle channels getting stuck",
+    "body": "<p>So I have two microservices communicating through RabbitMQ, one of them sends RPC requests (using <code>RabbitTemplate#sendAndReceive</code>) to another. And I noticed that the app is not able to recover if the broker have been down for a few minutes.</p>\n<p>Here's how I configure the connection factory and template:</p>\n<pre><code>    @Bean\n    public AbstractConnectionFactory connectionFactory() {\n        return new CachingConnectionFactory(createRabbitConnectionFactory(properties));\n    }\n\n    private static com.rabbitmq.client.ConnectionFactory createRabbitConnectionFactory(RabbitProperties properties) {\n        final com.rabbitmq.client.ConnectionFactory connectionFactory = new com.rabbitmq.client.ConnectionFactory();\n        connectionFactory.setHandshakeTimeout(60000);\n        connectionFactory.setHost(properties.getHost());\n        connectionFactory.setPort(properties.getPort());\n        connectionFactory.setUsername(properties.getUsername());\n        connectionFactory.setPassword(properties.getPassword());\n        connectionFactory.setVirtualHost(properties.getVirtualhost());\n        return connectionFactory;\n    }\n\n    @Bean\n    public RabbitTemplate rabbitTemplate(\n            AbstractConnectionFactory connectionFactory\n    ) {\n        final RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);\n        rabbitTemplate.setReplyTimeout(10000);\n        rabbitTemplate.setUserCorrelationId(true);\n        return rabbitTemplate;\n    }\n</code></pre>\n<p>And here's how I use RabbitTemplate:</p>\n<pre><code>final Message responseMessage = rabbitTemplate.sendAndReceive(\n                routingKey,\n                new Message(serializationService.toBytes(request),\n                        MessagePropertiesBuilder\n                                .newInstance()\n                                .setContentType(&quot;my-content&quot;)\n                                .setDeliveryMode(MessageDeliveryMode.NON_PERSISTENT)\n                                .setCorrelationId(correlationData.getId())\n                                .build()\n                ),\n                correlationData\n        );\n</code></pre>\n<p>Then what I do is I put load on API method that triggers this RPC, then I turn off the broker and wait for a few minutes. Right after broker start I see a lot of logs like this:</p>\n<pre><code>SimpleConsumer [queue=amq.rabbitmq.reply-to, index=1091, consumerTag=amq.ctag-1DtEyYlNIMSNowMMsoPYNQ identity=57919ab] started\n</code></pre>\n<p>And then all new requests lead to an error:</p>\n<pre><code>org.springframework.amqp.AmqpResourceNotAvailableException: The channelMax limit is reached. Try later.\n</code></pre>\n<p>And in RabbitMQ interface I see that my connection has created 2047 channels, all of them are in idle state. Only app restart helps to fix the problem.</p>\n<p>What do you think is happening here and how can I make the client automatically recover?</p>\n<p>I use <code>spring-boot-starter-amqp</code> of version 2.7.5 (so <code>spring-messaging</code> 5.3.2 and <code>spring-rabbit</code> 2.4.7)</p>\n<p>I've tried configuring <code>channelCheckoutTimeout</code>:</p>\n<pre><code>cachingConnectionFactory.setChannelCheckoutTimeout(10000);\ncachingConnectionFactory.setChannelCacheSize(200);\n</code></pre>\n<p>But I just get another error and same situation:</p>\n<pre><code>org.springframework.amqp.AmqpTimeoutException: No available channels\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

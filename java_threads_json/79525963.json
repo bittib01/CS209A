@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-ai"
+    ],
+    "owner": {
+      "account_id": 6134396,
+      "reputation": 2532,
+      "user_id": 4783710,
+      "user_type": "registered",
+      "accept_rate": 51,
+      "profile_image": "https://www.gravatar.com/avatar/5acbd55910e1c1f0f742f6bc8dd36df2?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "KellyM",
+      "link": "https://stackoverflow.com/users/4783710/kellym"
+    },
+    "is_answered": false,
+    "view_count": 83,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1742572241,
+    "creation_date": 1742572241,
+    "question_id": 79525963,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79525963/spring-ai-with-mongodb-vector-store-how-to-retrieve-source-url-for-rag",
+    "title": "Spring AI with MongoDB Vector Store - How to Retrieve Source URL for RAG",
+    "body": "<p>I am working on creating a RAG application using Spring AI and MongoDB for the vector store.</p>\n<p>My current entry point/controller is as follows (based heavily on Spring AI's own docs):</p>\n<pre><code>\n@RestController\npublic class ChatController {\n\n  private final OllamaChatModel chatModel;\n  private final VectorStore vectorStore;\n  private static final Logger logger = LoggerFactory.getLogger(ChatController.class);\n\n  @Autowired\n  public ChatController(OllamaChatModel chatModel, VectorStore vectorStore) {\n    this.chatModel = chatModel;\n    this.vectorStore = vectorStore;\n  }\n\n  @GetMapping(&quot;/ai/generate&quot;)\n  public Map&lt;String, String&gt; generate(\n      @RequestParam(value = &quot;message&quot;, defaultValue = &quot;Tell me a joke.&quot;) String message) {\n\n    var searchRequest = SearchRequest.builder().topK(3).similarityThreshold(.8).build();\n\n    ChatResponse response =\n        ChatClient.builder(chatModel).build().prompt(AppConstants.DEFAULT_SYS_PROMPT)\n            .advisors(new QuestionAnswerAdvisor(vectorStore, searchRequest)).user(message).call()\n            .chatResponse();\n    logger.info(&quot;Reponse is {}&quot;, response);\n    return Map.of(&quot;generation&quot;, response.getResult().getOutput().getText());\n  }\n\n\n}\n\n</code></pre>\n<p>The &quot;VectorStore&quot; is not explicitly configured in code (i.e. no customization); it relies merely on the &quot;spring-ai-mongodb-atlas-store-spring-boot-starter&quot; dependency and application properties for DB url, DB name, vector index, etc.</p>\n<p>The collection used in the VectorStore has a &quot;url&quot; String property set in the &quot;metadata&quot; Object property. I configured that &quot;metadata.url&quot; is available in the documents that are used in the &quot;before&quot; function of QuestionAnswerAdvisor.\n<a href=\"https://i.sstatic.net/F0tTiBHV.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/F0tTiBHV.png\" alt=\"metadata.url is populated in QuestionAnswerAdvisor\" /></a></p>\n<p>How can I have the model return a link to the source URL it uses as context? For reference, I am trying to recreate something like this: <a href=\"https://python.langchain.com/docs/how_to/qa_sources/\" rel=\"nofollow noreferrer\">https://python.langchain.com/docs/how_to/qa_sources/</a></p>\n<p>I have tried the following:</p>\n<pre><code>     ChatClient.builder(chatModel).build().prompt(AppConstants.DEFAULT_SYS_PROMPT)\n            .advisors(new QuestionAnswerAdvisor(vectorStore, searchRequest)).user(message).call()\n           .entity(ResponseModel.class)\n</code></pre>\n<p>where ResponseModel is a very simple POJO:</p>\n<pre><code>public class ResponseModel {\n  private String response;\n  private String url;\n\n  public String getResponse() {\n    return response;\n  }\n\n  public void setResponse(String response) {\n    this.response = response;\n  }\n\n  public String getUrl() {\n    return url;\n  }\n\n  public void setUrl(String url) {\n    this.url = url;\n  }\n\n}\n</code></pre>\n<p>but the application was not able to populate the URL with the data (the response property was set correctly).</p>\n<p>How can this be implemented in SpringAI?\nThanks.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

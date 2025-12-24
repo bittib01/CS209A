@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "arrays",
+      "swing",
+      "awt"
+    ],
+    "owner": {
+      "account_id": 37604239,
+      "reputation": 105,
+      "user_id": 28332552,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/5a84dbd7a917124e895a66d1b7b38d61?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Lucy",
+      "link": "https://stackoverflow.com/users/28332552/lucy"
+    },
+    "is_answered": true,
+    "view_count": 90,
+    "accepted_answer_id": 79698682,
+    "answer_count": 2,
+    "score": 1,
+    "last_activity_date": 1752490475,
+    "creation_date": 1752252311,
+    "last_edit_date": 1752490475,
+    "question_id": 79698635,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79698635/why-are-gridbaglayout-setconstraints-and-panel-add-wont-accept-my-indexed-array",
+    "title": "Why are GridBagLayout.setConstraints and panel.add won&#39;t accept my indexed array of different components?",
+    "body": "<p>I'm creating a GUI which will have multiple different components (like JButtons, JTextFields, etc., although I'm testing it out with JButtons first) in a grid with different sizes, and I have created a method for organising it without manually setting the GridBagConstraints gridxs, gridys, gridwidhts and gridheights.</p>\n<p>But, as the title says, the code complains about how I'm not allowed to use objects[i] as an argument in setConstraints and panel.add, because they only accept components, despite the fact that objects[i] is a component (JButton). I don't understand how this is wrong or what I'm supposed to do instead, as object arrays seems to be the only way to include both JButtons and other components like JTextFields, and contain what I'm supposed to put into the setConstraints and panel.add methods.</p>\n<pre><code>    // Defines some components for use in all classes and methods.\n    private JFrame frame = new JFrame();\n    private JPanel panel = new JPanel();\n    private GridBagLayout gbl = new GridBagLayout();\n    private GridBagConstraints gcon = new GridBagConstraints();\n\n    // The GUI method, where all the work to create the GUI happens.\n    public GUI() {\n\n        // Defines 15 different buttons.\n        JButton btn1 = new JButton(&quot;Btn 1&quot;);\n        JButton btn2 = new JButton(&quot;Btn 2&quot;);\n        JButton btn3 = new JButton(&quot;Btn 3&quot;);\n        JButton btn4 = new JButton(&quot;Btn 4&quot;);\n        JButton btn5 = new JButton(&quot;Btn 5&quot;);\n        JButton btn6 = new JButton(&quot;Btn 6&quot;);\n        JButton btn7 = new JButton(&quot;Btn 7&quot;);\n        JButton btn8 = new JButton(&quot;Btn 8&quot;);\n        JButton btn9 = new JButton(&quot;Btn 9&quot;);\n        JButton btn10 = new JButton(&quot;Btn 10&quot;);\n        JButton btn11 = new JButton(&quot;Btn 11&quot;);\n        JButton btn12 = new JButton(&quot;Btn 12&quot;);\n        JButton btn13 = new JButton(&quot;Btn 13&quot;);\n        JButton btn14 = new JButton(&quot;Btn 14&quot;);\n        JButton btn15 = new JButton(&quot;Btn 15&quot;);\n\n\n        // // JTextField diceTypeField = new JTextField(5);\n\n        // Sets the border and layout of the panel.\n        panel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));\n        panel.setLayout(gbl);\n\n        // Sets the gcon settings that apply to all components, like weight and how it'll fill the screen.\n        gcon.weightx = 1;\n        gcon.weighty = 1;\n        gcon.fill = GridBagConstraints.BOTH;\n\n        // Creates an array with lots of buttons and the spaces they occupy. if the same button occupies 2 indexes, it's because it's a larger button. In a later version of this program, the buttons will be switched with different components. It is then sent into a method which adds them to the panel in a formated way according to how they've been placed in the array.\n        Object[] buttonArray = {btn1, btn2, btn3, btn4, btn5, btn6, btn7, btn8, btn8, btn9, btn10, btn10, btn11, btn12, btn13, btn14, btn14, btn14, btn15, btn15, btn15, btn15, btn15, btn15};\n        componentFormater(buttonArray, 3);\n\n        // Adds the panel to the frame and changes some frame settings before setting it to be visible.\n        frame.add(panel, BorderLayout.CENTER);\n        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);\n        frame.setTitle(&quot;Dice Roller&quot;);\n        // // frame.pack();\n        frame.setExtendedState(Frame.MAXIMIZED_BOTH);\n        frame.setVisible(true);\n        \n    }\n    \n\n\n    // A method for organising components in a grid when some components are wider and taller than others. Only works when components are wider before they are taller. It's very specific to the planned layout.\n    private void componentFormater(Object[] objects, int gridW) {\n        int objH;\n        int objW;\n\n        // Will go through every item in the array and add it to the panel with the gbl settings determined by how many times it occurs at once in the array.\n        int occurances = 0;\n        for (int i = 0; i&lt;objects.length; i++) {\n            // Only allows the process to happen when the numbers of occurances is 0, meaning when there's a new item in the array.\n            if (occurances == 0) {\n                // Counts the number of occurances of the object in the array..\n                boolean run = true;\n                int j = i;\n                while (run &amp;&amp; j&lt;objects.length) {\n                    if(objects[j] == objects[i]) {\n                        occurances++;\n                    }else{\n                        run = false;\n                    }\n                    j++;\n                }\n\n                // Calculates the width and height of the component.\n                if (occurances &gt;= gridW) {\n                    objW = gridW;\n                }else{\n                    objW = occurances;\n                }\n                objH = (int) Math.ceil((float) occurances/gridW);\n\n                // Sets the gcon settings for the component.\n                gcon.gridx = i%3;\n                gcon.gridy = (int) Math.ceil((float) i/3)-1;\n                gcon.gridwidth = objW;\n                gcon.gridheight = objH;\n\n                // Sets the constraints of the component, and adds it to the panel.\n                gbl.setConstraints(objects[i], gcon);\n                panel.add(objects[i]);\n            }\n            occurances--;\n        }\n    }```\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "macos",
+      "javafx",
+      "3d",
+      "javafx-3d"
+    ],
+    "owner": {
+      "account_id": 30305560,
+      "reputation": 39,
+      "user_id": 23224897,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/bccf95c0a321fd2fcdbb53151a7b9d3a?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "subuc",
+      "link": "https://stackoverflow.com/users/23224897/subuc"
+    },
+    "is_answered": true,
+    "view_count": 415,
+    "answer_count": 4,
+    "score": 3,
+    "last_activity_date": 1708707963,
+    "creation_date": 1704897304,
+    "last_edit_date": 1705071725,
+    "question_id": 77794175,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77794175/java-fx-3d-light-rendering-problem-on-macos",
+    "title": "Java FX 3D light rendering problem on MacOS",
+    "body": "<p>I am trying to use JavaFX3D to display 3D shapes but there is a problem with them rendering. The light is not working properly, filling darker sides with solid black color. I am using Sonoma 14.2.1 on MacBook Air M2 and JAVAFX sdk 21.0.1. I tried using both Java JDK 20 and 17.</p>\n<p>The code I used is from this <a href=\"https://www.youtube.com/watch?v=nBjwBmH8OhQ\" rel=\"nofollow noreferrer\">tutorial</a> and expected this result:\n<a href=\"https://i.sstatic.net/faqmw.gif\" rel=\"nofollow noreferrer\">properly working box render</a></p>\n<p>Instead I result in this:\n<a href=\"https://i.sstatic.net/AP2Sz.gif\" rel=\"nofollow noreferrer\">my box render</a></p>\n<p>The same happens to the sphere shape:\n<a href=\"https://i.sstatic.net/u9LOu.png\" rel=\"nofollow noreferrer\">my sphere render</a></p>\n<p>This is a code I used:</p>\n<pre class=\"lang-java prettyprint-override\"><code>import javafx.application.Application;\nimport javafx.beans.property.DoubleProperty;\nimport javafx.beans.property.SimpleDoubleProperty;\nimport javafx.scene.*;\nimport javafx.scene.input.KeyEvent;\nimport javafx.scene.paint.Color;\nimport javafx.scene.paint.PhongMaterial;\nimport javafx.scene.shape.Box;\nimport javafx.scene.transform.Rotate;\nimport javafx.scene.transform.Transform;\nimport javafx.stage.Stage;\n\n/**\n * @author afsal villan\n * @version 1.0\n *\n * http://www.genuinecoder.com\n */\npublic class DrawingBox extends Application {\n\n    private static final int WIDTH = 1400;\n    private static final int HEIGHT = 1000;\n\n    private double anchorX, anchorY;\n    private double anchorAngleX = 0;\n    private double anchorAngleY = 0;\n    private final DoubleProperty angleX = new SimpleDoubleProperty(0);\n    private final DoubleProperty angleY = new SimpleDoubleProperty(0);\n\n    @Override\n    public void start(Stage primaryStage) {\n        Box box = new Box(100, 20, 50);\n        PhongMaterial material = new PhongMaterial();\n        material.setDiffuseColor(Color.AQUA);\n        box.setMaterial(material);\n\n        SmartGroup group = new SmartGroup();\n        group.getChildren().add(box);\n\n        Camera camera = new PerspectiveCamera();\n        Scene scene = new Scene(group, WIDTH, HEIGHT);\n        scene.setFill(Color.SILVER);\n        scene.setCamera(camera);\n\n        group.translateXProperty().set(WIDTH / 2);\n        group.translateYProperty().set(HEIGHT / 2);\n        group.translateZProperty().set(-1500);\n\n        initMouseControl(group, scene);\n\n        primaryStage.addEventHandler(KeyEvent.KEY_PRESSED, event -&gt; {\n            switch (event.getCode()) {\n                case Z:\n                    group.translateZProperty().set(group.getTranslateZ() + 100);\n                    break;\n                case X:\n                    group.translateZProperty().set(group.getTranslateZ() - 100);\n                    break;\n                case S:\n                    group.rotateByX(10);\n                    break;\n                case W:\n                    group.rotateByX(-10);\n                    break;\n                case D:\n                    group.rotateByY(10);\n                    break;\n                case A:\n                    group.rotateByY(-10);\n                    break;\n            }\n        });\n\n        primaryStage.setTitle(&quot;Genuine Coder&quot;);\n        primaryStage.setScene(scene);\n        primaryStage.show();\n    }\n\n    private void initMouseControl(SmartGroup group, Scene scene) {\n        Rotate xRotate;\n        Rotate yRotate;\n        group.getTransforms().addAll(\n                xRotate = new Rotate(0, Rotate.X_AXIS),\n                yRotate = new Rotate(0, Rotate.Y_AXIS)\n        );\n        xRotate.angleProperty().bind(angleX);\n        yRotate.angleProperty().bind(angleY);\n\n        scene.setOnMousePressed(event -&gt; {\n            anchorX = event.getSceneX();\n            anchorY = event.getSceneY();\n            anchorAngleX = angleX.get();\n            anchorAngleY = angleY.get();\n        });\n\n        scene.setOnMouseDragged(event -&gt; {\n            angleX.set(anchorAngleX - (anchorY - event.getSceneY()));\n            angleY.set(anchorAngleY + anchorX - event.getSceneX());\n        });\n    }\n\n    public static void main(String[] args) {\n        launch(args);\n    }\n\n    class SmartGroup extends Group {\n\n        Rotate r;\n        Transform t = new Rotate();\n\n        void rotateByX(int ang) {\n            r = new Rotate(ang, Rotate.X_AXIS);\n            t = t.createConcatenation(r);\n            this.getTransforms().clear();\n            this.getTransforms().addAll(t);\n        }\n\n        void rotateByY(int ang) {\n            r = new Rotate(ang, Rotate.Y_AXIS);\n            t = t.createConcatenation(r);\n            this.getTransforms().clear();\n            this.getTransforms().addAll(t);\n        }\n    }\n}\n</code></pre>\n<p><strong>Edit:</strong> We tested it on two other MacBooks, one with Sonoma installed, and one with the older - Ventura version. The <strong>Ventura version worked just fine</strong>, while <strong>Sonoma failed</strong> the same way.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

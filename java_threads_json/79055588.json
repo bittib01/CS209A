@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "pdf",
+      "itext",
+      "pdfbox"
+    ],
+    "owner": {
+      "account_id": 1156433,
+      "reputation": 1469,
+      "user_id": 1136905,
+      "user_type": "registered",
+      "accept_rate": 83,
+      "profile_image": "https://www.gravatar.com/avatar/37a0189af3778edd6f623e57573cc60a?s=256&d=identicon&r=PG",
+      "display_name": "swaechter",
+      "link": "https://stackoverflow.com/users/1136905/swaechter"
+    },
+    "is_answered": true,
+    "view_count": 280,
+    "accepted_answer_id": 79056741,
+    "answer_count": 2,
+    "score": 2,
+    "last_activity_date": 1733694889,
+    "creation_date": 1728069813,
+    "last_edit_date": 1728117440,
+    "question_id": 79055588,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79055588/how-to-remove-the-read-only-mode-and-signatures-of-a-digitally-signed-pdf-with-p",
+    "title": "How to remove the read-only mode and signatures of a digitally signed PDF with pdfbox",
+    "body": "<p>From time to time we want to remove the write-protection/&quot;encryption&quot; and digital signatures of our PDF documents, so the document can be changed and re-signed. E.g. because the original document is missing or was changed and the digital signatures became corrupt (E.g. <a href=\"https://filebin.net/8wd9j0dvi4k78tk8\" rel=\"nofollow noreferrer\">this</a> document).</p>\n<p>For this, we used the following iText 8 code (Indeed, flattening the AcroForm is not the best way, e.g. because interactive forms become disabled etc.):</p>\n<pre class=\"lang-java prettyprint-override\"><code>public static byte[] cleanUpPdfItext(byte[] originalPdfData) throws Exception {\n    // Read the PDF document\n    try (\n            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();\n            PdfReader pdfReader = new PdfReader(new ByteArrayInputStream(originalPdfData)).setUnethicalReading(true);\n            PdfWriter pdfWriter = new PdfWriter(byteArrayOutputStream);\n            PdfDocument pdfDocument = new PdfDocument(pdfReader, pdfWriter)\n    ) {\n        // Create the signature utils\n        SignatureUtil signatureUtil = new SignatureUtil(pdfDocument);\n\n        // Check if encrypted and/or contains signatures\n        boolean isEncrypted = pdfReader.isEncrypted();\n        boolean hasSignatures = !signatureUtil.getSignatureNames().isEmpty();\n\n        // Handle all cases\n        if (isEncrypted &amp;&amp; hasSignatures) { // Encrypted and signatures\n            // Remove the signatures\n            PdfAcroForm form = PdfAcroForm.getAcroForm(pdfDocument, true);\n            form.flattenFields();\n\n            // Write the changes to the output stream, so we can read them\n            pdfDocument.close();\n\n            // Get the manipulated document\n            return byteArrayOutputStream.toByteArray();\n        } else if (isEncrypted) { // Encrypted but no signatures\n            // Write the changes to the output stream, so we can read them\n            pdfDocument.close();\n\n            // Get the manipulated document\n            return byteArrayOutputStream.toByteArray();\n        } else { // Not encrypted/no signatures\n            // Return the original document data\n            return originalPdfData;\n        }\n    }\n}\n</code></pre>\n<p><strong>Question:</strong> What is the equivalent code to do this with pdfbox? Remove the write-protection/&quot;encryption&quot; and remove all existing signatures (Missing yet), so the document can be edited and resigned?</p>\n<p>I came up with this initial version:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public static byte[] cleanUpPdfbox(byte[] original) throws Exception {\n    try (\n            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();\n            PDDocument pdDocument = Loader.loadPDF(original)\n    ) {\n        // Check if encrypted or read only\n        AccessPermission accessPermission = pdDocument.getCurrentAccessPermission();\n        boolean isEncrypted = pdDocument.isEncrypted() || accessPermission.isReadOnly();\n\n        // Check if signatures exist\n        boolean hasSignatures = false;\n        PDAcroForm pdAcroForm = pdDocument.getDocumentCatalog().getAcroForm();\n        if (pdAcroForm != null) {\n            // Get a list of all signature fields\n            List&lt;PDSignature&gt; pdSignatures = pdDocument.getSignatureDictionaries();\n            hasSignatures = !pdSignatures.isEmpty();\n        }\n\n        // Remove all security if required\n        if (isEncrypted) {\n            pdDocument.setAllSecurityToBeRemoved(true);\n        }\n\n        // Remove all signatures\n        if (hasSignatures) {\n            // TODO: Code in question\n        }\n\n        // Write the document\n        pdDocument.save(byteArrayOutputStream);\n        return byteArrayOutputStream.toByteArray();\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

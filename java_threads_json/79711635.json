@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "selenium-webdriver"
+    ],
+    "owner": {
+      "account_id": 23764267,
+      "reputation": 3,
+      "user_id": 17779228,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/f20f24785b7a55adb6a5790eed9bdd56?s=256&d=identicon&r=PG",
+      "display_name": "배효성",
+      "link": "https://stackoverflow.com/users/17779228/%eb%b0%b0%ed%9a%a8%ec%84%b1"
+    },
+    "is_answered": false,
+    "view_count": 78,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1753367243,
+    "creation_date": 1753263014,
+    "last_edit_date": 1753319123,
+    "question_id": 79711635,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79711635/selenium-devtools-page-printtopdf-throws-timeoutexception-after-a-few-seconds",
+    "title": "Selenium DevTools Page.printToPDF throws TimeoutException after a few seconds",
+    "body": "<p>I'm trying to download a PDF of a page using Selenium 4 with Chrome DevTools Protocol.</p>\n<p>After calling <code>driver.get(url)</code>, I wait for rendering to complete using:</p>\n<pre class=\"lang-java prettyprint-override\"><code>Thread.sleep(60000); // wait for 1 minute to allow the page to finish rendering.\n\nPage.PrintToPDFResponse pdfResponse = devTools.send(\n    Page.printToPDF(\n        Optional.empty(), Optional.empty(), Optional.empty(),\n        Optional.of(1), Optional.of(8.27), Optional.of(11.7),\n        Optional.of(0.0), Optional.of(0.0), Optional.of(0.0), Optional.of(0.0),\n        Optional.empty(), Optional.empty(), Optional.empty(),\n        Optional.empty(), Optional.empty(), Optional.empty()\n    )\n);\n</code></pre>\n<p>However, the method fails within a few seconds, not even close to the timeout value I set with Future.get(...). The exception thrown is:</p>\n<p><strong>There’s no problem when the page to be printed as PDF is small, but when the content becomes large, a TimeoutException occurs.</strong></p>\n<pre><code>java.util.concurrent.TimeoutException\nBuild info: version: '4.18.1', revision: 'b1d3319b48'\nSystem info: os.name: 'Linux', os.arch: 'amd64', os.version: '5.15.0-143-generic', java.version: '17.0.2'\nDriver info: driver.version: unknown\n</code></pre>\n<p>Any help would be greatly appreciated!</p>\n<p>Selenium: 4.18.1</p>\n<p>Java: 17</p>\n<p>OS: Ubuntu 22.04</p>\n<p>ChromeDriver: headless mode</p>\n<p>Chrome: version compatible with CDP</p>\n<pre class=\"lang-java prettyprint-override\"><code>System.setProperty(&quot;webdriver.chrome.driver&quot;, &quot;/chromedriver&quot;);\n\n\n        ChromeOptions options = new ChromeOptions();\n        options.addArguments(&quot;--headless=new&quot;);\n        options.addArguments(&quot;--window-size=1920,1080&quot;);\n        options.addArguments(&quot;--no-sandbox&quot;);\n        options.addArguments(&quot;--log-level=2&quot;);\n\n        options.addArguments(&quot;--disable-dev-shm-usage&quot;); \n        options.addArguments(&quot;--disable-gpu&quot;);\n        options.addArguments(&quot;--disable-software-rasterizer&quot;);\n\n        File downloadDir = new File(reportDir.getAbsolutePath() + File.separator + PDF);\n        if (!downloadDir.exists()) {\n            downloadDir.mkdirs();\n        }\n        HashMap&lt;String, Object&gt; chromePrefs = new HashMap&lt;&gt;();\n        chromePrefs.put(&quot;profile.default_content_settings.popups&quot;, 0);\n        options.setExperimentalOption(&quot;prefs&quot;, chromePrefs);\n\n        // Ignore SSL certificate errors\n        options.addArguments(&quot;--ignore-certificate-errors&quot;);\n        options.addArguments(&quot;--allow-insecure-localhost&quot;);\n\n        ChromeDriver driver = null;\n\n        String url = &quot;https://localhost:443/stat-report-pdf&quot;;\n\n        try {\n            driver = new ChromeDriver(options);\n\n            driver.manage().timeouts().pageLoadTimeout(10, TimeUnit.MINUTES);\n\n            DevTools devTools = driver.getDevTools();\n            devTools.createSession();\n\n            driver.get(url);\n\n            try {\n                Thread.sleep(1 * 60 * 1000); \n            } catch (InterruptedException e) {\n                log.error(&quot;processPdfFile InterruptedException 에러&quot;);\n                Thread.currentThread().interrupt(); \n            }\n\n            Page.PrintToPDFResponse pdfResponse = devTools.send(\n                    Page.printToPDF(Optional.empty(), Optional.empty(), Optional.empty(),\n                            Optional.of(1), Optional.of(8.27), Optional.of(11.7),\n                            Optional.of(0.0), Optional.of(0.0), Optional.of(0.0), Optional.of(0.0),\n                            Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty())\n            );\n\n            byte[] pdfData = Base64.getDecoder().decode(pdfResponse.getData());\n            Path pdfPath = Paths.get(downloadDir.getAbsolutePath(), now.format(DateTimeFormatter.ofPattern(&quot;yyyyMMdd&quot;))+&quot;_MNX_Report.pdf&quot;);\n            Files.write(pdfPath, pdfData);\n\n            if( Files.exists(pdfPath) &amp;&amp; Files.size(pdfPath) &gt; 0) {\n                log.debug(&quot;PDF file generate success: {}&quot;, pdfPath.toString());\n                mailService.sendMailReport(pdfPath, startDate, endDate);\n            } else {\n                log.error(&quot;PDF file generate fail: {}&quot;, pdfPath.toString());\n                return false; \n            }\n\n        } catch (Exception e) {\n            log.error(&quot;processPdfFile error = {}&quot;, e.getMessage());\n            return false; \n        } finally {\n            if (driver != null) {\n                driver.quit();\n            }\n        }\n\n        return true;\n    }\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

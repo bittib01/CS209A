@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "spring-kafka",
+      "retry-logic"
+    ],
+    "owner": {
+      "account_id": 42134204,
+      "reputation": 11,
+      "user_id": 30609155,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/8a212027fb00c230c576ea49dbb00d0d?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Itay Zadik",
+      "link": "https://stackoverflow.com/users/30609155/itay-zadik"
+    },
+    "is_answered": false,
+    "view_count": 92,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1752572712,
+    "creation_date": 1752571742,
+    "question_id": 79701834,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79701834/how-to-prevent-exception-bubbling-after-retries-with-retryabletopic-in-spring-k",
+    "title": "How to prevent exception bubbling after retries with @RetryableTopic in Spring Kafka",
+    "body": "<p>I'm using Java 17 and a Spring Boot application to consume Kafka messages with retry handling via Spring Kafka's.</p>\n<p>I have a custom KafkaTemplate and a custom Kafka listener container factory.</p>\n<pre class=\"lang-java prettyprint-override\"><code>@RetryableTopic(\nattempts = &quot;3&quot;,\nbackoff = @Backoff(delay = 1000),\nkafkaTemplate = &quot;kafkaTemplate&quot;,\nlistenerContainerFactory = &quot;customKafkaListenerContainerFactory&quot;)\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>@KafkaListener(\ntopics = &quot;my-topic&quot;,\ngroupId = &quot;my-group&quot;,\ncontainerFactory = &quot;customKafkaListenerContainerFactory&quot;)\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>public void listen(String message) {\n  if (!processMessage(message)) {\n    throw new RuntimeException(&quot;Processing failed&quot;);\n  }\n}\n</code></pre>\n<p>This setup successfully retries failed messages, and after exhausting all attempts, the message is sent to the Dead Letter Topic (DLT).\nI want to prevent the exception from propagating or appearing as unhandled</p>\n<p>I also tried adding a <code>@DltHandler</code> method to handle final failures:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@DltHandler\npublic void handleDlt(String message) {\n  log.warn(&quot;Message permanently failed after retries: {}&quot;, message);\n}\n</code></pre>\n<p>This method is invoked correctly when the message lands in the DLT. Although the <code>@DltHandler</code> logs the failed message, the exception still bubbles up and appears in the logs as an unhandled error. I want to suppress this exception after it’s handled (according to the logs the exception is thrown before the <code>@DltHandler</code> logs the final attempt).</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

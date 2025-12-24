@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "postgresql",
+      "docker",
+      "docker-compose"
+    ],
+    "owner": {
+      "account_id": 8776074,
+      "reputation": 9005,
+      "user_id": 6561309,
+      "user_type": "registered",
+      "accept_rate": 42,
+      "profile_image": "https://www.gravatar.com/avatar/856f9a0aee6333a45c2bdd34903610ce?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Richard",
+      "link": "https://stackoverflow.com/users/6561309/richard"
+    },
+    "is_answered": false,
+    "view_count": 638,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1749908597,
+    "creation_date": 1717762380,
+    "last_edit_date": 1717763126,
+    "question_id": 78591854,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78591854/create-postgres-database-with-docker",
+    "title": "Create Postgres database with Docker",
+    "body": "<p>I am using Spring Boot 3.3.0 and Docker (version 26.1.3, build b72abbb) on Ubuntu OS. I am using the <code>spring-boot-docker-compose</code> dependency so that Spring Boot starts the Docker image automatically when Spring Boot starts up.</p>\n<p><strong>pom.xml</strong></p>\n<pre><code>    &lt;dependency&gt;\n        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n        &lt;artifactId&gt;spring-boot-docker-compose&lt;/artifactId&gt;\n        &lt;scope&gt;runtime&lt;/scope&gt;\n        &lt;optional&gt;true&lt;/optional&gt;\n    &lt;/dependency&gt;\n</code></pre>\n<p>I have the following:</p>\n<p><strong>Dockerfile</strong></p>\n<pre><code># Use the Amazon Corretto 21 base image\nFROM amazoncorretto:21.0.3\n\n# Create a volume for temporary files\nVOLUME /tmp\n\n# Arguments for the JAR file to be copied\nARG JAR_FILE=target/*.jar\n\nEXPOSE 8080\nEXPOSE 5432\n\n# Copy the JAR file into the Docker image\nCOPY ${JAR_FILE} /app.jar\n\n# Set the entry point for the container to run the application\nENTRYPOINT [&quot;java&quot;,&quot;-jar&quot;,&quot;/app.jar&quot;]\n</code></pre>\n<p><strong>docker-compose.yml</strong></p>\n<pre><code>version: '3.8'\nservices:\n  app:\n    build:\n      context: .\n      dockerfile: Dockerfile\n    ports:\n      - &quot;8081:8080&quot;\n    environment:\n      SPRING_PROFILES_ACTIVE: dev\n    network_mode: host\n  postgres:\n    image: postgres:latest\n    restart: on-failure\n    environment:\n      - POSTGRES_DB=expiry_service_db\n      - POSTGRES_PASSWORD=postgres\n      - POSTGRES_USER=postgres\n    ports:\n      - &quot;5431:5432&quot;\n    network_mode: host\n</code></pre>\n<p><strong>application.properties</strong></p>\n<pre><code>spring.application.name=expiry-service\nserver.port=8080\n# expiry_service datasource\nspring.datasource.driver-class-name=org.postgresql.Driver\nspring.datasource.url=jdbc:postgresql://localhost:5432/expiry_service_db\nspring.datasource.username=postgres\nspring.datasource.password=postgres\n#spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect\nspring.jpa.database-platform=postgres\nspring.jpa.hibernate.ddl-auto=update\n</code></pre>\n<p>When I start the Spring Boot application, it starts up on port 8080:</p>\n<pre><code>Tomcat started on port 8080 (http) with context path '/expiry-service'\n</code></pre>\n<p>I can see that the container has the <code>app</code> and <code>postgres</code> running (Docker Desktop).</p>\n<p><a href=\"https://i.sstatic.net/7AzlZxVe.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/7AzlZxVe.png\" alt=\"enter image description here\" /></a></p>\n<p>However, it hangs for about 2 min (while I think the <code>app</code> tries to connect to <code>postgres</code>). Then the application stops, and the <code>app</code> and <code>postgres</code> stop.</p>\n<p><a href=\"https://i.sstatic.net/fJ9Msj6t.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/fJ9Msj6t.png\" alt=\"enter image description here\" /></a></p>\n<p><strong>Container Logs</strong></p>\n<pre><code>postgres-1  | 2024-06-07 12:05:29.558 UTC [1] LOG:  received fast shutdown request\npostgres-1  | 2024-06-07 12:05:29.566 UTC [39] FATAL:  terminating connection due to administrator command\npostgres-1  | 2024-06-07 12:05:29.566 UTC [1] LOG:  background worker &quot;logical replication launcher&quot; (PID 32) exited with exit code 1\npostgres-1  | 2024-06-07 12:05:29.569 UTC [27] LOG:  shutting down\npostgres-1  | 2024-06-07 12:05:29.572 UTC [27] LOG:  checkpoint starting: shutdown immediate\napp-1       | 2024-06-07T12:05:29.576Z  INFO 1 --- [expiry-service] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'\npostgres-1  | 2024-06-07 12:05:29.600 UTC [1] LOG:  database system is shut down\npostgres-1 exited with code 0\n</code></pre>\n<p><strong>Spring Boot Logs</strong></p>\n<pre><code>org.springframework.boot.docker.compose.lifecycle.ReadinessTimeoutException: Readiness timeout of PT2M reached while waiting for services [expiry-service-app-1]\n    at org.springframework.boot.docker.compose.lifecycle.ServiceReadinessChecks.waitUntilReady(ServiceReadinessChecks.java:83) ~[spring-boot-docker-compose-3.3.0.jar:3.3.0]\n\nSuppressed: org.springframework.boot.docker.compose.lifecycle.ServiceNotReadyException: IOException while connecting to port 8080\n\n    Caused by: java.net.ConnectException: Connection refused\n</code></pre>\n<p><strong>Question</strong></p>\n<p>I have not explicitly created a postgreas database called <code>expiry_service_db</code>, because I expect the Docker image to create one as it is defined in  <code>docker-compose.yml</code>. Is that correct? (In my case, I don't think the <code>expiry_service_db</code> database is being created).</p>\n<p>Why does the database shutdown?  I must have configured something in my Docker incorrectly.</p>\n<p>Thanks</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

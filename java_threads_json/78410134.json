@@ -1,0 +1,37 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "sockets",
+      "network-programming",
+      "zeromq",
+      "jeromq"
+    ],
+    "owner": {
+      "account_id": 3813919,
+      "reputation": 3274,
+      "user_id": 3163824,
+      "user_type": "registered",
+      "accept_rate": 62,
+      "profile_image": "https://i.sstatic.net/oJPsrSSA.png?s=256",
+      "display_name": "Panagiotis Drakatos",
+      "link": "https://stackoverflow.com/users/3163824/panagiotis-drakatos"
+    },
+    "is_answered": true,
+    "view_count": 64,
+    "accepted_answer_id": 78569954,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1717629674,
+    "creation_date": 1714497255,
+    "last_edit_date": 1714824028,
+    "question_id": 78410134,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78410134/router-dealer-pattern-facing-unnecessary-delay-during-multiple-connections",
+    "title": "Router/Dealer Pattern facing unnecessary delay during multiple connections",
+    "body": "<p>I am using the Jer0mq server socket model and specifically the router dealer pattern because I want to validate the identity of the clients. My problem is that I notice random upsurge spikes of 500 ms when I use a loop case where the server binds the socket and the client tries to connect. From negligible delays up to 500 ms delay, why is this happening? how can I avoid such latency? is this possible? What am I doing wrong? Here is my simple code to test it.</p>\n<pre><code>package sockets;\n\nimport org.zeromq.SocketType;\nimport org.zeromq.ZContext;\nimport org.zeromq.ZMQ;\n\nimport java.nio.charset.StandardCharsets;\n\nimport static sockets.rtdealer.NOFLAGS;\n\npublic class ZmqStack {\n    public static void main(String[] args) throws InterruptedException {\n        Thread brokerThread = new Thread(() -&gt; {\n            while (true) {\n                try (ZContext context = new ZContext()) {\n                    ZMQ.Socket broker = context.createSocket(SocketType.ROUTER);\n                    broker.bind(&quot;tcp://*:5555&quot;);\n                    String identity = new String(broker.recv());\n                    String data1 = new String(broker.recv());\n                    String identity2 = new String(broker.recv());\n                    String data2 = new String(broker.recv());\n                    System.out.println(&quot;Identity: &quot; + identity + &quot; Data: &quot; + data1);\n                    System.out.println(&quot;Identity: &quot; + identity2 + &quot; Data: &quot; + data2);\n\n                    broker.sendMore(identity.getBytes(ZMQ.CHARSET));\n                    broker.send(&quot;xxx1&quot;.getBytes(StandardCharsets.UTF_8));\n\n                    broker.sendMore(identity2.getBytes(ZMQ.CHARSET));\n                    broker.send(&quot;xxx12&quot;);\n\n                    broker.close();\n                    context.destroy();\n                }\n            }\n        });\n        brokerThread.setName(&quot;broker&quot;);\n\n        Thread workerThread = new Thread(() -&gt; {\n            while (true) {\n                try (ZContext context = new ZContext()) {\n                    ZMQ.Socket worker = context.createSocket(SocketType.DEALER);\n                    String identity = &quot;identity1&quot;;\n                    worker.setIdentity(identity.getBytes(ZMQ.CHARSET));\n                    worker.connect(&quot;tcp://localhost:5555&quot;);\n\n\n                    worker.send(&quot;Hello1&quot;.getBytes(StandardCharsets.UTF_8));\n\n                    String workload = new String(worker.recv(NOFLAGS));\n                    System.out.println(Thread.currentThread().getName() + &quot; - Received &quot; + workload);\n                }\n            }\n        });\n        workerThread.setName(&quot;worker&quot;);\n\n        Thread workerThread1 = new Thread(() -&gt; {\n            while (true) {\n                try (ZContext context = new ZContext()) {\n                    ZMQ.Socket worker = context.createSocket(SocketType.DEALER);\n                    worker.setIdentity(&quot;Identity2&quot;.getBytes(ZMQ.CHARSET));\n\n                    worker.connect(&quot;tcp://localhost:5555&quot;);\n\n                    long start = System.currentTimeMillis();\n                    worker.send(&quot;Hello2 &quot; + Thread.currentThread().getName());\n                    String workload = new String(worker.recv(NOFLAGS));\n                    long finish = System.currentTimeMillis();\n                    long timeElapsed = finish - start;\n                    System.out.println(Thread.currentThread().getName() + &quot; - Received &quot; + workload);\n                    System.out.println(&quot;Elapsed Time: &quot; + timeElapsed);\n                }\n            }\n        });\n        workerThread1.setName(&quot;worker1&quot;);\n\n        workerThread1.start();\n        workerThread.start();\n        brokerThread.start();\n    }\n}\n</code></pre>\n<p><a href=\"https://i.sstatic.net/oTGcsR6A.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/oTGcsR6A.png\" alt=\"enter image description here\" /></a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

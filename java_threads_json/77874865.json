@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-kafka",
+      "virtual-threads"
+    ],
+    "owner": {
+      "account_id": 7778530,
+      "reputation": 3504,
+      "user_id": 9860374,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/UlSCz.png?s=256",
+      "display_name": "Matheus",
+      "link": "https://stackoverflow.com/users/9860374/matheus"
+    },
+    "is_answered": true,
+    "view_count": 2422,
+    "accepted_answer_id": 77883212,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1711025737,
+    "creation_date": 1706115370,
+    "last_edit_date": 1706128916,
+    "question_id": 77874865,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77874865/kafka-consumer-on-virtual-threads-is-this-ok",
+    "title": "Kafka consumer on virtual threads - is this ok?",
+    "body": "<p>So I'm working on a project that can dynamically create and add new listeners on Kafka brokers.</p>\n<p>Basically each instance of the application watches for a prefix on etcd, such as <code>/instance-1/tasks</code> and then a manager application rebalance workload through multiple instances and put new tasks into a etcd key that takes the prefix. For example the manager puts the following to etcd, key <code>/instance-1/tasks/f348b447-012e-425d-893b-bca3086ebf67</code> value <code>some-basic-config-for-that-task</code>.</p>\n<p>When the instance detects a new task has been added under it's prefix, it goes to a config data store to find the kafka broker configuration and then creates new &quot;listeners&quot; to that kafka broker on each partition the configuration tells to.</p>\n<p>The listener basically have an inifinite loop that can be interrupted by calling a <code>close()</code> method that sets a flag that it should stop on the next iteration.</p>\n<p>For example, if the configuration is <strong>bootstrapServers 1.1.1.1:9092 ; numberOfPartitions 3</strong> then 3 listeners (i.e. 3 threads) will be created (because there are 3 partitions). The listener basically polls kafka at each X seconds.</p>\n<p>Since the release of virtual threads on the last LTS version (Java 21), the team is working on migrating from actual platform threads (new Thread()) to Virtual Threads.</p>\n<p>The listener code looks like this (a very reduced version):</p>\n<pre><code>protected void doStart() {\n    long hostConnectivityTestRate = 5000L;\n    while (!closeCalled) {\n        long currentTime = System.currentTimeMillis();\n        if (lastHostConnectivityTest &lt; currentTime - hostConnectivityTestRate) {\n            ConnectivityTestResult res = testConnectivityWithHost();\n            this.lastHostConnectivityTest = currentTime;\n            this.couldConnectToHost = res.wasAbleToConnect();\n            this.reporter.report(res);\n        }\n    \n        if (this.couldConnectToHost) {\n            ConsumerRecords &lt;byte[], byte[]&gt; records = kafkaConsumer.poll(Duration.ofSeconds(20));\n            // DO MORE WORK...\n        } else {\n            Thread.sleep(hostConnectivityTestRate); // prevents busy-spin loop\n        }\n    }\n\n    this.kafkaConsumer.close();\n}\n\npublic void close() throws IOException { \n    this.closeCalled = true; \n}\n</code></pre>\n<p>The doStart() method is ran inside a virtual thread (<code>Thread.ofVirtual().name(&quot;virtual-thread-&quot; + id).start(connector::doStart)</code>)</p>\n<p>I was reading about Virtual Threads and ok, I understood the concept. It does have a underlying carrier thread so it can execute. Seems useful for a lot of high throughput scenarios.</p>\n<p><a href=\"https://docs.oracle.com/en/java/javase/21/core/virtual-threads.html#GUID-15BDB995-028A-45A7-B6E2-9BA15C2E0501\" rel=\"nofollow noreferrer\">The documentation says</a>:</p>\n<blockquote>\n<p>Virtual threads are suitable for running tasks that spend most of the\ntime blocked, often waiting for I/O operations to complete. However,\nthey aren't intended for long-running CPU-intensive operations.</p>\n</blockquote>\n<p>The part &quot;they aren't intended for long-running CPU-intensive operation&quot; got me. The listener is a long-running process that will only be stopped when the close method is called (the snippet I wrote down doesn't show it, but if an exception happens, it is reported, logged and then swallowed). I already had a discussion with some team members about it and some of them seem very sure about using virtual threads for this kind of task. I'm asking this question just because I want to be sure that there is nothing wrong with it.</p>\n<p>Useful informations:</p>\n<ol>\n<li><p>Each instance can have up to 50 listeners (and therefore 50 threads\n/ virtual threads created dynamically)</p>\n</li>\n<li><p>At first, 2 instances are started and then horizontally scalled based\non CPU usage and number of listeners</p>\n</li>\n</ol>\n<p>Is there any problem on using virtual threads like this? Thank you guys!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

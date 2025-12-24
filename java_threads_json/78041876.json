@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "java-21",
+      "structured-concurrency"
+    ],
+    "owner": {
+      "account_id": 18145453,
+      "reputation": 433,
+      "user_id": 13198830,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/3Pul9.jpg?s=256",
+      "display_name": "Abhishek",
+      "link": "https://stackoverflow.com/users/13198830/abhishek"
+    },
+    "is_answered": true,
+    "view_count": 562,
+    "answer_count": 3,
+    "score": 1,
+    "last_activity_date": 1711682553,
+    "creation_date": 1708613200,
+    "last_edit_date": 1708645104,
+    "question_id": 78041876,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78041876/java-21-structured-concurrency-shutdownonsuccess-and-shutdownonfailure-understan",
+    "title": "Java 21 Structured Concurrency ShutdownOnSuccess and ShutdownOnFailure understanding",
+    "body": "<p>I am trying to understand the structured concurrency (<a href=\"https://openjdk.org/jeps/453\" rel=\"nofollow noreferrer\">JEP 453</a>) being previewed in current Java 21.</p>\n<p>I have this example in which I'm using <code>ShutdownOnSuccess</code> and <code>ShutdownOnFailure</code>.</p>\n<p>As mentioned in java docs,</p>\n<ul>\n<li><p>ShutdownOnSuccess captures the first result and shuts down the task scope to interrupt unfinished threads and wakeup the owner. This class is intended for cases where the result of any subtask will do (&quot;invoke any&quot;) and where there is no need to wait for results of other unfinished tasks. It defines methods to get the first result or throw an exception if all subtasks fail.</p>\n</li>\n<li><p>ShutdownOnFailure captures the first exception and shuts down the task scope. This class is intended for cases where the results of all subtasks are required (&quot;invoke all&quot;); if any subtask fails then the results of other unfinished subtasks are no longer needed. If defines methods to throw an exception if any of the subtasks fail.</p>\n</li>\n</ul>\n<p>what I understand is in <code>ShutdownOnSuccess</code> case if one task get completed rest will be interrupted and in\n<code>ShutdownOnFailure</code> all task needs to be completed , then shutdown call is made.</p>\n<p>So time to complete task assigned in success will be less then failure. is this understanding correct ?</p>\n<p>if yes, then time to complete Success is coming greater than failure in every execution, why ?</p>\n<p>Here is the sample code.</p>\n<pre><code>package com.example.threadex;\n\nimport java.time.Duration;\nimport java.time.Instant;\nimport java.util.Random;\nimport java.util.concurrent.StructuredTaskScope;\nimport java.util.concurrent.StructuredTaskScope.Subtask;\n\npublic class StructuredTaskScopeExample {\n    public static void main(String[] args) {\n        Instant start = Instant.now();\n        try(var scope = new StructuredTaskScope.ShutdownOnSuccess&lt;String&gt;()){\n            Subtask&lt;String&gt; task1 = scope.fork(Weather::getTempFromA);\n            Subtask&lt;String&gt; task2 = scope.fork(Weather::getTempFromB);\n            Subtask&lt;String&gt; task3 = scope.fork(Weather::getTempFromC);\n            scope.join();\n            System.out.println(STR.&quot;&quot;&quot;\n                    task1: \\{task1.state()}: result : \\{task1.state() == Subtask.State.SUCCESS ? task1.get() : &quot;Not Available&quot;}\n                    task2: \\{task2.state()}: result : \\{task2.state() == Subtask.State.SUCCESS ? task2.get() : &quot;Not Available&quot;}\n                    task3: \\{task3.state()}: result : \\{task3.state() == Subtask.State.SUCCESS ? task3.get() : &quot;Not Available&quot;}\n                    &quot;&quot;&quot;);\n\n        } catch (Throwable e) {\n            throw new RuntimeException(e);\n        }\n        System.out.println(STR.&quot;AnySuccess : \\{Duration.between(start, Instant.now()).toMillis()}ms&quot;);\n        System.out.println(&quot;==================&quot;);\n        Instant start1 = Instant.now();\n        try(var scope1 = new StructuredTaskScope.ShutdownOnFailure()){\n            Subtask&lt;String&gt; task1 = scope1.fork(Weather::getTempFromA);\n            Subtask&lt;String&gt; task2 = scope1.fork(Weather::getTempFromB);\n            Subtask&lt;String&gt; task3 = scope1.fork(Weather::getTempFromC);\n            scope1.join();\n            scope1.throwIfFailed(RuntimeException::new);\n            System.out.println(STR.&quot;&quot;&quot;\n                    task1: \\{task1.state()}: result: \\{task1.get()}\n                    task2: \\{task2.state()}: result: \\{task2.get()}\n                    task3: \\{task3.state()}: result: \\{task3.get()}\n                    &quot;&quot;&quot;);\n        } catch (InterruptedException e) {\n            throw new RuntimeException(e);\n        }\n        System.out.println(STR.&quot;AllSuccess : \\{Duration.between(start1, Instant.now()).toMillis()}ms&quot;);\n    }\n\n    static class Weather{\n        static Random random = new Random();\n        public static String getTempFromA(){\n            try {\n                Thread.sleep(10);\n            } catch (InterruptedException e) {\n                throw new RuntimeException(e);\n            }\n            return STR.&quot;Temp from A: Temp = \\{random.nextInt(0, 100)}&quot;;\n        }\n        public static String getTempFromB(){\n            try {\n                Thread.sleep(10);\n            } catch (InterruptedException e) {\n                throw new RuntimeException(e);\n            }\n            return STR.&quot;Temp from B: Temp = \\{random.nextInt(0, 100)}&quot;;\n        }\n\n        public static String getTempFromC(){\n            try {\n                Thread.sleep(10);\n            } catch (InterruptedException e) {\n                throw new RuntimeException(e);\n            }\n            return STR.&quot;Temp from C: Temp = \\{random.nextInt(0, 100)}&quot;;\n        }\n\n\n    }\n}\n</code></pre>\n<p>Output i'm getting:</p>\n<pre><code>task1: SUCCESS: result : Temp from A: Temp = 57\ntask2: SUCCESS: result : Temp from B: Temp = 20\ntask3: SUCCESS: result : Temp from C: Temp = 45\n\nAnySuccess : 57ms\n==================\ntask1: SUCCESS: result: Temp from A: Temp = 78\ntask2: SUCCESS: result: Temp from B: Temp = 54\ntask3: SUCCESS: result: Temp from C: Temp = 59\n\nAllSuccess : 18ms\n</code></pre>\n<p>Can anyone explain why this difference ?</p>\n<p>Thanks</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

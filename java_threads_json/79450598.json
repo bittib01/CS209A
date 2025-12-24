@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "hibernate"
+    ],
+    "owner": {
+      "account_id": 10116325,
+      "reputation": 508,
+      "user_id": 7474878,
+      "user_type": "registered",
+      "profile_image": "https://graph.facebook.com/1314842788574396/picture?type=large",
+      "display_name": "Isvoran Andrei",
+      "link": "https://stackoverflow.com/users/7474878/isvoran-andrei"
+    },
+    "is_answered": false,
+    "view_count": 149,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1741573911,
+    "creation_date": 1739951631,
+    "question_id": 79450598,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79450598/replace-custom-id-generation-logic-in-hibernate-6",
+    "title": "Replace custom id generation logic in hibernate 6",
+    "body": "<p>I am migrating a project to spring boot 3 and hibernate 6.</p>\n<p>I had this class that was used to generate ids if they were not provided:</p>\n<pre><code>import java.io.Serializable;\n\nimport org.hibernate.HibernateException;\nimport org.hibernate.engine.spi.SessionImplementor;\nimport org.hibernate.id.IdentityGenerator;\nimport org.springframework.beans.BeanWrapper;\nimport org.springframework.beans.PropertyAccessorFactory;\n\npublic class UseIdOrGenerate extends IdentityGenerator {\n    \n//  @Override\n    public Serializable generate(SessionImplementor session, Object obj) {\n        if (obj == null)\n            throw new HibernateException(new NullPointerException());\n            \n        BeanWrapper forBeanPropertyAccess = PropertyAccessorFactory.forBeanPropertyAccess(obj);\n        if (!forBeanPropertyAccess.isReadableProperty(&quot;id&quot;) || forBeanPropertyAccess.getPropertyValue(&quot;id&quot;) == null) {\n            return super.generate(session, obj);\n        } else {\n            return (Serializable) forBeanPropertyAccess.getPropertyValue(&quot;id&quot;);\n        }\n    }\n}\n</code></pre>\n<p>Now in hibernate 6 this no longer works.</p>\n<p>I thought I would replace it like this:</p>\n<pre><code>import org.hibernate.engine.spi.SharedSessionContractImplementor;\nimport org.hibernate.id.IdentifierGenerator;\nimport org.springframework.beans.BeanWrapper;\nimport org.springframework.beans.PropertyAccessorFactory;\n\npublic class UseIdOrGenerate implements IdentifierGenerator {\n\n    @Override\n    public Object generate(SharedSessionContractImplementor session, Object entity) {\n        BeanWrapper beanWrapper = PropertyAccessorFactory.forBeanPropertyAccess(entity);\n        Object currentId = beanWrapper.getPropertyValue(&quot;id&quot;);\n\n        if (currentId != null) {\n            return currentId;\n        } else {\n            return super.generate(session, entity)\n        }\n    }\n}\n</code></pre>\n<p>But the <code>generate</code> method no longer exists.</p>\n<p>What is the correct way to do this in hibernate 6?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

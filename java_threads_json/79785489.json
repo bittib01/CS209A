@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jooq"
+    ],
+    "owner": {
+      "account_id": 29865068,
+      "reputation": 13,
+      "user_id": 22887900,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/9beb6f32dc45334c082fc2a44e1df709?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Cidos",
+      "link": "https://stackoverflow.com/users/22887900/cidos"
+    },
+    "is_answered": true,
+    "view_count": 98,
+    "accepted_answer_id": 79785815,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1759957124,
+    "creation_date": 1759928794,
+    "question_id": 79785489,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79785489/how-to-skip-unsupported-syntax-commercial-features-with-jooq-parser",
+    "title": "How to skip unsupported syntax/commercial features with JOOQ parser?",
+    "body": "<p>I am using JOOQ SQL parser to process some CREATE TABLE statements on DDL files, which I cannot modify myself. These files contain various statements, such as CREATE FUNCTION, which I don't need.</p>\n<p>I tried using an H2 database to execute said DDL files and then get the information via <code>Meta</code> / information schema, but some of these DDL files use unsupported syntax for H2.</p>\n<p>I am currently using the parser like this:</p>\n<pre class=\"lang-java prettyprint-override\"><code>String sql = &quot;&quot;&quot;\ncreate function fn_1(\n  param1 text,\n  param2 text\n) returns boolean as $$\n  select true\n$$ language sql immutable;\n\ncreate table if not exists example (\n  id bigint not null\n);\n\ncreate or replace function fn_2(\n  param1 numeric,\n  param2 numeric\n) returns boolean as $$\n  select true\n$$ language sql immutable;\n&quot;&quot;&quot;\nSettings settings = new Settings();\nsettings.setParseIgnoreCommercialOnlyFeatures(true);\nsettings.setParseUnsupportedSyntax(ParseUnsupportedSyntax.IGNORE);\nParser parser = DSL.using(dialect, settings).parser();\nparser.parse(sql);\n</code></pre>\n<p>I understand that <code>create function</code> parsing is a commercial feature, which is why I set <code>ParseIgnoreCommercialOnlyFeatures</code> to true, but <code>parser.parse(sql)</code> still throws an error, saying it cannot parse fn_1:</p>\n<pre><code>org.jooq.impl.ParserException: ALIAS, FUNCTION, GENERATOR, GLOBAL TEMPORARY TABLE, INDEX, OR ALTER, OR REPLACE, PRIVATE SYNONYM, PROCEDURE, PUBLIC ALIAS, PUBLIC SYNONYM, SCHEMA, SEQUENCE, SYNONYM, TABLE, TEMPORARY TABLE, TRIGGER, TYPE, UNIQUE INDEX, or VIEW expected: [1:8] create [*]function fn_1(\n  param1 text,\n  param2 text\n) returns boolean as $$\n  select tru...\n</code></pre>\n<p>I would like to ask if there is a way to use the parser to extract only <code>create table</code> statements, ignoring everything else. I read the <code>DDLDatabase</code> documentation <a href=\"https://www.jooq.org/doc/latest/manual/code-generation/codegen-meta-sources/codegen-ddl/#ignoring-unsupported-content\" rel=\"nofollow noreferrer\">here</a>, which mentions skipping unsupported content via comments, but I would need a different mechanism for skipping unsupported content, because as said, I cannot modify these DDL files.</p>\n<p>Thanks in advance</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

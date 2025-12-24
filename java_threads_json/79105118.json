@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "spring-data-jpa",
+      "circular-dependency"
+    ],
+    "owner": {
+      "account_id": 29241509,
+      "reputation": 47,
+      "user_id": 22402927,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/a22cb9259cb36ce4de81522080a9c2f8?s=256&d=identicon&r=PG",
+      "display_name": "CheongJu Not Apple",
+      "link": "https://stackoverflow.com/users/22402927/cheongju-not-apple"
+    },
+    "is_answered": true,
+    "view_count": 413,
+    "accepted_answer_id": 79119416,
+    "answer_count": 2,
+    "score": 2,
+    "last_activity_date": 1743390791,
+    "creation_date": 1729346784,
+    "last_edit_date": 1729351057,
+    "question_id": 79105118,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79105118/circular-dependency-while-injecting-jpa-repository-to-implementation",
+    "title": "Circular dependency while injecting JPA repository to implementation",
+    "body": "<p>I was studying Spring Data JPA recently, and I faced a weird circular dependency error.</p>\n<p>Previously, I often used <code>MyBatis</code> as shown below.</p>\n<pre class=\"lang-java prettyprint-override\"><code>// I often declare mapper first, and inject it to my persistence.\n\n@Mapper\npublic interface MyBatisMapper {/* ... */}\n\n/* ------------ */\n\n@Repository\npublic class MyBatisRepo {\n  private final MyBatisMapper mapper;\n\n  public MyBatisRepo(MyBatisMapper mapper) {\n    this.mapper = mapper;\n  }\n  \n  /* ... */\n\n}\n</code></pre>\n<p>So I tried <code>JPA</code> on this way, and faced a circular dependency.</p>\n<p>Here's the code on <code>JPA</code></p>\n<hr />\n<ol>\n<li><code>TestEntity</code></li>\n</ol>\n<pre class=\"lang-java prettyprint-override\"><code>// entity just for test\n@Entity\npublic class TestEntity {\n\n    @Id\n    private Long id;\n}\n</code></pre>\n<ol start=\"2\">\n<li>Repository interface (contracts)</li>\n</ol>\n<pre class=\"lang-java prettyprint-override\"><code>// Persistence contracts\npublic interface TestRepo {\n\n}\n</code></pre>\n<ol start=\"3\">\n<li><code>JPA DAO</code></li>\n</ol>\n<pre class=\"lang-java prettyprint-override\"><code>// \npublic interface JPATestRepo extends JpaRepository&lt;TestEntity, Long&gt; {\n\n}\n</code></pre>\n<ol start=\"4\">\n<li>Repository implements</li>\n</ol>\n<pre class=\"lang-java prettyprint-override\"><code>@Repository\npublic class JPATestRepoImpl implements TestRepo {\n\n    private final JPATestRepo jpaRepo;\n\n    public JPATestRepoImpl(JPATestRepo jpaRepo) {\n        this.jpaRepo = jpaRepo;\n    }\n}\n</code></pre>\n<ol start=\"5\">\n<li>Errors</li>\n</ol>\n<pre><code>2024-10-19T19:46:00.760+09:00  WARN 66384 --- [testing] [           main] s.c.a.AnnotationConfigApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'JPATestRepoImpl' defined in file [/~~~/Desktop/Coding/testing/build/classes/java/main/core/testing/JPATestRepoImpl.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'JPATestRepoImpl': Requested bean is currently in creation: Is there an unresolvable circular reference?\n2024-10-19T19:46:00.761+09:00  INFO 66384 --- [testing] [           main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'\n2024-10-19T19:46:00.762+09:00  INFO 66384 --- [testing] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...\n2024-10-19T19:46:00.807+09:00  INFO 66384 --- [testing] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.\n2024-10-19T19:46:00.811+09:00  INFO 66384 --- [testing] [           main] .s.b.a.l.ConditionEvaluationReportLogger : \n\nError starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.\n2024-10-19T19:46:00.825+09:00 ERROR 66384 --- [testing] [           main] o.s.b.d.LoggingFailureAnalysisReporter   : \n\n***************************\nAPPLICATION FAILED TO START\n***************************\n\nDescription:\n\nThe dependencies of some of the beans in the application context form a cycle:\n\n┌──-&gt;──┐\n|  JPATestRepoImpl defined in file [/~~~/Desktop/Coding/testing/build/classes/java/main/core/testing/JPATestRepoImpl.class]\n└──&lt;-──┘\n\n\nAction:\n\nRelying upon circular references is discouraged and they are prohibited by default. Update your application to remove the dependency cycle between beans. As a last resort, it may be possible to break the cycle automatically by setting spring.main.allow-circular-references to true.\n\n\nProcess finished with exit code 1\n</code></pre>\n<hr />\n<p>In console, it says <code>JPATestRepoImpl</code> has a cycle to itself.</p>\n<p>But in <code>JPATestRepoImpl</code> on above, it doesn't. (at least on my thought)</p>\n<p>I've treid restart, claen &amp; rebuild application, but it's all the same.</p>\n<p><strong>HOWEVER,</strong> if I rename <code>JPATestRepoImpl</code> to another <code>(like TestRepoJPAImpl)</code>, <strong>the circular dependency disapper like magic...</strong></p>\n<p>It seems like Spring or JPA conflicts its' bean names to each other, but I have no idea why it has.</p>\n<p>So I wanted to ask whether there is really a circular dependency in my source code or where it comes from if there isn't. If there is any policy coming from JPA, is there any documentation on it?</p>\n<p>You can see full source code on <a href=\"https://github.com/jbw9964/testing\" rel=\"nofollow noreferrer\"><code>here</code></a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

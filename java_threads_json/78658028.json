@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "amazon-web-services",
+      "bouncycastle",
+      "aws-iot"
+    ],
+    "owner": {
+      "account_id": 2802232,
+      "reputation": 1646,
+      "user_id": 2410260,
+      "user_type": "registered",
+      "accept_rate": 50,
+      "profile_image": "https://i.sstatic.net/r8m46.jpg?s=256",
+      "display_name": "Raziza O",
+      "link": "https://stackoverflow.com/users/2410260/raziza-o"
+    },
+    "is_answered": true,
+    "view_count": 257,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1719210027,
+    "creation_date": 1719127786,
+    "last_edit_date": 1719145612,
+    "question_id": 78658028,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78658028/aws-createcertificatefromcsr-fail-to-connect",
+    "title": "AWS - createCertificateFromCsr - Fail to connect",
+    "body": "<p>till now we created a certificate using sdk method <code>IotClient.CreateKeysAndCertificate</code>. And easily manage to connect from the client side with the private key and certificate using iot device sdk</p>\n<pre><code>AwsIotMqtt5ClientBuilder.newDirectMqttBuilderWithMtlsFromPath(iotEndpoint, pemCert, pemPrivateKey);\n</code></pre>\n<p><code>pemCert</code> and <code>pemPrivateKey</code> are the return values from the <code>IotClient.CreateKeysAndCertificate</code> method.</p>\n<p>Now we would like to change the certificate creation by creating our own keys and let AWS only create and register our iot certficate calling the method <code>IotClient.createCertificateFromCsr</code>.</p>\n<p>We've manage to create the certificate properly using the following code.</p>\n<pre><code>\n// Dependencies \n// 'org.bouncycastle:bc-fips:1.0.2.5'\n// 'org.bouncycastle:bcpkix-fips:1.0.7'\n// 'software.amazon.awssdk:iot:2.25.52'\n\n    private KeyPair generateRSAKeyPair(int keySize) throws Exception {\n        KeyPairGenerator generator = KeyPairGenerator.getInstance(&quot;RSA&quot;, &quot;BCFIPS&quot;);\n        // Initialize the key size\n        generator.initialize(keySize);\n        // Generate the key pair\n        return generator.generateKeyPair();\n    }\n\n    private String convertToPemFormat(Object keyOrRequest) throws Exception {\n        StringWriter stringWriter = new StringWriter();\n        try (JcaPEMWriter pemWriter = new JcaPEMWriter(stringWriter)) {\n            pemWriter.writeObject(keyOrRequest);\n        }\n        return stringWriter.toString();\n    }\n\n// .... Our code \n\nKeyPair keyPair = generateRSAKeyPair(keySize);\n\n        // create the CSR\n        X500Principal subject = new X500Principal(principleName);\n        PKCS10CertificationRequestBuilder csrBuilder = new JcaPKCS10CertificationRequestBuilder(subject, keyPair.getPublic());\n        JcaContentSignerBuilder csBuilder = new JcaContentSignerBuilder(&quot;SHA256withRSA&quot;);\n        PKCS10CertificationRequest csRequest = csrBuilder.build(csBuilder.build(keyPair.getPrivate()));\n\n        // convert the CSR to PEM format\n        String pemCsr = convertToPemFormat(csRequest);\n\n CreateCertificateFromCsrRequest request = CreateCertificateFromCsrRequest.builder()\n                    .certificateSigningRequest(pemCsr)\n                    .setAsActive(true)\n                    .build();\n\nCreateCertificateFromCsrResponse cert = IotClient.builder().build().createCertificateFromCsr(request);\n\n\n// On the client side...\n// using 'software.amazon.awssdk.iotdevicesdk:aws-iot-device-sdk:1.20.7'\n\nString privateKeyPEM = convertToPemFormat(new PemObject(&quot;RSA PRIVATE KEY&quot;, keyPair.getPrivate().getEncoded()));\n\nAwsIotMqtt5ClientBuilder builder = AwsIotMqtt5ClientBuilder.newDirectMqttBuilderWithMtlsFromMemory(\n                        ourIotEndpoint, // This have to be from you AWS IOT environment\n                        cert.certificatePem(),\n                        privateKeyPEM);\n\nbuilder.withPort(443L);\nMqtt5Client returnClient = builder.build(); // &lt;- crashing here\n\n\n</code></pre>\n<p>The certificate is created well in AWS. It is being attached to the thing and with the needed policies for connection.</p>\n<p>We converted our privatekey to PEM as well using the method above.\nBut when we try to connect in the client side with MQTT we get the following error.</p>\n<p><code>TlsContext.tls_ctx_new: Failed to create new aws_tls_ctx (aws_last_error: AWS_IO_FILE_VALIDATION_FAILURE(1038), A file was read and the input did not match the expected value)</code>..</p>\n<p>What do I miss ?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

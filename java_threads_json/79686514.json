@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "prometheus",
+      "micrometer",
+      "spring-micrometer",
+      "prometheus-pushgateway"
+    ],
+    "owner": {
+      "account_id": 14482834,
+      "reputation": 5478,
+      "user_id": 10461625,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/fgo5D.jpg?s=256",
+      "display_name": "PatPanda",
+      "link": "https://stackoverflow.com/users/10461625/patpanda"
+    },
+    "is_answered": false,
+    "view_count": 452,
+    "answer_count": 1,
+    "score": -2,
+    "last_activity_date": 1752861877,
+    "creation_date": 1751396683,
+    "last_edit_date": 1751396852,
+    "question_id": 79686514,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79686514/how-to-send-metrics-to-prometheus-using-spring-boot-3-5-micrometer-using-pushg",
+    "title": "How to send metrics to Prometheus using Spring Boot 3.5, Micrometer, using Pushgateway, i.e. without scraping",
+    "body": "<p>I have a Spring Boot application that needs to send metrics to Prometheus, but I can't use the traditional scraping approach because my application runs in an environment where Prometheus can't reach it directly (behind a firewall, in a private network).</p>\n<p>I believe that I have the needed dependencies:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;\n&lt;project xmlns=&quot;http://maven.apache.org/POM/4.0.0&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;\n    xsi:schemaLocation=&quot;http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd&quot;&gt;\n    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;\n    &lt;parent&gt;\n        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n        &lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;\n        &lt;version&gt;3.5.0&lt;/version&gt;\n        &lt;relativePath/&gt; &lt;!-- lookup parent from repository --&gt;\n    &lt;/parent&gt;\n    &lt;groupId&gt;com.example&lt;/groupId&gt;\n    &lt;artifactId&gt;question&lt;/artifactId&gt;\n    &lt;version&gt;0.0.1-SNAPSHOT&lt;/version&gt;\n    &lt;name&gt;rest-service-complete&lt;/name&gt;\n    &lt;description&gt;Demo project for Spring Boot&lt;/description&gt;\n    &lt;properties&gt;\n        &lt;java.version&gt;24&lt;/java.version&gt;\n    &lt;/properties&gt;\n    &lt;dependencies&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n            &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;\n        &lt;/dependency&gt;\n\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n            &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;io.micrometer&lt;/groupId&gt;\n            &lt;artifactId&gt;micrometer-registry-prometheus&lt;/artifactId&gt;\n        &lt;/dependency&gt;\n    \n\n        &lt;dependency&gt;\n            &lt;groupId&gt;io.prometheus&lt;/groupId&gt;\n            &lt;artifactId&gt;simpleclient_pushgateway&lt;/artifactId&gt;\n        &lt;/dependency&gt;\n    &lt;/dependencies&gt;\n\n    &lt;build&gt;\n        &lt;plugins&gt;\n            &lt;plugin&gt;\n                &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n                &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;\n            &lt;/plugin&gt;\n        &lt;/plugins&gt;\n    &lt;/build&gt;\n\n&lt;/project&gt;\n\n</code></pre>\n<p>Here is the dummy class generating custom metrics, on top of the default Spring Boot metrics:</p>\n<pre><code>@RestController\npublic class GreetingController {\n\n    private static final String template = &quot;Hello, %s!&quot;;\n    private final AtomicLong counter = new AtomicLong();\n\n    private final MeterRegistry registry;\n\n    // Use constructor injection to get the MeterRegistry\n    public GreetingController(MeterRegistry registry) {\n        this.registry = registry;\n    }\n\n    @GetMapping(&quot;/greeting&quot;)\n    public Greeting greeting(@RequestParam(value = &quot;name&quot;, defaultValue = &quot;World&quot;) String name) {\n        registry.counter(&quot;greetings.total&quot;, &quot;name&quot;, name).increment();\n        return new Greeting(counter.incrementAndGet(), String.format(template, name));\n    }\n}\n</code></pre>\n<p>Here is the <code>application.properties</code>:</p>\n<pre><code>management.prometheus.metrics.export.pushgateway.address=https://prometheus-prod-13-prod-us-east-0.grafana.net/api/prom/push\nmanagement.prometheus.metrics.export.pushgateway.username=1234567\nmanagement.prometheus.metrics.export.pushgateway.password=glc_abc\n\n</code></pre>\n<p>I took the values from here:</p>\n<p><a href=\"https://i.sstatic.net/mdGmzhOD.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/mdGmzhOD.png\" alt=\"enter image description here\" /></a></p>\n<p>The same project, changing Prometheus to OTLP registry, will successfully export the metrics. However, using Prometheus, nothing seems to be sent to Prometheus.</p>\n<p>How to send metrics to Prometheus, without scraping, using the approach where the app sends the metrics to Prometheus backend, without any additional collector/scraper/agent?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

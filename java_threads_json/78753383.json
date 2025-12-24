@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "hibernate"
+    ],
+    "owner": {
+      "account_id": 9475156,
+      "reputation": 33,
+      "user_id": 7044744,
+      "user_type": "registered",
+      "accept_rate": 80,
+      "profile_image": "https://www.gravatar.com/avatar/cb5a9bf29638bb9620dba0c1094a2972?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Apodeus",
+      "link": "https://stackoverflow.com/users/7044744/apodeus"
+    },
+    "is_answered": false,
+    "view_count": 205,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1721909949,
+    "creation_date": 1721117502,
+    "last_edit_date": 1721123542,
+    "question_id": 78753383,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78753383/hibernate-does-not-find-sequence-across-multiple-databases-of-same-server-when-d",
+    "title": "Hibernate does not find sequence across multiple databases of same server when ddl-auto is set to validate",
+    "body": "<p><strong>Environment:</strong></p>\n<p>Spring Boot version: 3.2.1 with Hibernate-Core 6.4.1.Final</p>\n<p>Also tested with 3.3.1 with Hibernate-Core 6.5.2.Final</p>\n<p>Database: MS SQL Server with multiple accessible databases</p>\n<p><strong>Issue:</strong></p>\n<p>I have a setup where I need to map a sequence to the @Id field of an entity using @GeneratedValue and @SequenceGenerator annotations. The entity itself is mapped to Database A (it’s a View), but the sequence it relies on is located in Database B (which also store the Table). I specify the &quot;catalog&quot; and &quot;schema&quot; parameters in the @SequenceGenerator annotation to point to the correct location of the sequence in Database B.</p>\n<p>When I configure my Spring Boot API with spring.jpa.hibernate.ddl-auto set to validate, Hibernate throws an error at startup (from class AbstractSchemaValidator), indicating that it cannot find the sequence. It seems to only query the INFORMATION_SCHEMA.SEQUENCES of the database that the connection is opened for, rather than checking across all specified catalogs in the entity mappings.</p>\n<p>Switching ddl-auto to none avoids this error at startup, and the application runs fine with the sequence being correctly utilized at runtime.</p>\n<p><strong>Expected Behavior:</strong></p>\n<p>Hibernate should correctly locate the sequence in Database B when the catalog and schema are properly specified in the @SequenceGenerator annotation, even when ddl-auto is set to validate.</p>\n<p><strong>Actual Behavior:</strong></p>\n<p>Hibernate fails to find the sequence unless ddl-auto is set to none, suggesting it does not fully honor the catalog settings in multi-database environments during schema validation. This throws the error message :</p>\n<blockquote>\n<p>Schema-validation: missing sequence [&quot;B.schema_from_B.my_sequence&quot;]</p>\n</blockquote>\n<p><strong>Code Example :</strong></p>\n<pre class=\"lang-java prettyprint-override\"><code>\n@Getter\n@Setter\n@Entity\n@Table(name = &quot;my_view&quot;, schema = &quot;schema_from_A&quot;, catalog = &quot;A&quot;)\npublic class ViewEntity {\n   \n   @Id\n   @GeneratedValue(strategy = SEQUENCE, generator = &quot;my_seq_generator&quot;)\n   @SequenceGenerator(name = &quot;my_seq_generator&quot;, catalog = &quot;B&quot;, schema = &quot;schema_from_B&quot;, sequenceName = &quot;my_sequence&quot;)\n   @Column(name = &quot;id&quot;)\n   private Integer id;\n\n\n}\n</code></pre>\n<p><strong>Configuration YML :</strong></p>\n<p>Here's an extract of my configuration</p>\n<pre class=\"lang-yaml prettyprint-override\"><code>\nspring:\n  datasource:\n    url: jdbc:sqlserver://&lt;ip_of_server&gt;;databaseName=A;encrypt=true;trustServerCertificate=true\n  jpa:\n    properties:\n      hibernate:\n        default_catalog: A\n        default_schema: my_schema_A\n    hibernate:\n      ddl-auto: validate\n\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

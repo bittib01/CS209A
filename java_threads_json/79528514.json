@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "html",
+      "spring-boot",
+      "spring-mvc",
+      "spring-thymeleaf"
+    ],
+    "owner": {
+      "account_id": 5619788,
+      "reputation": 1622,
+      "user_id": 4450024,
+      "user_type": "registered",
+      "accept_rate": 99,
+      "profile_image": "https://i.sstatic.net/WMErl.jpg?s=256",
+      "display_name": "Nunyet Cal&#231;ada",
+      "link": "https://stackoverflow.com/users/4450024/nunyet-cal%c3%a7ada"
+    },
+    "is_answered": false,
+    "view_count": 45,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1742708972,
+    "creation_date": 1742708972,
+    "question_id": 79528514,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79528514/set-default-locale-in-s-springboot-thymeleaf",
+    "title": "set default Locale in s SpringBoot - Thymeleaf",
+    "body": "<p>I have this template:</p>\n<pre><code>&lt;!DOCTYPE html&gt;\n&lt;html xmlns:th=&quot;http://www.thymeleaf.org&quot; th:lang=&quot;${#locale != null ? #locale.language : 'en'}&quot; lang=&quot;en&quot;&gt;\n&lt;head&gt;\n</code></pre>\n<p>my config:</p>\n<pre><code>@Configuration\n@EnableWebSecurity\n@EnableMethodSecurity\n@Profile(&quot;web&quot;)\npublic class WebSecurityConfig {\n\n    private final JwtUtils jwtUtils;\n    private final UserDetailsServiceImpl userDetailsService;\n    private final AuthEntryPointJwt unauthorizedHandler;\n\n    public WebSecurityConfig(JwtUtils jwtUtils,\n                             UserDetailsServiceImpl userDetailsService,\n                             AuthEntryPointJwt unauthorizedHandler) {\n        this.jwtUtils = jwtUtils;\n        this.userDetailsService = userDetailsService;\n        this.unauthorizedHandler = unauthorizedHandler;\n    }\n\n    @Bean\n    public AuthTokenFilter authenticationJwtTokenFilter() {\n        return new AuthTokenFilter(jwtUtils, userDetailsService);\n    }\n\n    @Bean\n    public DaoAuthenticationProvider authenticationProvider() {\n        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();\n        authProvider.setUserDetailsService(userDetailsService);\n        authProvider.setPasswordEncoder(passwordEncoder());\n        return authProvider;\n    }\n\n    @Bean\n    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {\n        return authConfig.getAuthenticationManager();\n    }\n\n    @Bean\n    public PasswordEncoder passwordEncoder() {\n        return new BCryptPasswordEncoder();\n    }\n\n    @Bean\n    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {\n        http.csrf(AbstractHttpConfigurer::disable)\n                .exceptionHandling(exception -&gt; exception.authenticationEntryPoint(unauthorizedHandler))\n                .sessionManagement(session -&gt; session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))\n                .authorizeHttpRequests(auth -&gt; auth\n                        .anyRequest()\n                        .permitAll() // 🔥 Allows all requests without authentication\n                );\n\n        http.authenticationProvider(authenticationProvider());\n        http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);\n\n        return http.build();\n    }\n\n\n    @Bean\n    public LocaleResolver localeResolver() {\n        SessionLocaleResolver slr = new SessionLocaleResolver();\n        slr.setDefaultLocale(Locale.ENGLISH);\n        return slr;\n    }\n\n    @Bean\n    public LocaleChangeInterceptor localeChangeInterceptor() {\n        LocaleChangeInterceptor interceptor = new LocaleChangeInterceptor();\n        interceptor.setParamName(&quot;lang&quot;); // Allows users to change locale via ?lang=fr\n        return interceptor;\n    }\n\n    @Bean\n    public WebMvcConfigurer localeInterceptorConfig() {\n        return new WebMvcConfigurer() {\n            @Override\n            public void addInterceptors(InterceptorRegistry registry) {\n                registry.addInterceptor(localeChangeInterceptor());\n            }\n        };\n    }\n}\n</code></pre>\n<p>but when I parse the template, no lang defined:</p>\n<p><a href=\"https://i.sstatic.net/1KWpLEm3.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/1KWpLEm3.png\" alt=\"enter image description here\" /></a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

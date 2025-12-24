@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-cloud-feign",
+      "feign",
+      "openfeign"
+    ],
+    "owner": {
+      "account_id": 441579,
+      "reputation": 858,
+      "user_id": 831750,
+      "user_type": "registered",
+      "accept_rate": 50,
+      "profile_image": "https://www.gravatar.com/avatar/361d8ca7985fb09877996d6f5d0ff7b5?s=256&d=identicon&r=PG",
+      "display_name": "eugenevd",
+      "link": "https://stackoverflow.com/users/831750/eugenevd"
+    },
+    "is_answered": false,
+    "view_count": 50,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1754742514,
+    "creation_date": 1754579571,
+    "question_id": 79728787,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79728787/disable-password-in-debug-log-output-for-openfeign-in-spring",
+    "title": "Disable password in DEBUG log output for OpenFeign in Spring",
+    "body": "<p>I have a very standard/basic Feign setup in Spring to make requests to a REST API.\nEverything works as expected.</p>\n<pre><code>@EnableConfigurationProperties\npublic class FeignClientConfiguration {\n\n  @Bean\n  @ConfigurationProperties(&quot;myapp.gateways.xapi.auth.parameters&quot;)\n  public Map&lt;String, String&gt; authParameters() {\n    return new HashMap&lt;&gt;();\n  }\n\n  @Bean\n  public RequestInterceptor authInterceptor(final AuthGateway authGateway,\n                                            final @Qualifier(&quot;AuthParameters&quot;) Map&lt;String, String&gt; authParameters) {\n    return new AuthInterceptor(authGateway, authParameters);\n  }\n}\n</code></pre>\n<pre><code>myapp:\n  gateways:\n    xapi:\n      auth:\n        token-uri: ${TOKEN_URI}\n        parameters:\n          username: ${AUTH_USERNAME}\n          password: ${AUTH_PASSWORD}\n      api:\n        base-uri: ${BASE_URI}\n</code></pre>\n<pre><code>@FeignClient(\n  name = &quot;ApiGateway&quot;,\n  url = &quot;${myapp.gateways.xapi.api.base-uri}&quot;,\n  configuration = FeignClientConfiguration.class\n)\npublic interface ApiGateway {\n  @PostMapping(&quot;/some/path&quot;)\n  Result something(@RequestBody MyBody myBody);\n}\n</code></pre>\n<p>My log level is set to DEBUG, and in the output I see the password:</p>\n<pre><code>DEBUG [http-nio-8085-exec-2] org.springframework.cloud.openfeign.support.SpringEncoder - Writing [{password=2uSxxxx9by, username=apiuser@xapi}] as &quot;application/json&quot; using [org.springframework.http.converter.json.MappingJackson2HttpMessageConverter@70ed03e4] d4bdf27f-bb64-4535-9d57-f4697acbb3a2\n</code></pre>\n<p>I've tried many suggestions as to how to not log this password.\nDEBUG level should remain turned on for the rest of the app.</p>\n<p>Does not work:</p>\n<pre><code>  @Bean\n  public feign.Logger.Level feignLoggerLevel() {\n    return feign.Logger.Level.BASIC;\n  }\n</code></pre>\n<p>Does not work, MaskingFeignLogger only comes into play after the password has already been printed</p>\n<pre><code>  @Bean\n  public feign.Logger feignLogger() {\n    return new MaskingFeignLogger();\n  }\n\npublic class MaskingFeignLogger extends feign.Logger {\n    @Override\n    protected void log(String configKey, String format, Object... args) {\n        String message = String.format(format, args);\n        // Mask password field\n        message = message.replaceAll(&quot;\\&quot;password\\&quot;\\\\s*:\\\\s*\\&quot;.*?\\&quot;&quot;, &quot;\\&quot;password\\&quot;:\\&quot;*****\\&quot;&quot;);\n        // Log the sanitized message\n        LoggerFactory.getLogger(configKey).debug(message);\n    }\n}\n\n</code></pre>\n<p>Does not work, also comes into play after password was logged:</p>\n<pre><code>  @Bean\n  public RequestInterceptor sensitiveDataInterceptor() {\n    return new SensitiveDataInterceptor();\n  }\n\npublic class SensitiveDataInterceptor implements RequestInterceptor {\n  @Override\n  public void apply(RequestTemplate template) {\n    String body = template.requestBody().asString();\n    if (body != null) {\n      String sanitized = body.replaceAll(&quot;\\&quot;password\\&quot;\\\\s*:\\\\s*\\&quot;.*?\\&quot;&quot;, &quot;\\&quot;password\\&quot;:\\&quot;*****\\&quot;&quot;);\n      template.body(sanitized);\n    }\n  }\n}\n</code></pre>\n<p>Just to be clear, I do not want to switch log level, but want DEBUG.</p>\n<p>Any suggestion appreciated</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

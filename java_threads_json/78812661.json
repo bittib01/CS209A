@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "stream",
+      "zip",
+      "rx-java",
+      "zipoutputstream"
+    ],
+    "owner": {
+      "account_id": 17016883,
+      "reputation": 11,
+      "user_id": 13342083,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a-/AAuE7mCreeANowTvHCzS-rqeQP6ORPUeVSg_GRdmBUnG_Q=k-s256",
+      "display_name": "Satyam Kumar",
+      "link": "https://stackoverflow.com/users/13342083/satyam-kumar"
+    },
+    "is_answered": false,
+    "view_count": 72,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1731016361,
+    "creation_date": 1722354666,
+    "last_edit_date": 1722358231,
+    "question_id": 78812661,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78812661/zip-contents-corrupted-when-trying-to-zip-via-zipoutputstream-in-rxjava",
+    "title": "Zip contents corrupted when trying to zip via ZipOutputStream in RxJava",
+    "body": "<p>I am trying to create a zip file and upload that zip file in AWS S3 via a multipart upload route. However, I am facing an issue where the file is successfully getting generated however, the contents inside the files are getting corrupted.</p>\n<p>Here is the error that I am getting when I am trying to unarchive the file :</p>\n<pre><code>Archive:  test2MB.zip\n  End-of-central-directory signature not found.  Either this file is not\n  a zipfile, or it constitutes one disk of a multi-part archive.  In the\n  latter case the central directory and zipfile comment will be found on\n  the last disk(s) of this archive.\nunzip:  cannot find zipfile directory in one of test2MB.zip or\n        test2MB.zip.zip, and cannot find test2MB.zip.ZIP, period.\n</code></pre>\n<p>Here are the code snippets that I have written for this</p>\n<pre><code>private Single&lt;List&lt;CompletedPart&gt;&gt; zipAndUploadZipParts(String uploadId) {\n        List&lt;Single&lt;CompletedPart&gt;&gt; uploadPartObservables = new ArrayList&lt;&gt;();\n        final int[] partNumber = {Constants.START_PART_NUMBER};\n\n        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();\n        ZipOutputStream zipOutputStream = new ZipOutputStream(byteArrayOutputStream);\n        return zipMetadata(zipOutputStream)\n                .andThen(uploadZipPart(byteArrayOutputStream, uploadPartObservables, partNumber, uploadId)\n                        .onErrorResumeNext(error -&gt; {\n                            this.contextRx.log().error(String.format(&quot;placeholder&quot;, partNumber[0], this.logIdentifier, error.getMessage()), error);\n                            return Completable.error(new RuntimeException(&quot;Placeholder&quot;));\n                        }))\n                .andThen(finalizeZipUpload(uploadPartObservables, zipOutputStream, byteArrayOutputStream));\n    }\n</code></pre>\n<pre><code>    private Completable zipMetadata(ZipOutputStream zipOutputStream) {\n        return Completable.create(emitter -&gt; {\n            try {\n                ZipEntry metadataEntry = new ZipEntry(Constants.METADATA_FILE_NAME);\n                zipOutputStream.putNextEntry(metadataEntry);\n                zipOutputStream.write(this.catalogObjectsMetadata.getBytes());\n                zipOutputStream.closeEntry();\n                emitter.onComplete();\n            } catch (IOException exception) {\n                this.contextRx.log().error(String.format(Constants.LOG_ERROR_ZIPPING_METADATA, this.logIdentifier, exception.getMessage()), exception);\n                emitter.onError(new RuntimeException(String.format(Constants.ERROR_ZIPPING_METADATA)));\n            }\n        });\n    }\n</code></pre>\n<pre><code>    private Completable uploadZipPart(ByteArrayOutputStream byteArrayOutputStream, List&lt;Single&lt;CompletedPart&gt;&gt; uploadPartObservables, int[] partNumber, String uploadId) {\n        return Completable.create(emitter -&gt; {\n            try {\n                byte[] zipData = byteArrayOutputStream.toByteArray();\n                uploadPartObservables.add(uploadPart(zipData, partNumber[0]++, uploadId));\n                byteArrayOutputStream.reset();\n                this.contextRx.log().info(String.format(&quot;Uploaded part %d for uploadId %s&quot;, partNumber[0] - 1, uploadId));\n                emitter.onComplete();\n            } catch (Exception exception) {\n                emitter.onError(exception);\n            }\n        });\n    }\n</code></pre>\n<pre><code>private Single&lt;List&lt;CompletedPart&gt;&gt; finalizeZipUpload(List&lt;Single&lt;CompletedPart&gt;&gt; uploadPartObservables, ZipOutputStream zipOutputStream, ByteArrayOutputStream byteArrayOutputStream) {\n        return Single.defer(() -&gt; {\n            try {\n                zipOutputStream.finish();\n            } catch (IOException e) {\n                return Single.error(new RuntimeException(&quot;Error finishing zip output stream&quot;, e));\n            } finally {\n                try {\n                    zipOutputStream.close();\n                } catch (IOException e) {\n                    return Single.error(new RuntimeException(&quot;Error closing zip output stream&quot;, e));\n                }\n                try {\n                    byteArrayOutputStream.close();\n                } catch (IOException e) {\n                    return Single.error(new RuntimeException(&quot;Error closing byte array output stream&quot;, e));\n                }\n            }\n            return Single.merge(uploadPartObservables)\n                    .toList()\n                    .doOnSuccess(parts -&gt; this.contextRx.log().info(String.format(Constants.ALL_PARTS_UPLOADED, this.logIdentifier, parts)))\n                    .onErrorReturnItem(new ArrayList&lt;&gt;());\n        });\n    }\n</code></pre>\n<p>Can someone guide what is wrong with my code which is corrupting my zip file?</p>\n<p>Contents inside the zip file shouldn't get corrupted.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

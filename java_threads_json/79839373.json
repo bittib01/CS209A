@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "aop",
+      "aspectj",
+      "jdbi"
+    ],
+    "owner": {
+      "account_id": 5866617,
+      "reputation": 33,
+      "user_id": 4620361,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/05a0c824d2c6b767e9b8367544eb458c?s=256&d=identicon&r=PG",
+      "display_name": "Vaent",
+      "link": "https://stackoverflow.com/users/4620361/vaent"
+    },
+    "is_answered": true,
+    "view_count": 123,
+    "accepted_answer_id": 79840058,
+    "answer_count": 1,
+    "score": 3,
+    "last_activity_date": 1765392670,
+    "creation_date": 1764975961,
+    "last_edit_date": 1765040731,
+    "question_id": 79839373,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79839373/is-it-possible-to-inspect-method-invocations-on-a-jdbi-dao-using-aspect-oriented",
+    "title": "Is it possible to inspect method invocations on a JDBI DAO using aspect-oriented programming?",
+    "body": "<p>We mostly use <code>Jdbi.onDemand</code> with DAO interfaces to interact with our RDS.</p>\n<p>I'm trying to get visibility of when each DAO method is invoked.</p>\n<p>We have hundreds of methods across dozens of interfaces, so adding logs to every invocation individually is impractical.</p>\n<p>I was hoping to use an AOP advice based on JDBI annotations on the interface methods. We have <code>@annotation</code> advice for some controller methods, which works well, but the same approach isn't working for DAO methods.</p>\n<p>I suspect this is because both Spring AOP and JDBI work by creating proxy classes based on the interface, so that JDBI is able to get an instance and use it to interact with the database, but my aspect can't &quot;see&quot; that instance to apply the advice. I'm pretty new to this though and still getting my head round the details.</p>\n<p>Sample project on GitHub: <a href=\"https://github.com/Vaent/jdbi-aop-example\" rel=\"nofollow noreferrer\">https://github.com/Vaent/jdbi-aop-example</a></p>\n<p>Example code snippets (simplified):</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Service\npublic class MyService {\n  @Autowired\n  private Jdbi jdbi;\n\n  public Long getCount() {\n    // MyDAO#getCount is invoked as expected\n    return jdbi.onDemand(MyDAO.class).getCount();\n  }\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>public interface MyDAO {\n  @SqlQuery(&quot;SELECT COUNT(*) FROM myschema.mytable&quot;)\n  public Long getCount();\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>@Aspect\n@Component\npublic class MyAspect {\n  @Before(&quot;@annotation(sqlQuery)&quot;)\n  public void queryAdvice(SqlQuery sqlQuery) {\n    // When the service method is invoked, I expect this to be printed, but nothing happens\n    System.out.println(&quot;Executing query: &quot; + sqlQuery.value());\n  }\n}\n</code></pre>\n<p>I've tried different advice types, different pointcut expressions including <code>bean</code> and <code>execution</code>, using a separate pointcut method, using a custom annotation instead of the JDBI one. Nothing I've tried seems to make any difference.</p>\n<p>Is there a workaround or a way to configure the aspect/interface so that JDBI's on-demand extension can interact with AspectJ/Spring AOP/any other aspect-oriented framework?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

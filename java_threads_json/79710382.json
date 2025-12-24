@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "amazon-s3",
+      "aws-lambda",
+      "aws-java-sdk"
+    ],
+    "owner": {
+      "account_id": 986686,
+      "reputation": 928,
+      "user_id": 1005007,
+      "user_type": "registered",
+      "accept_rate": 63,
+      "profile_image": "https://www.gravatar.com/avatar/150dd60c2da92137e59f2e08b328b9c8?s=256&d=identicon&r=PG",
+      "display_name": "Gep",
+      "link": "https://stackoverflow.com/users/1005007/gep"
+    },
+    "is_answered": false,
+    "view_count": 90,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1760756204,
+    "creation_date": 1753184013,
+    "last_edit_date": 1755694152,
+    "question_id": 79710382,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79710382/no-duplicate-identityproperty-names-allowed-s3client",
+    "title": "No duplicate IdentityProperty names allowed - S3Client",
+    "body": "<p>I’m running an AWS Lambda written in <strong>Java 21</strong> with <strong>Spring Boot 3</strong>. My Lambda uses an S3 client, which I instantiate as follows:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Configuration\npublic class AwsConfig {\n\n    @Bean\n    public S3Client awsS3Client() {\n        return S3Client.builder()\n                .region(Region.US_WEST_2)\n                .build();\n    }\n}\n</code></pre>\n<p><strong>Problem:</strong><br />\nWhen I invoke the Lambda multiple times in sequence, the AWS environment appears to create a new <code>S3Client</code> before the previous one is garbage collected. This leads to the following error:</p>\n<pre><code>No duplicate IdentityProperty names allowed but both IdentityProperties 7890fbf9 and 25f0f461 have the same namespace (java.lang.String) and name (Bucket). IdentityProperty should be referenced from a shared static constant to protect against erroneous or unexpected collisions.\n</code></pre>\n<p><strong>If i wait 5 to 7 minutes before rerunning the lambda, everything works perfectly fine!</strong></p>\n<p>From debugging, I see this comes from the AWS SDK’s <code>IdentityProperty</code> class, specifically:</p>\n<pre class=\"lang-java prettyprint-override\"><code>private static final ConcurrentMap&lt;Pair&lt;String, String&gt;, IdentityProperty&lt;?&gt;&gt; NAME_HISTORY = new ConcurrentHashMap&lt;&gt;();\n\nprivate void ensureUnique() {\n    IdentityProperty&lt;?&gt; prev = NAME_HISTORY.putIfAbsent(Pair.of(namespace, name), this);\n    Validate.isTrue(prev == null,\n        &quot;No duplicate IdentityProperty names allowed but both IdentityProperties %s and %s have the same &quot;\n        + &quot;namespace (%s) and name (%s). IdentityProperty should be referenced from a shared static constant to &quot;\n        + &quot;protect against erroneous or unexpected collisions.&quot;,\n        Integer.toHexString(System.identityHashCode(prev)),\n        Integer.toHexString(System.identityHashCode(this)),\n        namespace,\n        name);\n}\n</code></pre>\n<p>It seems that after the first Lambda invocation, <code>NAME_HISTORY</code> is not cleared, so subsequent invocations fail when trying to register the same <code>&quot;java.lang.String&quot;/&quot;Bucket&quot;</code> key.</p>\n<p>This method is called by <code>S3ExpressAuthSchemeProvider</code>, which is in turn called by <code>DefaultS3ClientBuilder</code>.</p>\n<p><strong>What I’ve tried:</strong></p>\n<ul>\n<li>Declaring the <code>S3Client</code> as a static class variable</li>\n<li>Using <code>@Scope(&quot;prototype&quot;)</code> for the bean</li>\n<li>(As a hack) Removing the property from the <code>NAME_HISTORY</code> map via reflection (which just led to a similar error for another property)</li>\n<li>Various other bean lifecycle and instantiation strategies</li>\n</ul>\n<p><strong>Question:</strong></p>\n<ul>\n<li>How can I prevent this error?</li>\n</ul>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

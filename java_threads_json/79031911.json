@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "mysql",
+      "hibernate",
+      "jpa",
+      "criteria-api"
+    ],
+    "owner": {
+      "account_id": 14755758,
+      "reputation": 11,
+      "user_id": 10656450,
+      "user_type": "registered",
+      "profile_image": "https://lh4.googleusercontent.com/-koOw1z1-td8/AAAAAAAAAAI/AAAAAAAAABM/SSDmmOn4XWU/s256-rj/photo.jpg",
+      "display_name": "Yurii Ripetskyi",
+      "link": "https://stackoverflow.com/users/10656450/yurii-ripetskyi"
+    },
+    "is_answered": false,
+    "view_count": 65,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1739652795,
+    "creation_date": 1727449153,
+    "last_edit_date": 1739652795,
+    "question_id": 79031911,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79031911/persistence-criteria-fetch-with-treat-to-specific-type",
+    "title": "Persistence criteria Fetch with treat to specific type",
+    "body": "<p><code>orderItems</code> can be 2 types, <code>StandardOrderItem</code> and <code>SpecificOrderItem</code>.</p>\n<p>I want to get them fetching to avoid <code>LazyInitialization</code> exception.</p>\n<p>It should be like this:</p>\n<pre><code>orderService.findOrderByIdAndEntityGraph(productionOrderId,\n  Map.of(&quot;orderItems&quot;,\n    new JPAUtils.JoinNode(\n      StandardOrderItem.class,\n      Map.of(&quot;components&quot;, new JPAUtils.JoinNode(EMPTY_MAP))\n      )));\n</code></pre>\n<p>Because <code>SpecificOrderItem</code> do ton contains &quot;components&quot; which I want to fetch.</p>\n<p>So unfortunately, <code>Join</code> is lazy, fetch is eager but <code>criteriaBuilder.treat()</code> works only with joins, which causes errors on join of &quot;components&quot;</p>\n<pre><code>public static &lt;T&gt; T getBySpecificationWithGraph(\n    EntityManager entityManager,\n    Specification&lt;T&gt; specification,\n    Map&lt;String, JoinNode&gt; joins,\n    Class&lt;T&gt; clazz\n  ) {\n    CriteriaQuery&lt;T&gt; criteriaQuery = prepareCriteriaQuery(entityManager, specification, joins, clazz);\n    return entityManager.createQuery(criteriaQuery).getSingleResult();\n  }\n\n  public static &lt;T, V&gt; Specification&lt;T&gt; fieldEquals(String fieldName, V value) {\n    return (root, criteriaQuery, criteriaBuilder) -&gt;\n      criteriaBuilder.equal(root.get(fieldName), value);\n  }\n\n  private static &lt;T&gt; CriteriaQuery&lt;T&gt; prepareCriteriaQuery(\n    EntityManager entityManager,\n    Specification&lt;T&gt; specification,\n    Map&lt;String, JoinNode&gt; joins,\n    Class&lt;T&gt; clazz\n  ) {\n    CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();\n    CriteriaQuery&lt;T&gt; criteriaQuery = criteriaBuilder.createQuery(clazz);\n    Root&lt;T&gt; ownerRoot = criteriaQuery.from(clazz);\n\n    // Apply fetch logic with TREAT\n    prepareFetch(joins, ownerRoot, null, criteriaBuilder);\n\n    criteriaQuery.select(ownerRoot)\n      .where(specification.toPredicate(ownerRoot, criteriaQuery, criteriaBuilder));\n    return criteriaQuery;\n  }\n\n  private static &lt;T&gt; void prepareFetch(\n    Map&lt;String, JoinNode&gt; joins,\n    From&lt;?, T&gt; root,  // Use From to accommodate both Root and Join\n    Fetch&lt;?, ?&gt; fetch,\n    CriteriaBuilder criteriaBuilder\n  ) {\n    joins.forEach((key, value) -&gt; {\n      Fetch&lt;?, ?&gt; childFetch = null;\n      Join&lt;?, ?&gt; childJoin = null;  // Declare childJoin for TREAT usage\n\n      // Apply TREAT logic only on Fetches or Joins\n      if (fetch == null) {\n        if (value.getType() != null) {\n          // First, attempt to treat it as a collection join\n          try {\n            // If the relationship is a collection (e.g., @OneToMany)\n            SetJoin&lt;Object, Object&gt; setJoin = root.joinSet(key, JoinType.LEFT);\n            childJoin = criteriaBuilder.treat(setJoin, value.getType());\n\n            root.fetch(key, JoinType.LEFT);  // Ensure the association is fetched eagerly\n          } catch (IllegalArgumentException | ClassCastException e) {\n            // If it's not a collection, treat it as a singular join (e.g., @ManyToOne, @OneToOne)\n            try {\n              Join&lt;Object, Object&gt; join = root.join(key, JoinType.LEFT);\n              childJoin = criteriaBuilder.treat(join, value.getType());\n\n              root.fetch(key, JoinType.LEFT);  // Ensure the association is fetched eagerly\n            } catch (IllegalArgumentException | ClassCastException ex) {\n              throw new RuntimeException(&quot;Unable to apply TREAT to the join: &quot; + key, ex);\n            }\n          }\n        } else {\n          // If no type is provided, just fetch the relationship\n          childFetch = root.fetch(key, JoinType.LEFT);\n        }\n      } else {\n        childFetch = fetch.fetch(key, JoinType.LEFT);\n      }\n\n      // Handle recursive joins and fetches for deeper relationships\n      Objects.requireNonNull(value);\n      Map&lt;String, JoinNode&gt; next = value.getJoins();\n\n      if (!next.isEmpty()) {\n        // Use childJoin for TREAT case or childFetch for normal cases\n        if (childJoin != null) {\n          prepareFetch(next, childJoin, null, criteriaBuilder);  // Continue joining with TREAT\n        } else {\n          prepareFetch(next, root, childFetch, criteriaBuilder);  // Continue fetching\n        }\n      }\n    });\n  }\n\n  @Getter\n  public static class JoinNode {\n    private final Class&lt;?&gt; type;\n    private final Map&lt;String, JoinNode&gt; joins;\n\n    public JoinNode(Class&lt;?&gt; type, Map&lt;String, JoinNode&gt; joins) {\n      this.type = type;\n      this.joins = joins;\n    }\n\n    public JoinNode(Map&lt;String, JoinNode&gt; joins) {\n      this.joins = joins;\n      this.type = null;\n    }\n  }\n</code></pre>\n<p>Usage:</p>\n<pre><code>orderService.findOrderByIdAndEntityGraph(productionOrderId,\n  Map.of(&quot;orderItems&quot;,\n    new JPAUtils.JoinNode(\n      StandardOrderItem.class,\n      Map.of(&quot;components&quot;, new JPAUtils.JoinNode(EMPTY_MAP))\n      )));\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

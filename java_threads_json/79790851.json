@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "protocol-buffers"
+    ],
+    "owner": {
+      "account_id": 29558807,
+      "reputation": 1,
+      "user_id": 22682389,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/ACg8ocIJ-yuO-K0VkyFy7nWSEWl9-q-E0GtxDl8eNF7NYVBb7JE=k-s256",
+      "display_name": "Ran Lottem",
+      "link": "https://stackoverflow.com/users/22682389/ran-lottem"
+    },
+    "is_answered": false,
+    "view_count": 63,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1760510039,
+    "creation_date": 1760509417,
+    "last_edit_date": 1760510039,
+    "question_id": 79790851,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79790851/protobuf-fieldmask-doesnt-accept-syntax-for-repeated-field-masking",
+    "title": "Protobuf FieldMask doesn&#39;t accept * syntax for repeated field masking",
+    "body": "<p>I have a protobuf message with a repeated field:</p>\n<pre class=\"lang-protobuf prettyprint-override\"><code>message TestRepeatedMask {\n  repeated Inner inner_message = 1;\n\n  message Inner {\n    optional string first = 1;\n    optional string second = 2;\n  }\n}\n</code></pre>\n<p>I know the docs for fieldmasks state that you can't select one field from within each member of the list of elements, but OTOH there's <a href=\"https://google.aip.dev/161#wildcards\" rel=\"nofollow noreferrer\">this</a> documentation for wildcards that says you can use <code>&quot;.*.&quot;</code> within the fieldmask path to do exactly that.</p>\n<p>My Java example:</p>\n<pre><code>  public static TestRepeatedMask readMinimal(TestRepeatedMask route) {\n    FieldMask.Builder maskBuilder = FieldMask.newBuilder();\n    FieldMask mask = maskBuilder.addPaths(&quot;inner_message.*.first&quot;).build();\n    TestRepeatedMask.Builder result = TestRepeatedMask.newBuilder();\n    FieldMaskUtil.merge(mask, route, result);\n    return result.build();\n  }\n\n  @Test\n  public void readRespo() {\n    TestRepeatedMask o =\n        SelectedRouteMasker.readMinimal(\n            TestRepeatedMask.newBuilder()\n                .addInnerMessage(Inner.newBuilder().setFirst(&quot;first&quot;).setSecond(&quot;second&quot;))\n                .build());\n    System.out.println(o);\n  }\n</code></pre>\n<p>I'm expecting to get this obect without the &quot;second&quot; field:</p>\n<pre class=\"lang-protobuf prettyprint-override\"><code>TestRepeatedMask { inner { first: &quot;first&quot; } }\n</code></pre>\n<p>I'm running the test and getting:</p>\n<pre><code>Oct 15, 2025 9:06:59 AM com.google.protobuf.util.FieldMaskTree merge\nWARNING: Field &quot;TestRepeatedMask.inner_message&quot; is not a singular message field and cannot have sub-fields.\n</code></pre>\n<p>Is what I'm trying to do not supported? Am I misreading the wildcard docs?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

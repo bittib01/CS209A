@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "exist-db"
+    ],
+    "owner": {
+      "account_id": 356965,
+      "reputation": 677,
+      "user_id": 696821,
+      "user_type": "registered",
+      "accept_rate": 38,
+      "profile_image": "https://www.gravatar.com/avatar/b66499cb8040081fdcf666c6a57dbacd?s=256&d=identicon&r=PG",
+      "display_name": "Vlada",
+      "link": "https://stackoverflow.com/users/696821/vlada"
+    },
+    "is_answered": false,
+    "view_count": 39,
+    "answer_count": 2,
+    "score": -1,
+    "last_activity_date": 1727093876,
+    "creation_date": 1726762523,
+    "question_id": 79003527,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79003527/storeresouce-is-too-slow-with-remote-interface",
+    "title": "storeResouce is too slow with remote interface",
+    "body": "<p>eXistDB 6.2.0</p>\n<p>Saving to a locally running database via the remote interface is several orders of magnitude slower compared to using an embedded database. I can't figure out where the problem lies, or how to store the data more efficiently.</p>\n<p>I need to store about 100,000 records. When saving via the remote interface, the speed is around 100 records per second. However, when using the embedded database, the speed is about 9,000 records per second.</p>\n<p>What am I doing wrong, or how can I improve this?</p>\n<p>Below is a code example.</p>\n<p>remote uri: xmldb:exist://localhost:8080/exist/xmlrpc\nembeded uri: xmldb:exist://</p>\n<p>In both cases the db is running on the same machine. db configuration file is attached.</p>\n<pre><code>    final Random random = new Random();\n    final HashMap&lt;String, String&gt; data = new HashMap&lt;&gt;();\n\n    for (int i = 0; i &lt; records; i++) {\n        double latitude = MIN_LAT + (MAX_LAT - MIN_LAT) * random.nextDouble();\n        double longitude = MIN_LON + (MAX_LON - MIN_LON) * random.nextDouble();\n\n        String randomId = UUID.randomUUID().toString();\n        String randomName = generateRandomString(random, 30);\n        String randomValue = generateRandomString(random, 10);\n\n        String resourceId = prefix + &quot;/&quot; + randomId;\n        String xml = String.format(\n                &quot;&quot;&quot;\n                        &lt;entity&gt;\n                            &lt;name&gt;%s&lt;/name&gt;\n                            &lt;value&gt;%s&lt;/value&gt;\n                            &lt;pos&gt;%.8f %.8f&lt;/pos&gt;\n                        &lt;/entity&gt;&quot;&quot;&quot;,\n                randomName, randomValue, latitude, longitude\n        );\n        data.put(resourceId, xml);\n    }\n    xmlDbService.saveEntity(data);\n}\n\npublic void saveEntity(@NonNull HashMap&lt;String, String&gt; resources) throws Exception {\n    var sortedResources = new TreeMap&lt;&gt;(resources);\n\n    Collection col = null;\n    String currentCollectionUri = null;\n    long start = System.currentTimeMillis();\n\n    int i = 0;\n    int c = 0;\n    try {\n        for (var entry : sortedResources.entrySet()) {\n            String resourceId = entry.getKey();\n            String xmlData = entry.getValue();\n\n            var param = splitResourceId(resourceId);\n            String collectionUri = param[0];\n            String resourceName = param[1];\n\n            if (col == null || !collectionUri.equals(currentCollectionUri)) {\n                if (col != null) {\n                    col.close();\n                }\n                col = getOrCreateCollection(collectionUri);\n                col.setProperty(&quot;indent&quot;, &quot;no&quot;);\n                currentCollectionUri = collectionUri;\n            }\n\n            i++;\n            if (i % 1000 == 0) {\n                long executionTime = System.currentTimeMillis() - start;\n                log.info(&quot;Inserted: {}, rate {} / sec&quot;, i, c * 1000L / executionTime);\n                start = System.currentTimeMillis();\n                c = 0;\n            }\n            XMLResource res = (XMLResource) col.createResource(resourceName, XMLResource.RESOURCE_TYPE);\n            res.setContent(xmlData);\n            col.storeResource(res);\n            c++;\n            log.trace(&quot;Resource saved: {} in collection: {}&quot;, resourceName, currentCollectionUri);\n        }\n    } finally {\n        if (col != null) {\n            col.close();\n        }\n    }\n} ```\n\n&lt;dependency&gt;\n    &lt;groupId&gt;org.exist-db&lt;/groupId&gt;\n    &lt;artifactId&gt;exist-core&lt;/artifactId&gt;\n    &lt;version&gt;6.2.0&lt;/version&gt;\n&lt;/dependency&gt;\n\n&lt;dependency&gt;\n    &lt;groupId&gt;net.sf.xmldb-org&lt;/groupId&gt;\n    &lt;artifactId&gt;xmldb-api&lt;/artifactId&gt;\n    &lt;version&gt;1.7.0&lt;/version&gt;\n&lt;/dependency&gt;\nThank you for your help and/or advice.\n\nV.\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

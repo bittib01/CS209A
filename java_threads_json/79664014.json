@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "path",
+      "filenames",
+      "race-condition",
+      "realpath"
+    ],
+    "owner": {
+      "account_id": 14010051,
+      "reputation": 260,
+      "user_id": 10118965,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/61afd55894624ae8f6e4189b68db1f30?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "davidalayachew",
+      "link": "https://stackoverflow.com/users/10118965/davidalayachew"
+    },
+    "is_answered": true,
+    "view_count": 163,
+    "accepted_answer_id": 79664074,
+    "answer_count": 2,
+    "score": 1,
+    "last_activity_date": 1750119143,
+    "creation_date": 1749755955,
+    "last_edit_date": 1750118917,
+    "question_id": 79664014,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79664014/how-to-determine-if-2-instances-of-java-nio-file-path-are-pointing-to-the-same-f",
+    "title": "How to determine if 2 instances of java.nio.file.Path are pointing to the same file?",
+    "body": "<p>I have a simple problem -- I have multiple threads that are doing appends to a file, based upon a file name that the user can choose.</p>\n<p>At first, I tried to synchronize on instances of <a href=\"https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/nio/file/Path.html\" rel=\"nofollow noreferrer\">Path</a>, but after reading comments from Reddit <a href=\"https://old.reddit.com/r/java/comments/1k3uh5c/where_is_the_java_language_going_javaone/mo8ydi0/\" rel=\"nofollow noreferrer\">HERE</a> and <a href=\"https://old.reddit.com/r/java/comments/1k3uh5c/where_is_the_java_language_going_javaone/mo8gvpb/\" rel=\"nofollow noreferrer\">HERE</a>, it appears that this is the wrong approach. Namely -- 2 different instances of <code>String</code> will result in 2 different instances of <code>Path</code> that are not equals, according to <code>Path.equals()</code>, but DO point to the exact same file. I tested this myself, and it appears that they are right. For example, consider this example that I ran on my Windows 11 machine.</p>\n<pre><code>final Path a = Path.of(&quot;abc.java&quot;); //find abc.java in the current directory\nfinal Path b = Path.of(&quot;./abc.java&quot;); //go to current directory, then find abc.java\nSystem.out.println(a.equals(b)); //false, but they are the same file!\n</code></pre>\n<p><em><strong>(and to be clear, the reason I care about <code>Path.equals()</code> is because that will allow it to be unique in a <code>Map&lt;Path, V&gt;</code> or a <code>Set&lt;Path&gt;</code>, and then I can use those containers to get the same instance always. After all, the <code>synchronized(someObject)</code> statement handles thread synchronization based on whether or not <code>a == b</code> and NOT on <code>a.equals(b)</code>. Just wanted to clarify, since it wasn't clear my intentions before.</strong></em></p>\n<p>I need something to synchronize on. And it is clear that just synchronizing on an instance of <code>Path</code> that I put into my <code>Map&lt;Path, V&gt;</code> made via <code>Path.of(sanitizedStringFromUser)</code> isn't going to cut it. Sure, I could play &quot;whack-a-mole&quot;, and try to find all of the possible ways that 2 different instances of <code>String</code> could resolve to the same file when served to <code>Path.of()</code>. But I am certain that I am reinventing the wheel here.</p>\n<p>How should I resolve this, using idiomatic Java?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

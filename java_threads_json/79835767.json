@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "servlets",
+      "osgi",
+      "classloader",
+      "websphere-liberty"
+    ],
+    "owner": {
+      "account_id": 44746813,
+      "reputation": 1,
+      "user_id": 31914929,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/edbc03fa1850982f067265e6864ecfcc?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Mohana Krishnan G",
+      "link": "https://stackoverflow.com/users/31914929/mohana-krishnan-g"
+    },
+    "is_answered": false,
+    "view_count": 67,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1765034148,
+    "creation_date": 1764672861,
+    "last_edit_date": 1765034148,
+    "question_id": 79835767,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79835767/application-migration-to-websphere-liberty",
+    "title": "Application migration to Websphere Liberty",
+    "body": "<p>I am migrating an application to Liberty. The application is servlet-based and uses JSP files. I have created Dockerfiles, a Helm chart, and Liberty configuration files such as <code>server.xml</code>. My application is packaged with its own set of JARs. I am using parent-last delegation to isolate the application from Liberty interference.</p>\n<p><strong>Current Error:</strong></p>\n<pre><code>Caused by: java.lang.LinkageError. loading constraint violation when resolving method &quot;org/eclipse/ equinox/servletbridge/BridgeServl et.registerServletDelegate(Ljavax/ servlet/http/HttpServlet;)V&quot;: loader &quot;org/eclipse/osgi/internal/baseadaptor /DefaultClassLoader@d66d27b2&quot; of class &quot;org/eclipse/equinox/http/ servletbridge/internal/Activator&quot; and loader &quot;com/ibm/ws/classloading/internal /ParentLastClassLoader@fc9bb2bd&quot; of class &quot;org/eclipse/equinox/servletbridge/ BridgeServlet&quot; have different types for the method signature.\n</code></pre>\n<p><strong>Root Cause:</strong></p>\n<p>The Liberty servlet-3.0 feature provides <code>HttpServlet</code> (Servlet 3.1 API) to the parent classloader, while the embedded <code>javax.servlet_3.0.0</code> bundle provides <code>HttpServlet</code> (Servlet 3.0 API) to OSGi bundles. This results in the same class name being loaded as different class objects, which triggers the <code>LinkageError</code>.</p>\n<p><strong>What I have tried:</strong></p>\n<ol>\n<li><p>Keeping the Liberty servlet feature and removing the servlet bundle from the application. This causes <code>HTTPServlet</code> and <code>GenericServlet</code> classes to be not found.</p>\n</li>\n<li><p>Keeping the servlet bundle and removing the Liberty servlet feature. This prevents the application from starting, as Liberty requires servlet features to deploy WARs.</p>\n</li>\n<li><p>Keeping both the Liberty servlet feature and the servlet bundle. This leads to the <code>LinkageError</code> described above.</p>\n</li>\n</ol>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-bean"
+    ],
+    "owner": {
+      "account_id": 25486283,
+      "reputation": 69,
+      "user_id": 19281826,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/034f6a6f92e9a4df635aa6f94972b926?s=256&d=identicon&r=PG",
+      "display_name": "yaroslav96",
+      "link": "https://stackoverflow.com/users/19281826/yaroslav96"
+    },
+    "is_answered": true,
+    "view_count": 134,
+    "accepted_answer_id": 79759189,
+    "answer_count": 2,
+    "score": 2,
+    "last_activity_date": 1757396330,
+    "creation_date": 1757346802,
+    "last_edit_date": 1757355762,
+    "question_id": 79759114,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79759114/autowire-multiple-beans-into-a-map",
+    "title": "Autowire multiple beans into a Map",
+    "body": "<p>I’m working on a Spring Boot application where I have multiple implementations of a service interface, and I want to automatically wire them into a <code>Map</code> keyed by an enum type.</p>\n<p>Specifically, I have a <code>PaymentService</code> interface with different implementations for different payment types:</p>\n<pre><code>public interface PaymentService {\n    void processPayment();\n}\n</code></pre>\n<pre><code>@Slf4j\n@Service\n@PaymentHandler(PaymentType.CREDIT_CARD)\npublic class CreditCardPaymentService implements PaymentService {\n\n    @Override\n    public void processPayment() {\n        log.info(&quot;CreditCardPaymentService processPayment&quot;);\n    }\n}\n</code></pre>\n<pre><code>@Slf4j\n@Service\n@PaymentHandler(PaymentType.VENMO)\npublic class VenmoPaymentService implements PaymentService {\n\n    @Override\n    public void processPayment() {\n        log.info(&quot;VenmoPaymentService processPayment&quot;);\n    }\n}\n</code></pre>\n<pre><code>public enum PaymentType {\n    CREDIT_CARD, VENMO\n}\n</code></pre>\n<pre><code>@Target(ElementType.TYPE)\n@Retention(RetentionPolicy.RUNTIME)\n@Component\npublic @interface PaymentHandler {\n    PaymentType value();\n}\n</code></pre>\n<p>Currently, I’m manually creating a <code>Map&lt;PaymentType, PaymentService&gt;</code> in a configuration class using the <code>ApplicationContext</code>:</p>\n<pre><code>@Configuration\npublic class PaymentConfiguration {\n\n    @Bean\n    public Map&lt;PaymentType, PaymentService&gt; paymentServicesMap(final ApplicationContext applicationContext) {\n        return applicationContext.getBeansOfType(PaymentService.class).values().stream()\n                .flatMap(service -&gt;\n                        Optional.ofNullable(service.getClass().getAnnotation(PaymentHandler.class))\n                                .map(annotation -&gt; Map.entry(annotation.value(), service))\n                                .stream())\n                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));\n    }\n}\n</code></pre>\n<pre><code>@Component\n@RequiredArgsConstructor\npublic class MyStartupRunner implements CommandLineRunner {\n    private final Map&lt;PaymentType, PaymentService&gt; paymentServices;\n\n    @Override\n    public void run(String... args) {\n        paymentServices.forEach((paymentType, paymentService) -&gt; paymentService.processPayment());\n    }\n}\n</code></pre>\n<p>This approach works, but it feels verbose and manual. I’d like to leverage Spring’s <code>@Qualifier</code> or some other feature to avoid having to define the <code>Map</code> bean explicitly. Ideally, I want Spring to automatically inject a <code>Map&lt;PaymentType, PaymentService&gt;</code> without additional boilerplate.</p>\n<p>I’ve tried approaches like using <code>@Qualifier</code> on individual beans, but it doesn’t seem to work cleanly when mapping multiple implementations to enum keys.</p>\n<p>My question:</p>\n<ul>\n<li>Is there a Spring feature or pattern that allows me to autowire a <code>Map&lt;Enum, Service&gt;</code> automatically?</li>\n<li>Can I avoid manually building the map in a <code>@Bean</code> method?</li>\n<li>Are there best practices for wiring multiple service implementations in this way?</li>\n</ul>\n<p>Any guidance or example implementations would be highly appreciated.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

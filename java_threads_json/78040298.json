@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "apache-httpcomponents",
+      "apache-httpclient-5.x"
+    ],
+    "owner": {
+      "account_id": 4666722,
+      "reputation": 2384,
+      "user_id": 3779613,
+      "user_type": "registered",
+      "accept_rate": 27,
+      "profile_image": "https://www.gravatar.com/avatar/20053df22dc2f3589735f2e4d684de02?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "David Geary",
+      "link": "https://stackoverflow.com/users/3779613/david-geary"
+    },
+    "is_answered": true,
+    "view_count": 10698,
+    "answer_count": 1,
+    "score": 28,
+    "last_activity_date": 1740525036,
+    "creation_date": 1708598775,
+    "question_id": 78040298,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78040298/best-way-to-configure-timeouts-on-apache-httpclient-5",
+    "title": "Best way to configure timeouts on Apache HttpClient 5",
+    "body": "<p>I'm trying to understand the difference between the various timeout configurations in HttpClient and the simplest way to configure it.</p>\n<p>The various options are shown in this code:</p>\n<pre><code>RequestConfig requestConfig = RequestConfig.custom()\n    .setConnectionRequestTimeout(connectionRequestTimeout, TimeUnit.MILLISECONDS)\n    .setResponseTimeout(responseTimeout, TimeUnit.MILLISECONDS)\n    .setConnectTimeout(connectTimeout, TimeUnit.MILLISECONDS) // Deprecated - Use {@link ConnectionConfig.Builder#setConnectTimeout(Timeout)}.\n    .build();\n       \nConnectionConfig connectionConfig = ConnectionConfig.custom()\n    .setConnectTimeout(connectTimeout, TimeUnit.MILLISECONDS)\n    .setSocketTimeout(socketTimeout, TimeUnit.MILLISECONDS)\n    .build();\n       \nSocketConfig socketConfig = SocketConfig.custom()\n    .setSoTimeout(socketTimeout, TimeUnit.MILLISECONDS)\n    .build();\n       \nPoolingHttpClientConnectionManager poolingHttpClientConnectionManager = PoolingHttpClientConnectionManagerBuilder.create()\n    .setDefaultConnectionConfig(connectionConfig)\n    .setDefaultSocketConfig(socketConfig)\n    .build();\n\nHttpClient httpClient = HttpClientBuilder.create()\n    .setConnectionManager(poolingHttpClientConnectionManager)\n    .setDefaultRequestConfig(requestConfig)\n    .build();\n</code></pre>\n<p>My current understanding is this:</p>\n<p><code>ConnectionRequestTimeout</code> is the time taken to get a connection from the pool - relevant if under load.</p>\n<p><code>ConnectTimeout</code> is the time taken to establish the connection.</p>\n<p>But what is the difference between:</p>\n<pre><code>RequestConfig.setResponseTimeout()\nConnectionConfig.setSocketTimeout()\nSocketConfig.setSoTimeout()\n</code></pre>\n<p>they all seem to be read / response timeouts for a request. Do I only need to set one of these?\nFrom some limited testing it seems <code>ResponseTimeout</code> overrides the others possibly implying thats all I need.</p>\n<p>In this case it would be nice just to have to use <code>RequestConfig</code> to set all three but the <code>ConnectTimeout</code> has been deprecated there and moved to <code>ConnectionConfig</code> which also contains the <code>SocketTimeout</code>.</p>\n<p>I'm using this with SpringBoot 3 / Spring 6 and the recent removal of the <code>readTimeout</code> configuration option on <code>HttpComponentsClientHttpRequestFactory</code> seems to imply its best to set this up directly on the HttpClient.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

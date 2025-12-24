@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "algorithm",
+      "time-complexity"
+    ],
+    "owner": {
+      "account_id": 31187804,
+      "reputation": 794,
+      "user_id": 23993901,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/7417aaad0c8ece3fac44f06d05a8ba8b?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "CodeCrusader",
+      "link": "https://stackoverflow.com/users/23993901/codecrusader"
+    },
+    "is_answered": true,
+    "view_count": 304,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1755460954,
+    "creation_date": 1755440839,
+    "question_id": 79737888,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79737888/minimum-cost-to-convert-all-1s-to-0s-using-window-of-size-k",
+    "title": "Minimum cost to convert all 1&#39;s to 0&#39;s using window of size k",
+    "body": "<p>There is a row of toys, where each toy is represented as either:</p>\n<pre><code>1 → red toy (needs to be painted blue),\n\n0 → blue toy (already painted).\n</code></pre>\n<p>An integer k is given. An operation can be performed as follows:</p>\n<p>Select any consecutive subarray of length k.</p>\n<p>Compute the cost of this operation as the sum of values in the subarray.</p>\n<p>Within this subarray, choose one toy and paint it blue (1 → 0).</p>\n<p>The goal is to paint all red toys (1) blue (0) with the minimum total cost.</p>\n<p><strong>Example:</strong></p>\n<pre><code>Toys: 1 1 1 0 1\nk = 4\n\nStep 1: Choose indices [2..5] → cost = 1+1+0+1 = 3 → paint index 2 → [1 0 1 0 1]  \nStep 2: Choose indices [1..4] → cost = 1+0+1+0 = 2 → paint index 3 → [1 0 0 0 1]  \nStep 3: Choose indices [2..5] → cost = 0+0+0+1 = 1 → paint index 5 → [1 0 0 0 0]  \nStep 4: Choose indices [1..4] → cost = 1+0+0+0 = 1 → paint index 1 → [0 0 0 0 0]  \n\nTotal cost = 3 + 2 + 1 + 1 = 7\n</code></pre>\n<p><strong>Contrainsts are:</strong></p>\n<pre><code>1 &lt;= k,n &lt;= 10^5\ntoys[i] = {0,1} for all 0 &lt;= i &lt;n\n</code></pre>\n<p>Here is my program with logic explained :</p>\n<p>I haved used recursion with memoization, with Base case as, If all toys are 0, cost = 0 (no more work needed).\nMemoization check is, If this toy arrangement was solved before, just return the stored result.</p>\n<p>Otherwise:\nTry every window of length k.\nCalculate the cost of that window (sum of values inside).\nInside that window, try flipping each 1 to 0.\nThis creates a new toy arrangement.\nRecursively solve that new arrangement, and add the cost.\nKeep track of the minimum cost among all possibilities.\nSave it in memo and return.</p>\n<pre><code>import java.util.*;\n\npublic class MinCostToys {\n    public static int minCost(List&lt;Integer&gt; toys, int k) {\n        return dfs(toys, k, new HashMap&lt;&gt;());\n    }\n\n    private static int dfs(List&lt;Integer&gt; toys, int k, Map&lt;List&lt;Integer&gt;, Integer&gt; memo) {\n        if (!toys.contains(1)) {\n            return 0; // all are blue\n        }\n        if (memo.containsKey(toys)) {\n            return memo.get(toys);\n        }\n\n        int n = toys.size();\n        int min = Integer.MAX_VALUE;\n\n        // Try all windows of size k\n        for (int i = 0; i &lt;= n - k; i++) {\n            List&lt;Integer&gt; window = toys.subList(i, i + k);\n            int cost = window.stream().mapToInt(x -&gt; x).sum();\n\n            // Try painting each position in the window\n            for (int j = 0; j &lt; k; j++) {\n                if (toys.get(i + j) == 1) {\n                    List&lt;Integer&gt; next = new ArrayList&lt;&gt;(toys);\n                    next.set(i + j, 0);\n                    min = Math.min(min, cost + dfs(next, k, memo));\n                }\n            }\n        }\n\n        memo.put(toys, min);\n        return min;\n    }\n\n    \n    public static void main(String[] args) {\n        System.out.println(minCost(Arrays.asList(1,1,1,0,1), 4));//7\n        System.out.println(minCost(Arrays.asList(1,0,1,0,1), 3));//3\n        System.out.println(minCost(Arrays.asList(1,1,0,1), 3));//4\n    }   \n}\n</code></pre>\n<p>Time complexity of this code is : <strong>O(2^n * n * k)</strong></p>\n<p>How to solve this in less time complexity? Is it possible to solve in less than O(n*k) time?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

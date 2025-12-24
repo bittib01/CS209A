@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "xml",
+      "jpa",
+      "jaxb",
+      "moxy"
+    ],
+    "owner": {
+      "account_id": 10278040,
+      "reputation": 3642,
+      "user_id": 7584240,
+      "user_type": "registered",
+      "accept_rate": 17,
+      "profile_image": "https://i.sstatic.net/9BMGL.jpg?s=256",
+      "display_name": "BATMAN_2008",
+      "link": "https://stackoverflow.com/users/7584240/batman-2008"
+    },
+    "is_answered": true,
+    "view_count": 2656,
+    "answer_count": 2,
+    "score": 2,
+    "last_activity_date": 1715704397,
+    "creation_date": 1709306321,
+    "last_edit_date": 1709637486,
+    "question_id": 78088731,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78088731/how-to-unmarshall-a-xml-without-namespace-using-the-jakarta-xml-unmarshaller",
+    "title": "How to unmarshall a XML without namespace using the Jakarta XML Unmarshaller?",
+    "body": "<p>I am trying to unmarshal an XML into a Java object using the <code>jakarta.xml.bind.Unmarshaller</code> but my XML does not contain some of the default namespaces as they are part of the XSD already. How to either explicitly mention to <code>Unmarshaller</code> to ignore these default namespaces or add them to the <code>XMLStreamReader</code> at the runtime so Unmarshaller can use them?</p>\n<p>Following is the XML which fails to unmarshal to Java object:</p>\n<pre><code>&lt;foo&gt;\n    &lt;bar&gt;Hello&lt;/bar&gt;\n    &lt;test:one&gt;Hello ONE&lt;/test:one&gt;\n&lt;/foo&gt;\n</code></pre>\n<p>If I change to this then it would work as expected:</p>\n<pre><code>&lt;foo&gt;\n    &lt;bar&gt;Hello&lt;/bar&gt;\n    &lt;test:one xmlns:test=&quot;https://test.com&quot;&gt;Hello ONE&lt;/test:one&gt;\n&lt;/foo&gt;\n</code></pre>\n<p>I looked at a few examples on <a href=\"https://stackoverflow.com/a/24387115/7584240\">StackOverflow</a> but the provided approach does not work. I do not wish to use an additional library such as Sax rather I want to handler at the XMLStreamReader level or by using the Unmarshaller.</p>\n<p>How to achieve this?</p>\n<p>Following is the method for doing the unmarshalling of XML:</p>\n<p>Main.class:</p>\n<pre><code>import jakarta.xml.bind.JAXBContext;\nimport jakarta.xml.bind.JAXBException;\nimport jakarta.xml.bind.Unmarshaller;\n\nimport javax.xml.stream.XMLInputFactory;\nimport javax.xml.stream.XMLStreamException;\nimport javax.xml.stream.XMLStreamReader;\nimport java.io.InputStream;\n\npublic class Main {\n    public static void main(String[] args) throws XMLStreamException, JAXBException {\n        final XMLInputFactory inputFactory = XMLInputFactory.newInstance();\n        inputFactory.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.FALSE);\n        inputFactory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, Boolean.FALSE);\n        final InputStream inputStream = Main.class.getResourceAsStream(&quot;/SampleXML.xml&quot;);\n        final XMLStreamReader xmlStreamReader = inputFactory.createXMLStreamReader(inputStream);\n        final JAXBContext jaxbContext = JAXBContext.newInstance(&quot;io.convert.test&quot;, Thread.currentThread().getContextClassLoader());\n        final Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();\n        xmlStreamReader.next();\n\n        while (xmlStreamReader.hasNext()) {\n            Object event = unmarshaller.unmarshal(xmlStreamReader, Foo.class).getValue();\n            System.out.println(event.toString());\n        }\n    }\n}\n</code></pre>\n<p>Foo.class:</p>\n<pre><code>\nimport jakarta.xml.bind.annotation.*;\nimport lombok.AllArgsConstructor;\nimport lombok.Data;\nimport lombok.NoArgsConstructor;\nimport lombok.ToString;\n\nimport java.util.List;\n\n@Data\n@NoArgsConstructor\n@AllArgsConstructor\n@XmlAccessorType(XmlAccessType.FIELD)\n@XmlRootElement(name = &quot;foo&quot;)\n@XmlType(\n        name = &quot;Foo&quot;,\n        propOrder = {\n                &quot;bar&quot;,\n                &quot;anyElements&quot;\n        },\n        factoryClass = ObjectFactory.class,\n        factoryMethod = &quot;createFoo&quot;)\n@ToString(callSuper = true)\npublic class Foo {\n    private String bar;\n    \n    @XmlAnyElement(lax = true)\n    private List&lt;Object&gt; anyElements;\n\n    void beforeUnmarshal(Unmarshaller unmarshaller, Object parent) {\n        System.out.println(&quot;Before Unmarshaller Callback&quot;);\n        System.out.println(parent);\n    }\n\n    void afterUnmarshal(Unmarshaller unmarshaller, Object parent) {\n        System.out.println(&quot;Before Unmarshaller Callback&quot;);\n        System.out.println(parent);\n    }\n}\n</code></pre>\n<p>ObjectFactory.class:</p>\n<pre><code>import jakarta.xml.bind.annotation.XmlRegistry;\n\n@XmlRegistry\npublic final class ObjectFactory {\n  private ObjectFactory() {}\n  public static Foo createFoo() {\n    return new Foo();\n  }\n}\n</code></pre>\n<p>An error occurred when XML used without namespace:</p>\n<pre><code>Exception in thread &quot;main&quot; jakarta.xml.bind.UnmarshalException\n - with linked exception:\n[Exception [EclipseLink-25004] (Eclipse Persistence Services - 4.0.2.v202306161219): org.eclipse.persistence.exceptions.XMLMarshalException\nException Description: An error occurred unmarshalling the document\nInternal Exception: javax.xml.stream.XMLStreamException: ParseError at [row,col]:[3,15]\nMessage: http://www.w3.org/TR/1999/REC-xml-names-19990114#ElementPrefixUnbound?test&amp;test:one]\n    at org.eclipse.persistence.jaxb.JAXBUnmarshaller.handleXMLMarshalException(JAXBUnmarshaller.java:1132)\n    at org.eclipse.persistence.jaxb.JAXBUnmarshaller.unmarshal(JAXBUnmarshaller.java:471)\n    at io\n.convert.test.Main.main(Main.java:24)\nCaused by: Exception [EclipseLink-25004] (Eclipse Persistence Services - 4.0.2.v202306161219): org.eclipse.persistence.exceptions.XMLMarshalException\nException Description: An error occurred unmarshalling the document\n\n</code></pre>\n<p>Based on few response I tried adding the additional class to return the namespaces but that did not work either NamespaceIgnoringXMLStreamReader.clas</p>\n<pre><code>import javax.xml.stream.XMLStreamReader;\nimport javax.xml.stream.util.StreamReaderDelegate;\n\npublic class NamespaceIgnoringXMLStreamReader extends StreamReaderDelegate {\n    public NamespaceIgnoringXMLStreamReader(XMLStreamReader reader) {\n        super(reader);\n    }\n    @Override\n    public String getAttributeNamespace(int arg0) {\n        return &quot;&quot;;\n    }\n    @Override\n    public String getNamespaceURI() {\n        return &quot;&quot;;\n    }\n}\n</code></pre>\n<p>Then using those streams in Main.class:</p>\n<pre><code>final XMLStreamReader xmlStreamReader = inputFactory.createXMLStreamReader(inputStream);\nNamespaceIgnoringXMLStreamReader namespaceIgnoringReader = new NamespaceIgnoringXMLStreamReader(xmlStreamReader);\n</code></pre>\n<p>I tried adding the <code>package-info.java</code> with the following code but still, the unmarshalling without a namespace does not work for me:</p>\n<pre><code>@XmlSchema(elementFormDefault = XmlNsForm.UNQUALIFIED)\npackage io.openepcis.convert.test;\n\nimport jakarta.xml.bind.annotation.XmlNsForm;\nimport jakarta.xml.bind.annotation.XmlSchema;\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

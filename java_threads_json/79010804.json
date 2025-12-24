@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "firebase",
+      "firebase-realtime-database"
+    ],
+    "owner": {
+      "account_id": 9984377,
+      "reputation": 2320,
+      "user_id": 7386152,
+      "user_type": "registered",
+      "accept_rate": 52,
+      "profile_image": "https://www.gravatar.com/avatar/f43843fa4ff68852751ae024ff7188fe?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Learn2Code",
+      "link": "https://stackoverflow.com/users/7386152/learn2code"
+    },
+    "is_answered": false,
+    "view_count": 70,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1727002411,
+    "creation_date": 1726974524,
+    "last_edit_date": 1727002107,
+    "question_id": 79010804,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79010804/issue-with-firebase-realtime-database-race-condition-with-android-java",
+    "title": "Issue with Firebase Realtime database Race condition with Android Java",
+    "body": "<p>I want to start off that this issue in NOT impacting my iOS app and strictly in Android using java.</p>\n<p>Below is my code:</p>\n<p>The first function calls Firebase to get the users in the pool:</p>\n<pre><code>private void getPlayerCount() {\n    playerInPoolQuery = playerInPoolReference.child(poolIf).orderByValue().equalTo(true);\n    readPlayerCountData(playerInPoolQuery, new PicksActivity.AllPicksPlayerCountCallback() {\n\n        @Override\n        public void onSuccess(DataSnapshot dataSnapshot) {\n            int playerIndex = 0;\n\n            // Determine the number of players in the pool\n            numPlayersInPool = (int) dataSnapshot.getChildrenCount();\n\n            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {\n                String userId = snapshot.getKey();\n                setPlayerUsername(userId, playerIndex);\n\n                playerIndex = playerIndex + 1;\n            }\n        }\n    });\n}\n</code></pre>\n<p>Below is the code for getting the players username:</p>\n<pre><code>private void setPlayerUsername(final String userId, final int playerIndex) {\n    userQuery = userReference.child(userId).child(&quot;username&quot;);\n    readPlayerUsernameData(userQuery, new SurvivorAllPicksActivity.AllPicksPlayerUsernameCallback() {\n\n        @Override\n        public void onSuccess(DataSnapshot dataSnapshot) {\n            String username = (String) dataSnapshot.getValue();\n            AllPicks player = new AllPicks(username);\n            \n            playerList.add(player);\n\n            for (int i = 1; i &lt;= currWeek; i++) {\n                setPlayerPicks(userId, playerIndex, i);\n            }\n        }\n    });\n}\n</code></pre>\n<p>So here is where the issue starts:</p>\n<p>In the above code the <code>getPlayerCount</code> function retrieves the Firebase assigned user Ids as example:</p>\n<pre><code>0yV3uJZAoDWCZNHuRgxrUlKYFgz1\n1q4mOwYUKRgRi3QiC8nLAeVy1T62\n425HgyfcpXf1OuA4ndTmry24Kij1\n4BCIjoreBuRTNtYIOFZLRKxvk0b2\n6TIHOsFuXFQ0v6yBpUn3kVqeHDE3\nLNeNupya7GcwsZkd44yV22DNU6f1\nM7wxpkSMb4R8rmlvo2A7OyqmLzJ2\nUnVFJ49IgTYeNGsV9b0aznhV79B3\nbGGtRR18jLe14EcXelgiWbHxi5p2\ncU5j1txJyZgwSqsQ72T8pfn30oJ2\nlDCzcnZToxMw3iTpMvJ988sJMug2\nlvqWVfIpexb7n2DtoPwfVWcYpur2\nnnr5ahZHKJfb0vn37eMI5oznyD23\no3Aag8bK29WoU4Aa013dYga3HgB3\nq5WNLNjiVrcml4gMbu2ovMU4hyZ2\nqnxtPKTVMZRTXurDOvE6aJRhH2o2\n</code></pre>\n<p>The above works exactly as I expected as its the actual order of the players internal ids that are in the pool in alphabetic order (how firebase realtime database internally organizes/lists nodes)</p>\n<p>Now here is where I am encountering the issue (which seems to be a race condition).</p>\n<p>When the get setPlayerUsername <code>function</code> is called the order in how its executed <code>skews</code> based on the player logged into the app.</p>\n<p>What I mean by that, is if the player with the internal identifier <code>bGGtRR18jLe14EcXelgiWbHxi5p2</code> is logged in they will <code>execute faster</code> than the order of the list provided in the example and that <code>breaks</code> my indexing literally by one, and skews all the players information by one position/index since the logged in player <code>jumps</code> up in order expected.</p>\n<p>This is seen happening with any user so if player <code>M7wxpkSMb4R8rmlvo2A7OyqmLzJ2</code> is logged in then they would be indexed second and skew all the player results.</p>\n<p>Literally anyone BUT the two first players in the list above :</p>\n<blockquote>\n<p>0yV3uJZAoDWCZNHuRgxrUlKYFgz1<br />\n1q4mOwYUKRgRi3QiC8nLAeVy1T62</p>\n</blockquote>\n<p>When they are logged in and view the players the information is 100% accurate since the indexing is executed in proper order.</p>\n<p>Does anyone have any solutions on how I can remedy this issue?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

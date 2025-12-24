@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "apache-kafka"
+    ],
+    "owner": {
+      "account_id": 30870753,
+      "reputation": 11,
+      "user_id": 23689759,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/9bbe036a5dd174ce947f0c4f0a692f79?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "JavaInsel",
+      "link": "https://stackoverflow.com/users/23689759/javainsel"
+    },
+    "is_answered": true,
+    "view_count": 72,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1766407925,
+    "creation_date": 1756328489,
+    "last_edit_date": 1756370239,
+    "question_id": 79748476,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79748476/kafka-topic-offset-was-committed-despite-deserialization-problem",
+    "title": "Kafka topic offset was committed despite deserialization problem",
+    "body": "<p>I deliberately used the wrong deserializer to test how Kafka handles deserialization errors. I found that the Kafka topic offset was committed automatically, despite the deserialization error.</p>\n<p>I have already implemented the ErrorHandlingDeserializer and the DefaultErrorHandler, but the offset is still being committed automatically — i.e., no lag is detected.</p>\n<p>My application.yaml:</p>\n<pre class=\"lang-yaml prettyprint-override\"><code>server:\n  port:9292\n\nspring:\n  kafka:\n    consumer:\n      group-id: consumer-group-1\n      enable-auto-commit: false\n      bootstrap-servers: localhost:9092\n      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer\n      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer\n      properties:\n        spring.json.type.mapping: com.test.kafka_producer.dto.BankTransferEvent:com.test.kafka_consumer.dto.BankTransferEvent\n        spring.deserializer.value.delegate.class: org.apache.kafka.common.serialization.StringDeserializer\n        spring.json.trusted.packages: com.test.kafka_consumer.dto,com.test.kafka_producer.dto\n</code></pre>\n<p>My configuration:</p>\n<pre class=\"lang-java prettyprint-override\"><code>package com.test.kafka_consumer.configuration;\n\nimport com.test.kafka_consumer.dto.BankTransferEvent;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\nimport org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;\nimport org.springframework.kafka.core.ConsumerFactory;\nimport org.springframework.kafka.listener.ContainerProperties;\nimport org.springframework.kafka.listener.DefaultErrorHandler;\nimport org.springframework.util.backoff.FixedBackOff;\n\n@Configuration\npublic class KafkaConsumerConfig {\n    @Bean\n    public DefaultErrorHandler errorHandler() {\n        // z.B. kein Commit bei Fehlern\n        DefaultErrorHandler errorHandler = new DefaultErrorHandler(new FixedBackOff(1000L, 2L)); // 2 Retries\n        errorHandler.setCommitRecovered(false); // verhindert Offset Commit nach Recovery\n        return errorHandler;\n    }\n\n    @Bean\n    public ConcurrentKafkaListenerContainerFactory&lt;String, BankTransferEvent&gt; kafkaListenerContainerFactory(\n            ConsumerFactory&lt;String, BankTransferEvent&gt; consumerFactory) {\n\n        ConcurrentKafkaListenerContainerFactory&lt;String, BankTransferEvent&gt; factory =\n                new ConcurrentKafkaListenerContainerFactory&lt;&gt;();\n        factory.setConsumerFactory(consumerFactory);\n\n        // Manuelles Acknowledgment aktivieren:\n        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);\n\n        // WICHTIG: Fehlerhandler dem Container zuweisen\n        factory.setCommonErrorHandler(errorHandler());\n\n        return factory;\n    }\n}\n</code></pre>\n<p>My Kafkalistener:</p>\n<pre class=\"lang-java prettyprint-override\"><code>package com.test.kafka_consumer.service;\n\nimport com.test.kafka_consumer.dto.BankTransferEvent;\nimport lombok.extern.slf4j.Slf4j;\nimport org.springframework.kafka.annotation.KafkaListener;\nimport org.springframework.kafka.support.Acknowledgment;\n\nimport org.springframework.stereotype.Service;\n\n@Service\n@Slf4j\npublic class KafkaConsumer {\n\n    @KafkaListener(topics = &quot;topic-json&quot;,groupId = &quot;consumer-group-2&quot;, containerFactory = &quot;kafkaListenerContainerFactory&quot;)\n    public void consumeJsonEvent1(BankTransferEvent bankTransferEvent, Acknowledgment ack){\n        log.info(&quot;Kafka Consumer aufgerufen&quot;);\n        try {\n            log.info(&quot;consumer-JSON-1 consume the event: {&quot; + bankTransferEvent.toString() + &quot;}&quot;);\n            ack.acknowledge();\n        } catch (Exception e){\n            log.error(&quot;Error bei der Event-Verarbeitung: &quot; + e.getMessage());\n        }\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

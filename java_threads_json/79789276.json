@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "graalvm"
+    ],
+    "owner": {
+      "account_id": 18586978,
+      "reputation": 3850,
+      "user_id": 15000097,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/yFl4M.jpg?s=256",
+      "display_name": "Georgii Lvov",
+      "link": "https://stackoverflow.com/users/15000097/georgii-lvov"
+    },
+    "is_answered": true,
+    "view_count": 90,
+    "accepted_answer_id": 79789856,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1760421287,
+    "creation_date": 1760358835,
+    "question_id": 79789276,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79789276/graalvm-native-image-why-spring-native-plugin-does-not-add-jsonsubtypes-implem",
+    "title": "GraalVM Native Image: Why Spring Native plugin does not add @JsonSubTypes implementations to reflect-config?",
+    "body": "<p>I’m using Spring Boot 3.5.3 with GraalVM Native Image via <code>'org.graalvm.buildtools.native' version '0.11.1'</code> plugin.</p>\n<p>I also use Jackson for polymorphic deserialization using <code>@JsonSubTypes</code>.</p>\n<p>Example setup:</p>\n<pre><code>@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = &quot;@type&quot;)\n@JsonSubTypes({\n    @JsonSubTypes.Type(value = Dog.class, name = &quot;Dog&quot;),\n    @JsonSubTypes.Type(value = Cat.class, name = &quot;Cat&quot;)\n})\npublic interface Animal {\n    String getName();\n}\n\n@Getter\n@Setter\npublic class Dog implements Animal {\n    private String name;\n}\n\n@Getter\n@Setter\npublic class Cat implements Animal {\n    private String name;\n}\n\n@Getter\n@Setter\npublic class Zoo {\n    private Animal animal;\n}\n</code></pre>\n<p>And a simple Spring REST controller:</p>\n<pre><code>@RestController\npublic class ZooController {\n    @PostMapping(&quot;/zoo&quot;)\n    public void createZoo(@RequestBody Zoo zoo) {\n        System.out.println(zoo.getAnimal().getName());\n    }\n}\n</code></pre>\n<p>When I build a native image via <code>gradle clean nativeCompile</code>, I see that subtypes <code>Dog</code> and <code>Cat</code> are not included in the <code>build/generated/aotResources/META-INF/native-image/project-path/reflect-config.json</code>, whereas <code>Zoo</code> and <code>Animal</code> are included.</p>\n<p>And If I try to call the <code>/zoo</code> endpoint with this request body:</p>\n<pre><code>{\n  &quot;animal&quot;: {\n    &quot;@type&quot;: &quot;Dog&quot;,\n    &quot;name&quot;: &quot;dog_name&quot;\n  }\n}\n</code></pre>\n<p>the following exception naturally occurs:</p>\n<blockquote>\n<p>Caused by:\ncom.fasterxml.jackson.databind.exc.InvalidDefinitionException: Cannot\nconstruct instance of com.example.model.Dog: cannot deserialize from\nObject value (no delegate- or property-based Creator): this appears to\nbe a native image, in which case you may need to configure reflection\nfor the class that is to be deserialized</p>\n</blockquote>\n<p>Question:</p>\n<p>Is it possible to set up the <code>org.graalvm.buildtools.native</code> plugin to automatically add <code>@JsonSubTypes</code> implementations to <code>reflect-config.json</code>?</p>\n<p>Or should I really add manually each subtype to reflection-config.json (or via <code>RuntimeHintsRegistrar</code>)?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

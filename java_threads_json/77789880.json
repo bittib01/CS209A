@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "postgresql",
+      "spring-boot",
+      "http-patch"
+    ],
+    "owner": {
+      "account_id": 20999710,
+      "reputation": 13,
+      "user_id": 15430749,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/4ebef48aff0ad2ae2f5a524e67fbb34f?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "OzanCinci",
+      "link": "https://stackoverflow.com/users/15430749/ozancinci"
+    },
+    "is_answered": true,
+    "view_count": 813,
+    "answer_count": 4,
+    "score": 0,
+    "last_activity_date": 1759056308,
+    "creation_date": 1704836578,
+    "question_id": 77789880,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77789880/partial-update-using-spring-boot",
+    "title": "Partial Update using Spring Boot",
+    "body": "<p>I am working on a Java Spring Boot project. I have an entity that has 20 fields. I currently have an put method that takes these 20 fields, all of them are non-nulls and I validate them using validators including my custom validators. But it is costly. Even if I want to change a single field in my db, I completely fetch the row, update all fields using custom mapper and save into db. In this implementation, even if only one field changes, I have to send all fields in request and also I overwrite 19 unchanged field into db which is costly. I am looking for solutions to:</p>\n<ol>\n<li>I should be able to send only fields that is supposed to change and I should be able to validate them in DTO level using validator (for example: I should be able to check if a values between 0 and 100. In current implementation I have a custom validator for this)</li>\n<li>I should be able to overwrite only changed fields into db. I shouldnt overwrite values that should remain same.</li>\n<li>(kind of optional) It would be better if it can be generic. I can easily adapt for my different controllers.</li>\n</ol>\n<p>I have been searching Java Reflections and found this implementation:</p>\n<pre><code>    @PatchMapping(&quot;/{id}&quot;)\n    public Product updateProductFields(@PathVariable int id,@RequestBody Map&lt;String, Object&gt; fields){\n        return service.updateProductByFields(id,fields);\n    }\n</code></pre>\n<pre><code>    public Product updateProductByFields(int id, Map&lt;String, Object&gt; fields) {\n        Optional&lt;Product&gt; existingProduct = repository.findById(id);\n\n        if (existingProduct.isPresent()) {\n            fields.forEach((key, value) -&gt; {\n                Field field = ReflectionUtils.findField(Product.class, key);\n                field.setAccessible(true);\n                ReflectionUtils.setField(field, existingProduct.get(), value);\n            });\n            return repository.save(existingProduct.get());\n        }\n        return null;\n    }\n\n</code></pre>\n<pre><code>public interface ProductRepository extends\n        JpaRepository&lt;Product, Integer&gt; {\n\n\n}\n</code></pre>\n<p>But I am not sure if this satisfies my desires. Do you have any suggestions?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

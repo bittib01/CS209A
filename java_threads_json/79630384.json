@@ -1,0 +1,31 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "pdfbox"
+    ],
+    "owner": {
+      "account_id": 41685303,
+      "reputation": 11,
+      "user_id": 30404070,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/0e488b6f0ec8626d120a461b7f52bb98?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Kyle KYL",
+      "link": "https://stackoverflow.com/users/30404070/kyle-kyl"
+    },
+    "is_answered": false,
+    "view_count": 47,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1747742274,
+    "creation_date": 1747742274,
+    "question_id": 79630384,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79630384/form-object-not-fully-cropped",
+    "title": "Form object not fully cropped",
+    "body": "<p>I'm trying to center crop a pdf page height from 236.2mm to 232mm (657.6378) so that the red line at the top and the bottom as shown in the first image (see Original link) will be removed. I've somewhat managed to do it by extracting the page as a form object, drawing it to another form object with bounding box height 262mm and then drawing it again to the pdf. But when I inspect the pdf using Adobe Illustrator, although the red lines were removed however I can still see the transparent path at the top and bottom as shown in the second image (see Cropped link). Is there a way to truly crop the image to it's exact height without leaving any transparent paths?</p>\n<pre><code>package com.pictureworks.util;\n\n\nimport org.apache.pdfbox.Loader;\nimport org.apache.pdfbox.io.IOUtils;\nimport org.apache.pdfbox.io.RandomAccessReadBufferedFile;\nimport org.apache.pdfbox.multipdf.LayerUtility;\nimport org.apache.pdfbox.pdmodel.*;\nimport org.apache.pdfbox.pdmodel.common.PDRectangle;\nimport org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;\nimport org.apache.pdfbox.util.Matrix;\n\npublic class CropSample {\n    public static void main(String[] args) {\n        try {\n            try (var inputPdf = Loader.loadPDF(new RandomAccessReadBufferedFile(&quot;/Users/test/Documents/test.pdf&quot;),\n                    IOUtils.createTempFileOnlyStreamCache());\n                 var outputPdf = new PDDocument()) {\n                var pageSize = new PDRectangle(1322.08f, 657.6378f);\n                var inputPage = inputPdf.getPage(0);\n                var formObject = new LayerUtility(outputPdf).importPageAsForm(inputPdf, inputPage);\n                var imageWidth = 1322.08f;\n                var imageHeight = 669.4753f;\n                var scaleX = 1.0f;\n                var scaleY = 0.9998988f;\n                formObject.setMatrix(Matrix.getScaleInstance(scaleX, scaleY).createAffineTransform());\n                var x = pageSize.getWidth() / 2 - imageWidth / 2;\n                var y = pageSize.getHeight() / 2 - imageHeight / 2;\n                var formXObject = new PDFormXObject(outputPdf);\n                formXObject.setBBox(pageSize);\n                formXObject.setResources(new PDResources());\n\n                try (var contentStream = new PDFormContentStream(formXObject)) {\n                    contentStream.saveGraphicsState();\n                    contentStream.transform(Matrix.getTranslateInstance(x, y));\n                    contentStream.drawForm(formObject);\n                    contentStream.restoreGraphicsState();\n                }\n\n                var newPage = new PDPage(pageSize);\n                outputPdf.addPage(newPage);\n\n                try (var contentStream = new PDPageContentStream(outputPdf, newPage,\n                        PDPageContentStream.AppendMode.APPEND, false)) {\n                    contentStream.drawForm(formXObject);\n                }\n\n                outputPdf.save(&quot;/Users/test/Documents/test_output.pdf&quot;);\n            }\n        } catch(Exception e) {\n            e.printStackTrace();\n        }\n    }\n}\n</code></pre>\n<p><a href=\"https://i.sstatic.net/ArXjB18J.png\" rel=\"nofollow noreferrer\">Original</a>\n<a href=\"https://i.sstatic.net/KjPOJvGy.png\" rel=\"nofollow noreferrer\">Cropped</a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

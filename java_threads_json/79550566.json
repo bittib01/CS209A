@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hibernate",
+      "quarkus",
+      "quarkus-hibernate-orm"
+    ],
+    "owner": {
+      "account_id": 21224590,
+      "reputation": 27,
+      "user_id": 15610510,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a-/AOh14GiT55d4hgU6Q0Nwung_YuuQx186T9u9g_izkTGf=k-s256",
+      "display_name": "el_Yanuki",
+      "link": "https://stackoverflow.com/users/15610510/el-yanuki"
+    },
+    "is_answered": false,
+    "view_count": 66,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1748872367,
+    "creation_date": 1743595351,
+    "question_id": 79550566,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79550566/quarkus-hibernate-orm-creates-flawed-associative-table-when-two-entities-with-o",
+    "title": "Quarkus Hibernate ORM creates flawed associative table when two entities with @OneToMany relations extend the same Parent",
+    "body": "<h1>Issue Description</h1>\n<p>With the following Setup</p>\n<pre class=\"lang-none prettyprint-override\"><code>@Entity\npublic class ParentContainer {\n    @Id\n    @GeneratedValue\n    public Long id;\n}\n</code></pre>\n<pre class=\"lang-none prettyprint-override\"><code>@Entity\npublic class Container1 extends ParentContainer{\n    @OneToMany\n    public Set&lt;Part&gt; parts;\n}\n</code></pre>\n<pre class=\"lang-none prettyprint-override\"><code>@Entity\npublic class Container2 extends ParentContainer {\n    @OneToMany\n    public Set&lt;Part&gt; parts;\n}\n</code></pre>\n<pre class=\"lang-none prettyprint-override\"><code>@Entity\npublic class Part {\n    @Id\n    @GeneratedValue\n    public Long id;\n}\n</code></pre>\n<p>Hibernate will create a associative table called parentcontainer_part that stores a container1_id and a container2_id both with a NOT NULL constraint.</p>\n<pre class=\"lang-none prettyprint-override\"><code>create table parentcontainer_part\n(\n    container1_id bigint not null\n        constraint fkha3bx76rbpaly2k96p4ay41pu\n            references parentcontainer,\n    container2_id bigint not null\n        constraint fkridaro57cwd6262vsbttj8069\n            references parentcontainer,\n    parts_id      bigint not null\n        unique\n        constraint fkmh13giccrumjrrharog6p2rdh\n            references part,\n    primary key (container1_id, parts_id)\n);\n</code></pre>\n<p>This means that neither Container1 or Container2 can ever be initialized because the NOT NULL constraint of the other container type will always interfere. Its Obviously possible for a Part to only be in the Set of Container1 and not in the Set in Container2.</p>\n<h1>Potential Solutions</h1>\n<p>By making the ParentContainer a @MappedSuperclass the associative entity would be correct, but then the ParentContainer type can no longer be used in any other relation by any other entity, only the specific Container1 or Container2.</p>\n<p>The obvious solution in this example would be to move the Set of parts to the ParentContainer but there might be 10 different container types and only two need a Set of Parts.</p>\n<p>By adding a <code>@Inheritance(strategy = InheritanceType.JOINED)</code> to the ParentContainer it will break up the entities into multiple tables and obviously create multiple associative tables. But now a ton of joins are needed when querying that data which is undesirable.</p>\n<h1>Expected Solution</h1>\n<p>I expected the Hibernate Mapper to be smarter and not create these conflicting NOT NULL constraints in the first place. But if hibernate does not create individual associative tables for each entity there should be a way to configure either the parent or the relations to do so.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

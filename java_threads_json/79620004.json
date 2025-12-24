@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hyperlink",
+      "itext",
+      "tableofcontents",
+      "pdfhtml"
+    ],
+    "owner": {
+      "account_id": 8373580,
+      "reputation": 1,
+      "user_id": 6377179,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/9nbtiUSK.png?s=256",
+      "display_name": "Sobasus",
+      "link": "https://stackoverflow.com/users/6377179/sobasus"
+    },
+    "is_answered": false,
+    "view_count": 92,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1765822721,
+    "creation_date": 1747151493,
+    "last_edit_date": 1747151728,
+    "question_id": 79620004,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79620004/hyperlink-bookmarks-not-working-with-remote-repository",
+    "title": "Hyperlink/bookmarks not working with remote repository",
+    "body": "<p>I have a service with a dependency to a document generation library. The library uses iText pdfHTML to convert HTML to PDF. Inside the document, the Table of contents contains links for jumping to specific sections of the document, as well as the page numbers. It was made via HTML bookmarks with ID attribute and links.</p>\n<p>The links are working when the dependency points to my local repository. But when the dependency points to the remote repository, the links are no longer working. When mousing over the broken link, I see the text <code>&quot;jar:file:/.../printerlibrary-{version}.jar!/print-resource/#section-1&quot;</code>. Page numbers are displayed correctly in both scenarios.</p>\n<p>I also tried to generate bookmarks using <a href=\"https://kb.itextpdf.com/itext/adding-bookmarks-table-of-contents-to-a-pdfhtml-co\" rel=\"nofollow noreferrer\">this guide</a>, but the same issue occurred.</p>\n<p>I am using the latest version of pdfHTML (6.1.0)</p>\n<p><code>/print-resource/example.html</code>:</p>\n<pre class=\"lang-html prettyprint-override\"><code>&lt;html&gt;\n    &lt;head&gt;\n        &lt;style&gt;\n        .new-page {\n            page-break-before: always;\n        }\n        ul.toc a::after {\n            content: target-counter(attr(href), page);\n            float: right;\n        }\n        &lt;/style&gt;\n    &lt;/head&gt;\n    &lt;body&gt;\n        &lt;div id=&quot;section-1&quot;&gt;\n            &lt;h1&gt;Section 1&lt;/h1&gt;\n            &lt;p&gt;some content...&lt;/p&gt;\n        &lt;/div&gt;\n\n        &lt;div class=&quot;new-page&quot;&gt;\n            &lt;h2 id=&quot;table-of-content&quot;&gt;Table of content&lt;/h2&gt;\n            &lt;ul&gt;\n                &lt;li&gt;&lt;a href=&quot;#section-1&quot;&gt;Section 1&lt;/a&gt;&lt;/li&gt;\n                &lt;li&gt;&lt;a href=&quot;#table-of-content&quot;&gt;Table of content&lt;/a&gt;&lt;/li&gt;\n                &lt;li&gt;&lt;a href=&quot;#section-2&quot;&gt;Section 2&lt;/a&gt;&lt;/li&gt;\n                &lt;li&gt;&lt;a href=&quot;#section-3&quot;&gt;Section 3&lt;/a&gt;&lt;/li&gt;\n            &lt;/ul&gt;\n        &lt;/div&gt;\n\n        &lt;div class=&quot;new-page&quot;&gt;\n            &lt;h2 id=&quot;section-2&quot;&gt;Section 2&lt;/h2&gt;\n            &lt;p&gt;some content...&lt;/p&gt;\n        &lt;/div&gt;\n        \n        &lt;div class=&quot;new-page&quot;&gt;\n            &lt;h2 id=&quot;section-3&quot;&gt;Section 3&lt;/h2&gt;\n            &lt;p&gt;some content...&lt;/p&gt;\n        &lt;/div&gt;\n    &lt;/body&gt;\n&lt;/html&gt;\n</code></pre>\n<p><code>Printer.java</code>:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class Printer {\n    protected byte[] printAsPDF() throws IOException {\n        String html = &quot;...&quot;;\n\n        URL resource = getClass().getClassLoader().getResource(&quot;print-resource&quot;);\n        String resourcePath = resource.toExternalForm();\n\n        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {\n            PdfWriter pdfWriter = new PdfWriter(outputStream, new WriterProperties());\n            PdfDocument pdfDocument = new PdfDocument(pdfWriter);\n\n            ConverterProperties props = new ConverterProperties();\n            props.setBaseUri(resourcePath);\n\n            HtmlConverter.convertToPdf(html, pdfDocument, props);\n            return outputStream.toByteArray();\n        }\n    }\n}\n</code></pre>\n<p><code>ServiceImpl.java</code>:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class ServiceImpl implements Service {\n    private byte[] print() {\n        return Printer.printAsPDF();\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

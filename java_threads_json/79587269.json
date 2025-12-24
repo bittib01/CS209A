@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "algorithm"
+    ],
+    "owner": {
+      "account_id": 31187804,
+      "reputation": 794,
+      "user_id": 23993901,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/7417aaad0c8ece3fac44f06d05a8ba8b?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "CodeCrusader",
+      "link": "https://stackoverflow.com/users/23993901/codecrusader"
+    },
+    "is_answered": true,
+    "view_count": 135,
+    "accepted_answer_id": 79587571,
+    "answer_count": 1,
+    "score": 4,
+    "last_activity_date": 1745503141,
+    "creation_date": 1745348499,
+    "last_edit_date": 1745390919,
+    "question_id": 79587269,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79587269/how-to-optimize-subarray-transformation-for-large-inputs",
+    "title": "How to optimize subarray transformation for large inputs?",
+    "body": "<p>I have a problem where I need to select a contiguous subarray from a list of integers and add any integer z (positive or negative) to all elements in the subarray, such that the frequency of a target integer k is maximized in the list. The operation can only be done once.</p>\n<p><strong>Example 1:</strong></p>\n<pre><code>list = [2, 3, 2, 4, 3, 2]\nk = 2\nAnswer: 4\n</code></pre>\n<p><strong>Explanation:</strong></p>\n<p>We change the subarray [4, 3] and set <code>z = -2</code>, so the list becomes:</p>\n<pre><code>[2, 3, 2, (4-2), (3-2), 2] = [2, 3, 2, 2, 1, 2]\n</code></pre>\n<p>The frequency of <code>k = 2</code> in the final list is 4.</p>\n<p><strong>Example 2:</strong></p>\n<pre><code>list = [6, 4, 4, 5, 4, 4]\nk = 6\nAnswer: 5\n</code></pre>\n<p><strong>Example 3:</strong></p>\n<pre><code>list = [2, 5, 2, 5, 2]\nk = 2\nAnswer: 4\n</code></pre>\n<p><strong>Constraints:</strong></p>\n<pre><code>1 &lt;= n &lt;= 2 * 10^5\n\n1 &lt;= list[i] &lt;= 2 * 10^5\n\n1 &lt;= k &lt;= 10^5\n</code></pre>\n<p>Here is the code I have so far:</p>\n<pre><code>import java.util.*;\n\nclass Main {\n    public static int solve(List&lt;Integer&gt; list, int k) {\n        int n = list.size();\n        int baseCount = 0;\n\n        // Count frequency of `k` in the original list\n        for (int num : list) {\n            if (num == k) baseCount++;\n        }\n        \n        // Map to track the maximum gain from modifying the list\n        Map&lt;Integer, Integer&gt; maxGain = new HashMap&lt;&gt;();\n        Map&lt;Integer, Integer&gt; currentGain = new HashMap&lt;&gt;();\n\n        // Traverse the list to compute possible gains\n        for (int num : list) {\n            if (num == k) {\n                // If the number is `k`, we may reduce its frequency (no gain)\n                for (int x : currentGain.keySet()) {\n                    int gain = currentGain.get(x) - 1;\n                    currentGain.put(x, Math.max(gain, 0));\n                    maxGain.put(x, Math.max(maxGain.getOrDefault(x, 0), currentGain.get(x)));\n                }\n            } else {\n                // If the number is not `k`, calculate possible gain\n                int x = k - num;\n                int gain = currentGain.getOrDefault(x, 0) + 1;\n                currentGain.put(x, gain);\n                maxGain.put(x, Math.max(maxGain.getOrDefault(x, 0), gain));\n            }\n        }\n        \n        // Get the best possible gain\n        int best = 0;\n        for (int g : maxGain.values()) {\n            best = Math.max(best, g);\n        }\n\n        // Return the sum of original frequency and the best gain\n        return baseCount + best;\n    }\n\n    public static void main(String[] args) {\n        System.out.println(solve(Arrays.asList(2, 3, 2, 4, 3, 2), 2)); // Expected: 4\n        System.out.println(solve(Arrays.asList(6, 4, 4, 6, 4, 4), 6)); // Expected: 5\n        System.out.println(solve(Arrays.asList(2, 5, 2, 5, 2), 2));    // Expected: 4\n    }\n}\n</code></pre>\n<p><strong>Problem:</strong></p>\n<p>This was asked during an interview on Hackerrank ( I don't have a link for it to share), The solution works for smaller inputs, but when the input list size reaches n = 200,000, it starts to fail with timeout errors.</p>\n<p>I am looking for ways to reduce the time complexity of this solution so it can handle large inputs efficiently.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

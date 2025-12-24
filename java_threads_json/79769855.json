@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jol",
+      "java-25"
+    ],
+    "owner": {
+      "account_id": 1712726,
+      "reputation": 6856,
+      "user_id": 1570415,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/Scl35.jpg?s=256",
+      "display_name": "Donald Raab",
+      "link": "https://stackoverflow.com/users/1570415/donald-raab"
+    },
+    "is_answered": true,
+    "view_count": 398,
+    "accepted_answer_id": 79770662,
+    "answer_count": 1,
+    "score": 8,
+    "last_activity_date": 1758488607,
+    "creation_date": 1758308049,
+    "last_edit_date": 1758379939,
+    "question_id": 79769855,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79769855/does-java-object-layout-jol-work-with-java-25-and-compact-object-headers-enabl",
+    "title": "Does Java Object Layout (JOL) work with Java 25 and Compact Object Headers enabled?",
+    "body": "<p>Java 25 was released on September 16, 2025 and included <a href=\"https://openjdk.org/jeps/519\" rel=\"nofollow noreferrer\">JEP 519</a> with Compact Object Headers (COH). The latest release version of <a href=\"https://openjdk.org/projects/code-tools/jol/\" rel=\"nofollow noreferrer\">JOL</a> (0.17) has been released in February, 2023.</p>\n<p>I have compared the output of JOL 0.17 for various objects using Java 25 default options and Java 25 with COH enabled and can see that there are differences. I would like to know if the output below is correct when using JOL 0.17 with Java 25 and COH enabled.</p>\n<p>Compact Object Headers can be enabled in Java 25 using the following flag:</p>\n<p><code>-XX:+UseCompactObjectHeaders</code></p>\n<p>Following the advice in the comments, I wrote the following test class to compare runs using Java 25 with default values, and with Compact Object Headers enabled.</p>\n<pre><code>import java.util.List;\n\nimport org.openjdk.jol.info.GraphLayout;\n\npublic class JOLJdk25Test\n{\n    public enum Generation\n    {\n        GREATEST(&quot;Greatest Generation&quot;, 1901, 1927),\n        SILENT(&quot;Silent Generation&quot;, 1928, 1945),\n        BOOMER(&quot;Baby Boomers&quot;, 1946, 1964),\n        X(&quot;Generation X&quot;, 1965, 1980),\n        MILLENNIAL(&quot;Millennials&quot;, 1981, 1996),\n        Z(&quot;Generation Z&quot;, 1997, 2012),\n        ALPHA(&quot;Generation Alpha&quot;, 2013, 2029);\n\n        private final String name;\n        private final YearRange years;\n\n        Generation(String name, int from, int to)\n        {\n            this.name = name;\n            this.years = new YearRange(from, to);\n        }\n    }\n\n    public record YearRange(int from, int to){};\n\n    public static void main(String[] args)\n    {\n        List&lt;Generation&gt; generations =\n                List.of(Generation.values());\n        System.out.println(\n                GraphLayout.parseInstance(generations).toFootprint());\n    }\n}\n</code></pre>\n<p>The following are the results I see running the <code>main</code> method with vanilla Java 25 and Java 25 with Compact Object Headers enabled.</p>\n<pre><code>JDK 25 Default:\n\njava.util.ImmutableCollections$ListN@4eec7777d footprint:\n     COUNT       AVG       SUM   DESCRIPTION\n         7        32       224   JOLJdk25Test$Generation\n         7        24       168   JOLJdk25Test$YearRange\n        14        29       416   [B\n         1        48        48   [Ljava.lang.Object;\n        14        24       336   java.lang.String\n         1        24        24   java.util.ImmutableCollections$ListN\n        44                1216   (total)\n\n\nJDK 25 Compact Object Headers:\n\njava.util.ImmutableCollections$ListN@4eec7777d footprint:\n     COUNT       AVG       SUM   DESCRIPTION\n         7        32       224   JOLJdk25Test$Generation\n         7        16       112   JOLJdk25Test$YearRange\n        14        24       344   [B\n         1        40        40   [Ljava.lang.Object;\n        14        24       336   java.lang.String\n         1        16        16   java.util.ImmutableCollections$ListN\n        44                1072   (total)\n</code></pre>\n<p>The record <code>YearRange</code> instances are different by 8 bytes each. The <code>ImmutableCollections$ListN</code> is also different by 8 bytes. The <code>[B</code>, which I believe the <code>byte</code> array in the <code>String</code> is different, but not exactly the value I expected.</p>\n<p>The questions I have are why the <code>Generation</code> Enum SUM and <code>java.lang.String</code> SUM have the same value for both runs and is this expected? Do the other 8 byte savings look correct? Finally, should I use the latest mainline version of JOL instead of JOL 0.17 when testing with Java 25 and COH enabled?</p>\n<p>Note: To run this code with JOL 0.17, you will need to set the following JVM flag:</p>\n<p><code>-Djol.magicFieldOffset=true</code></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

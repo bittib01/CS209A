@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "optimization",
+      "vectorization",
+      "simd"
+    ],
+    "owner": {
+      "account_id": 19274022,
+      "reputation": 169,
+      "user_id": 14090834,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/9b4b687b9f59f1af672c993c33817da6?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "shawn_xu",
+      "link": "https://stackoverflow.com/users/14090834/shawn-xu"
+    },
+    "is_answered": true,
+    "view_count": 116,
+    "accepted_answer_id": 79131338,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1730058761,
+    "creation_date": 1713913263,
+    "last_edit_date": 1717024279,
+    "question_id": 78375306,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78375306/optimizing-the-calculation-of-the-dot-product-of-int16-vectors-in-java-using-vec",
+    "title": "Optimizing the Calculation of the Dot Product of int16 Vectors in Java using Vector API",
+    "body": "<p><strong>TL;DR: Optimizing 16 bit integer array multiplications without overflowing using Java's Vector API.</strong></p>\n<p>I am trying to optimize a performance-critical loop that applies an activation function and calculates the dot product of two int16 arrays using Java's (incubating) Vector API. Here's my current scalar implementation:</p>\n<pre class=\"lang-java prettyprint-override\"><code>for (int i = 0; i &lt; HIDDEN_SIZE; i++)\n{\n    result += screlu(us.values[i]) * network.L1Weights[i]\n        + screlu(them.values[i]) * network.L1Weights[i + HIDDEN_SIZE];\n}\n</code></pre>\n<p>where</p>\n<pre class=\"lang-java prettyprint-override\"><code>private static int screlu(short i)\n{\n    int v = Math.max(0, Math.min(i, QA));\n    return v * v;\n}\n</code></pre>\n<p>I tried to vectorize this like so:</p>\n<pre class=\"lang-java prettyprint-override\"><code>int[] usValues = new int[HIDDEN_SIZE];\nint[] themValues = new int[HIDDEN_SIZE];\n\nfor (int i = 0; i &lt; HIDDEN_SIZE; i++)\n{\n    usValues[i] = (int) us.values[i];\n    themValues[i] = (int) them.values[i];\n}\n\nIntVector sum = IntVector.zero(INT_SPECIES);\n\nfor (; i &lt; upperBound; i += INT_SPECIES.length())\n{\n    IntVector va = IntVector.fromArray(INT_SPECIES, usValues, i);\n    IntVector vb = IntVector.fromArray(INT_SPECIES, themValues, i);\n    IntVector vc = IntVector.fromArray(INT_SPECIES, network.L1Weights, i);\n    IntVector vd = IntVector.fromArray(INT_SPECIES, network.L1Weights, i + HIDDEN_SIZE);\n\n    va = va.max(0).min(QA);\n    va = va.mul(va).mul(vc);\n\n    vb = vb.max(0).min(QA);\n    vb = vb.mul(vb).mul(vd);\n\n    sum = sum.add(va).add(vb);\n}\n\nint result = sum.reduceLanes(VectorOperators.ADD);\n</code></pre>\n<p>Due to overflow, I had to resort to using 32-bit wide lanes, halving the throughput. As a result, performance is only slightly better. After some research, I found that intrinsic such as <code>_mm256_madd_epi16</code> solves exactly my problem, but I could not find any information on it in the documentation. Do any equivalent operation exist within the Vector API, and if not, are there any other solutions to this problem?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

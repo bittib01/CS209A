@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jls"
+    ],
+    "owner": {
+      "account_id": 1359686,
+      "reputation": 12427,
+      "user_id": 1297272,
+      "user_type": "registered",
+      "accept_rate": 86,
+      "profile_image": "https://i.sstatic.net/j3H9xcFd.png?s=256",
+      "display_name": "Javier",
+      "link": "https://stackoverflow.com/users/1297272/javier"
+    },
+    "is_answered": true,
+    "view_count": 230,
+    "accepted_answer_id": 78901785,
+    "answer_count": 3,
+    "score": 9,
+    "last_activity_date": 1724631434,
+    "creation_date": 1724330810,
+    "last_edit_date": 1724336142,
+    "question_id": 78901654,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78901654/is-rethrow-in-multi-catch-formally-defined",
+    "title": "Is rethrow in multi-catch formally defined?",
+    "body": "<p>Why is <code>throw e</code> allowed, but not <code>throw a</code>, in the following case?</p>\n<pre><code>  void test() {\n    try {\n      System.out.println();\n    } catch (Error | RuntimeException e) {\n      var a = e;\n      //throw a; unreported exception Throwable; must be caught or declared to be thrown\n      throw e;\n    }\n  }\n</code></pre>\n<p>All of this intuitively makes sense, but from <a href=\"https://docs.oracle.com/javase/specs/jls/se17/html/jls-14.html#jls-14.20\" rel=\"nofollow noreferrer\">JLS 14.20</a></p>\n<blockquote>\n<p>A multi-catch clause can be thought of as a sequence of uni-catch clauses. That is, a catch clause where the type of the exception parameter is denoted as a union <code>D1|D2|...|Dn</code> is equivalent to a sequence of <em>n</em> catch clauses where the types of the exception parameters are class types <code>D1, D2, ..., Dn</code> respectively.\nIn the Block of each of the <em>n</em> catch clauses, the declared type of the exception parameter is <code>lub(D1, D2, ..., Dn)</code>.</p>\n</blockquote>\n<p>Since <code>lub(Error,RuntimeException)</code> is <code>Throwable</code>, the code above should be equivalent to:</p>\n<pre><code>    try {\n      System.out.println();\n    } catch (Error e) {\n      Throwable lub = e;\n      throw lub;\n    } catch (RuntimeException e) {\n      Throwable lub = e;\n      throw lub;\n    }\n</code></pre>\n<p>(which obviously doesn't compile)</p>\n<p>Moreover, the type of the <code>a</code> is the type of <code>e</code> &quot;when treated as if it did not appear in an assignment context&quot; (<a href=\"https://docs.oracle.com/javase/specs/jls/se17/html/jls-14.html#jls-14.4.1\" rel=\"nofollow noreferrer\">JLS 14.4.1</a>), but as shown above it's not the same as the type of <code>e</code>.</p>\n<p>Is there anything I've overlooked?</p>\n<hr>\n<p><em>Edit</em>: this is not a duplicate of <a href=\"https://stackoverflow.com/questions/23581611\">Why is it legal to re-throw a Throwable in certain cases, without declaring it?</a> because this question is specific to multi-catch (which isn't discussed there) and arises due to a misunderstanding of a specific fragment of the JLS that addresses multi-catch. The answers provided in this question helped me to connect the dots :)</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

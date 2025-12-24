@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "hibernate",
+      "orm"
+    ],
+    "owner": {
+      "account_id": 5742844,
+      "reputation": 33,
+      "user_id": 11881542,
+      "user_type": "registered",
+      "profile_image": "https://lh5.googleusercontent.com/-CTAqVY_Wl4Q/AAAAAAAAAAI/AAAAAAAAADE/U4N_VoqUGww/s256-rj/photo.jpg",
+      "display_name": "JustCaused",
+      "link": "https://stackoverflow.com/users/11881542/justcaused"
+    },
+    "is_answered": false,
+    "view_count": 50,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1729766468,
+    "creation_date": 1722105680,
+    "last_edit_date": 1729766468,
+    "question_id": 78802194,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78802194/how-to-convert-and-map-result-of-stored-procedure-call-to-psql-in-spring-boot",
+    "title": "How to convert and map result of Stored Procedure call to PSQL in Spring Boot?",
+    "body": "<p>I'm confused with return type of stored procedure call. I made user-defined type in PSQL:</p>\n<pre><code>CREATE TYPE package_dto AS (\n    id BIGINT,\n    name VARCHAR(255),\n    duration INT,\n    price NUMERIC,\n    currency VARCHAR(32)\n);\n</code></pre>\n<p>Now, here is the the stored procedure that I want to call:</p>\n<pre><code>CREATE OR REPLACE PROCEDURE update_package(\n    p_package_id BIGINT,\n    p_name VARCHAR(255),\n    p_duration INT,\n    p_price NUMERIC,\n    p_currency VARCHAR(32),\n    OUT o_package package_dto\n)\nLANGUAGE plpgsql\nAS $$\nBEGIN\n    UPDATE package\n    SET name     = p_name,\n        duration = p_duration,\n        price    = p_price,\n        currency = p_currency\n    WHERE id = p_package_id\n    RETURNING id, name, duration, price, currency\n        INTO o_package.id, o_package.name, o_package.duration, o_package.price, o_package.currency;\nEND;\n$$;\n</code></pre>\n<p>And here is procedure calls in my repository layers:</p>\n<pre><code>    @Query(\n            value = &quot;CALL update_package(:package_id, :name, :duration, :price, :currency, null)&quot;,\n            nativeQuery = true\n    )\n    Object updateProcedure(\n            @Param(&quot;package_id&quot;) Long id,\n            @Param(&quot;name&quot;) String name,\n            @Param(&quot;duration&quot;) Integer duration,\n            @Param(&quot;price&quot;) BigDecimal price,\n            @Param(&quot;currency&quot;) String currency\n    );\n\n</code></pre>\n<p>So, what is the problem? I cannot find the right documentation and advice on how to grab and map result of the procedure. So far I had the most luck with Object because it gives me as generic result as possible, but that comes with the problems of not being able to map it to PackageDto (both as POJO and record with exact same field names). Also, how would one be able to correctly assert that the procedure executed correctly? Would the return of the repository method just return null?</p>\n<p>So far I tried with direct conversion as to putting PackageDto, Object[], List, List&lt;Object[]&gt; but no luck, I always get exceptions that cast is not possible. First I tried using @Procedure, which worked but ONLY for cases where output is simple, eg. Long or something like that. Whenever I tried to return user-defined struct, it never could work so I decided to use @Query and manually write &quot;CALL procedure_name ...&quot;</p>\n<pre><code>    @Query(\n            value = &quot;CALL update_package(:package_id, :name, :duration, :price, :currency, null)&quot;,\n            nativeQuery = true\n    )\n    Object updateProcedure(\n            @Param(&quot;package_id&quot;) Long id,\n            @Param(&quot;name&quot;) String name,\n            @Param(&quot;duration&quot;) Integer duration,\n            @Param(&quot;price&quot;) BigDecimal price,\n            @Param(&quot;currency&quot;) String currency\n    );\n</code></pre>\n<p>The only possible way to get the result data was to write it as String, but that's highly unreliable method as I lose data types and field names:</p>\n<pre><code>return PackageAdapter.mapToDTO(\n                packageRepository.updateProcedure(\n                    request.id(),\n                    request.name(),\n                    request.duration(),\n                    request.price(),\n                    Optional.ofNullable(request.currency())\n                        .orElse(ApplicationConstants.DEFAULT_CURRENCY)\n                )\n            );\n</code></pre>\n<pre><code>public static PackageDto mapToDTO(Object object) {\n        System.out.println(&quot;Object: &quot; + object.toString());\n        System.out.println(JsonUtils.toJson(object));\n\n        try {\n            String[] data = JsonUtils.getValues(object);\n            Long id = Long.parseLong(data[0]);\n            String name = data[1];\n            Integer duration = Integer.parseInt(data[2]);\n            BigDecimal price = new BigDecimal(data[3]);\n            Currency currency = Currency.getInstance(data[4]);\n\n            return new PackageDto(id, name, duration, price, currency);\n        } catch (Exception e) {\n            throw new CustomProcedureMapperException(e.getMessage());\n        }\n    }\n</code></pre>\n<pre><code>    public static String toJson(Object obj) {\n        ObjectMapper mapper = new ObjectMapper();\n        try {\n            return mapper.writeValueAsString(obj);\n        } catch (Exception e) {\n            e.printStackTrace();\n            return null;\n        }\n    }\n</code></pre>\n<p>From toJson method I get String of contents like: &quot;[&quot;10&quot;, &quot;FitGym 30&quot;, &quot;30&quot;, &quot;50.00&quot;, &quot;EUR&quot;]&quot; which I then  strip of '[' and ']', split into array of Strings and then manually set fields, which is far from ideal, as you probably agree.</p>\n<p>If I could get direct PackageDto object or at least a map of key-value pairs after calling the repository method, that'd be nice.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

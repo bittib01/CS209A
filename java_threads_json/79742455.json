@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-integration"
+    ],
+    "owner": {
+      "account_id": 17704606,
+      "reputation": 11,
+      "user_id": 12853535,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/--PLoealZxnE/AAAAAAAAAAI/AAAAAAAAAAA/ACHi3rfZ7f2-4nSdgl3JDlZ5QzrlgVV_wA/s256-rj/photo.jpg",
+      "display_name": "Med Akrem Lakhdhar",
+      "link": "https://stackoverflow.com/users/12853535/med-akrem-lakhdhar"
+    },
+    "is_answered": false,
+    "view_count": 82,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1755787449,
+    "creation_date": 1755787449,
+    "question_id": 79742455,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79742455/message-driven-channel-adapter-stop-receiving-messages-after-a-couple-of-days",
+    "title": "message-driven-channel-adapter stop receiving messages after a couple of days",
+    "body": "<p>I'm having an issue that I'm unable to solve it.</p>\n<p>Here is the following scenario</p>\n<p>In my application I'm creating an Entity and then I send that entity as XML in in a Queue.\nThen I'm having an outound-channel-adapter that will send that message to a topic\nThe outbound-channel-adapter is below :</p>\n<pre><code>&lt;si-jms:outbound-channel-adapter id=&quot;jmsOutLightEventMsg&quot; \n        destination-name=&quot;MyTopic&quot; pub-sub-domain=&quot;true&quot;\n        channel=&quot;XmlEventnotificationChannel&quot;\n        connection-factory=&quot;cachedConnectionFactory&quot;\n        header-mapper=&quot;JMSPropertyHeaderMapper&quot;&gt;\n        &lt;si-jms:request-handler-advice-chain&gt;\n            &lt;bean\n                class=&quot;org.springframework.integration.handler.advice.RequestHandlerRetryAdvice&quot;&gt;\n                &lt;property name=&quot;retryTemplate&quot; ref=&quot;retryTemplate&quot; /&gt;\n            &lt;/bean&gt;\n        &lt;/si-jms:request-handler-advice-chain&gt;\n    &lt;/si-jms:outbound-channel-adapter&gt;\n</code></pre>\n<p>After this OutpundChannel adapter will send that XML to the topic 'MyTopic', The subscribers will read that message  and enter in another Flow through message-driven-channel-adapter, see below</p>\n<pre><code>&lt;si-jms:message-driven-channel-adapter id=&quot;jmsInEventEnricherAdapter&quot;\n        destination-name=&quot;MyTopic&quot; pub-sub-domain=&quot;true&quot;\n        channel=&quot;inEventEnricherChannel&quot; connection-factory=&quot;userCredentialQueueConnectionFactory&quot;\n        subscription-name=&quot;eventEnricherService&quot; subscription-durable=&quot;true&quot; error-channel=&quot;error-channel-logger&quot;\n        client-id=&quot;MySubscriber&quot;\n        auto-startup=&quot;true&quot;/&gt;\n</code></pre>\n<p>Now everything works well , here are the steps :</p>\n<ol>\n<li>A message is being Sent to the Queue</li>\n<li>This message is then forwarded to the topic via the outbound-channel-adapter.</li>\n<li>The message-driven-channel-adapter (which is the entry point of another flow) receives the message and triggers the flow.</li>\n</ol>\n<p>However, after about one week (more or less) of deployment, whether in DEV, Pre-production, or even Production, the flow triggered by the message-driven-channel-adapter stops being triggered and no new messages are processed.</p>\n<p>You might wonder how I am sure that the message-driven-channel-adapter is not being triggered, and that the messages are not even being sent to the queue. Here is my explanationmy :</p>\n<p>When I restart the application in any environment, all the messages that were sent before the restart are then processed by the message-driven-channel-adapter without any problem.\nNote that this happens after restarting the application, not during shutdown. I observed this in the logs (because at first I thought that this maybe related to transaction issues)  and I believe this behavior is related to the durable subscription (subscription-durable=&quot;true&quot;) in the inbound-channel-adapter.</p>\n<p>Note:\nIn the logs there is nothing.</p>\n<p>This issue is new, we migrated from tomcat 9 to spring boot 2.7.18</p>\n<p>And spring integration is migrated from 4.3.18.RELEASE to 5.5.20</p>\n<p>My investigation for problem is this.</p>\n<p>What I strongly believe is that the message-driven-channel-adapter is Stopped (and of course I don't know the reason because there is no logs) .</p>\n<p>I found this information in the Spring documentation here:\n<a href=\"https://docs.spring.io/spring-integration/reference/jms.html\" rel=\"nofollow noreferrer\">https://docs.spring.io/spring-integration/reference/jms.html</a></p>\n<p>Specifically, it says:\nStarting with version 5.1, when the endpoint is stopped while the application remains running, the underlying listener container is shut down, closing its shared connection and consumers. Previously, the connection and consumers remained open. To revert to the previous behavior, set the shutdownContainerOnStop on the JmsMessageDrivenEndpoint to false.</p>\n<p>What I understand from this is that the message-driven-channel-adapter has an listener that receives messages for the internal endpoint. Spring says:</p>\n<p>“When your endpoint is stopped, I will take responsibility to stop its listener because it does not make sense for it to remain open.”</p>\n<p>To prevent this, I explicitly told Spring to keep the listener alive by configuring:</p>\n<pre><code>  @Bean\n    public JmsMessageDrivenEndpoint initJmsInEventEnricherAdapter(@Qualifier(&quot;jmsInEventEnricherAdapter&quot;)\n                                                                  JmsMessageDrivenEndpoint messageDrivenEndpoint) {\n        messageDrivenEndpoint.setShutdownContainerOnStop(false);\n        return messageDrivenEndpoint ;\n    }\n\n</code></pre>\n<p>However, this solution did not resolve the issue, the problem still persists after about a week.</p>\n<p>Can anyone help me with this? Because, of course, I do not want to have to restart the application for my users every time this happens.</p>\n<p>Thank you very much!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

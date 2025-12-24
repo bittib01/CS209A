@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "java-stream",
+      "java.util.concurrent"
+    ],
+    "owner": {
+      "account_id": 17436033,
+      "reputation": 518,
+      "user_id": 12639005,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a-/AAuE7mD9BKI5xQp34xippuV_CnsMhoCVSn_rzQJzfqiD=k-s256",
+      "display_name": "Name Null",
+      "link": "https://stackoverflow.com/users/12639005/name-null"
+    },
+    "is_answered": true,
+    "view_count": 91,
+    "accepted_answer_id": 79671451,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1751341188,
+    "creation_date": 1750296167,
+    "last_edit_date": 1750296585,
+    "question_id": 79671438,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79671438/can-thread-unsafe-combiner-be-used-in-stream-collect-method-in-java-8",
+    "title": "Can thread-unsafe combiner be used in Stream.collect method in java 8?",
+    "body": "<p>For a parallel <code>Stream</code>, the <code>collect</code> method has a 3-arg variant: (source: <a href=\"https://docs.oracle.com/javase/8/docs/api/java/util/stream/Stream.html#collect-java.util.function.Supplier-java.util.function.BiConsumer-java.util.function.BiConsumer-\" rel=\"nofollow noreferrer\">oracle documentation</a> )</p>\n<pre class=\"lang-java prettyprint-override\"><code>/**\nParameters:\nsupplier - a function that creates a new result container. For a parallel execution, this function may be called multiple times and must return a fresh value each time.\naccumulator - an associative, non-interfering, stateless function for incorporating an additional element into a result\ncombiner - an associative, non-interfering, stateless function for combining two values, which must be compatible with the accumulator function\nReturns:\nthe result of the reduction\n*/\n&lt;R&gt; R collect(Supplier&lt;R&gt; supplier,\n              BiConsumer&lt;R,? super T&gt; accumulator,\n              BiConsumer&lt;R,R&gt; combiner)\n</code></pre>\n<p>I've seen a lot of examples in which thread-unsafe combiners are used, both in blogs online or books. For example, <a href=\"https://www.digitalocean.com/community/tutorials/java-stream-collect-method-examples\" rel=\"nofollow noreferrer\">this post</a> gives the example where a thread-unsafe <code>StringBuilder</code> is used in the combiner function:</p>\n<pre class=\"lang-java prettyprint-override\"><code>List&lt;String&gt; vowels = List.of(&quot;a&quot;, &quot;e&quot;, &quot;i&quot;, &quot;o&quot;, &quot;u&quot;);\n\n// sequential stream - nothing to combine\nStringBuilder result = vowels.stream().collect(StringBuilder::new, (x, y) -&gt; x.append(y),\n        (a, b) -&gt; a.append(&quot;,&quot;).append(b));\nSystem.out.println(result.toString());\n\n// parallel stream - combiner is combining partial results\nStringBuilder result1 = vowels.parallelStream().collect(StringBuilder::new, (x, y) -&gt; x.append(y),\n        (a, b) -&gt; a.append(&quot;,&quot;).append(b));\nSystem.out.println(result1.toString());\n</code></pre>\n<p>I know that the <code>BiConsumer&lt;R,? super T&gt; accumulator</code> can be thread-unsafe, since the <code>identity</code> is created for each thread so that threads does not need to synchronize because they don't even share states.</p>\n<p>However, the problem is, why thread-unsafe combiners are used? In my understanding these combiners are run parallel in order to combine the results of the <code>accumulator</code>. If the <code>combiner</code> is not run in parallel, then the whole process becomes serial, not taking advantage of concurrency. For example if the whole process is adding identity 0 with an array of 1 to N. For a parallel stream, operations of <code>(0+1), (0+2), .... (0+N)</code> are executed in parallel, but if the <code>combiner</code> is serial, the final combing step <code>1+2+ .... N</code> is no faster than the serial stream where this process is directly executed by the accumulator function.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

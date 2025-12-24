@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "caching",
+      "redis"
+    ],
+    "owner": {
+      "account_id": 27608914,
+      "reputation": 21,
+      "user_id": 21072463,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a/AEdFTp5usjfWu5AoxDZGVdNrg0TtkESg788xLEfPeQqRtw=k-s256",
+      "display_name": "Super Saiyan Goku",
+      "link": "https://stackoverflow.com/users/21072463/super-saiyan-goku"
+    },
+    "is_answered": true,
+    "view_count": 61,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1747562166,
+    "creation_date": 1747420843,
+    "last_edit_date": 1747422098,
+    "question_id": 79625759,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79625759/class-cast-exception-redis-caching",
+    "title": "class cast exception : redis Caching",
+    "body": "<p>Implementing Redis Caching in java springboot. Getting this error\nclass java.util.LinkedHashMap cannot be cast to class com.campus.quizApp.dto.InterviewDateDTO (java.util.LinkedHashMap is in module java.base of loader 'bootstrap'; com.campus.quizApp.dto.InterviewDateDTO is in unnamed module of loader 'app')</p>\n<p>this is method i am caching on</p>\n<pre><code>@Override\n@Cacheable(value = &quot;quizStatusCache&quot;, key = &quot;#jobId&quot;)\npublic QuizStatusDTO getQuizStatusByJobId(Long jobId) {\n    log.info(&quot;++++++++++++++++&quot;);\n    QuizStatusDTO status = new QuizStatusDTO();\n    Optional&lt;QuizEntity&gt; quizOpt = quizRepository.findByJobId(jobId);\n\n    if (quizOpt.isPresent()) {\n        QuizEntity quiz = quizOpt.get();\n        boolean isActive = quiz.isActive() &amp;&amp; (quiz.getEndDay() == null || quiz.getEndDay().after(new Date()));\n        status.setActive(isActive);\n        status.setEndDate(quiz.getEndDay());\n\n        logger.debug(&quot;Quiz status for jobId {}: active={}, endDate={}&quot;,\n                jobId, isActive, quiz.getEndDay());\n    } else {\n        status.setActive(false);\n        status.setEndDate(null);\n        logger.debug(&quot;No quiz found for jobId {}&quot;, jobId);\n    }\n\n    return status;\n}\n</code></pre>\n<p>this the config file</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Configuration\n@EnableCaching\npublic class RedisConfig {\n\n    @Value(&quot;${spring.redis.host}&quot;)\n    private String redisHost;\n\n    @Value(&quot;${spring.redis.port}&quot;)\n    private int redisPort;\n\n    @Bean\n    public LettuceConnectionFactory redisConnectionFactory() {\n        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(redisHost, redisPort);\n        return new LettuceConnectionFactory(config);\n    }\n\n    @Bean\n    public ObjectMapper objectMapper() {\n        ObjectMapper mapper = new ObjectMapper();\n        mapper.registerModule(new JavaTimeModule());\n\n        return mapper;\n    }\n\n    @Bean\n    public GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer(ObjectMapper objectMapper) {\n        return new GenericJackson2JsonRedisSerializer(objectMapper);\n    }\n\n    @Bean\n    public RedisTemplate&lt;String, Object&gt; redisTemplate(RedisConnectionFactory connectionFactory,\n                                                       GenericJackson2JsonRedisSerializer serializer) {\n        RedisTemplate&lt;String, Object&gt; template = new RedisTemplate&lt;&gt;();\n        template.setConnectionFactory(connectionFactory);\n        template.setKeySerializer(new StringRedisSerializer());\n        template.setValueSerializer(serializer);\n        template.setHashKeySerializer(new StringRedisSerializer());\n        template.setHashValueSerializer(serializer);\n        return template;\n    }\n\n    @Bean\n    public CacheManager cacheManager(RedisConnectionFactory connectionFactory,\n                                     GenericJackson2JsonRedisSerializer serializer) {\n        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()\n                .entryTtl(Duration.ofMinutes(20)) // Global TTL of 20 minutes\n                .serializeValuesWith(\n                        RedisSerializationContext.SerializationPair.fromSerializer(serializer)\n                );\n\n        return RedisCacheManager.builder(connectionFactory)\n                .cacheDefaults(config)\n                .build();\n    }\n}\n</code></pre>\n<p>Expected output</p>\n<pre><code>{\n&quot;active&quot;: false,\n&quot;endDate&quot;: 1743771000000\n} \n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

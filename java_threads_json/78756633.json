@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-data-jpa"
+    ],
+    "owner": {
+      "account_id": 27958292,
+      "reputation": 13,
+      "user_id": 21350679,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/b64fd145697cc8c9583501d790da3886?s=256&d=identicon&r=PG",
+      "display_name": "m.wietecki",
+      "link": "https://stackoverflow.com/users/21350679/m-wietecki"
+    },
+    "is_answered": true,
+    "view_count": 78,
+    "accepted_answer_id": 78759305,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1724568150,
+    "creation_date": 1721161944,
+    "last_edit_date": 1724568150,
+    "question_id": 78756633,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78756633/hibernate-sql-error-null-not-allowed-for-column-id-on-insert",
+    "title": "Hibernate SQL Error: NULL not allowed for column &#39;ID&#39; on INSERT",
+    "body": "<p>I am encountering an issue with Hibernate when trying to insert a record into my database. Here are the details of the problem:</p>\n<p>Problem Description: I'm using Hibernate with Spring Boot to persist data to an H2 database. When attempting to save a new record into the 'device' table, Hibernate throws an error stating &quot;NULL not allowed for column 'ID'&quot;. I have defined the 'ID' column as a primary key with auto-increment in the database schema.</p>\n<p>Database Schema:</p>\n<pre><code>&lt;changeSet id=&quot;0003-1&quot; author=&quot;mwietecki&quot;&gt;\n    &lt;createTable tableName=&quot;device&quot;&gt;\n        &lt;column name=&quot;id&quot; type=&quot;BIGINT&quot;&gt;\n            &lt;constraints primaryKey=&quot;true&quot; nullable=&quot;false&quot;/&gt;\n        &lt;/column&gt;\n        &lt;column name=&quot;manufacturer&quot; type=&quot;VARCHAR(255)&quot;/&gt;\n        &lt;column name=&quot;model&quot; type=&quot;VARCHAR(255)&quot;/&gt;\n        &lt;column name=&quot;ram&quot; type=&quot;INT&quot;/&gt;\n        &lt;column name=&quot;rom&quot; type=&quot;INT&quot;/&gt;\n        &lt;column name=&quot;color&quot; type=&quot;VARCHAR(50)&quot;/&gt;\n        &lt;column name=&quot;spec&quot; type=&quot;VARCHAR(255)&quot;/&gt;\n        &lt;column name=&quot;quantity&quot; type=&quot;INT&quot;/&gt;\n    &lt;/createTable&gt;\n&lt;/changeSet&gt;\n</code></pre>\n<p>Entity class:</p>\n<pre><code>@Entity\n@Data\n@NoArgsConstructor\n@AllArgsConstructor\n@Table(name = &quot;device&quot;)\npublic class Device {\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private Long id;\n\n    private String manufacturer;\n    private String model;\n    private int ram;\n    private int rom;\n    private String color;\n\n    @Enumerated(EnumType.STRING)\n    @Column(columnDefinition = &quot;VARCHAR(255)&quot;)\n    private Spec spec;\n\n    private int quantity;\n}\n</code></pre>\n<p>Dto class:</p>\n<pre><code>@Data\n@AllArgsConstructor\n@NoArgsConstructor\npublic class DeviceDto {\n    private Long id;\n    private String manufacturer;\n    private String model;\n    private int ram;\n    private int rom;\n    private String color;\n    private String spec;\n    private int quantity;\n}\n</code></pre>\n<p>DeviceMapper:</p>\n<pre><code>@Mapper\npublic interface DeviceMapper {\n    DeviceMapper INSTANCE = Mappers.getMapper(DeviceMapper.class);\n\n    @Mapping(target = &quot;spec&quot;, source = &quot;spec&quot;, qualifiedByName = &quot;specToString&quot;)\n    DeviceDto deviceToDeviceDto(Device device);\n\n    @Mapping(target = &quot;spec&quot;, source = &quot;spec&quot;, qualifiedByName = &quot;stringToSpec&quot;)\n    @Mapping(target = &quot;id&quot;, ignore = true)\n    Device deviceDtoToDevice(DeviceDto deviceDto);\n\n    @Named(&quot;specToString&quot;)\n    default String mapSpecToString(Spec spec) {\n        return spec != null ? spec.name() : null;\n    }\n\n    @Named(&quot;stringToSpec&quot;)\n    default Spec mapStringToSpec(String spec) {\n        return spec != null ? Spec.valueOf(spec) : null;\n    }\n}\n</code></pre>\n<p>Method addDevice in Service and Controller class:</p>\n<pre><code>    public DeviceDto addDevice(DeviceDto deviceDto) {\n        Device device = DeviceMapper.INSTANCE.deviceDtoToDevice(deviceDto);\n        Device savedDevice = deviceRepository.save(device);\n        return DeviceMapper.INSTANCE.deviceToDeviceDto(savedDevice);\n    }\n\n@PostMapping(&quot;/add&quot;)\n    @Operation(summary = &quot;Add device&quot;)\n    public DeviceDto addDevice(@RequestBody DeviceDto deviceDto) {\n        return deviceService.addDevice(deviceDto);\n    }\n</code></pre>\n<p>I tried to delete ID in DTO class, adding adnotations to Mapper to ignore ID. Also in swagger ui in the request body give the id value as null or any integer</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

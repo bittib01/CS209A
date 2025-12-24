@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "windows",
+      "swing",
+      "fonts",
+      "awt"
+    ],
+    "owner": {
+      "account_id": 42124569,
+      "reputation": 105,
+      "user_id": 30604023,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/e748f39a58e540552038c612ad0245f1?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "ewh.eps",
+      "link": "https://stackoverflow.com/users/30604023/ewh-eps"
+    },
+    "is_answered": false,
+    "view_count": 130,
+    "answer_count": 0,
+    "score": 4,
+    "last_activity_date": 1758303310,
+    "creation_date": 1758150360,
+    "last_edit_date": 1758303310,
+    "question_id": 79767871,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79767871/font-rendering-difference-when-app-loaded-vs-windows-registered-in-java-swing-ap",
+    "title": "Font rendering difference when app-loaded vs Windows-registered in Java Swing app",
+    "body": "<p>I am getting different rendering behavior of a font, &quot;DejaVu Sans Mono&quot;, in my Java Swing application if the application loads the font itself vs it being registered with Windows (installed under Windows\\Fonts):</p>\n<p><img src=\"https://i.sstatic.net/MNzSa4pB.png\" alt=\"Font Rendering Comparison\" /></p>\n<p>This difference in behavior is mainly noticeable if Windows display scale preference is at 100%, which is the case on my laptop's 1920x1080 display.  Do not get a difference (or at least see any significant difference) when I run the application on a 4K external display with 250% scaling under Windows Display settings.</p>\n<p>The font loading code is at the very start of the application, before any Swing/AWT components are created.  I am using the <code>Font.createFont()</code> method to load the font using the <em>fontFormat</em> parameter set to <code>Font.TRUETYPE_FONT</code>.</p>\n<p>I tried the different values for the <code>awt.useSystemAAFontSettings</code> system property, but the difference is still present, where rendering looks better when the font is installed on Windows vs being loaded via <code>Font.createFont()</code>.</p>\n<p><strong>Edit</strong>: What follows is the utility method in the application that loads the font, where the font file is included in the application's jar file:</p>\n<pre><code>  public static Font loadResourceFont(\n      String filename\n  ) {\n    String pathname = &quot;resources/fonts/&quot; + filename;\n    java.io.InputStream in = null;\n    try {\n      in = AppUIFonts.class.getResourceAsStream(pathname);\n      if (in == null) {\n        log.error(&quot;Unable to find resource \\&quot;&quot;+pathname+&quot;\\&quot;&quot;);\n        return null;\n      }\n      return Font.createFont(Font.TRUETYPE_FONT, in);\n\n    } catch (Exception e) {\n      log.error(&quot;Unable to load font \\&quot;&quot;+filename+&quot;\\&quot;: &quot;+\n          e.getLocalizedMessage(), e);\n\n    } finally {\n      IOUtil.closeQuietly(in);\n    }\n    return null;\n  }\n\n</code></pre>\n<p><strong>Edit:</strong> The font rendering difference is only observed when using smaller font sizes.  In the screenshot above, the font size is 13.  Not sure what the exact threshold is, but I think font sizes at 16 or larger do not exhibit the rendering problem.</p>\n<p><strong>Edit:</strong> Based on information provided by @gthanop, enabling debug font logging of the JVM, I see the difference in options set on the font when it is loaded by the application vs registered with the operating system.  The following is when the font is loaded by app (ignore the size value as I did the log capture when using 4k display at 250% scaling, so effective size is quite large):</p>\n<pre><code>INFO: Strike for ** TrueType Font: Family=DejaVu Sans Mono Name=DejaVu Sans Mono style=0 fileName=C:\\tmp\\+~JF2835760196081226032.tmp at size = 35 use natives = false useJavaRasteriser = true AAHint = 4 Has Embedded bitmaps = false\n</code></pre>\n<p>The following is when font is registered/installed to the system:</p>\n<pre><code>INFO: Strike for ** TrueType Font: Family=DejaVu Sans Mono Name=DejaVu Sans Mono style=0 fileName=C:\\Users\\user\\AppData\\Local\\Microsoft\\Windows\\Fonts\\DejaVuSansMono.ttf at size = 35 use natives = true useJavaRasteriser = false AAHint = 4 Has Embedded bitmaps = false\n</code></pre>\n<p>Notice the difference in the <code>use natives</code> option and the <code>useJavaRasteriser</code> option.  Not sure if possible to change these options at the application code level as it appears these options are controlled by internal Java classes.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

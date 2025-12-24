@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "prometheus",
+      "spring-boot-actuator",
+      "spring-micrometer"
+    ],
+    "owner": {
+      "account_id": 14482834,
+      "reputation": 5478,
+      "user_id": 10461625,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/fgo5D.jpg?s=256",
+      "display_name": "PatPanda",
+      "link": "https://stackoverflow.com/users/10461625/patpanda"
+    },
+    "is_answered": false,
+    "view_count": 228,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1749460858,
+    "creation_date": 1746473306,
+    "last_edit_date": 1746475748,
+    "question_id": 79607523,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79607523/micrometer-registry-prometheus-not-showing-exemplars",
+    "title": "micrometer-registry-prometheus not showing exemplars",
+    "body": "<p>I would like to send metrics with exemplars using Spring Boot and Micrometer.</p>\n<p>Part of the <code>pom.xml</code>:</p>\n<pre class=\"lang-xml prettyprint-override\"><code>&lt;parent&gt;\n        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n        &lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;\n        &lt;version&gt;3.4.5&lt;/version&gt;\n        &lt;relativePath/&gt; &lt;!-- lookup parent from repository --&gt;\n    &lt;/parent&gt;\n    &lt;groupId&gt;com.example&lt;/groupId&gt;\n    &lt;artifactId&gt;app&lt;/artifactId&gt;\n    &lt;version&gt;0.0.1&lt;/version&gt;\n    &lt;name&gt;app&lt;/name&gt;\n    &lt;description&gt;Demo project for Spring Boot Observability&lt;/description&gt;\n    &lt;properties&gt;\n        &lt;java.version&gt;24&lt;/java.version&gt;\n    &lt;/properties&gt;\n\n    &lt;dependencies&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n            &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;\n        &lt;/dependency&gt;\n\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n            &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;\n        &lt;/dependency&gt;\n\n        &lt;dependency&gt;\n            &lt;groupId&gt;io.micrometer&lt;/groupId&gt;\n            &lt;artifactId&gt;micrometer-registry-prometheus&lt;/artifactId&gt;\n        &lt;/dependency&gt;\n\n &lt;dependency&gt;\n            &lt;groupId&gt;io.opentelemetry&lt;/groupId&gt;\n            &lt;artifactId&gt;opentelemetry-exporter-otlp&lt;/artifactId&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;io.micrometer&lt;/groupId&gt;\n            &lt;artifactId&gt;micrometer-tracing-bridge-otel&lt;/artifactId&gt;\n        &lt;/dependency&gt;\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>\n@RestController\n@SpringBootApplication\npublic class AppApplication {\n\n    Logger logger = LoggerFactory.getLogger(AppApplication.class);\n\n    public static void main(String[] args) {\n        SpringApplication.run(AppApplication.class, args);\n    }\n\n    @GetMapping(&quot;/&quot;)\n    public String root(@RequestParam(value = &quot;name&quot;, defaultValue = &quot;World&quot;) String name, @RequestHeader HttpHeaders headers) {\n        logger.error(headers.toString());\n        logger.error(String.format(&quot;Hello %s!!&quot;, name));\n        logger.debug(&quot;Debugging log&quot;);\n        logger.info(&quot;Info log&quot;);\n        logger.warn(&quot;Hey, This is a warning!&quot;);\n        logger.error(&quot;Oops! We have an Error. OK&quot;);\n        return String.format(&quot;Hello %s!!&quot;, name);\n    }\n\n    @GetMapping(&quot;/io_task&quot;)\n    public String io_task() throws InterruptedException {\n        Thread.sleep(1000);\n        logger.info(&quot;io_task&quot;);\n        return &quot;io_task&quot;;\n    }\n\n    @GetMapping(&quot;/peanuts/{id}&quot;)\n    public Peanuts getPeanutsById(@PathVariable Long id) {\n        logger.info(&quot;Get Peanuts Character by id&quot;);\n        return new Peanuts(id, &quot;Snoopy&quot;, &quot;Charlie Brown's pet beagle&quot;);\n    }\n    \n    record Peanuts(Long id, String name, String description) {}\n\n}\n</code></pre>\n<p>With the code above and <code>otelcol_0.121.0_X</code>, I am able to scrape the actuator endpoint, which contains the metrics.</p>\n<p>I am also able to see the metrics in Grafana.</p>\n<p>I am also able to see traces in Grafana (sending traces to tempo)</p>\n<p>However, there are no exemplars.</p>\n<p>I am not able to link, jump between the metrics and the traces, for Spring Boot default metrics, nor any custom metrics</p>\n<p>From the <a href=\"https://docs.micrometer.io/micrometer/reference/implementations/prometheus.html#_exemplars\" rel=\"nofollow noreferrer\">Micrometer docs</a> I tried adding a custom <code>PrometheusMeterRegistry</code> bean. With or without, same issue.</p>\n<p>How to send metrics with exemplars, not just regular metrics, and have the link working between metrics and traces?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "redis",
+      "spring-data-redis"
+    ],
+    "owner": {
+      "account_id": 10802778,
+      "reputation": 523,
+      "user_id": 7946082,
+      "user_type": "registered",
+      "accept_rate": 0,
+      "profile_image": "https://i.sstatic.net/j6UuC.jpg?s=256",
+      "display_name": "Jerry",
+      "link": "https://stackoverflow.com/users/7946082/jerry"
+    },
+    "is_answered": true,
+    "view_count": 1213,
+    "answer_count": 3,
+    "score": 2,
+    "last_activity_date": 1718072772,
+    "creation_date": 1711426813,
+    "last_edit_date": 1712217826,
+    "question_id": 78222957,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78222957/how-to-subscribe-redis-key-space-event-with-spring",
+    "title": "How to subscribe redis key space event with spring",
+    "body": "<h2>My Environment</h2>\n<ul>\n<li>Mac Ventura 13.6.3</li>\n<li>Temurin 17</li>\n<li>SpringBoot 3.2.1</li>\n<li>org.springframework.boot:spring-boot-starter-data-redis</li>\n<li>redis cluster running on local machine. (localhost: 7001, localhost: 7002, localhost: 7003</li>\n</ul>\n<h2>What I want to do</h2>\n<p>I want to receive expire event from redis cluster with spring.</p>\n<h2>What I did</h2>\n<p>I connected to cluster, and expired a key</p>\n<pre><code>CONFIG SET notify-keyspace-events Ex\n\nSET hi 123\nEXPIRE hi 3\n</code></pre>\n<h2>My (java) code</h2>\n<p>Configuration</p>\n<pre class=\"lang-java prettyprint-override\"><code>package kr.co.yogiyo.payo.infrastructure.temporal;\n\nimport io.lettuce.core.ReadFrom;\nimport kr.co.yogiyo.payo.infrastructure.temporal.service.RedisExpireEventService;\nimport lombok.RequiredArgsConstructor;\nimport org.springframework.boot.autoconfigure.data.redis.RedisConnectionDetails;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\nimport org.springframework.data.redis.connection.RedisClusterConfiguration;\nimport org.springframework.data.redis.connection.RedisConnectionFactory;\nimport org.springframework.data.redis.connection.RedisNode;\nimport org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;\nimport org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;\nimport org.springframework.data.redis.listener.PatternTopic;\nimport org.springframework.data.redis.listener.RedisMessageListenerContainer;\n\n@RequiredArgsConstructor\n@Configuration\npublic class RedisConfig {\n\n  private final RedisConnectionDetails redisConnectionDetails;\n\n  @Bean\n  public RedisConnectionFactory redisConnectionFactory() {\n    RedisConnectionDetails.Cluster cluster = redisConnectionDetails.getCluster();\n    RedisClusterConfiguration clusterConfiguration = new RedisClusterConfiguration();\n    for (RedisConnectionDetails.Node node : cluster.getNodes()) {\n      clusterConfiguration.addClusterNode(new RedisNode(node.host(), node.port()));\n    }\n\n    LettuceClientConfiguration clientConfig =\n        LettuceClientConfiguration.builder().readFrom(ReadFrom.REPLICA_PREFERRED).build();\n\n    return new LettuceConnectionFactory(clusterConfiguration, clientConfig);\n  }\n\n  @Bean\n  RedisMessageListenerContainer keyExpirationListenerContainer(\n      RedisConnectionFactory connectionFactory, RedisExpireEventService redisExpireEventService) {\n    RedisMessageListenerContainer listenerContainer = new RedisMessageListenerContainer();\n    listenerContainer.setConnectionFactory(connectionFactory);\n    listenerContainer.addMessageListener(\n        redisExpireEventService, new PatternTopic(&quot;__keyevent@*__:expired&quot;));\n    return listenerContainer;\n  }\n}\n\n</code></pre>\n<p>the service</p>\n<pre class=\"lang-java prettyprint-override\"><code>package kr.co.yogiyo.payo.infrastructure.temporal.service;\n\nimport lombok.RequiredArgsConstructor;\nimport org.springframework.data.redis.connection.Message;\nimport org.springframework.data.redis.connection.MessageListener;\nimport org.springframework.stereotype.Service;\n\n@Service\n@RequiredArgsConstructor\npublic class RedisExpireEventService implements MessageListener {\n  @Override\n  public void onMessage(Message message, byte[] pattern) {\n    System.out.println(&quot;Message received: &quot; + message.toString());\n  }\n}\n\n</code></pre>\n<p>application.yml</p>\n<pre class=\"lang-yaml prettyprint-override\"><code>spring:\n  main:\n    banner-mode: off\n    allow-bean-definition-overriding: true\n  jackson:\n    property-naming-strategy: SNAKE_CASE\n  data:\n    redis:\n      host: ${PAYO_REDIS_MASTER_HOST:localhost}\n      port: ${PAYO_REDIS_MASTER_PORT:7002}\n      cluster:\n        nodes: ${PAYO_REDIS_REPLICATION_NODES:localhost:7001,localhost:7002,localhost:7003}\n\n</code></pre>\n<p>spring runs well, but nothing happens when key expired.\n(I set breakpoint and ran with debug mode, still nothing happens)</p>\n<h2>Working python code</h2>\n<p>I tried with python, it worked like charm... I want to subscribe the event with spring.</p>\n<pre class=\"lang-py prettyprint-override\"><code>import redis\n\n\ndef main():\n    # Connect to Redis\n    r = redis.Redis(host='localhost', port=7002, db=0)\n\n    # Subscribe to the '__keyevent@0__:expired' channel\n    pubsub = r.pubsub()\n    pubsub.psubscribe('__keyevent@*__:expired')\n\n    # Start listening for messages\n    for message in pubsub.listen():\n        print(&quot;something expired! &quot;, message)\n\nif __name__ == &quot;__main__&quot;:\n    main()\n\n</code></pre>\n<pre><code>something expired!  {'type': 'psubscribe', 'pattern': None, 'channel': b'__keyevent@*__:expired', 'data': 1}\nsomething expired!  {'type': 'pmessage', 'pattern': b'__keyevent@*__:expired', 'channel': b'__keyevent@0__:expired', 'data': b'hi'}\n</code></pre>\n<p>could you guys let me know what am I missing in my java code?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

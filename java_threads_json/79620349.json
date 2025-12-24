@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "kotlin",
+      "unit-testing",
+      "gitlab-ci"
+    ],
+    "owner": {
+      "account_id": 2090213,
+      "reputation": 1839,
+      "user_id": 1860222,
+      "user_type": "registered",
+      "accept_rate": 52,
+      "profile_image": "https://www.gravatar.com/avatar/dcd9cf0881ee1e7a5f28175308628e25?s=256&d=identicon&r=PG",
+      "display_name": "pbuchheit",
+      "link": "https://stackoverflow.com/users/1860222/pbuchheit"
+    },
+    "is_answered": true,
+    "view_count": 70,
+    "accepted_answer_id": 79625161,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1747397824,
+    "creation_date": 1747166063,
+    "last_edit_date": 1747245252,
+    "question_id": 79620349,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79620349/piping-output-to-the-correct-place-when-running-unit-tests-in-a-ci-pipeline",
+    "title": "Piping output to the correct place when running unit tests in a CI pipeline",
+    "body": "<p>I have been working on a project that sends data to a vendor by executing a jar from inside our kotlin code (see: <a href=\"https://stackoverflow.com/questions/79620060/loading-a-jar-file-into-a-kotlin-unit-test\">Loading a jar file into a kotlin unit test</a> for more details). I implemented what I thought was a solution using java.lang.ProcessBuilder. All my tests are passing when I run them from my local build. When I try to run those same tests as part of the deployment process to our gitlab CI pipeline however, I'm getting strange results.</p>\n<p>My log output from the deployment job looks like this:</p>\n<pre><code>[INFO] -------------------------------------------------------\n[INFO]  T E S T S\n[INFO] -------------------------------------------------------\nPicked up _JAVA_OPTIONS: -Xms256m -Xmx1024m\n[INFO] Running edu.bucknell.eventmanagement.int295.Test\nERROR 2025-05-13 15:10:21,841 [main] edu.bucknell.eventmanagement.int295.executeJavaJar: Picked up _JAVA_OPTIONS: -Xms256m -Xmx1024m\nException in thread &quot;main&quot; java.lang.Exception: Too many args\n    at Main.main(Main.java:10)\nERROR 2025-05-13 15:10:22,431 [main] edu.bucknell.eventmanagement.int295.executeJavaJar: Picked up _JAVA_OPTIONS: -Xms256m -Xmx1024m\n[ERROR] Tests run: 4, Failures: 1, Errors: 0, Skipped: 1, Time elapsed: 2.779 s &lt;&lt;&lt; FAILURE! -- in edu.bucknell.eventmanagement.int295.Test\n[ERROR] edu.bucknell.eventmanagement.int295.Test.test execute java jar with tmp -- Time elapsed: 0.266 s &lt;&lt;&lt; FAILURE!\njava.lang.AssertionError: \ntest execute java jar failed with error: Picked up _JAVA_OPTIONS: -Xms256m -Xmx1024m\n    at edu.bucknell.eventmanagement.int295.Test.test execute java jar with tmp(test.kt:108)\n    at java.base/java.lang.reflect.Method.invoke(Method.java:566)\n    at java.base/java.util.ArrayList.forEach(ArrayList.java:1541)\n    at java.base/java.util.ArrayList.forEach(ArrayList.java:1541)\n[INFO] \n[INFO] Results:\n[INFO] \n[ERROR] Failures: \n[ERROR]   Test.test execute java jar with tmp:108 test execute java jar failed with error: Picked up _JAVA_OPTIONS: -Xms256m -Xmx1024m\n[INFO] \n[ERROR] Tests run: 4, Failures: 1, Errors: 0, Skipped: 1\n</code></pre>\n<p>The function responsible for executing the jar looks like:</p>\n<pre><code>internal fun executeJavaJar(dp: INT295DependencyProvider, workingDir:String, jarFile:String, args:List&lt;String&gt;): Either&lt;Throwable, String&gt;\n{\n    val j = dp.journalFactory(&quot;edu.bucknell.eventmanagement.int295.executeJavaJar&quot;)\n   return runCatching {\n       val cmdArgs: MutableList&lt;String&gt; = mutableListOf(&quot;java&quot;, &quot;-jar&quot;, jarFile)\n       cmdArgs.addAll(args)\n       ProcessBuilder(cmdArgs).directory(File(workingDir))\n           .redirectOutput(ProcessBuilder.Redirect.PIPE)\n           .redirectError(ProcessBuilder.Redirect.PIPE)\n           .start()\n    }.fold({\n        it-&gt;\n        val output = IOUtils.toString( it.inputStream, Charsets.UTF_8)\n        val error = IOUtils.toString( it.errorStream, Charsets.UTF_8)\n       if(error.isNotEmpty())\n       {\n           j.error(error)\n           Exception(error).left()\n       }\n       else {\n           j.debug(output)\n           output.right()\n       }\n    }, {\n        error-&gt;\n        error.left()\n    })\n}\n</code></pre>\n<p>and the actual test:</p>\n<pre><code>@Test\nfun `test execute java jar with tmp`()\n{\n    mockContext(300).value().let { context -&gt;\n        testInt295DependencyProvider(context).let { dp -&gt;\n            javaClass.classLoader.getResourceAsStream(&quot;HelloTest.jar&quot;).use { stream -&gt;\n                assertNotNull(stream)\n                val inputFile = createTempFile(prefix = &quot;hello&quot;, suffix = &quot;.jar&quot;).toFile()\n                Files.copy(stream, inputFile.toPath(), StandardCopyOption.REPLACE_EXISTING)\n                \n                executeJavaJar(dp,&quot;.&quot;,\n                    inputFile.absolutePath, listOf(&quot;abc&quot;)).fold({\n                    fail(&quot;test execute java jar failed with error: ${it.message}&quot;)\n                }, {\n                        output-&gt;\n                    println(output)\n                    assertNotNull(output)\n                    assertThat(output).isNotEmpty\n                })\n            }\n        }\n    }\n}\n</code></pre>\n<p>I suspect it has something to do with the pipeline redirects in ProcessBuilder. However I can't find any information about how to properly configure the process builder to route output in a CI environment. Can anyone shed some light on where I'm going wrong with this?</p>\n<p><strong>Update:</strong>\nI did some more digging and narrowed in on the issue but I'm still not sure what to do. After adding some additional logging, I determined that the java class being executed isn't actually producing any errors. However, something in the CI deployment is writing text '_JAVA_OPTIONS=&quot;-Xms256m -Xmx1024m&quot;' to the errorStream. When I look at the contents of that stream for my test, I'm getting a false positive as a result.</p>\n<p><strong>Update 2:</strong>\nI found the line in the deployment script that is causing the problem and was able to reproduce the failure when running the script locally. If I run this bash script:</p>\n<pre><code>#!/bin/sh\n# shared gitlab runner host based script\nexport _JAVA_OPTIONS=&quot;-Xms256m -Xmx1024m&quot;\n\nmvn test -Dmule.testingMode=true -Dpackage=edu.bucknell -DfailIfNoTests=false -Dsurefire.skipAfterFailureCount=1\n</code></pre>\n<p>It will reproduce the issues I'm seeing in the CI environment. I can work around the issue by manually stripping that variable out of the ProcessBuilder environment</p>\n<pre><code>       val pb = ProcessBuilder(cmdArgs).directory(File(workingDir))\n           .redirectError(ProcessBuilder.Redirect.PIPE)\n           pb.environment().remove(&quot;_JAVA_OPTIONS&quot;)\n           pb.start()\n</code></pre>\n<p>But I'm not any closer to understanding the root cause.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

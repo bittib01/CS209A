@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "javasound"
+    ],
+    "owner": {
+      "account_id": 1941777,
+      "reputation": 4312,
+      "user_id": 1747834,
+      "user_type": "registered",
+      "accept_rate": 58,
+      "profile_image": "https://www.gravatar.com/avatar/cea2583950ba41bcbbac8c8705ec1965?s=256&d=identicon&r=PG",
+      "display_name": "Mikhail T.",
+      "link": "https://stackoverflow.com/users/1747834/mikhail-t"
+    },
+    "is_answered": true,
+    "view_count": 141,
+    "answer_count": 2,
+    "score": 2,
+    "last_activity_date": 1766288917,
+    "creation_date": 1765849388,
+    "question_id": 79848132,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79848132/how-to-play-ulaw-8khz-sound-in-java-today",
+    "title": "How to play ULAW 8kHz sound in Java today?",
+    "body": "<p>An older Java-program I maintain comes with a bunch of little <code>.au</code> files to play different sounds. All of these are identified by <code>file</code> as: <code>Sun/NeXT audio data: 8-bit ISDN mu-law, mono, 8000 Hz</code>.</p>\n<p>The program fails to play them complaining of unsuitable format. Having modified its format-selection to dump debug information, I came up with the following Java-code:</p>\n<pre class=\"lang-java prettyprint-override\"><code>  protected static AudioFormat getFormatForPlaying(byte [] audioData)\n      throws UnsupportedAudioFileException, IOException{\n    ByteArrayInputStream bais = new ByteArrayInputStream(audioData);\n    AudioFormat format = AudioSystem.getAudioFileFormat(bais).getFormat();\n    DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);\n\n    if (AudioSystem.isLineSupported(info)) {\n      System.err.println(&quot;Audio format ``&quot; + format + &quot;'' can be used straight&quot;);\n      return format;\n    }\n    System.err.println(&quot;Audio format ``&quot; + format + &quot;'' can not be used straight&quot;);\n\n    AudioFormat[] possibleFormats = AudioSystem.getTargetFormats(\n      AudioFormat.Encoding.PCM_SIGNED, format);\n\n    for (AudioFormat newFormat : possibleFormats) {\n      info = new DataLine.Info(SourceDataLine.class, newFormat);\n      if (AudioSystem.isLineSupported(info)) {\n         System.err.println(&quot;Will try audio format &quot; + newFormat + &quot; instead of &quot; + format);\n         return newFormat;\n      }\n      System.err.println(&quot;Format ``&quot; + newFormat + &quot;'' cannot be used&quot;);\n    }\n    throw new UnsupportedAudioFileException(&quot;No suitable audio format among &quot; +\n      possibleFormats.length + &quot; possibilities&quot;);\n  }\n</code></pre>\n<p>At run time I get the following printed to stderr now:</p>\n<pre class=\"lang-none prettyprint-override\"><code>Audio format ``ULAW 8000.0 Hz, 8 bit, mono, 1 bytes/frame, '' can not be used straight\nFormat ``PCM_SIGNED 8000.0 Hz, 16 bit, mono, 2 bytes/frame, little-endian'' cannot be used\nFormat ``PCM_SIGNED 8000.0 Hz, 16 bit, mono, 2 bytes/frame, big-endian'' cannot be used\njavax.sound.sampled.UnsupportedAudioFileException: No suitable audio format among 2 possibilities\n</code></pre>\n<p>Google's AI is telling me, that just means, my actual sound hardware cannot play such low rate audio, and that's that -- the sound library included in Java cannot modify the sampling rate for me, period...</p>\n<p>Is that really true? If so, is there an easy way out -- such as by using some known and common conversion package?</p>\n<p>(When I play the same sound-files using <code>mplayer</code>, for example, it reports converting them from 8kHz to 16kHz automatically.)</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

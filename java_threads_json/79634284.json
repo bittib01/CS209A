@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "windows",
+      "maven",
+      "rust",
+      "process"
+    ],
+    "owner": {
+      "account_id": 184786,
+      "reputation": 22284,
+      "user_id": 421049,
+      "user_type": "registered",
+      "accept_rate": 50,
+      "profile_image": "https://www.gravatar.com/avatar/4b9b843fe8e233b2f70e0f2a8e7db4e8?s=256&d=identicon&r=PG",
+      "display_name": "Garret Wilson",
+      "link": "https://stackoverflow.com/users/421049/garret-wilson"
+    },
+    "is_answered": false,
+    "view_count": 153,
+    "answer_count": 2,
+    "score": 1,
+    "last_activity_date": 1748189271,
+    "creation_date": 1747936414,
+    "last_edit_date": 1747946520,
+    "question_id": 79634284,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79634284/rust-invoke-java-server-via-maven-on-windows-without-terminate-batch-job-messa",
+    "title": "Rust invoke Java server via Maven on Windows without &quot;Terminate batch job&quot; message when stopped",
+    "body": "<p>I'm writing a CLI in Rust, and I want it to work on Windows or Linux. I want it to invoke Maven in order to run a Java program. I already have this working in a Bash script that I can invoke via Git Bash; it looks like this:</p>\n<pre class=\"lang-bash prettyprint-override\"><code>execMainClass=${args[1]}\nexecArgs=(&quot;${args[@]:2}&quot;)\nmvn exec:java -Dexec.mainClass=&quot;$execMainClass&quot; -Dexec.args=&quot;${execArgs[*]@Q}&quot; \\\n    -Dexec.cleanupDaemonThreads=false --quiet\n</code></pre>\n<p>The Java program in turn starts up a local server, which I have to stop using <code>Ctrl+C</code>. Once I do that, control exits immediately back to Git Bash. I merely want to reproduce all this in Rust, and from what I'm reading, nothing should be better than Rust to implement a CLI that interacts with the system.</p>\n<p>So let's ignore the arguments to the Java program for a minute, and just try to implement this on Windows. Here's what the documentation tells me to use:</p>\n<pre class=\"lang-rs prettyprint-override\"><code>return std::process::Command::new(&quot;cmd&quot;)\n    .args([&quot;/C&quot;, &quot;mvn&quot;, &quot;exec:java&quot;])\n    .arg(format!(&quot;-Dexec.mainClass={main_class}&quot;))\n    .args([&quot;-Dexec.cleanupDaemonThreads=false&quot;, &quot;--quiet&quot;])\n    .status();\n</code></pre>\n<p>When I run my Rust CLI, it indeed invokes Maven, which then runs my Java program, which starts up a local server! However when I hit <code>Ctrl+C</code> to stop the local server, I get the following message:</p>\n<blockquote>\n<p><code>Terminate batch job (Y/N)?</code></p>\n</blockquote>\n<p>Nope. Don't want that. I thought maybe that it was coming from Rust invoking <code>cmd</code> somehow. So I tried invoking Maven directly in the Rust CLI:</p>\n<pre class=\"lang-rs prettyprint-override\"><code>return std::process::Command::new(&quot;mvn&quot;)\n    .args([&quot;exec:java&quot;])\n    .arg(format!(&quot;-Dexec.mainClass={main_class}&quot;))\n    .args([&quot;-Dexec.cleanupDaemonThreads=false&quot;, &quot;--quiet&quot;])\n    .status();\n</code></pre>\n<p>Unfortunately, when running this both in Git Bash and in PowerShell, it results in:</p>\n<blockquote>\n<p><code>Error: program not found</code></p>\n</blockquote>\n<p>That comes from my error-handling code elsewhere in the CLI:</p>\n<pre class=\"lang-rs prettyprint-override\"><code>Err(e) =&gt; {\n    eprintln!(&quot;Error: {}&quot;, e);\n    std::process::exit(exitcode::SOFTWARE);\n}\n</code></pre>\n<p>However based upon the comments here, I realized that Git Bash finds <code>mvn</code> on the path, but PowerShell finds the <code>mvn.cmd</code> file on the path instead. Since Rust is sidestepping Git Bash altogether, I changed to directly invoking <code>mvn.cmd</code>:</p>\n<pre class=\"lang-rs prettyprint-override\"><code>return std::process::Command::new(&quot;mvn.cmd&quot;)\n    .args([&quot;exec:java&quot;])\n    .arg(format!(&quot;-Dexec.mainClass={main_class}&quot;))\n    .args([&quot;-Dexec.cleanupDaemonThreads=false&quot;, &quot;--quiet&quot;])\n    .status();\n</code></pre>\n<p>This now runs Maven both in Git Bash and in PowerShell. But after hitting <code>Ctrl+C</code> in the Java program, I still get:</p>\n<blockquote>\n<p><code>Terminate batch job (Y/N)?</code></p>\n</blockquote>\n<p>Even worse, in PowerShell this puts the shell into some weird state where it erratically responds to keystrokes and hangs. <em>This happens whether I use <code>cmd /C mvn …</code> or <code>mvn.cmd …</code>.</em></p>\n<p>Git Bash obviously can call <code>mvn.cmd</code> and exit with <code>Ctrl+C</code> without getting <code>Terminate batch job (Y/N)?</code>. What trick do I need to pull to accomplish this in Rust?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

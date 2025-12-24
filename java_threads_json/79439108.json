@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "android",
+      "android-gradle-plugin",
+      "nosuchfieldexception",
+      "android-reflection"
+    ],
+    "owner": {
+      "account_id": 5440915,
+      "reputation": 289,
+      "user_id": 4329037,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/eed540219916af1e9a6fb90bc9758365?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "user_8275",
+      "link": "https://stackoverflow.com/users/4329037/user-8275"
+    },
+    "is_answered": true,
+    "view_count": 341,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1741841935,
+    "creation_date": 1739530015,
+    "last_edit_date": 1739945192,
+    "question_id": 79439108,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79439108/java-17-with-reflection-restriction-modifiers-java-lang-nosuchfieldexception-mo",
+    "title": "Java 17 with reflection restriction modifiers java.lang.NoSuchFieldException: modifiers",
+    "body": "<p>I have to support 16KB page size device in Android 35. To support 16KB page size devices, we have updated the AGP version to the latest 8.7. The latest AGP version requires Java 17.</p>\n<p>However after updating to Java 17, the test cases are failing wherever reflection is used to access private variables or methods.\nThere are so many legacy test cases. Working on those test cases will need lot of rework and refactoring in the code which is not possible due to time and cost constraints. How can I fix this problem without refactoring?</p>\n<p>Code which is causing problem:</p>\n<pre><code>  fun getFinalPrivateVariable(clazz: Class&lt;*&gt;, fieldName: String): Field {\n    val field = getPrivateVariable(clazz, fieldName)\n    val modifiers = Field::class.java.getDeclaredField(&quot;modifiers&quot;)\n    modifiers.isAccessible = true\n    modifiers.setInt(field, field.modifiers and Modifier.FINAL.inv())\n    return field\n}\n</code></pre>\n<p>I have already tried to add below line in <code>gradle.properties</code>:</p>\n<pre><code>--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED\n</code></pre>\n<p>It didn't work.</p>\n<p>Also tried to add in <code>build.gradle</code>:</p>\n<pre><code>android {\n    testOptions {\n        unitTests.all {\n            jvmArgs += [\n                '--add-opens=java.base/java.lang.reflect=ALL-UNNAMED',\n                '--add-opens=java.base/java.lang=ALL-UNNAMED'\n            ]\n        }\n    }\n}\n</code></pre>\n<p>Also tried to refactor:</p>\n<pre><code>@Throws(Exception::class)\nfun getFinalPrivateVariable(clazz: Class&lt;*&gt;, fieldName: String): Field {\n    val field = getPrivateVariable(clazz, fieldName)\n    field.isAccessible = true\n\n    // Obtain a VarHandle for the &quot;modifiers&quot; field in the Field class\n    val modifiersHandle: VarHandle = MethodHandles.privateLookupIn(Field::class.java, MethodHandles.lookup())\n        .findVarHandle(Field::class.java, &quot;modifiers&quot;, Int::class.javaPrimitiveType)\n\n    // Remove the FINAL modifier\n    val mods = modifiersHandle.get(field) as Int\n    modifiersHandle.set(field, mods and Modifier.FINAL.inv())\n\n    return field\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

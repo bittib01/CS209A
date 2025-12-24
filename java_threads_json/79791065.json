@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "json",
+      "jackson"
+    ],
+    "owner": {
+      "account_id": 158679,
+      "reputation": 709,
+      "user_id": 377486,
+      "user_type": "registered",
+      "accept_rate": 64,
+      "profile_image": "https://www.gravatar.com/avatar/0a3dfbbc82064e9c1697d03049f949b3?s=256&d=identicon&r=PG",
+      "display_name": "user377486",
+      "link": "https://stackoverflow.com/users/377486/user377486"
+    },
+    "is_answered": true,
+    "view_count": 77,
+    "accepted_answer_id": 79791092,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1760533456,
+    "creation_date": 1760524726,
+    "last_edit_date": 1760529503,
+    "question_id": 79791065,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79791065/jsontypeinfo-for-one-specific-subclass",
+    "title": "JsonTypeInfo for one specific subclass",
+    "body": "<p>Code</p>\n<pre><code>package org.example;\n\npublic class Container {\n    private Base base;\n    public void setBase(Base newBase) {\n        base = newBase;\n    }\n    public String getName() {\n        return base.getName();\n    }\n}\n=========\npackage org.example;\n\nimport com.fasterxml.jackson.annotation.JsonTypeInfo;\nimport com.fasterxml.jackson.annotation.JsonTypeInfo.Id;\n\n@JsonTypeInfo(defaultImpl = Sub1.class, use = Id.NONE)\npublic abstract class Base {\n    public abstract String getName();\n}\n=========\npackage org.example;\n\npublic class Sub1 extends Base {\n    private String name;\n    @Override\n    public String getName() {\n        return name;\n    }\n}\n=============\npackage org.example;\n\npublic class Sub2 extends Base {\n    private String title;\n    public Sub2(String newTitle) {\n        title = newTitle;\n    }\n    @Override\n    public String getName() {\n        return title;\n    }\n}\n</code></pre>\n<p>The intention is: when an instance of <code>Container</code> is deserialized from JSON, the member <code>base</code> is <em>always</em> an instance of <code>Sub1</code>. <code>setBase()</code> can be called to change the value of <code>base</code> (also to an instance of <code>Sub2</code>).</p>\n<p>However, the following code fails at the second call of <code>objectMapper.readValue()</code></p>\n<pre><code>package org.example;\n\nimport com.fasterxml.jackson.core.JsonProcessingException;\nimport com.fasterxml.jackson.databind.ObjectMapper;\n\npublic class Main {\n    public static void main(String[] args) throws JsonProcessingException {\n        Container container = new Container();\n        container.setBase(new Sub2(&quot;bb&quot;));\n\n        System.out.println(container.getName());\n        ObjectMapper objectMapper = new ObjectMapper();\n        Sub1 sub1 = objectMapper.readValue(&quot;&quot;&quot;\n            {&quot;name&quot;:&quot;cc&quot;}\n            &quot;&quot;&quot;, Sub1.class);\n        container.setBase(sub1);\n        System.out.println(container.getName());\n        container = objectMapper.readValue(\n            &quot;&quot;&quot;\n                {\n                    &quot;base&quot;:{\n                        &quot;name&quot;:&quot;aa&quot;\n                    }\n                }\n                &quot;&quot;&quot;, Container.class);\n    }\n}\n</code></pre>\n<p>The exception is</p>\n<blockquote>\n<p>Cannot construct instance of <code>org.example.Base</code></p>\n</blockquote>\n<p>and I don't understand why the annotation <code>@JsonTypeInfo</code> is not enough to instruct Jackson to instantiate <code>Sub1</code>.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

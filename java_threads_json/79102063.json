@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "jpa",
+      "jersey-2.0",
+      "guice-persist"
+    ],
+    "owner": {
+      "account_id": 175440,
+      "reputation": 147,
+      "user_id": 405460,
+      "user_type": "registered",
+      "accept_rate": 60,
+      "profile_image": "https://www.gravatar.com/avatar/fb01e9f796366632249e38ea3a0d4941?s=256&d=identicon&r=PG",
+      "display_name": "Kai Krupka",
+      "link": "https://stackoverflow.com/users/405460/kai-krupka"
+    },
+    "is_answered": true,
+    "view_count": 62,
+    "accepted_answer_id": 79155025,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1730812230,
+    "creation_date": 1729254034,
+    "last_edit_date": 1730812230,
+    "question_id": 79102063,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79102063/jpa-entitymanager-returns-old-state-after-update",
+    "title": "JPA EntityManager returns old state after update",
+    "body": "<h2>Introduction</h2>\n<p>I'm currently working on migrating GWT-RPC application to use RESTful services. For that, I repalced all RPC calls with domino-rest and additionally updated jersey1 to jersey2. Yes, jersey1 was already there for some external communication. Now, I have migrated all RPC calls to REST and at first I thought everything works great.</p>\n<p>For dependcy injection I use Guice 6 and after migration to Jersey2 the HK2-Guice-bridge. For persistence of my multiple DBs I use JPA/Hibernate. Just for completeness: before starting the migration to Jersey2 and domino-rest everything was working.</p>\n<h2>Problem</h2>\n<p>Whenever I update a domain object to the database, that works perfect. But, when I request it again by a GET request I sometimes (!) receive an old version (from before the update) and sometimes the correct updated one. I checked the entire call stack and figured out, that it's no GET caching problem. The problem comes from my repository, more precise the <code>EntityManager</code>, sometimes returns the old version.\nThe jersey2 log showed me, that different threads are used, so as the <code>EntityManager</code> is not thread-safe I was thinking whether that's the problem. I'm not sure or is there anything else. If it's the thread-safe issue, it would be nice if you can help me what's wrong.</p>\n<h2>Sources</h2>\n<h3>Generic-Repository</h3>\n<pre><code>public class Repository&lt;T&gt; {\n\n    @Inject\n    private Provider&lt;EntityManager&gt; emProvider;\n\n    private final Class&lt;T&gt; entityType;\n\n    @Inject\n    public Repository(final Class&lt;T&gt; entityType) {\n        this.entityType = entityType;\n    }\n\n    public EntityManager getEntityManager() {\n        return emProvider.get();\n    }\n\n    public T get(long id) {\n        return getEntityManager().find(entityType, id);\n    }\n\n    public T update(T o) {\n        EntityManager em = getEntityManager();\n        em.merge(o);\n        em.flush();\n        return o;\n    }\n\n    //other code omitted\n}\n</code></pre>\n<h3>Persistence Module (one of more)</h3>\n<pre><code>public class PersistenceModule extends PrivateModule {\n\n    private final String unitName;\n\n    public PersistenceModule(String unitName) {\n        this.unitName = unitName;\n    }\n\n    @Override\n    protected void configure() {\n        // I know setAutoBeginWorkOnEntityManagerCreation is not recommended, but for the time being.\n        install(new JpaPersistModule(unitName, JpaPersistOptions.builder().setAutoBeginWorkOnEntityManagerCreation(true).build()));\n        bind(PersistenceManager.class).asEagerSingleton();\n        expose(PersistenceManager.class);\n\n        // User\n        TypeLiteral&lt;Repository&lt;User&gt;&gt; userRepoType = new TypeLiteral&lt;&gt;() {\n        };\n        bind(userRepoType).toInstance(new Repository&lt;&gt;(User.class));\n        expose(userRepoType);\n    }\n}\n</code></pre>\n<h3>Persistence Manager (one of more)</h3>\n<pre><code>@Singleton\npublic class PersistenceManager {\n\n    private final PersistService service;\n\n    @Inject\n    public PersistenceManager(PersistService service) {\n        this.service = service;\n        service.start();\n    }\n\n    public void stop() {\n        service.stop();\n    }\n}\n</code></pre>\n<h2>Final words</h2>\n<p>My entry point for the web application is the <code>ApplicationConfig</code> extending <code>ResourceConfig</code>, where <code>Guice.createInjector</code> with the above mentioned <code>PersistenceModule</code> is called. The injector is then passed to the HK2-Guice Bridge. I hope you have a clue. Is there anything more required? Thank you!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

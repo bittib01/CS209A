@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "websocket",
+      "quarkus"
+    ],
+    "owner": {
+      "account_id": 4107787,
+      "reputation": 1481,
+      "user_id": 3371251,
+      "user_type": "registered",
+      "accept_rate": 100,
+      "profile_image": "https://www.gravatar.com/avatar/41077592566224211239002f48456800?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Paul",
+      "link": "https://stackoverflow.com/users/3371251/paul"
+    },
+    "is_answered": true,
+    "view_count": 819,
+    "accepted_answer_id": 78515840,
+    "answer_count": 1,
+    "score": -1,
+    "last_activity_date": 1716977394,
+    "creation_date": 1716329522,
+    "last_edit_date": 1716977394,
+    "question_id": 78514562,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78514562/quarkus-websockets-next-send-messages-to-clients",
+    "title": "quarkus websockets-next Send Messages to clients",
+    "body": "<p>I have read these documentations -&gt; <a href=\"https://quarkus.io/guides/websockets-next-tutorial\" rel=\"nofollow noreferrer\">websockets-next</a> and <a href=\"https://quarkus.io/guides/websockets-next-reference\" rel=\"nofollow noreferrer\">reference guide websockets-next</a>.</p>\n<p>I understand how a chat message could be implemented, because the client reacts to the endpoints but I have no idea how the server could send messages to the clients if updates occure on the server.\nSecondly, how can I send not only text messages but whole DTOs?</p>\n<p>I have never worked with sockets so I only know REST-Endpoints.\nMy example code:</p>\n<p><strong>DTO for the clients:</strong></p>\n<pre><code>@Data\npublic class InformationForClientDTO {\n    private List&lt;FinancialCalculationsDTO&gt; list;\n    private int version;\n}\n</code></pre>\n<p><strong>Code on the server:</strong></p>\n<pre><code>@ApplicationScoped\npublic class ServerCode {\n\n    public void someCalculation(){\n        //Server has reached some point which is important for clients. Send listForClients to all connected clients:\n        Arraylist&lt;InformationForClientDTO&gt; listForClients;\n        //How to send this list to the clients? How can I call the websocket with all clients and send them the DTOs?\n    }\n\n}\n</code></pre>\n<p><strong>Code-example From the quarkus wiki:</strong></p>\n<pre><code>@WebSocket(path = &quot;/chat/{username}&quot;)  \npublic class ChatWebSocket {\n\n    // Declare the type of messages that can be sent and received\n    public enum MessageType {USER_JOINED, USER_LEFT, CHAT_MESSAGE}\n    public record ChatMessage(MessageType type, String from, String message) {\n    }\n\n    @Inject\n    WebSocketConnection connection;  \n\n    @OnOpen(broadcast = true)       \n    public ChatMessage onOpen() {\n        return new ChatMessage(MessageType.USER_JOINED, connection.pathParam(&quot;username&quot;), null);\n    }\n\n    @OnClose                    \n    public void onClose() {\n        ChatMessage departure = new ChatMessage(MessageType.USER_LEFT, connection.pathParam(&quot;username&quot;), null);\n        connection.broadcast().sendTextAndAwait(departure);\n    }\n\n    @OnTextMessage(broadcast = true)  \n    public ChatMessage onMessage(ChatMessage message) {\n        return message;\n    }\n\n}\n</code></pre>\n<p>//EDIT\nFor anyone looking for more information about websockets-next, I found this: <a href=\"https://github.com/quarkusio/quarkus/discussions/38473\" rel=\"nofollow noreferrer\">Discussion about websockets next</a></p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

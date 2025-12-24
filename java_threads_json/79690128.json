@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "plugins",
+      "minecraft"
+    ],
+    "owner": {
+      "account_id": 38563573,
+      "reputation": 11,
+      "user_id": 28838021,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/88d42a5c3189181a6f4b52a9048818b5?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "JW Oh",
+      "link": "https://stackoverflow.com/users/28838021/jw-oh"
+    },
+    "is_answered": false,
+    "view_count": 80,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1753425190,
+    "creation_date": 1751629045,
+    "last_edit_date": 1753425190,
+    "question_id": 79690128,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79690128/minecraft-plugin-custommodeldata",
+    "title": "Minecraft Plugin CustomModelData",
+    "body": "<pre class=\"lang-java prettyprint-override\"><code>public class CreeperBucketListener implements Listener {\n\n    private final JavaPlugin plugin;\n    private final NamespacedKey keyItemModel;\n    private final NamespacedKey keyCustomModel;\n\n    public CreeperBucketListener(JavaPlugin plugin) {\n        this.plugin = plugin;\n        this.keyItemModel = new NamespacedKey(plugin, &quot;item_model&quot;);\n        this.keyCustomModel = new NamespacedKey(plugin, &quot;custom_model_data&quot;);\n    }\n\n    @EventHandler\n    public void onCaptureCreeper(PlayerInteractEntityEvent event) {\n        if (event.getHand() != EquipmentSlot.HAND) return;\n\n        Player player = event.getPlayer();\n        Entity clicked = event.getRightClicked();\n        if (!(clicked instanceof Creeper)) return;\n\n        ItemStack hand = player.getInventory().getItemInMainHand();\n        if (hand.getType() != Material.BUCKET) return;\n\n        clicked.remove();\n        if (hand.getAmount() == 1) player.getInventory().setItemInMainHand(null);\n        else hand.setAmount(hand.getAmount() - 1);\n\n        Bukkit.getScheduler().runTaskLater(plugin, () -&gt; {\n            ItemStack paper = new ItemStack(Material.PAPER);\n            ItemMeta meta = paper.getItemMeta();\n            if (meta != null) {\n                meta.setDisplayName(&quot;§aCreeper in a Bucket&quot;);\n\n                 PersistentDataContainer\n                meta.getPersistentDataContainer().set(keyItemModel, PersistentDataType.STRING, &quot;creeper_bucket&quot;);\n                meta.getPersistentDataContainer().set(keyCustomModel, PersistentDataType.STRING, &quot;entity_bucket&quot;);\n\n                paper.setItemMeta(meta);\n            }\n\n            Map&lt;Integer, ItemStack&gt; leftover = player.getInventory().addItem(paper);\n            if (!leftover.isEmpty()) {\n                leftover.values().forEach(item -&gt; player.getWorld().dropItemNaturally(player.getLocation(), item));\n            }\n        }, 1L);\n    }\n\n    @EventHandler\n    public void onUseCreeperPaper(PlayerInteractEvent event) {\n        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;\n        if (event.getHand() != EquipmentSlot.HAND) return;\n\n        Player player = event.getPlayer();\n        ItemStack item = event.getItem();\n        if (item == null || item.getType() != Material.PAPER) return;\n\n        ItemMeta meta = item.getItemMeta();\n        if (meta == null) return;\n\n        String tag1 = meta.getPersistentDataContainer().get(keyItemModel, PersistentDataType.STRING);\n        String tag2 = meta.getPersistentDataContainer().get(keyCustomModel, PersistentDataType.STRING);\n        if (!&quot;creeper_bucket&quot;.equals(tag1) || !&quot;entity_bucket&quot;.equals(tag2)) return;\n\n        Block clickedBlock = event.getClickedBlock();\n        if (clickedBlock == null) return;\n\n        Location loc = clickedBlock.getRelative(event.getBlockFace()).getLocation().add(0.5, 0, 0.5);\n        loc.getWorld().spawn(loc, Creeper.class);\n        player.playSound(loc, Sound.ITEM_BUCKET_EMPTY, 1f, 1f);\n\n        item.setAmount(item.getAmount() - 1);\n        ItemStack bucket = new ItemStack(Material.BUCKET);\n        if (item.getAmount() &lt;= 0) player.getInventory().setItemInMainHand(bucket);\n        else player.getInventory().addItem(bucket);\n\n        event.setCancelled(true);\n    }\n}\n</code></pre>\n<p>The command in Minecraft is <code>/give @p minecraft:paper[minecraft:item_model=&quot;minecraft:creeper_bucket&quot;, minecraft:custom_model_data={strings:[entity_bucket]}]</code></p>\n<p>I'm trying to make minecraft creepers into buckets and I'm trying to use the custom model data from the resource pack, but since the command was reorganized in 1.21.4, I don't know how to put nbt in the code.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

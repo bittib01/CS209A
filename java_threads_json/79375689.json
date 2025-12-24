@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "kotlin",
+      "jackson",
+      "logstash-logback-encoder"
+    ],
+    "owner": {
+      "account_id": 2032093,
+      "reputation": 2165,
+      "user_id": 1815486,
+      "user_type": "registered",
+      "accept_rate": 40,
+      "profile_image": "https://www.gravatar.com/avatar/03e3fc59b08e7dab3f7684caf29dd051?s=256&d=identicon&r=PG",
+      "display_name": "aiguofer",
+      "link": "https://stackoverflow.com/users/1815486/aiguofer"
+    },
+    "is_answered": false,
+    "view_count": 45,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1737651860,
+    "creation_date": 1737486639,
+    "last_edit_date": 1737651860,
+    "question_id": 79375689,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79375689/how-to-use-my-custom-generator-while-deserializing-data-classes-in-logstash-logb",
+    "title": "How to use my custom generator while deserializing data classes in logstash-logback",
+    "body": "<p>I wrote a custom generator to truncate text fields past a certain length but it doesn't seem to work on data class fields.</p>\n<p>I'm using Kotlin with Klogger and have a function like this that allows me to pass a lambda that builds a map and allows me to set key, value pairs as Markers:</p>\n<pre><code>fun KLogger.debug(msg: () -&gt; Any?, extra: (MutableMap&lt;String, Any?&gt;) -&gt; Unit) {\n    if (isDebugEnabled) {\n        val entries = mutableMapOf&lt;String, Any?&gt;().apply { extra(this) }\n        debug(appendEntries(entries), msg)\n    }\n}\n</code></pre>\n<p>To test this, I wrote a custom serializer for a NestedObject data class, a custom JsonFactory to add that serializer, and a custom JsonGenerator to do the actual truncation:</p>\n<pre><code>class CustomJsonGeneratorDecorator : JsonGeneratorDecorator {\n    override fun decorate(generator: JsonGenerator) = CappedFieldJsonGenerator(generator)\n}\n\nclass CappedFieldJsonGenerator(delegate: JsonGenerator) : JsonGeneratorDelegate(delegate) {\n    companion object {\n        private const val MAX_FIELD_LENGTH = 3\n    }\n\n    override fun writeRawUTF8String(text: ByteArray?, offset: Int, length: Int) {\n        super.writeRawUTF8String(text, offset, min(MAX_FIELD_LENGTH, length))\n    }\n\n    override fun writeUTF8String(text: ByteArray, offset: Int, length: Int) {\n        super.writeUTF8String(text, offset, min(MAX_FIELD_LENGTH, length))\n    }\n\n    override fun writeString(reader: Reader, len: Int) {\n        super.writeString(reader, min(MAX_FIELD_LENGTH, len))\n    }\n\n    override fun writeString(text: CharArray, offset: Int, len: Int) {\n        super.writeString(text, offset, min(MAX_FIELD_LENGTH, len))\n    }\n\n    override fun writeString(text: SerializableString) {\n        this.writeString(text.value)\n    }\n\n    override fun writeString(text: String) {\n        super.writeString(text.substring(0, min(MAX_FIELD_LENGTH, text.length)))\n    }\n}\n\ndata class NestedObject(val name: String = &quot;nested&quot;)\n\ndata class TestObject(\n    val name: String = &quot;hello&quot;,\n    val nested: NestedObject = NestedObject(),\n)\n\nclass TestObjectSerializer @JvmOverloads constructor(t: Class&lt;NestedObject&gt;? = null) :\n    StdSerializer&lt;NestedObject&gt;(t) {\n\n    override fun serialize(value: NestedObject, gen: JsonGenerator, provider: SerializerProvider) {\n        gen.writeStartObject()\n        gen.writeStringField(&quot;name&quot;, &quot;serialized&quot;)\n        gen.writeStringField(&quot;class&quot;, gen::class.java.name)\n        gen.writeEndObject()\n    }\n}\n\nclass CustomJsonFactoryDecorator : JsonFactoryDecorator {\n    override fun decorate(factory: JsonFactory): JsonFactory {\n        val mapper = factory.codec as ObjectMapper\n        val module = SimpleModule()\n        module.addSerializer(NestedObject::class.java, TestObjectSerializer())\n        mapper.registerModule(module)\n        return factory\n    }\n}\n</code></pre>\n<p>When I call the following log:</p>\n<pre><code>    logger.info({ &quot;debug&quot; }) {\n        it[&quot;test_object&quot;] = TestObject()\n        it[&quot;plain_string&quot;] = &quot;string&quot;\n    }\n</code></pre>\n<p>I get the following result:</p>\n<pre><code>{&quot;@timestamp&quot;:&quot;202&quot;,&quot;@version&quot;:&quot;1&quot;,&quot;message&quot;:&quot;deb&quot;,&quot;logger_name&quot;:&quot;com&quot;,&quot;thread_name&quot;:&quot;mai&quot;,&quot;level&quot;:&quot;INF&quot;,&quot;level_value&quot;:20000,&quot;dd.service&quot;:&quot;sem&quot;,&quot;dd.env&quot;:&quot;aws&quot;,&quot;dd.version&quot;:&quot;0.0&quot;,&quot;test_object&quot;:{&quot;name&quot;:&quot;hello&quot;,&quot;nested&quot;:{&quot;name&quot;:&quot;serialized&quot;,&quot;class&quot;:&quot;com.fasterxml.jackson.core.json.UTF8JsonGenerator&quot;}},&quot;plain_string&quot;:&quot;str&quot;,&quot;pod_name&quot;:&quot;sem&quot;,&quot;pod_namespace&quot;:&quot;dev&quot;,&quot;node_name&quot;:&quot;ip-&quot;,&quot;node_ip&quot;:&quot;10.&quot;}\n</code></pre>\n<p>As you can see, the truncate logic works on all fields (including plain text markers) except for those on the <code>TestObject</code> and those on the <code>NestedObject</code> with a custom serializer. It seems the custom serializer is getting <code>UTF8JsonGenerator</code> instead of my <code>CappedFieldJsonGenerator</code>.</p>\n<p>Any ideas on how to ensure my custom generator is always used?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

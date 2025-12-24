@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "groovy",
+      "google-sheets-api",
+      "scriptrunner-for-jira"
+    ],
+    "owner": {
+      "account_id": 7706590,
+      "reputation": 15,
+      "user_id": 5837353,
+      "user_type": "registered",
+      "profile_image": "https://lh5.googleusercontent.com/-vrKqY4UDGoY/AAAAAAAAAAI/AAAAAAAAI-w/2MWwgqjGn5Q/s256-rj/photo.jpg",
+      "display_name": "Ben",
+      "link": "https://stackoverflow.com/users/5837353/ben"
+    },
+    "is_answered": false,
+    "view_count": 106,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1756343463,
+    "creation_date": 1732190875,
+    "last_edit_date": 1756343463,
+    "question_id": 79211073,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79211073/update-a-google-sheet-using-groovy-script-in-adaptavist-scriptrunner-on-an-atlas",
+    "title": "Update a Google Sheet using Groovy script in Adaptavist ScriptRunner on an Atlassian Jira Cloud instance",
+    "body": "<p>community members.</p>\n<p>I sincerely hope that one of you has tried solving this challenge, which is driving me up the wall.</p>\n<h1>My Objective</h1>\n<p>I need to update some cells in a Google Sheet associated with a Jira issue via one of its remote links. I figured out how to create and configure a Google App with a service account to enable secure server-to-server access between Jira and the Google Workspace where the sheet is located. I can read data from the associated Google Sheets and perform many automated Jira functions.\nOnce those actions are done, I need to update cells in the Google Sheet before the Groovy script completes.</p>\n<h1>My Challange</h1>\n<p><strong>1. Constraints of ScriptRunner's Groovy environment</strong></p>\n<p>The Groovy environment available in ScriptRunner has constraints, making this a challenge. Only <strong>JAVA</strong> libraries starting with java.* can be imported and used as classes in this Groovy environment. This means I cannot import and access the Google Sheet and Google Auth libraries and classes, making achieving my object much more straightforward. Only the Java libraries are available, e.g., <em>java.security.</em>, to use the Java security classes and <em>java.util.Base64</em> to use the encoding, etc.</p>\n<p><strong>2. I have not worked with Google Authorisations</strong>\nI can read information from the Google sheet, but updating the sheet requires authentication involving private keys and encoding, and and...\nI understand how to create the <em>JWT header</em> and <em>JWT claim set</em>, but <strong>I am stuck on how to create the JSON Web Signature (JWS)</strong>, which is required to obtain the authentication token from Google.</p>\n<p>Here is the link to the Google source I'm referring to: <a href=\"https://developers.google.com/identity/protocols/oauth2/service-account\" rel=\"nofollow noreferrer\">https://developers.google.com/identity/protocols/oauth2/service-account</a> and specifically the section highlighted in image below:\n<a href=\"https://i.sstatic.net/GPN3xxVQ.png\" rel=\"nofollow noreferrer\"><img src=\"https://i.sstatic.net/GPN3xxVQ.png\" alt=\"enter image description here\" /></a></p>\n<p>Once I can construct the JSON WEB SIGNATURE (JWS), I will use that to obtain the authorisation token required by the Google sheet batch update API endpoint.</p>\n<p>If anyone managed to write a Groovy script in ScriptRunner that uses a Google Service Account to update a Google Sheet, any examples or help to achieve this would be greatly appreciated.</p>\n<hr />\n<h1>Code to the point where I am stuck</h1>\n<h2><em>I will update this code as we progress until it works as expected/intended to serve as a reference for others</em></h2>\n<pre><code>import static ava.nio.charset.StandardCharsets.UTF_8\nimport java.security.spec.X509EncodedKeySpec\nimport java.security.KeyFactory\nimport java.security.PrivateKey\nimport java.security.Signature\nimport java.util.Base64\nimport groovy.time.*\n\ndef googleSheetId = '1PYLlm83mo-XY5_gmCWjEzdIXYjy-gmCWvfLYvcvp7DM'\ndef googleServiceAccountKey = ''\n// JWT Header:\nString headerJWTjson = '{&quot;alg&quot;:&quot;RS256&quot;,&quot;typ&quot;:&quot;JWT&quot;,&quot;kid&quot;:&quot;' + GOOGLE_SERVICE_ACCOUNT_KEY + '&quot;}'\ndef headerJWTbytes = headerJWTjson.getBytes(UTF_8)\ndef encodedJWTheader = headerJWTbytes.encodeBase64Url().toString()\n// JWT Claim Set\nString claimSetJWTiss = &quot;871527165788-fk3inbc211l1dnjce94pf52c3t9snqj0.apps.googleusercontent.com&quot;\nString claimSetJWTscope = &quot;https://www.googleapis.com/auth/worksheets&quot;\nString claimSetJWTaud = &quot;https://oauth2.googleapis.com/token&quot; \ndef now = new Date().getTime() / 1000\ndef claimSetJWTiat = now.round(0)\ndef claimSetJWTexp = claimSetJWTiat + 3600\nString claimSetJWTjson = '''\n{\n    &quot;iss&quot;: &quot;''' + claimSetJWTiss + '''&quot;,\n    &quot;scope&quot;: &quot;''' + claimSetJWTscope + '''&quot;,\n    &quot;aud&quot;: &quot;''' + claimSetJWTaud + '''&quot;,\n    &quot;exp&quot;: ''' + claimSetJWTexp + ''',\n    &quot;iat&quot;: ''' + claimSetJWTiat + '''\n}'''\ndef claimSetJWTbytes = claimSetJWTjson.getBytes(&quot;UTF-8&quot;)\ndef encodedJWTclaimSet  = claimSetJWTbytes.encodeBase64Url().toString()\n// JSON Web Signature (JWS)\ndef jsonWebSignatureInput = '{' + encodedJWTheader + '}.{' + encodedJWTclaimSet + '}'\nbyte[] inputBytes = jsonWebSignatureInput.getBytes(&quot;UTF-8&quot;) // encode the input as UTF-8\ndef privateKeyString = googleServiceAccountKey\ndef sha256 = privateKeyString.digest('SHA-256')\n// ------------------------------------------\n// This is where I'm stuck at the moment...\n// ------------------------------------------\n// I tried this, but I doubt whether it is what needs to be done:\nPrivateKey privateKey = KeyFactory.getInstance(&quot;RSA&quot;).generatePrivate( new X509EncodedKeySpec(Base64.getDecoder().decode(sha256)))\n // because it results in the following message:\n</code></pre>\n<p><em>java.security.spec.InvalidKeySpecException: Only RSAPrivate(Crt)KeySpec and PKCS8EncodedKeySpec supported for RSA private keys</em></p>\n<pre><code>// The next step is to construct the payload for the authentication API endpoint. \n// It is the combination of the JWT Header and JWT ClaimSet and the JWS (Signature) to authenticate with https://www.googleapis.com/auth/spreadsheets\n// ... code to continue here...\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

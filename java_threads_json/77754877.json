@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "triggers",
+      "sql-update",
+      "h2"
+    ],
+    "owner": {
+      "account_id": 20723985,
+      "reputation": 21,
+      "user_id": 15217646,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/5zb8w.jpg?s=256",
+      "display_name": "Paulo",
+      "link": "https://stackoverflow.com/users/15217646/paulo"
+    },
+    "is_answered": true,
+    "view_count": 212,
+    "accepted_answer_id": 78234139,
+    "answer_count": 3,
+    "score": 2,
+    "last_activity_date": 1711656117,
+    "creation_date": 1704319832,
+    "question_id": 77754877,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/77754877/h2-triggers-behaving-in-infinite-loop",
+    "title": "H2 Triggers behaving in infinite loop",
+    "body": "<p>I create a trigger for H2 database to automate the update of a timestamp column &quot;updated_ts&quot;. That trigger behaves as an infinite loop when UPDATE sql statment is called.</p>\n<pre><code>UPATE main.doc doc SET \nvalue = 100.\nWHERE doc.id = 1;\n\n</code></pre>\n<h1>Trigger infinite looping</h1>\n<pre><code>@Override\n    public void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {\n        \n        log.debug(&quot;🔥🔥 FIRED Trigger for UpdateTimestamp table {}&quot;,\n                this.schemaName.concat(&quot;.&quot;).concat(this.tableName));\n        \n        if(Objects.isNull(newRow))\n            return;\n        \n        final Long id = (Long)newRow[0];\n\n        log.debug(&quot;🔥🔥 FIRED Trigger for id {}&quot;, id);\n        \n        final LocalDate localDate = LocalDate.now();\n        final LocalDateTime dateTime = LocalDateTime\n                .of(localDate.getDayOfYear(), localDate.getMonth(), localDate.getDayOfMonth(), 0, 0, 0);\n    \n        final String update = new StringBuilder(&quot;UPDATE &quot;)\n                .append(this.schemaName).append(&quot;.&quot;)\n                .append(this.tableName).append(&quot; doc SET &quot;)\n                .append(&quot; update_ts = ? &quot;)\n                .append(&quot; where doc.id = ? &quot;)\n                .toString();\n        \n        final PreparedStatement statement = conn.prepareStatement(update);\n\n        statement.setTimestamp(1, Timestamp.valueOf(dateTime));\n        statement.setLong(2, id);\n        \n        final boolean ok = statement.execute();\n        \n        log.debug(&quot;Update status {} for UpdateTimestampShippingcalcDoc id {} table {}&quot;,\n                ok , id, this.schemaName.concat(&quot;.&quot;).concat(this.tableName));\n    }\n</code></pre>\n<p>I think it's of H2 behavor</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

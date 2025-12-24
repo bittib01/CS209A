@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "junit",
+      "togglz"
+    ],
+    "owner": {
+      "account_id": 18586978,
+      "reputation": 3850,
+      "user_id": 15000097,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/yFl4M.jpg?s=256",
+      "display_name": "Georgii Lvov",
+      "link": "https://stackoverflow.com/users/15000097/georgii-lvov"
+    },
+    "is_answered": true,
+    "view_count": 374,
+    "accepted_answer_id": 78829176,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1722701531,
+    "creation_date": 1721406074,
+    "last_edit_date": 1721417387,
+    "question_id": 78770351,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78770351/springboottest-with-togglz",
+    "title": "SpringBootTest with Togglz",
+    "body": "<p>I just recently added <a href=\"https://www.togglz.org/documentation/spring-boot-starter\" rel=\"nofollow noreferrer\">togglz</a> to the spring-boot 3.1.9 application, which contains also much stuff like spring-security, spring-data, etc.</p>\n<p>Maven dependency:</p>\n<pre><code>&lt;dependency&gt;\n  &lt;groupId&gt;org.togglz&lt;/groupId&gt;\n  &lt;artifactId&gt;togglz-spring-boot-starter&lt;/artifactId&gt;\n  &lt;version&gt;4.4.0&lt;/version&gt;\n&lt;/dependency&gt;\n</code></pre>\n<p>Feature enum:</p>\n<pre><code>import org.togglz.core.Feature;\n\npublic enum ApplicationFeatures implements Feature {\n    MY_FEATURE\n}\n</code></pre>\n<p>Configuration:</p>\n<pre><code>import org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\nimport org.togglz.core.manager.EnumBasedFeatureProvider;\nimport org.togglz.core.spi.FeatureProvider;\nimport org.togglz.core.user.NoOpUserProvider;\nimport org.togglz.core.user.UserProvider;\n\n@Configuration\npublic class TogglesConfiguration {\n\n    @Bean\n    public FeatureProvider featureProvider() {\n        return new EnumBasedFeatureProvider(ApplicationFeatures.class);\n    }\n\n    @Bean\n    public UserProvider userProvider() {\n        return new NoOpUserProvider();\n    }\n}\n</code></pre>\n<p>Application.yaml:</p>\n<pre><code>togglz:\n  features:\n    MY_FEATURE:\n      enabled: true\n</code></pre>\n<p>Simple service that uses:</p>\n<pre><code>import de.telekom.wom.workorder.config.toggles.ApplicationFeatures;\nimport org.springframework.stereotype.Service;\n\n@Service\npublic class MyService {\n\n    public String getA() {\n        if (ApplicationFeatures.MY_FEATURE.isActive())\n            return &quot;OK&quot;;\n        else\n            return &quot;INACTIVE&quot;;\n    }\n}\n</code></pre>\n<p>Simple spring boot test:</p>\n<pre><code>import org.junit.jupiter.api.Test;\nimport org.springframework.beans.factory.annotation.Autowired;\nimport org.springframework.boot.test.context.SpringBootTest;\n\n@SpringBootTest//(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)\nclass Testik {\n\n    @Autowired\n    MyService myService;\n\n    @Test\n    void name() {\n        myService.getA();\n    }\n}\n</code></pre>\n<p>The problem is that if I don't start real web environment, so use simple <code>@SpringBootTest</code> wihtout <code>(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)</code>, I am getting an error:</p>\n<blockquote>\n<p>java.lang.IllegalStateException: Could not find the FeatureManager.\nFor web applications please verify that the TogglzFilter starts up\ncorrectly. In other deployment scenarios you will typically have to\nimplement a FeatureManagerProvider as described in the 'Advanced\nConfiguration' chapter of the documentation.</p>\n</blockquote>\n<p>Although if I create a sample project, it works as expected. <strong>Where could the problem be? Why the rise of the web environment can affect Togglz?</strong></p>\n<p>Logs by success:</p>\n<blockquote>\n<p>DEBUG [FeatureContext.findFeatureManagerInClassLoader()] Provider\norg.togglz.core.context.BeanFinderFeatureManagerProvider returned\nFeatureManager</p>\n</blockquote>\n<p>Logs by error:</p>\n<blockquote>\n<p>DEBUG [FeatureContext.findFeatureManagerInClassLoader()]\nNo FeatureManager provided by\norg.togglz.core.context.BeanFinderFeatureManagerProvider</p>\n</blockquote>\n<p><strong>UPDATE</strong>:\nI just realized that if I remove the actuator dependency from the pom.xml file, then everything works as it should. Any ideas why?</p>\n<pre><code> &lt;dependency&gt;\n   &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n   &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;\n &lt;/dependency&gt;\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

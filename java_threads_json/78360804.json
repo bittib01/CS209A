@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "multithreading",
+      "tomcat",
+      "httprequest"
+    ],
+    "owner": {
+      "account_id": 29164852,
+      "reputation": 45,
+      "user_id": 22342685,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/LrWoq.jpg?s=256",
+      "display_name": "WounderWaffle",
+      "link": "https://stackoverflow.com/users/22342685/wounderwaffle"
+    },
+    "is_answered": true,
+    "view_count": 12418,
+    "accepted_answer_id": 78532461,
+    "answer_count": 1,
+    "score": 3,
+    "last_activity_date": 1716640210,
+    "creation_date": 1713686168,
+    "last_edit_date": 1713687269,
+    "question_id": 78360804,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78360804/the-request-object-has-been-recycled-and-is-no-longer-associated-with-this-facad",
+    "title": "The request object has been recycled and is no longer associated with this facade",
+    "body": "<p>I have a custom Filter with a BlockingQueue requestQueue in my Spring application.\nWhen the http request limit is exceeded, i put a request in it and call it as the request limit is reset. But when executing an http request, an exception occurs. How i can fix this?</p>\n<p><code>Exception:</code></p>\n<pre class=\"lang-bash prettyprint-override\"><code>java.lang.IllegalStateException: The request object has been recycled and is no longer associated with this facade\n    at org.apache.catalina.connector.RequestFacade.checkFacade(RequestFacade.java:855) ~[tomcat-embed-core-10.1.19.jar:10.1.19]\n    at org.apache.catalina.connector.RequestFacade.isAsyncSupported(RequestFacade.java:733) ~[tomcat-embed-core-10.1.19.jar:10.1.19]\n    at jakarta.servlet.ServletRequestWrapper.isAsyncSupported(ServletRequestWrapper.java:378) ~[tomcat-embed-core-10.1.19.jar:6.0]\n    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:193) ~[tomcat-embed-core-10.1.19.jar:10.1.19]\n    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:149) ~[tomcat-embed-core-10.1.19.jar:10.1.19]\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>@Component\n@Slf4j\n@EnableScheduling\npublic class ApiRequestFilter implements Filter {\n    private final AtomicInteger resetCounter = new AtomicInteger(0);\n    private final int MAX_NUMB_OF_REQUESTS_PER_SECOND = 2;\n    private final BlockingQueue&lt;Runnable&gt; requestQueue = new LinkedBlockingQueue&lt;&gt;();\n    @Override\n    public void doFilter(ServletRequest servletRequest,\n                         ServletResponse servletResponse,\n                         FilterChain filterChain) throws IOException, ServletException {\n        if (servletRequest instanceof HttpServletRequest httpServletRequest){\n            resetCounter.getAndIncrement();\n\n            String uri = httpServletRequest.getRequestURI();\n            log.warn(&quot;Incoming request: {}, request counter in the present: {}&quot;, uri, resetCounter.get());\n\n            if(resetCounter.get() &gt; MAX_NUMB_OF_REQUESTS_PER_SECOND){\n\n                try {\n                    requestQueue.put(() -&gt; {\n                        try {\n                            filterChain.doFilter(servletRequest, servletResponse);\n                        } catch (IOException | ServletException e) {\n                            log.error(&quot;Error when executing a request from the queue&quot;, e);\n                        }\n                    });\n                } catch (InterruptedException e) {\n                    throw new RuntimeException(e);\n                }\n            } else{\n                filterChain.doFilter(servletRequest, servletResponse);\n            }\n        } else {\n            ((HttpServletResponse) servletResponse).sendError(400, &quot;Bad Request&quot;);\n        }\n    }\n\n    @Scheduled(timeUnit = TimeUnit.SECONDS, fixedDelay = 1, initialDelay = 0)\n    private void resetRequestCounter(){\n        if (resetCounter.get() &gt; 0) resetCounter.set(0);\n\n        while (!requestQueue.isEmpty()) {\n            try {\n                requestQueue.take().run();\n            } catch (InterruptedException e) {\n                log.error(&quot;Error when executing a request from the queue&quot;, e);\n            }\n        }\n    }\n}\n</code></pre>\n<p>I found a similar <a href=\"https://stackoverflow.com/questions/77213459/java-lang-illegalstateexception-the-request-object-has-been-recycled-and-is-no\">problem</a>, but unfortunately I did not find a solution to it :(</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "marklogic"
+    ],
+    "owner": {
+      "account_id": 218720,
+      "reputation": 777,
+      "user_id": 475191,
+      "user_type": "registered",
+      "accept_rate": 33,
+      "profile_image": "https://www.gravatar.com/avatar/858bae6aa146dd19c109e0a76e744b66?s=256&d=identicon&r=PG",
+      "display_name": "David Harris",
+      "link": "https://stackoverflow.com/users/475191/david-harris"
+    },
+    "is_answered": false,
+    "view_count": 76,
+    "answer_count": 1,
+    "score": 1,
+    "last_activity_date": 1727132313,
+    "creation_date": 1726864495,
+    "last_edit_date": 1726948095,
+    "question_id": 79008195,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79008195/create-structuredquerydefinition-with-marklogic-java-api-to-find-all-xml-files-w",
+    "title": "Create StructuredQueryDefinition with Marklogic Java API to find all XML files with given element",
+    "body": "<p>I’m sorry if there is a trivial answer to this question that I’ve missed, but I’m trying to get a StructuredQueryDefinition object that will search for documents that contain a specific XML element.</p>\n<p>The XML search string I might use would be something like this:</p>\n<pre><code>&lt;query xmlns=&quot;http://marklogic.com/appservices/search&quot;&gt;\n  &lt;container-query&gt;\n    &lt;element ns=&quot;&quot; name=&quot;MyTag&quot; /&gt;\n    &lt;true-query/&gt;\n  &lt;/container-query&gt;\n&lt;/query&gt;  \n</code></pre>\n<p>But I’m not sure how I would create a <em>StructuredQueryDefinition</em> using the Java API.  I'm looking for the equivalent of <code>&lt;true-query/&gt;</code> but I'm not seeing one.</p>\n<pre><code>StructuredQueryBuilder qb = …\nStructuredQueryDefinition  def = qb.containerQuery(qb.element(&quot;MyTag&quot;), ?whatGoesHere?);\n</code></pre>\n<p>I did find an ugly hack that allowed me to create my own <code>&lt;true-query/&gt;</code> <em>StructuredQueryDefinition</em> but it is not pretty.  I'm hoping there is a more 'out-of-the-box' way of limiting to XML files that have a given tag, but in the mean time I'll use this class:</p>\n<pre><code>package com.marklogic.client.query;\n\nimport javax.xml.stream.XMLStreamException;\nimport javax.xml.stream.XMLStreamWriter;\n\n\n/**\n * This is a pretty gritty hack.  I needed to create a StructuredQueryDefinition that\n * would represent the &lt;true-query/&gt; search.  (This was needed to find XML files that\n * contain a given element).  \n * \n * The StructuredQueryBuilder has a checkQuery method that only allows StructuredQueryDefinition\n * objects that are assignable from the AbstractStructuredQuery class.  Unfortunatly this\n * class is protected so I can't extend it from any class that isn't in the com.marklogic.client.query\n * package.  Additionally the AbstractStructuredQuery default constructor references the builderOptionsURI\n * of its enclosing class StructuredQueryBuilder so I had to first create a class that extended\n * the StructuredQueryBuilder and that class define an inner class that extends the AbstractStructuredQuery\n * class.  \n * \n * Its not pretty but it does work.  I can create a StructuredQueryDefinition to limit to \n * document containing a tag using the following\n *   qb.containerQuery(\n *      qb.element(tag), \n *      new com.marklogic.client.query.StructuredQueryBuilderExt().getTrueQueryDefinition()\n *   );\n */\npublic class StructuredQueryBuilderExt extends StructuredQueryBuilder {  \n\n    public TrueQueryDefinition getTrueQueryDefinition() {\n        return new TrueQueryDefinition();\n    }\n    \n    public class TrueQueryDefinition extends AbstractStructuredQuery {\n        \n        @Override\n        public void innerSerialize(XMLStreamWriter serializer) throws XMLStreamException {\n            serializer.writeEmptyElement(&quot;true-query&quot;);\n        }\n    }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

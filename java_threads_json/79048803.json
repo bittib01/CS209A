@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot"
+    ],
+    "owner": {
+      "account_id": 965625,
+      "reputation": 904,
+      "user_id": 1103606,
+      "user_type": "registered",
+      "accept_rate": 51,
+      "profile_image": "https://www.gravatar.com/avatar/0d93cc650b93939ea91066fcb5aefae0?s=256&d=identicon&r=PG",
+      "display_name": "Peter Penzov",
+      "link": "https://stackoverflow.com/users/1103606/peter-penzov"
+    },
+    "is_answered": true,
+    "view_count": 194,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1731142508,
+    "creation_date": 1727914742,
+    "last_edit_date": 1730817299,
+    "question_id": 79048803,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79048803/implement-spring-boot-service-based-on-yml-file-configs",
+    "title": "Implement Spring Boot Service based on yml file configs",
+    "body": "<p>I have the following test Java code into Spring Boot microservice:</p>\n<p><a href=\"https://github.com/rcbandit111/profile-protection/blob/main/src/main/java/com/profile/protection/admin/service/impl/KeysServiceImpl.java#L27\" rel=\"nofollow noreferrer\">https://github.com/rcbandit111/profile-protection/blob/main/src/main/java/com/profile/protection/admin/service/impl/KeysServiceImpl.java#L27</a></p>\n<p>I need to process the API request based on the yml configuration:</p>\n<p>Example:</p>\n<pre><code>profile-protection:\n  dataClasses:\n    - name: USER_INFO\n      activeVersionName: version-1\n      versions:\n        - versionName: version-1\n          algorithm: AES\n          encryptKeyName: user\n    - name: SAMPLE_ENCRYPTION\n      activeVersionName: version-1\n      versions:\n        - versionName: version-1\n          algorithmName: AES\n          encryptKeyName: user_aes\n</code></pre>\n<p>The solution that I can think of is to create a Factory model which selects implementation services based on key value:</p>\n<pre><code>@Component\npublic class EncryptionServiceFactory {\n\n    private final ApplicationContext applicationContext;\n    private final EncryptionServiceProperties encryptionServiceProperties;\n\n    @Autowired\n    public EncryptionServiceFactory(ApplicationContext applicationContext, EncryptionServiceProperties encryptionServiceProperties) {\n        this.applicationContext = applicationContext;\n        this.encryptionServiceProperties = encryptionServiceProperties;\n    }\n\n    public EncryptionService getService(String dataClassName) {\n        return (EncryptionService) applicationContext.getBean(dataClassName);\n    }\n}\n\n.....\n\n// Implementation:\n\npublic interface EncryptionService {\n    String encrypt(String plaintext);\n    String decrypt(String ciphertext);\n}\n\n@Service(&quot;USER_INFO&quot;)\npublic class UserInfoEncryptionService implements EncryptionService {\n\n    // This would use configuration values for encryption\n    @Override\n    public String encrypt(String plaintext) {\n        // Implement AES/CBC/PKCS5Padding encryption logic here\n        return &quot;encrypted-&quot; + plaintext;\n    }\n\n    @Override\n    public String decrypt(String ciphertext) {\n        // Implement AES/CBC/PKCS5Padding decryption logic here\n        return &quot;decrypted-&quot; + ciphertext;\n    }\n}\n\n.....\n\n@Service(&quot;SAMPLE_ENCRYPTION&quot;)\npublic class SampleEncryptionService implements EncryptionService {\n\n    // This would use configuration values for encryption\n    @Override\n    public String encrypt(String plaintext) {\n        // Implement AES/CBC/PKCS5Padding encryption logic here\n        return &quot;encrypted-&quot; + plaintext;\n    }\n\n    @Override\n    public String decrypt(String ciphertext) {\n        // Implement AES/CBC/PKCS5Padding decryption logic here\n        return &quot;decrypted-&quot; + ciphertext;\n    }\n}\n\n.....\n\n@RestController\n@RequestMapping(&quot;..........&quot;)\npublic class EncryptionController {\n\n    private final EncryptionServiceFactory encryptionServiceFactory;\n\n    @Autowired\n    public EncryptionController(EncryptionServiceFactory encryptionServiceFactory) {\n        this.encryptionServiceFactory = encryptionServiceFactory;\n    }\n\n    @PostMapping(&quot;/{dataClassName}/encrypt&quot;)\n    public String encrypt(@PathVariable String dataClassName, @RequestBody String plaintext) {\n        EncryptionService encryptionService = encryptionServiceFactory.getService(dataClassName);\n        return encryptionService.encrypt(plaintext);\n    }\n\n}\n</code></pre>\n<p>As you can see based on the dataClass value service is selected. But the issue is that I have a fixed Spring Boot Services. IF I need to add more types of dataClasses into yml config file I need aslo to add Sprign Boot Services.</p>\n<p>Is it possible to design the  code in a such a way that I can add more dataClass names with sub configuration values without adding new Java code?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

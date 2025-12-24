@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "pdf-generation",
+      "pdfbox"
+    ],
+    "owner": {
+      "account_id": 11146382,
+      "reputation": 380,
+      "user_id": 8180996,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/rqc5MYkZ.jpg?s=256",
+      "display_name": "Kiran Kandel",
+      "link": "https://stackoverflow.com/users/8180996/kiran-kandel"
+    },
+    "is_answered": false,
+    "view_count": 122,
+    "answer_count": 0,
+    "score": 1,
+    "last_activity_date": 1762797383,
+    "creation_date": 1762755177,
+    "last_edit_date": 1762785349,
+    "question_id": 79815248,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79815248/stack-overflow-when-collecting-indirect-object-keys-from-recursive-pdf-structure",
+    "title": "Stack overflow when collecting indirect object keys from recursive PDF structures in Apache PDFBox (PDFBox 3.0.5)",
+    "body": "<p>I'm using the Apache PDFBox library to process PDF files and am encountering a StackOverflowError due to circular references in the PDF structure. The error occurs when PDFBox tries to traverse the COS tree. It used to work fine with PDFBox 3.0.0, getting this error since 3.0.1</p>\n<p>Reproducible example:</p>\n<pre class=\"lang-java prettyprint-override\"><code>PDDocument document = new PDDocument();\nPDPage page = new PDPage(PDRectangle.A4);\n// Create AcroForm\nPDAcroForm acroForm = new PDAcroForm(document);\ndocument.getDocumentCatalog().setAcroForm(acroForm);\n\n// Create a single text field\nPDTextField textField = new PDTextField(acroForm);\ntextField.setPartialName(&quot;testField&quot;);\nPDAnnotationWidget widget = textField.getWidgets().get(0);\nwidget.setRectangle(new PDRectangle(100, 700, 200, 20));\nwidget.setPage(page);\npage.getAnnotations().add(widget);\nacroForm.getFields().add(textField);\n\n// Adding page AFTER creating form fields causes StackOverflowError\ndocument.addPage(page);\n\ndocument.save(&quot;output.pdf&quot;);\ndocument.close();\n</code></pre>\n<p>Environment:<br />\nPDFBox version: 3.0.5</p>\n<pre class=\"lang-none prettyprint-override\"><code>java.lang.StackOverflowError\n    at org.apache.pdfbox.cos.COSDictionary.getIndirectObjectKeys(COSDictionary.java:1495)\n    at org.apache.pdfbox.cos.COSDictionary.getIndirectObjectKeys(COSDictionary.java:1490)\n    at org.apache.pdfbox.cos.COSArray.getIndirectObjectKeys(COSArray.java:842)\n    at org.apache.pdfbox.cos.COSDictionary.getIndirectObjectKeys(COSDictionary.java:1495)\n    at org.apache.pdfbox.cos.COSDictionary.getIndirectObjectKeys(COSDictionary.java:1490)\n    at org.apache.pdfbox.cos.COSArray.getIndirectObjectKeys(COSArray.java:842)\n    [repeating pattern...]\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

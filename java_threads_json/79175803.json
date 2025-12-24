@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "database",
+      "spring-boot",
+      "hibernate",
+      "spring-data-jpa"
+    ],
+    "owner": {
+      "account_id": 23205192,
+      "reputation": 33,
+      "user_id": 17299516,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/5292e90b48afe505f40ddeb8f1adeae9?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Yohpx",
+      "link": "https://stackoverflow.com/users/17299516/yohpx"
+    },
+    "is_answered": true,
+    "view_count": 2015,
+    "answer_count": 1,
+    "score": 3,
+    "last_activity_date": 1749042034,
+    "creation_date": 1731272419,
+    "question_id": 79175803,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79175803/bypassing-sqlrestriction-on-entities-for-jpa-queries",
+    "title": "&#39;Bypassing&#39; @SQLRestriction on entities for JPA queries",
+    "body": "<h2>Background</h2>\n<p>I'm implementing both soft and hard delete functionality in a JPA/Hibernate application. Given an entity with <a href=\"https://docs.jboss.org/hibernate/orm/6.4/javadocs/org/hibernate/annotations/SQLRestriction.html\" rel=\"nofollow noreferrer\">SQLRestriction</a> defined to restrict every query within the JPA to return <strong>non soft-deleted</strong> data:</p>\n<pre><code>@Entity\n@SQLRestriction(&quot;deleted = false&quot;)\npublic class Product extends Auditables {\n\n    @Id\n    @SnowFlakeIdValue(name = &quot;product_id&quot;)\n    @Column(name = &quot;product_id&quot;, columnDefinition = &quot;BIGINT&quot;, updatable = false, nullable = false)\n    @Column(name = &quot;deleted&quot;, nullable = false)\n    private boolean deleted = false;\n\n    @Version\n    private Long version;\n\n    @OneToMany(mappedBy = &quot;product&quot;, fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)\n    @JsonManagedReference\n    private Set&lt;Variant&gt; variants = new HashSet&lt;&gt;();\n\n    @OneToMany(mappedBy = &quot;product&quot;, fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)\n    @JsonManagedReference\n    private Set&lt;ProductImage&gt; images = new HashSet&lt;&gt;();\n}\n</code></pre>\n<blockquote>\n<p>Note that @SQLRestrictions are always applied and cannot be disabled. Nor may they be parameterized. They're therefore much less flexible than filters.</p>\n</blockquote>\n<p>Does this effectively mean we can't select data with restriction condition met? I need to query and manage both non-deleted AND soft-deleted records in specific cases (e.g., for hard deletion), but @SQLRestriction is always applied and cannot be disabled or parameterized according to the Hibernate documentation.</p>\n<h3>Additional Information</h3>\n<p>As how the soft delete works, rather than using @SoftDelete, I update the <code>deleted</code> field of the corresponding request's product.</p>\n<h2>Tried Approaches</h2>\n<p><strong>As I wanted to be able to both soft-delete and hard-delete</strong>, I have tried various ways while still using @SQLRestriction, one of them was:</p>\n<pre><code>@Repository\npublic interface ProductRepository extends JpaRepository&lt;Product, Long&gt; {\n    @Query(&quot;SELECT p FROM Product p&quot;)\n    @SQLRestriction(&quot;&quot;)\n    List&lt;Product&gt; findAllUnfiltered();\n\n    @Modifying @Transactional\n    @Query(&quot;DELETE FROM Product p WHERE p.productId = :productId AND p.deleted IN (true, false)&quot;)\n    void deleteProductPermanently(@Param(&quot;productId&quot;) Long id);\n\n    @Modifying @Transactional\n    @Query(&quot;DELETE FROM Product p WHERE p.deleted IN (true, false)&quot;)\n    void deleteAllProductsPermanently();\n}\n</code></pre>\n<p>None of these attempts successfully bypass the @SQLRestriction.</p>\n<h2>Problem and Questions</h2>\n<p>Is there a way to bypass @SQLRestriction when needed while keeping its automatic filtering for regular queries? If not, what's the recommended approach?</p>\n<ul>\n<li>Switch to Hibernate Filters?</li>\n<li>Use EntityManager directly?</li>\n<li>Write native SQL queries?</li>\n<li>Other alternatives?</li>\n</ul>\n<h2>Environment</h2>\n<p>Spring Boot Framework: 3.3.4\nHibernate (.orm, core): 6.5.3 Final</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

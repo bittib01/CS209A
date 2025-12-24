@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "processing",
+      "game-development",
+      "physics"
+    ],
+    "owner": {
+      "account_id": 12172823,
+      "reputation": 61,
+      "user_id": 8886909,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/4ed5d95a1cee32bb6780e85eeb1d3c13?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Stephan",
+      "link": "https://stackoverflow.com/users/8886909/stephan"
+    },
+    "is_answered": true,
+    "view_count": 322,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1722429908,
+    "creation_date": 1720533959,
+    "last_edit_date": 1722429908,
+    "question_id": 78726087,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78726087/how-to-implement-proportional-guidance-in-2d",
+    "title": "How to implement proportional guidance in 2D",
+    "body": "<p>I am trying to implement proportional navigation in order to create a missile class that receives the target location every frame update and intercepts it accordingly.</p>\n<p>I would like the missile to accelerate in the direction it is facing with the idea that it has a rocket motor pushing in forward. The guidance algorithm then has to rotate it like the stabilization fins on an actual missile.</p>\n<p>I managed to get simpler algorithms working but was unhappy with the results which is why I am trying this algorithm (so please do not suggest other ones unless they achieve similar results to this; I am choosing this purely off of aesthetic reasons).</p>\n<p>The issue is the missile does turn towards the target <strong>but far too slowly to intercept it</strong>.</p>\n<p>I looked at a few resources but if it helps I followed this <a href=\"https://www.moddb.com/members/blahdy/blogs/gamedev-introduction-to-proportional-navigation-part-i\" rel=\"nofollow noreferrer\">example</a> to the best of my abilities. I am working in the Processing Development Environment.</p>\n<h4>Main loop:</h4>\n<pre><code>Missile missile;\nTarget target;\n\nvoid setup()\n{\n  fullScreen();\n  \n  missile = new Missile();\n  target = new Target();\n}\n\nvoid draw()\n{\n  background(0);\n  \n  target.Update();\n  missile.Update(target);\n}\n</code></pre>\n<h4>Target class:</h4>\n<pre><code>class Target\n{\n  PVector Location = new PVector();\n  PVector Velocity = new PVector();\n  PVector Acceleration = new PVector();\n  float Speed = 100;\n  float DeltaT = 0.0166;\n  \n  Target()\n  {\n    Location.set(width - 15,height - 15);\n    Velocity.set(-Speed * DeltaT,0);\n    Acceleration.set(0,0);\n  }\n  \n  void Update()\n  {\n    Location.add(Velocity);\n    \n    Draw();\n  }\n  \n  void Draw()\n  {\n    stroke(255,0,0);\n    fill(255,0,0);\n    ellipse(Location.x,Location.y,10,10);\n  }\n}\n</code></pre>\n<h4>Missile class:</h4>\n<pre><code>class Missile\n{\n  PVector LocationC = new PVector();    //***---Current Location\n  PVector LocationP = new PVector();    //***---Previous Location\n  PVector Velocity = new PVector();\n  PVector Acceleration = new PVector();\n  \n  PVector TargetLocC = new PVector(0,0);  //***---Current Target Location\n  PVector TargetLocP = new PVector(0,0);  //***---Previous Target Location\n  PVector TargetVelC = new PVector(0,0);  //***---Current Target Velocity\n  PVector TargetVelP = new PVector(0,0);  //***---Previous Target Velocity\n\n  PVector RTM_C = new PVector();    //***---Current Vector to target\n  PVector RTM_P = new PVector();    //***---Previous Vector to target\n  PVector LOS_Delta = new PVector();\n  float LOS_Rate = 0;\n  float VC = 0;     //***---CLosing Velocity\n  float N = 5;     //***--- Navigation Gain\n  float DeltaT = 0.0166;\n  \n  PVector Commanded_Accel = new PVector(0,0.1);\n  \n  Missile()\n  {\n    LocationC.set(width/2,10);\n    Velocity.set(0,0.1);\n    Acceleration.set(0,0.1);\n  }\n  \n  void Update(Target target)\n  {\n    UpdateCurrentValues(target);\n    ProportionalGuidence();\n    UpdatePreviousValues();\n    Draw();\n    //println(degrees(Velocity.heading()));\n  }\n   \n  void ProportionalGuidence()\n  {    \n    //***---Get missile target distances of previous frame and new frame\n      RTM_P = TargetLocP.copy().sub(LocationP.copy());\n      RTM_C = TargetLocC.copy().sub(LocationC.copy());\n      \n      //***---Normalise Target vectors\n      RTM_P.normalize();\n      RTM_C.normalize();      \n      \n      //***--Calculate LOS Rate\n      LOS_Delta = RTM_C.copy().sub(RTM_P.copy());\n      if(frameCount &gt; 1)\n      {\n        PVector crossProduct = RTM_P.cross(RTM_C);\n        LOS_Rate = crossProduct.z/(RTM_P.mag() * RTM_C.mag());\n      }\n      else\n      {\n        LOS_Rate = 0;\n      }\n      \n      //***---Calculate closure rate\n      VC = RTM_C.mag()-RTM_P.mag();\n      \n      //***---Calculate acceleration\n      Commanded_Accel = RTM_C.mult(N * VC * LOS_Rate + (0.5*N));\n      Acceleration = Commanded_Accel.mult(DeltaT);\n  }\n  \n  void UpdateCurrentValues(Target target)\n  {\n    Velocity.add(Acceleration);\n    LocationC.add(Velocity);\n    \n    TargetLocC = target.Location;\n    TargetVelC = target.Velocity;\n  }\n  \n  void UpdatePreviousValues()\n  {\n    LocationP = LocationC.copy();\n    TargetLocP = TargetLocC.copy();\n    TargetVelP = TargetVelC.copy();\n  }\n  \n  void Draw()\n  {    \n    stroke(255);\n    fill(255);\n    ellipse(LocationC.x, LocationC.y,5,5);\n  }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

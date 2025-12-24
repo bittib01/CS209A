@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "hibernate",
+      "jpa",
+      "jdbc",
+      "spring-data-jpa"
+    ],
+    "owner": {
+      "account_id": 13728673,
+      "reputation": 1234,
+      "user_id": 9906708,
+      "user_type": "registered",
+      "profile_image": "https://lh6.googleusercontent.com/-Nw0Mu4DS5Bc/AAAAAAAAAAI/AAAAAAAAAAA/oowXSepI5kw/s256-rj/photo.jpg",
+      "display_name": "Priyshrm",
+      "link": "https://stackoverflow.com/users/9906708/priyshrm"
+    },
+    "is_answered": false,
+    "view_count": 88,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1732251872,
+    "creation_date": 1732022963,
+    "last_edit_date": 1732085184,
+    "question_id": 79203609,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79203609/entitymanager-close-not-releasing-connection-back-to-the-pool",
+    "title": "EntityManager.close not releasing connection back to the pool",
+    "body": "<p>I have an old spring application that uses the following configuration for Spring JPA and Hibernate:</p>\n<pre><code>&lt;bean id=&quot;myEmf&quot; class=&quot;org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean&quot;&gt;\n        &lt;property name=&quot;dataSource&quot; ref=&quot;dataSource&quot;/&gt;\n\n        &lt;property name=&quot;jpaVendorAdapter&quot;&gt;\n            &lt;bean class=&quot;org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter&quot;&gt;\n                &lt;property name=&quot;showSql&quot; value=&quot;false&quot; /&gt;\n                &lt;property name=&quot;generateDdl&quot; value=&quot;false&quot; /&gt;\n                &lt;property name=&quot;databasePlatform&quot; value=&quot;org.hibernate.dialect.MySQLDialect&quot;/&gt;\n            &lt;/bean&gt;\n        &lt;/property&gt;        \n        &lt;property name=&quot;persistenceUnitName&quot; value=&quot;LPU&quot;/&gt;\n        &lt;property name=&quot;persistenceUnitManager&quot;&gt;\n            &lt;bean class=&quot;org.springframework.orm.jpa.persistenceunit.DefaultPersistenceUnitManager&quot;&gt;\n                &lt;property name=&quot;defaultDataSource&quot; ref=&quot;dataSource&quot;&gt;&lt;/property&gt;\n            &lt;/bean&gt;\n        &lt;/property&gt;\n        &lt;property name=&quot;loadTimeWeaver&quot;&gt;\n            &lt;bean class=&quot;org.springframework.instrument.classloading.InstrumentationLoadTimeWeaver&quot;/&gt;\n        &lt;/property&gt;\n    &lt;/bean&gt;\n</code></pre>\n<p>The DAO code correctly gets injected with the above EMF and it uses a ThreadLocal to get/create an EntityManager. After using the EM, it calls em.close(). However, even after calling em.close() the hikaricp connection pool stats show that the connection is not released back to the pool. This is causing cp to run out of connection.</p>\n<p>Any idea what might be wrong in this config?</p>\n<p>=======ADDED LATER ======\nI removed HibernateJpaVendorAdapter and added the following to persistence.xml, yet no difference:</p>\n<pre><code>&lt;persistence-unit name=&quot;LPU&quot; transaction-type=&quot;RESOURCE_LOCAL&quot;&gt;\n&lt;provider&gt;org.hibernate.jpa.HibernatePersistenceProvider&lt;/provider&gt;    \n    &lt;properties&gt;\n    &lt;property name=&quot;hibernate.connection.release_mode&quot; value=&quot;after_transaction&quot; /&gt;\n    &lt;property name=&quot;hibernate.current_session_context_class&quot; value=&quot;jta&quot; /&gt;        \n     &lt;/properties&gt;\n&lt;/persistence-unit&gt;\n</code></pre>\n<p>I have made sure that entityManager.close() is invoked at the end of the request using a filter. There is no other entitymanager instance open.</p>\n<pre><code>public void closeEntityManager(){\n    EntityManager em = (EntityManager) threadLocal.get();\n    if (em != null &amp;&amp; em.isOpen()) {\n        if(em.isJoinedToTransaction()){\n            em.getTransaction().commit();\n        }\n        em.flush();\n        em.clear();\n        em.close();\n        //((org.hibernate.Session) em.getDelegate()).close();\n        threadLocal.remove();\n  }\n}\n</code></pre>\n<p>I have also tried changing the connection pool imp from HikariCP to Apache commons dbcp.</p>\n<p>But the result is the same. Hibernate is not releasing database connection back to the pool.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

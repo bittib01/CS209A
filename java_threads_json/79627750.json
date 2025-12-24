@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "hibernate",
+      "spring-data-jpa"
+    ],
+    "owner": {
+      "account_id": 18044566,
+      "reputation": 323,
+      "user_id": 13115896,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/6d35ea24f31161f110fed75caf9d2d04?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "sg2000",
+      "link": "https://stackoverflow.com/users/13115896/sg2000"
+    },
+    "is_answered": true,
+    "view_count": 131,
+    "accepted_answer_id": 79627838,
+    "answer_count": 2,
+    "score": 0,
+    "last_activity_date": 1763414148,
+    "creation_date": 1747595375,
+    "last_edit_date": 1763414148,
+    "question_id": 79627750,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79627750/springboot-jpa-adding-an-associated-entity-to-a-new-entity-in-a-manytoone-asssoc",
+    "title": "Springboot JPA adding an associated entity to a new entity in a ManytoOne asssociation",
+    "body": "<p>I have an <code>@ManyToOne</code> relationship between an <code>Employee</code> and <code>Department</code>.\nEvery time I add a new employee to the department, I need to update a counter on the department entity for the total # of employees.</p>\n<p>Whenever a new employee is added, I am retrieving the <code>Department</code> entity from the manager <code>Employee</code> entity, update the counter and then setting the <code>Department</code> entity on the new <code>Employee</code> entity and calling <code>save()</code> on the <code>EmployeeRepository</code> with the new <code>Employee</code> entity. However, this is throwing me a &quot;detached entity passed to persist&quot; error.\nI have the <code>@Cascade</code> set to <code>@Cascade.ALL</code> on the <code>department_id</code> field in the <code>Employee</code> entity which works when the 1st employee is added the <code>Department</code> gets created automatically. The issue happens when i am trying to retrieve the <code>Department</code> entity from an existing employee and attaching it to a new employee and trying to do a save on the new <code>Employee</code> entity.</p>\n<p>Code looks like below:</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Entity\n@Table(name = &quot;employee&quot;)\n@Data\n@NoArgsConstructor\n@AllArgsConstructor\npublic class EmployeeEntity implements Serializable {\n    \n    @Id\n    @SequenceGenerator(name = &quot;employee_id_seq&quot;, sequenceName = &quot;employee_id_seq&quot;, allocationSize = 1)\n    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = &quot;employee_id_seq&quot;)\n    @Column(name = &quot;id&quot;, updatable = false)\n    private Integer id;\n\n    @JdbcTypeCode(SqlTypes.Long)\n    @Column(name = &quot;employee_id&quot;)\n    private Long employeeId;\n\n    @ManyToOne\n    @Cascade({CascadeType.ALL})\n    @JoinColumn(name = &quot;department_id&quot;, nullable = false)\n    private DepartmentEntity departmentEntity;\n \n    public EmployeeEntity(Long employeeId, DepartmentEntity departmentEntity) {\n        this.employeeId = employeeId;\n        this.departmentEntity = departmentEntity;\n    }\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>\n@Entity\n@Table(name = &quot;department&quot;)\n@Data\n@NoArgsConstructor\npublic class DepartmentEntity implements Serializable {\n    @Id\n    @SequenceGenerator(name = &quot;department_id_seq&quot;, sequenceName = &quot;department_id_seq&quot;, allocationSize = 1)\n    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = &quot;department_id_seq&quot;)\n    @Column(name = &quot;id&quot;, updatable = false)\n    private Integer id;\n\n    @JdbcTypeCode(SqlTypes.Integer)\n    @Column(name = &quot;num_employees&quot;, nullable = false)\n    private Integer numEmployees;\n\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>// code execution\n@Transactional\npublic void addEmployee(employeeId, managerId) {\n    Employee manager = empRepository.findById(managerId);\n    \n    Department empDept = manager.getDepartmentEntity()\n    empDept.numEmployees++;\n    \n    Employee associate = new EmployeeEntity(employeeId, empDept);\n    \n    empRepository.save(associate); // this throws the exception\n}\n</code></pre>\n<p>Any thoughts on how this can be addressed? Thank you in advance!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

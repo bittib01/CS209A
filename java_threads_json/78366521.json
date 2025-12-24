@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "python",
+      "java",
+      "graalvm",
+      "graalpython"
+    ],
+    "owner": {
+      "account_id": 4012536,
+      "reputation": 740,
+      "user_id": 3305534,
+      "user_type": "registered",
+      "accept_rate": 42,
+      "profile_image": "https://www.gravatar.com/avatar/cffb09c54a7ede865fec2be473620297?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Sriram Sridharan",
+      "link": "https://stackoverflow.com/users/3305534/sriram-sridharan"
+    },
+    "is_answered": false,
+    "view_count": 1125,
+    "answer_count": 1,
+    "score": 3,
+    "last_activity_date": 1715597377,
+    "creation_date": 1713791801,
+    "question_id": 78366521,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78366521/how-to-add-packages-to-graalvm-python-polyglot",
+    "title": "How to add packages to Graalvm python polyglot?",
+    "body": "<p>I followed the StackOverflow question <a href=\"https://stackoverflow.com/questions/77315830/how-to-install-graalvm-with-python\">Here</a> and the subsequent link <a href=\"https://medium.com/graalvm/truffle-unchained-13887b77b62c\" rel=\"nofollow noreferrer\">https://medium.com/graalvm/truffle-unchained-13887b77b62c</a> in order to setup a working example of running Python from a Spring Boot App.</p>\n<p>While the example works good, I am not sure how I can add packages if my python program requires any.</p>\n<p>Here's an excerpt from my <code>pom.xml</code> where I have the polyglot dependencies:</p>\n<pre><code>&lt;dependency&gt;\n    &lt;groupId&gt;org.graalvm.polyglot&lt;/groupId&gt;\n    &lt;artifactId&gt;python&lt;/artifactId&gt;\n    &lt;version&gt;23.1.0&lt;/version&gt;\n    &lt;type&gt;pom&lt;/type&gt;\n&lt;/dependency&gt;\n</code></pre>\n<p>I have a simple Python code in <code>posts.py</code> which does this:</p>\n<pre><code>def fetch_posts():\n    url = 'https://jsonplaceholder.typicode.com/posts'\n    try:\n        with request.urlopen(url) as response:\n            if response.status == 200:\n                source = response.read()\n                posts = json.loads(source)\n                return posts\n            else:\n                print(&quot;Failed to fetch posts due to HTTP error.&quot;)\n    except Exception as e:\n        print(f&quot;An error occurred: {e}&quot;)\n        return None\n</code></pre>\n<p>Given that I've put this file in <code>src/main/resources/python/posts.py</code>, I'm successfully able to call this from my Java code:</p>\n<pre><code>@Test\nvoid testPythonScript2() throws IOException {\n    ClassPathResource resource = new ClassPathResource(&quot;python/posts.py&quot;);\n    try (Context context = Context.newBuilder().allowAllAccess(true).build()) {\n        Source source = Source.newBuilder(&quot;python&quot;, resource.getFile()).build();\n        context.eval(source);\n        Value pyObject = context.getBindings(&quot;python&quot;).getMember(&quot;fetch_posts&quot;);\n\n        Value result = pyObject.execute();\n        assertTrue(result.hasArrayElements());\n        assertEquals(100, result.getArraySize());\n    } catch (IOException e) {\n        log.error(e.getMessage(),e);\n        assertFalse(true);\n    } catch (Exception e) {\n        log.error(e.getMessage(),e);\n        assertFalse(true);\n    }\n}\n</code></pre>\n<p>This test passes.</p>\n<p>But, what do I do, if <code>posts.py</code> needs the <code>numpy</code> package? How do I install it?</p>\n<p>I'm using <code>graalvm-jdk-21.0.3+7.1</code> as the underlying JDK.</p>\n<p>Thanks,\nSriram</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

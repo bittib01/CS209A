@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "spring-mvc"
+    ],
+    "owner": {
+      "account_id": 5023461,
+      "reputation": 75,
+      "user_id": 4036247,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/f3835f7f2e3e3c3bfe55c1f46f813b14?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Vikrant",
+      "link": "https://stackoverflow.com/users/4036247/vikrant"
+    },
+    "is_answered": true,
+    "view_count": 128,
+    "accepted_answer_id": 79456423,
+    "answer_count": 4,
+    "score": 1,
+    "last_activity_date": 1740144342,
+    "creation_date": 1740108972,
+    "last_edit_date": 1740111790,
+    "question_id": 79456313,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79456313/springboot-not-able-to-initialize-configurationproperties-for-map-properties",
+    "title": "SpringBoot not able to initialize @ConfigurationProperties for Map properties",
+    "body": "<p>In SpringBoot, I am trying to read the <code>application.properties</code> to <code>Map&lt;String, ServiceModel&gt;</code>, which should be</p>\n<p>application.properties</p>\n<pre class=\"lang-none prettyprint-override\"><code>input.default.host=Default\ninput.default.ip=127.0.0.1\ninput.default.desc=Default Desc\n\ninput.serviceA.host=ServiceA\ninput.serviceA.ip=192.168.21.1\ninput.serviceA.desc=ServiceA Desc\n\ninput.serviceB.host=ServiceB\ninput.serviceB.ip=192.168.21.22\ninput.serviceB.desc=ServiceB Desc\n</code></pre>\n<p>Whenever I try to print it using <code>getServiceProperty(String key)</code> the Map properties are always <code>null</code>, as if they are not initialized.</p>\n<p>Here are the details of the classes -</p>\n<pre class=\"lang-java prettyprint-override\"><code>@Component\n@ConfigurationProperties(prefix = &quot;input&quot;)\npublic class ServiceModelConfiguration {\n  private Map&lt;String, ServiceModel&gt; properties;\n\n  public Map&lt;String, ServiceModel&gt; getProperties() {\n    return properties;\n  }\n  public void setProperties(Map&lt;String, ServiceModel&gt; properties) {\n    this.properties = properties;\n  }\n\n  public ServiceModel getServiceProperty(String key) {\n    ServiceModel specificProperty = properties.get(key);\n    return specificProperty;\n  }\n\n  public static class ServiceModel {\n    private String host;\n    private String ip;\n    private String desc;\n\n    public ServiceModel(String host, String ip, String desc) {\n      this.host = host;\n      this.ip = ip;\n      this.desc = desc;\n    }\n\n    // Getters\n    // Setters\n  }\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>@Service\npublic class PrintServices {\n  private final ServiceModelConfiguration serviceModelConfiguration;\n\n  @Autowired\n  public PrintServices(ServiceModelConfiguration serviceModelConfiguration) {\n    this.serviceModelConfiguration = serviceModelConfiguration;\n  }\n  public void printAllServiceProperties() {\n    System.out.println(&quot;Host: &quot;\n        + serviceModelConfiguration.getServiceProperty(&quot;serviceA&quot;).getHost());\n    System.out.println(&quot;IP: &quot;\n        + serviceModelConfiguration.getServiceProperty(&quot;serviceA&quot;).getIp());\n    System.out.println(&quot;Desc: &quot;\n        + serviceModelConfiguration.getServiceProperty(&quot;serviceA&quot;).getDesc());\n  }\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>@SpringBootApplication\n@EnableConfigurationProperties(ServiceModelConfiguration.class)\npublic class ConfigApplication implements CommandLineRunner {\n  @Autowired private PrintServices printServices;\n\n  public static void main(String[] args) {\n    SpringApplication.run(ConfigApplication.class, args);\n  }\n\n  @Override\n  public void run(String... args) throws Exception {\n    printServices.printAllServiceProperties();\n  }\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

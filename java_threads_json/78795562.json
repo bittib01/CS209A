@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "multithreading",
+      "circuit-breaker"
+    ],
+    "owner": {
+      "account_id": 1002571,
+      "reputation": 2401,
+      "user_id": 1017107,
+      "user_type": "registered",
+      "accept_rate": 100,
+      "profile_image": "https://i.sstatic.net/A3SF9.jpg?s=256",
+      "display_name": "psyklopz",
+      "link": "https://stackoverflow.com/users/1017107/psyklopz"
+    },
+    "is_answered": true,
+    "view_count": 510,
+    "answer_count": 1,
+    "score": 2,
+    "last_activity_date": 1741083867,
+    "creation_date": 1721944408,
+    "question_id": 78795562,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78795562/using-circuit-breaker-within-virtual-threads",
+    "title": "Using Circuit Breaker within Virtual Threads",
+    "body": "<p>Our application is based on Spring Boot 3.2 and runs on JDK 21.  We've gone all-in on virtual threads, and can't sing their praises enough.  Tomcat handles all requests with a virtual thread pool, our usage of @Async uses a virtual thread pool, etc.</p>\n<p>My trouble is that thread contention issues can still arise if one of our endpoints calls code that subsequently runs on a non-virtual thread pool.  One example is a request handler that calls code surrounded by a <code>CircuitBreaker.run()</code> method.  At least in terms of Reliance4J, <code>.run()</code> runs the  Supplier on its internal thread pool, which is by default limited to the number of CPU cores.  This means that I could have 100 instances of my request handler running on virtual threads all competing for the four platform threads available in Reliance4J's pool.</p>\n<p>The obvious answer would be to increase the thread pool used by Reliance4J.  This would help, but may be the best/only solution available.  My concern is that it still does not scale in the same way that the system would if it were virtual threads all the way down.  This is not ideal and it really cancels out the benefit that virtual threads were giving us.</p>\n<p>Another option would be to explore replacing Reliance4J's thread pool, but it appears that there are other Loom-friendliness issues (<a href=\"https://github.com/resilience4j/resilience4j/issues/2054\" rel=\"nofollow noreferrer\">use of <code>synchronized</code> keyword</a>, etc) that would cause trouble (i.e. thread pinning) in the wrapper code around their thread pool.  It's also apparent that the Reliance4J team has not yet embraced virtual threads and this feels a little bit like an abuse of their tool.  It also creates some maintainability concerns as Reliance4J updates its code in the future.</p>\n<p>Let me whittle this down to two questions:</p>\n<p><strong>Does a circuit breaker implementation that plays nice with virtual threads exist?  Are any of the existing implementations working towards Loom-friendliness?</strong></p>\n<p><strong>What solution am I not considering?  I imagine that I could create my own simple circuit breaker which could launch a runnable on a separate virtual thread.  This would work, provided it was possible to preempt a virtual thread.  I'm not sure that's possible.  Is that even reasonable?</strong></p>\n<p>FWIW: I'm sure someone will be quick to point out that because my request handler threads are so lengthy virtual threads don't provide much of an advantage over a more traditional thread pool.  In my situation, the request handler usually can find the information it needs in a cache and only launches the circuit breaker-protected code if that lookup fails.  In this way, I've got a mix of short and long-lived threads (single-digit milliseconds to tens of seconds) and it does provide a substantial advantage.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-boot",
+      "tcp",
+      "modbus"
+    ],
+    "owner": {
+      "account_id": 34437296,
+      "reputation": 1,
+      "user_id": 26568289,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/8f4945d2f18ac7ca3b33bc6840c329ce?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Wassabi",
+      "link": "https://stackoverflow.com/users/26568289/wassabi"
+    },
+    "is_answered": false,
+    "view_count": 95,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1729766452,
+    "creation_date": 1722325518,
+    "last_edit_date": 1729766452,
+    "question_id": 78810375,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/78810375/jamod-modbus-tcp-executing-transaction-failed-tried-3-times",
+    "title": "Jamod modbus tcp Executing transaction failed (tried 3 times)",
+    "body": "<p>I wrote an application using Spring Boot with Jamod to communicate with my UPS device. When I try to communicate with the device I'm getting wanted data but only once when I start my app, every next Scheduled for 60 secounds request fails with error Executing transaction failed. I tried debugging but everything seems fine for first request but every next request fails with that error. I set the connection timeout on my ups for 10s and in my app i also set it for 10s. When it was lower it also showed errors like Premature end of stream (header trunckted), End of Stream, End of Connection etc.\nReading registers function:</p>\n<pre><code>public Register[] readRegisters(int startingAddress, int quantity, int unitId) throws Exception {\n        ReadMultipleRegistersRequest request = new ReadMultipleRegistersRequest(startingAddress, quantity);\n        request.setUnitID(unitId);\n\n        ModbusTCPTransaction transaction = new ModbusTCPTransaction(connection);\n        transaction.setRequest(request);\n        transaction.execute();\n\n        ReadMultipleRegistersResponse response = (ReadMultipleRegistersResponse) transaction.getResponse();\n        return response.getRegisters();\n    }\n</code></pre>\n<p>Data logging function:</p>\n<pre><code>public void logDeviceDataPeriodically() {\n        try {\n            List&lt;DeviceEntity&gt; devices = deviceEntityRepository.findAll();\n            for (DeviceEntity deviceEntity : devices) {\n                String providerType = deviceEntity.getStatusProviderEntity().getProviderName();\n                StatusProvider statusProvider = providerFactory.createProvider(providerType);\n                if (statusProvider != null) {\n                    statusProvider.connect();\n                    DeviceData deviceData = new DeviceData();\n                    deviceData.setInputVoltage(statusProvider.getInputVoltage());\n                    deviceData.setOutputVoltage(statusProvider.getOutputVoltage());\n                    deviceData.setLoadPercentage(statusProvider.getLoadPercentage());\n                    deviceData.setTime(statusProvider.getTime());\n                    deviceData.setTimestamp(LocalDateTime.now());\n                    deviceData.setDeviceEntity(deviceEntity);\n                    deviceDataRepository.save(deviceData);\n                } else {\n                    System.err.println(&quot;Unknown provider - &quot; + providerType);\n                }\n            }\n        } catch (Exception e) {\n            e.printStackTrace(); // Handle or log the exception appropriately\n        }\n    }\n</code></pre>\n<p>getInputVoltage()</p>\n<pre><code>public double getInputVoltage() throws Exception {\n        int vInStartingAdress = 0x0084; int quantity = 1; int unitId = 1;\n        return modbusTcpConnector.readRegisters(vInStartingAdress, quantity, unitId)[0].getValue() / 10.0;\n    }\n</code></pre>\n<p>If anybody has similar problem with Jamod library please share any fixes, thanks in advance.</p>\n<p>I tried to make a new project with this library everything was the same. I also tried to use different libraries to get expected results but none of them worked for me. As far as so jamod is the best for my requirements.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

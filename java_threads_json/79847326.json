@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring",
+      "spring-statemachine"
+    ],
+    "owner": {
+      "account_id": 15612840,
+      "reputation": 745,
+      "user_id": 11263733,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/69cfe353ff3b54121c3b5d9acf61589b?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "nanakondor",
+      "link": "https://stackoverflow.com/users/11263733/nanakondor"
+    },
+    "is_answered": false,
+    "view_count": 82,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1765760502,
+    "creation_date": 1765760502,
+    "question_id": 79847326,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79847326/what-is-the-ordering-of-actions-performed-using-spring-state-machine",
+    "title": "What is the ordering of actions performed using spring state machine?",
+    "body": "<p>I have a spring state machine that is tied to states of an object from another service, that is retrieved and updated using HTTP APIs. So, it's not a local database.</p>\n<p>I'm thinking to use transition actions to make sure state machine rules are respected, i.e. I need to fetch object from the other service using REST API, call that service REST API to update the object state. If somehow the service is unavailable/return 500, my application's state machine should fail and transition actions shouldn't run.</p>\n<p>According to ChatGPT this is the ordering of actions using state machine:</p>\n<ul>\n<li><p>interceptor preEvent</p>\n</li>\n<li><p>interceptor preStateChange</p>\n</li>\n<li><p>transition action(s)</p>\n</li>\n<li><p>state exit actions</p>\n</li>\n<li><p>state entry actions</p>\n</li>\n<li><p>interceptor postStateChange</p>\n</li>\n<li><p>listener transition</p>\n</li>\n</ul>\n<p>I'm trying to avoid repeating the definition of transition action calling REST API to update the object state, so I was trying preStateChange. However, in my logs, the preStateChange occurs after the transition action. Here is my code:</p>\n<pre><code>@Service\n@RequiredArgsConstructor\npublic class ObjectStateMachineFactory {\n  private final StateMachineFactory&lt;CustomObjectState, ObjectEvent&gt; factory;\n  private final UpdateObjectStateInterceptor updateObjectStateInterceptor;\n\n  public StateMachine&lt;CustomObjectState, ObjectEvent&gt; getStateMachine() {\n    StateMachine&lt;CustomObjectState, ObjectEvent&gt; sm = factory.getStateMachine();\n\n    sm.getStateMachineAccessor()\n        .doWithAllRegions(\n            access -&gt; access.addStateMachineInterceptor(updateObjectStateInterceptor));\n\n    return sm;\n  }\n}\n\n\n@Slf4j\n@Service\n@RequiredArgsConstructor\npublic class ObjectStateMachineService {\n\n  private final ObjectStateMachineFactory stateMachineFactory;\n  private final ObjectService objectService;\n  private final UpdateObjectInterceptor updateObjectInterceptor;\n\n  @Transactional\n  public boolean processObjectEvent(String id, ObjectEvent event) {\n    CustomObject obj = objectService.getObject(id);\n    // TODO: Don't build state machine everytime as its an expensive operation\n    StateMachine&lt;CustomObjectState, ObjectEvent&gt; sm = stateMachineFactory.getStateMachine();\n    try {\n      sm.startReactively();\n\n      // Set initial state using resetStateMachine\n      CustomObjectState currentState =\n          CustomObjectState.fromValue(obj.getState().getObj().getKey());\n\n      if (sm.getState() == null || sm.getState().getId() != currentState) {\n        sm.getStateMachineAccessor()\n            .withRegion()\n            .resetStateMachineReactively(\n                new DefaultStateMachineContext&lt;&gt;(currentState, null, null, sm.getExtendedState()))\n\n            .block();\n      }\n\n      sm.getExtendedState().getVariables().put(&quot;customObj&quot;, obj);\n\n      boolean success = sm.sendEvent(event);\n      }\n      return success;\n    } finally {\n      sm.stop();\n    }\n  }\n}\n\n@Slf4j\n@Configuration\n@RequiredArgsConstructor\n@EnableStateMachineFactory\npublic class OrderStateConfig extends StateMachineConfigurerAdapter&lt;CustomObjectState, ObjectEvent&gt; {\n\n  @Override\n  public void configure(StateMachineStateConfigurer&lt;CustomObjectState, ObjectEvent&gt; states)\n      throws Exception {\n    states\n        .withStates()\n        .initial(CustomObjectState.UNCONFIRMED)\n        .states(EnumSet.allOf(CustomObjectState.class));\n  }\n\n  @Override\n  public void configure(StateMachineConfigurationConfigurer&lt;CustomObjectState, ObjectEvent&gt; config)\n      throws Exception {\n\n    // IMPORTANT: disable auto-start so interceptor can be attached first\n    config.withConfiguration().autoStartup(false);\n  }\n\n  @Override\n  public void configure(StateMachineTransitionConfigurer&lt;CustomObjectState, ObjectEvent&gt; transitions)\n      throws Exception {\n    transitions\n        // CONFIRM event\n        .withExternal()\n        .source(CustomObjectState.A)\n        .target(CustomObjectState.B)\n        .event(ObjectEvent.CONFIRM)\n        .guard(objectStateGuard.canTransitToB())\n        .action(sendNotificationAction)\n.\n.\n.\n</code></pre>\n<p>I'm expecting the order:</p>\n<p>objectStateGuard.canTransitToB();</p>\n<p>UpdateObjectStateInterceptor.preStateChange();</p>\n<p>sendNotificationAction</p>\n<p>but sendNotificationAction is occuring before preStateChange</p>\n<p>is there any way to accomplish this, or am I using the wrong feature of state machine? how to use the state machine without local database? thank you</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "datetime",
+      "java-time",
+      "datetime-parsing",
+      "datetimeformatter"
+    ],
+    "owner": {
+      "account_id": 18889034,
+      "reputation": 406,
+      "user_id": 13779749,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/lL09M.png?s=256",
+      "display_name": "Ayush Jain",
+      "link": "https://stackoverflow.com/users/13779749/ayush-jain"
+    },
+    "is_answered": true,
+    "view_count": 525,
+    "accepted_answer_id": 79164546,
+    "answer_count": 1,
+    "score": 5,
+    "last_activity_date": 1730977712,
+    "creation_date": 1727951193,
+    "last_edit_date": 1730977712,
+    "question_id": 79050113,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79050113/does-javas-datetimeformatter-allow-lenient-parsing-for-fractional-seconds",
+    "title": "Does Java&#39;s DateTimeFormatter allow lenient parsing for fractional seconds?",
+    "body": "<p>I am currently working with Java's <code>DateTimeFormatter</code> to parse ISO 8601 formatted timestamps, particularly those containing fractional seconds. While experimenting with different timestamp formats, I noticed some unexpected behavior regarding how the formatter handles optional fractional seconds.</p>\n<p>Specifically, I am curious about the leniency of the parser when it comes to the number of digits in the fractional seconds. My implementation allows for timestamps with 9 digits for fractional seconds, yet the parser successfully handles timestamps with only 8 digits while failing for those with 7 or fewer. This has led me to wonder if there is an underlying reason for this behavior, whether it is part of the design of the DateTimeFormatter, and if it is documented anywhere.</p>\n<p>I wrote a test using the following code:</p>\n<pre class=\"lang-java prettyprint-override\"><code>import java.time.LocalDateTime;\nimport java.time.format.DateTimeFormatter;\nimport java.time.format.DateTimeParseException;\n\npublic class DateTimeExample {\n    public static void main(String[] args) {\n        String[] timestamps = {\n            &quot;2023-10-05T15:14:29.123456789Z&quot;, // 9 digits\n            &quot;2023-10-05T15:14:29.12345678Z&quot;,  // 8 digits\n            &quot;2023-10-05T15:14:29.1234567Z&quot;,   // 7 digits\n            &quot;2023-10-05T15:14:29.123456Z&quot;,    // 6 digits\n            &quot;2023-10-05T15:14:29.12345Z&quot;,     // 5 digits\n            &quot;2023-10-05T15:14:29.1234Z&quot;,      // 4 digits\n            &quot;2023-10-05T15:14:29.123Z&quot;,       // 3 digits\n            &quot;2023-10-05T15:14:29.12Z&quot;,        // 2 digits\n            &quot;2023-10-05T15:14:29.1Z&quot;,         // 1 digit\n            &quot;2023-10-05T15:14:29Z&quot;            // no fractional seconds\n        };\n\n        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd'T'HH:mm:ss[.SSSSSSSSS]'Z'&quot;);\n\n        for (String timestamp : timestamps) {\n            try {\n                LocalDateTime dateTime = LocalDateTime.parse(timestamp, formatter);\n                System.out.println(&quot;Parsed date: &quot; + dateTime);\n            } catch (DateTimeParseException e) {\n                System.err.println(&quot;Failed to parse: &quot; + timestamp + &quot; - &quot; + e.getMessage());\n            }\n        }\n    }\n}\n</code></pre>\n<p><strong>Observations</strong></p>\n<p>When I run this code, this is the output:</p>\n<pre class=\"lang-none prettyprint-override\"><code>Parsed date: 2023-10-05T15:14:29.123456789\nParsed date: 2023-10-05T15:14:29.123456780\nFailed to parse: 2023-10-05T15:14:29.1234567Z - Text '2023-10-05T15:14:29.1234567Z' could not be parsed at index 19\nFailed to parse: 2023-10-05T15:14:29.123456Z - Text '2023-10-05T15:14:29.123456Z' could not be parsed at index 19\nFailed to parse: 2023-10-05T15:14:29.12345Z - Text '2023-10-05T15:14:29.12345Z' could not be parsed at index 19\nFailed to parse: 2023-10-05T15:14:29.1234Z - Text '2023-10-05T15:14:29.1234Z' could not be parsed at index 19\nFailed to parse: 2023-10-05T15:14:29.123Z - Text '2023-10-05T15:14:29.123Z' could not be parsed at index 19\nFailed to parse: 2023-10-05T15:14:29.12Z - Text '2023-10-05T15:14:29.12Z' could not be parsed at index 19\nFailed to parse: 2023-10-05T15:14:29.1Z - Text '2023-10-05T15:14:29.1Z' could not be parsed at index 19\nParsed date: 2023-10-05T15:14:29\n</code></pre>\n<p>It successfully parses timestamps with 9 digits for fractional seconds or no fractional part, which is the expected behaviour. But why does it also work with 8 digits for fractional part?\nMy conclusion from this behaviour is that the DateTimeFormatter is lenient with upto one extra digit in the pattern. Is that correct, if so, are there any relevant documentations that I can refer?</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

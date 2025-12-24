@@ -1,0 +1,36 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "tomcat",
+      "post",
+      "jersey",
+      "multipartform-data"
+    ],
+    "owner": {
+      "account_id": 5994178,
+      "reputation": 61,
+      "user_id": 4709365,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/a947864748929af7b1e4837c59e85dc3?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Brien Halstead",
+      "link": "https://stackoverflow.com/users/4709365/brien-halstead"
+    },
+    "is_answered": true,
+    "view_count": 111,
+    "accepted_answer_id": 79573949,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1747687069,
+    "creation_date": 1744412571,
+    "last_edit_date": 1747687069,
+    "question_id": 79569818,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79569818/inclusion-of-formdataparam-annotations-results-in-400-bad-request-jersey-3-1",
+    "title": "Inclusion of @FormDataParam annotation(s) results in 400 Bad Request (Jersey 3.1.10, Java 17, Tomcat 10) for multipart/form-data requests",
+    "body": "<p>I have an existing REST API (has been around for years now and I'm the original author) which has multiple end-points. I just added a new end-point for uploading files. The end-point method resource is currently defined as (for just testing the end-point response):</p>\n<pre><code>    @POST\n    @Path(&quot;/v1/upload&quot;)\n    @Consumes(MediaType.MULTIPART_FORM_DATA)\n    public Response upload (\n                     @FormDataParam(&quot;file&quot;)\n             InputStream file,\n             @FormDataParam(&quot;file&quot;)\n             FormDataContentDisposition disposition) {\n        \n        \n        return Response.ok().build();\n    }\n</code></pre>\n<p>As soon as a request comes in (sample shown below), Tomcat or Jersey sends back a 400 Bad Request response before even entering into the end-point method. The only thing written to any Tomcat log is in the general &quot;access_log&quot; where it inserts a log entry about the end-point request URL and the response code of 400. I have checked all other Tomcat logs and there is no other log entries anywhere which describe WHY a 400 is being returned.</p>\n<p>Tomcat returns an HTML response, which seems to be a &quot;one size fits all&quot; error message, in the 400 response:</p>\n<p>The server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing).</p>\n<p>Sample file upload request:</p>\n<pre><code>POST http://localhost/&lt;removed path for SO post&gt;/v1/upload?_=1744409038175&amp;cid=m9dc0kkulvrjar8sxgl&amp;tkn=974016a9-5a49-45d4-98c9-dba380735578 HTTP/1.1\nHost: localhost\nConnection: keep-alive\nContent-Length: 717939\nsec-ch-ua-platform: &quot;Windows&quot;\nX-Requested-With: XMLHttpRequest\nUser-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36\nAccept: application/json, text/plain, */*\nsec-ch-ua: &quot;Google Chrome&quot;;v=&quot;135&quot;, &quot;Not-A.Brand&quot;;v=&quot;8&quot;, &quot;Chromium&quot;;v=&quot;135&quot;\nContent-Type: multipart/form-data\nsec-ch-ua-mobile: ?0\nOrigin: http://localhost\nSec-Fetch-Site: same-origin\nSec-Fetch-Mode: cors\nSec-Fetch-Dest: empty\nReferer: http://localhost/&lt;removed path for SO post&gt;/\nAccept-Encoding: gzip, deflate, br, zstd\nAccept-Language: en-US,en-GB;q=0.9,en;q=0.8\nCookie: &lt;a couple of cookies&gt;\n\n------WebKitFormBoundarydDDQsAC7Rqf3IM5I\nContent-Disposition: form-data; name=&quot;file&quot;; filename=&quot;Sample file.pdf&quot;\nContent-Type: application/pdf\n\n&lt;Encoded File Content Here&gt;\n\n----WebKitFormBoundarydDDQsAC7Rqf3IM5I--\n</code></pre>\n<p>If I change the end-point method signature (i.e., to remove the @FormDataParam annotations and only have 1 InputStream parameter) to the following:</p>\n<pre><code>    @POST\n    @Path(&quot;/v1/upload&quot;)\n    @Consumes(MediaType.MULTIPART_FORM_DATA)\n    public Response upload (\n             InputStream file) {\n        \n        return Response.ok().build();\n    }\n</code></pre>\n<p>The above will work and Tomcat won't send back a 400. However, I can't define any other method parameters or make use of the @FormDataParam annotation. Actually, with the above method signature, if I were to add the <code>@FormDataParam(&quot;file&quot;)</code> to the above <code>InputStream file</code> parameter, then I will get a 400 again.</p>\n<p>I'm pretty sure I have all of the necessary JAR dependencies (relevant parts from the pom.xml below) for Jersey to handle multipart requests. I don't understand what is going wrong here, and I'm not getting enough log information to determine WHY!</p>\n<p>pom.xml with Jersey-relevant dependencies:</p>\n<pre><code>    &lt;dependencyManagement&gt;\n        &lt;dependencies&gt;\n        &lt;!-- https://mvnrepository.com/artifact/org.glassfish.jersey/jersey-bom --&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.glassfish.jersey&lt;/groupId&gt;\n            &lt;artifactId&gt;jersey-bom&lt;/artifactId&gt;\n            &lt;version&gt;3.1.10&lt;/version&gt;\n            &lt;type&gt;pom&lt;/type&gt;\n            &lt;scope&gt;import&lt;/scope&gt;\n        &lt;/dependency&gt;\n        &lt;/dependencies&gt;\n    &lt;/dependencyManagement&gt;\n    &lt;dependencies&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.glassfish.jersey.containers&lt;/groupId&gt;\n            &lt;artifactId&gt;jersey-container-servlet-core&lt;/artifactId&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n        &lt;groupId&gt;org.glassfish.jersey.containers&lt;/groupId&gt;\n        &lt;artifactId&gt;jersey-container-servlet&lt;/artifactId&gt;\n    &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.glassfish.jersey.inject&lt;/groupId&gt;\n            &lt;artifactId&gt;jersey-hk2&lt;/artifactId&gt;\n        &lt;/dependency&gt;\n        &lt;dependency&gt;\n            &lt;groupId&gt;org.glassfish.jersey.media&lt;/groupId&gt;\n            &lt;artifactId&gt;jersey-media-json-binding&lt;/artifactId&gt;\n        &lt;/dependency&gt;\n    &lt;dependency&gt;\n        &lt;groupId&gt;org.glassfish.jersey.media&lt;/groupId&gt;\n        &lt;artifactId&gt;jersey-media-multipart&lt;/artifactId&gt;\n    &lt;/dependency&gt;\n    &lt;!-- https://mvnrepository.com/artifact/org.glassfish.jaxb/jaxb-runtime --&gt;\n    &lt;dependency&gt;\n        &lt;groupId&gt;org.glassfish.jaxb&lt;/groupId&gt;\n        &lt;artifactId&gt;jaxb-runtime&lt;/artifactId&gt;\n        &lt;version&gt;4.0.5&lt;/version&gt;\n    &lt;/dependency&gt;\n        ...\n</code></pre>\n<p>Actually, it seems that anytime the @FormDataParam annotation is used, a 400 response occurs.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-poi",
+      "jxls"
+    ],
+    "owner": {
+      "account_id": 2858236,
+      "reputation": 1347,
+      "user_id": 2453998,
+      "user_type": "registered",
+      "accept_rate": 38,
+      "profile_image": "https://www.gravatar.com/avatar/7643770356f4c4b651561a87d90296f1?s=256&d=identicon&r=PG",
+      "display_name": "Aldibe",
+      "link": "https://stackoverflow.com/users/2453998/aldibe"
+    },
+    "is_answered": false,
+    "view_count": 146,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1751539341,
+    "creation_date": 1748250142,
+    "last_edit_date": 1748250379,
+    "question_id": 79638622,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79638622/writing-large-report-with-a-template-to-byte-array-using-sxssf",
+    "title": "Writing large report with a template to byte array using SXSSF",
+    "body": "<p>Currently I have a working excel report writer with the following function using JXLS 2.14.0:</p>\n<pre><code>public byte[] generateReport(String template, Map&lt;String, Object&gt; data) throws Exception {\n  try (InputStream is = new ClassPathResource(template).getInputStream();) {\n    try (ByteArrayOutputStream bos = new ByteArrayOutputStream();) {\n      Context context = new Context(data);\n      JxlsHelper.getInstance().processTemplate(is, bos, context);\n      return bos.toByteArray();\n    }\n  }\n}\n</code></pre>\n<p>So from what I can debug, this works using HSSFWorkbook because the template I'm using is <code>.xls</code></p>\n<p>Currently this function is used to generate report up to 100k rows and triggered using a scheduler, and the memory issue starts to show (normal application only used ~100MB of memory, but spikes up to 2-3GB when the report process is running). I'm trying to optimize this by updating the template to use <code>.xlsx</code> file and using SXSSF, but from what I can gather, you need to have XSSF workbook, and then using <code>PoiTransformer.createSxssfTransformer()</code> to wrap it to SXSSF, but I don't see any way to write it to byte array output stream. This is where I'm at right now :</p>\n<pre><code>public byte[] generateReport(String template, Map&lt;String, Object&gt; data) throws Exception {\n  try (InputStream is = new ClassPathResource(template).getInputStream();\n     ByteArrayOutputStream bos = new ByteArrayOutputStream()) {\n\n    XSSFWorkbook workbook = new XSSFWorkbook(is);\n    PoiTransformer transformer = PoiTransformer.createSxssfTransformer(workbook, 100, true, true);\n    transformer.setOutputStream(bos);\n\n    Context context = new Context(data);\n    JxlsHelper.getInstance()\n          .setUseFastFormulaProcessor(false)\n          .processTemplate(context, transformer);\n\n    transformer.getWorkbook().write(bos);\n    return bos.toByteArray();\n  }\n}\n</code></pre>\n<p>I'm currently testing it with just the following unit test :</p>\n<pre><code>@Test\npublic void generateReportTest() throws Exception {\n  byte[] test = service.generateReport(TEMPLATE_XLSX, data);\n  Assertions.assertNotNull(test);\n}\n</code></pre>\n<p>And this keeps failing with the following exception thrown :</p>\n<pre><code>java.io.FileNotFoundException: D:\\poifiles\\poi-sxssf-sheet-xml10363959800900568820.gz (The system cannot find the file specified)\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

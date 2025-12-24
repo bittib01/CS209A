@@ -1,0 +1,35 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "authentication",
+      "spring-security",
+      "authorization",
+      "http-response-codes"
+    ],
+    "owner": {
+      "account_id": 28056749,
+      "reputation": 41,
+      "user_id": 21431651,
+      "user_type": "registered",
+      "profile_image": "https://i.sstatic.net/ImSeD.jpg?s=256",
+      "display_name": "Alexei Sischin",
+      "link": "https://stackoverflow.com/users/21431651/alexei-sischin"
+    },
+    "is_answered": true,
+    "view_count": 66,
+    "accepted_answer_id": 79127740,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1729911583,
+    "creation_date": 1728527224,
+    "question_id": 79072557,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79072557/how-to-prevent-authenticationentrypoint-being-invoked-after-accessdeniedhandler",
+    "title": "How to prevent AuthenticationEntryPoint being invoked after AccessDeniedHandler?",
+    "body": "<p>My goal is to return 401 if the user provides invalid JWT and 403 if they don't have required roles to access endpoint (using @RolesAllowed).</p>\n<p>Initially, Spring returned 403 for both. Then I added <code>exceptionHandling</code> configuration:</p>\n<p>WebSecurityConfig.java:</p>\n<pre><code>...\n@Bean\npublic SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {\n    return http\n            .csrf(AbstractHttpConfigurer::disable)\n            .formLogin(AbstractHttpConfigurer::disable)\n            .rememberMe(AbstractHttpConfigurer::disable)\n            .httpBasic(AbstractHttpConfigurer::disable)\n            .logout(AbstractHttpConfigurer::disable)\n            .cors(c -&gt; c.configurationSource(corsConfigurationSource()))\n            .authorizeHttpRequests(c -&gt; c\n                    .requestMatchers(HttpMethod.OPTIONS).permitAll()\n                    .requestMatchers(UNPROTECTED_PATHS).permitAll()\n                    .anyRequest().authenticated()\n            )\n            .exceptionHandling(c -&gt; c\n                    .authenticationEntryPoint((request, response, authException) -&gt; response.sendError(\n                            HttpServletResponse.SC_UNAUTHORIZED, authException.getMessage() // this one\n                    ))\n                    .accessDeniedHandler((request, response, accessDeniedException) -&gt; response.sendError(\n                            HttpServletResponse.SC_FORBIDDEN, accessDeniedException.getMessage() // and this\n                    ))\n            )\n            .sessionManagement(c -&gt; c.sessionCreationPolicy(SessionCreationPolicy.STATELESS))\n            .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)\n            .build();\n}\n...\n</code></pre>\n<p>JwtRequestFilter.java:</p>\n<pre><code>...\n@Component\n@RequiredArgsConstructor\n@Slf4j\npublic class JwtRequestFilter extends OncePerRequestFilter {\n    private static final String HEADER_AUTHORIZATION = &quot;Authorization&quot;;\n    private static final String AUTHORIZATION_PREFIX = &quot;Bearer&quot;;\n\n    private final JwtService jwtService;\n    private final UserDao userDao;\n\n    @Override\n    protected void doFilterInternal(\n            @NonNull HttpServletRequest request,\n            @NonNull HttpServletResponse response,\n            @NonNull FilterChain filterChain\n    ) throws ServletException, IOException {\n        filterRequest(request);\n        filterChain.doFilter(request, response);\n    }\n\n    private void filterRequest(HttpServletRequest request) {\n        Authentication existAuthentication = SecurityContextHolder.getContext().getAuthentication();\n        if (existAuthentication != null &amp;&amp; existAuthentication.isAuthenticated()) {\n            return;\n        }\n\n        String token = getToken(request);\n        if (token == null) {\n            return;\n        }\n\n        User user = jwtService.getUser(token).orElse(null);\n        if (user == null) {\n            return;\n        }\n\n        userDao.register(user);\n        setAuthentication(request, user);\n    }\n\n    @Nullable\n    private String getToken(HttpServletRequest request) {\n        String authorizationHeader = request.getHeader(HEADER_AUTHORIZATION);\n        if (authorizationHeader == null || !authorizationHeader.startsWith(AUTHORIZATION_PREFIX + &quot; &quot;)) {\n            return null;\n        }\n        return authorizationHeader.substring(7);\n    }\n\n    private static void setAuthentication(HttpServletRequest request, UserDetails userDetails) {\n        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(\n                userDetails,\n                null,\n                userDetails.getAuthorities()\n        );\n        authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));\n        SecurityContextHolder.getContext().setAuthentication(authenticationToken);\n    }\n}\n</code></pre>\n<p>Now I always get 401. <strong>I've figured out that <code>authenticationEntryPoint</code> is being called after <code>accessDeniedHandler</code> when <code>AccessDeniedException</code> is thrown.</strong> My guess is that the user becomes anonymous if they fail authorization. <strong>On the other hand, when provide an invalid JWT (<code>AuthenticationException</code> is thrown) <code>authenticationEntryPoint</code> is called twice.</strong> This doesn't seem to me as a correct behaviour.</p>\n<p>How to prevent this?</p>\n<p>I'm using Spring Security v.6.2.3.</p>\n<p>Currently, I'm using a workaround with a <code>ControllerAdvice</code>:</p>\n<pre><code>@ExceptionHandler(AccessDeniedException.class)\npublic ResponseEntity&lt;?&gt; handleException(AccessDeniedException e) {\n    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();\n}\n</code></pre>\n<p>This way both <code>authenticationEntryPoint</code> and <code>accessDeniedHandler</code> are ignored.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

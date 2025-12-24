@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "asynchronous",
+      "recursion",
+      "completable-future"
+    ],
+    "owner": {
+      "account_id": 2855454,
+      "reputation": 99,
+      "user_id": 2451814,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/93d41c43fd373f615dc602425f3d8b14?s=256&d=identicon&r=PG",
+      "display_name": "bhosleviraj",
+      "link": "https://stackoverflow.com/users/2451814/bhosleviraj"
+    },
+    "is_answered": false,
+    "view_count": 60,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1750050922,
+    "creation_date": 1750050922,
+    "question_id": 79667081,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79667081/retrieve-all-pages-iteratively-using-completablefuture",
+    "title": "Retrieve all pages iteratively using completablefuture",
+    "body": "<p>DAO has methods that return completableFuture. To avoid fetching huge result at once, I want to fetch it in pages from DB.\nThe recursive solution stops when result size &lt; pageSize\nHowever, to avoid possible stackoverlow error, I want to convert it to iterative solution.\nProblem is how to chain completable futures iteratively and how to stop chaining when fetched page has less than pageSize rows?</p>\n<pre><code>  public CompletionStage&lt;List&lt;Entity&gt;&gt; getAll(List&lt;String&gt; codes) {\n    return getAllBatch(codes, 1L, PAGE_SIZE);\n  }\n\n  private CompletionStage&lt;List&lt;Entity&gt;&gt; getAllBatch(List&lt;String&gt; codes, Long pageNumber, Long pageSize) {\n    return get(codes, pageSize, pageNumber)\n        .thenCompose(results -&gt; {\n          if (results.size() &lt; pageSize) {\n            return completedFuture(results);\n          }\n          else {\n            return getAllBatch(codes, pageNumber + 1, pageSize)\n                .thenApply(\n                    nextPageResults -&gt; Stream.concat(results.stream(), nextPageResults.stream())\n                        .toList());\n          }\n        });\n  }\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

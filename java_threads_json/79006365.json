@@ -1,0 +1,34 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "authentication",
+      "tomcat",
+      "clientip"
+    ],
+    "owner": {
+      "account_id": 26608602,
+      "reputation": 358,
+      "user_id": 20229075,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/7fd90a30ba9ff9fe591f5dd3653fa980?s=256&d=identicon&r=PG",
+      "display_name": "Marios",
+      "link": "https://stackoverflow.com/users/20229075/marios"
+    },
+    "is_answered": false,
+    "view_count": 51,
+    "answer_count": 0,
+    "score": 0,
+    "last_activity_date": 1726949108,
+    "creation_date": 1726827979,
+    "last_edit_date": 1726949108,
+    "question_id": 79006365,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79006365/how-to-get-client-ip-from-inside-a-custom-realm",
+    "title": "How to get client IP from inside a custom realm?",
+    "body": "<p>I have a java web app on tomcat which implements user authentication with j_security_check.</p>\n<p>I am trying to log into the db the failed login attempts. I tried several methods (listeners,valve,filter) with no success and I am trying with a custom realm which works and seems like a pretty and effortless solution BUT my problem is that i want to also log the client's IP and as far as I know i don't have access to the request object inside the realm so i can't get the IP. I searched so much but with no success.</p>\n<p>My code is</p>\n<pre><code>public class CustomLoginRealm extends DataSourceRealm {\n\n\n    @Override\n    public Principal authenticate(String username, String credentials) {\n        System.out.println(&quot;AUTHENTICATE in CustomLoginRealm&quot;);\n        System.out.println(&quot;Thread in Realm: &quot; + Thread.currentThread().getId());\n\n        Principal principal = super.authenticate(username, credentials);\n\n        if (principal == null) {\n            logFailedLoginAttempt(username);\n        }\n\n        return principal;\n    }\n\n    private void logFailedLoginAttempt(String username) {\n\n        try (Connection conn = DriverManager.getConnection(url, dbUsername, dbPassword)) {\n            String details = &quot;Username/password mismatch&quot;;\n            Date date = new Date();\n\n            String query = &quot;INSERT INTO U_LOGIN_FAILED_ATTEMPTS (TIMESTAMP, USERNAME, DETAILS) &quot;\n                    + &quot;VALUES (?, ?, ?)&quot;;\n\n            try (PreparedStatement ps = conn.prepareStatement(query)) {\n                ps.setTimestamp(1, new Timestamp(date.getTime()));\n                ps.setString(2, username);\n                ps.setString(3, details);\n                ps.executeUpdate();\n            }\n        } catch (SQLException e) {\n            e.printStackTrace();\n        }\n    }\n\n}\n</code></pre>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

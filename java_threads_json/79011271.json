@@ -1,0 +1,32 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "apache-flink"
+    ],
+    "owner": {
+      "account_id": 31669512,
+      "reputation": 11,
+      "user_id": 24487684,
+      "user_type": "registered",
+      "profile_image": "https://www.gravatar.com/avatar/90ede5f0581f01f4aa89cd5999c183b9?s=256&d=identicon&r=PG&f=y&so-version=2",
+      "display_name": "Apollo Elon",
+      "link": "https://stackoverflow.com/users/24487684/apollo-elon"
+    },
+    "is_answered": false,
+    "view_count": 78,
+    "answer_count": 1,
+    "score": 0,
+    "last_activity_date": 1727168390,
+    "creation_date": 1726996171,
+    "last_edit_date": 1726996651,
+    "question_id": 79011271,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79011271/why-is-listview-performing-better-than-arraylist",
+    "title": "Why is ListView performing better than ArrayList",
+    "body": "<p>I encountered an issue while customizing UDAF using Flink (version 1.20). I wanted to implement a UDAF that calculates the median, and I used the following two methods:</p>\n<pre class=\"lang-java prettyprint-override\"><code>public class MedianUDAF2 extends AggregateFunction&lt;Double, MedianUDAF2.State&gt; {\n\n    public static class State {\n\n        public int scale = 2;\n\n        public ListView&lt;Double&gt; numbers;\n\n        public State() {}\n    }\n\n    @Override\n    public State createAccumulator() {\n        State state = new State();\n        state.numbers = new ListView&lt;&gt;();\n        return state;\n    }\n\n    public void accumulate(State acc, Double val, Integer scale) throws Exception {\n        acc.numbers.add(val);\n        if (scale != null &amp;&amp; scale &gt; 0) acc.scale = scale;\n    }\n\n    public void merge(State acc, Iterable&lt;State&gt; it) throws Exception {\n        for (State a : it) {\n            acc.numbers.addAll(a.numbers.getList());\n        }\n    }\n\n    @Override\n    public Double getValue(State acc) {\n        try {\n            List&lt;Double&gt; numbers = acc.numbers.getList();\n            numbers.sort(Double::compareTo);\n            double n = numbers.size() - 1;\n            double index = n * 0.5;\n\n            int low = (int) Math.floor(index);\n            int high = (int) Math.ceil(index);\n\n            double value = low == high ? (numbers.get(low) + numbers.get(high)) * 0.5 : numbers.get(high);\n            BigDecimal decimal = new BigDecimal(value);\n            return decimal.setScale(acc.scale, BigDecimal.ROUND_HALF_UP).doubleValue();\n        } catch (Exception ignored) {\n        }\n        return 0.0;\n    }\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>public class MedianUDAF extends AggregateFunction&lt;Double, MedianUDAF.State&gt; {\n\n    public static class State {\n\n        public int scale = 2;\n\n        @DataTypeHint(value = &quot;ARRAY&lt;DOUBLE&gt;&quot;)\n        public ArrayList&lt;Double&gt; numbers;\n\n        public State() {}\n    }\n\n    @Override\n    public State createAccumulator() {\n        State state = new State();\n        state.numbers = new ArrayList&lt;&gt;();\n        return state;\n    }\n\n    public void accumulate(State acc, Double val, Integer scale) throws Exception {\n        acc.numbers.add(val);\n        if (scale != null &amp;&amp; scale &gt; 0) acc.scale = scale;\n    }\n\n    public void merge(State acc, Iterable&lt;State&gt; it) throws Exception {\n        for (State a : it) {\n            acc.numbers.addAll(a.numbers);\n        }\n    }\n\n    @Override\n    public Double getValue(State acc) {\n        try {\n            List&lt;Double&gt; numbers = acc.numbers;\n            numbers.sort(Double::compareTo);\n            double n = numbers.size() - 1;\n            double index = n * 0.5;\n\n            int low = (int) Math.floor(index);\n            int high = (int) Math.ceil(index);\n\n            double value = low == high ? (numbers.get(low) + numbers.get(high)) * 0.5 : numbers.get(high);\n            BigDecimal decimal = new BigDecimal(value);\n            return decimal.setScale(acc.scale, BigDecimal.ROUND_HALF_UP).doubleValue();\n        } catch (Exception ignored) {\n        }\n        return 0.0;\n    }\n}\n</code></pre>\n<pre class=\"lang-java prettyprint-override\"><code>tableEnvironment.createTemporarySystemFunction(&quot;median&quot;, new MedianUDAF()); // Or new MedianUDAF2()\nTable table = tableEnvironment.sqlQuery(&quot;select median(l_linenumber, 2) from lineitem&quot;);\n</code></pre>\n<p>Their difference lies in the fact that one uses an ArrayList and the other uses a ListView in State, and their performance gap is very large. Why ?</p>\n<p>The comments on the ListView state that it will use a state backend in large amounts of data. Before Flink-table-planner 1.14, the addAccumulatorDataViews in AggregationCodeGenerator could see this conversion process, but it is no longer visible in version 1.20,\nI tried to DEBUG this conversion process in the AggsHandlerCodeGenerator class, but still couldn't succeed,\nMay I ask where this conversion process occurred and how I should observe this phenomenon? Thank you, thank you!!!</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}

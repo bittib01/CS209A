@@ -1,0 +1,33 @@
+{
+  "question": {
+    "tags": [
+      "java",
+      "spring-boot",
+      "kubernetes",
+      "configuration"
+    ],
+    "owner": {
+      "account_id": 21705179,
+      "reputation": 31,
+      "user_id": 16017744,
+      "user_type": "registered",
+      "profile_image": "https://lh3.googleusercontent.com/a-/AOh14GiTbPLKCRxL1wk1QBkBE2Rsfk0nZjrNiAQzkg5rkw=k-s256",
+      "display_name": "Montassar Hamadi",
+      "link": "https://stackoverflow.com/users/16017744/montassar-hamadi"
+    },
+    "is_answered": true,
+    "view_count": 799,
+    "answer_count": 1,
+    "score": 3,
+    "last_activity_date": 1742825848,
+    "creation_date": 1728641382,
+    "question_id": 79077765,
+    "content_license": "CC BY-SA 4.0",
+    "link": "https://stackoverflow.com/questions/79077765/integrating-leadership-election-mechanism-in-my-spring-boot-application-v2-7-d",
+    "title": "Integrating Leadership Election Mechanism in my Spring Boot application (V2.7) deployed in kubernetes cluster",
+    "body": "<p>I'm working on a Spring Boot 2.7 application deployed in a Kubernetes cluster with multiple instances. The application includes a scheduled task (cron job), and I want only the leader instance to execute this task.</p>\n<p>I followed the steps outlined in this article :</p>\n<pre><code>https://medium.com/@pedrommj8/using-leader-election-with-spring-cloud-kubernetes-and-spring-scheduler-8f7ea3e3e694\n</code></pre>\n<p>to integrate Leadership Election using Kubernetes ConfigMap and Spring Cloud Kubernetes. Unfortunately, the mechanism isn't working as expected in my case, and all instances of the application try to execute the task, rather than having just one leader handle it  and the ConfigMap is not being updated as it should.</p>\n<p>Could someone help by providing an example or guiding me on how to ensure that only the leader in the Kubernetes cluster runs the cron job?</p>\n<p>Any help or resources would be highly appreciated.</p>\n<p>Thank you!</p>\n<p>I followed the steps from the article linked above, which explains how to use Kubernetes ConfigMap for leader election in a Spring Boot application with Spring Cloud Kubernetes. I added the necessary configurations to create a leader election mechanism, expecting that only one instance (the leader) in the Kubernetes cluster would execute the scheduled task, while the others would wait.</p>\n<pre><code>1- add dependencies in pom.xml\n &lt;dependency&gt;\n   &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n   &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;\n  &lt;/dependency&gt;\n  &lt;dependency&gt;\n   &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;\n   &lt;artifactId&gt;spring-cloud-kubernetes-fabric8-leader&lt;/artifactId&gt;\n   &lt;version&gt;3.0.2&lt;/version&gt;\n  &lt;/dependency&gt;\n  &lt;dependency&gt;\n1- create a sheduled task \n@Component\npublic class ScheduledTasks {\n    private static final Logger log = LoggerFactory.getLogger(ScheduledTasks.class);\n\n    private static final SimpleDateFormat dateFormat = new SimpleDateFormat(&quot;HH:mm:ss&quot;);\n\n    private ManagerContext managerContext;\n    public ScheduledTasks(ManagerContext managerContext){\n        this.managerContext = managerContext;\n    }\n    @Scheduled(fixedRate = 5000)\n    public void reportCurrentTime() {\n\n        if (isLeader()) {\n            // Perform the task\n            log.info(&quot;The time is now {}&quot;, dateFormat.format(new Date()));\n        } else {\n            // Not the leader instance, wait until becoming the leader\n            log.info(&quot;I am not an leader&quot;);\n        }\n\n    }\n\n    private boolean isLeader() {\n        // Logic to check if this instance is the leader\n        return managerContext.getContext() != null; // Modify the logic to check real leadership\n    }\n}\n3- Edit the application.properties file and add the following configurations:\n\nspring.cloud.kubernetes.leader.role=world\n# Configmap to which leader election metadata will be saved\nspring.cloud.kubernetes.leader.config-map-name=my-config-map\n\n4- add new component to listen on OnGrantedEvent and OnRevokedEvent and Hold the role in the context\n\n/**\n  * Handle a notification that this instance has become a leader.\n  * @param event on granted event\n  */\n @EventListener\n public void handleEvent(OnGrantedEvent event) {\n  System.out.println(String.format(&quot;'%s' leadership granted&quot;, event.getRole()));\n  this.context = event.getContext();\n  managerContext.setContext(this.context);\n }\n\n /**\n  * Handle a notification that this instance's leadership has been revoked.\n  * @param event on revoked event\n  */\n @EventListener\n public void handleEvent(OnRevokedEvent event) {\n  System.out.println(String.format(&quot;'%s' leadership revoked&quot;, event.getRole()));\n  this.context = null;\n  managerContext.setContext(null);\n }\n5- Creating the configMap that will be used by the application\n\n6- creating the Role and RoleBinding ensure only the specific service account has access to manage the ConfigMap.\n</code></pre>\n<p>I was expecting only the leader instance to execute the task and the ConfigMap to reflect the current leader but i found that nothing displayed in the log of the pods even the errors.</p>\n"
+  },
+  "answers": [],
+  "question_comments": [],
+  "answer_comments": {}
+}
